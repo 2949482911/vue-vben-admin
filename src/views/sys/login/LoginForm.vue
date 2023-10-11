@@ -8,10 +8,10 @@
     v-show="getShow"
     @keypress.enter="handleLogin"
   >
-    <FormItem name="account" class="enter-x">
+    <FormItem name="email" class="enter-x">
       <Input
         size="large"
-        v-model:value="formData.account"
+        v-model:value="formData.email"
         :placeholder="t('sys.login.userName')"
         class="fix-auto-fill"
       />
@@ -119,8 +119,8 @@
   const rememberMe = ref(false);
 
   const formData = reactive({
-    account: 'vben',
-    password: '123456',
+    email: '2949482911@163.com',
+    password: 'admin123',
   });
 
   const { validForm } = useFormValid(formRef);
@@ -136,9 +136,10 @@
       loading.value = true;
       const userInfo = await userStore.login({
         password: data.password,
-        username: data.account,
+        email: data.email,
         mode: 'none', //不要默认的错误提示
       });
+      console.log(userInfo);
       if (userInfo) {
         notification.success({
           message: t('sys.login.loginSuccessTitle'),
