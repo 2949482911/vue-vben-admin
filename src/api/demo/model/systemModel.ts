@@ -41,23 +41,68 @@ export interface DeptListItem {
   status: number;
 }
 
+export interface MenuMeta {
+  hideMenu: boolean;
+  icon: string;
+  title: string;
+}
+
+/**
+ * 菜单列表
+ */
 export interface MenuListItem {
   id: string;
-  orderNo: string;
-  createTime: string;
-  status: number;
+  type: number;
+  name: string;
   icon: string;
+  path: string;
+  backendUrl: string;
+  mark: string;
+  isLogin: number;
+  title: string;
   component: string;
-  permission: string;
+  parentId: string;
+  sort: number;
+  createTime: string;
+  meta: MenuMeta;
+  children: Array<MenuListItem>;
+}
+
+export interface CreateUpdateMenu {
+  id: string;
+  type: number;
+  icon: string;
+  path: string;
+  backendUrl: string;
+  mark: string;
+  title: string;
+  parentId: number;
+  component: string;
+  sort: number;
 }
 
 export interface RoleListItem {
   id: string;
-  roleName: string;
-  roleValue: string;
+  name: string;
+  roleType: number;
+  comment: string;
   status: number;
-  orderNo: string;
   createTime: string;
+}
+
+export interface CreateRole {
+  name: string;
+  roleType: number;
+  comment: string;
+  menuIds: Array<number>;
+}
+
+export interface UpdateRole {
+  id: string;
+  name: string;
+  roleType: number;
+  comment: string;
+  menuIds: Array<number>;
 }
 
 /**

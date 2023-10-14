@@ -16,7 +16,7 @@
   import { formSchema } from './menu.data';
   import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
 
-  import { getMenuList } from '/@/api/demo/system';
+  import { getMenuList, createMenu, updateMenu } from '/@/api/demo/system';
 
   export default defineComponent({
     name: 'MenuDrawer',
@@ -44,7 +44,7 @@
         }
         const treeData = await getMenuList();
         updateSchema({
-          field: 'parentMenu',
+          field: 'parentId',
           componentProps: { treeData },
         });
       });
@@ -56,14 +56,17 @@
           const values = await validate();
           setDrawerProps({ confirmLoading: true });
           // TODO custom api
-          console.log(values);
+          if (values.id) {
+            await updateMenu(values);
+          } else {
+            await createMenu(values);
+          }
           closeDrawer();
           emit('success');
         } finally {
           setDrawerProps({ confirmLoading: false });
         }
       }
-
       return { registerDrawer, registerForm, getTitle, handleSubmit };
     },
   });

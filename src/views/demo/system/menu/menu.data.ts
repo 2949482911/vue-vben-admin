@@ -6,9 +6,39 @@ import Icon from '@/components/Icon/Icon.vue';
 export const columns: BasicColumn[] = [
   {
     title: '菜单名称',
-    dataIndex: 'menuName',
+    dataIndex: 'name',
     width: 200,
     align: 'left',
+  },
+  {
+    title: '标题',
+    dataIndex: 'title',
+    width: 200,
+    align: 'left',
+  },
+  {
+    title: '类型',
+    dataIndex: 'type',
+    width: 100,
+    customRender: ({ record }) => {
+      const type = record.type;
+      let color = '';
+      let text = '';
+      if (type === 1) {
+        text = '菜单';
+        color = 'green';
+      } else if (type === 2) {
+        text = '接口';
+        color = 'red';
+      } else if (type === 3) {
+        text = '按钮';
+        color = 'blue';
+      } else {
+        text = '未知';
+        color = '';
+      }
+      return h(Tag, { color: color }, () => text);
+    },
   },
   {
     title: '图标',
@@ -20,7 +50,7 @@ export const columns: BasicColumn[] = [
   },
   {
     title: '权限标识',
-    dataIndex: 'permission',
+    dataIndex: 'mark',
     width: 180,
   },
   {
@@ -29,7 +59,7 @@ export const columns: BasicColumn[] = [
   },
   {
     title: '排序',
-    dataIndex: 'orderNo',
+    dataIndex: 'sort',
     width: 50,
   },
   {
@@ -51,13 +81,14 @@ export const columns: BasicColumn[] = [
   },
 ];
 
-const isDir = (type: string) => type === '0';
-const isMenu = (type: string) => type === '1';
-const isButton = (type: string) => type === '2';
+// const isDir = (type: number) => type === 1;
+const isInterface = (type: number) => type === 2;
+const isMenu = (type: number) => type === 1;
+const isButton = (type: number) => type === 3;
 
 export const searchFormSchema: FormSchema[] = [
   {
-    field: 'menuName',
+    field: 'name',
     label: '菜单名称',
     component: 'Input',
     colProps: { span: 8 },
@@ -68,8 +99,8 @@ export const searchFormSchema: FormSchema[] = [
     component: 'Select',
     componentProps: {
       options: [
-        { label: '启用', value: '0' },
-        { label: '停用', value: '1' },
+        { label: '启用', value: 0 },
+        { label: '停用', value: 1 },
       ],
     },
     colProps: { span: 8 },
@@ -78,33 +109,46 @@ export const searchFormSchema: FormSchema[] = [
 
 export const formSchema: FormSchema[] = [
   {
+    field: 'id',
+    label: 'id',
+    component: 'Input',
+    ifShow: false,
+  },
+  {
     field: 'type',
     label: '菜单类型',
     component: 'RadioButtonGroup',
-    defaultValue: '0',
+    defaultValue: 1,
     componentProps: {
       options: [
-        { label: '目录', value: '0' },
-        { label: '菜单', value: '1' },
-        { label: '按钮', value: '2' },
+        { label: '菜单', value: 1 },
+        { label: '接口', value: 2 },
+        { label: '按钮', value: 3 },
       ],
     },
     colProps: { lg: 24, md: 24 },
   },
   {
-    field: 'menuName',
+    field: 'name',
     label: '菜单名称',
     component: 'Input',
     required: true,
   },
 
   {
-    field: 'parentMenu',
+    field: 'title',
+    label: '标题',
+    component: 'Input',
+    required: true,
+  },
+
+  {
+    field: 'parentId',
     label: '上级菜单',
     component: 'TreeSelect',
     componentProps: {
       fieldNames: {
-        label: 'menuName',
+        label: 'name',
         key: 'id',
         value: 'id',
       },
@@ -113,7 +157,7 @@ export const formSchema: FormSchema[] = [
   },
 
   {
-    field: 'orderNo',
+    field: 'sort',
     label: '排序',
     component: 'InputNumber',
     required: true,
@@ -123,15 +167,15 @@ export const formSchema: FormSchema[] = [
     label: '图标',
     component: 'IconPicker',
     required: true,
-    ifShow: ({ values }) => !isButton(values.type),
+    ifShow: ({ values }) => isMenu(values.type),
   },
 
   {
-    field: 'routePath',
+    field: 'path',
     label: '路由地址',
     component: 'Input',
     required: true,
-    ifShow: ({ values }) => !isButton(values.type),
+    ifShow: ({ values }) => isMenu(values.type),
   },
   {
     field: 'component',
@@ -139,21 +183,30 @@ export const formSchema: FormSchema[] = [
     component: 'Input',
     ifShow: ({ values }) => isMenu(values.type),
   },
+
   {
-    field: 'permission',
+    field: 'backendUrl',
+    label: 'API',
+    component: 'Input',
+    ifShow: ({ values }) => isInterface(values.type),
+    required: true,
+  },
+  {
+    field: 'mark',
     label: '权限标识',
     component: 'Input',
-    ifShow: ({ values }) => !isDir(values.type),
+    ifShow: ({ values }) => isInterface(values.type),
+    required: ({ values }) => isInterface(values.type),
   },
   {
     field: 'status',
     label: '状态',
     component: 'RadioButtonGroup',
-    defaultValue: '0',
+    defaultValue: 1,
     componentProps: {
       options: [
-        { label: '启用', value: '0' },
-        { label: '禁用', value: '1' },
+        { label: '启用', value: 1 },
+        { label: '禁用', value: 9 },
       ],
     },
   },
@@ -168,7 +221,7 @@ export const formSchema: FormSchema[] = [
         { label: '是', value: '1' },
       ],
     },
-    ifShow: ({ values }) => !isButton(values.type),
+    ifShow: ({ values }) => isButton(values.type),
   },
 
   {
@@ -196,6 +249,6 @@ export const formSchema: FormSchema[] = [
         { label: '否', value: '1' },
       ],
     },
-    ifShow: ({ values }) => !isButton(values.type),
+    ifShow: ({ values }) => isButton(values.type),
   },
 ];
