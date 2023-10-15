@@ -4,11 +4,11 @@
   </BasicModal>
 </template>
 <script lang="ts">
-  import { defineComponent, ref, computed, unref } from 'vue';
+  import { defineComponent, ref, computed, unref, onMounted } from 'vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
   import { BasicForm, useForm } from '/@/components/Form/index';
   import { accountFormSchema } from './account.data';
-  import { getDeptList } from '/@/api/demo/system';
+  import { getDeptList, getRoleListByPage } from '/@/api/demo/system';
 
   export default defineComponent({
     name: 'AccountModal',
@@ -41,14 +41,20 @@
         }
 
         const treeData = await getDeptList();
+        const roleList = await getRoleListByPage({ page: 1, pageSize: 100 });
+        const roleListItem = roleList.items;
         updateSchema([
           {
             field: 'pwd',
             show: !unref(isUpdate),
           },
           {
-            field: 'dept',
+            field: 'orgId',
             componentProps: { treeData },
+          },
+          {
+            field: 'roleIds',
+            componentProps: { options: roleListItem },
           },
         ]);
       });
@@ -67,6 +73,8 @@
           setModalProps({ confirmLoading: false });
         }
       }
+
+      onMounted(() => {});
 
       return { registerModal, registerForm, getTitle, handleSubmit };
     },

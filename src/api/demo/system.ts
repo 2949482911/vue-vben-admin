@@ -12,13 +12,22 @@ import {
   CreateUpdateMenu,
   CreateRole,
   UpdateRole,
+  CreateOrg,
+  UpdateOrg,
 } from './model/systemModel';
 import { defHttp } from '/@/utils/http/axios';
 
 enum Api {
-  AccountList = '/system/getAccountList',
+  AccountList = 'sys/user/list',
+
   IsAccountExist = '/system/accountExist',
-  DeptList = '/system/getDeptList',
+  DeptList = 'sys/org/list',
+  CreateOrg = 'sys/org/save',
+  UpdateOrg = 'sys/org/update',
+  DisableOrg = 'sys/org/disable',
+  EnableOrg = 'sys/org/enable',
+  DeleteOrg = 'sys/org/delete',
+
   MenuList = 'sys/menu/list',
   CreateMenu = 'sys/menu/create',
   UpdateMenu = 'sys/menu/update',
@@ -62,7 +71,20 @@ export const getAllRoleList = (params?: RoleParams) =>
 
 export const setRoleDisable = (id: string) => defHttp.get({ url: Api.RoleDisable, params: { id } });
 
-export const setRoleEnbale = (id: string) => defHttp.get({ url: Api.RoleEnable, params: { id } });
+export const setRoleEnable = (id: string) => defHttp.get({ url: Api.RoleEnable, params: { id } });
 
 export const isAccountExist = (account: string) =>
   defHttp.post({ url: Api.IsAccountExist, params: { account } }, { errorMessageMode: 'none' });
+
+export const createOrg = (params?: CreateOrg) => defHttp.post({ url: Api.CreateOrg, params });
+
+export const updateOrg = (params?: UpdateOrg) => defHttp.post({ url: Api.UpdateOrg, params });
+
+export const enbaleOrg = (ids: Array<string>) =>
+  defHttp.post({ url: Api.EnableOrg, params: { ids: ids } });
+
+export const disableOrg = (ids: Array<string>) =>
+  defHttp.post({ url: Api.DisableOrg, params: { ids: ids } });
+
+export const deleteOrg = (ids: Array<string>) =>
+  defHttp.post({ url: Api.DeleteOrg, params: { ids: ids } });

@@ -1,7 +1,7 @@
 import { BasicColumn, FormSchema } from '/@/components/Table';
 import { h } from 'vue';
 import { Switch } from 'ant-design-vue';
-import { setRoleEnbale, setRoleDisable } from '/@/api/demo/system';
+import { setRoleEnable, setRoleDisable } from '/@/api/demo/system';
 import { useMessage } from '/@/hooks/web/useMessage';
 
 type CheckedType = boolean | string | number;
@@ -38,7 +38,7 @@ export const columns: BasicColumn[] = [
           const newStatus = checked ? 1 : 9;
           const { createMessage } = useMessage();
           if (newStatus === 1) {
-            setRoleEnbale(record.id).then(() => {
+            setRoleEnable(record.id).then(() => {
               record.status = newStatus;
             });
           } else {

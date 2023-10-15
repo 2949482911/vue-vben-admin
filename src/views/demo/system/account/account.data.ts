@@ -1,4 +1,4 @@
-import { getAllRoleList, isAccountExist } from '/@/api/demo/system';
+import { isAccountExist } from '/@/api/demo/system';
 import { BasicColumn, FormSchema } from '/@/components/Table';
 
 export const columns: BasicColumn[] = [
@@ -24,7 +24,7 @@ export const columns: BasicColumn[] = [
   },
   {
     title: '角色',
-    dataIndex: 'role',
+    dataIndex: 'roleList',
     width: 200,
   },
   {
@@ -50,7 +50,7 @@ export const searchFormSchema: FormSchema[] = [
 
 export const accountFormSchema: FormSchema[] = [
   {
-    field: 'account',
+    field: 'authName',
     label: '用户名',
     component: 'Input',
     helpMessage: ['本字段演示异步验证', '不能输入带有admin的用户名'],
@@ -81,25 +81,31 @@ export const accountFormSchema: FormSchema[] = [
   },
   {
     label: '角色',
-    field: 'role',
-    component: 'ApiSelect',
+    field: 'roleIds',
+    component: 'Select',
+    defaultValue: [],
     componentProps: {
-      api: getAllRoleList,
-      labelField: 'roleName',
-      valueField: 'roleValue',
+      mode: 'multiple',
+      allowClear: true,
+      fieldNames: {
+        label: 'name',
+        key: 'id',
+        value: 'id',
+      },
     },
     required: true,
   },
   {
-    field: 'dept',
+    field: 'orgId',
     label: '所属部门',
     component: 'TreeSelect',
     componentProps: {
       fieldNames: {
-        label: 'deptName',
+        label: 'name',
         key: 'id',
         value: 'id',
       },
+
       getPopupContainer: () => document.body,
     },
     required: true,
@@ -116,6 +122,12 @@ export const accountFormSchema: FormSchema[] = [
     field: 'email',
     component: 'Input',
     required: true,
+  },
+
+  {
+    label: '电话',
+    field: 'phone',
+    component: 'Input',
   },
 
   {

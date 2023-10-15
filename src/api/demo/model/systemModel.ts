@@ -35,9 +35,26 @@ export interface AccountListItem {
 
 export interface DeptListItem {
   id: string;
-  orderNo: string;
+  name: string;
+  parentId: string;
+  code: string;
   createTime: string;
-  remark: string;
+  status: number;
+  children: Array<DeptListItem>;
+}
+
+export interface CreateOrg {
+  name: string;
+  parentId: string;
+  code: string;
+  status: number;
+}
+
+export interface UpdateOrg {
+  id: string;
+  name: string;
+  parentId: string;
+  code: string;
   status: number;
 }
 

@@ -5,13 +5,13 @@ import { Tag } from 'ant-design-vue';
 export const columns: BasicColumn[] = [
   {
     title: '部门名称',
-    dataIndex: 'deptName',
+    dataIndex: 'name',
     width: 160,
     align: 'left',
   },
   {
-    title: '排序',
-    dataIndex: 'orderNo',
+    title: '编码',
+    dataIndex: 'code',
     width: 50,
   },
   {
@@ -20,7 +20,7 @@ export const columns: BasicColumn[] = [
     width: 80,
     customRender: ({ record }) => {
       const status = record.status;
-      const enable = ~~status === 0;
+      const enable = ~~status === 1;
       const color = enable ? 'green' : 'red';
       const text = enable ? '启用' : '停用';
       return h(Tag, { color: color }, () => text);
@@ -31,15 +31,11 @@ export const columns: BasicColumn[] = [
     dataIndex: 'createTime',
     width: 180,
   },
-  {
-    title: '备注',
-    dataIndex: 'remark',
-  },
 ];
 
 export const searchFormSchema: FormSchema[] = [
   {
-    field: 'deptName',
+    field: 'name',
     label: '部门名称',
     component: 'Input',
     colProps: { span: 8 },
@@ -50,8 +46,8 @@ export const searchFormSchema: FormSchema[] = [
     component: 'Select',
     componentProps: {
       options: [
-        { label: '启用', value: '0' },
-        { label: '停用', value: '1' },
+        { label: '启用', value: 1 },
+        { label: '停用', value: 9 },
       ],
     },
     colProps: { span: 8 },
@@ -60,48 +56,46 @@ export const searchFormSchema: FormSchema[] = [
 
 export const formSchema: FormSchema[] = [
   {
-    field: 'deptName',
+    field: 'id',
+    component: 'Input',
+    ifShow: false,
+  },
+  {
+    field: 'name',
     label: '部门名称',
     component: 'Input',
     required: true,
   },
   {
-    field: 'parentDept',
+    field: 'parentId',
     label: '上级部门',
     component: 'TreeSelect',
 
     componentProps: {
       fieldNames: {
-        label: 'deptName',
+        label: 'name',
         key: 'id',
         value: 'id',
       },
       getPopupContainer: () => document.body,
     },
-    required: true,
-  },
-  {
-    field: 'orderNo',
-    label: '排序',
-    component: 'InputNumber',
-    required: true,
   },
   {
     field: 'status',
     label: '状态',
     component: 'RadioButtonGroup',
-    defaultValue: '0',
+    defaultValue: 1,
     componentProps: {
       options: [
-        { label: '启用', value: '0' },
-        { label: '停用', value: '1' },
+        { label: '启用', value: 1 },
+        { label: '停用', value: 9 },
       ],
     },
     required: true,
   },
-  {
-    label: '备注',
-    field: 'remark',
-    component: 'InputTextArea',
-  },
+  // {
+  //   label: '备注',
+  //   field: 'remark',
+  //   component: 'InputTextArea',
+  // },
 ];
