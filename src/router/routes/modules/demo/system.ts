@@ -54,6 +54,16 @@ const system: AppRouteModule = {
       },
       component: () => import('/@/views/demo/system/menu/index.vue'),
     },
+
+    {
+      path: 'main_body',
+      name: 'MainBodyManagement',
+      meta: {
+        title: t('routes.demo.system.mainBody'),
+        ignoreKeepAlive: true,
+      },
+      component: () => import('/@/views/demo/system/main_body/index.vue'),
+    },
     {
       path: 'dept',
       name: 'DeptManagement',

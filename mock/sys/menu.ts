@@ -187,6 +187,15 @@ const sysRoute = {
       component: '/demo/system/menu/index',
     },
     {
+      path: 'main_body',
+      name: 'MainBodyManagement',
+      meta: {
+        title: 'routes.demo.system.mainBody',
+        ignoreKeepAlive: true,
+      },
+      component: '/demo/system/main_body/index',
+    },
+    {
       path: 'dept',
       name: 'DeptManagement',
       meta: {
