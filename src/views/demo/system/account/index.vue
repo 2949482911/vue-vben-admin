@@ -32,6 +32,15 @@
             ]"
           />
         </template>
+        <template v-if="column.key === 'roleList'">
+          <tag
+            v-for="item in record.roleList"
+            :key="item.id"
+            :color="colorList[Math.round(Math.random() * colorList.length)]"
+          >
+            {{ item.name }}
+          </tag>
+        </template>
       </template>
     </BasicTable>
     <AccountModal @register="registerModal" @success="handleSuccess" />
@@ -50,11 +59,13 @@
 
   import { columns, searchFormSchema } from './account.data';
   import { useGo } from '/@/hooks/web/usePage';
+  import { Tag } from 'ant-design-vue';
 
   export default defineComponent({
     name: 'AccountManagement',
-    components: { BasicTable, PageWrapper, DeptTree, AccountModal, TableAction },
+    components: { BasicTable, PageWrapper, DeptTree, AccountModal, TableAction, Tag },
     setup() {
+      const colorList: Array<string> = ['red', 'pink', 'orange', 'green', 'cyan', 'blue', 'purple'];
       const go = useGo();
       const [registerModal, { openModal }] = useModal();
       const searchInfo = reactive<Recordable>({});
@@ -113,7 +124,7 @@
       }
 
       function handleSelect(deptId = '') {
-        searchInfo.deptId = deptId;
+        searchInfo.orgId = deptId;
         reload();
       }
 
@@ -131,6 +142,7 @@
         handleSelect,
         handleView,
         searchInfo,
+        colorList,
       };
     },
   });
