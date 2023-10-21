@@ -174,6 +174,7 @@ export default {
     menu: 'Menu management',
     role: 'Role management',
     mainBody: 'Main Body management',
+    dataScope: 'Data Scope',
   },
   table: {
     table: 'Table',

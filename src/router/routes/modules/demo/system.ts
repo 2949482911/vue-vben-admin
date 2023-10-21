@@ -64,6 +64,17 @@ const system: AppRouteModule = {
       },
       component: () => import('/@/views/demo/system/main_body/index.vue'),
     },
+
+    {
+      path: 'data_scope',
+      name: 'DataScopeManagement',
+      meta: {
+        title: t('routes.demo.system.dataScope'),
+        ignoreKeepAlive: true,
+      },
+      component: () => import('/@/views/demo/system/data_scope/index.vue'),
+    },
+
     {
       path: 'dept',
       name: 'DeptManagement',

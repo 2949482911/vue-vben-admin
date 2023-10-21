@@ -13,8 +13,10 @@
   import { defineComponent } from 'vue';
   import { PageWrapper } from '/@/components/Page';
   import { BasicForm, useForm } from '/@/components/Form';
-
+  import { resetPassword, doLogout } from '@/api/sys/user';
+  import { PageEnum } from '/@/enums/pageEnum';
   import { formSchema } from './pwd.data';
+  import { useRouter } from 'vue-router';
 
   export default defineComponent({
     name: 'ChangePassword',
@@ -28,18 +30,22 @@
         schemas: formSchema,
       });
 
+      const router = useRouter();
       async function handleSubmit() {
         try {
           const values = await validate();
-          const { passwordOld, passwordNew } = values;
-
-          // TODO custom api
-          console.log(passwordOld, passwordNew);
-          // const { router } = useRouter();
-          // router.push(pageEnum.BASE_LOGIN);
-        } catch (error) {}
+          const { oldPassword, newPassword, checkPassword } = values;
+          await resetPassword({
+            oldPassword: oldPassword,
+            newPassword: newPassword,
+            checkPassword: checkPassword,
+          });
+          await doLogout();
+          await router.push(PageEnum.BASE_LOGIN);
+        } catch (error) {
+          console.log(error);
+        }
       }
-
       return { register, resetFields, handleSubmit };
     },
   });

@@ -163,3 +163,34 @@ export interface MainBodyItem {
 
 // 主体列表
 export type MainBodyGetResultModel = BasicFetchResult<MainBodyItem>;
+
+export type DataScopeParams = {
+  name?: string;
+  status?: number;
+};
+
+export type DataScopePageParams = BasicPageParams & DataScopeParams;
+
+export interface DataScopeItem {
+  id: string;
+  name: string;
+  code: string;
+  status: number;
+  remark: string;
+  createTime: string;
+}
+
+export type DataScopeGetResultModel = BasicFetchResult<DataScopeItem>;
+
+export interface CreateDataScope {
+  name: string;
+  type: number;
+  remark: string;
+}
+
+export interface UpdateDataScope {
+  id: string;
+  name: string;
+  type: number;
+  remark: string;
+}

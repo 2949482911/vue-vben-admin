@@ -195,6 +195,16 @@ const sysRoute = {
       },
       component: '/demo/system/main_body/index',
     },
+
+    {
+      path: 'data_scope',
+      name: 'DataScopeManagement',
+      meta: {
+        title: 'routes.demo.system.dataScope',
+        ignoreKeepAlive: true,
+      },
+      component: '/demo/system/data_scope/index',
+    },
     {
       path: 'dept',
       name: 'DeptManagement',

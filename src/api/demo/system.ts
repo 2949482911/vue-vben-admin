@@ -18,6 +18,10 @@ import {
   CreateMainBody,
   UpdateMainBody,
   MainBodyGetResultModel,
+  DataScopePageParams,
+  DataScopeGetResultModel,
+  CreateDataScope,
+  UpdateDataScope,
 } from './model/systemModel';
 import { defHttp } from '/@/utils/http/axios';
 import qs from 'qs';
@@ -55,6 +59,14 @@ enum Api {
   DeleteMainBody = 'sys/main/delete',
   SelectMainBody = 'sys/main/select',
   GetByIdtMainBody = 'sys/main/getById',
+
+  // 数据权限
+  GetDataScopeByPage = 'sys/data/range/list',
+  CreateDataScope = 'sys/data/range/create',
+  UpdateDataScope = 'sys/data/range/update',
+  DeleteDataScope = 'sys/data/range/delete',
+  EnableDataScope = 'sys/data/range/enable',
+  DisableDataScope = 'sys/data/range/disable',
 }
 
 export const getAccountList = (params: AccountParams) =>
@@ -137,3 +149,39 @@ export const selectMainBody = () => defHttp.get({ url: Api.SelectMainBody });
 
 export const deleteMainBody = (ids: Array<string>) =>
   defHttp.get({ url: Api.DeleteMainBody, params: { ids: ids } });
+
+export const getDataScopeByPage = (params?: DataScopePageParams) =>
+  defHttp.get<DataScopeGetResultModel>({ url: Api.GetDataScopeByPage, params });
+
+export const createDataScope = (params?: CreateDataScope) =>
+  defHttp.post({ url: Api.CreateDataScope, params });
+
+export const updateDataScope = (params?: UpdateDataScope) =>
+  defHttp.post({ url: Api.UpdateDataScope, params });
+
+export const deleteDataScope = (id: string) =>
+  defHttp.get({
+    url: Api.DeleteDataScope,
+    params: { ids: [id] },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });
+
+export const enableDataScope = (id: string) =>
+  defHttp.get({
+    url: Api.EnableDataScope,
+    params: { ids: [id] },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });
+
+export const disableDataScope = (id: string) =>
+  defHttp.get({
+    url: Api.DisableDataScope,
+    params: { ids: [id] },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });

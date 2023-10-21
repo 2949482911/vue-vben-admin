@@ -166,6 +166,7 @@ export default {
     menu: '菜单管理',
     role: '角色管理',
     mainBody: '主体管理',
+    dataScope: '数据权限',
   },
   table: {
     table: 'Table',

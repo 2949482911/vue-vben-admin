@@ -2,13 +2,13 @@ import { FormSchema } from '/@/components/Form';
 
 export const formSchema: FormSchema[] = [
   {
-    field: 'passwordOld',
+    field: 'oldPassword',
     label: '当前密码',
     component: 'InputPassword',
     required: true,
   },
   {
-    field: 'passwordNew',
+    field: 'newPassword',
     label: '新密码',
     component: 'StrengthMeter',
     componentProps: {
@@ -22,7 +22,7 @@ export const formSchema: FormSchema[] = [
     ],
   },
   {
-    field: 'confirmPassword',
+    field: 'checkPassword',
     label: '确认密码',
     component: 'InputPassword',
 

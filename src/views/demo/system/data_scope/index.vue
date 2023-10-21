@@ -2,7 +2,7 @@
   <div>
     <BasicTable @register="registerTable">
       <template #toolbar>
-        <a-button type="primary" @click="handleCreate"> 新增主体 </a-button>
+        <a-button type="primary" @click="handleCreate"> 新增数据权限 </a-button>
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
@@ -26,28 +26,28 @@
         </template>
       </template>
     </BasicTable>
-    <MainBodyDrawer @register="registerDrawer" @success="handleSuccess" />
+    <DataScopeDrawer @register="registerDrawer" @success="handleSuccess" />
   </div>
 </template>
 <script lang="ts">
   import { defineComponent } from 'vue';
 
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
-  import { getMainBodyByPage, deleteMainBody } from '/@/api/demo/system';
+  import { getDataScopeByPage, deleteDataScope } from '/@/api/demo/system';
 
   import { useDrawer } from '/@/components/Drawer';
-  import MainBodyDrawer from './MainBodyDrawer.vue';
+  import DataScopeDrawer from './DataScopeDrawer.vue';
 
-  import { columns, searchFormSchema } from './mainBody.data';
+  import { columns, searchFormSchema } from './dataScope.data';
 
   export default defineComponent({
     name: 'MainBodyManagement',
-    components: { BasicTable, MainBodyDrawer, TableAction },
+    components: { BasicTable, DataScopeDrawer, TableAction },
     setup() {
       const [registerDrawer, { openDrawer }] = useDrawer();
       const [registerTable, { reload }] = useTable({
-        title: '主体列表',
-        api: getMainBodyByPage,
+        title: '数据权限列表',
+        api: getDataScopeByPage,
         columns,
         formConfig: {
           labelWidth: 120,
@@ -80,7 +80,9 @@
       }
 
       function handleDelete(record: Recordable) {
-        deleteMainBody(record.id).then(() => {});
+        deleteDataScope(record.id).then(() => {
+          handleSuccess();
+        });
       }
 
       function handleSuccess() {

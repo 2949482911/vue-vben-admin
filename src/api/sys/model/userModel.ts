@@ -34,3 +34,9 @@ export interface GetUserInfoModel {
   // 介绍
   desc?: string;
 }
+
+export interface ResetPassword {
+  oldPassword: string;
+  newPassword: string;
+  checkPassword: string;
+}
