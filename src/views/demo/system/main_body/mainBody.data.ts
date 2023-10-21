@@ -1,18 +1,23 @@
 import { BasicColumn, FormSchema } from '/@/components/Table';
 import { h } from 'vue';
 import { Switch } from 'ant-design-vue';
-import { setRoleEnable, setRoleDisable } from '/@/api/demo/system';
+import { enableMainBody, disableMainBody } from '/@/api/demo/system';
 import { useMessage } from '/@/hooks/web/useMessage';
 
 type CheckedType = boolean | string | number;
 export const columns: BasicColumn[] = [
   {
-    title: '角色名称',
+    title: '主体',
     dataIndex: 'name',
     width: 200,
   },
   {
-    title: '描述',
+    title: '邮箱',
+    dataIndex: 'email',
+    width: 200,
+  },
+  {
+    title: '备注',
     dataIndex: 'comment',
   },
   {
@@ -38,15 +43,15 @@ export const columns: BasicColumn[] = [
           const newStatus = checked ? 1 : 9;
           const { createMessage } = useMessage();
           if (newStatus === 1) {
-            setRoleEnable(record.id).then(() => {
+            enableMainBody(record.id).then(() => {
               record.status = newStatus;
             });
           } else {
-            setRoleDisable(record.id).then(() => {
+            disableMainBody(record.id).then(() => {
               record.status = newStatus;
             });
           }
-          createMessage.success(`已成功修改角色状态`);
+          createMessage.success(`已成功修改主体状态`);
           record.pendingStatus = false;
         },
       });
@@ -57,7 +62,14 @@ export const columns: BasicColumn[] = [
 export const searchFormSchema: FormSchema[] = [
   {
     field: 'name',
-    label: '角色名称',
+    label: '主体名称',
+    component: 'Input',
+    colProps: { span: 8 },
+  },
+
+  {
+    field: 'email',
+    label: '邮箱',
     component: 'Input',
     colProps: { span: 8 },
   },
@@ -84,24 +96,15 @@ export const formSchema: FormSchema[] = [
   },
   {
     field: 'name',
-    label: '角色名称',
+    label: '主体名称',
     required: true,
     component: 'Input',
   },
   {
-    field: 'roleType',
-    label: '角色类型',
-    component: 'Select',
+    field: 'email',
+    label: '邮箱',
     required: true,
-    componentProps: {
-      options: [
-        { label: '超级管理员', value: 1 },
-        { label: '平台管理员', value: 2 },
-        { label: '平台用户', value: 3 },
-        { label: '主体管理员', value: 4 },
-        { label: '主体角色', value: 5 },
-      ],
-    },
+    component: 'Input',
   },
   {
     field: 'status',
@@ -119,11 +122,5 @@ export const formSchema: FormSchema[] = [
     label: '备注',
     field: 'comment',
     component: 'InputTextArea',
-  },
-  {
-    label: ' ',
-    field: 'menuIds',
-    slot: 'menu',
-    component: 'Input',
   },
 ];

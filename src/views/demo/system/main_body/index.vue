@@ -2,7 +2,7 @@
   <div>
     <BasicTable @register="registerTable">
       <template #toolbar>
-        <a-button type="primary" @click="handleCreate"> 新增角色 </a-button>
+        <a-button type="primary" @click="handleCreate"> 新增主体 </a-button>
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
@@ -26,28 +26,28 @@
         </template>
       </template>
     </BasicTable>
-    <RoleDrawer @register="registerDrawer" @success="handleSuccess" />
+    <MainBodyDrawer @register="registerDrawer" @success="handleSuccess" />
   </div>
 </template>
 <script lang="ts">
   import { defineComponent } from 'vue';
 
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
-  import { getRoleListByPage, deleteRole } from '/@/api/demo/system';
+  import { getMainBodyByPage, deleteRole } from '/@/api/demo/system';
 
   import { useDrawer } from '/@/components/Drawer';
-  import RoleDrawer from './MainBodyDrawer.vue';
+  import MainBodyDrawer from './MainBodyDrawer.vue';
 
-  import { columns, searchFormSchema } from './main_body.data.ts';
+  import { columns, searchFormSchema } from './mainBody.data';
 
   export default defineComponent({
-    name: 'RoleManagement',
-    components: { BasicTable, RoleDrawer, TableAction },
+    name: 'MainBodyManagement',
+    components: { BasicTable, MainBodyDrawer, TableAction },
     setup() {
       const [registerDrawer, { openDrawer }] = useDrawer();
       const [registerTable, { reload }] = useTable({
-        title: '角色列表',
-        api: getRoleListByPage,
+        title: '主体列表',
+        api: getMainBodyByPage,
         columns,
         formConfig: {
           labelWidth: 120,

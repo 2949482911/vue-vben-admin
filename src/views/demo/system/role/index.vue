@@ -80,8 +80,9 @@
       }
 
       function handleDelete(record: Recordable) {
-        console.log(record);
-        deleteRole(record.id).then(() => {});
+        deleteRole(record.id).then(() => {
+          handleSuccess();
+        });
       }
 
       function handleSuccess() {

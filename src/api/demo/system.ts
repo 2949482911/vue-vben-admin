@@ -14,8 +14,13 @@ import {
   UpdateRole,
   CreateOrg,
   UpdateOrg,
+  MainBodyPageParams,
+  CreateMainBody,
+  UpdateMainBody,
+  MainBodyGetResultModel,
 } from './model/systemModel';
 import { defHttp } from '/@/utils/http/axios';
+import qs from 'qs';
 
 enum Api {
   AccountList = 'sys/user/list',
@@ -40,6 +45,16 @@ enum Api {
   DeleteRole = 'sys/role/delete',
 
   GetAllRoleList = '/system/getAllRoleList',
+
+  GetMainBodyList = 'sys/main/list',
+  CreateMainBody = 'sys/main/save',
+  UpdateMainBody = 'sys/main/update',
+  InfoMainBody = 'sys/main/body',
+  EnableMainBody = 'sys/main/enable',
+  DisableMainBody = 'sys/main/disable',
+  DeleteMainBody = 'sys/main/delete',
+  SelectMainBody = 'sys/main/select',
+  GetByIdtMainBody = 'sys/main/getById',
 }
 
 export const getAccountList = (params: AccountParams) =>
@@ -88,3 +103,37 @@ export const disableOrg = (ids: Array<string>) =>
 
 export const deleteOrg = (ids: Array<string>) =>
   defHttp.post({ url: Api.DeleteOrg, params: { ids: ids } });
+
+// 主体管理器
+
+export const getMainBodyByPage = (params?: MainBodyPageParams) =>
+  defHttp.get<MainBodyGetResultModel>({ url: Api.GetMainBodyList, params });
+
+export const createMainBody = (params?: CreateMainBody) =>
+  defHttp.post({ url: Api.CreateMainBody, params });
+
+export const updateMainBody = (params?: UpdateMainBody) =>
+  defHttp.post({ url: Api.UpdateMainBody, params });
+
+export const enableMainBody = (id: string) =>
+  defHttp.get({
+    url: Api.EnableMainBody,
+    params: { ids: [id] },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });
+
+export const disableMainBody = (id: string) =>
+  defHttp.get({
+    url: Api.DisableMainBody,
+    params: { ids: [id] },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });
+
+export const selectMainBody = () => defHttp.get({ url: Api.SelectMainBody });
+
+export const deleteMainBody = (ids: Array<string>) =>
+  defHttp.get({ url: Api.DeleteMainBody, params: { ids: ids } });

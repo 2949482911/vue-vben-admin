@@ -122,6 +122,15 @@ export interface UpdateRole {
   menuIds: Array<number>;
 }
 
+export interface CreateMainBody {
+  name: string;
+}
+
+export interface UpdateMainBody {
+  id: string;
+  name: string;
+}
+
 /**
  * @description: Request list return value
  */
@@ -134,3 +143,23 @@ export type MenuListGetResultModel = BasicFetchResult<MenuListItem>;
 export type RolePageListGetResultModel = BasicFetchResult<RoleListItem>;
 
 export type RoleListGetResultModel = RoleListItem[];
+
+/*
+ * 主体查询参数*/
+
+export type MainBodyParams = {
+  name?: string;
+  status?: number;
+};
+export type MainBodyPageParams = BasicPageParams & MainBodyParams;
+
+export interface MainBodyItem {
+  id: string;
+  name: string;
+  status: number;
+  email: string;
+  createTime: string;
+}
+
+// 主体列表
+export type MainBodyGetResultModel = BasicFetchResult<MainBodyItem>;
