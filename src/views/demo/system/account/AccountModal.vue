@@ -4,11 +4,17 @@
   </BasicModal>
 </template>
 <script lang="ts">
-  import { defineComponent, ref, computed, unref, onMounted } from 'vue';
+  import { defineComponent, ref, computed, unref } from 'vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
   import { BasicForm, useForm } from '/@/components/Form/index';
   import { accountFormSchema } from './account.data';
-  import { getDeptList, getRoleListByPage } from '/@/api/demo/system';
+  import {
+    getDeptList,
+    getRoleListByPage,
+    createAccount,
+    updateAccount,
+    getDataScopeByPage,
+  } from '/@/api/demo/system';
 
   export default defineComponent({
     name: 'AccountModal',
@@ -43,6 +49,8 @@
         const treeData = await getDeptList();
         const roleList = await getRoleListByPage({ page: 1, pageSize: 100 });
         const roleListItem = roleList.items;
+        const dataRange = await getDataScopeByPage({ page: 1, pageSize: 100 });
+        const dataRangeItem = dataRange.items;
         updateSchema([
           {
             field: 'pwd',
@@ -56,6 +64,10 @@
             field: 'roleIds',
             componentProps: { options: roleListItem },
           },
+          {
+            field: 'dataRangeId',
+            componentProps: { options: dataRangeItem },
+          },
         ]);
       });
 
@@ -65,16 +77,17 @@
         try {
           const values = await validate();
           setModalProps({ confirmLoading: true });
-          // TODO custom api
-          console.log(values);
+          if (values.id) {
+            await updateAccount(values);
+          } else {
+            await createAccount(values);
+          }
           closeModal();
           emit('success', { isUpdate: unref(isUpdate), values: { ...values, id: rowId.value } });
         } finally {
           setModalProps({ confirmLoading: false });
         }
       }
-
-      onMounted(() => {});
 
       return { registerModal, registerForm, getTitle, handleSubmit };
     },

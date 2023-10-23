@@ -194,3 +194,22 @@ export interface UpdateDataScope {
   type: number;
   remark: string;
 }
+
+export interface UpdateAccount {
+  id: string;
+  nickname: string;
+  authName: string;
+  phone: string;
+  orgId: string;
+  roleIds: Array<string>;
+  remark: string;
+}
+
+export interface CreateAccount {
+  nickname: string;
+  authName: string;
+  phone: string;
+  orgId: string;
+  roleIds: Array<string>;
+  remark: string;
+}

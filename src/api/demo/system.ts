@@ -22,14 +22,20 @@ import {
   DataScopeGetResultModel,
   CreateDataScope,
   UpdateDataScope,
+  UpdateAccount,
+  CreateAccount,
 } from './model/systemModel';
 import { defHttp } from '/@/utils/http/axios';
 import qs from 'qs';
 
 enum Api {
   AccountList = 'sys/user/list',
+  UpdateAccount = 'sys/user/update',
+  CreateAccount = 'sys/user/create',
+  EnableAccount = 'sys/user/enable',
+  DisableAccount = 'sys/user/disabled',
 
-  IsAccountExist = '/system/accountExist',
+  IsAccountExist = 'sys/user/isAccountExist',
   DeptList = 'sys/org/list',
   CreateOrg = 'sys/org/save',
   UpdateOrg = 'sys/org/update',
@@ -67,6 +73,7 @@ enum Api {
   DeleteDataScope = 'sys/data/range/delete',
   EnableDataScope = 'sys/data/range/enable',
   DisableDataScope = 'sys/data/range/disable',
+  SelectDataRange = 'sys/data/range/select',
 }
 
 export const getAccountList = (params: AccountParams) =>
@@ -101,7 +108,10 @@ export const setRoleDisable = (id: string) => defHttp.get({ url: Api.RoleDisable
 export const setRoleEnable = (id: string) => defHttp.get({ url: Api.RoleEnable, params: { id } });
 
 export const isAccountExist = (account: string) =>
-  defHttp.post({ url: Api.IsAccountExist, params: { account } }, { errorMessageMode: 'none' });
+  defHttp.get(
+    { url: Api.IsAccountExist, params: { username: account } },
+    { errorMessageMode: 'none' },
+  );
 
 export const createOrg = (params?: CreateOrg) => defHttp.post({ url: Api.CreateOrg, params });
 
@@ -180,6 +190,35 @@ export const enableDataScope = (id: string) =>
 export const disableDataScope = (id: string) =>
   defHttp.get({
     url: Api.DisableDataScope,
+    params: { ids: [id] },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });
+
+export const selectDataRange = () =>
+  defHttp.get({
+    url: Api.SelectDataRange,
+  });
+
+export const updateAccount = (params?: UpdateAccount) =>
+  defHttp.post({ url: Api.UpdateAccount, params });
+
+export const createAccount = (params?: CreateAccount) =>
+  defHttp.post({ url: Api.CreateAccount, params });
+
+export const disableAccount = (id: string) =>
+  defHttp.get({
+    url: Api.DisableAccount,
+    params: { ids: [id] },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });
+
+export const enableAccount = (id: string) =>
+  defHttp.get({
+    url: Api.EnableAccount,
     params: { ids: [id] },
     paramsSerializer: function (params) {
       return qs.stringify(params, { arrayFormat: 'repeat' });

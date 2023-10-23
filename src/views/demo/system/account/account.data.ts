@@ -4,7 +4,7 @@ import { BasicColumn, FormSchema } from '/@/components/Table';
 export const columns: BasicColumn[] = [
   {
     title: '用户名',
-    dataIndex: 'account',
+    dataIndex: 'authName',
     width: 120,
   },
   {
@@ -49,6 +49,11 @@ export const searchFormSchema: FormSchema[] = [
 ];
 
 export const accountFormSchema: FormSchema[] = [
+  {
+    field: 'id',
+    component: 'Input',
+    ifShow: false,
+  },
   {
     field: 'authName',
     label: '用户名',
@@ -95,6 +100,23 @@ export const accountFormSchema: FormSchema[] = [
     },
     required: true,
   },
+
+  {
+    label: '数据范围',
+    field: 'dataRangeId',
+    component: 'Select',
+    defaultValue: [],
+    componentProps: {
+      allowClear: true,
+      fieldNames: {
+        label: 'name',
+        key: 'id',
+        value: 'id',
+      },
+    },
+    required: true,
+  },
+
   {
     field: 'orgId',
     label: '所属部门',
@@ -122,6 +144,16 @@ export const accountFormSchema: FormSchema[] = [
     field: 'email',
     component: 'Input',
     required: true,
+  },
+
+  {
+    label: '密码',
+    field: 'password',
+    component: 'InputPassword',
+    required: true,
+    ifShow: ({ values }) => {
+      return !values.id;
+    },
   },
 
   {
