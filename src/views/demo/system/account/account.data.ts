@@ -58,6 +58,9 @@ export const accountFormSchema: FormSchema[] = [
     field: 'authName',
     label: '用户名',
     component: 'Input',
+    ifShow: ({ values }) => {
+      return !values.id;
+    },
     helpMessage: ['本字段演示异步验证', '不能输入带有admin的用户名'],
     rules: [
       {

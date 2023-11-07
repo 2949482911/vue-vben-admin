@@ -1,10 +1,21 @@
 import { BasicColumn, FormSchema } from '/@/components/Table';
 import { h } from 'vue';
 import { Switch, Tag } from 'ant-design-vue';
-import { enableMainBody, disableMainBody } from '/@/api/demo/system';
+import { enableMainBody, disableMainBody, getAccountList, getDeptList } from '/@/api/demo/system';
 import { useMessage } from '/@/hooks/web/useMessage';
 
 type CheckedType = boolean | string | number;
+
+enum dataScopeEnum {
+  self = 1,
+  user = 2,
+  dept = 3,
+  user_dept = 4,
+  all = 5,
+  self_dept = 6,
+  user_dept_down = 7,
+  main = 8,
+}
 
 const dataScopeTypeOptions = [
   { label: '自己', value: 1 },
@@ -135,6 +146,44 @@ export const formSchema: FormSchema[] = [
     component: 'Select',
     componentProps: {
       options: dataScopeTypeOptions,
+    },
+  },
+
+  {
+    field: 'userIds',
+    label: '用户',
+    component: 'ApiSelect',
+    componentProps: {
+      api: getAccountList,
+      mode: 'multiple',
+      params: {
+        page: 1,
+        page_size: 1000,
+      },
+      resultField: 'items',
+      labelField: 'nickname',
+      // use id as value
+      valueField: 'id',
+    },
+    ifShow: ({ values }) => {
+      return values.type == dataScopeEnum.user || values.type == dataScopeEnum.user_dept;
+    },
+  },
+
+  {
+    field: 'orgIds',
+    label: '部门',
+    component: 'ApiTreeSelect',
+    componentProps: {
+      api: getDeptList,
+      mode: 'multiple',
+      resultField: 'result',
+      labelField: 'name',
+      // use id as value
+      valueField: 'id',
+    },
+    ifShow: ({ values }) => {
+      return values.type == dataScopeEnum.dept || values.type == dataScopeEnum.user_dept;
     },
   },
 

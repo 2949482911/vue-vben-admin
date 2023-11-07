@@ -24,6 +24,7 @@ import {
   UpdateDataScope,
   UpdateAccount,
   CreateAccount,
+  UserInfo,
 } from './model/systemModel';
 import { defHttp } from '/@/utils/http/axios';
 import qs from 'qs';
@@ -34,6 +35,7 @@ enum Api {
   CreateAccount = 'sys/user/create',
   EnableAccount = 'sys/user/enable',
   DisableAccount = 'sys/user/disabled',
+  UserInfo = 'sys/user/info',
 
   IsAccountExist = 'sys/user/isAccountExist',
   DeptList = 'sys/org/list',
@@ -223,4 +225,14 @@ export const enableAccount = (id: string) =>
     paramsSerializer: function (params) {
       return qs.stringify(params, { arrayFormat: 'repeat' });
     },
+  });
+
+/**
+ * 用户详情
+ * @param id
+ */
+export const userInfo = (id: string) =>
+  defHttp.get<UserInfo>({
+    url: Api.UserInfo,
+    params: { id: id },
   });

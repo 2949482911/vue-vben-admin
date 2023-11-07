@@ -213,3 +213,10 @@ export interface CreateAccount {
   roleIds: Array<string>;
   remark: string;
 }
+
+export interface UserInfo {
+  aegisAuth: any;
+  roleList: Array<RoleListItem>;
+  menuList: Array<MenuListItem>;
+  dataRange: any;
+}

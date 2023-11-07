@@ -44,6 +44,9 @@
           setFieldsValue({
             ...data.record,
           });
+          setFieldsValue({
+            roleIds: data.record.roleIdList,
+          });
         }
 
         const treeData = await getDeptList();
