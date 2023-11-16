@@ -7,14 +7,14 @@ import { useMessage } from '/@/hooks/web/useMessage';
 type CheckedType = boolean | string | number;
 
 enum dataScopeEnum {
-  self = 1,
-  user = 2,
-  dept = 3,
-  user_dept = 4,
-  all = 5,
-  self_dept = 6,
-  user_dept_down = 7,
-  main = 8,
+  SELF = 1,
+  USER_SCOPE = 2,
+  DEPT_SCOPE = 3,
+  DEPT_AND_USER_SCOPE = 4,
+  ALL_SCOPE = 5,
+  BELONG_DEPT = 6,
+  BELONG_DEPT_AND_SUB = 7,
+  MAIN_SCOPE = 8,
 }
 
 const dataScopeTypeOptions = [
@@ -166,7 +166,9 @@ export const formSchema: FormSchema[] = [
       valueField: 'id',
     },
     ifShow: ({ values }) => {
-      return values.type == dataScopeEnum.user || values.type == dataScopeEnum.user_dept;
+      return (
+        values.type == dataScopeEnum.USER_SCOPE || values.type == dataScopeEnum.DEPT_AND_USER_SCOPE
+      );
     },
   },
 
@@ -183,7 +185,9 @@ export const formSchema: FormSchema[] = [
       valueField: 'id',
     },
     ifShow: ({ values }) => {
-      return values.type == dataScopeEnum.dept || values.type == dataScopeEnum.user_dept;
+      return (
+        values.type == dataScopeEnum.DEPT_SCOPE || values.type == dataScopeEnum.DEPT_AND_USER_SCOPE
+      );
     },
   },
 

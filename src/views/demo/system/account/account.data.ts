@@ -66,10 +66,12 @@ export const accountFormSchema: FormSchema[] = [
       {
         required: true,
         message: '请输入用户名',
+        trigger: 'change',
       },
       {
         validator(_, value) {
           return new Promise((resolve, reject) => {
+            console.log(value);
             isAccountExist(value)
               .then(() => resolve())
               .catch((err) => {

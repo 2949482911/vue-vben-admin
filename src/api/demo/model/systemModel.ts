@@ -171,6 +171,9 @@ export type DataScopeParams = {
 
 export type DataScopePageParams = BasicPageParams & DataScopeParams;
 
+/**
+ * 数据权限列表返回
+ */
 export interface DataScopeItem {
   id: string;
   name: string;
@@ -178,6 +181,11 @@ export interface DataScopeItem {
   status: number;
   remark: string;
   createTime: string;
+  userIds: Array<string>;
+  orgIds: Array<string>;
+  mainIds: Array<string>;
+  updateBy: string;
+  updateTime: string;
 }
 
 export type DataScopeGetResultModel = BasicFetchResult<DataScopeItem>;
