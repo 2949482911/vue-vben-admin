@@ -22,7 +22,7 @@ export const formSchema: FormSchema[] = [
     ],
   },
   {
-    field: 'checkPassword',
+    field: 'confirmPassword',
     label: '确认密码',
     component: 'InputPassword',
 
@@ -34,7 +34,7 @@ export const formSchema: FormSchema[] = [
             if (!value) {
               return Promise.reject('密码不能为空');
             }
-            if (value !== values.passwordNew) {
+            if (value !== values.newPassword) {
               return Promise.reject('两次输入的密码不一致!');
             }
             return Promise.resolve();

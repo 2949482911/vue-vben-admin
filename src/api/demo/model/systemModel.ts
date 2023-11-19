@@ -180,6 +180,7 @@ export interface DataScopeItem {
   code: string;
   status: number;
   remark: string;
+  createdBy: string;
   createTime: string;
   userIds: Array<string>;
   orgIds: Array<string>;
@@ -227,4 +228,13 @@ export interface UserInfo {
   roleList: Array<RoleListItem>;
   menuList: Array<MenuListItem>;
   dataRange: any;
+}
+
+/**
+ * 修改密码
+ */
+export interface UpdatePassword {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }

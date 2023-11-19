@@ -25,6 +25,7 @@ import {
   UpdateAccount,
   CreateAccount,
   UserInfo,
+  UpdatePassword,
 } from './model/systemModel';
 import { defHttp } from '/@/utils/http/axios';
 import qs from 'qs';
@@ -36,6 +37,7 @@ enum Api {
   EnableAccount = 'sys/user/enable',
   DisableAccount = 'sys/user/disabled',
   UserInfo = 'sys/user/info',
+  UpdatePassword = 'sys/user/updatePassword',
 
   IsAccountExist = 'sys/user/isAccountExist',
   DeptList = 'sys/org/list',
@@ -80,6 +82,16 @@ enum Api {
 
 export const getAccountList = (params: AccountParams) =>
   defHttp.get<AccountListGetResultModel>({ url: Api.AccountList, params });
+
+/**
+ * 修改密码
+ * @param params
+ */
+export const updatePassword = (params: UpdatePassword) =>
+  defHttp.post({
+    url: Api.UpdatePassword,
+    params,
+  });
 
 export const getDeptList = (params?: DeptListItem) =>
   defHttp.get<DeptListGetResultModel>({ url: Api.DeptList, params });
