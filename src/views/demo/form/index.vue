@@ -10,7 +10,7 @@
         @reset="handleReset"
       >
         <template #selectA="{ model, field }">
-          <a-select
+          <Select
             :options="optionsA"
             mode="multiple"
             v-model:value="model[field]"
@@ -19,7 +19,7 @@
           />
         </template>
         <template #selectB="{ model, field }">
-          <a-select
+          <Select
             :options="optionsB"
             mode="multiple"
             v-model:value="model[field]"
@@ -48,43 +48,43 @@
             labelField="name"
             valueField="id"
             :params="searchParams"
-            @search="onSearch"
+            @search="useDebounceFn(onSearch, 300)"
           />
         </template>
       </BasicForm>
     </CollapseContainer>
   </PageWrapper>
 </template>
-<script lang="ts">
+<script lang="ts" setup>
   import { type Recordable } from '@vben/types';
-  import { computed, defineComponent, unref, ref } from 'vue';
-  import { BasicForm, FormSchema, ApiSelect } from '/@/components/Form/index';
-  import { CollapseContainer } from '/@/components/Container';
-  import { useMessage } from '/@/hooks/web/useMessage';
-  import { PageWrapper } from '/@/components/Page';
+  import { computed, unref, ref } from 'vue';
+  import { BasicForm, FormSchema, ApiSelect } from '@/components/Form';
+  import { CollapseContainer } from '@/components/Container';
+  import { useMessage } from '@/hooks/web/useMessage';
+  import { PageWrapper } from '@/components/Page';
 
-  import { optionsListApi } from '/@/api/demo/select';
+  import { optionsListApi } from '@/api/demo/select';
   import { useDebounceFn } from '@vueuse/core';
-  import { treeOptionsListApi } from '/@/api/demo/tree';
-  import { Select } from 'ant-design-vue';
+  import { treeOptionsListApi } from '@/api/demo/tree';
+  import { Select, type SelectProps } from 'ant-design-vue';
   import { cloneDeep } from 'lodash-es';
-  import { areaRecord } from '/@/api/demo/cascader';
-  import { uploadApi } from '/@/api/sys/upload';
+  import { areaRecord } from '@/api/demo/cascader';
+  import { uploadApi } from '@/api/sys/upload';
 
   const valueSelectA = ref<string[]>([]);
   const valueSelectB = ref<string[]>([]);
-  const options = ref<Recordable[]>([]);
+  const options = ref<Required<SelectProps>['options']>([]);
   for (let i = 1; i < 10; i++) options.value.push({ label: '选项' + i, value: `${i}` });
 
   const optionsA = computed(() => {
     return cloneDeep(unref(options)).map((op) => {
-      op.disabled = unref(valueSelectB).indexOf(op.value) !== -1;
+      op.disabled = unref(valueSelectB).indexOf(op.value as string) !== -1;
       return op;
     });
   });
   const optionsB = computed(() => {
     return cloneDeep(unref(options)).map((op) => {
-      op.disabled = unref(valueSelectA).indexOf(op.value) !== -1;
+      op.disabled = unref(valueSelectA).indexOf(op.value as string) !== -1;
       return op;
     });
   });
@@ -464,6 +464,49 @@
       },
     },
     {
+      field: 'field33',
+      component: 'ApiTreeSelect',
+      label: '远程懒加载下拉树',
+      helpMessage: ['ApiTreeSelect组件', '使用接口提供的数据生成选项'],
+      required: true,
+      componentProps: {
+        api: () => {
+          return new Promise((resolve) => {
+            resolve([
+              {
+                title: 'Parent Node',
+                value: '0-0',
+              },
+            ]);
+          });
+        },
+        async: true,
+        onChange: (e, v) => {
+          console.log('ApiTreeSelect====>:', e, v);
+        },
+        onLoadData: ({ treeData, resolve, treeNode }) => {
+          console.log('treeNode====>:', treeNode);
+          setTimeout(() => {
+            const children: Recordable[] = [
+              { title: `Child Node ${treeNode.eventKey}-0`, value: `${treeNode.eventKey}-0` },
+              { title: `Child Node ${treeNode.eventKey}-1`, value: `${treeNode.eventKey}-1` },
+            ];
+            children.forEach((item) => {
+              item.isLeaf = false;
+              item.children = [];
+            });
+            treeNode.dataRef.children = children;
+            treeData.value = [...treeData.value];
+            resolve();
+            return;
+          }, 300);
+        },
+      },
+      colProps: {
+        span: 8,
+      },
+    },
+    {
       field: 'field34',
       component: 'ApiRadioGroup',
       label: '远程Radio',
@@ -510,27 +553,40 @@
         span: 8,
       },
     },
-    // {
-    //   field: 'field36',
-    //   component: 'ApiTree',
-    //   label: '远程Tree',
-    //   helpMessage: ['ApiTree组件', '使用接口提供的数据生成选项'],
-    //   required: true,
-    //   componentProps: {
-    //     api: treeOptionsListApi,
-    //     params: {
-    //       count: 2,
-    //     },
-    //     afterFetch: (v) => {
-    //       //do something
-    //       return v;
-    //     },
-    //     resultField: 'list',
-    //   },
-    //   colProps: {
-    //     span: 8,
-    //   },
-    // },
+    {
+      field: 'field36',
+      component: 'ApiTree',
+      label: '远程Tree',
+      helpMessage: ['ApiTree组件', '使用接口提供的数据生成选项'],
+      required: true,
+      componentProps: {
+        api: treeOptionsListApi,
+        params: {
+          count: 2,
+        },
+        afterFetch: (v) => {
+          //do something
+          return v;
+        },
+        resultField: 'list',
+      },
+      colProps: {
+        span: 8,
+      },
+    },
+    {
+      label: '远程穿梭框',
+      field: 'field37',
+      component: 'ApiTransfer',
+      componentProps: {
+        render: (item) => item.label,
+        api: async () => {
+          return Promise.resolve(citiesOptionsData.guangdong);
+        },
+      },
+      defaultValue: ['1'],
+      required: true,
+    },
     {
       field: 'divider-linked',
       component: 'Divider',
@@ -697,39 +753,52 @@
         allowHalf: true,
       },
     },
+    {
+      field: 'field23',
+      component: 'ImageUpload',
+      label: '上传图片',
+      required: true,
+      defaultValue: [
+        'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+      ],
+      componentProps: {
+        api: uploadApi,
+        accept: ['png', 'jpeg', 'jpg'],
+        maxSize: 2,
+        maxNumber: 1,
+      },
+      // rules: [
+      //   {
+      //     required: true,
+      //     trigger: 'change',
+      //     validator(_, value) {
+      //       if (isArray(value) && value.length > 0) {
+      //         return Promise.resolve();
+      //       } else {
+      //         return Promise.reject('请选择上传图片');
+      //       }
+      //     },
+      //   },
+      // ],
+    },
   ];
 
-  export default defineComponent({
-    components: { BasicForm, CollapseContainer, PageWrapper, ApiSelect, ASelect: Select },
-    setup() {
-      const check = ref(null);
-      const { createMessage } = useMessage();
-      const keyword = ref<string>('');
-      const searchParams = computed<Recordable>(() => {
-        return { keyword: unref(keyword) };
-      });
-
-      function onSearch(value: string) {
-        keyword.value = value;
-      }
-      return {
-        schemas,
-        optionsListApi,
-        optionsA,
-        optionsB,
-        valueSelectA,
-        valueSelectB,
-        onSearch: useDebounceFn(onSearch, 300),
-        searchParams,
-        handleReset: () => {
-          keyword.value = '';
-        },
-        handleSubmit: (values: any) => {
-          console.log('values', values);
-          createMessage.success('click search,values:' + JSON.stringify(values));
-        },
-        check,
-      };
-    },
+  const { createMessage } = useMessage();
+  const keyword = ref<string>('');
+  const searchParams = computed<Recordable<string>>(() => {
+    return { keyword: unref(keyword) };
   });
+
+  function onSearch(value: string) {
+    keyword.value = value;
+  }
+
+  function handleReset() {
+    keyword.value = '';
+  }
+
+  function handleSubmit(values: any) {
+    console.log('values', values);
+    createMessage.success('click search,values:' + JSON.stringify(values));
+  }
 </script>

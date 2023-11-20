@@ -39,23 +39,28 @@
         </a-button>
       </Upload>
     </div>
-    <FileList :dataSource="fileListRef" :columns="columns" :actionColumn="actionColumn" />
+    <FileList
+      v-model:dataSource="fileListRef"
+      :columns="columns"
+      :actionColumn="actionColumn"
+      :openDrag="fileListOpenDrag"
+      :dragOptions="fileListDragOptions"
+    />
   </BasicModal>
 </template>
 <script lang="ts">
   import { defineComponent, reactive, ref, toRefs, unref, computed, PropType } from 'vue';
   import { Upload, Alert } from 'ant-design-vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
-  //   import { BasicTable, useTable } from '/@/components/Table';
   // hooks
-  import { useUploadType } from './useUpload';
+  import { useUploadType } from '../hooks/useUpload';
   import { useMessage } from '/@/hooks/web/useMessage';
   //   types
-  import { FileItem, UploadResultStatus } from './typing';
-  import { basicProps } from './props';
+  import { FileItem, UploadResultStatus } from '../types/typing';
+  import { basicProps } from '../props';
   import { createTableColumns, createActionColumn } from './data';
   // utils
-  import { checkImgType, getBase64WithFile } from './helper';
+  import { checkImgType, getBase64WithFile } from '../helper';
   import { buildUUID } from '/@/utils/uuid';
   import { isFunction } from '/@/utils/is';
   import { warn } from '/@/utils/log';
@@ -165,14 +170,6 @@
         emit('delete', record);
       }
 
-      // 预览
-      // function handlePreview(record: FileItem) {
-      //   const { thumbUrl = '' } = record;
-      //   createImgPreview({
-      //     imageList: [thumbUrl],
-      //   });
-      // }
-
       async function uploadApiByItem(item: FileItem) {
         const { api } = props;
         if (!api || !isFunction(api)) {
@@ -196,7 +193,7 @@
           );
           const { data } = ret;
           item.status = UploadResultStatus.SUCCESS;
-          item.responseData = data;
+          item.response = data;
           return {
             success: true,
             error: null,
@@ -250,9 +247,9 @@
         const fileList: string[] = [];
 
         for (const item of fileListRef.value) {
-          const { status, responseData } = item;
-          if (status === UploadResultStatus.SUCCESS && responseData) {
-            fileList.push(responseData.url);
+          const { status, response } = item;
+          if (status === UploadResultStatus.SUCCESS && response) {
+            fileList.push(response.url);
           }
         }
         // 存在一个上传成功的即可保存
@@ -276,15 +273,14 @@
       }
 
       return {
-        columns: createTableColumns() as any[],
-        actionColumn: createActionColumn(handleRemove) as any,
+        columns: createTableColumns(),
+        actionColumn: createActionColumn(handleRemove),
         register,
         closeModal,
         getHelpText,
         getStringAccept,
         getOkButtonProps,
         beforeUpload,
-        // registerTable,
         fileListRef,
         state,
         isUploadingRef,
