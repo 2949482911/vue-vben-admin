@@ -30,7 +30,7 @@
           <div :class="`${prefixCls}-entry__header enter-x`">
             <img :src="userinfo.avatar || headerImg" :class="`${prefixCls}-entry__header-img`" />
             <p :class="`${prefixCls}-entry__header-name`">
-              {{ userinfo.realName }}
+              {{ userinfo.aegisAuth.nickName }}
             </p>
           </div>
           <InputPassword
@@ -77,15 +77,16 @@
   </div>
 </template>
 <script lang="ts" setup>
-  import { ref, computed } from 'vue';
+import {ref, computed, ComputedRef} from 'vue';
   import { Input } from 'ant-design-vue';
-  import { useUserStore } from '/@/store/modules/user';
-  import { useLockStore } from '/@/store/modules/lock';
-  import { useI18n } from '/@/hooks/web/useI18n';
+  import { useUserStore } from '@/store/modules/user';
+  import { useLockStore } from '@/store/modules/lock';
+  import { useI18n } from '@/hooks/web/useI18n';
   import { useNow } from './useNow';
-  import { useDesign } from '/@/hooks/web/useDesign';
+  import { useDesign } from '@/hooks/web/useDesign';
   import { LockOutlined } from '@ant-design/icons-vue';
-  import headerImg from '/@/assets/images/header.jpg';
+  import headerImg from '@/assets/images/header.jpg';
+  import {GetUserInfoModel} from "@/api/sys/model/userModel";
 
   const InputPassword = Input.Password;
 
@@ -102,7 +103,7 @@
 
   const { t } = useI18n();
 
-  const userinfo = computed(() => {
+  const userinfo: ComputedRef<GetUserInfoModel> = computed(() => {
     return userStore.getUserInfo || {};
   });
 
@@ -153,36 +154,42 @@
       font-weight: 700;
 
       @media screen and (max-width: @screen-md) {
+      //@media screen and (max-width: 768px) {
         span:not(.meridiem) {
           font-size: 160px;
         }
       }
 
       @media screen and (min-width: @screen-md) {
+      //@media screen and (max-width: 768px) {
         span:not(.meridiem) {
           font-size: 160px;
         }
       }
 
       @media screen and (max-width: @screen-sm) {
+      //@media screen and (max-width: 640px) {
         span:not(.meridiem) {
           font-size: 90px;
         }
       }
 
       @media screen and (min-width: @screen-lg) {
+      //@media screen and (min-width: 960px) {
         span:not(.meridiem) {
           font-size: 220px;
         }
       }
 
       @media screen and (min-width: @screen-xl) {
+      //@media screen and (min-width: 1280px) {
         span:not(.meridiem) {
           font-size: 260px;
         }
       }
 
       @media screen and (min-width: @screen-2xl) {
+      //@media screen and (min-width: 1536px) {
         span:not(.meridiem) {
           font-size: 320px;
         }

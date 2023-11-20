@@ -62,25 +62,46 @@ export const accountFormSchema: FormSchema[] = [
       return !values.id;
     },
     helpMessage: ['本字段演示异步验证', '不能输入带有admin的用户名'],
-    rules: [
-      {
-        required: true,
-        message: '请输入用户名',
-        trigger: 'change',
-      },
-      {
-        validator(_, value) {
-          return new Promise((resolve, reject) => {
-            console.log(value);
-            isAccountExist(value)
-              .then(() => resolve())
-              .catch((err) => {
-                reject(err.message || '验证失败');
-              });
-          });
-        },
-      },
-    ],
+    dynamicRules: ({values}) => {
+        // 修改时不做校验
+        if (values.id) {
+            return []
+        }
+      return [
+        {
+          required: true,
+          message: '请输入用户名',
+          trigger: 'change',
+          validator: (_ , value) => {
+            return new Promise((resolve, reject) => {
+              isAccountExist(value)
+                  .then(() => resolve())
+                  .catch((err) => {
+                    reject(err.message || '验证失败');
+                  });
+            });
+          }
+        }
+      ]
+    },
+    // rules: [
+    //   {
+    //     required: true,
+    //     message: '请输入用户名',
+    //     trigger: 'change',
+    //   },
+    //   {
+    //     validator(_, value) {
+    //       return new Promise((resolve, reject) => {
+    //         isAccountExist(value)
+    //           .then(() => resolve())
+    //           .catch((err) => {
+    //             reject(err.message || '验证失败');
+    //           });
+    //       });
+    //     },
+    //   },
+    // ],
   },
   {
     field: 'pwd',
