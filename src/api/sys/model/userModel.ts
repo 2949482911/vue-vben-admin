@@ -41,6 +41,12 @@ export interface GetUserInfoModel {
   aegisAuth: AegisAuth;
   role: Array<Role>;
   menu: Array<Menu>;
+  mainBody: MainBody;
+  org: Org;
+  backendUrls: Array<string>;
+  marks: Array<string>;
+  dataRange: DataRange;
+  dataScopeDTO: DataScopeDTO;
 }
 
 /**
@@ -49,6 +55,8 @@ export interface GetUserInfoModel {
 export interface AegisAuth {
   id: string;
   nickName: string;
+  authName: string;
+  avatar: string;
 }
 
 /**
@@ -65,6 +73,33 @@ export interface Role {
 export interface Menu {
   id: string;
   name: string;
+}
+
+export interface Org {
+  id: string;
+  name: string;
+  code: string;
+}
+
+// 主体
+export interface MainBody {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export interface DataRange {
+  id: string;
+  type: number;
+  name: string;
+  remark: string;
+}
+
+export interface DataScopeDTO {
+  type: number;
+  mainIds: Array<string>;
+  orgIds: Array<string>;
+  userIds: Array<string>;
 }
 
 export interface ResetPassword {
