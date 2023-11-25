@@ -10,7 +10,7 @@ import { checkStatus } from './checkStatus';
 import { useGlobSetting } from '/@/hooks/setting';
 import { useMessage } from '/@/hooks/web/useMessage';
 import { RequestEnum, ResultEnum, ContentTypeEnum } from '/@/enums/httpEnum';
-import { isString, isUndefined, isNull, isEmpty } from '/@/utils/is';
+import { isString } from '/@/utils/is';
 import { getToken } from '/@/utils/auth';
 import { setObjToUrlParams, deepMerge } from '/@/utils';
 import { useErrorLogStoreWithOut } from '/@/store/modules/errorLog';
@@ -22,7 +22,7 @@ import axios from 'axios';
 
 const globSetting = useGlobSetting();
 const urlPrefix = globSetting.urlPrefix;
-const { createMessage, createErrorModal, createSuccessModal } = useMessage();
+const { createMessage, createErrorModal, createSuccessModal, notification } = useMessage();
 
 /**
  * @description: 数据处理，方便区分多种处理方式
@@ -56,16 +56,16 @@ const transform: AxiosTransform = {
     // 这里逻辑可以根据项目进行修改
     const hasSuccess = data && Reflect.has(data, 'code') && code === ResultEnum.SUCCESS;
     if (hasSuccess) {
-      let successMsg = message;
-
-      if (isNull(successMsg) || isUndefined(successMsg) || isEmpty(successMsg)) {
-        successMsg = t(`sys.api.operationSuccess`);
-      }
-
+      const successMsg = t(`sys.api.operationSuccess`);
       if (options.successMessageMode === 'modal') {
         createSuccessModal({ title: t('sys.api.successTip'), content: successMsg });
       } else if (options.successMessageMode === 'message') {
         createMessage.success(successMsg);
+      } else if (options.successMessageMode === 'tip') {
+        notification.success({
+          message: t('sys.api.successTip'),
+          description: successMsg,
+        });
       }
       return result;
     }
@@ -91,6 +91,11 @@ const transform: AxiosTransform = {
       createErrorModal({ title: t('sys.api.errorTip'), content: timeoutMsg });
     } else if (options.errorMessageMode === 'message') {
       createMessage.error(timeoutMsg);
+    } else if (options.successMessageMode === 'tip') {
+      notification.error({
+        message: t('sys.api.successTip'),
+        description: timeoutMsg,
+      });
     }
 
     throw new Error(timeoutMsg || t('sys.api.apiRequestFailed'));

@@ -130,6 +130,9 @@ export interface CreateMainBody {
 export interface UpdateMainBody {
   id: string;
   name: string;
+  email: string;
+  remark: string;
+  status: number;
 }
 
 /**

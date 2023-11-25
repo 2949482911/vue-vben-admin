@@ -17,6 +17,7 @@
   import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
 
   import { createMainBody, updateMainBody } from '/@/api/demo/system';
+  import { UpdateMainBody } from '@/api/demo/model/systemModel';
 
   const emit = defineEmits(['success', 'register']);
   const isUpdate = ref(true);
@@ -45,9 +46,8 @@
 
   async function handleSubmit() {
     try {
-      const values = await validate();
+      const values: UpdateMainBody = await validate();
       setDrawerProps({ confirmLoading: true });
-      console.log(values);
       if (values.id) {
         await updateMainBody(values);
       } else {

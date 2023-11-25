@@ -80,7 +80,7 @@
       }
 
       function handleDelete(record: Recordable) {
-        deleteDataScope(record.id).then(() => {
+        deleteDataScope([record.id]).then(() => {
           handleSuccess();
         });
       }

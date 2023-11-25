@@ -2,7 +2,6 @@ import { BasicColumn, FormSchema } from '/@/components/Table';
 import { h } from 'vue';
 import { Switch, Tag } from 'ant-design-vue';
 import { enableMainBody, disableMainBody, getAccountList, getDeptList } from '/@/api/demo/system';
-import { useMessage } from '/@/hooks/web/useMessage';
 
 type CheckedType = boolean | string | number;
 
@@ -77,7 +76,6 @@ export const columns: BasicColumn[] = [
         onChange(checked: CheckedType) {
           record.pendingStatus = true;
           const newStatus = checked ? 1 : 9;
-          const { createMessage } = useMessage();
           if (newStatus === 1) {
             enableMainBody(record.id).then(() => {
               record.status = newStatus;
@@ -87,7 +85,6 @@ export const columns: BasicColumn[] = [
               record.status = newStatus;
             });
           }
-          createMessage.success(`已成功修改主体状态`);
           record.pendingStatus = false;
         },
       });

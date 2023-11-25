@@ -88,10 +88,15 @@ export const getAccountList = (params: AccountParams) =>
  * @param params
  */
 export const updatePassword = (params: UpdatePassword) =>
-  defHttp.post({
-    url: Api.UpdatePassword,
-    params,
-  });
+  defHttp.post(
+    {
+      url: Api.UpdatePassword,
+      params,
+    },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const getDeptList = (params?: DeptListItem) =>
   defHttp.get<DeptListGetResultModel>({ url: Api.DeptList, params });
@@ -100,26 +105,66 @@ export const getMenuList = (params?: MenuParams) =>
   defHttp.get<MenuListGetResultModel>({ url: Api.MenuList, params });
 
 export const createMenu = (params?: CreateUpdateMenu) =>
-  defHttp.post({ url: Api.CreateMenu, params });
+  defHttp.post(
+    { url: Api.CreateMenu, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const updateMenu = (params?: CreateUpdateMenu) =>
-  defHttp.post({ url: Api.UpdateMenu, params });
+  defHttp.post(
+    { url: Api.UpdateMenu, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const getRoleListByPage = (params?: RolePageParams) =>
   defHttp.get<RolePageListGetResultModel>({ url: Api.RolePageList, params });
 
-export const createRole = (params?: CreateRole) => defHttp.post({ url: Api.CreateRole, params });
+export const createRole = (params?: CreateRole) =>
+  defHttp.post(
+    { url: Api.CreateRole, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
-export const updateRole = (params?: UpdateRole) => defHttp.post({ url: Api.UpdateRole, params });
+export const updateRole = (params?: UpdateRole) =>
+  defHttp.post(
+    { url: Api.UpdateRole, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
-export const deleteRole = (id: string) => defHttp.get({ url: Api.DeleteRole, params: { id: id } });
+export const deleteRole = (id: string) =>
+  defHttp.get(
+    { url: Api.DeleteRole, params: { id: id } },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const getAllRoleList = (params?: RoleParams) =>
   defHttp.get<RoleListGetResultModel>({ url: Api.GetAllRoleList, params });
 
-export const setRoleDisable = (id: string) => defHttp.get({ url: Api.RoleDisable, params: { id } });
+export const setRoleDisable = (id: string) =>
+  defHttp.get(
+    { url: Api.RoleDisable, params: { id } },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
-export const setRoleEnable = (id: string) => defHttp.get({ url: Api.RoleEnable, params: { id } });
+export const setRoleEnable = (id: string) =>
+  defHttp.get(
+    { url: Api.RoleEnable, params: { id } },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const isAccountExist = (account: string) =>
   defHttp.get(
@@ -127,36 +172,63 @@ export const isAccountExist = (account: string) =>
     { errorMessageMode: 'none' },
   );
 
-export const createOrg = (params?: CreateOrg) => defHttp.post({ url: Api.CreateOrg, params });
+export const createOrg = (params?: CreateOrg) =>
+  defHttp.post(
+    { url: Api.CreateOrg, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
-export const updateOrg = (params?: UpdateOrg) => defHttp.post({ url: Api.UpdateOrg, params });
+export const updateOrg = (params?: UpdateOrg) =>
+  defHttp.post(
+    { url: Api.UpdateOrg, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const enbaleOrg = (ids: Array<string>) =>
-  defHttp.get({
-    url: Api.EnableOrg,
-    params: { ids: ids },
-    paramsSerializer: function (params) {
-      return qs.stringify(params, { arrayFormat: 'repeat' });
+  defHttp.get(
+    {
+      url: Api.EnableOrg,
+      params: { ids: ids },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
     },
-  });
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const disableOrg = (ids: Array<string>) =>
-  defHttp.get({
-    url: Api.DisableOrg,
-    params: { ids: ids },
-    paramsSerializer: function (params) {
-      return qs.stringify(params, { arrayFormat: 'repeat' });
+  defHttp.get(
+    {
+      url: Api.DisableOrg,
+      params: { ids: ids },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
     },
-  });
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const deleteOrg = (ids: Array<string>) =>
-  defHttp.get({
-    url: Api.DeleteOrg,
-    params: { ids: ids },
-    paramsSerializer: function (params) {
-      return qs.stringify(params, { arrayFormat: 'repeat' });
+  defHttp.get(
+    {
+      url: Api.DeleteOrg,
+      params: { ids: ids },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
     },
-  });
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 // 主体管理器
 
@@ -164,71 +236,116 @@ export const getMainBodyByPage = (params?: MainBodyPageParams) =>
   defHttp.get<MainBodyGetResultModel>({ url: Api.GetMainBodyList, params });
 
 export const createMainBody = (params?: CreateMainBody) =>
-  defHttp.post({ url: Api.CreateMainBody, params });
+  defHttp.post(
+    { url: Api.CreateMainBody, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const updateMainBody = (params?: UpdateMainBody) =>
-  defHttp.post({ url: Api.UpdateMainBody, params });
+  defHttp.post(
+    { url: Api.UpdateMainBody, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const enableMainBody = (id: string) =>
-  defHttp.get({
-    url: Api.EnableMainBody,
-    params: { ids: [id] },
-    paramsSerializer: function (params) {
-      return qs.stringify(params, { arrayFormat: 'repeat' });
+  defHttp.get(
+    {
+      url: Api.EnableMainBody,
+      params: { ids: [id] },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
     },
-  });
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const disableMainBody = (id: string) =>
-  defHttp.get({
-    url: Api.DisableMainBody,
-    params: { ids: [id] },
-    paramsSerializer: function (params) {
-      return qs.stringify(params, { arrayFormat: 'repeat' });
+  defHttp.get(
+    {
+      url: Api.DisableMainBody,
+      params: { ids: [id] },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
     },
-  });
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const selectMainBody = () => defHttp.get({ url: Api.SelectMainBody });
 
 export const deleteMainBody = (ids: Array<string>) =>
-  defHttp.get({
-    url: Api.DeleteMainBody,
-    params: { ids: ids },
-    paramsSerializer: function (params) {
-      return qs.stringify(params, { arrayFormat: 'repeat' });
+  defHttp.get(
+    {
+      url: Api.DeleteMainBody,
+      params: { ids: ids },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
     },
-  });
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const getDataScopeByPage = (params?: DataScopePageParams) =>
   defHttp.get<DataScopeGetResultModel>({ url: Api.GetDataScopeByPage, params });
 
 export const createDataScope = (params?: CreateDataScope) =>
-  defHttp.post({ url: Api.CreateDataScope, params });
+  defHttp.post(
+    { url: Api.CreateDataScope, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const updateDataScope = (params?: UpdateDataScope) =>
-  defHttp.post({ url: Api.UpdateDataScope, params });
-
-export const deleteDataScope = (id: string) =>
-  defHttp.get({
-    url: Api.DeleteDataScope,
-    params: { ids: [id] },
-    paramsSerializer: function (params) {
-      return qs.stringify(params, { arrayFormat: 'repeat' });
+  defHttp.post(
+    { url: Api.UpdateDataScope, params },
+    {
+      successMessageMode: 'tip',
     },
-  });
+  );
 
-export const enableDataScope = (id: string) =>
-  defHttp.get({
-    url: Api.EnableDataScope,
-    params: { ids: [id] },
-    paramsSerializer: function (params) {
-      return qs.stringify(params, { arrayFormat: 'repeat' });
+export const deleteDataScope = (ids: Array<string>) =>
+  defHttp.get(
+    {
+      url: Api.DeleteDataScope,
+      params: { ids: ids },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
     },
-  });
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
-export const disableDataScope = (id: string) =>
+export const enableDataScope = (ids: Array<string>) =>
+  defHttp.get(
+    {
+      url: Api.EnableDataScope,
+      params: { ids: ids },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
+    },
+    {
+      successMessageMode: 'tip',
+    },
+  );
+
+export const disableDataScope = (ids: Array<string>) =>
   defHttp.get({
     url: Api.DisableDataScope,
-    params: { ids: [id] },
+    params: { ids: ids },
     paramsSerializer: function (params) {
       return qs.stringify(params, { arrayFormat: 'repeat' });
     },
@@ -240,28 +357,48 @@ export const selectDataRange = () =>
   });
 
 export const updateAccount = (params?: UpdateAccount) =>
-  defHttp.post({ url: Api.UpdateAccount, params });
+  defHttp.post(
+    { url: Api.UpdateAccount, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const createAccount = (params?: CreateAccount) =>
-  defHttp.post({ url: Api.CreateAccount, params });
+  defHttp.post(
+    { url: Api.CreateAccount, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const disableAccount = (id: string) =>
-  defHttp.get({
-    url: Api.DisableAccount,
-    params: { ids: [id] },
-    paramsSerializer: function (params) {
-      return qs.stringify(params, { arrayFormat: 'repeat' });
+  defHttp.get(
+    {
+      url: Api.DisableAccount,
+      params: { ids: [id] },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
     },
-  });
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 export const enableAccount = (id: string) =>
-  defHttp.get({
-    url: Api.EnableAccount,
-    params: { ids: [id] },
-    paramsSerializer: function (params) {
-      return qs.stringify(params, { arrayFormat: 'repeat' });
+  defHttp.get(
+    {
+      url: Api.EnableAccount,
+      params: { ids: [id] },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
     },
-  });
+    {
+      successMessageMode: 'tip',
+    },
+  );
 
 /**
  * 用户详情
