@@ -113,6 +113,7 @@ export interface ResetPassword {
  */
 export interface RegisterParams {
   email: string;
+  mainName: string;
   password: string;
   confirmPassword: string;
 }

@@ -2,21 +2,21 @@
   <div v-if="getShow">
     <LoginFormTitle class="enter-x" />
     <Form class="p-4 enter-x" :model="formData" :rules="getFormRules" ref="formRef">
-      <FormItem name="account" class="enter-x">
-        <Input
-          class="fix-auto-fill"
-          size="large"
-          v-model:value="formData.email"
-          :placeholder="t('sys.login.userName')"
-        />
-      </FormItem>
-
       <FormItem name="mainName" class="enter-x">
         <Input
           class="fix-auto-fill"
           size="large"
           v-model:value="formData.mainName"
           :placeholder="t('sys.login.mainName')"
+        />
+      </FormItem>
+
+      <FormItem name="email" class="enter-x">
+        <Input
+          class="fix-auto-fill"
+          size="large"
+          v-model:value="formData.email"
+          :placeholder="t('sys.login.userName')"
         />
       </FormItem>
 
@@ -98,8 +98,6 @@
     password: '',
     confirmPassword: '',
     mainName: '',
-    // mobile: '',
-    // sms: '',
     policy: false,
   });
 
@@ -110,11 +108,15 @@
 
   async function handleRegister() {
     const data = await validForm();
+    console.log(data);
     if (!data) return;
     await register({
       email: data.email,
       password: data.password,
       confirmPassword: data.confirmPassword,
+      mainName: data.mainName,
+    }).then(() => {
+      handleBackLogin();
     });
   }
 </script>

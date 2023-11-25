@@ -57,6 +57,7 @@ export function useFormRules(formData?: Recordable) {
   const getPasswordFormRule = computed(() => createRule(t('sys.login.passwordPlaceholder')));
   const getSmsFormRule = computed(() => createRule(t('sys.login.smsPlaceholder')));
   const getMobileFormRule = computed(() => createRule(t('sys.login.mobilePlaceholder')));
+  const getMainNameFormRule = computed(() => createRule(t('sys.login.mainName')));
 
   const validatePolicy = async (_: RuleObject, value: boolean) => {
     return !value ? Promise.reject(t('sys.login.policyPlaceholder')) : Promise.resolve();
@@ -79,6 +80,7 @@ export function useFormRules(formData?: Recordable) {
     const passwordFormRule = unref(getPasswordFormRule);
     const smsFormRule = unref(getSmsFormRule);
     const mobileFormRule = unref(getMobileFormRule);
+    const mainNameForRule = unref(getMainNameFormRule);
 
     const mobileRule = {
       sms: smsFormRule,
@@ -90,6 +92,7 @@ export function useFormRules(formData?: Recordable) {
         return {
           email: accountFormRule,
           password: passwordFormRule,
+          mainName: mainNameForRule,
           confirmPassword: [
             { validator: validateConfirmPassword(formData?.password), trigger: 'change' },
           ],

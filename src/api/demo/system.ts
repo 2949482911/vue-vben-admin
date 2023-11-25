@@ -132,13 +132,31 @@ export const createOrg = (params?: CreateOrg) => defHttp.post({ url: Api.CreateO
 export const updateOrg = (params?: UpdateOrg) => defHttp.post({ url: Api.UpdateOrg, params });
 
 export const enbaleOrg = (ids: Array<string>) =>
-  defHttp.post({ url: Api.EnableOrg, params: { ids: ids } });
+  defHttp.get({
+    url: Api.EnableOrg,
+    params: { ids: ids },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });
 
 export const disableOrg = (ids: Array<string>) =>
-  defHttp.post({ url: Api.DisableOrg, params: { ids: ids } });
+  defHttp.get({
+    url: Api.DisableOrg,
+    params: { ids: ids },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });
 
 export const deleteOrg = (ids: Array<string>) =>
-  defHttp.post({ url: Api.DeleteOrg, params: { ids: ids } });
+  defHttp.get({
+    url: Api.DeleteOrg,
+    params: { ids: ids },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });
 
 // 主体管理器
 
@@ -172,7 +190,13 @@ export const disableMainBody = (id: string) =>
 export const selectMainBody = () => defHttp.get({ url: Api.SelectMainBody });
 
 export const deleteMainBody = (ids: Array<string>) =>
-  defHttp.get({ url: Api.DeleteMainBody, params: { ids: ids } });
+  defHttp.get({
+    url: Api.DeleteMainBody,
+    params: { ids: ids },
+    paramsSerializer: function (params) {
+      return qs.stringify(params, { arrayFormat: 'repeat' });
+    },
+  });
 
 export const getDataScopeByPage = (params?: DataScopePageParams) =>
   defHttp.get<DataScopeGetResultModel>({ url: Api.GetDataScopeByPage, params });
