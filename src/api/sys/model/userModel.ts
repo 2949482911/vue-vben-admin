@@ -107,3 +107,12 @@ export interface ResetPassword {
   newPassword: string;
   checkPassword: string;
 }
+
+/**
+ * 注册账户
+ */
+export interface RegisterParams {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}

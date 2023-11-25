@@ -6,26 +6,36 @@
         <Input
           class="fix-auto-fill"
           size="large"
-          v-model:value="formData.account"
+          v-model:value="formData.email"
           :placeholder="t('sys.login.userName')"
         />
       </FormItem>
-      <FormItem name="mobile" class="enter-x">
+
+      <FormItem name="mainName" class="enter-x">
         <Input
-          size="large"
-          v-model:value="formData.mobile"
-          :placeholder="t('sys.login.mobile')"
           class="fix-auto-fill"
+          size="large"
+          v-model:value="formData.mainName"
+          :placeholder="t('sys.login.mainName')"
         />
       </FormItem>
-      <FormItem name="sms" class="enter-x">
-        <CountdownInput
-          size="large"
-          class="fix-auto-fill"
-          v-model:value="formData.sms"
-          :placeholder="t('sys.login.smsCode')"
-        />
-      </FormItem>
+
+      <!--      <FormItem name="mobile" class="enter-x">-->
+      <!--        <Input-->
+      <!--          size="large"-->
+      <!--          v-model:value="formData.mobile"-->
+      <!--          :placeholder="t('sys.login.mobile')"-->
+      <!--          class="fix-auto-fill"-->
+      <!--        />-->
+      <!--      </FormItem>-->
+      <!--      <FormItem name="sms" class="enter-x">-->
+      <!--        <CountdownInput-->
+      <!--          size="large"-->
+      <!--          class="fix-auto-fill"-->
+      <!--          v-model:value="formData.sms"-->
+      <!--          :placeholder="t('sys.login.smsCode')"-->
+      <!--        />-->
+      <!--      </FormItem>-->
       <FormItem name="password" class="enter-x">
         <StrengthMeter
           size="large"
@@ -70,7 +80,8 @@
   import LoginFormTitle from './LoginFormTitle.vue';
   import { Form, Input, Button, Checkbox } from 'ant-design-vue';
   import { StrengthMeter } from '@/components/StrengthMeter';
-  import { CountdownInput } from '@/components/CountDown';
+  // import { CountdownInput } from '@/components/CountDown';
+  import { register } from '@/api/sys/user';
   import { useI18n } from '@/hooks/web/useI18n';
   import { useLoginState, useFormRules, useFormValid, LoginStateEnum } from './useLogin';
 
@@ -83,11 +94,12 @@
   const loading = ref(false);
 
   const formData = reactive({
-    account: '',
+    email: '',
     password: '',
     confirmPassword: '',
-    mobile: '',
-    sms: '',
+    mainName: '',
+    // mobile: '',
+    // sms: '',
     policy: false,
   });
 
@@ -99,6 +111,10 @@
   async function handleRegister() {
     const data = await validForm();
     if (!data) return;
-    console.log(data);
+    await register({
+      email: data.email,
+      password: data.password,
+      confirmPassword: data.confirmPassword,
+    });
   }
 </script>

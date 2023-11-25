@@ -1,11 +1,18 @@
 import { defHttp } from '/@/utils/http/axios';
-import { LoginParams, LoginResultModel, GetUserInfoModel, ResetPassword } from './model/userModel';
+import {
+  LoginParams,
+  LoginResultModel,
+  GetUserInfoModel,
+  ResetPassword,
+  RegisterParams,
+} from './model/userModel';
 
 import { ErrorMessageMode } from '/#/axios';
 
 enum Api {
   Login = 'auth/auth/login',
   Logout = 'auth/auth/loginOut',
+  Register = 'auth/auth/register',
   ResetPassword = 'auth/auth/resetPassword',
   GetUserInfo = 'auth/auth/user/info',
   GetPermCode = '/getPermCode',
@@ -61,3 +68,9 @@ export function testRetry() {
  */
 export const resetPassword = (params?: ResetPassword) =>
   defHttp.post({ url: Api.ResetPassword, params });
+
+/**
+ * 注册账户
+ * @param params
+ */
+export const register = (params?: RegisterParams) => defHttp.post({ url: Api.Register, params });
