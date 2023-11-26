@@ -18,6 +18,11 @@ export const columns: BasicColumn[] = [
     width: 120,
   },
   {
+    title: '电话',
+    dataIndex: 'phone',
+    width: 120,
+  },
+  {
     title: '创建时间',
     dataIndex: 'createTime',
     width: 180,
@@ -62,27 +67,27 @@ export const accountFormSchema: FormSchema[] = [
       return !values.id;
     },
     helpMessage: ['本字段演示异步验证', '不能输入带有admin的用户名'],
-    dynamicRules: ({values}) => {
-        // 修改时不做校验
-        if (values.id) {
-            return []
-        }
+    dynamicRules: ({ values }) => {
+      // 修改时不做校验
+      if (values.id) {
+        return [];
+      }
       return [
         {
-          required: true,
+          required: !values.id,
           message: '请输入用户名',
           trigger: 'change',
-          validator: (_ , value) => {
+          validator: (_, value) => {
             return new Promise((resolve, reject) => {
               isAccountExist(value)
-                  .then(() => resolve())
-                  .catch((err) => {
-                    reject(err.message || '验证失败');
-                  });
+                .then(() => resolve())
+                .catch((err) => {
+                  reject(err.message || '验证失败');
+                });
             });
-          }
-        }
-      ]
+          },
+        },
+      ];
     },
     // rules: [
     //   {
