@@ -210,32 +210,18 @@ export const formSchema: FormSchema[] = [
       ],
     },
   },
-  {
-    field: 'isExt',
-    label: '是否外链',
-    component: 'RadioButtonGroup',
-    defaultValue: '0',
-    componentProps: {
-      options: [
-        { label: '否', value: '0' },
-        { label: '是', value: '1' },
-      ],
-    },
-    ifShow: ({ values }) => isButton(values.type),
-  },
 
   {
-    field: 'keepalive',
-    label: '是否缓存',
+    field: 'isInternal',
+    label: '内部菜单',
     component: 'RadioButtonGroup',
-    defaultValue: '0',
+    defaultValue: 0,
     componentProps: {
       options: [
-        { label: '否', value: '0' },
-        { label: '是', value: '1' },
+        { label: '否', value: 0 },
+        { label: '是', value: 1 },
       ],
     },
-    ifShow: ({ values }) => isMenu(values.type),
   },
 
   {

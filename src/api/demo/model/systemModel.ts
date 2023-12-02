@@ -97,6 +97,7 @@ export interface CreateUpdateMenu {
   parentId: number;
   component: string;
   sort: number;
+  isInternal: number;
 }
 
 export interface RoleListItem {

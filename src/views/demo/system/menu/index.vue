@@ -2,7 +2,7 @@
   <div>
     <BasicTable @register="registerTable" @fetch-success="onFetchSuccess">
       <template #toolbar>
-        <a-button type="primary" @click="handleCreate"> 新增菜单 </a-button>
+        <a-button type="primary" @click="handleCreate"> 新增菜单</a-button>
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
@@ -33,7 +33,7 @@
   import { nextTick } from 'vue';
 
   import { BasicTable, useTable, TableAction } from '@/components/Table';
-  import { getMenuList } from '@/api/demo/system';
+  import { getMenuList, deleteMenu } from '@/api/demo/system';
 
   import { useDrawer } from '@/components/Drawer';
   import MenuDrawer from './MenuDrawer.vue';
@@ -82,7 +82,9 @@
   }
 
   function handleDelete(record: Recordable) {
-    console.log(record);
+    deleteMenu([record.id]).then(() => {
+      handleSuccess();
+    });
   }
 
   function handleSuccess() {
