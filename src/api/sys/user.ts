@@ -11,6 +11,7 @@ import { ErrorMessageMode } from '/#/axios';
 
 enum Api {
   Login = 'auth/auth/login',
+  GenerateCaptcha = 'auth/auth/generateCaptcha',
   Logout = 'auth/auth/loginOut',
   Register = 'auth/auth/register',
   ResetPassword = 'auth/auth/resetPassword',
@@ -73,4 +74,15 @@ export const resetPassword = (params?: ResetPassword) =>
  * 注册账户
  * @param params
  */
-export const register = (params?: RegisterParams) => defHttp.post({ url: Api.Register, params });
+export const register = (params?: RegisterParams) =>
+  defHttp.post(
+    { url: Api.Register, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
+
+/**
+ * 获取验证码
+ */
+export const generateCaptcha = () => defHttp.get({ url: Api.GenerateCaptcha });

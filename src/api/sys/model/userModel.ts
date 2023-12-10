@@ -4,6 +4,7 @@
 export interface LoginParams {
   email: string;
   password: string;
+  code: string;
 }
 
 export interface RoleInfo {
@@ -54,9 +55,19 @@ export interface GetUserInfoModel {
  */
 export interface AegisAuth {
   id: string;
-  nickName: string;
+  nickname: string;
   authName: string;
   avatar: string;
+  mainId: string;
+  orgId: string;
+  phone: string;
+  qq: string;
+  createTime: string;
+  lastTime: string;
+  loginIp: string;
+  orgCode: string;
+  remark: string;
+  roleIds: string;
 }
 
 /**

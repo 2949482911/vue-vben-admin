@@ -16,6 +16,7 @@
         class="fix-auto-fill"
       />
     </FormItem>
+
     <FormItem name="password" class="enter-x">
       <InputPassword
         size="large"
@@ -25,6 +26,17 @@
       />
     </FormItem>
 
+    <FormItem name="code" class="enter-x">
+      <Input
+        size="large"
+        visibilityToggle
+        v-model:value="formData.code"
+        :placeholder="t('sys.login.code')"
+      />
+    </FormItem>
+    <FormItem>
+      <img :src="code" @click="GenerateCaptcha" style="height: 50px" />
+    </FormItem>
     <ARow class="enter-x">
       <ACol :span="12">
         <FormItem>
@@ -100,6 +112,7 @@
   import { useUserStore } from '@/store/modules/user';
   import { LoginStateEnum, useLoginState, useFormRules, useFormValid } from './useLogin';
   import { useDesign } from '@/hooks/web/useDesign';
+  import { generateCaptcha } from '@/api/sys/user';
   //import { onKeyStroke } from '@vueuse/core';
 
   const ACol = Col;
@@ -119,8 +132,9 @@
   const rememberMe = ref(false);
 
   const formData = reactive({
-    email: '2949482911@163.com',
-    password: 'admin123',
+    email: '',
+    password: '',
+    code: '',
   });
 
   const { validForm } = useFormValid(formRef);
@@ -137,13 +151,13 @@
       const userInfo = await userStore.login({
         password: data.password,
         email: data.email,
+        code: data.code,
         mode: 'none', //不要默认的错误提示
       });
-      console.log(userInfo);
       if (userInfo) {
         notification.success({
           message: t('sys.login.loginSuccessTitle'),
-          description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.nickname}`,
+          description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.aegisAuth.nickname}`,
           duration: 3,
         });
       }
@@ -157,4 +171,13 @@
       loading.value = false;
     }
   }
+  const code = ref<string>('');
+
+  function GenerateCaptcha() {
+    generateCaptcha().then((data) => {
+      code.value = data;
+    });
+  }
+
+  GenerateCaptcha();
 </script>
