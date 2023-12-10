@@ -1,6 +1,6 @@
 import type { BasicTableProps, TableActionType, FetchParams, BasicColumn } from '../types/table';
 import type { PaginationProps } from '../types/pagination';
-import type { DynamicProps } from '/#/utils';
+import type { DynamicProps } from '#/utils';
 import type { FormActionType } from '@/components/Form';
 import type { WatchStopHandle } from 'vue';
 import { getDynamicProps } from '@/utils';
@@ -156,11 +156,14 @@ export function useTable(tableProps?: Props): [
     expandAll: () => {
       getTableInstance().expandAll();
     },
+    collapseAll: () => {
+      getTableInstance().collapseAll();
+    },
     expandRows: (keys: Key[]) => {
       getTableInstance().expandRows(keys);
     },
-    collapseAll: () => {
-      getTableInstance().collapseAll();
+    collapseRows: (keys: Key[]) => {
+      getTableInstance().collapseRows(keys);
     },
     scrollTo: (pos: string) => {
       getTableInstance().scrollTo(pos);

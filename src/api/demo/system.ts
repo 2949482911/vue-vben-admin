@@ -27,8 +27,8 @@ import {
   UserInfo,
   UpdatePassword,
 } from './model/systemModel';
-import { defHttp } from '/@/utils/http/axios';
 import qs from 'qs';
+import { defHttp } from '@/utils/http/axios';
 
 enum Api {
   AccountList = 'sys/user/list',

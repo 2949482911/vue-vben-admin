@@ -12,17 +12,19 @@
   import type { TableActionType } from '@/components/Table';
   import { Col, Divider, Form } from 'ant-design-vue';
   import { componentMap } from '../componentMap';
-  import { BasicHelp } from '@/components/Basic';
+  import { BasicHelp, BasicTitle } from '@/components/Basic';
   import { isBoolean, isFunction, isNull } from '@/utils/is';
   import { getSlot } from '@/utils/helper/tsxHelper';
   import {
     createPlaceholderMessage,
+    isIncludeSimpleComponents,
     NO_AUTO_LINK_COMPONENTS,
     setComponentRuleType,
   } from '../helper';
   import { cloneDeep, upperFirst } from 'lodash-es';
   import { useItemLabelWidth } from '../hooks/useLabelWidth';
   import { useI18n } from '@/hooks/web/useI18n';
+  import { useDebounceFn } from '@vueuse/core';
 
   export default defineComponent({
     name: 'BasicFormItem',
@@ -89,7 +91,7 @@
         if (isFunction(componentProps)) {
           componentProps = componentProps({ schema, tableAction, formModel, formActionType }) ?? {};
         }
-        if (schema.component === 'Divider') {
+        if (isIncludeSimpleComponents(schema.component)) {
           componentProps = Object.assign(
             { type: 'horizontal' },
             {
@@ -114,6 +116,21 @@
           disabled = dynamicDisabled(unref(getValues));
         }
         return disabled;
+      });
+
+      const getReadonly = computed(() => {
+        const { readonly: globReadonly } = props.formProps;
+        const { dynamicReadonly } = props.schema;
+        const { readonly: itemReadonly = false } = unref(getComponentsProps);
+
+        let readonly = globReadonly || itemReadonly;
+        if (isBoolean(dynamicReadonly)) {
+          readonly = dynamicReadonly;
+        }
+        if (isFunction(dynamicReadonly)) {
+          readonly = dynamicReadonly(unref(getValues));
+        }
+        return readonly;
       });
 
       function getShow(): { isShow: boolean; isIfShow: boolean } {
@@ -254,6 +271,8 @@
           component,
           field,
           changeEvent = 'change',
+          watchEventNames = ['search', 'change'],
+          enableWatchEvent = true,
           valueField,
         } = props.schema;
 
@@ -261,6 +280,27 @@
 
         const eventKey = `on${upperFirst(changeEvent)}`;
 
+        const { autoSetPlaceHolder, size, watchEvent } = props.formProps;
+        let eventNames = {};
+        if (watchEvent && enableWatchEvent) {
+          // table search 开启才触发事件
+          let immediateEvents = ['search']; // 立即执行的事件
+          watchEventNames.forEach((item) => {
+            let timer: number = 500;
+            if (immediateEvents.includes(item)) {
+              timer = 0;
+            }
+            eventNames[`on${upperFirst(item)}`] = useDebounceFn(
+              (...args: Nullable<Recordable<any>>[]) => {
+                // todo 后续需要优化input中文输入的问题
+                console.log(args);
+                const { reload = () => {} } = props.tableAction || {};
+                reload();
+              },
+              timer,
+            );
+          });
+        }
         const on = {
           [eventKey]: (...args: Nullable<Recordable<any>>[]) => {
             const [e] = args;
@@ -274,12 +314,12 @@
         };
         const Comp = componentMap.get(component) as ReturnType<typeof defineComponent>;
 
-        const { autoSetPlaceHolder, size } = props.formProps;
         const propsData: Recordable<any> = {
           allowClear: true,
           size,
           ...unref(getComponentsProps),
           disabled: unref(getDisable),
+          readonly: unref(getReadonly),
         };
 
         const isCreatePlaceholder = !propsData.disabled && autoSetPlaceHolder;
@@ -298,6 +338,7 @@
         const compAttr: Recordable<any> = {
           ...propsData,
           ...on,
+          ...eventNames,
           ...bindValue,
         };
 
@@ -305,7 +346,12 @@
           return <Comp {...compAttr} />;
         }
         const compSlot = isFunction(renderComponentContent)
-          ? { ...renderComponentContent(unref(getValues), { disabled: unref(getDisable) }) }
+          ? {
+              ...renderComponentContent(unref(getValues), {
+                disabled: unref(getDisable),
+                readonly: unref(getReadonly),
+              }),
+            }
           : {
               default: () => renderComponentContent,
             };
@@ -339,12 +385,23 @@
         const { itemProps, slot, render, field, suffix, component } = props.schema;
         const { labelCol, wrapperCol } = unref(itemLabelWidthProp);
         const { colon } = props.formProps;
-        const opts = { disabled: unref(getDisable) };
+        const opts = { disabled: unref(getDisable), readonly: unref(getReadonly) };
         if (component === 'Divider') {
           return (
             <Col span={24}>
               <Divider {...unref(getComponentsProps)}>{renderLabelHelpMessage()}</Divider>
             </Col>
+          );
+        } else if (component === 'BasicTitle') {
+          return (
+            <Form.Item
+              labelCol={labelCol}
+              wrapperCol={wrapperCol}
+              name={field}
+              class={{ 'suffix-item': !!suffix }}
+            >
+              <BasicTitle {...unref(getComponentsProps)}>{renderLabelHelpMessage()}</BasicTitle>
+            </Form.Item>
           );
         } else {
           const getContent = () => {
@@ -397,7 +454,7 @@
         const realColProps = { ...baseColProps, ...colProps };
         const { isIfShow, isShow } = getShow();
         const values = unref(getValues);
-        const opts = { disabled: unref(getDisable) };
+        const opts = { disabled: unref(getDisable), readonly: unref(getReadonly) };
 
         const getContent = () => {
           return colSlot
