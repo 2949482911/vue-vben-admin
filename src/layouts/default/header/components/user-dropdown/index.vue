@@ -35,6 +35,7 @@
           :text="t('layout.header.dropdownItemLoginOut')"
           icon="ion:power-outline"
         />
+        <MenuItem key="model" text="切换权限模式" icon="ion:power-outline" />
       </Menu>
     </template>
   </Dropdown>
@@ -55,12 +56,15 @@
   import { propTypes } from '@/utils/propTypes';
   import { openWindow } from '@/utils';
   import { createAsyncComponent } from '@/utils/factory/createAsyncComponent';
+  import { usePermission } from '@/hooks/web/usePermission';
 
-  type MenuEvent = 'logout' | 'doc' | 'lock' | 'api';
+  type MenuEvent = 'logout' | 'doc' | 'lock' | 'api' | 'model';
 
   const MenuItem = createAsyncComponent(() => import('./DropMenuItem.vue'));
   const LockAction = createAsyncComponent(() => import('../lock/LockModal.vue'));
   const ChangeApi = createAsyncComponent(() => import('../ChangeApi/index.vue'));
+  // const permissionMode = computed(() => appStore.getProjectConfig.permissionMode);
+  const { togglePermissionMode } = usePermission();
 
   defineOptions({ name: 'UserDropdown' });
 
@@ -112,6 +116,9 @@
         break;
       case 'api':
         handleApi();
+        break;
+      case 'model':
+        togglePermissionMode();
         break;
     }
   }

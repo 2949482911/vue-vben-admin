@@ -56,12 +56,19 @@ export const columns: BasicColumn[] = [
   {
     title: '组件',
     dataIndex: 'component',
+    width: 180,
+  },
+  {
+    title: '路由',
+    dataIndex: 'path',
+    width: 180,
   },
   {
     title: '排序',
     dataIndex: 'sort',
     width: 50,
   },
+
   {
     title: '状态',
     dataIndex: 'status',

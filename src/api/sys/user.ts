@@ -86,3 +86,5 @@ export const register = (params?: RegisterParams) =>
  * 获取验证码
  */
 export const generateCaptcha = () => defHttp.get({ url: Api.GenerateCaptcha });
+
+// export const getUserInfo = () => defHttp.get({ url: Api.GetUserInfo });

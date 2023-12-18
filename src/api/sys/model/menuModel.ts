@@ -1,5 +1,8 @@
 import type { RouteMeta } from 'vue-router';
 
+/**
+ * 菜单接口返回
+ */
 export interface RouteItem {
   path: string;
   component: any;

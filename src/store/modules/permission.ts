@@ -18,11 +18,12 @@ import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic';
 
 import { filter } from '@/utils/helper/treeHelper';
 
-import { getMenuList } from '@/api/sys/menu';
-import { getPermCode } from '@/api/sys/user';
+// import { getMenuList } from '@/api/sys/menu';
+import { getPermCode, getUserInfo } from '@/api/sys/user';
 
 import { useMessage } from '@/hooks/web/useMessage';
 import { PageEnum } from '@/enums/pageEnum';
+import { GetUserInfoModel } from '@/api/sys/model/userModel';
 
 interface PermissionState {
   // Permission code list
@@ -221,8 +222,10 @@ export const usePermissionStore = defineStore({
           // 这个功能可能只需要执行一次，实际项目可以自己放在合适的时间
           let routeList: AppRouteRecordRaw[] = [];
           try {
-            await this.changePermissionCode();
-            routeList = (await getMenuList()) as AppRouteRecordRaw[];
+            // await this.changePermissionCode();
+            const userInfo: GetUserInfoModel = await getUserInfo();
+            console.log(userInfo.menu);
+            routeList = userInfo.menu as AppRouteRecordRaw[];
           } catch (error) {
             console.error(error);
           }

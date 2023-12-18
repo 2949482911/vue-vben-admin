@@ -35,7 +35,7 @@
       />
     </FormItem>
     <FormItem>
-      <img :src="code" @click="GenerateCaptcha" style="height: 50px" />
+      <img :src="code" @click="GenerateCaptcha" style="height: 80px" />
     </FormItem>
     <ARow class="enter-x">
       <ACol :span="12">
@@ -95,6 +95,7 @@
 </template>
 <script lang="ts" setup>
   import { reactive, ref, unref, computed } from 'vue';
+  import { GetUserInfoModel, generateCaptcha } from '@/api/sys/user';
 
   import { Checkbox, Form, Input, Row, Col, Button, Divider } from 'ant-design-vue';
   import {
@@ -112,7 +113,6 @@
   import { useUserStore } from '@/store/modules/user';
   import { LoginStateEnum, useLoginState, useFormRules, useFormValid } from './useLogin';
   import { useDesign } from '@/hooks/web/useDesign';
-  import { generateCaptcha } from '@/api/sys/user';
   //import { onKeyStroke } from '@vueuse/core';
 
   const ACol = Col;
@@ -148,7 +148,7 @@
     if (!data) return;
     try {
       loading.value = true;
-      const userInfo = await userStore.login({
+      const userInfo: GetUserInfoModel = await userStore.login({
         password: data.password,
         email: data.email,
         code: data.code,
@@ -157,7 +157,7 @@
       if (userInfo) {
         notification.success({
           message: t('sys.login.loginSuccessTitle'),
-          description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.aegisAuth.nickname}`,
+          description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.nickname}`,
           duration: 3,
         });
       }
