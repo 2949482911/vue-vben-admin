@@ -49,7 +49,7 @@ export const usePermissionStore = defineStore({
     permCodeList: [],
     // Whether the route has been dynamically added
     // 路由是否动态添加
-    isDynamicAddedRoute: false,
+    isDynamicAddedRoute: true,
     // To trigger a menu update
     // 触发菜单更新
     lastBuildMenuTime: 0,
@@ -99,7 +99,7 @@ export const usePermissionStore = defineStore({
       this.isDynamicAddedRoute = added;
     },
     resetState(): void {
-      this.isDynamicAddedRoute = false;
+      this.isDynamicAddedRoute = true;
       this.permCodeList = [];
       this.backMenuList = [];
       this.lastBuildMenuTime = 0;
@@ -142,7 +142,7 @@ export const usePermissionStore = defineStore({
        * */
       const patchHomeAffix = (routes: AppRouteRecordRaw[]) => {
         if (!routes || routes.length === 0) return;
-        let homePath: string = userStore.getUserInfo.homePath || PageEnum.BASE_HOME;
+        let homePath: string = PageEnum.BASE_HOME;
 
         function patcher(routes: AppRouteRecordRaw[], parentPath = '') {
           if (parentPath) parentPath = parentPath + '/';
@@ -222,10 +222,9 @@ export const usePermissionStore = defineStore({
           // 这个功能可能只需要执行一次，实际项目可以自己放在合适的时间
           let routeList: AppRouteRecordRaw[] = [];
           try {
-            // await this.changePermissionCode();
+            await this.changePermissionCode();
             const userInfo: GetUserInfoModel = await getUserInfo();
-            console.log(userInfo.menu);
-            routeList = userInfo.menu as AppRouteRecordRaw[];
+            routeList = userInfo.menu as [];
           } catch (error) {
             console.error(error);
           }

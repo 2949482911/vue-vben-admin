@@ -1,4 +1,4 @@
-import { defHttp } from '/@/utils/http/axios';
+import { defHttp } from '@/utils/http/axios';
 import {
   LoginParams,
   LoginResultModel,
@@ -7,7 +7,7 @@ import {
   RegisterParams,
 } from './model/userModel';
 
-import { ErrorMessageMode } from '/#/axios';
+import { ErrorMessageMode } from '#/axios';
 
 enum Api {
   Login = 'auth/auth/login',

@@ -84,7 +84,6 @@ export function transformObjToRoute<T = AppRouteModule>(routeList: AppRouteModul
           warn('找不到菜单对应的name, 请检查数据!' + JSON.stringify(route));
         }
         route.name = `${route.name}Parent`;
-        route.path = '';
         const meta = route.meta || {};
         meta.single = true;
         meta.affix = false;

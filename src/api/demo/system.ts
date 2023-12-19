@@ -50,6 +50,7 @@ enum Api {
   MenuList = 'sys/menu/list',
   CreateMenu = 'sys/menu/create',
   UpdateMenu = 'sys/menu/update',
+  DeleteMenu = 'sys/menu/delete',
 
   RolePageList = 'sys/role/list',
   RoleDisable = 'sys/role/disable',
@@ -115,6 +116,22 @@ export const createMenu = (params?: CreateUpdateMenu) =>
 export const updateMenu = (params?: CreateUpdateMenu) =>
   defHttp.post(
     { url: Api.UpdateMenu, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
+
+export const deleteMenu = (ids: Array<string>) =>
+  defHttp.get(
+    {
+      url: Api.DeleteMenu,
+      params: {
+        ids: ids,
+      },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
+    },
     {
       successMessageMode: 'tip',
     },

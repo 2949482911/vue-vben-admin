@@ -108,7 +108,7 @@ export const useUserStore = defineStore({
         this.setSessionTimeout(false);
       } else {
         const permissionStore = usePermissionStore();
-        if (!permissionStore.isDynamicAddedRoute) {
+        if (permissionStore.isDynamicAddedRoute) {
           const routes = await permissionStore.buildRoutesAction();
           routes.forEach((route) => {
             router.addRoute(route as unknown as RouteRecordRaw);
@@ -124,12 +124,12 @@ export const useUserStore = defineStore({
     async getUserInfoAction(): Promise<GetUserInfoModel | null> {
       if (!this.getToken) return null;
       const userInfo = await getUserInfo();
-      const { roles = [] } = userInfo;
-      if (isArray(roles)) {
-        const roleList = roles.map((item) => item.value) as RoleEnum[];
+      const { roleVOList = [] } = userInfo;
+      if (isArray(roleVOList)) {
+        const roleList = roleVOList.map((item) => item.roleType) as RoleEnum[];
         this.setRoleList(roleList);
       } else {
-        userInfo.roles = [];
+        userInfo.roleVOList = [];
         this.setRoleList([]);
       }
       this.setUserInfo(userInfo);

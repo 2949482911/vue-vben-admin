@@ -35,7 +35,7 @@
       />
     </FormItem>
     <FormItem>
-      <img :src="code" @click="GenerateCaptcha" style="height: 80px" />
+      <img :src="code" @click="GenerateCaptcha" style=" width: 200px;height: 50px" />
     </FormItem>
     <ARow class="enter-x">
       <ACol :span="12">

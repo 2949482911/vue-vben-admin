@@ -12,11 +12,11 @@
 </template>
 <script lang="ts" setup>
   import { ref, computed, unref } from 'vue';
-  import { BasicForm, useForm } from '/@/components/Form/index';
+  import { BasicForm, useForm } from '@/components/Form/index';
   import { formSchema } from './dataScope.data';
-  import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
+  import { BasicDrawer, useDrawerInner } from '@/components/Drawer';
 
-  import { createDataScope, updateDataScope } from '/@/api/demo/system';
+  import { createDataScope, updateDataScope } from '@/api/demo/system';
 
   const emit = defineEmits(['success', 'register']);
   const isUpdate = ref(true);

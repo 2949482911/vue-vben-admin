@@ -1,7 +1,7 @@
-import { BasicColumn, FormSchema } from '/@/components/Table';
+import { BasicColumn, FormSchema } from '@/components/Table';
 import { h } from 'vue';
 import { Switch, Tag } from 'ant-design-vue';
-import { enableMainBody, disableMainBody, getAccountList, getDeptList } from '/@/api/demo/system';
+import { enableMainBody, disableMainBody, getAccountList, getDeptList } from '@/api/demo/system';
 
 type CheckedType = boolean | string | number;
 
