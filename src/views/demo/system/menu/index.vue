@@ -2,7 +2,9 @@
   <div>
     <BasicTable @register="registerTable" @fetch-success="onFetchSuccess">
       <template #toolbar>
-        <a-button type="primary" @click="handleCreate"> 新增菜单</a-button>
+        <a-button type="primary" @click="handleCreate"> 新增菜单 </a-button>
+        <a-button type="primary" @click="expandAll">展开全部</a-button>
+        <a-button type="primary" @click="collapseAll">折叠全部</a-button>
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
@@ -43,7 +45,7 @@
   defineOptions({ name: 'MenuManagement' });
 
   const [registerDrawer, { openDrawer }] = useDrawer();
-  const [registerTable, { reload, expandAll }] = useTable({
+  const [registerTable, { reload, expandAll, collapseAll }] = useTable({
     title: '菜单列表',
     api: getMenuList,
     columns,
@@ -52,7 +54,6 @@
       schemas: searchFormSchema,
     },
     isTreeTable: true,
-    pagination: false,
     striped: false,
     useSearchForm: true,
     showTableSetting: true,
@@ -66,6 +67,7 @@
       // slots: { customRender: 'action' },
       fixed: undefined,
     },
+    rowKey: 'id',
   });
 
   function handleCreate() {
@@ -93,6 +95,6 @@
 
   function onFetchSuccess() {
     // 演示默认展开所有表项
-    nextTick(expandAll);
+    nextTick(collapseAll);
   }
 </script>

@@ -1,6 +1,9 @@
+/**
+ * 角色枚举
+ */
 export enum RoleEnum {
   // super admin
-  SUPER = 'super',
+  SUPER = 1,
 
   // tester
   TEST = 'test',

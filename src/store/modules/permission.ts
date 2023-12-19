@@ -1,28 +1,29 @@
-import type { AppRouteRecordRaw, Menu } from '/@/router/types';
+import type { AppRouteRecordRaw, Menu } from '@/router/types';
 
 import { defineStore } from 'pinia';
-import { store } from '/@/store';
-import { useI18n } from '/@/hooks/web/useI18n';
+import { store } from '@/store';
+import { useI18n } from '@/hooks/web/useI18n';
 import { useUserStore } from './user';
 import { useAppStoreWithOut } from './app';
 import { toRaw } from 'vue';
-import { transformObjToRoute, flatMultiLevelRoutes } from '/@/router/helper/routeHelper';
-import { transformRouteToMenu } from '/@/router/helper/menuHelper';
+import { transformObjToRoute, flatMultiLevelRoutes } from '@/router/helper/routeHelper';
+import { transformRouteToMenu } from '@/router/helper/menuHelper';
 
-import projectSetting from '/@/settings/projectSetting';
+import projectSetting from '@/settings/projectSetting';
 
-import { PermissionModeEnum } from '/@/enums/appEnum';
+import { PermissionModeEnum } from '@/enums/appEnum';
 
-import { asyncRoutes } from '/@/router/routes';
-import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '/@/router/routes/basic';
+import { asyncRoutes } from '@/router/routes';
+import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic';
 
-import { filter } from '/@/utils/helper/treeHelper';
+import { filter } from '@/utils/helper/treeHelper';
 
-import { getMenuList } from '/@/api/sys/menu';
-import { getPermCode } from '/@/api/sys/user';
+// import { getMenuList } from '@/api/sys/menu';
+import { getPermCode, getUserInfo } from '@/api/sys/user';
 
-import { useMessage } from '/@/hooks/web/useMessage';
-import { PageEnum } from '/@/enums/pageEnum';
+import { useMessage } from '@/hooks/web/useMessage';
+import { PageEnum } from '@/enums/pageEnum';
+import { GetUserInfoModel } from '@/api/sys/model/userModel';
 
 interface PermissionState {
   // Permission code list
@@ -48,7 +49,7 @@ export const usePermissionStore = defineStore({
     permCodeList: [],
     // Whether the route has been dynamically added
     // 路由是否动态添加
-    isDynamicAddedRoute: false,
+    isDynamicAddedRoute: true,
     // To trigger a menu update
     // 触发菜单更新
     lastBuildMenuTime: 0,
@@ -98,7 +99,7 @@ export const usePermissionStore = defineStore({
       this.isDynamicAddedRoute = added;
     },
     resetState(): void {
-      this.isDynamicAddedRoute = false;
+      this.isDynamicAddedRoute = true;
       this.permCodeList = [];
       this.backMenuList = [];
       this.lastBuildMenuTime = 0;
@@ -141,7 +142,7 @@ export const usePermissionStore = defineStore({
        * */
       const patchHomeAffix = (routes: AppRouteRecordRaw[]) => {
         if (!routes || routes.length === 0) return;
-        let homePath: string = userStore.getUserInfo.homePath || PageEnum.BASE_HOME;
+        let homePath: string = PageEnum.BASE_HOME;
 
         function patcher(routes: AppRouteRecordRaw[], parentPath = '') {
           if (parentPath) parentPath = parentPath + '/';
@@ -222,7 +223,8 @@ export const usePermissionStore = defineStore({
           let routeList: AppRouteRecordRaw[] = [];
           try {
             await this.changePermissionCode();
-            routeList = (await getMenuList()) as AppRouteRecordRaw[];
+            const userInfo: GetUserInfoModel = await getUserInfo();
+            routeList = userInfo.menu as [];
           } catch (error) {
             console.error(error);
           }

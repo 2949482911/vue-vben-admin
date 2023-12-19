@@ -27,8 +27,8 @@ import {
   UserInfo,
   UpdatePassword,
 } from './model/systemModel';
-import { defHttp } from '/@/utils/http/axios';
 import qs from 'qs';
+import { defHttp } from '@/utils/http/axios';
 
 enum Api {
   AccountList = 'sys/user/list',
@@ -132,6 +132,22 @@ export const deleteMenu = (ids: Array<string>) =>
 export const updateMenu = (params?: CreateUpdateMenu) =>
   defHttp.post(
     { url: Api.UpdateMenu, params },
+    {
+      successMessageMode: 'tip',
+    },
+  );
+
+export const deleteMenu = (ids: Array<string>) =>
+  defHttp.get(
+    {
+      url: Api.DeleteMenu,
+      params: {
+        ids: ids,
+      },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
+    },
     {
       successMessageMode: 'tip',
     },

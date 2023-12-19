@@ -16,6 +16,7 @@
         class="fix-auto-fill"
       />
     </FormItem>
+
     <FormItem name="password" class="enter-x">
       <InputPassword
         size="large"
@@ -25,6 +26,17 @@
       />
     </FormItem>
 
+    <FormItem name="code" class="enter-x">
+      <Input
+        size="large"
+        visibilityToggle
+        v-model:value="formData.code"
+        :placeholder="t('sys.login.code')"
+      />
+    </FormItem>
+    <FormItem>
+      <img :src="code" @click="GenerateCaptcha" style="width: 200px; height: 50px" />
+    </FormItem>
     <ARow class="enter-x">
       <ACol :span="12">
         <FormItem>
@@ -83,6 +95,7 @@
 </template>
 <script lang="ts" setup>
   import { reactive, ref, unref, computed } from 'vue';
+  import { GetUserInfoModel, generateCaptcha } from '@/api/sys/user';
 
   import { Checkbox, Form, Input, Row, Col, Button, Divider } from 'ant-design-vue';
   import {
@@ -119,8 +132,9 @@
   const rememberMe = ref(false);
 
   const formData = reactive({
-    email: '2949482911@163.com',
-    password: 'admin123',
+    email: '',
+    password: '',
+    code: '',
   });
 
   const { validForm } = useFormValid(formRef);
@@ -134,12 +148,12 @@
     if (!data) return;
     try {
       loading.value = true;
-      const userInfo = await userStore.login({
+      const userInfo: GetUserInfoModel = await userStore.login({
         password: data.password,
         email: data.email,
+        code: data.code,
         mode: 'none', //不要默认的错误提示
       });
-      console.log(userInfo);
       if (userInfo) {
         notification.success({
           message: t('sys.login.loginSuccessTitle'),
@@ -157,4 +171,13 @@
       loading.value = false;
     }
   }
+  const code = ref<string>('');
+
+  function GenerateCaptcha() {
+    generateCaptcha().then((data) => {
+      code.value = data;
+    });
+  }
+
+  GenerateCaptcha();
 </script>

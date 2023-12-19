@@ -1,6 +1,6 @@
-import type { ProjectConfig } from '/#/config';
-import { MenuTypeEnum, MenuModeEnum, TriggerEnum, MixSidebarTriggerEnum } from '/@/enums/menuEnum';
-import { CacheTypeEnum } from '/@/enums/cacheEnum';
+import type { ProjectConfig } from '#/config';
+import { MenuTypeEnum, MenuModeEnum, TriggerEnum, MixSidebarTriggerEnum } from '@/enums/menuEnum';
+import { CacheTypeEnum } from '@/enums/cacheEnum';
 import {
   ContentEnum,
   PermissionModeEnum,
@@ -8,7 +8,7 @@ import {
   RouterTransitionEnum,
   SettingButtonPositionEnum,
   SessionTimeoutProcessingEnum,
-} from '/@/enums/appEnum';
+} from '@/enums/appEnum';
 import {
   SIDE_BAR_BG_COLOR_LIST,
   HEADER_PRESET_BG_COLOR_LIST,
@@ -27,7 +27,7 @@ const setting: ProjectConfig = {
   settingButtonPosition: SettingButtonPositionEnum.AUTO,
 
   // Permission mode
-  permissionMode: PermissionModeEnum.ROUTE_MAPPING,
+  permissionMode: PermissionModeEnum.BACK,
 
   // Permission-related cache is stored in sessionStorage or localStorage
   permissionCacheType: CacheTypeEnum.LOCAL,
