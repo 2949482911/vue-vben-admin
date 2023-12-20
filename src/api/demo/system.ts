@@ -137,22 +137,6 @@ export const updateMenu = (params?: CreateUpdateMenu) =>
     },
   );
 
-export const deleteMenu = (ids: Array<string>) =>
-  defHttp.get(
-    {
-      url: Api.DeleteMenu,
-      params: {
-        ids: ids,
-      },
-      paramsSerializer: function (params) {
-        return qs.stringify(params, { arrayFormat: 'repeat' });
-      },
-    },
-    {
-      successMessageMode: 'tip',
-    },
-  );
-
 export const getRoleListByPage = (params?: RolePageParams) =>
   defHttp.get<RolePageListGetResultModel>({ url: Api.RolePageList, params });
 

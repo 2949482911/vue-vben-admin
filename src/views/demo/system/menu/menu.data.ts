@@ -5,12 +5,6 @@ import Icon from '@/components/Icon/Icon.vue';
 
 export const columns: BasicColumn[] = [
   {
-    title: '菜单名称',
-    dataIndex: 'name',
-    width: 200,
-    align: 'left',
-  },
-  {
     title: '标题',
     dataIndex: 'title',
     width: 200,
@@ -184,6 +178,14 @@ export const formSchema: FormSchema[] = [
     required: true,
     ifShow: ({ values }) => isMenu(values.type),
   },
+
+  {
+    field: 'redirect',
+    label: '重定向地址',
+    component: 'Input',
+    ifShow: ({ values }) => isMenu(values.type),
+  },
+
   {
     field: 'component',
     label: '组件路径',

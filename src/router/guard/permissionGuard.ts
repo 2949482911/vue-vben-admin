@@ -19,7 +19,7 @@ export function createPermissionGuard(router: Router) {
   const userStore = useUserStoreWithOut();
   const permissionStore = usePermissionStoreWithOut();
   router.beforeEach(async (to, from, next) => {
-    if (from.path === ROOT_PATH || to.path === PageEnum.BASE_HOME) {
+    if (from.path === ROOT_PATH && to.path === PageEnum.BASE_HOME) {
       next();
       return;
     }
@@ -46,10 +46,10 @@ export function createPermissionGuard(router: Router) {
     // token or user does not exist
     if (!token) {
       // You can access without permission. You need to set the routing meta.ignoreAuth to true
-      if (to.meta.ignoreAuth) {
-        next();
-        return;
-      }
+      // if (to.meta.ignoreAuth) {
+      //   next();
+      //   return;
+      // }
 
       // redirect login page
       const redirectData: { path: string; replace: boolean; query?: Recordable<string> } = {
