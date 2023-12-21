@@ -149,7 +149,7 @@ export const formSchema: FormSchema[] = [
     component: 'TreeSelect',
     componentProps: {
       fieldNames: {
-        label: 'name',
+        label: 'title',
         key: 'id',
         value: 'id',
       },
