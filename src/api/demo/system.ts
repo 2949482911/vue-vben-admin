@@ -26,6 +26,7 @@ import {
   CreateAccount,
   UserInfo,
   UpdatePassword,
+  GetOperateLogParams,
 } from './model/systemModel';
 import qs from 'qs';
 import { defHttp } from '@/utils/http/axios';
@@ -79,6 +80,9 @@ enum Api {
   EnableDataScope = 'sys/data/range/enable',
   DisableDataScope = 'sys/data/range/disable',
   SelectDataRange = 'sys/data/range/select',
+
+  // 操作日志
+  OperateLogList = 'sys/operate-log/list',
 }
 
 export const getAccountList = (params: AccountParams) =>
@@ -425,4 +429,10 @@ export const userInfo = (id: string) =>
   defHttp.get<UserInfo>({
     url: Api.UserInfo,
     params: { id: id },
+  });
+
+export const getOperateLogList = (params: GetOperateLogParams) =>
+  defHttp.get({
+    url: Api.OperateLogList,
+    params,
   });
