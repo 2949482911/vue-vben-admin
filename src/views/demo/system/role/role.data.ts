@@ -1,8 +1,8 @@
-import { BasicColumn, FormSchema } from '/@/components/Table';
+import { BasicColumn, FormSchema } from '@/components/Table';
 import { h } from 'vue';
 import { Switch } from 'ant-design-vue';
 import { setRoleEnable, setRoleDisable } from '/@/api/demo/system';
-import { useMessage } from '/@/hooks/web/useMessage';
+import { useMessage } from '@/hooks/web/useMessage';
 
 type CheckedType = boolean | string | number;
 export const columns: BasicColumn[] = [
