@@ -243,3 +243,9 @@ export interface UpdatePassword {
   newPassword: string;
   confirmPassword: string;
 }
+
+export interface GetOperateLogParam {
+  url: string;
+}
+
+export type GetOperateLogParams = BasicPageParams & GetOperateLogParam;
