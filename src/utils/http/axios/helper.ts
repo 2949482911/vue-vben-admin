@@ -18,6 +18,17 @@ export function joinTimestamp(join: boolean, restful = false): string | object {
   return { _t: now };
 }
 
+export function joinSign(join: boolean, restful: boolean = false): string | object {
+  if (!join) {
+    return restful ? '' : {};
+  }
+  const sign: string = 'm46';
+  if (restful) {
+    return `&=${sign}`;
+  }
+  return { _sign: sign };
+}
+
 /**
  * @description: Format request parameter time
  */

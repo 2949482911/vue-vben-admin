@@ -15,7 +15,7 @@ import { getToken } from '/@/utils/auth';
 import { setObjToUrlParams, deepMerge } from '/@/utils';
 import { useErrorLogStoreWithOut } from '/@/store/modules/errorLog';
 import { useI18n } from '/@/hooks/web/useI18n';
-import { joinTimestamp, formatRequestDate } from './helper';
+import { joinTimestamp, formatRequestDate, joinSign } from './helper';
 import { useUserStoreWithOut } from '/@/store/modules/user';
 import { AxiosRetry } from '/@/utils/http/axios/axiosRetry';
 import axios from 'axios';
@@ -106,7 +106,7 @@ const transform: AxiosTransform = {
     const { apiUrl, joinPrefix, joinParamsToUrl, formatDate, joinTime = true, urlPrefix } = options;
 
     if (joinPrefix) {
-      config.url = `${urlPrefix}${config.url}`;
+      config.url = `${urlPrefix}/${config.url}`;
     }
 
     if (apiUrl && isString(apiUrl)) {
@@ -118,10 +118,15 @@ const transform: AxiosTransform = {
     if (config.method?.toUpperCase() === RequestEnum.GET) {
       if (!isString(params)) {
         // 给 get 请求加上时间戳参数，避免从缓存中拿数据。
-        config.params = Object.assign(params || {}, joinTimestamp(joinTime, false));
+        config.params = Object.assign(
+          params || {},
+          joinTimestamp(joinTime, false),
+          joinSign(joinTime, false),
+        );
       } else {
         // 兼容restful风格
-        config.url = config.url + params + `${joinTimestamp(joinTime, true)}`;
+        config.url =
+          config.url + params + `${joinTimestamp(joinTime, true)}` + `${joinSign(joinTime, false)}`;
         config.params = undefined;
       }
     } else {
