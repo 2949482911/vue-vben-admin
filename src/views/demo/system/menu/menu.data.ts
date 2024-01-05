@@ -246,4 +246,17 @@ export const formSchema: FormSchema[] = [
     },
     ifShow: ({ values }) => isButton(values.type),
   },
+
+  {
+    field: 'hideMenu',
+    label: '状态',
+    component: 'RadioButtonGroup',
+    defaultValue: 1,
+    componentProps: {
+      options: [
+        { label: '显示', value: 1 },
+        { label: '隐藏', value: 9 },
+      ],
+    },
+  },
 ];

@@ -98,6 +98,7 @@ export interface CreateUpdateMenu {
   component: string;
   sort: number;
   isInternal: number;
+  hideMenu: number;
 }
 
 export interface RoleListItem {
