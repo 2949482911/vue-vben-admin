@@ -3,21 +3,21 @@
 
 import type { AxiosInstance, AxiosResponse } from 'axios';
 import { clone } from 'lodash-es';
-import type { RequestOptions, Result } from '/#/axios';
+import type { RequestOptions, Result } from '#/axios';
 import type { AxiosTransform, CreateAxiosOptions } from './axiosTransform';
 import { VAxios } from './Axios';
 import { checkStatus } from './checkStatus';
-import { useGlobSetting } from '/@/hooks/setting';
-import { useMessage } from '/@/hooks/web/useMessage';
-import { RequestEnum, ResultEnum, ContentTypeEnum } from '/@/enums/httpEnum';
-import { isString } from '/@/utils/is';
-import { getToken } from '/@/utils/auth';
-import { setObjToUrlParams, deepMerge } from '/@/utils';
-import { useErrorLogStoreWithOut } from '/@/store/modules/errorLog';
-import { useI18n } from '/@/hooks/web/useI18n';
+import { useGlobSetting } from '@/hooks/setting';
+import { useMessage } from '@/hooks/web/useMessage';
+import { RequestEnum, ResultEnum, ContentTypeEnum } from '@/enums/httpEnum';
+import { isString } from '@/utils/is';
+import { getToken } from '@/utils/auth';
+import { setObjToUrlParams, deepMerge } from '@/utils';
+import { useErrorLogStoreWithOut } from '@/store/modules/errorLog';
+import { useI18n } from '@/hooks/web/useI18n';
 import { joinTimestamp, formatRequestDate, joinSign } from './helper';
-import { useUserStoreWithOut } from '/@/store/modules/user';
-import { AxiosRetry } from '/@/utils/http/axios/axiosRetry';
+import { useUserStoreWithOut } from '@/store/modules/user';
+import { AxiosRetry } from '@/utils/http/axios/axiosRetry';
 import axios from 'axios';
 
 const globSetting = useGlobSetting();
@@ -104,7 +104,6 @@ const transform: AxiosTransform = {
   // 请求之前处理config
   beforeRequestHook: (config, options) => {
     const { apiUrl, joinPrefix, joinParamsToUrl, formatDate, joinTime = true, urlPrefix } = options;
-
     if (joinPrefix) {
       config.url = `${urlPrefix}/${config.url}`;
     }
@@ -142,7 +141,11 @@ const transform: AxiosTransform = {
         } else {
           // 非GET请求如果没有提供data，则将params视为data
           config.data = params;
-          config.params = undefined;
+          config.params = Object.assign(
+            {},
+            joinTimestamp(joinTime, false),
+            joinSign(joinTime, false),
+          );
         }
         if (joinParamsToUrl) {
           config.url = setObjToUrlParams(
