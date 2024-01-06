@@ -32,10 +32,10 @@
 <script lang="ts">
   import { defineComponent } from 'vue';
 
-  import { BasicTable, useTable, TableAction } from '/@/components/Table';
-  import { getMainBodyByPage, deleteMainBody } from '/@/api/demo/system';
+  import { BasicTable, useTable, TableAction } from '@/components/Table';
+  import { getMainBodyByPage, deleteMainBody } from '@/api/demo/system';
 
-  import { useDrawer } from '/@/components/Drawer';
+  import { useDrawer } from '@/components/Drawer';
   import MainBodyDrawer from './MainBodyDrawer.vue';
 
   import { columns, searchFormSchema } from './mainBody.data';

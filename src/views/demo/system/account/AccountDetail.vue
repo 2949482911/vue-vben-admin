@@ -29,12 +29,12 @@
 <script lang="ts">
   import { ref, defineComponent, onMounted } from 'vue';
   import { useRoute } from 'vue-router';
-  import { PageWrapper } from '/@/components/Page';
-  import { useGo } from '/@/hooks/web/usePage';
-  import { useTabs } from '/@/hooks/web/useTabs';
+  import { PageWrapper } from '@/components/Page';
+  import { useGo } from '@/hooks/web/usePage';
+  import { useTabs } from '@/hooks/web/useTabs';
   import { TabPane, Tabs } from 'ant-design-vue';
-  import { userInfo } from '/@/api/demo/system';
-  import { UserInfo } from '/@/api/demo/model/systemModel';
+  import { userInfo } from '@/api/demo/system';
+  import { UserInfo } from '@/api/demo/model/systemModel';
 
   export default defineComponent({
     name: 'AccountDetail',

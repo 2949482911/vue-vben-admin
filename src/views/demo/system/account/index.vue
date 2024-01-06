@@ -49,16 +49,16 @@
 <script lang="ts">
   import { defineComponent, reactive } from 'vue';
 
-  import { BasicTable, useTable, TableAction } from '/@/components/Table';
-  import { getAccountList } from '/@/api/demo/system';
-  import { PageWrapper } from '/@/components/Page';
+  import { BasicTable, useTable, TableAction } from '@/components/Table';
+  import { getAccountList } from '@/api/demo/system';
+  import { PageWrapper } from '@/components/Page';
   import DeptTree from './DeptTree.vue';
 
-  import { useModal } from '/@/components/Modal';
+  import { useModal } from '@/components/Modal';
   import AccountModal from './AccountModal.vue';
 
   import { columns, searchFormSchema } from './account.data';
-  import { useGo } from '/@/hooks/web/usePage';
+  import { useGo } from '@/hooks/web/usePage';
   import { Tag } from 'ant-design-vue';
 
   export default defineComponent({

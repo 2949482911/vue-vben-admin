@@ -71,7 +71,7 @@
 //         title: t('routes.demo.system.mainBody'),
 //         ignoreKeepAlive: true,
 //       },
-//       component: () => import('/@/views/demo/system/main_body/index.vue'),
+//       component: () => import('@/views/demo/system/main_body/index.vue'),
 //     },
 //
 //     {
@@ -81,7 +81,7 @@
 //         title: t('routes.demo.system.dataScope'),
 //         ignoreKeepAlive: true,
 //       },
-//       component: () => import('/@/views/demo/system/data_scope/index.vue'),
+//       component: () => import('@/views/demo/system/data_scope/index.vue'),
 //     },
 //
 //     {

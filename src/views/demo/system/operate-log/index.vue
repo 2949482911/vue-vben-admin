@@ -6,10 +6,10 @@
 <script lang="ts">
   import { defineComponent } from 'vue';
 
-  import { BasicTable, useTable } from '/@/components/Table';
-  import { getOperateLogList } from '/@/api/demo/system';
+  import { BasicTable, useTable } from '@/components/Table';
+  import { getOperateLogList } from '@/api/demo/system';
 
-  import { useDrawer } from '/@/components/Drawer';
+  import { useDrawer } from '@/components/Drawer';
 
   import { columns, searchFormSchema } from './operate-log-data';
 

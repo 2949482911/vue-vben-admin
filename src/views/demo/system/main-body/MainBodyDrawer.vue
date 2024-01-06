@@ -12,11 +12,11 @@
 </template>
 <script lang="ts" setup>
   import { ref, computed, unref } from 'vue';
-  import { BasicForm, useForm } from '/@/components/Form/index';
+  import { BasicForm, useForm } from '@/components/Form/index';
   import { formSchema } from './mainBody.data';
-  import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
+  import { BasicDrawer, useDrawerInner } from '@/components/Drawer';
 
-  import { createMainBody, updateMainBody } from '/@/api/demo/system';
+  import { createMainBody, updateMainBody } from '@/api/demo/system';
   import { UpdateMainBody } from '@/api/demo/model/systemModel';
 
   const emit = defineEmits(['success', 'register']);
