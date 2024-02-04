@@ -30,6 +30,13 @@ import {
 } from './model/systemModel';
 import qs from 'qs';
 import { defHttp } from '@/utils/http/axios';
+import {
+  CreateNotice,
+  NoticeItemList,
+  NoticePageParams,
+  UpdateNotice,
+} from '@/api/demo/model/notice';
+import { BatchOptions } from '@/api/model/baseModel';
 
 enum Api {
   AccountList = 'sys/user/list',
@@ -83,6 +90,13 @@ enum Api {
 
   // 操作日志
   OperateLogList = 'sys/operate-log/list',
+
+  // 公告
+  NoticeList = 'sys/notice/list',
+  NoticeReadList = 'sys/notice/read_list',
+  NoticeCreate = 'sys/notice/create',
+  NoticeUpdate = 'sys/notice/update',
+  NoticeBatchOptions = 'sys/notice/batch_options',
 }
 
 export const getAccountList = (params: AccountParams) =>
@@ -434,5 +448,45 @@ export const userInfo = (id: string) =>
 export const getOperateLogList = (params: GetOperateLogParams) =>
   defHttp.get({
     url: Api.OperateLogList,
+    params,
+  });
+
+export const getNoticeList = (params: NoticePageParams) =>
+  defHttp.get<NoticeItemList>({
+    url: Api.NoticeList,
+    params,
+  });
+
+export const actionCreateNotice = (params: CreateNotice) =>
+  defHttp.post(
+    {
+      url: Api.NoticeCreate,
+      params: params,
+    },
+    {
+      successMessageMode: 'tip',
+    },
+  );
+
+export const actionUpdateNotice = (params: UpdateNotice) =>
+  defHttp.post(
+    {
+      url: Api.NoticeUpdate,
+      params: params,
+    },
+    {
+      successMessageMode: 'tip',
+    },
+  );
+
+export const actionNoticeBatchOptions = (params: BatchOptions) =>
+  defHttp.post({
+    url: Api.NoticeBatchOptions,
+    params,
+  });
+
+export const getNoticeReadList = (params: NoticePageParams) =>
+  defHttp.get<NoticeItemList>({
+    url: Api.NoticeReadList,
     params,
   });
