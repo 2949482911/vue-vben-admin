@@ -97,6 +97,7 @@ enum Api {
   NoticeCreate = 'sys/notice/create',
   NoticeUpdate = 'sys/notice/update',
   NoticeBatchOptions = 'sys/notice/batch_options',
+  NoticeRead = 'sys/notice/read_notice',
 }
 
 export const getAccountList = (params: AccountParams) =>
@@ -485,8 +486,21 @@ export const actionNoticeBatchOptions = (params: BatchOptions) =>
     params,
   });
 
-export const getNoticeReadList = (params: NoticePageParams) =>
+export const getNoticeReadList = () =>
   defHttp.get<NoticeItemList>({
     url: Api.NoticeReadList,
-    params,
   });
+
+export const noticeRead = (noticeIds: Array<string>) =>
+  defHttp.get(
+    {
+      url: Api.NoticeRead,
+      params: { noticeIds: noticeIds },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' });
+      },
+    },
+    {
+      successMessageMode: 'tip',
+    },
+  );

@@ -8,7 +8,7 @@
         <Tabs>
           <Tabs.TabPane key="notice">
             <template #tab>
-              系统通知
+              通知
               <span v-if="noticeList.length !== 0">({{ noticeList.length }})</span>
             </template>
             <NoticeList2 :list="noticeList" @title-click="onNoticeClick" />
@@ -45,12 +45,11 @@
   import { tabListData } from './data';
   import NoticeList2 from './NoticeList2.vue';
   import { useDesign } from '@/hooks/web/useDesign';
-  import { useMessage } from '@/hooks/web/useMessage';
-  import { getNoticeReadList } from '@/api/demo/system';
+  import { getNoticeReadList, noticeRead } from '@/api/demo/system';
   import { NoticeItem } from '@/api/demo/model/notice';
 
   const { prefixCls } = useDesign('header-notify');
-  const { createMessage } = useMessage();
+  // const {createMessage} = useMessage();
   const noticeList = ref<NoticeItem[]>([]);
   const numberStyle = {};
 
@@ -63,13 +62,8 @@
   });
 
   function _getNoticeReadList() {
-    getNoticeReadList({
-      page: 1,
-      pageSize: 1000,
-      title: '',
-      status: 0,
-    }).then((res) => {
-      noticeList.value = res.items;
+    getNoticeReadList().then((res) => {
+      noticeList.value = res;
       console.log(noticeList);
     });
   }
@@ -79,9 +73,13 @@
   });
 
   function onNoticeClick(record: NoticeItem) {
-    createMessage.success('你点击了通知，ID=' + record.id);
+    if (record.isRead) {
+      return;
+    }
     // 可以直接将其标记为已读（为标题添加删除线）,此处演示的代码会切换删除线状态
-    record.isRead = !record.isRead;
+    noticeRead([record.id]).then(() => {
+      record.isRead = !record.isRead;
+    });
   }
 </script>
 <style lang="less">

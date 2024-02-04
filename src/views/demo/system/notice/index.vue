@@ -12,11 +12,6 @@
           <TableAction
             :actions="[
               {
-                icon: 'clarity:info-standard-line',
-                tooltip: '详情',
-                onClick: handleView.bind(null, record),
-              },
-              {
                 icon: 'clarity:note-edit-line',
                 tooltip: '编辑',
                 onClick: handleEdit.bind(null, record),
@@ -103,10 +98,6 @@
         });
       }
 
-      function handleView(record: Recordable) {
-        console.log(record);
-      }
-
       function handleEdit(record: Recordable) {
         openDrawer(true, {
           record,
@@ -191,7 +182,6 @@
         registerTable,
         registerDrawer,
         handleSuccess,
-        handleView,
         handleEdit,
         handleDelete,
         handleCreate,
