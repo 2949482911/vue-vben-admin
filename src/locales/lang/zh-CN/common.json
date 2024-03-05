@@ -17,5 +17,18 @@
 
   "light": "亮色主题",
   "dark": "黑暗主题",
-  "add": "新增"
+  "add": "新增",
+  "status": "状态",
+  "update": "编辑",
+  "disable": "禁用",
+  "enable": "启用",
+  "select_row": "请选择行",
+  "createUser": "创建人",
+  "create_time": "创建时间",
+  "updateUser": "编辑人",
+  "updateTime": "编辑时间",
+  "refuse": "同意",
+  "agree": "拒绝",
+  "yes": "是",
+  "no": "否"
 }

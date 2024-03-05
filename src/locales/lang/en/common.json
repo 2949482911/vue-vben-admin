@@ -14,5 +14,18 @@
   "back": "Back",
   "light": "Light",
   "dark": "Dark",
-  "add": "Add"
+  "add": "Add",
+  "status": "Status",
+  "disable": "Disable",
+  "enable": "Enable",
+  "update": "Edit",
+  "select_row": "Please Select Rows",
+  "createUser": "Create User",
+  "create_time": "Create Time",
+  "updateUser": "Edit User",
+  "updateTime": "Edit Time",
+  "refuse": "Refuse",
+  "agree": "Agree",
+  "yes": "Yes",
+  "no": "No"
 }
