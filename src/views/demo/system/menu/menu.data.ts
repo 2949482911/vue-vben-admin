@@ -252,11 +252,11 @@ export const formSchema: FormSchema[] = [
     field: 'hideMenu',
     label: '是否隐藏',
     component: 'RadioButtonGroup',
-    defaultValue: 1,
+    defaultValue: 9,
     componentProps: {
       options: [
-        { label: '显示', value: 1 },
-        { label: '隐藏', value: 9 },
+        { label: '隐藏', value: 1 },
+        { label: '显示', value: 9 },
       ],
     },
     ifShow: ({ values }) => isMenu(values.type),

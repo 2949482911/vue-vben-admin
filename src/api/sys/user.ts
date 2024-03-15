@@ -42,9 +42,9 @@ export function getUserInfo() {
   return defHttp.get<GetUserInfoModel>({ url: Api.GetUserInfo }, { errorMessageMode: 'none' });
 }
 
-export function getPermCode() {
-  return defHttp.get<string[]>({ url: Api.GetPermCode });
-}
+// export function getPermCode() {
+//   return defHttp.get<string[]>({ url: Api.GetPermCode });
+// }
 
 export function doLogout() {
   return defHttp.get({ url: Api.Logout });
