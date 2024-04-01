@@ -17,7 +17,7 @@ export const columns: BasicColumn[] = [
   },
   {
     title: '备注',
-    dataIndex: 'comment',
+    dataIndex: 'remark',
   },
   {
     title: '创建时间',
