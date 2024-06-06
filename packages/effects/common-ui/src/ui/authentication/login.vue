@@ -80,7 +80,7 @@ function handleGo(path: string) {
 
 onMounted(() => {
   if (localUsername) {
-    setFieldValue('username', localUsername);
+    setFieldValue('email', localUsername);
   }
 });
 </script>

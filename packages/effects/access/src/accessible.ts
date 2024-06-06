@@ -20,7 +20,7 @@ async function generateAccessible(
 
   options.routes = cloneDeep(options.routes);
   // 生成路由
-  const accessibleRoutes = await generateRoutes(mode, options);
+  const accessibleRoutes = await generateRoutes('backend', options);
 
   // 动态添加到router实例内
   accessibleRoutes.forEach((route) => {
