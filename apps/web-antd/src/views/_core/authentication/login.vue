@@ -31,20 +31,6 @@ const MOCK_USER_OPTIONS: BasicOption[] = [
 const formSchema = computed((): VbenFormSchema[] => {
   return [
     {
-      component: 'VbenSelect',
-      componentProps: {
-        options: MOCK_USER_OPTIONS,
-        placeholder: $t('authentication.selectAccount'),
-      },
-      fieldName: 'selectAccount',
-      label: $t('authentication.selectAccount'),
-      rules: z
-        .string()
-        .min(1, { message: $t('authentication.selectAccount') })
-        .optional()
-        .default('vben'),
-    },
-    {
       component: 'VbenInput',
       componentProps: {
         placeholder: $t('authentication.usernameTip'),
@@ -65,7 +51,8 @@ const formSchema = computed((): VbenFormSchema[] => {
         },
         triggerFields: ['selectAccount'],
       },
-      fieldName: 'username',
+      defaultValue: '111@qq.com',
+      fieldName: 'email',
       label: $t('authentication.username'),
       rules: z.string().min(1, { message: $t('authentication.usernameTip') }),
     },
@@ -75,6 +62,7 @@ const formSchema = computed((): VbenFormSchema[] => {
         placeholder: $t('authentication.password'),
       },
       fieldName: 'password',
+      defaultValue: '123456',
       label: $t('authentication.password'),
       rules: z.string().min(1, { message: $t('authentication.passwordTip') }),
     },

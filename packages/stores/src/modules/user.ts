@@ -1,34 +1,13 @@
+import type { BasicRole, UserInfo } from '@vben-core/typings/src/basic';
+
 import { acceptHMRUpdate, defineStore } from 'pinia';
 
-interface BasicUserInfo {
-  [key: string]: any;
-  /**
-   * 头像
-   */
-  avatar: string;
-  /**
-   * 用户昵称
-   */
-  realName: string;
-  /**
-   * 用户角色
-   */
-  roles?: string[];
-  /**
-   * 用户id
-   */
-  userId: string;
-  /**
-   * 用户名
-   */
-  username: string;
-}
-
 interface AccessState {
+  roles: BasicRole[];
   /**
    * 用户信息
    */
-  userInfo: BasicUserInfo | null;
+  userInfo: null | UserInfo;
   /**
    * 用户角色
    */
@@ -40,15 +19,18 @@ interface AccessState {
  */
 export const useUserStore = defineStore('core-user', {
   actions: {
-    setUserInfo(userInfo: BasicUserInfo | null) {
+    setUserInfo(userInfo: null | UserInfo) {
       // 设置用户信息
       this.userInfo = userInfo;
       // 设置角色信息
-      const roles = userInfo?.roles ?? [];
+      const roles: BasicRole[] = userInfo?.roleVOList ?? [];
       this.setUserRoles(roles);
     },
-    setUserRoles(roles: string[]) {
-      this.userRoles = roles;
+    setUserRoles(roles: BasicRole[]) {
+      roles.forEach((role) => {
+        this.userRoles.push(role.roleType);
+      });
+      this.roles = roles;
     },
   },
   state: (): AccessState => ({

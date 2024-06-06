@@ -622,6 +622,9 @@ importers:
       '@vben/constants':
         specifier: workspace:*
         version: link:../../packages/constants
+      '@vben/enums':
+        specifier: workspace:*
+        version: link:../../packages/enums
       '@vben/hooks':
         specifier: workspace:*
         version: link:../../packages/effects/hooks
@@ -1648,6 +1651,8 @@ importers:
       axios-mock-adapter:
         specifier: 'catalog:'
         version: 2.1.0(axios@1.7.8)
+
+  packages/enums: {}
 
   packages/icons:
     dependencies:
