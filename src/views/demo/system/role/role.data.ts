@@ -10,6 +10,7 @@ export const columns: BasicColumn[] = [
     title: '角色名称',
     dataIndex: 'name',
     width: 200,
+    sorter: true,
   },
   {
     title: '描述',
@@ -19,11 +20,13 @@ export const columns: BasicColumn[] = [
     title: '创建时间',
     dataIndex: 'createTime',
     width: 180,
+    sorter: true,
   },
   {
     title: '状态',
     dataIndex: 'status',
     width: 120,
+    sorter: true,
     customRender: ({ record }) => {
       if (!Reflect.has(record, 'pendingStatus')) {
         record.pendingStatus = false;

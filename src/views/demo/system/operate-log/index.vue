@@ -6,7 +6,7 @@
 <script lang="ts">
   import { defineComponent } from 'vue';
 
-  import { BasicTable, useTable } from '@/components/Table';
+  import { BasicTable, SorterResult, useTable } from '@/components/Table';
   import { getOperateLogList } from '@/api/demo/system';
 
   import { useDrawer } from '@/components/Drawer';
@@ -30,6 +30,21 @@
         showTableSetting: true,
         bordered: true,
         showIndexColumn: false,
+        defSort: {
+          col: 'createTime',
+          order: 'ascend',
+        },
+        sortFn(sortInfo: SorterResult) {
+          const { field, order } = sortInfo;
+          if (field && order) {
+            return {
+              field,
+              order,
+            };
+          } else {
+            return {};
+          }
+        },
       });
 
       function handleSuccess() {
