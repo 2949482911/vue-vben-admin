@@ -15,6 +15,9 @@ export function getAllParentPath<T = Recordable>(treeData: T[], path: string) {
 function joinParentPath(menus: Menu[], parentPath = '') {
   for (let index = 0; index < menus.length; index++) {
     const menu = menus[index];
+    if (!menu.path) {
+      continue;
+    }
     // https://next.router.vuejs.org/guide/essentials/nested-routes.html
     // Note that nested paths that start with / will be treated as a root path.
     // 请注意，以 / 开头的嵌套路径将被视为根路径。
@@ -33,9 +36,7 @@ function joinParentPath(menus: Menu[], parentPath = '') {
 
 // Parsing the menu module
 export function transformMenuModule(menuModule: MenuModule): Menu {
-  const { menu } = menuModule;
-
-  const menuList = [menu];
+  const menuList = [menuModule];
 
   joinParentPath(menuList);
   return menuList[0];
@@ -63,12 +64,12 @@ export function transformRouteToMenu(routeModList: AppRouteModule[], routerMappi
   // 提取树指定结构
   const list = treeMap(routeList, {
     conversion: (node: AppRouteRecordRaw) => {
-      const { meta: { title, hideMenu = false } = {} } = node;
+      const { meta: { hideMenu = false } = {}, name } = node;
 
       return {
         ...(node.meta || {}),
         meta: node.meta,
-        name: title,
+        name: name,
         hideMenu,
         path: node.path,
         ...(node.redirect ? { redirect: node.redirect } : {}),
