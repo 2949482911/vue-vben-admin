@@ -90,5 +90,12 @@
     "smsCode": "SMS code",
     "mobile": "Mobile",
     "mainName": "main body name"
+  },
+  "dept": {
+    "column": {
+      "name": "Dept Name",
+      "code": "code"
+    },
+    "parent": "Parent Dept"
   }
 }

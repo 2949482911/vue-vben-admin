@@ -90,5 +90,13 @@
     "smsCode": "短信验证码",
     "mobile": "手机号码",
     "mainName": "主体名字"
+  },
+  "dept": {
+    "name": "部门",
+    "column": {
+      "name": "名字",
+      "code": "编码"
+    },
+    "parent": "上级部门"
   }
 }

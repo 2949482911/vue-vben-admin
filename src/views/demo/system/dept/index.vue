@@ -2,7 +2,7 @@
   <div>
     <BasicTable @register="registerTable">
       <template #toolbar>
-        <a-button type="primary" @click="handleCreate"> 新增部门 </a-button>
+        <a-button type="primary" @click="handleCreate"> {{ t('common.add') }} </a-button>
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
@@ -39,14 +39,16 @@
   import DeptModal from './DeptModal.vue';
 
   import { columns, searchFormSchema } from './dept.data';
+  import { useI18n } from '@/hooks/web/useI18n';
 
   export default defineComponent({
     name: 'DeptManagement',
     components: { BasicTable, DeptModal, TableAction },
     setup() {
+      const { t } = useI18n();
       const [registerModal, { openModal }] = useModal();
       const [registerTable, { reload }] = useTable({
-        title: '部门列表',
+        title: `${t('sys.dept.name')}`,
         api: getDeptList,
         columns,
         formConfig: {
@@ -62,7 +64,7 @@
         canResize: false,
         actionColumn: {
           width: 80,
-          title: '操作',
+          title: `${t('common.options')}`,
           dataIndex: 'action',
           // slots: { customRender: 'action' },
           fixed: undefined,
@@ -97,6 +99,7 @@
         handleEdit,
         handleDelete,
         handleSuccess,
+        t,
       };
     },
   });
