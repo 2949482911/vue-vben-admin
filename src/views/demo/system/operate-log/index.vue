@@ -6,20 +6,22 @@
 <script lang="ts">
   import { defineComponent } from 'vue';
 
-  import { BasicTable, SorterResult, useTable } from '@/components/Table';
+  import { BasicTable, useTable } from '@/components/Table';
   import { getOperateLogList } from '@/api/demo/system';
 
   import { useDrawer } from '@/components/Drawer';
 
   import { columns, searchFormSchema } from './operate-log-data';
+  import { useI18n } from '@/hooks/web/useI18n';
 
   export default defineComponent({
     name: 'OperateLogManagement',
     components: { BasicTable },
     setup() {
+      const { t } = useI18n();
       const [registerDrawer] = useDrawer();
       const [registerTable, { reload }] = useTable({
-        title: '操作日志',
+        title: `${t('sys.operatorLog.name')}`,
         api: getOperateLogList,
         columns,
         formConfig: {
@@ -30,21 +32,6 @@
         showTableSetting: true,
         bordered: true,
         showIndexColumn: false,
-        defSort: {
-          col: 'createTime',
-          order: 'ascend',
-        },
-        sortFn(sortInfo: SorterResult) {
-          const { field, order } = sortInfo;
-          if (field && order) {
-            return {
-              field,
-              order,
-            };
-          } else {
-            return {};
-          }
-        },
       });
 
       function handleSuccess() {

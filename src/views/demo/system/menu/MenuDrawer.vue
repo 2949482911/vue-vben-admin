@@ -17,6 +17,7 @@
   import { BasicDrawer, useDrawerInner } from '@/components/Drawer';
 
   import { getMenuList, createMenu, updateMenu } from '@/api/demo/system';
+  import { useI18n } from '@/hooks/web/useI18n';
 
   export default defineComponent({
     name: 'MenuDrawer',
@@ -24,7 +25,7 @@
     emits: ['success', 'register'],
     setup(_, { emit }) {
       const isUpdate = ref(true);
-
+      const { t } = useI18n();
       const [registerForm, { resetFields, setFieldsValue, updateSchema, validate }] = useForm({
         labelWidth: 100,
         schemas: formSchema,
@@ -49,7 +50,9 @@
         });
       });
 
-      const getTitle = computed(() => (!unref(isUpdate) ? '新增菜单' : '编辑菜单'));
+      const getTitle = computed(() =>
+        !unref(isUpdate) ? `${t('common.add')}` : `${t('common.edit')}`,
+      );
 
       async function handleSubmit() {
         try {

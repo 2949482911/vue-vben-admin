@@ -24,7 +24,7 @@
                 color: 'error',
                 tooltip: '删除此账号',
                 popConfirm: {
-                  title: '是否确认删除',
+                  title: `${t('common.isDelete')}`,
                   placement: 'left',
                   confirm: handleDelete.bind(null, record),
                 },
@@ -60,17 +60,19 @@
   import { columns, searchFormSchema } from './account.data';
   import { useGo } from '@/hooks/web/usePage';
   import { Tag } from 'ant-design-vue';
+  import { useI18n } from '@/hooks/web/useI18n';
 
   export default defineComponent({
     name: 'AccountManagement',
     components: { BasicTable, PageWrapper, DeptTree, AccountModal, TableAction, Tag },
     setup() {
+      const { t } = useI18n();
       const colorList: Array<string> = ['red', 'pink', 'orange', 'green', 'cyan', 'blue', 'purple'];
       const go = useGo();
       const [registerModal, { openModal }] = useModal();
       const searchInfo = reactive<Recordable>({});
       const [registerTable, { reload }] = useTable({
-        title: '账号列表',
+        title: `${t('sys.account.name')}`,
         api: getAccountList,
         rowKey: 'id',
         columns,
@@ -82,13 +84,17 @@
         useSearchForm: true,
         showTableSetting: true,
         bordered: true,
+        defSort: {
+          field: 'createTime',
+          order: 'ascend',
+        },
         handleSearchInfoFn(info) {
           console.log('handleSearchInfoFn', info);
           return info;
         },
         actionColumn: {
           width: 120,
-          title: '操作',
+          title: `${t('common.options')}`,
           dataIndex: 'action',
           // slots: { customRender: 'action' },
         },
@@ -135,6 +141,7 @@
         handleView,
         searchInfo,
         colorList,
+        t,
       };
     },
   });

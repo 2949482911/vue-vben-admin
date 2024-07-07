@@ -28,5 +28,8 @@
   "agree": "Agree",
   "yes": "Yes",
   "no": "No",
-  "options": "Options"
+  "options": "Options",
+  "isDelete": "Delete Data",
+  "expand": "Expand All",
+  "collapse": "Collapse All"
 }

@@ -2,7 +2,7 @@
   <div>
     <BasicTable @register="registerTable">
       <template #toolbar>
-        <a-button type="primary" @click="handleCreate"> 新增主体 </a-button>
+        <a-button type="primary" @click="handleCreate"> {{ t('common.add') }} </a-button>
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
@@ -16,7 +16,7 @@
                 icon: 'ant-design:delete-outlined',
                 color: 'error',
                 popConfirm: {
-                  title: '是否确认删除',
+                  title: `${t('common.isDelete')}`,
                   placement: 'left',
                   confirm: handleDelete.bind(null, record),
                 },
@@ -39,11 +39,13 @@
   import MainBodyDrawer from './MainBodyDrawer.vue';
 
   import { columns, searchFormSchema } from './mainBody.data';
+  import { useI18n } from '@/hooks/web/useI18n';
 
   export default defineComponent({
     name: 'MainBodyManagement',
     components: { BasicTable, MainBodyDrawer, TableAction },
     setup() {
+      const { t } = useI18n();
       const [registerDrawer, { openDrawer }] = useDrawer();
       const [registerTable, { reload }] = useTable({
         title: '主体列表',
@@ -57,9 +59,13 @@
         showTableSetting: true,
         bordered: true,
         showIndexColumn: false,
+        defSort: {
+          field: 'createTime',
+          order: 'ascend',
+        },
         actionColumn: {
           width: 80,
-          title: '操作',
+          title: `${t('common.options')}`,
           dataIndex: 'action',
           // slots: { customRender: 'action' },
           fixed: undefined,
@@ -94,6 +100,7 @@
         handleEdit,
         handleDelete,
         handleSuccess,
+        t,
       };
     },
   });

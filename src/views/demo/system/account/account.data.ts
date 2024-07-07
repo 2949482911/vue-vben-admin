@@ -1,52 +1,58 @@
 import { isAccountExist } from '@/api/demo/system';
 import { BasicColumn, FormSchema } from '@/components/Table';
+import { useI18n } from '@/hooks/web/useI18n';
 
+const { t } = useI18n();
 export const columns: BasicColumn[] = [
   {
-    title: '用户名',
+    title: `${t('sys.account.column.authName')}`,
     dataIndex: 'authName',
     width: 120,
+    sorter: true,
   },
   {
-    title: '昵称',
+    title: `${t('sys.account.column.nickname')}`,
     dataIndex: 'nickname',
     width: 120,
+    sorter: true,
   },
   {
-    title: '邮箱',
+    title: `${t('sys.account.column.email')}`,
     dataIndex: 'email',
     width: 120,
   },
   {
-    title: '电话',
+    title: `${t('sys.account.column.phone')}`,
     dataIndex: 'phone',
     width: 120,
+    sorter: true,
   },
   {
-    title: '创建时间',
+    title: `${t('common.create_time')}`,
     dataIndex: 'createTime',
     width: 180,
+    sorter: true,
   },
   {
-    title: '角色',
+    title: `${t('sys.account.column.roleList')}`,
     dataIndex: 'roleList',
     width: 200,
   },
   {
-    title: '备注',
+    title: `${t('sys.account.column.remark')}`,
     dataIndex: 'remark',
   },
 ];
 
 export const searchFormSchema: FormSchema[] = [
   {
-    field: 'account',
+    field: `${t('sys.account.column.authName')}`,
     label: '用户名',
     component: 'Input',
     colProps: { span: 8 },
   },
   {
-    field: 'nickname',
+    field: `${t('sys.account.column.nickname')}`,
     label: '昵称',
     component: 'Input',
     colProps: { span: 8 },
@@ -60,7 +66,7 @@ export const accountFormSchema: FormSchema[] = [
     ifShow: false,
   },
   {
-    field: 'authName',
+    field: `${t('sys.account.column.authName')}`,
     label: '用户名',
     component: 'Input',
     ifShow: ({ values }) => {
@@ -109,14 +115,14 @@ export const accountFormSchema: FormSchema[] = [
     // ],
   },
   {
-    field: 'pwd',
-    label: '密码',
+    field: 'authPwd',
+    label: `${t('sys.account.column.authPwd')}`,
     component: 'InputPassword',
     required: true,
     ifShow: false,
   },
   {
-    label: '角色',
+    label: `${t('sys.account.column.roleList')}`,
     field: 'roleIds',
     component: 'Select',
     defaultValue: [],
@@ -133,7 +139,7 @@ export const accountFormSchema: FormSchema[] = [
   },
 
   {
-    label: '数据范围',
+    label: `${t('sys.account.column.dataRangeId')}`,
     field: 'dataRangeId',
     component: 'Select',
     defaultValue: [],
@@ -149,8 +155,8 @@ export const accountFormSchema: FormSchema[] = [
   },
 
   {
+    label: `${t('sys.account.column.org')}`,
     field: 'orgId',
-    label: '所属部门',
     component: 'TreeSelect',
     componentProps: {
       fieldNames: {
@@ -164,37 +170,27 @@ export const accountFormSchema: FormSchema[] = [
     required: true,
   },
   {
+    label: `${t('sys.account.column.nickname')}`,
     field: 'nickname',
-    label: '昵称',
     component: 'Input',
     required: true,
   },
 
   {
-    label: '邮箱',
-    field: 'email',
+    field: `${t('sys.account.column.email')}`,
+    label: 'email',
     component: 'Input',
     required: true,
   },
 
   {
-    label: '密码',
-    field: 'password',
-    component: 'InputPassword',
-    required: true,
-    ifShow: ({ values }) => {
-      return !values.id;
-    },
-  },
-
-  {
-    label: '电话',
+    label: `${t('sys.account.column.phone')}`,
     field: 'phone',
     component: 'Input',
   },
 
   {
-    label: '备注',
+    label: `${t('sys.account.column.remark')}`,
     field: 'remark',
     component: 'InputTextArea',
   },

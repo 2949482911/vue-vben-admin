@@ -15,7 +15,7 @@
           :fieldNames="{ title: 'title', key: 'id' }"
           checkable
           toolbar
-          title="菜单分配"
+          :title="t('sys.role.name')"
         />
       </template>
     </BasicForm>
@@ -30,9 +30,12 @@
 
   import { getMenuList, createRole, updateRole } from '@/api/demo/system';
 
+  import { useI18n } from '@/hooks/web/useI18n';
+
   const emit = defineEmits(['success', 'register']);
   const isUpdate = ref(true);
   const treeData = ref<TreeItem[]>([]);
+  const { t } = useI18n();
 
   const [registerForm, { resetFields, setFieldsValue, validate }] = useForm({
     labelWidth: 90,
@@ -57,7 +60,9 @@
     }
   });
 
-  const getTitle = computed(() => (!unref(isUpdate) ? '新增角色' : '编辑角色'));
+  const getTitle = computed(() =>
+    !unref(isUpdate) ? `${t('common.add')}` : `${t('common.edit')}`,
+  );
 
   async function handleSubmit() {
     try {

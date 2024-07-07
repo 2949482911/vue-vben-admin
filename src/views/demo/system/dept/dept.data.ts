@@ -82,7 +82,6 @@ export const formSchema: FormSchema[] = [
     componentProps: {
       fieldNames: {
         label: 'name',
-        key: 'id',
         value: 'id',
       },
       getPopupContainer: () => document.body,

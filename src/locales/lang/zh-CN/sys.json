@@ -98,5 +98,77 @@
       "code": "编码"
     },
     "parent": "上级部门"
+  },
+  "account": {
+    "name": "账户",
+    "column": {
+      "authName": "用户名",
+      "nickname": "昵称",
+      "email": "邮箱",
+      "phone": "电话",
+      "roleList": "角色",
+      "remark": "备注",
+      "authPw": "密码",
+      "org": "组织",
+      "dataRange": "数据范围"
+    }
+  },
+  "menu": {
+    "name": "菜单",
+    "column": {
+      "title": "标题",
+      "type": "类型",
+      "icon": "图标",
+      "mark": "权限标识",
+      "component": "组件",
+      "path": "路由",
+      "sort": "排序",
+      "name": "名字",
+      "parentId": "上级菜单",
+      "redirect": "重定向地址",
+      "backendUrl": "URL",
+      "isInternal": "内部菜单",
+      "show": "是否显示",
+      "hideMenu": "隐藏"
+    }
+  },
+  "role": {
+    "name": "角色",
+    "column": {
+      "name": "名字",
+      "comment": "描述",
+      "roleType": "角色类型"
+    }
+  },
+  "mainBody": {
+    "name": "主体",
+    "column": {
+      "name": "名字",
+      "email": "邮箱",
+      "remark": "备注"
+    }
+  },
+  "dataScope": {
+    "name": "数据权限",
+    "column": {
+      "name": "名字",
+      "type": "类型",
+      "remark": "备注",
+      "user": "用户",
+      "org": "组织"
+    }
+  },
+  "notice": {
+    "name": "公告",
+    "column": {
+      "title": "标题",
+      "content": "内容"
+    }
+  },
+  "operatorLog": {
+    "name": "操作日志",
+    "column": {
+      "url": "URL"
+    }
   }
 }

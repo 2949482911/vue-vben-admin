@@ -2,9 +2,9 @@
   <div>
     <BasicTable @register="registerTable" @fetch-success="onFetchSuccess">
       <template #toolbar>
-        <a-button type="primary" @click="handleCreate"> 新增菜单 </a-button>
-        <a-button type="primary" @click="expandAll">展开全部</a-button>
-        <a-button type="primary" @click="collapseAll">折叠全部</a-button>
+        <a-button type="primary" @click="handleCreate"> {{ t('common.add') }} </a-button>
+        <a-button type="primary" @click="expandAll">{{ t('common.expand') }}</a-button>
+        <a-button type="primary" @click="collapseAll">{{ t('common.collapse') }}</a-button>
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
@@ -18,7 +18,7 @@
                 icon: 'ant-design:delete-outlined',
                 color: 'error',
                 popConfirm: {
-                  title: '是否确认删除',
+                  title: `${t('common.isDelete')}`,
                   placement: 'left',
                   confirm: handleDelete.bind(null, record),
                 },
@@ -41,12 +41,14 @@
   import MenuDrawer from './MenuDrawer.vue';
 
   import { columns, searchFormSchema } from './menu.data';
+  import { useI18n } from '@/hooks/web/useI18n';
 
   defineOptions({ name: 'MenuManagement' });
+  const { t } = useI18n();
 
   const [registerDrawer, { openDrawer }] = useDrawer();
   const [registerTable, { reload, expandAll, collapseAll }] = useTable({
-    title: '菜单列表',
+    title: `${t('sys.menu.name')}`,
     api: getMenuList,
     columns,
     formConfig: {

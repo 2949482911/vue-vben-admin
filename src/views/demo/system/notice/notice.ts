@@ -1,7 +1,9 @@
 import { BasicColumn, FormSchema } from '@/components/Table';
 import { h } from 'vue';
 import { Tag } from 'ant-design-vue';
+import { useI18n } from '@/hooks/web/useI18n';
 
+const { t } = useI18n();
 export const columns: BasicColumn[] = [
   {
     title: 'id',
@@ -9,40 +11,42 @@ export const columns: BasicColumn[] = [
     dataIndex: 'id',
   },
   {
-    title: '标题',
+    title: `${t('sys.notice.column.title')}`,
     dataIndex: 'title',
+    sorter: true,
   },
   {
-    title: '内容',
+    title: `${t('sys.notice.column.content')}`,
     dataIndex: 'content',
   },
   {
-    title: '创建人',
+    title: `${t('common.createUserName')}`,
     dataIndex: 'createUserName',
   },
   {
-    title: '状态',
+    title: `${t('common.status')}`,
     dataIndex: 'status',
+    sorter: true,
     width: 80,
     customRender: ({ record }) => {
       const status = record.status;
       const enable = ~~status === 1;
       const color = enable ? 'green' : 'red';
-      const text = enable ? '启用' : '停用';
+      const text = enable ? `${t('common.enable')}` : `${t('common.disable')}`;
       return h(Tag, { color: color }, () => text);
     },
   },
   {
-    title: '操作时间',
+    title: `${t('common.create_time')}`,
     dataIndex: 'createTime',
     width: 200,
   },
   {
-    title: '编辑人',
+    title: `${t('common.updateUserName')}`,
     dataIndex: 'updateUserName',
   },
   {
-    title: '编辑时间',
+    title: `${t('common.updateTime')}`,
     dataIndex: 'updateTime',
     width: 200,
   },
@@ -51,20 +55,20 @@ export const columns: BasicColumn[] = [
 export const searchFormSchema: FormSchema[] = [
   {
     field: 'title',
-    label: '标题',
+    label: `${t('sys.notice.column.title')}`,
     component: 'Input',
     colProps: { span: 8 },
   },
 
   {
     field: 'status',
-    label: '状态',
+    label: `${t('common.status')}`,
     component: 'Select',
     colProps: { span: 8 },
     componentProps: {
       options: [
-        { label: '启用', value: 1 },
-        { label: '停用', value: 9 },
+        { label: `${t('common.enable')}`, value: 1 },
+        { label: `${t('common.disable')}`, value: 9 },
       ],
     },
   },
@@ -80,13 +84,13 @@ export const formSchema: FormSchema[] = [
 
   {
     field: 'title',
-    label: '标题',
+    label: `${t('sys.notice.column.title')}`,
     component: 'Input',
     required: true,
   },
 
   {
-    field: 'content',
+    title: `${t('sys.notice.column.content')}`,
     label: '内容',
     component: 'InputTextArea',
     required: true,
@@ -94,16 +98,15 @@ export const formSchema: FormSchema[] = [
 
   {
     field: 'status',
-    label: '状态',
+    label: `${t('common.status')}`,
     component: 'Select',
-    required: true,
-    defaultValue: 9,
+    defaultValue: 1,
     componentProps: {
       options: [
-        { label: '启用', value: 1 },
-        { label: '停用', value: 9 },
+        { label: `${t('common.enable')}`, value: 1 },
+        { label: `${t('common.disable')}`, value: 9 },
       ],
     },
-    colProps: { span: 8 },
+    required: true,
   },
 ];

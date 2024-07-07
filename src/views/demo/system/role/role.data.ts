@@ -3,27 +3,30 @@ import { h } from 'vue';
 import { Switch } from 'ant-design-vue';
 import { setRoleEnable, setRoleDisable } from '@/api/demo/system';
 import { useMessage } from '@/hooks/web/useMessage';
+import { useI18n } from '@/hooks/web/useI18n';
+
+const { t } = useI18n();
 
 type CheckedType = boolean | string | number;
 export const columns: BasicColumn[] = [
   {
-    title: '角色名称',
+    title: `${t('sys.role.column.name')}`,
     dataIndex: 'name',
     width: 200,
     sorter: true,
   },
   {
-    title: '描述',
+    title: `${t('sys.role.column.comment')}`,
     dataIndex: 'comment',
   },
   {
-    title: '创建时间',
+    title: `${t('common.create_time')}`,
     dataIndex: 'createTime',
     width: 180,
     sorter: true,
   },
   {
-    title: '状态',
+    title: `${t('common.status')}`,
     dataIndex: 'status',
     width: 120,
     sorter: true,
@@ -33,8 +36,8 @@ export const columns: BasicColumn[] = [
       }
       return h(Switch, {
         checked: record.status === 1,
-        checkedChildren: '停用',
-        unCheckedChildren: '启用',
+        checkedChildren: `${t('common.disable')}`,
+        unCheckedChildren: `${t('common.enable')}`,
         loading: record.pendingStatus,
         onChange(checked: CheckedType) {
           record.pendingStatus = true;
@@ -60,19 +63,19 @@ export const columns: BasicColumn[] = [
 export const searchFormSchema: FormSchema[] = [
   {
     field: 'name',
-    label: '角色名称',
+    label: `${t('sys.role.column.name')}`,
     component: 'Input',
     colProps: { span: 8 },
   },
 
   {
     field: 'status',
-    label: '状态',
+    label: `${t('common.status')}`,
     component: 'Select',
     componentProps: {
       options: [
-        { label: '启用', value: 1 },
-        { label: '停用', value: 9 },
+        { label: `${t('common.enable')}`, value: 1 },
+        { label: `${t('common.disable')}`, value: 9 },
       ],
     },
     colProps: { span: 8 },
@@ -87,13 +90,13 @@ export const formSchema: FormSchema[] = [
   },
   {
     field: 'name',
-    label: '角色名称',
+    label: `${t('sys.role.column.name')}`,
     required: true,
     component: 'Input',
   },
   {
     field: 'roleType',
-    label: '角色类型',
+    label: `${t('sys.role.column.roleType')}`,
     component: 'Select',
     required: true,
     componentProps: {
@@ -108,23 +111,22 @@ export const formSchema: FormSchema[] = [
   },
   {
     field: 'status',
-    label: '状态',
+    label: `${t('common.status')}`,
     component: 'RadioButtonGroup',
     defaultValue: 1,
     componentProps: {
       options: [
-        { label: '启用', value: 1 },
-        { label: '停用', value: 9 },
+        { label: `${t('common.enable')}`, value: 1 },
+        { label: `${t('common.disable')}`, value: 9 },
       ],
     },
   },
   {
-    label: '备注',
+    label: `${t('sys.role.column.comment')}`,
     field: 'comment',
     component: 'InputTextArea',
   },
   {
-    label: ' ',
     field: 'menuIds',
     slot: 'menu',
     component: 'Input',

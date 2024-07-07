@@ -31,5 +31,8 @@
   "agree": "拒绝",
   "yes": "是",
   "no": "否",
-  "options": "操作"
+  "options": "操作",
+  "isDelete": "是否删除",
+  "expand": "展开",
+  "collapse": "折叠"
 }

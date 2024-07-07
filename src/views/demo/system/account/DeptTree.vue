@@ -1,7 +1,7 @@
 <template>
   <div class="m-4 mr-0 overflow-hidden bg-white">
     <BasicTree
-      title="部门列表"
+      title="部门"
       toolbar
       search
       treeWrapperClassName="h-[calc(100%-35px)] overflow-auto"
@@ -29,6 +29,7 @@
   }
 
   function handleSelect(keys) {
+    console.log(keys);
     emit('select', keys[0]);
   }
 

@@ -1,8 +1,10 @@
 import { BasicColumn, FormSchema } from '@/components/Table';
 import { h } from 'vue';
 import { Switch, Tag } from 'ant-design-vue';
-import { enableMainBody, disableMainBody, getAccountList, getDeptList } from '@/api/demo/system';
+import { getAccountList, getDeptList, enableDataScope, disableDataScope } from '@/api/demo/system';
+import { useI18n } from '@/hooks/web/useI18n';
 
+const { t } = useI18n();
 type CheckedType = boolean | string | number;
 
 enum dataScopeEnum {
@@ -29,12 +31,12 @@ const dataScopeTypeOptions = [
 
 export const columns: BasicColumn[] = [
   {
-    title: '名字',
+    title: `${t('sys.dataScope.column.name')}`,
     dataIndex: 'name',
     width: 200,
   },
   {
-    title: '类型',
+    title: `${t('sys.dataScope.column.type')}`,
     dataIndex: 'type',
     width: 200,
     customRender: ({ record }) => {
@@ -51,17 +53,18 @@ export const columns: BasicColumn[] = [
     },
   },
   {
-    title: '备注',
+    title: `${t('sys.dataScope.column.remark')}`,
     dataIndex: 'remark',
   },
   {
-    title: '创建时间',
+    title: `${t('common.create_time')}`,
     dataIndex: 'createTime',
     width: 180,
+    sorter: true,
   },
 
   {
-    title: '状态',
+    title: `${t('common.status')}`,
     dataIndex: 'status',
     width: 120,
     customRender: ({ record }) => {
@@ -70,18 +73,18 @@ export const columns: BasicColumn[] = [
       }
       return h(Switch, {
         checked: record.status === 1,
-        checkedChildren: '停用',
-        unCheckedChildren: '启用',
+        checkedChildren: `${t('common.disable')}`,
+        unCheckedChildren: `${t('common.enable')}`,
         loading: record.pendingStatus,
         onChange(checked: CheckedType) {
           record.pendingStatus = true;
           const newStatus = checked ? 1 : 9;
           if (newStatus === 1) {
-            enableMainBody(record.id).then(() => {
+            enableDataScope(record.id).then(() => {
               record.status = newStatus;
             });
           } else {
-            disableMainBody(record.id).then(() => {
+            disableDataScope(record.id).then(() => {
               record.status = newStatus;
             });
           }
@@ -95,14 +98,14 @@ export const columns: BasicColumn[] = [
 export const searchFormSchema: FormSchema[] = [
   {
     field: 'name',
-    label: '权限名字',
+    label: `${t('sys.dataScope.column.name')}`,
     component: 'Input',
     colProps: { span: 6 },
   },
 
   {
     field: 'type',
-    label: '权限类型',
+    label: `${t('sys.dataScope.column.type')}`,
     component: 'Select',
     componentProps: {
       options: dataScopeTypeOptions,
@@ -112,15 +115,15 @@ export const searchFormSchema: FormSchema[] = [
 
   {
     field: 'status',
-    label: '状态',
+    label: `${t('common.status')}`,
     component: 'Select',
+    colProps: { span: 8 },
     componentProps: {
       options: [
-        { label: '启用', value: 1 },
-        { label: '停用', value: 9 },
+        { label: `${t('common.enable')}`, value: 1 },
+        { label: `${t('common.disable')}`, value: 9 },
       ],
     },
-    colProps: { span: 6 },
   },
 ];
 
@@ -132,13 +135,13 @@ export const formSchema: FormSchema[] = [
   },
   {
     field: 'name',
-    label: '权限名字',
+    label: `${t('sys.dataScope.column.name')}`,
     required: true,
     component: 'Input',
   },
   {
     field: 'type',
-    label: '权限类型',
+    label: `${t('sys.dataScope.column.type')}`,
     required: true,
     component: 'Select',
     componentProps: {
@@ -148,7 +151,7 @@ export const formSchema: FormSchema[] = [
 
   {
     field: 'userIds',
-    label: '用户',
+    label: `${t('sys.dataScope.column.user')}`,
     component: 'ApiSelect',
     componentProps: {
       api: getAccountList,
@@ -171,7 +174,7 @@ export const formSchema: FormSchema[] = [
 
   {
     field: 'orgIds',
-    label: '部门',
+    label: `${t('sys.dataScope.column.org')}`,
     component: 'ApiTreeSelect',
     componentProps: {
       api: getDeptList,
@@ -189,20 +192,22 @@ export const formSchema: FormSchema[] = [
   },
 
   {
+    label: `${t('sys.dataScope.column.remark')}`,
+    field: 'remark',
+    component: 'InputTextArea',
+  },
+
+  {
     field: 'status',
-    label: '状态',
+    label: `${t('common.status')}`,
     component: 'RadioButtonGroup',
     defaultValue: 1,
     componentProps: {
       options: [
-        { label: '启用', value: 1 },
-        { label: '停用', value: 9 },
+        { label: `${t('common.enable')}`, value: 1 },
+        { label: `${t('common.disable')}`, value: 9 },
       ],
     },
-  },
-  {
-    label: '备注',
-    field: 'remark',
-    component: 'InputTextArea',
+    required: true,
   },
 ];

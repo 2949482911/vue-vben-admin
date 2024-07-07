@@ -18,10 +18,11 @@
 
   import { createMainBody, updateMainBody } from '@/api/demo/system';
   import { UpdateMainBody } from '@/api/demo/model/systemModel';
+  import { useI18n } from '@/hooks/web/useI18n';
 
   const emit = defineEmits(['success', 'register']);
   const isUpdate = ref(true);
-
+  const { t } = useI18n();
   const [registerForm, { resetFields, setFieldsValue, validate }] = useForm({
     labelWidth: 90,
     baseColProps: { span: 24 },
@@ -42,7 +43,9 @@
     }
   });
 
-  const getTitle = computed(() => (!unref(isUpdate) ? '新增主体' : '编辑主体'));
+  const getTitle = computed(() =>
+    !unref(isUpdate) ? `${t('common.add')}` : `${t('common.edit')}`,
+  );
 
   async function handleSubmit() {
     try {

@@ -97,5 +97,71 @@
       "code": "code"
     },
     "parent": "Parent Dept"
+  },
+  "account": {
+    "name": "Account",
+    "column": {
+      "authName": "Account",
+      "nickname": "Nickname",
+      "email": "Email",
+      "phone": "Phone",
+      "roleList": "Role",
+      "remark": "Remark",
+      "authPw": "Password",
+      "org": "Org",
+      "dataRange": "Data Range"
+    }
+  },
+  "menu": {
+    "name": "Menu",
+    "column": {
+      "title": "Title",
+      "type": "Menu Type",
+      "icon": "Icon",
+      "mark": "Mark",
+      "component": "Component",
+      "path": "Path",
+      "sort": "Sort",
+      "name": "Nme",
+      "parentId": "Parent",
+      "redirect": "Redirect",
+      "backendUrl": "URL",
+      "isInternal": "Internal Menu",
+      "show": "Show",
+      "hideMenu": "Hide"
+    }
+  },
+  "role": {
+    "name": "Role",
+    "column": {
+      "name": "Name",
+      "comment": "Comment",
+      "roleType": "Role Type"
+    }
+  },
+  "mainBody": {
+    "name": "Main",
+    "column": {
+      "name": "Name",
+      "email": "Email",
+      "remark": "Remark"
+    }
+  },
+  "dataScope": {
+    "name": "Data Scope",
+    "column": {
+      "name": "Name",
+      "type": "Type",
+      "remark": "Remark",
+      "user": "Users",
+      "org": "Org"
+    }
+  },
+  "notice": {
+    "name": "Notice",
+    "column": {
+      "title": "Title",
+      "content": "Content"
+    }
   }
 }
