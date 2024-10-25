@@ -2,7 +2,7 @@ import { h } from 'vue';
 
 import { setupVbenVxeTable, useVbenVxeGrid } from '@vben/plugins/vxe-table';
 
-import { Button, Image } from 'ant-design-vue';
+import { NButton, NImage } from 'naive-ui';
 
 import { useVbenForm } from './form';
 
@@ -36,7 +36,7 @@ setupVbenVxeTable({
     vxeUI.renderer.add('CellImage', {
       renderDefault(_renderOpts, params) {
         const { column, row } = params;
-        return h(Image, { src: row[column.field] });
+        return h(NImage, { src: row[column.field] });
       },
     });
 
@@ -45,8 +45,8 @@ setupVbenVxeTable({
       renderDefault(renderOpts) {
         const { props } = renderOpts;
         return h(
-          Button,
-          { size: 'small', type: 'link' },
+          NButton,
+          { size: 'small', type: 'primary', quaternary: true },
           { default: () => props?.text },
         );
       },
