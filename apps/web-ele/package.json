@@ -1,12 +1,12 @@
 {
-  "name": "@vben/playground",
+  "name": "@vben/web-ele",
   "version": "5.4.3",
   "homepage": "https://vben.pro",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vbenjs/vue-vben-admin.git",
-    "directory": "playground"
+    "directory": "apps/web-ele"
   },
   "license": "MIT",
   "author": {
@@ -20,16 +20,12 @@
     "build:analyze": "pnpm vite build --mode analyze",
     "dev": "pnpm vite --mode development",
     "preview": "vite preview",
-    "typecheck": "vue-tsc --noEmit --skipLibCheck",
-    "test:e2e": "playwright test",
-    "test:e2e-ui": "playwright test --ui",
-    "test:e2e-codegen": "playwright codegen"
+    "typecheck": "vue-tsc --noEmit --skipLibCheck"
   },
   "imports": {
     "#/*": "./src/*"
   },
   "dependencies": {
-    "@tanstack/vue-query": "catalog:",
     "@vben/access": "workspace:*",
     "@vben/common-ui": "workspace:*",
     "@vben/constants": "workspace:*",
@@ -45,10 +41,13 @@
     "@vben/types": "workspace:*",
     "@vben/utils": "workspace:*",
     "@vueuse/core": "catalog:",
-    "ant-design-vue": "catalog:",
     "dayjs": "catalog:",
+    "element-plus": "catalog:",
     "pinia": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:"
+  },
+  "devDependencies": {
+    "unplugin-element-plus": "catalog:"
   }
 }
