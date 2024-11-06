@@ -1,0 +1,29 @@
+{
+  "notice": {
+    "title": "公告",
+    "columns": {
+      "title": "标题",
+      "content": "内容"
+    }
+  },
+  "menu": {
+    "title": "菜单",
+    "columns": {
+      "title": "标题",
+      "name": "名字",
+      "icon": "图标",
+      "path": "路径",
+      "redirect": "转发",
+      "backendUrl": "后端URL",
+      "mark": "标识",
+      "component": "组件",
+      "sort": "排序",
+      "type": "类型"
+    },
+    "type": {
+      "menu": "菜单",
+      "interface": "接口",
+      "button": "按钮"
+    }
+  }
+}

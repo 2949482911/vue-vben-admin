@@ -127,9 +127,9 @@ watch(
     <template #user-dropdown>
       <UserDropdown
         :avatar
+        :description="userStore.userInfo?.authName"
         :menus
-        :text="userStore.userInfo?.realName"
-        description="ann.vben@gmail.com"
+        :text="userStore.userInfo?.nickname"
         tag-text="Pro"
         @logout="handleLogout"
       />

@@ -1,0 +1,12 @@
+{
+  "columns": {
+    "createTime": "创建时间",
+    "updateTime": "修改时间",
+    "createUsername": "创建人",
+    "updateUsername": "修改人",
+    "status": "状态",
+    "id": "Id",
+    "del": "删除状态",
+    "options": "操作"
+  }
+}

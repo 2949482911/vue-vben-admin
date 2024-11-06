@@ -9,5 +9,8 @@
   "noData": "暂无数据",
   "refresh": "刷新",
   "loadingMenu": "加载菜单中",
-  "query": "查询"
+  "query": "查询",
+  "input": "请输入",
+  "create": "创建",
+  "edit": "编辑"
 }

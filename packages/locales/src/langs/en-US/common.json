@@ -9,5 +9,8 @@
   "noData": "No Data",
   "refresh": "Refresh",
   "loadingMenu": "Loading Menu",
-  "query": "Search"
+  "query": "Search",
+  "input": "Please Input",
+  "create": "Create",
+  "edit": "Edit"
 }

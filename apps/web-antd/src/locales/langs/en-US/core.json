@@ -1,0 +1,12 @@
+{
+  "columns": {
+    "createTime": "Create Time",
+    "updateTime": "Update Time",
+    "createUsername": "Create User",
+    "updateUsername": "Update User",
+    "status": "State",
+    "id": "Id",
+    "del": "Deleted",
+    "options": "Options"
+  }
+}

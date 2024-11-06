@@ -1,0 +1,20 @@
+{
+  "order": {
+    "columns": {
+      "orderNo": "Order No.",
+      "payId": "支付Id",
+      "thirdOrderNo": "三方单号",
+      "money": "金额",
+      "realityMoney": "实际金额",
+      "params": "参数",
+      "type": "平台",
+      "returnSuccess": "回调状态",
+      "payQrCode": "二维码",
+      "closeDate": "关闭时间",
+      "orderStatus": "订单状态",
+      "responseCode": "回调状态码",
+      "responseMessage": "回调消息",
+      "payTime": "支付时间"
+    }
+  }
+}
