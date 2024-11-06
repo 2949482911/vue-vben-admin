@@ -1,13 +1,14 @@
+import { resolve } from 'node:path';
+
 import { defineConfig } from '@vben/vite-config';
-import { resolve } from "path";
 
 export default defineConfig(async () => {
   return {
     application: {},
     resolve: {
       alias: {
-        "#/*": resolve(__dirname, "./src"),
-      }
+        '#/*': resolve(__dirname, './src'),
+      },
     },
     vite: {
       server: {

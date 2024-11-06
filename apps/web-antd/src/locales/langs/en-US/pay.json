@@ -1,0 +1,20 @@
+{
+  "order": {
+    "columns": {
+      "orderNo": "Order No.",
+      "payId": "Pay Id",
+      "thirdOrderNo": "ThirdOrderNo",
+      "money": "Money",
+      "realityMoney": "Reality Money",
+      "params": "Params",
+      "type": "Pay Type",
+      "returnSuccess": "Return Status",
+      "payQrCode": "QrCode",
+      "closeDate": "Close Time",
+      "orderStatus": "Order State",
+      "responseCode": "responseCode",
+      "responseMessage": "responseMessage",
+      "payTime": "Pay Time"
+    }
+  }
+}

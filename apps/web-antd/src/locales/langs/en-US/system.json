@@ -1,0 +1,29 @@
+{
+  "notice": {
+    "title": "Notice",
+    "columns": {
+      "title": "Title",
+      "content": "Content"
+    }
+  },
+  "menu": {
+    "title": "Menu",
+    "columns": {
+      "title": "Title",
+      "name": "Name",
+      "icon": "Icon",
+      "path": "Path",
+      "redirect": "Redirect",
+      "backendUrl": "Backend Url",
+      "mark": "Mark",
+      "component": "component",
+      "sort": "Sort",
+      "type": "Type"
+    },
+    "type": {
+      "menu": "Menu",
+      "interface": "Interface",
+      "button": "Button"
+    }
+  }
+}
