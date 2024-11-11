@@ -1,16 +1,16 @@
-import type { Recordable, UserInfo } from '@vben/types';
+import type {Recordable, UserInfo} from '@vben/types';
 
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import {ref} from 'vue';
+import {useRouter} from 'vue-router';
 
-import { DEFAULT_HOME_PATH, LOGIN_PATH } from '@vben/constants';
-import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
+import {DEFAULT_HOME_PATH, LOGIN_PATH} from '@vben/constants';
+import {resetAllStores, useAccessStore, useUserStore} from '@vben/stores';
 
-import { notification } from 'ant-design-vue';
-import { defineStore } from 'pinia';
+import {notification} from 'ant-design-vue';
+import {defineStore} from 'pinia';
 
-import { getUserInfoApi, loginApi, logoutApi } from '#/api';
-import { $t } from '#/locales';
+import {authApi} from '#/api';
+import {$t} from '#/locales';
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore();
@@ -33,7 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
     let userInfo: null | UserInfo = null;
     try {
       loginLoading.value = true;
-      const { accessToken } = await loginApi(params);
+      const { accessToken } = await authApi.loginApi(params);
 
       // 如果成功获取到 accessToken
       if (accessToken) {
@@ -72,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout(redirect: boolean = true) {
     try {
-      await logoutApi();
+      await authApi.logoutApi();
     } catch {
       // 不做任何处理
     }
@@ -91,7 +91,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchUserInfo() {
-    const userInfo: UserInfo = await getUserInfoApi();
+    const userInfo: UserInfo = await authApi.getUserInfoApi();
     userStore.setUserInfo(userInfo);
     return userInfo;
   }

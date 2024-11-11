@@ -20,10 +20,20 @@
       "sort": "Sort",
       "type": "Type"
     },
+    "parentId": "Parent",
     "type": {
       "menu": "Menu",
       "interface": "Interface",
       "button": "Button"
+    }
+  },
+  "role": {
+    "columns": {
+      "name": "Name",
+      "roleType": "Type",
+      "comment": "Remark",
+      "isSystem": "System",
+      "menuIds": "Menu List"
     }
   }
 }

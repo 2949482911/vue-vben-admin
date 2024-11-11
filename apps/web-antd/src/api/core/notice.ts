@@ -5,28 +5,29 @@ import type {
   UpdateNoticeRequest,
 } from '#/api/models';
 
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
+import {BaseApi} from "#/api/core/baseapi";
 
-/**
- * list
- * @param params p
- */
-export function getNoticeList(params: NoticeSearchParams) {
-  return requestClient.get<NoticeItem[]>('/sys/notice/list', params);
+class NoticeApi extends BaseApi {
+
+  constructor(serviceUrl: string) {
+    super(serviceUrl);
+  }
+
+
+  getNoticeList(params: NoticeSearchParams) {
+    return requestClient.get<NoticeItem[]>(this.getServiceUrl("list"), params);
+  }
+
+  fetchCreateNotice(params: CreateNoticeRequest) {
+    return requestClient.post(this.getServiceUrl("create"), params);
+  }
+
+  fetchUpdateNotice(params: UpdateNoticeRequest) {
+    return requestClient.post(this.getServiceUrl("update"), params);
+  }
+
 }
 
-/**
- * create
- * @param params create
- */
-export function fetchCreateNotice(params: CreateNoticeRequest) {
-  return requestClient.post('/sys/notice/create', params);
-}
+export const noticeApi: NoticeApi = new NoticeApi("/sys/notice");
 
-/**
- * update
- * @param params
- */
-export function fetchUpdateNotice(params: UpdateNoticeRequest) {
-  return requestClient.post('/sys/notice/update', params);
-}

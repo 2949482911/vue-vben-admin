@@ -83,6 +83,7 @@ async function loadAndConvertEnv(
     VITE_PORT,
     VITE_PWA,
     VITE_VISUALIZER,
+    VITE_MICRO_SERVICE
   } = envConfig;
 
   const compressTypes = (VITE_COMPRESS ?? '')
@@ -101,6 +102,7 @@ async function loadAndConvertEnv(
     port: getNumber(VITE_PORT, 5173),
     pwa: getBoolean(VITE_PWA),
     visualizer: getBoolean(VITE_VISUALIZER),
+    microservices: getBoolean(VITE_MICRO_SERVICE),
   };
 }
 

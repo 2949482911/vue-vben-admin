@@ -1,42 +1,20 @@
 <script lang="ts" setup name="CreateNotice">
-import type { CreateNoticeRequest } from '#/api/models';
+import type {CreateNoticeRequest} from '#/api/models';
 
-import { ref } from 'vue';
+import {ref} from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {useVbenDrawer} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { message } from 'ant-design-vue';
+import {message} from 'ant-design-vue';
 
-import { useVbenForm } from '#/adapter/form';
-import { fetchCreateNotice, fetchUpdateNotice } from '#/api';
+import {useVbenForm} from '#/adapter/form';
+import {noticeApi} from '#/api';
 
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<CreateNoticeRequest>({});
 const isUpdate = ref<Boolean>(false);
-
-const [Drawer, drawerApi] = useVbenDrawer({
-  onCancel() {
-    drawerApi.close();
-  },
-  onConfirm() {
-    message.info('onConfirm');
-    formApi.resetForm();
-  },
-  onOpenChange(isOpen: boolean) {
-    if (isOpen) {
-      notice.value = drawerApi.getData<Record<string, any>>();
-      console.log(notice.value);
-      if (notice.value) {
-        isUpdate.value = true;
-        handleSetFormValue(notice.value);
-      } else {
-        isUpdate.value = false;
-      }
-    }
-  },
-});
 
 const [Form, formApi] = useVbenForm({
   commonConfig: {
@@ -46,13 +24,13 @@ const [Form, formApi] = useVbenForm({
     },
   },
   handleSubmit: (formVal: Record<string, any>) => {
-    if (isUpdate.value.id) {
-      fetchUpdateNotice(JSON.stringify(formVal)).then(() => {
+    if (isUpdate.value) {
+      noticeApi.fetchUpdateNotice(JSON.stringify(formVal)).then(() => {
         drawerApi.close();
         drawerApi.resetForm();
       });
     } else {
-      fetchCreateNotice(JSON.stringify(formVal)).then(() => {
+      noticeApi.fetchCreateNotice(JSON.stringify(formVal)).then(() => {
         drawerApi.close();
         drawerApi.resetForm();
       });
@@ -91,6 +69,31 @@ const [Form, formApi] = useVbenForm({
     },
   ],
 });
+
+const [Drawer, drawerApi] = useVbenDrawer({
+  onCancel() {
+    drawerApi.close();
+  },
+  onConfirm() {
+    message.info('onConfirm');
+    formApi.resetForm();
+    drawerApi.close();
+  },
+  onOpenChange(isOpen: boolean) {
+    if (isOpen) {
+      notice.value = drawerApi.getData<Record<string, any>>();
+      console.log(notice.value);
+      if (notice.value) {
+        isUpdate.value = true;
+        handleSetFormValue(notice.value);
+      } else {
+        isUpdate.value = false;
+      }
+    }
+  },
+});
+
+
 
 function handleSetFormValue(row) {
   formApi.setValues(row);

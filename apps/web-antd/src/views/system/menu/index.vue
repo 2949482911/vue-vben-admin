@@ -1,33 +1,31 @@
 <script lang="ts" setup>
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import type {
-  CreateMenuRequest,
-  MenuItem,
-  UpdateMenuRequest,
-} from '#/api/models/menu';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models/menu';
 
-import { Page, useVbenDrawer } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {Page, useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Button } from 'ant-design-vue';
-
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { fetchMenuTree } from '#/api';
+import {Button} from 'ant-design-vue';
+import {menuApi} from '#/api';
 
 import CreateMenu from './create-menu.vue';
 
-const [CreateMenuDrawer, baseDrawerApi] = useVbenDrawer({
-  // 连接抽离的组件
+
+const [CreateMenuModal, createMenuModalApi] = useVbenModal({
   connectedComponent: CreateMenu,
-  closeOnPressEscape: true,
-  footer: false,
+  centered: true,
+  modal: true,
 });
+
 
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
-    baseDrawerApi.setData(row);
+    createMenuModalApi.setData(row);
+  }else {
+    createMenuModalApi.setData({})
   }
-  baseDrawerApi.open();
+  createMenuModalApi.open();
 }
 
 const gridOptions: VxeGridProps<MenuItem> = {
@@ -97,7 +95,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
     autoLoad: true,
     ajax: {
       query: async ({}) => {
-        return await fetchMenuTree();
+        return await menuApi.fetchMenuTree();
       },
     },
     response: {
@@ -144,10 +142,15 @@ const pageReload = () => {
       </template>
 
       <template #action="{ row }">
-        <Button type="link" @click="openBaseDrawer(row)">编辑</Button>
+        <Button type="link" @click="openBaseDrawer(row)">
+          {{$t('common.edit')}}
+        </Button>
       </template>
 
       <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
+          {{$t('common.create')}}
+        </Button>
         <Button class="mr-2" type="primary" @click="expandAll">
           展开全部
         </Button>
@@ -155,5 +158,5 @@ const pageReload = () => {
       </template>
     </Grid>
   </Page>
-  <CreateMenuDrawer @page-reload="pageReload" />
+  <CreateMenuModal @page-reload="pageReload" />
 </template>

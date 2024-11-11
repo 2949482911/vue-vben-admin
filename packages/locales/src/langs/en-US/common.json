@@ -12,5 +12,10 @@
   "query": "Search",
   "input": "Please Input",
   "create": "Create",
-  "edit": "Edit"
+  "edit": "Edit",
+  "delete": "Delete",
+  "search": "Search",
+  "enable": "Enable",
+  "disable": "Disable",
+  "choice": "Choice"
 }

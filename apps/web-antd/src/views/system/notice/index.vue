@@ -1,14 +1,13 @@
 <script lang="ts" setup>
-import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
 
-import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {Page, useVbenDrawer, type VbenFormProps} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Button, Switch } from 'ant-design-vue';
-
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { getNoticeList } from '#/api';
-import { TABLE_COMMON_COLUMNS } from '#/constants/locales';
+import {Button, Switch} from 'ant-design-vue';
+import {noticeApi} from '#/api';
+import {TABLE_COMMON_COLUMNS} from '#/constants/locales';
 
 import CreateNotice from './create-notice.vue';
 
@@ -38,7 +37,6 @@ interface RowType {
 
 const formOptions: VbenFormProps = {
   // 默认展开
-  collapsed: false,
   schema: [
     {
       component: 'Input',
@@ -58,6 +56,7 @@ const formOptions: VbenFormProps = {
 };
 
 const gridOptions: VxeGridProps<RowType> = {
+  border: true,
   checkboxConfig: {
     highlight: true,
     labelField: 'name',
@@ -73,7 +72,7 @@ const gridOptions: VxeGridProps<RowType> = {
   proxyConfig: {
     ajax: {
       query: async ({ page }) => {
-        return await getNoticeList({
+        return await noticeApi.getNoticeList({
           page: page.currentPage,
           pageSize: page.pageSize,
         });
@@ -93,11 +92,11 @@ function pageReload() {
   <Page auto-content-height>
     <Grid>
       <template #action="{ row }">
-        <Button type="link" @click="openBaseDrawer(row)">编辑</Button>
-        <Button type="link">删除</Button>
+        <Button type="link" @click="openBaseDrawer(row)">{{$t('common.edit')}}</Button>
+        <Button type="link">{{$t('common.delete')}}</Button>
       </template>
       <template #status="{ row }">
-        <Switch v-model:checked="row.status" />
+        <Switch v-model:checked="row.status == 1" />
       </template>
 
       <template #toolbar-tools>

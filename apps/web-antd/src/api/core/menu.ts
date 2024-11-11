@@ -1,28 +1,26 @@
-import type { RouteRecordStringComponent } from '@vben/types';
+import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models/menu';
 
-import type {
-  CreateMenuRequest,
-  MenuItem,
-  UpdateMenuRequest,
-} from '#/api/models/menu';
+import {requestClient} from '#/api/request';
+import {BaseApi} from "#/api/core/baseapi";
 
-import { requestClient } from '#/api/request';
 
-/**
- * 获取用户所有菜单
- */
-export async function getAllMenusApi() {
-  return requestClient.get<RouteRecordStringComponent[]>('/menu/all');
+class MenuApi extends BaseApi {
+  constructor(serviceUrl: string) {
+    super(serviceUrl);
+  }
+
+  fetchMenuTree() {
+    return requestClient.get<MenuItem[]>(this.getServiceUrl("list"));
+  }
+
+  fetchCreateMenu(params: CreateMenuRequest) {
+    return requestClient.post(this.getServiceUrl("create"), params);
+  }
+
+  fetchUpdateMenu(params: UpdateMenuRequest) {
+    return requestClient.post(this.getServiceUrl("update"), params);
+  }
+
 }
 
-export async function fetchMenuTree() {
-  return requestClient.get<MenuItem[]>('/sys/menu/list');
-}
-
-export async function fetchCreateMenu(params: CreateMenuRequest) {
-  return requestClient.post(`/sys/menu/create`, params);
-}
-
-export async function fetchUpdateMenu(params: UpdateMenuRequest) {
-  return requestClient.post(`/sys/menu/update`, params);
-}
+export const menuApi: MenuApi = new MenuApi("/sys/menu");

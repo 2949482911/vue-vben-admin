@@ -12,5 +12,10 @@
   "query": "查询",
   "input": "请输入",
   "create": "创建",
-  "edit": "编辑"
+  "edit": "编辑",
+  "delete": "删除",
+  "search": "搜索",
+  "enable": "启用",
+  "disable": "禁用",
+  "choice": "请选择"
 }
