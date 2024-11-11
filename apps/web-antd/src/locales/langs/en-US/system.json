@@ -35,5 +35,12 @@
       "isSystem": "System",
       "menuIds": "Menu List"
     }
+  },
+  "org": {
+    "columns": {
+      "name": "Name",
+      "code": "Code"
+    },
+    "parentId": "Parent"
   }
 }

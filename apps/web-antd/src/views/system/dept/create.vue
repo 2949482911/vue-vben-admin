@@ -1,15 +1,15 @@
-<script lang="ts" setup name="CreateMenu">
-import type {CreateMenuRequest} from '#/api/models/menu';
+<script lang="ts" setup name="CreateOrg">
 import {ref} from 'vue';
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import {Card} from 'ant-design-vue';
 import {useVbenForm} from '#/adapter/form';
-import {menuApi} from '#/api';
+import {orgApi} from '#/api';
+import type {OrgCreateRequest} from "#/api/models/users";
 
 const emit = defineEmits(['pageReload']);
 
-const notice = ref<CreateMenuRequest>({});
+const notice = ref<OrgCreateRequest>({});
 const menuData = ref([])
 const isUpdate = ref<Boolean>(false);
 
@@ -50,7 +50,7 @@ const [Form, formApi] = useVbenForm({
         filterTreeNode: true,
         treeData: menuData,
         fieldNames: {
-          title: 'title',
+          title: 'name',
           value: 'id',
           children: 'children',
         }
@@ -58,29 +58,8 @@ const [Form, formApi] = useVbenForm({
       // 字段名
       fieldName: 'parentId',
       // 界面显示的label
-      label: `${$t('system.menu.parentId')}`,
+      label: `${$t('system.org.parentId')}`,
       rules: 'required',
-    },
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      // 字段名
-      fieldName: 'title',
-      // 界面显示的label
-      label: `${$t('system.menu.columns.title')}`,
-      dependencies: {
-        show: (val) => {
-          return val.type === 1
-        },
-        required: (val) => {
-          return val.type === 1;
-        },
-        triggerFields: ["type"]
-      }
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -92,168 +71,16 @@ const [Form, formApi] = useVbenForm({
       // 字段名
       fieldName: 'name',
       // 界面显示的label
-      label: `${$t('system.menu.columns.name')}`,
-      rules: 'required',
+      label: `${$t('system.org.columns.name')}`,
     },
-    {
-      component: 'Select',
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-        options: [
-          {
-            label: `${$t('system.menu.type.menu')}`,
-            value: 1,
-          },
-          {
-            label: `${$t('system.menu.type.interface')}`,
-            value: 2,
-          },
-          {
-            label: `${$t('system.menu.type.button')}`,
-            value: 3,
-          }
-        ]
-      },
-      fieldName: 'type',
-      label: `${$t('system.menu.columns.type')}`,
-      rules: 'required',
-      disabled: isUpdate,
-    },
-
-
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      // 字段名
-      fieldName: 'component',
-      // 界面显示的label
-      label: `${$t('system.menu.columns.component')}`,
-
-      dependencies: {
-        show: (val) => {
-          return val.type === 1
-        },
-        required: (value) => {
-          return value.type === 1
-        },
-        triggerFields: ["type"]
-      }
-    },
-
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      // 字段名
-      fieldName: 'title',
-      // 界面显示的label
-      label: `${$t('system.menu.columns.title')}`,
-      rules: 'required',
-    },
-
-    {
-      component: 'Input',
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      fieldName: 'icon',
-      label: `${$t('system.menu.columns.icon')}`,
-      dependencies: {
-        show: (val) => {
-          return val.type === 1;
-        },
-        required: (value) => {
-          return value.type === 1
-        },
-        triggerFields: ["type"]
-      }
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      fieldName: 'path',
-      label: `${$t('system.menu.columns.path')}`,
-      dependencies: {
-        show: (val) => {
-          return val.type == 1
-        },
-        required: (val) => {
-          return val.type === 1
-        },
-        triggerFields: ["type"]
-      }
-    },
-
-    {
-      component: 'InputNumber',
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      fieldName: 'sort',
-      label: `${$t('system.menu.columns.sort')}`,
-      rules: 'required',
-    },
-
-    {
-      component: 'Input',
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      fieldName: 'redirect',
-      label: `${$t('system.menu.columns.redirect')}`,
-      dependencies: {
-        show: (values) => {
-          return values.type === 1
-        },
-        triggerFields: ["type"]
-      }
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      fieldName: 'backendUrl',
-      label: `${$t('system.menu.columns.backendUrl')}`,
-      dependencies: {
-        show: (values) => {
-          return values.type === 2
-        },
-        triggerFields: ["type"]
-      }
-    },
-    {
-      component: 'Input',
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      fieldName: 'mark',
-      label: `${$t('system.menu.columns.mark')}`,
-      dependencies: {
-        show: (values) => {
-          return values.type === 2
-        },
-        triggerFields: ["type"]
-      }
-    }
-
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-  handleSubmit: (values: Record<string, any>) => {
+  handleSubmit: async (values: Record<string, any>) => {
     if (isUpdate.value) {
-      menuApi.fetchUpdateMenu(JSON.stringify(values))
+      await orgApi.fetchOrgUpdate(JSON.stringify(values))
     } else {
-      menuApi.fetchCreateMenu(JSON.stringify(values))
+      await orgApi.fetchOrgCreate(JSON.stringify(values))
     }
     modalApi.close();
   }
@@ -266,8 +93,8 @@ const [Modal, modalApi] = useVbenModal({
     modalApi.close();
     isUpdate.value = false;
   },
-  onConfirm() {
-    formApi.submitForm();
+  async onConfirm() {
+    await formApi.submitForm();
     isUpdate.value = false;
     emit("pageReload");
   },
@@ -280,7 +107,7 @@ const [Modal, modalApi] = useVbenModal({
       } else {
         isUpdate.value = false;
       }
-      menuApi.fetchMenuTree().then(res => {
+      orgApi.fetchOrgTree().then(res => {
         menuData.value = res
       })
     }

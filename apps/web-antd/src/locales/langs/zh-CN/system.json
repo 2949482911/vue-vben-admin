@@ -35,5 +35,12 @@
       "isSystem": "内置",
       "menuIds": "权限列表"
     }
+  },
+  "org": {
+    "columns": {
+      "name": "名字",
+      "code": "编码"
+    },
+    "parentId": "父节点"
   }
 }
