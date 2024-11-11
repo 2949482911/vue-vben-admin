@@ -27,3 +27,39 @@ export const TABLE_COMMON_COLUMNS = [
     width: 256,
   },
 ];
+
+export const STATUS_SELECT = [
+  {
+    label: `${$t('common.enable')}`,
+    value: 1,
+  },
+  {
+    label: `${$t('common.disable')}`,
+    value: 9,
+  },
+]
+
+
+
+export const ROLE_TYPE_OPTIONS = [
+  {
+    label: `${$t('core.role_type.super_admin')}`,
+    value: 1,
+  },
+  {
+    label: `${$t('core.role_type.platform_admin')}`,
+    value: 2,
+  },
+  {
+    label: `${$t('core.role_type.platform_user')}`,
+    value: 3,
+  },
+  {
+    label: `${$t('core.role_type.main_admin')}`,
+    value: 4,
+  },
+  {
+    label: `${$t('core.role_type.main_user')}`,
+    value: 5,
+  },
+]

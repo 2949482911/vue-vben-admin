@@ -20,10 +20,20 @@
       "sort": "排序",
       "type": "类型"
     },
+    "parentId": "父节点",
     "type": {
       "menu": "菜单",
       "interface": "接口",
       "button": "按钮"
+    }
+  },
+  "role": {
+    "columns": {
+      "name": "名字",
+      "roleType": "类型",
+      "comment": "备注",
+      "isSystem": "内置",
+      "menuIds": "权限列表"
     }
   }
 }

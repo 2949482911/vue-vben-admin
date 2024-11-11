@@ -8,5 +8,12 @@
     "id": "Id",
     "del": "Deleted",
     "options": "Options"
+  },
+  "role_type": {
+    "super_admin": "Super Admin",
+    "platform_admin": "Platform Admin",
+    "platform_user": "Platform User",
+    "main_admin": "Main Admin",
+    "main_user": "Main User"
   }
 }

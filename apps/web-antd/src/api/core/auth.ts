@@ -1,4 +1,6 @@
 import { baseRequestClient, requestClient } from '#/api/request';
+import {BaseApi} from "#/api/core/baseapi";
+import type {UserInfo} from "@vben/types";
 
 export namespace AuthApi {
   /** 登录接口参数 */
@@ -18,37 +20,34 @@ export namespace AuthApi {
   }
 }
 
-/**
- * 登录
- */
-export async function loginApi(data: AuthApi.LoginParams) {
-  return requestClient.post<AuthApi.LoginResult>('/auth/auth/login', data);
-}
+class AuthApi extends BaseApi {
 
-/**
- * 刷新accessToken
- */
-export async function refreshTokenApi() {
-  return baseRequestClient.post<AuthApi.RefreshTokenResult>(
-    '/auth/auth/refresh',
-    {
+  constructor(serviceUrl: string) {
+    super(serviceUrl);
+  }
+
+  loginApi(data: AuthApi.LoginParams) {
+    return requestClient.post<AuthApi.LoginResult>(this.getServiceUrl("login"), data);
+  }
+
+  refreshTokenApi() {
+    return baseRequestClient.post<AuthApi.RefreshTokenResult>(
+      this.getServiceUrl("refresh"),
+      {
+        withCredentials: true,
+      },
+    );
+  }
+
+  logoutApi() {
+    return baseRequestClient.post(this.getServiceUrl("logout"), {
       withCredentials: true,
-    },
-  );
+    });
+  }
+
+  getUserInfoApi() {
+    return requestClient.get<UserInfo>(this.getServiceUrl("user/info"));
+  }
 }
 
-/**
- * 退出登录
- */
-export async function logoutApi() {
-  return baseRequestClient.post('/auth/auth/logout', {
-    withCredentials: true,
-  });
-}
-
-/**
- * 获取用户权限码
- */
-export async function getAccessCodesApi() {
-  return requestClient.get<string[]>('/auth/codes');
-}
+export const authApi: AuthApi = new AuthApi("/auth/auth")

@@ -8,5 +8,12 @@
     "id": "Id",
     "del": "删除状态",
     "options": "操作"
+  },
+  "role_type": {
+    "super_admin": "超级用户管理员",
+    "platform_admin": "平台管理员",
+    "platform_user": "平台用户",
+    "main_admin": "主体管理员",
+    "main_user": "主体用户"
   }
 }

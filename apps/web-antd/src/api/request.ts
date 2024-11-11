@@ -1,22 +1,22 @@
 /**
  * 该文件可自行根据业务逻辑进行调整
  */
-import type { HttpResponse } from '@vben/request';
-
-import { useAppConfig } from '@vben/hooks';
-import { preferences } from '@vben/preferences';
+import type {HttpResponse} from '@vben/request';
 import {
   authenticateResponseInterceptor,
   errorMessageResponseInterceptor,
   RequestClient,
 } from '@vben/request';
-import { useAccessStore } from '@vben/stores';
 
-import { message } from 'ant-design-vue';
+import {useAppConfig} from '@vben/hooks';
+import {preferences} from '@vben/preferences';
+import {useAccessStore} from '@vben/stores';
 
-import { useAuthStore } from '#/store';
+import {message} from 'ant-design-vue';
 
-import { refreshTokenApi } from './core';
+import {useAuthStore} from '#/store';
+
+import {authApi} from './core';
 
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 
@@ -48,7 +48,7 @@ function createRequestClient(baseURL: string) {
    */
   async function doRefreshToken() {
     const accessStore = useAccessStore();
-    const resp = await refreshTokenApi();
+    const resp = await authApi.refreshTokenApi();
     const newToken = resp.data;
     accessStore.setAccessToken(newToken);
     return newToken;

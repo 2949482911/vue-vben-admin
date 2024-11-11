@@ -11,3 +11,8 @@ export interface BaseItem {
   updateUsername: string;
   status: number;
 }
+
+
+export interface DeleteItem {
+  ids: string[];
+}
