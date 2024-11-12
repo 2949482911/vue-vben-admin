@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script lang="ts" setup name="RoleMangaer">
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';

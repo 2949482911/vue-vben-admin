@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script lang="ts" setup name="DeptManager">
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models/menu';
@@ -64,15 +64,6 @@ const gridOptions: VxeGridProps<MenuItem> = {
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
-
-const expandAll = () => {
-  gridApi.grid?.setAllTreeExpand(true);
-};
-
-const collapseAll = () => {
-  gridApi.grid?.setAllTreeExpand(false);
-};
-
 const pageReload = () => {
   gridApi.reload();
 };
@@ -90,10 +81,23 @@ const pageReload = () => {
         <Button type="link" @click="openBaseDrawer(row)">
           {{$t('common.edit')}}
         </Button>
+
+        <Button type="link" @click="handlerDisable(row.id)" v-if="row.status === 1">
+          {{$t('common.disable')}}
+        </Button>
+
+        <Button type="link" @click="handlerEnable(row.id)" v-else>
+          {{$t('common.enable')}}
+        </Button>
+
+        <Button type="link" @click="handlerEnable(row.id)" v-else>
+          {{$t('common.delete')}}
+        </Button>
+
       </template>
 
       <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
+        <Button class="mr-2" type="primary" @click="openBaseDrawer">
           {{$t('common.create')}}
         </Button>
       </template>

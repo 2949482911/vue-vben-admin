@@ -42,5 +42,38 @@
       "code": "Code"
     },
     "parentId": "Parent"
+  },
+  "user": {
+    "title": "Account",
+    "columns": {
+      "orgId": "Org",
+      "avatar": "Avatar",
+      "nickname": "Nickname",
+      "authName": "Account",
+      "phone": "Phone",
+      "qq": "Qq",
+      "email": "Email",
+      "sex": "Sex",
+      "roleIds": "Role"
+    }
+  },
+  "data_scope": {
+    "title": "Data Range",
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "code": "Code",
+      "remark": "Remark",
+      "userIds": "Users",
+      "orgIds": "Org",
+      "mainIds": "Main body"
+    }
+  },
+  "mainbody": {
+    "columns": {
+      "name": "Name",
+      "remark": "Remark",
+      "email": "Email"
+    }
   }
 }

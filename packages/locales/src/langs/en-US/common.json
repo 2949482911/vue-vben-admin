@@ -17,5 +17,7 @@
   "search": "Search",
   "enable": "Enable",
   "disable": "Disable",
-  "choice": "Choice"
+  "choice": "Choice",
+  "boy": "Boy",
+  "girl": "Girl"
 }

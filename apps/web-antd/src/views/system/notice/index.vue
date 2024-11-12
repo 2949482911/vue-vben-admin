@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script lang="ts" setup name="NoticeManager">
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 
@@ -7,7 +7,7 @@ import {$t} from '@vben/locales';
 
 import {Button, Switch} from 'ant-design-vue';
 import {noticeApi} from '#/api';
-import {TABLE_COMMON_COLUMNS} from '#/constants/locales';
+import {STATUS_SELECT, TABLE_COMMON_COLUMNS} from '#/constants/locales';
 
 import CreateNotice from './create-notice.vue';
 
@@ -48,6 +48,16 @@ const formOptions: VbenFormProps = {
       fieldName: 'datePicker',
       label: 'Date',
     },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: STATUS_SELECT,
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'status',
+      label: `${$t('core.columns.status')}`,
+    },
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
@@ -71,10 +81,11 @@ const gridOptions: VxeGridProps<RowType> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }) => {
+      query: async ({ page }, args) => {
         return await noticeApi.getNoticeList({
           page: page.currentPage,
           pageSize: page.pageSize,
+          ...args
         });
       },
     },

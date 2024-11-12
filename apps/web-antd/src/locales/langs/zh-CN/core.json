@@ -15,5 +15,16 @@
     "platform_user": "平台用户",
     "main_admin": "主体管理员",
     "main_user": "主体用户"
+  },
+  "data_range_type": {
+    "self": "个人权限",
+    "user_scope": "指定用户权限",
+    "dept_scope": "指定部门权限",
+    "dept_user_scope": "指定部门用户权限",
+    "all_scope": "全部权限",
+    "belong_dept": "所属部门",
+    "belong_dept_sub_dept": "所属部门及子部门",
+    "main_scope": "指定主体权限",
+    "self_main_scope": "所属主体权限"
   }
 }

@@ -16,7 +16,7 @@ class NoticeApi extends BaseApi {
 
 
   getNoticeList(params: NoticeSearchParams) {
-    return requestClient.get<NoticeItem[]>(this.getServiceUrl("list"), params);
+    return requestClient.get<NoticeItem[]>(this.getServiceUrl("list"), {params});
   }
 
   fetchCreateNotice(params: CreateNoticeRequest) {

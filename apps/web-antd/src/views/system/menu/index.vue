@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script lang="ts" setup name="MenuManager">
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models/menu';
@@ -6,7 +6,7 @@ import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models
 import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
-import {Button} from 'ant-design-vue';
+import {Button, Tag} from 'ant-design-vue';
 import {menuApi} from '#/api';
 
 import CreateMenu from './create-menu.vue';
@@ -134,11 +134,11 @@ const pageReload = () => {
   <Page>
     <Grid :table-title="$t('system.menu.title')">
       <template #type="{ row }">
-        <ATag v-if="row.type === 1">{{ $t('system.menu.type.menu') }}</ATag>
-        <ATag v-if="row.type === 2">
+        <Tag v-if="row.type === 1">{{ $t('system.menu.type.menu') }}</Tag>
+        <Tag v-if="row.type === 2">
           {{ $t('system.menu.type.interface') }}
-        </ATag>
-        <ATag v-if="row.type === 3">{{ $t('system.menu.type.button') }}</ATag>
+        </Tag>
+        <Tag v-if="row.type === 3">{{ $t('system.menu.type.button') }}</Tag>
       </template>
 
       <template #action="{ row }">

@@ -39,6 +39,57 @@ export const STATUS_SELECT = [
   },
 ]
 
+export const SEX_SELECT = [
+  {
+    label: `${$t('common.boy')}`,
+    value: 1,
+  },
+  {
+    label: `${$t('common.girl')}`,
+    value: 2,
+  },
+]
+
+
+export const DATA_SCOPE = [
+  {
+    label: `${$t('core.data_range_type.self')}`,
+    value: 1,
+  },
+  {
+    label: `${$t('core.data_range_type.user_scope')}`,
+    value: 2,
+  },
+  {
+    label: `${$t('core.data_range_type.dept_scope')}`,
+    value: 3,
+  },
+  {
+    label: `${$t('core.data_range_type.dept_user_scope')}`,
+    value: 4,
+  },
+  {
+    label: `${$t('core.data_range_type.all_scope')}`,
+    value: 5,
+  },
+  {
+    label: `${$t('core.data_range_type.belong_dept')}`,
+    value: 6,
+  },
+  {
+    label: `${$t('core.data_range_type.belong_dept_sub_dept')}`,
+    value: 7,
+  },
+  {
+    label: `${$t('core.data_range_type.main_scope')}`,
+    value: 8,
+  },
+  {
+    label: `${$t('core.data_range_type.self_main_scope')}`,
+    value: 9,
+  },
+]
+
 
 
 export const ROLE_TYPE_OPTIONS = [

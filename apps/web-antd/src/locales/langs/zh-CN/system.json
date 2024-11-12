@@ -42,5 +42,38 @@
       "code": "编码"
     },
     "parentId": "父节点"
+  },
+  "user": {
+    "title": "用户",
+    "columns": {
+      "orgId": "部门",
+      "avatar": "头像",
+      "nickname": "昵称",
+      "authName": "账户",
+      "phone": "手机号",
+      "qq": "Qq",
+      "email": "邮箱",
+      "sex": "性别",
+      "roleIds": "角色"
+    }
+  },
+  "data_scope": {
+    "title": "数据范围",
+    "columns": {
+      "name": "名字",
+      "type": "类型",
+      "code": "编码",
+      "remark": "备注",
+      "userIds": "用户",
+      "orgIds": "部门",
+      "mainIds": "主体"
+    }
+  },
+  "mainbody": {
+    "columns": {
+      "name": "名字",
+      "remark": "备注",
+      "email": "邮箱"
+    }
   }
 }

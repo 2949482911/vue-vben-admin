@@ -15,5 +15,16 @@
     "platform_user": "Platform User",
     "main_admin": "Main Admin",
     "main_user": "Main User"
+  },
+  "data_range_type": {
+    "self": "SELF",
+    "user_scope": "USER_LIST",
+    "dept_scope": "DEPT_SCOPE",
+    "dept_user_scope": "DEPT_AND_USER_SCOPE",
+    "all_scope": "ALL_SCOPE",
+    "belong_dept": "BELONG_DEPT",
+    "belong_dept_sub_dept": "BELONG_DEPT_AND_SUB",
+    "main_scope": "MAIN_SCOPE",
+    "self_main_scope": "ALL_SELF_MAIN"
   }
 }

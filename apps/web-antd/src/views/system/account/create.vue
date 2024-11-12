@@ -4,13 +4,15 @@ import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import {Card} from 'ant-design-vue';
 import {useVbenForm} from '#/adapter/form';
-import {orgApi} from '#/api';
+import {orgApi, roleApi} from '#/api';
 import type {OrgCreateRequest} from "#/api/models/users";
+import {SEX_SELECT} from "#/constants/locales";
 
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<OrgCreateRequest>({});
 const menuData = ref([])
+const roleData = ref([])
 const isUpdate = ref<Boolean>(false);
 
 
@@ -56,9 +58,9 @@ const [Form, formApi] = useVbenForm({
         }
       },
       // 字段名
-      fieldName: 'parentId',
+      fieldName: 'orgId',
       // 界面显示的label
-      label: `${$t('system.org.parentId')}`,
+      label: `${$t('system.user.columns.orgId')}`,
       rules: 'required',
     },
     {
@@ -69,9 +71,103 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
       },
       // 字段名
-      fieldName: 'name',
+      fieldName: 'nickname',
       // 界面显示的label
-      label: `${$t('system.org.columns.name')}`,
+      label: `${$t('system.user.columns.nickname')}`,
+      rules: 'required',
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      // 字段名
+      fieldName: 'authName',
+      // 界面显示的label
+      label: `${$t('system.user.columns.authName')}`,
+      rules: 'required',
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      // 字段名
+      fieldName: 'phone',
+      // 界面显示的label
+      label: `${$t('system.user.columns.phone')}`,
+      rules: 'required',
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      // 字段名
+      fieldName: 'qq',
+      // 界面显示的label
+      label: `${$t('system.user.columns.qq')}`,
+      rules: 'required',
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      // 字段名
+      fieldName: 'email',
+      // 界面显示的label
+      label: `${$t('system.user.columns.email')}`,
+      rules: 'required',
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Select',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        options: SEX_SELECT
+      },
+      // 字段名
+      fieldName: 'sex',
+      // 界面显示的label
+      label: `${$t('system.user.columns.sex')}`,
+      rules: 'required',
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Select',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        options: SEX_SELECT,
+        mode: "multiple",
+        options: roleData,
+        fieldNames: {
+          label: 'name',
+          value: 'id',
+          children: 'children',
+        }
+      },
+      // 字段名
+      fieldName: 'roleIds',
+      // 界面显示的label
+      label: `${$t('system.user.columns.roleIds')}`,
+      rules: 'required',
     },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
@@ -109,6 +205,9 @@ const [Modal, modalApi] = useVbenModal({
       }
       orgApi.fetchOrgTree().then(res => {
         menuData.value = res
+      })
+      roleApi.fetchRoleList({page: 1000}).then(res => {
+        roleData.value = res.items
       })
     }
   },
