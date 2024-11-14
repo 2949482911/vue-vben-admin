@@ -10,11 +10,6 @@ import {BaseApi} from "#/api/core/baseapi";
 
 class NoticeApi extends BaseApi {
 
-  constructor(serviceUrl: string) {
-    super(serviceUrl);
-  }
-
-
   getNoticeList(params: NoticeSearchParams) {
     return requestClient.get<NoticeItem[]>(this.getServiceUrl("list"), {params});
   }

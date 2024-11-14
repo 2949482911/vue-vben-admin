@@ -13,10 +13,6 @@ import type {
 
 class UserApi extends BaseApi {
 
-  constructor(serviceUrl: string) {
-    super(serviceUrl);
-  }
-
   fetchUserList(params: UserSearchRequest): Promise<UserItem> {
     return requestClient.get<UserItem>(this.getServiceUrl("list"), {params})
   }
@@ -39,12 +35,7 @@ class UserApi extends BaseApi {
 
 }
 
-
-
 class OrgApi extends BaseApi {
-  constructor(serviceUrl: string) {
-    super(serviceUrl);
-  }
 
   fetchOrgTree(): Promise<OrgModel[]> {
     return requestClient.get<OrgItem[]>(this.getServiceUrl("list"));
@@ -73,9 +64,7 @@ class OrgApi extends BaseApi {
 
 
 class DataRangeApi extends BaseApi {
-  constructor(serviceUrl: string) {
-    super(serviceUrl);
-  }
+
 
   fetchDataRangeList(params: DataRangeSearchRequest){
     return requestClient.get<DataRangeSearchRequest>(this.getServiceUrl("list"), {params});
