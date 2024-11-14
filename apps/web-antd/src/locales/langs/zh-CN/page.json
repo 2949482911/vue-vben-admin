@@ -10,5 +10,16 @@
     "title": "概览",
     "analytics": "分析页",
     "workspace": "工作台"
+  },
+  "system": {
+    "title": "系统",
+    "account": "账户",
+    "menu": "菜单",
+    "data_range": "数据权限",
+    "main": "主体",
+    "notice": "公告",
+    "operator": "操作日志",
+    "org": "组织",
+    "role": "角色"
   }
 }

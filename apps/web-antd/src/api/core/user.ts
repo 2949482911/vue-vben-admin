@@ -3,7 +3,7 @@ import {BaseApi} from "#/api/core/baseapi";
 import type {DeleteItem} from "#/api/models/core";
 import type {
   CreateDataRangeRequest,
-  CreateUserRequest, DataRangeSearchRequest,
+  CreateUserRequest, DataRangeSearchRequest, OperatorItem, OperatorSearchRequest,
   OrgCreateRequest,
   OrgItem,
   OrgUpdateRequest, SetUserDataRangeRequest, UpdateDataRangeRequest, UpdateUserRequest,
@@ -108,6 +108,17 @@ class DataRangeApi extends BaseApi {
 }
 
 
+class OperatorApi extends BaseApi {
+  constructor(serviceUrl: string) {
+    super(serviceUrl);
+  }
+
+  fetchNoticeList (params: OperatorSearchRequest): Promise<OperatorItem> {
+    return requestClient.get(this.getServiceUrl("list"), {params});
+  }
+}
+
 export const orgApi: OrgApi = new OrgApi("/sys/org")
 export const userApi: UserApi = new UserApi("/sys/user")
 export const dataRangeApi: DataRangeApi = new DataRangeApi("/sys/data/range")
+export const operatorApi: OperatorApi = new OperatorApi("/sys/operate-log")

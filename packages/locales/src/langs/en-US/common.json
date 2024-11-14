@@ -19,5 +19,9 @@
   "disable": "Disable",
   "choice": "Choice",
   "boy": "Boy",
-  "girl": "Girl"
+  "girl": "Girl",
+  "list": "List",
+  "authorization": "Authorization",
+  "select": "Select",
+  "batch_options": "Batch Options"
 }

@@ -28,6 +28,7 @@ function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   createMenuModalApi.open();
 }
 
+
 const gridOptions: VxeGridProps<MenuItem> = {
   columns: [
     {
@@ -35,6 +36,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
       minWidth: 300,
       title: `${$t('system.menu.columns.title')}`,
       treeNode: true,
+      slots: { default: 'title' },
     },
     {
       field: 'name',
@@ -131,8 +133,14 @@ const pageReload = () => {
 </script>
 
 <template>
+<div>
   <Page>
     <Grid :table-title="$t('system.menu.title')">
+
+      <template #title="{ row }">
+        <div> {{ $t(`${row.title}`) }}</div>
+      </template>
+
       <template #type="{ row }">
         <Tag v-if="row.type === 1">{{ $t('system.menu.type.menu') }}</Tag>
         <Tag v-if="row.type === 2">
@@ -144,6 +152,9 @@ const pageReload = () => {
       <template #action="{ row }">
         <Button type="link" @click="openBaseDrawer(row)">
           {{$t('common.edit')}}
+        </Button>
+        <Button type="link" @click="openBaseDrawer({parentId: row.id})">
+          {{$t('common.create')}}
         </Button>
       </template>
 
@@ -159,4 +170,5 @@ const pageReload = () => {
     </Grid>
   </Page>
   <CreateMenuModal @page-reload="pageReload" />
+</div>
 </template>

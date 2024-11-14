@@ -19,5 +19,9 @@
   "disable": "禁用",
   "choice": "请选择",
   "boy": "男",
-  "girl": "女"
+  "girl": "女",
+  "list": "列表",
+  "authorization": "授权",
+  "select": "下拉选择",
+  "batch_options": "批量操作"
 }

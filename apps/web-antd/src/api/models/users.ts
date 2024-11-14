@@ -75,3 +75,11 @@ export interface SetUserDataRangeRequest {
   userId: string;
   dataRangeId: string;
 }
+
+export interface OperatorSearchRequest extends PageRequestParams{}
+
+export interface OperatorItem extends BaseItem {
+  url: string;
+  params: string;
+  operateUserId: string;
+}

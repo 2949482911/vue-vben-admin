@@ -100,6 +100,7 @@ function pageReload() {
 </script>
 
 <template>
+<div>
   <Page auto-content-height>
     <Grid>
       <template #action="{ row }">
@@ -107,7 +108,7 @@ function pageReload() {
         <Button type="link">{{$t('common.delete')}}</Button>
       </template>
       <template #status="{ row }">
-        <Switch v-model:checked="row.status == 1" />
+        <Switch :checked="row.status === 1" />
       </template>
 
       <template #toolbar-tools>
@@ -123,6 +124,6 @@ function pageReload() {
       </template>
     </Grid>
   </Page>
-
   <CreateNoticeDrawer @page-reload="pageReload" />
+</div>
 </template>

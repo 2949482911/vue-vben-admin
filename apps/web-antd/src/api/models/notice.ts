@@ -1,4 +1,4 @@
-import type { BaseItem, PageRequestParams } from '#/api/models/core';
+import type {BaseItem, PageRequestParams} from '#/api/models/core';
 
 export interface NoticeSearchParams extends PageRequestParams {
   title: string;
@@ -15,5 +15,11 @@ export interface CreateNoticeRequest {
   content: string;
   status: number;
 }
+
+
+export interface NotificationItem extends NoticeItem {
+  isRead?: boolean;
+}
+
 
 export type UpdateNoticeRequest = CreateNoticeRequest;

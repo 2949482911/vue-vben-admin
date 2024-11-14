@@ -55,11 +55,15 @@ const [Form, formApi] = useVbenForm({
           children: 'children',
         }
       },
+      renderComponentContent: (value, _) =>  {
+        return {
+          strengthText: () => $t(`${value.title}`),
+        };
+      },
       // 字段名
       fieldName: 'parentId',
       // 界面显示的label
       label: `${$t('system.menu.parentId')}`,
-      rules: 'required',
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -266,10 +270,10 @@ const [Modal, modalApi] = useVbenModal({
     modalApi.close();
     isUpdate.value = false;
   },
-  onConfirm() {
-    formApi.submitForm();
+  async onConfirm()  {
+    await formApi.submitForm();
+    await emit("pageReload");
     isUpdate.value = false;
-    emit("pageReload");
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
@@ -279,6 +283,9 @@ const [Modal, modalApi] = useVbenModal({
         handleSetFormValue(notice.value);
       } else {
         isUpdate.value = false;
+        if (notice.value.parentId) {
+          handleSetFormValue(notice.value);
+        }
       }
       menuApi.fetchMenuTree().then(res => {
         menuData.value = res

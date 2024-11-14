@@ -70,6 +70,7 @@ const pageReload = () => {
 </script>
 
 <template>
+<div>
   <Page>
     <Grid :table-title="$t('system.menu.title')">
 
@@ -104,4 +105,5 @@ const pageReload = () => {
     </Grid>
   </Page>
   <CreateModal @page-reload="pageReload" />
+</div>
 </template>

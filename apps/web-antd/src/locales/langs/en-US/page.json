@@ -10,5 +10,16 @@
     "title": "Dashboard",
     "analytics": "Analytics",
     "workspace": "Workspace"
+  },
+  "system": {
+    "title": "System",
+    "account": "Account",
+    "menu": "Menu",
+    "data_range": "Data Range",
+    "main": "Company",
+    "notice": "Notice",
+    "operator": "Operator Log",
+    "org": "Dept",
+    "role": "Role"
   }
 }

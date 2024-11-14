@@ -27,6 +27,13 @@ class NoticeApi extends BaseApi {
     return requestClient.post(this.getServiceUrl("update"), params);
   }
 
+  fetchReadListNotice(): Promise<NoticeItem[]> {
+    return requestClient.get(this.getServiceUrl("read_list"));
+  }
+
+  fetchReadNotice(ids: string[]) {
+    return requestClient.get(this.getServiceUrl("read_notice"), {params: {ids: ids}});
+  }
 }
 
 export const noticeApi: NoticeApi = new NoticeApi("/sys/notice");

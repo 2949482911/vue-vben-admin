@@ -75,5 +75,10 @@
       "remark": "Remark",
       "email": "Email"
     }
+  },
+  "operator": {
+    "columns": {
+      "url": "Url"
+    }
   }
 }

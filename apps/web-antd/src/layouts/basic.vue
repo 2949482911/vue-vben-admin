@@ -1,56 +1,23 @@
 <script lang="ts" setup>
-import type { NotificationItem } from '@vben/layouts';
+import type {NotificationItem} from '@vben/layouts';
+import {BasicLayout, LockScreen, Notification, UserDropdown,} from '@vben/layouts';
 
-import { computed, ref, watch } from 'vue';
+import {computed, onMounted, ref, watch} from 'vue';
 
-import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
-import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
-import { useWatermark } from '@vben/hooks';
-import { BookOpenText, CircleHelp, MdiGithub } from '@vben/icons';
-import {
-  BasicLayout,
-  LockScreen,
-  Notification,
-  UserDropdown,
-} from '@vben/layouts';
-import { preferences } from '@vben/preferences';
-import { useAccessStore, useUserStore } from '@vben/stores';
-import { openWindow } from '@vben/utils';
+import {AuthenticationLoginExpiredModal} from '@vben/common-ui';
+import {VBEN_DOC_URL, VBEN_GITHUB_URL} from '@vben/constants';
+import {useWatermark} from '@vben/hooks';
+import {BookOpenText, CircleHelp, MdiGithub} from '@vben/icons';
+import {preferences} from '@vben/preferences';
+import {useAccessStore, useUserStore} from '@vben/stores';
+import {openWindow} from '@vben/utils';
+import {noticeApi} from "#/api";
 
-import { $t } from '#/locales';
-import { useAuthStore } from '#/store';
+import {$t} from '#/locales';
+import {useAuthStore} from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
-const notifications = ref<NotificationItem[]>([
-  {
-    avatar: 'https://avatar.vercel.sh/vercel.svg?text=VB',
-    date: '3小时前',
-    isRead: true,
-    message: '描述信息描述信息描述信息',
-    title: '收到了 14 份新周报',
-  },
-  {
-    avatar: 'https://avatar.vercel.sh/1',
-    date: '刚刚',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '朱偏右 回复了你',
-  },
-  {
-    avatar: 'https://avatar.vercel.sh/1',
-    date: '2024-01-01',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '曲丽丽 评论了你',
-  },
-  {
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '代办提醒',
-  },
-]);
+const notifications = ref<NotificationItem[]>([]);
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -102,9 +69,13 @@ function handleNoticeClear() {
   notifications.value = [];
 }
 
-function handleMakeAll() {
+async function handleMakeAll() {
+  const ids: string[] = []
+  notifications.value.forEach((item) => (ids.push(item.id)));
+  await noticeApi.fetchReadNotice(ids)
   notifications.value.forEach((item) => (item.isRead = true));
 }
+
 watch(
   () => preferences.app.watermark,
   async (enable) => {
@@ -120,6 +91,13 @@ watch(
     immediate: true,
   },
 );
+
+onMounted(() => {
+  noticeApi.fetchReadListNotice().then(res => {
+    notifications.value = res;
+  })
+})
+
 </script>
 
 <template>

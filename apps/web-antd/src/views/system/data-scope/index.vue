@@ -130,6 +130,7 @@ onMounted(() => {
 </script>
 
 <template>
+<div>
   <Page>
     <Grid :table-title="$t('system.user.title')">
 
@@ -161,4 +162,5 @@ onMounted(() => {
     </Grid>
   </Page>
   <CreateModal @page-reload="pageReload" />
+</div>
 </template>

@@ -75,5 +75,10 @@
       "remark": "备注",
       "email": "邮箱"
     }
+  },
+  "operator": {
+    "columns": {
+      "url": "Url"
+    }
   }
 }

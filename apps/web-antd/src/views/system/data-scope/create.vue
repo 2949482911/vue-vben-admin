@@ -197,7 +197,7 @@ const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
     await formApi.submitForm();
     isUpdate.value = false;
-    emit("pageReload");
+    await emit("pageReload");
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {

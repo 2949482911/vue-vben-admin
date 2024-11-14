@@ -171,6 +171,7 @@ onMounted(() => {
 </script>
 
 <template>
+<div>
   <Page>
     <Grid :table-title="$t('system.user.title')">
 
@@ -179,8 +180,8 @@ onMounted(() => {
       </template>
 
       <template #sex="{ row }">
-       <Tag v-if="row.sex == 1">{{$t('common.boy')}}</Tag>
-       <Tag v-else>{{$t('common.girl')}}</Tag>
+        <Tag v-if="row.sex == 1">{{$t('common.boy')}}</Tag>
+        <Tag v-else>{{$t('common.girl')}}</Tag>
       </template>
 
       <template #action="{ row }">
@@ -206,4 +207,5 @@ onMounted(() => {
     </Grid>
   </Page>
   <CreateModal @page-reload="pageReload" />
+</div>
 </template>
