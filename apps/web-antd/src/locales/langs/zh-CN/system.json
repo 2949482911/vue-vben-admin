@@ -18,7 +18,17 @@
       "mark": "标识",
       "component": "组件",
       "sort": "排序",
-      "type": "类型"
+      "type": "类型",
+      "hideMenu": "隐藏菜单",
+      "keepAlive" : "缓存",
+      "activeIcon": "激活图标",
+      "badge": "徽标",
+      "badgeType": "徽标类型",
+      "badgeVariants": "徽标颜色",
+      "hideInBreadcrumb": "当前路由在面包屑中不展现",
+      "hideInTab": "当前路由在标签页不展现",
+      "ignoreAccess": "忽略权限",
+      "menuVisibleWithForbidden": "菜单可以看到，但是访问会被重定向到403"
     },
     "parentId": "父节点",
     "type": {

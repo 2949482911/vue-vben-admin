@@ -29,19 +29,19 @@ class MainBodyApi extends BaseApi {
   }
 
   fetchMainDisable(ids: string[]){
-    return requestClient.get("disable" , {
+    return requestClient.get(this.getServiceUrl("disable") , {
       params: {ids : ids}
     });
   }
 
   fetchMainEnable(ids: string[]){
-    return requestClient.get("enable" , {
+    return requestClient.get(this.getServiceUrl("enable") , {
       params: {ids : ids}
     });
   }
 
   fetchMainDelete(ids: string[]){
-    return requestClient.get("enable" , {
+    return requestClient.get(this.getServiceUrl("delete") , {
       params: {ids : ids}
     });
   }

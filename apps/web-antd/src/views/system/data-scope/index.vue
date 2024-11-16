@@ -11,7 +11,7 @@ import {Button, Switch, Tag} from 'ant-design-vue';
 import {dataRangeApi, orgApi} from '#/api';
 
 import Create from './create.vue';
-import type {OrgItem} from "#/api/models/users";
+import type {DataRangeItem, OrgItem} from "#/api/models/users";
 
 
 const [CreateModal, createModalApi] = useVbenModal({
@@ -31,17 +31,15 @@ function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   createModalApi.open();
 }
 
-function handlerDisable(id: string) {
-  dataRangeApi.fetchDisableDataRange(id).then(() => {
-    pageReload();
-  })
+async function handlerState(row: DataRangeItem) {
+  if (row.status == 1) {
+    await dataRangeApi.fetchDisableDataRange(row.id)
+  }else {
+    await dataRangeApi.fetchEnableDataRange(row.id)
+  }
+  pageReload();
 }
 
-function handlerEnable(id: string) {
-  dataRangeApi.fetchEnableDataRange(id).then(() => {
-    pageReload();
-  })
-}
 
 function handlerDelete(id: string) {
   dataRangeApi.fetchDeleteDataRange(id).then(() => {
@@ -135,7 +133,7 @@ onMounted(() => {
     <Grid :table-title="$t('system.user.title')">
 
       <template #status="{ row }">
-        <Switch :checked="row.status == 1" />
+        <Switch :checked="row.status == 1" @click="handlerState(row)"/>
       </template>
 
       <template #sex="{ row }">

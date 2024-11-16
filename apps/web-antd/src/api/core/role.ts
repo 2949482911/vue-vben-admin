@@ -51,6 +51,16 @@ class RoleApi extends BaseApi {
       id: id
       }})
   }
+
+
+  fetchEnableRole(id: string) {
+    return requestClient.get(this.getServiceUrl("enable"), {params: {id: id}})
+  }
+
+  fetchDisableRole(id: string) {
+    return requestClient.get(this.getServiceUrl("disable"), {params: {id: id}})
+  }
+
 }
 
 export const roleApi: RoleApi = new RoleApi("/sys/role");

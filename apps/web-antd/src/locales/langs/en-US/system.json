@@ -18,7 +18,17 @@
       "mark": "Mark",
       "component": "component",
       "sort": "Sort",
-      "type": "Type"
+      "type": "Type",
+      "hideMenu": "Hide Menu",
+      "keepAlive" : "Keep Alive",
+      "activeIcon": "Active Icon",
+      "badge": "Badge",
+      "badgeType": "Badge Type",
+      "badgeVariants": "Badge Variants",
+      "hideInBreadcrumb": "Hide In Breadcrumb",
+      "hideInTab": "Hide In Tab",
+      "ignoreAccess": "Ignore Access",
+      "menuVisibleWithForbidden": "Menu Visible With Forbidden"
     },
     "parentId": "Parent",
     "type": {

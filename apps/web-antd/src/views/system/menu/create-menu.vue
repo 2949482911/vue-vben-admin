@@ -13,7 +13,6 @@ const notice = ref<CreateMenuRequest>({});
 const menuData = ref([])
 const isUpdate = ref<Boolean>(false);
 
-
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -101,6 +100,7 @@ const [Form, formApi] = useVbenForm({
     },
     {
       component: 'Select',
+      defaultValue: 1,
       componentProps: {
         placeholder: `${$t('common.input')}`,
         options: [
@@ -179,6 +179,101 @@ const [Form, formApi] = useVbenForm({
         triggerFields: ["type"]
       }
     },
+
+    {
+      component: 'Input',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      fieldName: 'activeIcon',
+      label: `${$t('system.menu.columns.activeIcon')}`,
+      dependencies: {
+        show: (val) => {
+          return val.type === 1;
+        },
+        triggerFields: ["type"]
+      }
+    },
+
+    {
+      component: 'Input',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      fieldName: 'badge',
+      label: `${$t('system.menu.columns.badge')}`,
+      dependencies: {
+        show: (val) => {
+          return val.type === 1;
+        },
+        triggerFields: ["type"]
+      }
+    },
+
+    {
+      component: 'Select',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        options: [
+          {
+            label: "dot",
+            value: "dot",
+          },
+          {
+            label: "normal",
+            value: "normal",
+          },
+        ]
+      },
+      fieldName: 'badgeType',
+      label: `${$t('system.menu.columns.badgeType')}`,
+      dependencies: {
+        show: (val) => {
+          return val.type === 1;
+        },
+        triggerFields: ["type"]
+      }
+    },
+
+    {
+      component: 'Select',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        options: [
+          {
+            label: "default",
+            value: "default",
+          },
+          {
+            label: "destructive",
+            value: "destructive",
+          },
+          {
+            label: "primary",
+            value: "primary",
+          },
+          {
+            label: "success",
+            value: "success",
+          },
+          {
+            label: "warning",
+            value: "warning",
+          },
+        ]
+      },
+      fieldName: 'badgeVariants',
+      label: `${$t('system.menu.columns.badgeVariants')}`,
+      dependencies: {
+        show: (val) => {
+          return val.type === 1;
+        },
+
+        triggerFields: ["type"]
+      }
+    },
+
+
     {
       component: 'Input',
       componentProps: {
@@ -248,8 +343,107 @@ const [Form, formApi] = useVbenForm({
         },
         triggerFields: ["type"]
       }
-    }
+    },
 
+    {
+      component: 'Checkbox',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+
+      },
+      fieldName: 'hideMenu',
+      label: `${$t('system.menu.columns.hideMenu')}`,
+      formItemClass: 'col-span-3 items-baseline',
+      dependencies: {
+        show: (values) => {
+          return values.type === 1
+        },
+        triggerFields: ["type"]
+      }
+    },
+
+
+    {
+      component: 'Checkbox',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+
+      },
+      fieldName: 'keepAlive',
+      label: `${$t('system.menu.columns.keepAlive')}`,
+      formItemClass: 'col-span-3 items-baseline',
+      dependencies: {
+        show: (values) => {
+          return values.type === 1
+        },
+        triggerFields: ["type"]
+      }
+    },
+
+    {
+      component: 'Checkbox',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+
+      },
+      fieldName: 'hideInBreadcrumb',
+      label: `${$t('system.menu.columns.hideInBreadcrumb')}`,
+      formItemClass: 'col-span-3 items-baseline',
+      dependencies: {
+        show: (values) => {
+          return values.type === 1
+        },
+        triggerFields: ["type"]
+      }
+    },
+    {
+      component: 'Checkbox',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+
+      },
+      fieldName: 'hideInTab',
+      label: `${$t('system.menu.columns.hideInTab')}`,
+      formItemClass: 'col-span-3 items-baseline',
+      dependencies: {
+        show: (values) => {
+          return values.type === 1
+        },
+        triggerFields: ["type"]
+      }
+    },
+    {
+      component: 'Checkbox',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+
+      },
+      fieldName: 'ignoreAccess',
+      label: `${$t('system.menu.columns.ignoreAccess')}`,
+      formItemClass: 'col-span-3 items-baseline',
+      dependencies: {
+        show: (values) => {
+          return values.type === 1
+        },
+        triggerFields: ["type"]
+      }
+    },
+    {
+      component: 'Checkbox',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+
+      },
+      fieldName: 'menuVisibleWithForbidden',
+      label: `${$t('system.menu.columns.menuVisibleWithForbidden')}`,
+      formItemClass: 'col-span-3 items-baseline',
+      dependencies: {
+        show: (values) => {
+          return values.type === 1
+        },
+        triggerFields: ["type"]
+      }
+    }
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',

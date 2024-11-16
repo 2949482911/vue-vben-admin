@@ -49,7 +49,7 @@ class OrgApi extends BaseApi {
     return requestClient.post(this.getServiceUrl("update"), params);
   }
 
-  fetchOrgDisable (ids: DeleteItem) {
+  fetchOrgDisable(ids: DeleteItem) {
     return requestClient.post(this.getServiceUrl("disable"), ids);
   }
 
@@ -66,7 +66,7 @@ class OrgApi extends BaseApi {
 class DataRangeApi extends BaseApi {
 
 
-  fetchDataRangeList(params: DataRangeSearchRequest){
+  fetchDataRangeList(params: DataRangeSearchRequest) {
     return requestClient.get<DataRangeSearchRequest>(this.getServiceUrl("list"), {params});
   }
 
@@ -82,12 +82,12 @@ class DataRangeApi extends BaseApi {
     return requestClient.post(this.getServiceUrl("delete"), {params: {id: id}});
   }
 
-  fetchDisableDataRange(id: string) {
-    return requestClient.post(this.getServiceUrl("disable"), id, {params: {id: id}});
+  fetchDisableDataRange(ids: string[]) {
+    return requestClient.get(this.getServiceUrl("disable"), {params: {ids: ids}});
   }
 
-  fetchEnableDataRange(id: string) {
-    return requestClient.post(this.getServiceUrl("enable"), id, {params: {id: id}});
+  fetchEnableDataRange(ids: string[]) {
+    return requestClient.get(this.getServiceUrl("enable"), {params: {ids: ids}});
   }
 
 
@@ -102,7 +102,7 @@ class OperatorApi extends BaseApi {
     super(serviceUrl);
   }
 
-  fetchNoticeList (params: OperatorSearchRequest): Promise<OperatorItem> {
+  fetchNoticeList(params: OperatorSearchRequest): Promise<OperatorItem> {
     return requestClient.get(this.getServiceUrl("list"), {params});
   }
 }

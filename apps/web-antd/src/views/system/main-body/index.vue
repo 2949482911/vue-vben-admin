@@ -1,18 +1,16 @@
 <script lang="ts" setup name="MainBodyManager">
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {onMounted, ref} from 'vue'
-import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models/menu';
+import type {CreateMenuRequest, UpdateMenuRequest,} from '#/api/models/menu';
 
 import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
 import {$t} from '@vben/locales';
-import {SEX_SELECT} from "#/constants/locales";
+import {STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {Button, Switch, Tag} from 'ant-design-vue';
-import {userApi, orgApi, mainBodyApi} from '#/api';
+import {mainBodyApi} from '#/api';
 
 import Create from './create.vue';
-import {STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
-import type {OrgItem} from "#/api/models/users";
+import type {MainBodyItem} from "#/api/models";
 
 
 const [CreateModal, createModalApi] = useVbenModal({
@@ -21,27 +19,27 @@ const [CreateModal, createModalApi] = useVbenModal({
   modal: true,
 });
 
-const orgTreeData = ref<OrgItem[]>([])
 
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
     createModalApi.setData(row);
-  }else {
+  } else {
     createModalApi.setData({})
   }
   createModalApi.open();
 }
 
-function handlerDisable(id: string) {
-  userApi.fetchDisableUser(id).then(() => {
-    pageReload();
-  })
+async function handlerState(row: MainBodyItem) {
+  if (row.status == 1) {
+    await mainBodyApi.fetchMainDisable([row.id])
+  }else {
+    await mainBodyApi.fetchMainEnable([row.id])
+  }
+  pageReload()
 }
 
-function handlerEnable(id: string) {
-  userApi.fetchEnableUser(id).then(() => {
-    pageReload();
-  })
+async function handlerDelete(row: MainBodyItem) {
+  await mainBodyApi.fetchMainDelete([row.id])
 }
 
 
@@ -50,14 +48,10 @@ const formOptions: VbenFormProps = {
   schema: [
     {
       component: 'Input',
-      fieldName: 'nickname',
-      label: `${$t('system.user.columns.nickname')}`,
+      fieldName: 'name',
+      label: `${$t('system.mainbody.columns.name')}`,
     },
-    {
-      component: 'Input',
-      fieldName: 'authName',
-      label: `${$t('system.user.columns.authName')}`,
-    },
+
     {
       component: 'Select',
       componentProps: {
@@ -68,29 +62,7 @@ const formOptions: VbenFormProps = {
       fieldName: 'status',
       label: `${$t('core.columns.status')}`,
     },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: SEX_SELECT,
-        placeholder: `${$t('common.choice')}`,
-      },
-      fieldName: 'sex',
-      label: `${$t('system.user.columns.sex')}`,
-    },
-    {
-      component: 'TreeSelect',
-      fieldName: 'orgId',
-      label: `${$t('system.user.columns.orgId')}`,
-      componentProps: {
-        treeData: orgTreeData,
-        fieldNames: {
-          label: 'name',
-          value: 'id',
-          children: 'children',
-        }
-      },
-    },
+
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
@@ -99,7 +71,7 @@ const formOptions: VbenFormProps = {
 };
 
 
-const gridOptions: VxeGridProps<MenuItem> = {
+const gridOptions: VxeGridProps<MainBodyItem> = {
   columns: [
     ...TABLE_COMMON_COLUMNS,
     {
@@ -134,47 +106,45 @@ const gridOptions: VxeGridProps<MenuItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 const pageReload = () => {
   gridApi.reload();
 };
 
-onMounted(() => {
-  orgApi.fetchOrgTree().then(res => {
-    orgTreeData.value = res
-  })
-})
 
 </script>
 
 <template>
-<div>
-  <Page>
-    <Grid :table-title="$t('system.user.title')">
+  <div>
+    <Page>
+      <Grid :table-title="$t('system.user.title')">
 
-      <template #status="{ row }">
-        <Switch :checked="row.status == 1" />
-      </template>
+        <template #status="{ row }">
+          <Switch :checked="row.status == 1" @click="handlerState(row)"/>
+        </template>
 
-      <template #sex="{ row }">
-        <Tag v-if="row.sex == 1">{{$t('common.boy')}}</Tag>
-        <Tag v-else>{{$t('common.girl')}}</Tag>
-      </template>
+        <template #sex="{ row }">
+          <Tag v-if="row.sex == 1">{{ $t('common.boy') }}</Tag>
+          <Tag v-else>{{ $t('common.girl') }}</Tag>
+        </template>
 
-      <template #action="{ row }">
-        <Button type="link" @click="openBaseDrawer(row)">
-          {{$t('common.edit')}}
-        </Button>
-      </template>
+        <template #action="{ row }">
+          <Button type="link" @click="openBaseDrawer(row)">
+            {{ $t('common.edit') }}
+          </Button>
+          <Button type="link" @click="handlerDelete(row)">
+            {{ $t('common.delete') }}
+          </Button>
+        </template>
 
-      <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
-          {{$t('common.create')}}
-        </Button>
-      </template>
-    </Grid>
-  </Page>
-  <CreateModal @page-reload="pageReload" />
-</div>
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
+            {{ $t('common.create') }}
+          </Button>
+        </template>
+      </Grid>
+    </Page>
+    <CreateModal @page-reload="pageReload"/>
+  </div>
 </template>

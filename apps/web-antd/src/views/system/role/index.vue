@@ -72,6 +72,15 @@ function handlerDelete(id: string) {
   });
 }
 
+async function handlerState(row: RoleItem) {
+  if (row.status == 1) {
+    await roleApi.fetchDisableRole(row.id)
+  }else {
+   await roleApi.fetchEnableRole(row.id)
+  }
+  pageReload()
+}
+
 const gridOptions: VxeGridProps<RoleItem> = {
   border: true,
   columns: [
@@ -119,7 +128,7 @@ function pageReload() {
     <Grid>
 
       <template #status="{ row }">
-        <Switch :checked="row.status == 1" />
+        <Switch :checked="row.status == 1"  @change="handlerState(row)"/>
       </template>
 
       <template #isSystem="{ row }">
