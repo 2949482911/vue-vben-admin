@@ -20,9 +20,9 @@ export const authenticateResponseInterceptor = ({
 }): ResponseInterceptorConfig => {
   return {
     rejected: async (error) => {
-      const { config, response } = error;
+      const { config, response, data } = error;
       // 如果不是 401 错误，直接抛出异常
-      if (response?.status !== 401) {
+      if (data?.code !== 401) {
         throw error;
       }
       // 判断是否启用了 refreshToken 功能
@@ -78,7 +78,6 @@ export const errorMessageResponseInterceptor = (
       if (axios.isCancel(error)) {
         return Promise.reject(error);
       }
-
       const err: string = error?.toString?.() ?? '';
       let errMsg = '';
       if (err?.includes('Network Error')) {

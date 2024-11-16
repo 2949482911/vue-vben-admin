@@ -153,7 +153,7 @@ const pageReload = () => {
         <Button type="link" @click="openBaseDrawer(row)">
           {{$t('common.edit')}}
         </Button>
-        <Button type="link" @click="openBaseDrawer({parentId: row.id})">
+        <Button type="link" @click="openBaseDrawer({parentId: row.id, sort: row.sort + 1})">
           {{$t('common.create')}}
         </Button>
       </template>
