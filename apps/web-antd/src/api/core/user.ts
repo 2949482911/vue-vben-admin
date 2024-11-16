@@ -2,109 +2,117 @@ import {requestClient} from '#/api/request';
 import {BaseApi} from "#/api/core/baseapi";
 import type {DeleteItem} from "#/api/models/core";
 import type {
-  CreateDataRangeRequest,
-  CreateUserRequest, DataRangeSearchRequest, OperatorItem, OperatorSearchRequest,
-  OrgCreateRequest,
-  OrgItem,
-  OrgUpdateRequest, SetUserDataRangeRequest, UpdateDataRangeRequest, UpdateUserRequest,
-  UserItem,
-  UserSearchRequest
+    CreateDataRangeRequest,
+    CreateUserRequest, DataRangeSearchRequest, OperatorItem, OperatorSearchRequest,
+    OrgCreateRequest,
+    OrgItem,
+    OrgUpdateRequest, SetUserDataRangeRequest, UpdateDataRangeRequest, UpdateUserRequest,
+    UserItem,
+    UserSearchRequest
 } from "#/api/models/users";
+import qs from 'qs'
 
 class UserApi extends BaseApi {
 
-  fetchUserList(params: UserSearchRequest): Promise<UserItem> {
-    return requestClient.get<UserItem>(this.getServiceUrl("list"), {params})
-  }
+    fetchUserList(params: UserSearchRequest): Promise<UserItem> {
+        return requestClient.get<UserItem>(this.getServiceUrl("list"), {params})
+    }
 
-  fetchCreateUser(params: CreateUserRequest) {
-    return requestClient.post(this.getServiceUrl("create"), params);
-  }
+    fetchCreateUser(params: CreateUserRequest) {
+        return requestClient.post(this.getServiceUrl("create"), params);
+    }
 
-  fetchUpdateUser(params: UpdateUserRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
-  }
+    fetchUpdateUser(params: UpdateUserRequest) {
+        return requestClient.post(this.getServiceUrl("update"), params);
+    }
 
-  fetchEnableUser(id: string) {
-    return requestClient.get(this.getServiceUrl("enable"), {params: {id: id}})
-  }
+    fetchEnableUser(id: string) {
+        return requestClient.get(this.getServiceUrl("enable"), {params: {id: id}})
+    }
 
-  fetchDisableUser(id: string) {
-    return requestClient.get(this.getServiceUrl("disable"), {params: {id: id}})
-  }
+    fetchDisableUser(id: string) {
+        return requestClient.get(this.getServiceUrl("disable"), {params: {id: id}})
+    }
 
 }
 
 class OrgApi extends BaseApi {
 
-  fetchOrgTree(): Promise<OrgModel[]> {
-    return requestClient.get<OrgItem[]>(this.getServiceUrl("list"));
-  }
+    fetchOrgTree(): Promise<OrgModel[]> {
+        return requestClient.get<OrgItem[]>(this.getServiceUrl("list"));
+    }
 
-  fetchOrgCreate(params: OrgCreateRequest) {
-    return requestClient.post(this.getServiceUrl("save"), params);
-  }
+    fetchOrgCreate(params: OrgCreateRequest) {
+        return requestClient.post(this.getServiceUrl("save"), params);
+    }
 
-  fetchOrgUpdate(params: OrgUpdateRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
-  }
+    fetchOrgUpdate(params: OrgUpdateRequest) {
+        return requestClient.post(this.getServiceUrl("update"), params);
+    }
 
-  fetchOrgDisable(ids: DeleteItem) {
-    return requestClient.post(this.getServiceUrl("disable"), ids);
-  }
+    fetchOrgDisable(ids: DeleteItem) {
+        return requestClient.post(this.getServiceUrl("disable"), ids);
+    }
 
-  fetchOrgEnable(ids: DeleteItem) {
-    return requestClient.post(this.getServiceUrl("enable"), ids);
-  }
+    fetchOrgEnable(ids: DeleteItem) {
+        return requestClient.post(this.getServiceUrl("enable"), ids);
+    }
 
-  fetchOrgDelete(ids: DeleteItem) {
-    return requestClient.post(this.getServiceUrl("delete"), ids);
-  }
+    fetchOrgDelete(ids: DeleteItem) {
+        return requestClient.post(this.getServiceUrl("delete"), ids);
+    }
 }
 
 
 class DataRangeApi extends BaseApi {
 
 
-  fetchDataRangeList(params: DataRangeSearchRequest) {
-    return requestClient.get<DataRangeSearchRequest>(this.getServiceUrl("list"), {params});
-  }
+    fetchDataRangeList(params: DataRangeSearchRequest) {
+        return requestClient.get<DataRangeSearchRequest>(this.getServiceUrl("list"), {params});
+    }
 
-  fetchCreateDataRange(params: CreateDataRangeRequest) {
-    return requestClient.post(this.getServiceUrl("create"), params);
-  }
+    fetchCreateDataRange(params: CreateDataRangeRequest) {
+        return requestClient.post(this.getServiceUrl("create"), params);
+    }
 
-  fetchUpdateDataRange(params: UpdateDataRangeRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
-  }
+    fetchUpdateDataRange(params: UpdateDataRangeRequest) {
+        return requestClient.post(this.getServiceUrl("update"), params);
+    }
 
-  fetchDeleteDataRange(id: string) {
-    return requestClient.post(this.getServiceUrl("delete"), {params: {id: id}});
-  }
+    fetchDeleteDataRange(id: string) {
+        return requestClient.post(this.getServiceUrl("delete"), {params: {id: id}});
+    }
 
-  fetchDisableDataRange(ids: string[]) {
-    return requestClient.get(this.getServiceUrl("disable"), {params: {ids: ids}});
-  }
+    fetchDisableDataRange(ids: string[]) {
+        return requestClient.get(this.getServiceUrl("disable"),
+            {
+                params: {ids: ids},
+                paramsSerializer: function (params) {
+                    return qs.stringify(params, {arrayFormat: 'repeat'});
+                },
+            }
+        );
+    }
 
-  fetchEnableDataRange(ids: string[]) {
-    return requestClient.get(this.getServiceUrl("enable"), {params: {ids: ids}});
-  }
+    fetchEnableDataRange(ids: string[]) {
+        return requestClient.get(this.getServiceUrl("enable"), {params: {ids: ids}});
+    }
 
 
-  fetchSetUserDataRange(params: SetUserDataRangeRequest) {
-    return requestClient.post(this.getServiceUrl("sudr"), params)
-  }
+    fetchSetUserDataRange(params: SetUserDataRangeRequest) {
+        return requestClient.post(this.getServiceUrl("sudr"), params)
+    }
 }
 
 
 class OperatorApi extends BaseApi {
-  constructor(serviceUrl: string) {
-    super(serviceUrl);
-  }
+    constructor(serviceUrl: string) {
+        super(serviceUrl);
+    }
 
-  fetchNoticeList(params: OperatorSearchRequest): Promise<OperatorItem> {
-    return requestClient.get(this.getServiceUrl("list"), {params});
-  }
+    fetchNoticeList(params: OperatorSearchRequest): Promise<OperatorItem> {
+        return requestClient.get(this.getServiceUrl("list"), {params});
+    }
 }
 
 export const orgApi: OrgApi = new OrgApi("/sys/org")

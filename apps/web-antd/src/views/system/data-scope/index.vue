@@ -33,9 +33,9 @@ function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
 
 async function handlerState(row: DataRangeItem) {
   if (row.status == 1) {
-    await dataRangeApi.fetchDisableDataRange(row.id)
+    await dataRangeApi.fetchDisableDataRange([row.id])
   }else {
-    await dataRangeApi.fetchEnableDataRange(row.id)
+    await dataRangeApi.fetchEnableDataRange([row.id])
   }
   pageReload();
 }
