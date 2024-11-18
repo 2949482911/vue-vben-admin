@@ -32,7 +32,7 @@ function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
 
 
 async function handlerState(row: OrgItem) {
-  if (row.status == 1) {
+  if (row.status === 1) {
     await orgApi.fetchOrgDisable([row.id])
   } else {
     await orgApi.fetchOrgEnable([row.id])
