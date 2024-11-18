@@ -10,6 +10,7 @@ import {noticeApi} from '#/api';
 import {STATUS_SELECT, TABLE_COMMON_COLUMNS} from '#/constants/locales';
 
 import CreateNotice from './create-notice.vue';
+import type {NoticeItem} from "#/api/models";
 
 const [CreateNoticeDrawer, baseDrawerApi] = useVbenDrawer({
   // 连接抽离的组件
@@ -18,22 +19,38 @@ const [CreateNoticeDrawer, baseDrawerApi] = useVbenDrawer({
   footer: false,
 });
 
-function openBaseDrawer(row?: RowType) {
+
+async function handlerState(row: NoticeItem) {
+  if (row.status == 1) {
+    await noticeApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: "disable",
+    })
+  }else {
+    await noticeApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: "enable",
+    })
+  }
+  pageReload();
+}
+
+
+async function handlerDelete(row: NoticeItem) {
+  await noticeApi.fetchBatchOptions({
+    targetIds: [row.id],
+    type: "delete",
+  })
+  pageReload();
+}
+
+function openBaseDrawer(row?: NoticeItem) {
   if (row) {
     baseDrawerApi.setData(row);
   }
   baseDrawerApi.open();
 }
 
-interface RowType {
-  id: string;
-  title: string;
-  createTime: string;
-  updateTime: string;
-  createUsername: string;
-  updateUsername: string;
-  status: number;
-}
 
 const formOptions: VbenFormProps = {
   // 默认展开
@@ -65,7 +82,7 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-const gridOptions: VxeGridProps<RowType> = {
+const gridOptions: VxeGridProps<NoticeItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
@@ -105,10 +122,10 @@ function pageReload() {
     <Grid>
       <template #action="{ row }">
         <Button type="link" @click="openBaseDrawer(row)">{{$t('common.edit')}}</Button>
-        <Button type="link">{{$t('common.delete')}}</Button>
+        <Button type="link" @click="handlerDelete(row)">{{$t('common.delete')}}</Button>
       </template>
       <template #status="{ row }">
-        <Switch :checked="row.status === 1" />
+        <Switch :checked="row.status === 1" @click="handlerState(row)"/>
       </template>
 
       <template #toolbar-tools>

@@ -16,3 +16,11 @@ export interface BaseItem {
 export interface DeleteItem {
   ids: string[];
 }
+
+
+
+export interface BatchOptions {
+  targetIds: string[];
+  type: string;
+  values: Map<string, any>;
+}

@@ -4,7 +4,7 @@ import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import {Card} from 'ant-design-vue';
 import {useVbenForm} from '#/adapter/form';
-import {orgApi, roleApi} from '#/api';
+import {orgApi, roleApi, userApi, dataRangeApi} from '#/api';
 import type {OrgCreateRequest} from "#/api/models/users";
 import {SEX_SELECT} from "#/constants/locales";
 
@@ -13,6 +13,7 @@ const emit = defineEmits(['pageReload']);
 const notice = ref<OrgCreateRequest>({});
 const menuData = ref([])
 const roleData = ref([])
+const dataRangeData = ref([])
 const isUpdate = ref<Boolean>(false);
 
 
@@ -169,14 +170,38 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('system.user.columns.roleIds')}`,
       rules: 'required',
     },
+    {
+      component: 'Select',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        fieldNames: {
+          label: 'name',
+          value: 'id',
+        },
+        options: dataRangeData,
+      },
+      fieldName: 'dataRangeId',
+      label: `${$t('system.user.columns.dataRangeId')}`,
+      rules: 'required',
+    },
+    {
+      component: "InputPassword",
+      fieldName: "authPw",
+      label: `${$t('system.user.columns.password')}`,
+      dependencies: {
+        required: () => {
+          return !isUpdate.value
+        }
+      }
+    }
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
     if (isUpdate.value) {
-      await orgApi.fetchOrgUpdate(JSON.stringify(values))
+      await userApi.fetchUpdateUser(JSON.stringify(values))
     } else {
-      await orgApi.fetchOrgCreate(JSON.stringify(values))
+      await userApi.fetchCreateUser(JSON.stringify(values))
     }
     modalApi.close();
   }
@@ -191,8 +216,8 @@ const [Modal, modalApi] = useVbenModal({
   },
   async onConfirm() {
     await formApi.submitForm();
+    emit("pageReload");
     isUpdate.value = false;
-    await emit("pageReload");
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
@@ -206,8 +231,11 @@ const [Modal, modalApi] = useVbenModal({
       orgApi.fetchOrgTree().then(res => {
         menuData.value = res
       })
-      roleApi.fetchRoleList({page: 1000}).then(res => {
-        roleData.value = res.items
+      roleApi.fetchRoleList({page: 1, pageSize: 10000}).then(res => {
+        roleData.value = res
+      })
+      dataRangeApi.fetchDataRangeList({page: 1, pageSize: 10000}).then(res => {
+        dataRangeData.value = res.items
       })
     }
   },

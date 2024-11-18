@@ -64,7 +64,9 @@
       "qq": "Qq",
       "email": "邮箱",
       "sex": "性别",
-      "roleIds": "角色"
+      "roleIds": "角色",
+      "password": "密码",
+      "dataRangeId": "数据权限"
     }
   },
   "data_scope": {

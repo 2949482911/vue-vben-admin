@@ -64,7 +64,9 @@
       "qq": "Qq",
       "email": "Email",
       "sex": "Sex",
-      "roleIds": "Role"
+      "roleIds": "Role",
+      "password": "password",
+      "dataRangeId": "Data Range"
     }
   },
   "data_scope": {

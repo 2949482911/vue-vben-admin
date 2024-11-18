@@ -49,7 +49,8 @@ class RoleApi extends BaseApi {
   public fetchDeleteRole(id: string) {
     return requestClient.get(this.getServiceUrl("delete"), {params: {
       id: id
-      }})
+      },
+    })
   }
 
 

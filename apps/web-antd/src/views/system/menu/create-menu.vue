@@ -447,11 +447,11 @@ const [Form, formApi] = useVbenForm({
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-  handleSubmit: (values: Record<string, any>) => {
+  handleSubmit: async (values: Record<string, any>) => {
     if (isUpdate.value) {
-      menuApi.fetchUpdateMenu(JSON.stringify(values))
+      await menuApi.fetchUpdateMenu(JSON.stringify(values))
     } else {
-      menuApi.fetchCreateMenu(JSON.stringify(values))
+      await menuApi.fetchCreateMenu(JSON.stringify(values))
     }
     modalApi.close();
   }
@@ -466,8 +466,8 @@ const [Modal, modalApi] = useVbenModal({
   },
   async onConfirm()  {
     await formApi.submitForm();
-    await emit("pageReload");
     isUpdate.value = false;
+    emit("pageReload");
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {

@@ -2,18 +2,29 @@
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {onMounted, ref} from 'vue'
-import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models/menu';
+import type {CreateMenuRequest, UpdateMenuRequest,} from '#/api/models/menu';
 
 import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
 import {$t} from '@vben/locales';
-import {SEX_SELECT} from "#/constants/locales";
+import {SEX_SELECT, STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {Button, Switch, Tag} from 'ant-design-vue';
-import {userApi, orgApi} from '#/api';
+import {orgApi, userApi} from '#/api';
 
 import Create from './create.vue';
-import {STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
-import type {OrgItem} from "#/api/models/users";
+import type {OrgItem, UserItem} from "#/api/models/users";
 
+async function handleState(row: UserItem) {
+  if (row.status == 1) {
+    await userApi.fetchDisableUser(row.id)
+  } else {
+    await userApi.fetchEnableUser(row.id)
+  }
+  pageReload();
+}
+async function handlerDelete(row: UserItem) {
+  await userApi.fetchDeleteUser([row.id])
+  pageReload();
+}
 
 const [CreateModal, createModalApi] = useVbenModal({
   connectedComponent: Create,
@@ -26,22 +37,10 @@ const orgTreeData = ref<OrgItem[]>([])
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
     createModalApi.setData(row);
-  }else {
+  } else {
     createModalApi.setData({})
   }
   createModalApi.open();
-}
-
-function handlerDisable(id: string) {
-  userApi.fetchDisableUser(id).then(() => {
-    pageReload();
-  })
-}
-
-function handlerEnable(id: string) {
-  userApi.fetchEnableUser(id).then(() => {
-    pageReload();
-  })
 }
 
 
@@ -99,7 +98,7 @@ const formOptions: VbenFormProps = {
 };
 
 
-const gridOptions: VxeGridProps<MenuItem> = {
+const gridOptions: VxeGridProps<UserItem> = {
   columns: [
     ...TABLE_COMMON_COLUMNS,
     {
@@ -129,7 +128,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
     {
       field: 'sex',
       title: `${$t('system.user.columns.sex')}`,
-      slots: { default: 'sex' },
+      slots: {default: 'sex'},
     },
 
     {
@@ -156,7 +155,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 const pageReload = () => {
   gridApi.reload();
@@ -171,41 +170,35 @@ onMounted(() => {
 </script>
 
 <template>
-<div>
-  <Page>
-    <Grid :table-title="$t('system.user.title')">
+  <div>
+    <Page>
+      <Grid :table-title="$t('system.user.title')">
 
-      <template #status="{ row }">
-        <Switch :checked="row.status == 1" />
-      </template>
+        <template #status="{ row }">
+          <Switch :checked="row.status == 1" @click="handleState(row)"/>
+        </template>
 
-      <template #sex="{ row }">
-        <Tag v-if="row.sex == 1">{{$t('common.boy')}}</Tag>
-        <Tag v-else>{{$t('common.girl')}}</Tag>
-      </template>
+        <template #sex="{ row }">
+          <Tag v-if="row.sex == 1">{{ $t('common.boy') }}</Tag>
+          <Tag v-else>{{ $t('common.girl') }}</Tag>
+        </template>
 
-      <template #action="{ row }">
-        <Button type="link" @click="openBaseDrawer(row)">
-          {{$t('common.edit')}}
-        </Button>
+        <template #action="{ row }">
+          <Button type="link" @click="openBaseDrawer(row)">
+            {{ $t('common.edit') }}
+          </Button>
+          <Button type="link" @click="handlerDelete(row)">
+            {{ $t('common.delete') }}
+          </Button>
+        </template>
 
-        <Button type="link" @click="handlerDisable(row.id)" v-if="row.status === 1">
-          {{$t('common.disable')}}
-        </Button>
-
-        <Button type="link" @click="handlerEnable(row.id)" v-else>
-          {{$t('common.enable')}}
-        </Button>
-
-      </template>
-
-      <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
-          {{$t('common.create')}}
-        </Button>
-      </template>
-    </Grid>
-  </Page>
-  <CreateModal @page-reload="pageReload" />
-</div>
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
+            {{ $t('common.create') }}
+          </Button>
+        </template>
+      </Grid>
+    </Page>
+    <CreateModal @page-reload="pageReload"/>
+  </div>
 </template>

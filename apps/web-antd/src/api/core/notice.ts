@@ -7,6 +7,7 @@ import type {
 
 import {requestClient} from '#/api/request';
 import {BaseApi} from "#/api/core/baseapi";
+import type {BatchOptions} from "#/api/models/core";
 
 class NoticeApi extends BaseApi {
 
@@ -28,6 +29,10 @@ class NoticeApi extends BaseApi {
 
   fetchReadNotice(ids: string[]) {
     return requestClient.get(this.getServiceUrl("read_notice"), {params: {ids: ids}});
+  }
+
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 }
 

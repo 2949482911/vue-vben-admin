@@ -6,7 +6,7 @@ import type {
   MainBodyUpdateRequest,
   MainBodySearchRequest
 } from "#/api/models/main-body";
-
+import qs from 'qs'
 
 class MainBodyApi extends BaseApi {
 
@@ -30,19 +30,28 @@ class MainBodyApi extends BaseApi {
 
   fetchMainDisable(ids: string[]){
     return requestClient.get(this.getServiceUrl("disable") , {
-      params: {ids : ids}
+      params: {ids : ids},
+      paramsSerializer: function (params) {
+        return qs.stringify(params, {arrayFormat: 'repeat'});
+      },
     });
   }
 
   fetchMainEnable(ids: string[]){
     return requestClient.get(this.getServiceUrl("enable") , {
-      params: {ids : ids}
+      params: {ids : ids},
+      paramsSerializer: function (params) {
+        return qs.stringify(params, {arrayFormat: 'repeat'});
+      },
     });
   }
 
   fetchMainDelete(ids: string[]){
     return requestClient.get(this.getServiceUrl("delete") , {
-      params: {ids : ids}
+      params: {ids : ids},
+      paramsSerializer: function (params) {
+        return qs.stringify(params, {arrayFormat: 'repeat'});
+      },
     });
   }
 

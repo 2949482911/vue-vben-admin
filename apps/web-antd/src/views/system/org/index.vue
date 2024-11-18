@@ -97,13 +97,15 @@ const pageReload = () => {
           <Button type="link" @click="openBaseDrawer(row)">
             {{ $t('common.edit') }}
           </Button>
-
-          <Button type="link" @click="handlerDelete(row.id)" v-else>
+          <Button type="link" @click="handlerDelete(row.id)">
             {{ $t('common.delete') }}
           </Button>
         </template>
 
         <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="pageReload()">
+            {{ $t('common.search') }}
+          </Button>
           <Button class="mr-2" type="primary" @click="openBaseDrawer">
             {{ $t('common.create') }}
           </Button>

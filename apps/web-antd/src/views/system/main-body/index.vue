@@ -40,6 +40,7 @@ async function handlerState(row: MainBodyItem) {
 
 async function handlerDelete(row: MainBodyItem) {
   await mainBodyApi.fetchMainDelete([row.id])
+  pageReload()
 }
 
 
