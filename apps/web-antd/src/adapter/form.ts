@@ -19,6 +19,7 @@ setupVbenForm<ComponentType>({
       Radio: 'checked',
       Switch: 'checked',
       Upload: 'fileList',
+      Tree: 'checkedKeys',
     },
   },
   defineRules: {

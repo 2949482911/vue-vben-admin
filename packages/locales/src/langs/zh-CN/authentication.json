@@ -52,5 +52,7 @@
     "center": "居中",
     "alignLeft": "居左",
     "alignRight": "居右"
-  }
+  },
+  "mainName": "公司名称",
+  "mainNameTip": "请输入公司名字"
 }

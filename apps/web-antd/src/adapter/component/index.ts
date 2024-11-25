@@ -3,13 +3,12 @@
  * 可用于 vben-form、vben-modal、vben-drawer 等组件使用,
  */
 
-import type { BaseFormComponentType } from '@vben/common-ui';
+import type {BaseFormComponentType} from '@vben/common-ui';
+import {globalShareState} from '@vben/common-ui';
 
-import type { Component, SetupContext } from 'vue';
-import { h } from 'vue';
-
-import { globalShareState } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import type {Component, SetupContext} from 'vue';
+import {h} from 'vue';
+import {$t} from '@vben/locales';
 
 import {
   AutoComplete,
@@ -32,13 +31,14 @@ import {
   Switch,
   Textarea,
   TimePicker,
+  Tree,
   TreeSelect,
-  Upload,
+  Upload
 } from 'ant-design-vue';
 
 const withDefaultPlaceholder = <T extends Component>(
   component: T,
-  type: 'input' | 'select',
+  type: 'input' | 'select' | 'tree',
 ) => {
   return (props: any, { attrs, slots }: Omit<SetupContext, 'expose'>) => {
     const placeholder = props?.placeholder || $t(`ui.placeholder.${type}`);
@@ -70,6 +70,7 @@ export type ComponentType =
   | 'TimePicker'
   | 'TreeSelect'
   | 'Upload'
+  | 'Tree'
   | BaseFormComponentType;
 
 async function initComponentAdapter() {
@@ -106,6 +107,7 @@ async function initComponentAdapter() {
     TimePicker,
     TreeSelect: withDefaultPlaceholder(TreeSelect, 'select'),
     Upload,
+    Tree,
   };
 
   // 将组件注册到全局共享状态中

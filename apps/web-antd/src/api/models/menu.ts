@@ -15,6 +15,7 @@ export interface MenuItem {
   sort: number;
   isWhite: number;
   isInternal: number;
+  children: MenuItem[];
 }
 
 export interface CreateMenuRequest {

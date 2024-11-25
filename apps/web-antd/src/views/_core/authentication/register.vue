@@ -6,7 +6,9 @@ import { computed, h, ref } from 'vue';
 
 import { AuthenticationRegister, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
-
+import {authApi} from "#/api";
+import {useRouter} from "vue-router";
+const router = useRouter();
 defineOptions({ name: 'Register' });
 
 const loading = ref(false);
@@ -16,9 +18,18 @@ const formSchema = computed((): VbenFormSchema[] => {
     {
       component: 'VbenInput',
       componentProps: {
+        placeholder: $t('authentication.mainNameTip'),
+      },
+      fieldName: 'mainName',
+      label: $t('authentication.mainName'),
+      rules: z.string().min(1, { message: $t('authentication.mainNameTip') }),
+    },
+    {
+      component: 'VbenInput',
+      componentProps: {
         placeholder: $t('authentication.usernameTip'),
       },
-      fieldName: 'username',
+      fieldName: 'email',
       label: $t('authentication.username'),
       rules: z.string().min(1, { message: $t('authentication.usernameTip') }),
     },
@@ -81,9 +92,11 @@ const formSchema = computed((): VbenFormSchema[] => {
   ];
 });
 
-function handleSubmit(value: Recordable<any>) {
-  // eslint-disable-next-line no-console
-  console.log('register submit:', value);
+async function handleSubmit(value: Recordable<any>) {
+  await authApi.register(value)
+  await router.push({
+    path: "/auth/login"
+  })
 }
 </script>
 

@@ -26,6 +26,7 @@ import {
 import { useMagicKeys, whenever } from '@vueuse/core';
 
 import { LockScreenModal } from '../lock-screen';
+import UpdatePassword from '../update-password/index.vue'
 
 interface Props {
   /**
@@ -69,7 +70,7 @@ const props = withDefaults(defineProps<Props>(), {
   text: '',
 });
 
-const emit = defineEmits<{ logout: [] }>();
+const emit = defineEmits<{ logout: [], updatePassword: [] }>();
 const openPopover = ref(false);
 
 const { globalLockScreenShortcutKey, globalLogoutShortcutKey } =
@@ -83,6 +84,10 @@ const [LogoutModal, logoutModalApi] = useVbenModal({
     handleSubmitLogout();
   },
 });
+
+const [UpdatePasswordModal, updatePasswordApi] = useVbenModal({
+  connectedComponent: UpdatePassword,
+})
 
 const altView = computed(() => (isWindowsOs() ? 'Alt' : '⌥'));
 
@@ -116,6 +121,15 @@ function handleLogout() {
 function handleSubmitLogout() {
   emit('logout');
   logoutModalApi.close();
+}
+
+
+function openUpdatePassword() {
+  updatePasswordApi.open()
+}
+
+function handlerUpdatePassword(values: Record<string, any>) {
+  emit('updatePassword', values);
 }
 
 if (enableShortcutKey.value) {
@@ -154,6 +168,8 @@ if (enableShortcutKey.value) {
   >
     {{ $t('ui.widgets.logoutTip') }}
   </LogoutModal>
+
+  <UpdatePasswordModal @update-password="handlerUpdatePassword"/>
 
   <DropdownMenu>
     <DropdownMenuTrigger>
@@ -212,6 +228,14 @@ if (enableShortcutKey.value) {
         </DropdownMenuShortcut>
       </DropdownMenuItem>
       <DropdownMenuSeparator v-if="preferences.widget.lockScreen" />
+      <DropdownMenuItem
+        class="mx-1 flex cursor-pointer items-center rounded-sm py-1 leading-8"
+        @click="openUpdatePassword"
+      >
+        <LockKeyhole class="mr-2 size-4" />
+        {{ $t('common.update_password') }}
+
+      </DropdownMenuItem>
       <DropdownMenuItem
         class="mx-1 flex cursor-pointer items-center rounded-sm py-1 leading-8"
         @click="handleLogout"

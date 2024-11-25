@@ -52,5 +52,7 @@
     "center": "Align Center",
     "alignLeft": "Align Left",
     "alignRight": "Align Right"
-  }
+  },
+  "mainName": "Group Name",
+  "mainNameTip": "Please input Group Name"
 }

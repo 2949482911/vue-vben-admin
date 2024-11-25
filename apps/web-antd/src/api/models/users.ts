@@ -1,5 +1,11 @@
 import type {BaseItem, PageRequestParams} from "#/api/models/core";
 
+export interface RegisterUser {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  mainName: string
+}
 
 /**
  * 组织信息
@@ -24,6 +30,7 @@ export interface OrgCreateRequest {
  *
  */
 export interface OrgUpdateRequest extends OrgCreateRequest {
+  m: string;
 }
 
 /**
@@ -34,7 +41,7 @@ export interface UserSearchRequest extends PageRequestParams {
   orgId: string;
 }
 
-export public interface UserItem extends BaseItem {
+export interface UserItem extends BaseItem {
   orgId: string;
   avatar: string;
   nickname: string;
@@ -61,10 +68,17 @@ export interface CreateUserRequest {
   roleIds: string[];
 }
 
+export interface UpdatePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 /**
  *
  */
 export interface UpdateUserRequest extends CreateUserRequest {
+  m: string;
 }
 
 
@@ -99,6 +113,7 @@ export interface CreateDataRangeRequest {
  *
  */
 export interface UpdateDataRangeRequest extends CreateDataRangeRequest {
+  m: string;
 }
 
 /**
@@ -110,6 +125,7 @@ export interface SetUserDataRangeRequest {
 }
 
 export interface OperatorSearchRequest extends PageRequestParams {
+  m: string;
 }
 
 export interface OperatorItem extends BaseItem {

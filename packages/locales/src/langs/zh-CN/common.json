@@ -23,5 +23,9 @@
   "list": "列表",
   "authorization": "授权",
   "select": "下拉选择",
-  "batch_options": "批量操作"
+  "batch_options": "批量操作",
+  "update_password" : "修改密码",
+  "newPassword": "新密码",
+  "oldPassword": "旧密码",
+  "confirmPassword": "确认密码"
 }

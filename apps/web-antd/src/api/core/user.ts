@@ -1,17 +1,23 @@
 import {requestClient} from '#/api/request';
 import {BaseApi} from "#/api/core/baseapi";
-import type {DeleteItem} from "#/api/models/core";
 import type {
   CreateDataRangeRequest,
-  CreateUserRequest, DataRangeItem, DataRangeSearchRequest, OperatorItem, OperatorSearchRequest,
+  CreateUserRequest,
+  DataRangeItem,
+  DataRangeSearchRequest,
+  OperatorItem,
+  OperatorSearchRequest,
   OrgCreateRequest,
   OrgItem,
-  OrgUpdateRequest, SetUserDataRangeRequest, UpdateDataRangeRequest, UpdateUserRequest,
+  OrgUpdateRequest,
+  SetUserDataRangeRequest,
+  UpdateDataRangeRequest,
+  UpdatePasswordRequest,
+  UpdateUserRequest,
   UserItem,
   UserSearchRequest
 } from "#/api/models/users";
-import qs from 'qs'
-
+import { qs } from 'qs';
 class UserApi extends BaseApi {
 
   fetchUserList(params: UserSearchRequest): Promise<UserItem> {
@@ -42,6 +48,10 @@ class UserApi extends BaseApi {
           return qs.stringify(params, {arrayFormat: 'repeat'});
         },
       })
+  }
+
+  fetchUpdatePassword(params: UpdatePasswordRequest) {
+    return requestClient.post(this.getServiceUrl("updatePassword"), params)
   }
 
 }
@@ -79,7 +89,8 @@ class OrgApi extends BaseApi {
   }
 
   fetchOrgDelete(ids: string[]) {
-    return requestClient.get(this.getServiceUrl("delete"), {
+    return requestClient.get(this.getServiceUrl("delete"),
+      {
       params: {ids: ids},
       paramsSerializer: function (params) {
         return qs.stringify(params, {arrayFormat: 'repeat'});
@@ -135,9 +146,6 @@ class DataRangeApi extends BaseApi {
 
 
 class OperatorApi extends BaseApi {
-  constructor(serviceUrl: string) {
-    super(serviceUrl);
-  }
 
   fetchNoticeList(params: OperatorSearchRequest): Promise<OperatorItem> {
     return requestClient.get(this.getServiceUrl("list"), {params});

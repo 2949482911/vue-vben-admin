@@ -134,6 +134,7 @@ const gridOptions: VxeGridProps<UserItem> = {
     {
       field: 'roleIds',
       title: `${$t('system.user.columns.roleIds')}`,
+      slots: {default: 'roleIds'},
     },
   ],
   proxyConfig: {
@@ -173,6 +174,10 @@ onMounted(() => {
   <div>
     <Page>
       <Grid :table-title="$t('system.user.title')">
+        <template #roleIds="{ row }">
+          <Tag v-for="item in row.roleList" v-if="row.roleList.length > 0" :key="item.id">{{ item.name }}</Tag>
+          <div v-else>-</div>
+        </template>
 
         <template #status="{ row }">
           <Switch :checked="row.status == 1" @click="handleState(row)"/>

@@ -8,6 +8,14 @@ export function clearRefreshTokenCookie(event: H3Event<EventHandlerRequest>) {
   });
 }
 
+export function clearTokenCookie(event: H3Event<EventHandlerRequest>) {
+  deleteCookie(event, 'token', {
+    httpOnly: true,
+    sameSite: 'none',
+    secure: true,
+  })
+}
+
 export function setRefreshTokenCookie(
   event: H3Event<EventHandlerRequest>,
   refreshToken: string,

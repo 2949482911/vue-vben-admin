@@ -11,7 +11,7 @@ import {BookOpenText, CircleHelp, MdiGithub} from '@vben/icons';
 import {preferences} from '@vben/preferences';
 import {useAccessStore, useUserStore} from '@vben/stores';
 import {openWindow} from '@vben/utils';
-import {noticeApi} from "#/api";
+import {noticeApi, userApi} from "#/api";
 
 import {$t} from '#/locales';
 import {useAuthStore} from '#/store';
@@ -61,8 +61,20 @@ const avatar = computed(() => {
   return userStore.userInfo?.avatar ?? preferences.app.defaultAvatar;
 });
 
+/**
+ * 退出登录
+ */
 async function handleLogout() {
   await authStore.logout(false);
+}
+
+/**
+ * 修改密码
+ * @param values
+ */
+async function handlerUpdatePassword(values: Record<string, any>) {
+  await userApi.fetchUpdatePassword(values)
+  await handleLogout()
 }
 
 function handleNoticeClear() {
@@ -110,6 +122,7 @@ onMounted(() => {
         :text="userStore.userInfo?.nickname"
         tag-text="Pro"
         @logout="handleLogout"
+        @update-password="handlerUpdatePassword"
       />
     </template>
     <template #notification>

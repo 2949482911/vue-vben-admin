@@ -42,6 +42,7 @@ async function handlerState(row: OrgItem) {
 
 async function handlerDelete(row: OrgItem) {
   await orgApi.fetchOrgDelete([row.id])
+  await pageReload();
 }
 
 const gridOptions: VxeGridProps<MenuItem> = {
@@ -97,7 +98,7 @@ const pageReload = () => {
           <Button type="link" @click="openBaseDrawer(row)">
             {{ $t('common.edit') }}
           </Button>
-          <Button type="link" @click="handlerDelete(row.id)">
+          <Button type="link" @click="handlerDelete(row)">
             {{ $t('common.delete') }}
           </Button>
         </template>

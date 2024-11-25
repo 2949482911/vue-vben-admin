@@ -5,7 +5,8 @@
   },
   "placeholder": {
     "input": "Please enter",
-    "select": "Please select"
+    "select": "Please select",
+    "tree": "Please select"
   },
   "captcha": {
     "title": "Please complete the security verification",

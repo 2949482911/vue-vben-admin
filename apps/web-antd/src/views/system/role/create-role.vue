@@ -1,5 +1,5 @@
 <script lang="ts" setup name="CreateRole">
-import type {CreateMenuRequest} from '#/api/models/menu';
+import type {MenuItem} from '#/api/models/menu';
 import {ref} from 'vue';
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -7,12 +7,16 @@ import {Card} from 'ant-design-vue';
 import {useVbenForm} from '#/adapter/form';
 import {menuApi, roleApi} from '#/api';
 import {ROLE_TYPE_OPTIONS} from "#/constants/locales";
+import type {CreateRoleRequest} from "#/api/models";
 
 const emit = defineEmits(['pageReload']);
 
-const notice = ref<CreateMenuRequest>({});
+const notice = ref<CreateRoleRequest>({});
 const isUpdate = ref<Boolean>(false);
-const menuData = ref([])
+const menuData = ref<MenuItem>([])
+const menuParentIds = ref<string[]>([])
+
+const checkedKeys = ref<string[]>([]);
 
 
 const [Form, formApi] = useVbenForm({
@@ -68,19 +72,27 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('system.role.columns.comment')}`,
     },
     {
-      component: "TreeSelect",
+      component: "Tree",
       required: true,
       componentProps: {
-        showSearch: true,
-        filterTreeNode: true,
         treeData: menuData,
-        treeCheckable: true,
-        placeholder: `${$t('common.input')}`,
+        rowKey: 'id',
+        checkedKeys: checkedKeys,
+        height: 200,
+        checkable: true,
+        multiple: true,
+        checkStrictly: true,
+        onCheck: (checkedKeys, info) => {
+          // let checkedKeysResult = [...checkedKeys, ...info.halfCheckedKeys];
+          if (menuParentIds.value.indexOf(info.halfCheckedKeys[0])) {
+            menuParentIds.value.push(...info.halfCheckedKeys);
+          }
+        },
         fieldNames: {
-          title: 'title',
-          value: 'id',
+          key: 'id',
           children: 'children',
-        }
+          title: 'title',
+        },
       },
       fieldName: 'menuIds',
       label: `${$t('system.role.columns.menuIds')}`,
@@ -89,6 +101,10 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
+    if (menuParentIds.value.length > 0) {
+      menuParentIds.value.push(...values["menuIds"])
+      values["menuIds"] = menuParentIds.value
+    }
     if (isUpdate.value) {
       await roleApi.fetchUpdateRole(JSON.stringify(values));
     } else {
@@ -98,16 +114,28 @@ const [Form, formApi] = useVbenForm({
   }
 });
 
+function updateMenuTitle(menu: MenuItem) {
+  menu.title = `${$t(menu.title)}`
+  if (!menu.children) {
+    return
+  }
+  menu.children.forEach(x => {
+    updateMenuTitle(x)
+  })
+}
+
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
   fullscreenButton: false,
   onCancel() {
     modalApi.close();
     isUpdate.value = false;
+    checkedKeys.value = []
   },
   async onConfirm() {
     await formApi.submitForm();
     isUpdate.value = false;
+    checkedKeys.value = []
     emit("pageReload");
   },
   onOpenChange(isOpen: boolean) {
@@ -115,12 +143,19 @@ const [Modal, modalApi] = useVbenModal({
       notice.value = modalApi.getData<Record<string, any>>();
       if (notice.value.id) {
         isUpdate.value = true;
+        checkedKeys.value = notice.value.menuIds
+        // notice.value.menuIds = []
         handleSetFormValue(notice.value);
       } else {
         isUpdate.value = false;
       }
       menuApi.fetchMenuTree().then(res => {
         menuData.value = res
+        // 获取国际化名字
+        menuData.value.forEach(x => {
+          x.title = `${$t(x.title)}`
+          updateMenuTitle(x)
+        })
       })
     }
   },

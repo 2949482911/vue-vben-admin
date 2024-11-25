@@ -52,10 +52,9 @@ export const useAuthStore = defineStore('auth', () => {
             ? await onSuccess?.()
             : await router.push(userInfo.homePath || DEFAULT_HOME_PATH);
         }
-
-        if (userInfo?.realName) {
+        if (userInfo?.nickname) {
           notification.success({
-            description: `${$t('authentication.loginSuccessDesc')}:${userInfo?.realName}`,
+            description: `${$t('authentication.loginSuccessDesc')}:${userInfo?.nickname}`,
             duration: 3,
             message: $t('authentication.loginSuccess'),
           });
@@ -64,7 +63,6 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       loginLoading.value = false;
     }
-
     return {
       userInfo,
     };
@@ -78,7 +76,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
     resetAllStores();
     accessStore.setLoginExpired(false);
-
     // 回登录页带上当前路由地址
     await router.replace({
       path: LOGIN_PATH,
