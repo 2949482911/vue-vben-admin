@@ -1,5 +1,5 @@
 <script lang="ts" setup name="CreateMenu">
-import type {CreateMenuRequest} from '#/api/models/menu';
+import type {CreateMenuRequest, MenuItem} from '#/api/models/menu';
 import {ref} from 'vue';
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -12,6 +12,18 @@ const emit = defineEmits(['pageReload']);
 const notice = ref<CreateMenuRequest>({});
 const menuData = ref([])
 const isUpdate = ref<Boolean>(false);
+
+function updateMenuTitle(menu: MenuItem) {
+  menu.title = `${$t(menu.title)}`
+  if (!menu.children) {
+    return
+  }
+  menu.children.forEach(x => {
+    updateMenuTitle(x)
+  })
+}
+
+
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -75,15 +87,7 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'title',
       // 界面显示的label
       label: `${$t('system.menu.columns.title')}`,
-      dependencies: {
-        show: (val) => {
-          return val.type === 1
-        },
-        required: (val) => {
-          return val.type === 1;
-        },
-        triggerFields: ["type"]
-      }
+      rules: "required"
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -146,20 +150,6 @@ const [Form, formApi] = useVbenForm({
         },
         triggerFields: ["type"]
       }
-    },
-
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      // 字段名
-      fieldName: 'title',
-      // 界面显示的label
-      label: `${$t('system.menu.columns.title')}`,
-      rules: 'required',
     },
 
     {
@@ -483,6 +473,10 @@ const [Modal, modalApi] = useVbenModal({
       }
       menuApi.fetchMenuTree().then(res => {
         menuData.value = res
+        menuData.value.forEach(x => {
+          x.title = `${$t(x.title)}`
+          updateMenuTitle(x)
+        })
       })
     }
   },

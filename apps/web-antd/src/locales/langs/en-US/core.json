@@ -26,5 +26,8 @@
     "belong_dept_sub_dept": "BELONG_DEPT_AND_SUB",
     "main_scope": "MAIN_SCOPE",
     "self_main_scope": "ALL_SELF_MAIN"
+  },
+  "flowable_process": {
+
   }
 }

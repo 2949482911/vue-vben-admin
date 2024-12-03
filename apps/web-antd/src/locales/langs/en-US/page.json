@@ -21,5 +21,11 @@
     "operator": "Operator Log",
     "org": "Dept",
     "role": "Role"
+  },
+  "bpm": {
+    "flowable": "Flow Work",
+    "flowable_form": "Flow Form",
+    "flowable_task": "Flow Task",
+    "work_flow": "Work Flow"
   }
 }

@@ -27,5 +27,7 @@
   "update_password" : "Update Password",
   "newPassword": "New Password",
   "oldPassword": "Old Password",
-  "confirmPassword": "Confirm Password"
+  "confirmPassword": "Confirm Password",
+  "load": "Load",
+  "unload": "Un Load"
 }

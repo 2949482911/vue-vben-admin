@@ -6,8 +6,6 @@ import {ref} from 'vue';
 import {useVbenDrawer} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
-import {message} from 'ant-design-vue';
-
 import {useVbenForm} from '#/adapter/form';
 import {noticeApi} from '#/api';
 

@@ -14,9 +14,6 @@ import {BaseApi} from "#/api/core/baseapi";
  */
 class RoleApi extends BaseApi {
 
-  constructor(serviceUrl: string) {
-    super(serviceUrl);
-  }
 
   /**
    * role list

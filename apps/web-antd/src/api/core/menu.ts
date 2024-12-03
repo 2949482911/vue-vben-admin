@@ -5,9 +5,6 @@ import {BaseApi} from "#/api/core/baseapi";
 
 
 class MenuApi extends BaseApi {
-  constructor(serviceUrl: string) {
-    super(serviceUrl);
-  }
 
   fetchMenuTree() {
     return requestClient.get<MenuItem[]>(this.getServiceUrl("list"));

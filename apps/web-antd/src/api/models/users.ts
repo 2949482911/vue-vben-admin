@@ -133,3 +133,24 @@ export interface OperatorItem extends BaseItem {
   params: string;
   operateUserId: string;
 }
+
+export interface FlowableProcessSearchRequest extends PageRequestParams{
+  name: string;
+  processType: string;
+}
+
+
+export interface FlowableProcessItem extends BaseItem {
+  name: string;
+  processType:string;
+  processStatus:number;
+  remark:number;
+}
+
+export interface CreateFlowableProcess {
+  id: string;
+  name: string;
+  remark: string;
+  processType: string;
+  processFileUrl: string;
+}

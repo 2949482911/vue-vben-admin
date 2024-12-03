@@ -1,10 +1,10 @@
 import {requestClient} from '#/api/request';
 import {BaseApi} from "#/api/core/baseapi";
 import type {
-  CreateDataRangeRequest,
+  CreateDataRangeRequest, CreateFlowableProcess,
   CreateUserRequest,
   DataRangeItem,
-  DataRangeSearchRequest,
+  DataRangeSearchRequest, FlowableProcessItem, FlowableProcessSearchRequest,
   OperatorItem,
   OperatorSearchRequest,
   OrgCreateRequest,
@@ -18,6 +18,7 @@ import type {
   UserSearchRequest
 } from "#/api/models/users";
 import { qs } from 'qs';
+import type {BatchOptions} from "#/api/models/core";
 class UserApi extends BaseApi {
 
   fetchUserList(params: UserSearchRequest): Promise<UserItem> {

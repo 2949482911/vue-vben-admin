@@ -27,5 +27,7 @@
   "update_password" : "修改密码",
   "newPassword": "新密码",
   "oldPassword": "旧密码",
-  "confirmPassword": "确认密码"
+  "confirmPassword": "确认密码",
+  "load": "加载",
+  "unload": "卸载"
 }

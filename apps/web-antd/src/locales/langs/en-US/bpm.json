@@ -1,0 +1,26 @@
+{
+  "work_flow": {
+    "columns": {
+      "name": "Name",
+      "processType": "Type",
+      "processStatus": "Process Status",
+      "remark": "Remark"
+    }
+  },
+  "flowable_form": {
+    "columns": {
+      "name": "Name",
+      "remark": "Remark",
+      "formContent": "Content"
+    }
+  },
+  "flowable_task": {
+    "columns": {
+      "name": "Name",
+      "taskType": "Task Type",
+      "eventType": "Event Type",
+      "valueType": "Value Type",
+      "content": "Content"
+    }
+  }
+}

@@ -114,3 +114,11 @@ export const ROLE_TYPE_OPTIONS = [
     value: 5,
   },
 ]
+
+
+export const FLOWABLE_PROCESS_TYPE = [
+  {
+    label: `${$t('core.role_type.super_admin')}`,
+    value: 1,
+  },
+]

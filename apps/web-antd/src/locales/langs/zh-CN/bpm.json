@@ -1,0 +1,26 @@
+{
+  "work_flow": {
+    "columns": {
+      "name": "名字",
+      "processType": "类型",
+      "processStatus": "状态",
+      "remark": "备注"
+    }
+  },
+  "flowable_form": {
+    "columns": {
+      "name": "名字",
+      "remark": "备注",
+      "formContent": "内容"
+    }
+  },
+  "flowable_task": {
+    "columns": {
+      "name": "名字",
+      "taskType": "任务状态",
+      "eventType": "事件类型",
+      "valueType": "值类型",
+      "content": "内容"
+    }
+  }
+}

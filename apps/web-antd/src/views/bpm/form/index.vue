@@ -1,13 +1,13 @@
-<script lang="ts" setup name="RoleManager">
+<script lang="ts" setup name="ProcessManager">
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
 import {Button, Switch} from 'ant-design-vue';
 import type {CreateRoleRequest, RoleItem, UpdateRoleRequest} from "#/api/models";
 import {$t} from '@vben/locales';
-import {ROLE_TYPE_OPTIONS, STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
-import {roleApi} from "#/api/core/role";
-import CreateRole from "#/views/system/role/create-role.vue";
+import {STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import CreateProcess from "./create.vue";
+import {flowableProcessApi} from "#/api";
 
 
 const formOptions: VbenFormProps = {
@@ -17,17 +17,7 @@ const formOptions: VbenFormProps = {
     {
       component: 'Input',
       fieldName: 'name',
-      label: `${$t('system.role.columns.name')}`,
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: ROLE_TYPE_OPTIONS,
-        placeholder: `${$t('common.choice')}`,
-      },
-      fieldName: 'roleType',
-      label: `${$t('system.role.columns.roleType')}`,
+      label: `${$t('bpm.work_flow.columns.name')}`,
     },
     {
       component: 'Select',
@@ -48,7 +38,7 @@ const formOptions: VbenFormProps = {
 
 
 const [CreateModal, createModalApi] = useVbenModal({
-  connectedComponent: CreateRole,
+  connectedComponent: CreateProcess,
   centered: true,
   modal: true,
 });
@@ -60,23 +50,23 @@ const [CreateModal, createModalApi] = useVbenModal({
 function openCreateModal(row: CreateRoleRequest | UpdateRoleRequest) {
   if (row.id) {
     createModalApi.setData(row);
-  }else {
+  } else {
     createModalApi.setData({})
   }
   createModalApi.open();
 }
 
 function handlerDelete(id: string) {
-  roleApi.fetchDeleteRole( id).then(() => {
-    pageReload();
-  });
+  // roleApi.fetchDeleteRole(id).then(() => {
+  //   pageReload();
+  // });
 }
 
 async function handlerState(row: RoleItem) {
   if (row.status == 1) {
-    await roleApi.fetchDisableRole(row.id)
-  }else {
-   await roleApi.fetchEnableRole(row.id)
+    // await flowableProcessApi.fetchDisableRole(row.id)
+  // } else {
+  //   await flowableProcessApi.fetchEnableRole(row.id)
   }
   pageReload()
 }
@@ -84,12 +74,12 @@ async function handlerState(row: RoleItem) {
 const gridOptions: VxeGridProps<RoleItem> = {
   border: true,
   columns: [
-    { title: '序号', type: 'seq', width: 50 },
+    {title: '序号', type: 'seq', width: 50},
     ...TABLE_COMMON_COLUMNS,
-    { field: 'name', title: `${$t('system.role.columns.name')}` },
-    { field: 'roleType', title: `${$t('system.role.columns.roleType')}` },
-    { field: 'comment', title: `${$t('system.role.columns.comment')}` },
-    { field: 'isSystem', title: `${$t('system.role.columns.isSystem')}`, slots: {default: 'isSystem'}},
+    {field: 'name', title: `${$t('bpm.work_flow.columns.name')}`},
+    {field: 'processStatus', title: `${$t('bpm.work_flow.columns.processStatus')}`},
+    {field: 'remark', title: `${$t('bpm.work_flow.columns.remark')}`},
+    {field: 'isSystem', title: `${$t('system.role.columns.isSystem')}`, slots: {default: 'isSystem'}},
   ],
   pagerConfig: {
     enabled: true,
@@ -100,7 +90,7 @@ const gridOptions: VxeGridProps<RoleItem> = {
   proxyConfig: {
     ajax: {
       query: async (params) => {
-        return await roleApi.fetchRoleList({
+        return await flowableProcessApi.fetchProcessList({
           page: params.page.currentPage,
           pageSize: params.page.pageSize,
         });
@@ -111,14 +101,11 @@ const gridOptions: VxeGridProps<RoleItem> = {
 };
 
 
-
-
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 function pageReload() {
   gridApi.query()
 }
-
 
 
 </script>
@@ -128,21 +115,21 @@ function pageReload() {
     <Grid>
 
       <template #status="{ row }">
-        <Switch :checked="row.status == 1"  @change="handlerState(row)"/>
+        <Switch :checked="row.status == 1" @change="handlerState(row)"/>
       </template>
 
       <template #isSystem="{ row }">
-        <Switch :checked="row.isSystem == 1" />
+        <Switch :checked="row.isSystem == 1"/>
       </template>
 
       <template #action="{ row }">
-        <Button type="link" @click="openCreateModal(row)">{{$t('common.edit')}}</Button>
-        <Button type="link" @click="handlerDelete(row.id)">{{$t('common.delete')}}</Button>
+        <Button type="link" @click="openCreateModal(row)">{{ $t('common.edit') }}</Button>
+        <Button type="link" @click="handlerDelete(row.id)">{{ $t('common.delete') }}</Button>
       </template>
 
       <template #toolbar-tools>
         <Button class="mr-2" type="primary" @click="openCreateModal">
-          {{$t('common.create')}}
+          {{ $t('common.create') }}
         </Button>
       </template>
     </Grid>

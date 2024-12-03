@@ -92,5 +92,13 @@
     "columns": {
       "url": "Url"
     }
+  },
+  "flowable_process": {
+    "columns": {
+      "name": "名字",
+      "processType": "类型",
+      "processStatus": "流程状态",
+      "remark": "备注"
+    }
   }
 }

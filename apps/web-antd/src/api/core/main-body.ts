@@ -10,9 +10,7 @@ import qs from 'qs'
 
 class MainBodyApi extends BaseApi {
 
-  constructor(serviceUser: string) {
-    super(serviceUser);
-  }
+
 
 
   fetchMainList(params: MainBodySearchRequest): Promise<MainBodyItem[]> {

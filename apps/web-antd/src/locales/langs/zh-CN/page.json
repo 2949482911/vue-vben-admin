@@ -21,5 +21,11 @@
     "operator": "操作日志",
     "org": "组织",
     "role": "角色"
+  },
+  "bpm": {
+    "flowable": "流程",
+    "work_flow": "工作流",
+    "flowable_form": "表单",
+    "flowable_task": "监听"
   }
 }
