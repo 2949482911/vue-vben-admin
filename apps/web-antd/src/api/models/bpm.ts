@@ -19,3 +19,23 @@ export interface CreateUpdateProcess {
   processType: string;
   processStatus: number;
 }
+
+
+export interface FlowableFormSearchRequest extends PageRequestParams{
+  name: string;
+}
+
+export interface FlowableFormItem extends BaseItem{
+  name: string;
+  formContent: string;
+  script: string;
+  remark: string;
+}
+
+export interface CreateUpdateForm {
+  id: string;
+  name: string;
+  formContent: string;
+  script: string;
+  remark: string;
+}

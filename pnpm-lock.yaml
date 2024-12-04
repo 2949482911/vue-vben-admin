@@ -204,6 +204,9 @@ catalogs:
     element-plus:
       specifier: ^2.9.0
       version: 2.9.0
+    epic-designer:
+      specifier: ^0.9.26
+      version: 0.9.26
     eslint:
       specifier: ^9.16.0
       version: 9.16.0
@@ -348,6 +351,9 @@ catalogs:
     qrcode:
       specifier: ^1.5.4
       version: 1.5.4
+    qs:
+      specifier: ^6.11.2
+      version: 6.13.1
     radix-vue:
       specifier: ^1.9.10
       version: 1.9.10
@@ -564,6 +570,9 @@ importers:
       playwright:
         specifier: 'catalog:'
         version: 1.49.0
+      qs:
+        specifier: 'catalog:'
+        version: 6.13.1
       rimraf:
         specifier: 'catalog:'
         version: 6.0.1
@@ -667,6 +676,9 @@ importers:
       dayjs:
         specifier: 'catalog:'
         version: 1.11.13
+      epic-designer:
+        specifier: 'catalog:'
+        version: 0.9.26(ant-design-vue@4.2.6(vue@3.5.13(typescript@5.7.2)))(dayjs@1.11.13)(element-plus@2.9.0(vue@3.5.13(typescript@5.7.2)))(monaco-editor@0.52.0)(naive-ui@2.40.2(vue@3.5.13(typescript@5.7.2)))(vue@3.5.13(typescript@5.7.2))
       pinia:
         specifier: 2.2.2
         version: 2.2.2(typescript@5.7.2)(vue@3.5.13(typescript@5.7.2))
@@ -6017,6 +6029,17 @@ packages:
     resolution: {integrity: sha512-xUtoPkMggbz0MPyPiIWr1Kp4aeWJjDZ6SMvURhimjdZgsRuDplF5/s9hcgGhyXMhs+6vpnuoiZ2kFiu3FMnS8Q==}
     engines: {node: '>=18'}
 
+  epic-designer@0.9.26:
+    resolution: {integrity: sha512-cIVVsxNzDantTJZR04wvFjTX5WlDqd5zLqYcAPrStAxA1bGKtX80PIGtx6ZnrIcfSnSW4/rBfqEjlJRbzNXDzg==}
+    peerDependencies:
+      ant-design-vue: '>=3.2.20'
+      dayjs: '>=1.0.0'
+      element-plus: '>=2.1.4'
+      epic-designer: '>=0.9.3'
+      monaco-editor: '>=0.48.0'
+      naive-ui: '>=2.30.0'
+      vue: ^3.5.13
+
   err-code@2.0.3:
     resolution: {integrity: sha512-2bmlRpNKBxT/CRmPOlyISQpNj+qSeYvcym/uT0Jx2bMOlKLtSy1ZmLuVxSEKKyor/N5yhvp/ZiG1oE3DEYMSFA==}
 
@@ -7721,6 +7744,9 @@ packages:
   mlly@1.7.3:
     resolution: {integrity: sha512-xUsx5n/mN0uQf4V548PKQ+YShA4/IW0KI1dZhrNrPCLG+xizETbHTkOa1f8/xut9JRPp8kQuMnz0oqwkTiLo/A==}
 
+  monaco-editor@0.52.0:
+    resolution: {integrity: sha512-OeWhNpABLCeTqubfqLMXGsqf6OmPU6pHM85kF3dhy6kq5hnhuVS1p3VrEW/XhWHc71P2tHyS5JFySD8mgs1crw==}
+
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
@@ -8738,6 +8764,10 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
+  qs@6.13.1:
+    resolution: {integrity: sha512-EJPeIn0CYrGu+hli1xilKAPXODtJ12T0sP63Ijx2/khC2JtuaN3JyNIpvmnkmaEtha9ocbG4A4cMcr+TvqvwQg==}
+    engines: {node: '>=0.6'}
+
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -9173,6 +9203,9 @@ packages:
   socks@2.8.3:
     resolution: {integrity: sha512-l5x7VUUWbjVFbafGLxPWkYsHIhEvmF85tbIeFZWc8ZPtoMyybuEhL7Jye/ooC4/d48FgOjSJXgsF/AJPYCW8Zw==}
     engines: {node: '>= 10.0.0', npm: '>= 3.0.0'}
+
+  sortablejs@1.14.0:
+    resolution: {integrity: sha512-pBXvQCs5/33fdN1/39pPL0NZF20LeRbLQ5jtnheIPN9JQAaufGjKdWduZn4U7wCtVuzKhmRkI0DFYHYRbB2H1w==}
 
   sortablejs@1.15.6:
     resolution: {integrity: sha512-aNfiuwMEpfBM/CN6LY0ibyhxPfPbyFeBTYJKCvzkJ2GkUpazIt3H+QIPAMHwqQ7tMKaHz1Qj+rJJCqljnf4p3A==}
@@ -10150,6 +10183,11 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  vuedraggable@4.1.0:
+    resolution: {integrity: sha512-FU5HCWBmsf20GpP3eudURW3WdWTKIbEIQxh9/8GE806hydR9qZqRRxRE3RjqX7PkuLuMQG/A7n3cfj9rCEchww==}
+    peerDependencies:
+      vue: ^3.5.13
 
   vueuc@0.4.64:
     resolution: {integrity: sha512-wlJQj7fIwKK2pOEoOq4Aro8JdPOGpX8aWQhV8YkTW9OgWD2uj2O8ANzvSsIGjx7LTOc7QbS7sXdxHi6XvRnHPA==}
@@ -15174,6 +15212,17 @@ snapshots:
 
   environment@1.1.0: {}
 
+  epic-designer@0.9.26(ant-design-vue@4.2.6(vue@3.5.13(typescript@5.7.2)))(dayjs@1.11.13)(element-plus@2.9.0(vue@3.5.13(typescript@5.7.2)))(monaco-editor@0.52.0)(naive-ui@2.40.2(vue@3.5.13(typescript@5.7.2)))(vue@3.5.13(typescript@5.7.2)):
+    dependencies:
+      ant-design-vue: 4.2.6(vue@3.5.13(typescript@5.7.2))
+      dayjs: 1.11.13
+      element-plus: 2.9.0(vue@3.5.13(typescript@5.7.2))
+      epic-designer: 0.9.26(ant-design-vue@4.2.6(vue@3.5.13(typescript@5.7.2)))(dayjs@1.11.13)(element-plus@2.9.0(vue@3.5.13(typescript@5.7.2)))(monaco-editor@0.52.0)(naive-ui@2.40.2(vue@3.5.13(typescript@5.7.2)))(vue@3.5.13(typescript@5.7.2))
+      monaco-editor: 0.52.0
+      naive-ui: 2.40.2(vue@3.5.13(typescript@5.7.2))
+      vue: 3.5.13(typescript@5.7.2)
+      vuedraggable: 4.1.0(vue@3.5.13(typescript@5.7.2))
+
   err-code@2.0.3: {}
 
   errno@0.1.8:
@@ -17038,6 +17087,8 @@ snapshots:
       pkg-types: 1.2.1
       ufo: 1.5.4
 
+  monaco-editor@0.52.0: {}
+
   mri@1.2.0: {}
 
   mrmime@2.0.0: {}
@@ -18093,6 +18144,10 @@ snapshots:
       pngjs: 5.0.0
       yargs: 15.4.1
 
+  qs@6.13.1:
+    dependencies:
+      side-channel: 1.0.6
+
   queue-microtask@1.2.3: {}
 
   queue-tick@1.0.1: {}
@@ -18624,6 +18679,8 @@ snapshots:
     dependencies:
       ip-address: 9.0.5
       smart-buffer: 4.2.0
+
+  sortablejs@1.14.0: {}
 
   sortablejs@1.15.6: {}
 
@@ -19811,6 +19868,11 @@ snapshots:
       '@vue/shared': 3.5.13
     optionalDependencies:
       typescript: 5.7.2
+
+  vuedraggable@4.1.0(vue@3.5.13(typescript@5.7.2)):
+    dependencies:
+      sortablejs: 1.14.0
+      vue: 3.5.13(typescript@5.7.2)
 
   vueuc@0.4.64(vue@3.5.13(typescript@5.7.2)):
     dependencies:

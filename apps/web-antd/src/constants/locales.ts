@@ -122,3 +122,10 @@ export const FLOWABLE_PROCESS_TYPE = [
     value: 1,
   },
 ]
+
+
+export enum BatchOptionsType {
+  DISABLE= "disable",
+  Enable = "enable",
+  Delete = "delete"
+}

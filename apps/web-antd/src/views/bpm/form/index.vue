@@ -3,11 +3,11 @@ import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
 import {Button, Switch} from 'ant-design-vue';
-import type {CreateRoleRequest, RoleItem, UpdateRoleRequest} from "#/api/models";
+import type {CreateRoleRequest, FlowableFormItem, RoleItem, UpdateRoleRequest} from "#/api/models";
 import {$t} from '@vben/locales';
-import {STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import {BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import CreateProcess from "./create.vue";
-import {flowableProcessApi} from "#/api";
+import {flowableFormApi} from "#/api";
 
 
 const formOptions: VbenFormProps = {
@@ -56,18 +56,25 @@ function openCreateModal(row: CreateRoleRequest | UpdateRoleRequest) {
   createModalApi.open();
 }
 
-function handlerDelete(id: string) {
-  // roleApi.fetchDeleteRole(id).then(() => {
-  //   pageReload();
-  // });
+async function handlerDelete(id: string) {
+  await flowableFormApi.fetchFormBatchOptions({
+    targetIds: [id],
+    type: BatchOptionsType.Delete.valueOf()
+  })
+  pageReload()
 }
 
-async function handlerState(row: RoleItem) {
+async function handlerState(row: FlowableFormItem) {
+  let type: str = ""
   if (row.status == 1) {
-    // await flowableProcessApi.fetchDisableRole(row.id)
-  // } else {
-  //   await flowableProcessApi.fetchEnableRole(row.id)
+    type = BatchOptionsType.DISABLE.valueOf()
+  }else {
+    type = BatchOptionsType.Enable.valueOf()
   }
+  await flowableFormApi.fetchFormBatchOptions({
+    targetIds: [row.id],
+    type: type
+  })
   pageReload()
 }
 
@@ -77,9 +84,7 @@ const gridOptions: VxeGridProps<RoleItem> = {
     {title: '序号', type: 'seq', width: 50},
     ...TABLE_COMMON_COLUMNS,
     {field: 'name', title: `${$t('bpm.work_flow.columns.name')}`},
-    {field: 'processStatus', title: `${$t('bpm.work_flow.columns.processStatus')}`},
     {field: 'remark', title: `${$t('bpm.work_flow.columns.remark')}`},
-    {field: 'isSystem', title: `${$t('system.role.columns.isSystem')}`, slots: {default: 'isSystem'}},
   ],
   pagerConfig: {
     enabled: true,
@@ -89,10 +94,11 @@ const gridOptions: VxeGridProps<RoleItem> = {
   },
   proxyConfig: {
     ajax: {
-      query: async (params) => {
-        return await flowableProcessApi.fetchProcessList({
-          page: params.page.currentPage,
-          pageSize: params.page.pageSize,
+      query: async ({page}, args) => {
+        return await flowableFormApi.fetchFlowableFormList({
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          ...args
         });
       }
     },
