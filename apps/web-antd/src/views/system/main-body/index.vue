@@ -5,7 +5,7 @@ import type {CreateMenuRequest, UpdateMenuRequest,} from '#/api/models/menu';
 
 import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
 import {$t} from '@vben/locales';
-import {STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import {BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {Button, Switch, Tag} from 'ant-design-vue';
 import {mainBodyApi} from '#/api';
 
@@ -31,15 +31,24 @@ function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
 
 async function handlerState(row: MainBodyItem) {
   if (row.status == 1) {
-    await mainBodyApi.fetchMainDisable([row.id])
+    await mainBodyApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+    })
   }else {
-    await mainBodyApi.fetchMainEnable([row.id])
+    await mainBodyApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+    })
   }
   pageReload()
 }
 
 async function handlerDelete(row: MainBodyItem) {
-  await mainBodyApi.fetchMainDelete([row.id])
+  await mainBodyApi.fetchBatchOptions({
+    targetIds: [row.id],
+    type: BatchOptionsType.DELETE,
+  })
   pageReload()
 }
 

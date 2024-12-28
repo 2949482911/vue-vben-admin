@@ -7,6 +7,7 @@ import type {
   MainBodySearchRequest
 } from "#/api/models/main-body";
 import qs from 'qs'
+import type {BatchOptions} from "#/api/models/core";
 
 class MainBodyApi extends BaseApi {
 
@@ -51,6 +52,10 @@ class MainBodyApi extends BaseApi {
         return qs.stringify(params, {arrayFormat: 'repeat'});
       },
     });
+  }
+
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
 }

@@ -6,7 +6,7 @@ import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models
 
 import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
 import {$t} from '@vben/locales';
-import {STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import {BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {Button, Switch, Tag} from 'ant-design-vue';
 import {dataRangeApi, orgApi} from '#/api';
 
@@ -25,7 +25,7 @@ const orgTreeData = ref<OrgItem[]>([])
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
     createModalApi.setData(row);
-  }else {
+  } else {
     createModalApi.setData({})
   }
   createModalApi.open();
@@ -33,18 +33,26 @@ function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
 
 async function handlerState(row: DataRangeItem) {
   if (row.status == 1) {
-    await dataRangeApi.fetchDisableDataRange([row.id])
-  }else {
-    await dataRangeApi.fetchEnableDataRange([row.id])
+    await dataRangeApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+    })
+  } else {
+    await dataRangeApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+    })
   }
   pageReload();
 }
 
 
-function handlerDelete(id: string) {
-  dataRangeApi.fetchDeleteDataRange(id).then(() => {
-    pageReload();
+async function handlerDelete(id: string) {
+  await dataRangeApi.fetchBatchOptions({
+    targetIds: [id],
+    type: BatchOptionsType.Delete,
   })
+  pageReload();
 }
 
 
@@ -113,7 +121,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 const pageReload = () => {
   gridApi.reload();
@@ -128,37 +136,37 @@ onMounted(() => {
 </script>
 
 <template>
-<div>
-  <Page>
-    <Grid :table-title="$t('system.user.title')">
+  <div>
+    <Page>
+      <Grid :table-title="$t('system.user.title')">
 
-      <template #status="{ row }">
-        <Switch :checked="row.status == 1" @click="handlerState(row)"/>
-      </template>
+        <template #status="{ row }">
+          <Switch :checked="row.status == 1" @click="handlerState(row)"/>
+        </template>
 
-      <template #sex="{ row }">
-        <Tag v-if="row.sex == 1">{{$t('common.boy')}}</Tag>
-        <Tag v-else>{{$t('common.girl')}}</Tag>
-      </template>
+        <template #sex="{ row }">
+          <Tag v-if="row.sex == 1">{{ $t('common.boy') }}</Tag>
+          <Tag v-else>{{ $t('common.girl') }}</Tag>
+        </template>
 
-      <template #action="{ row }">
-        <Button type="link" @click="openBaseDrawer(row)">
-          {{$t('common.edit')}}
-        </Button>
+        <template #action="{ row }">
+          <Button type="link" @click="openBaseDrawer(row)">
+            {{ $t('common.edit') }}
+          </Button>
 
-        <Button type="link" @click="handlerDelete(row.id)">
-          {{$t('common.delete')}}
-        </Button>
+          <Button type="link" @click="handlerDelete(row.id)">
+            {{ $t('common.delete') }}
+          </Button>
 
-      </template>
+        </template>
 
-      <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
-          {{$t('common.create')}}
-        </Button>
-      </template>
-    </Grid>
-  </Page>
-  <CreateModal @page-reload="pageReload" />
-</div>
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
+            {{ $t('common.create') }}
+          </Button>
+        </template>
+      </Grid>
+    </Page>
+    <CreateModal @page-reload="pageReload"/>
+  </div>
 </template>

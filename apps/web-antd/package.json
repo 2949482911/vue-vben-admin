@@ -47,6 +47,12 @@
     "pinia": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:",
-    "epic-designer": "catalog:"
+    "epic-designer": "catalog:",
+    "bpmn-js": "catalog:",
+    "bpmn-js-properties-panel": "^5.30.0",
+    "bpmn-js-bpmnlint": "^0.22.3",
+    "bpmn-js-color-picker": "^0.7.1",
+    "camunda-bpmn-moddle": "^7.0.1",
+    "@bpmn-io/properties-panel": "^3.25.1"
   }
 }

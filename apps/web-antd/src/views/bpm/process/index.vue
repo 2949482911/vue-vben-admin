@@ -79,7 +79,6 @@ const gridOptions: VxeGridProps<RoleItem> = {
     {field: 'name', title: `${$t('bpm.work_flow.columns.name')}`},
     {field: 'processStatus', title: `${$t('bpm.work_flow.columns.processStatus')}`},
     {field: 'remark', title: `${$t('bpm.work_flow.columns.remark')}`},
-    {field: 'isSystem', title: `${$t('system.role.columns.isSystem')}`, slots: {default: 'isSystem'}},
   ],
   pagerConfig: {
     enabled: true,

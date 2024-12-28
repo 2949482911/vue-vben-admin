@@ -23,9 +23,11 @@ const userStore = useUserStore();
 const authStore = useAuthStore();
 const accessStore = useAccessStore();
 const { destroyWatermark, updateWatermark } = useWatermark();
-const showDot = computed(() =>
-  notifications.value.some((item) => !item.isRead),
-);
+const showDot = computed(() => {
+  if (notifications.value.length) {
+    notifications.value.some((item) => !item.isRead);
+  }
+});
 
 const menus = computed(() => [
   {

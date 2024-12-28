@@ -1,10 +1,10 @@
 import {requestClient} from '#/api/request';
 import {BaseApi} from "#/api/core/baseapi";
 import type {
-  CreateDataRangeRequest, CreateFlowableProcess,
+  CreateDataRangeRequest,
   CreateUserRequest,
   DataRangeItem,
-  DataRangeSearchRequest, FlowableProcessItem, FlowableProcessSearchRequest,
+  DataRangeSearchRequest,
   OperatorItem,
   OperatorSearchRequest,
   OrgCreateRequest,
@@ -17,8 +17,9 @@ import type {
   UserItem,
   UserSearchRequest
 } from "#/api/models/users";
-import { qs } from 'qs';
+import {qs} from 'qs';
 import type {BatchOptions} from "#/api/models/core";
+
 class UserApi extends BaseApi {
 
   fetchUserList(params: UserSearchRequest): Promise<UserItem> {
@@ -33,26 +34,14 @@ class UserApi extends BaseApi {
     return requestClient.post(this.getServiceUrl("update"), params);
   }
 
-  fetchEnableUser(id: string) {
-    return requestClient.get(this.getServiceUrl("enable"), {params: {id: id}})
-  }
-
-  fetchDisableUser(id: string) {
-    return requestClient.get(this.getServiceUrl("disabled"), {params: {id: id}})
-  }
-
-  fetchDeleteUser(ids: string[]) {
-    return requestClient.get(this.getServiceUrl("delete"),
-      {
-        params: {ids: ids},
-        paramsSerializer: function (params) {
-          return qs.stringify(params, {arrayFormat: 'repeat'});
-        },
-      })
-  }
 
   fetchUpdatePassword(params: UpdatePasswordRequest) {
     return requestClient.post(this.getServiceUrl("updatePassword"), params)
+  }
+
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params)
+
   }
 
 }
@@ -97,6 +86,10 @@ class OrgApi extends BaseApi {
         return qs.stringify(params, {arrayFormat: 'repeat'});
       },
     });
+  }
+
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params)
   }
 }
 
@@ -143,6 +136,10 @@ class DataRangeApi extends BaseApi {
   fetchSetUserDataRange(params: SetUserDataRangeRequest) {
     return requestClient.post(this.getServiceUrl("sudr"), params)
   }
+
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params)
+  }
 }
 
 
@@ -156,4 +153,4 @@ class OperatorApi extends BaseApi {
 export const orgApi: OrgApi = new OrgApi("/sys/org")
 export const userApi: UserApi = new UserApi("/sys/user")
 export const dataRangeApi: DataRangeApi = new DataRangeApi("/sys/data/range")
-export const operatorApi: OperatorApi = new OperatorApi("/sys/operate-log")
+export const operatorApi: OperatorApi = new OperatorApi("/sys/operator")

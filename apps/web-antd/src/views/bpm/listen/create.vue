@@ -3,10 +3,6 @@ import {ref} from 'vue';
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import type {CreateRoleRequest} from "#/api/models";
-import WorkflowBpmnModeler from 'workflow-bpmn-modeler';
-
-const refNode =ref(null)
-
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<CreateRoleRequest>({});
@@ -89,14 +85,5 @@ const title: string = notice.value
   : `${$t('common.create')}`;
 </script>
 <template>
-  <Modal :title="title">
-    <WorkflowBpmnModeler
-      ref="refNode"
-      :xml="xml"
-      :users="users"
-      :groups="groups"
-      :categorys="categorys"
-      @save="save"
-    ></WorkflowBpmnModeler>
-  </Modal>
+  <Modal :title="title"></Modal>
 </template>

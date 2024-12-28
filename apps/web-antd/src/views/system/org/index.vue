@@ -10,7 +10,7 @@ import {Button, Switch} from 'ant-design-vue';
 import {orgApi} from '#/api';
 
 import Create from './create.vue';
-import {TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import {BatchOptionsType, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import type {OrgItem} from "#/api/models/users";
 
 
@@ -33,15 +33,24 @@ function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
 
 async function handlerState(row: OrgItem) {
   if (row.status === 1) {
-    await orgApi.fetchOrgDisable([row.id])
+    await orgApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+    })
   } else {
-    await orgApi.fetchOrgEnable([row.id])
+    await orgApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+    })
   }
   pageReload();
 }
 
 async function handlerDelete(row: OrgItem) {
-  await orgApi.fetchOrgDelete([row.id])
+  await orgApi.fetchBatchOptions({
+    targetIds: [row.id],
+    type: BatchOptionsType.DELETE,
+  })
   await pageReload();
 }
 

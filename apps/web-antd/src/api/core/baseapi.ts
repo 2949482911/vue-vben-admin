@@ -34,19 +34,14 @@ export class BaseApi {
   }
 
 
-  parseUrl(url: string): string {
-
-  }
-
-
 
   /**
    * 获取request url
    * @param url
    */
   getServiceUrl(url: string): string {
-    if (this.openService == 'true') {
-      return `${this.serviceUrl}${this.requestUrl}/${url}`;
+    if (this.openService === 'true') {
+      return `${this.serviceUrl}/${url}`;
     }
     return `${this.requestUrl}/${url}`;
   }

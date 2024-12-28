@@ -3,13 +3,14 @@ import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models/menu';
 
-import {Page, useVbenModal} from '@vben/common-ui';
+import {IconPicker, Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
 import {Button, Tag} from 'ant-design-vue';
 import {menuApi} from '#/api';
 
 import CreateMenu from './create-menu.vue';
+import {BatchOptionsType} from "#/constants/locales";
 
 
 const [CreateMenuModal, createMenuModalApi] = useVbenModal({
@@ -53,6 +54,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
       field: 'icon',
       minWidth: 300,
       title: `${$t('system.menu.columns.icon')}`,
+      slots: { default: 'icon' },
     },
     {
       field: 'path',
@@ -114,8 +116,22 @@ const gridOptions: VxeGridProps<MenuItem> = {
     parentField: 'parentId',
     rowField: 'id',
     transform: false,
+    expandAll: true
   },
 };
+
+
+/**
+ * delete menu
+ */
+const handlerDeleteMenu = async (id) => {
+  await menuApi.fetchBatchOptions({
+    targetIds: [id],
+    type: BatchOptionsType.Delete,
+    values: {}
+  })
+  pageReload()
+}
 
 const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
 
@@ -149,12 +165,19 @@ const pageReload = () => {
         <Tag v-if="row.type === 3">{{ $t('system.menu.type.button') }}</Tag>
       </template>
 
+      <template #icon="{ row }">
+        <IconPicker :model-value="row.icon"></IconPicker>
+      </template>
+
       <template #action="{ row }">
+        <Button type="link" @click="openBaseDrawer({parentId: row.id, sort: row.sort + 1})">
+          {{$t('common.create')}}
+        </Button>
         <Button type="link" @click="openBaseDrawer(row)">
           {{$t('common.edit')}}
         </Button>
-        <Button type="link" @click="openBaseDrawer({parentId: row.id, sort: row.sort + 1})">
-          {{$t('common.create')}}
+        <Button type="link" @click="handlerDeleteMenu(row.id)">
+          {{$t('common.delete')}}
         </Button>
       </template>
 

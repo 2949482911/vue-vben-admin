@@ -13,7 +13,7 @@ import type {BatchOptions} from "#/api/models/core";
 class FlowableProcessApi extends BaseApi {
 
   fetchProcessList(params: ProcessSearchRequest): Promise<FlowableFormItem[]> {
-    return requestClient.get<FlowableFormItem[]>("list", {params});
+    return requestClient.get<FlowableFormItem[]>(this.getServiceUrl("list"), {params});
   }
 
   fetchCreateProcess(params: CreateUpdateProcess) {
@@ -60,3 +60,4 @@ class FlowableFormApi extends BaseApi {
 }
 
 export const flowableFormApi: FlowableFormApi = new FlowableFormApi("/sys/process_form")
+

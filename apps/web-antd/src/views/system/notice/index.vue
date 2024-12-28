@@ -7,7 +7,7 @@ import {$t} from '@vben/locales';
 
 import {Button, Switch} from 'ant-design-vue';
 import {noticeApi} from '#/api';
-import {STATUS_SELECT, TABLE_COMMON_COLUMNS} from '#/constants/locales';
+import {BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS} from '#/constants/locales';
 
 import CreateNotice from './create-notice.vue';
 import type {NoticeItem} from "#/api/models";
@@ -24,12 +24,12 @@ async function handlerState(row: NoticeItem) {
   if (row.status == 1) {
     await noticeApi.fetchBatchOptions({
       targetIds: [row.id],
-      type: "disable",
+      type: BatchOptionsType.DISABLE,
     })
-  }else {
+  } else {
     await noticeApi.fetchBatchOptions({
       targetIds: [row.id],
-      type: "enable",
+      type: BatchOptionsType.Enable,
     })
   }
   pageReload();
@@ -39,7 +39,7 @@ async function handlerState(row: NoticeItem) {
 async function handlerDelete(row: NoticeItem) {
   await noticeApi.fetchBatchOptions({
     targetIds: [row.id],
-    type: "delete",
+    type: BatchOptionsType.Delete,
   })
   pageReload();
 }
@@ -89,16 +89,16 @@ const gridOptions: VxeGridProps<NoticeItem> = {
     labelField: 'name',
   },
   columns: [
-    { title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100 },
+    {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
     ...TABLE_COMMON_COLUMNS,
-    { field: 'title', title: `${$t('system.notice.columns.title')}` },
+    {field: 'title', title: `${$t('system.notice.columns.title')}`},
   ],
   height: 'auto',
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, args) => {
+      query: async ({page}, args) => {
         return await noticeApi.getNoticeList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -109,7 +109,7 @@ const gridOptions: VxeGridProps<NoticeItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 function pageReload() {
   gridApi.reload();
@@ -117,30 +117,30 @@ function pageReload() {
 </script>
 
 <template>
-<div>
-  <Page auto-content-height>
-    <Grid>
-      <template #action="{ row }">
-        <Button type="link" @click="openBaseDrawer(row)">{{$t('common.edit')}}</Button>
-        <Button type="link" @click="handlerDelete(row)">{{$t('common.delete')}}</Button>
-      </template>
-      <template #status="{ row }">
-        <Switch :checked="row.status === 1" @click="handlerState(row)"/>
-      </template>
+  <div>
+    <Page auto-content-height>
+      <Grid>
+        <template #action="{ row }">
+          <Button type="link" @click="openBaseDrawer(row)">{{ $t('common.edit') }}</Button>
+          <Button type="link" @click="handlerDelete(row)">{{ $t('common.delete') }}</Button>
+        </template>
+        <template #status="{ row }">
+          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+        </template>
 
-      <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="openBaseDrawer()">
-          新增
-        </Button>
-        <Button class="mr-2" type="primary" @click="() => gridApi.query()">
-          刷新当前页面
-        </Button>
-        <Button class="mr-2" type="primary" @click="() => gridApi.reload()">
-          刷新并返回第一页
-        </Button>
-      </template>
-    </Grid>
-  </Page>
-  <CreateNoticeDrawer @page-reload="pageReload" />
-</div>
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="openBaseDrawer()">
+            新增
+          </Button>
+          <Button class="mr-2" type="primary" @click="() => gridApi.query()">
+            刷新当前页面
+          </Button>
+          <Button class="mr-2" type="primary" @click="() => gridApi.reload()">
+            刷新并返回第一页
+          </Button>
+        </template>
+      </Grid>
+    </Page>
+    <CreateNoticeDrawer @page-reload="pageReload"/>
+  </div>
 </template>

@@ -2,6 +2,7 @@ import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models
 
 import {requestClient} from '#/api/request';
 import {BaseApi} from "#/api/core/baseapi";
+import type {BatchOptions} from "#/api/models/core";
 
 
 class MenuApi extends BaseApi {
@@ -16,6 +17,10 @@ class MenuApi extends BaseApi {
 
   fetchUpdateMenu(params: UpdateMenuRequest) {
     return requestClient.post(this.getServiceUrl("update"), params);
+  }
+
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
 }
