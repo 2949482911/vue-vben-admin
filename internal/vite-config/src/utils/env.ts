@@ -1,5 +1,6 @@
 import type { ApplicationPluginOptions } from '../typing';
 
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { fs } from '@vben/node-utils';
@@ -21,12 +22,11 @@ function getConfFiles() {
   const script = process.env.npm_lifecycle_script as string;
   const reg = /--mode ([\d_a-z]+)/;
   const result = reg.exec(script);
-
+  let mode = 'production';
   if (result) {
-    const mode = result[1];
-    return ['.env', `.env.${mode}`];
+    mode = result[1] as string;
   }
-  return ['.env', '.env.production'];
+  return ['.env', '.env.local', `.env.${mode}`, `.env.${mode}.local`];
 }
 
 /**
@@ -42,11 +42,14 @@ async function loadEnv<T = Record<string, string>>(
 
   for (const confFile of confFiles) {
     try {
-      const envPath = await fs.readFile(join(process.cwd(), confFile), {
-        encoding: 'utf8',
-      });
-      const env = dotenv.parse(envPath);
-      envConfig = { ...envConfig, ...env };
+      const confFilePath = join(process.cwd(), confFile);
+      if (existsSync(confFilePath)) {
+        const envPath = await fs.readFile(confFilePath, {
+          encoding: 'utf8',
+        });
+        const env = dotenv.parse(envPath);
+        envConfig = { ...envConfig, ...env };
+      }
     } catch (error) {
       console.error(`Error while parsing ${confFile}`, error);
     }
@@ -79,11 +82,11 @@ async function loadAndConvertEnv(
     VITE_COMPRESS,
     VITE_DEVTOOLS,
     VITE_INJECT_APP_LOADING,
+    VITE_MICRO_SERVICE,
     VITE_NITRO_MOCK,
     VITE_PORT,
     VITE_PWA,
     VITE_VISUALIZER,
-    VITE_MICRO_SERVICE
   } = envConfig;
 
   const compressTypes = (VITE_COMPRESS ?? '')
@@ -98,11 +101,11 @@ async function loadAndConvertEnv(
     compressTypes,
     devtools: getBoolean(VITE_DEVTOOLS),
     injectAppLoading: getBoolean(VITE_INJECT_APP_LOADING),
+    microservices: getBoolean(VITE_MICRO_SERVICE),
     nitroMock: getBoolean(VITE_NITRO_MOCK),
     port: getNumber(VITE_PORT, 5173),
     pwa: getBoolean(VITE_PWA),
     visualizer: getBoolean(VITE_VISUALIZER),
-    microservices: getBoolean(VITE_MICRO_SERVICE),
   };
 }
 
