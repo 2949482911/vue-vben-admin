@@ -16,7 +16,7 @@ const [CreateNoticeDrawer, baseDrawerApi] = useVbenDrawer({
   // 连接抽离的组件
   connectedComponent: CreateNotice,
   closeOnPressEscape: true,
-  footer: false,
+  footer: true,
 });
 
 
@@ -47,6 +47,8 @@ async function handlerDelete(row: NoticeItem) {
 function openBaseDrawer(row?: NoticeItem) {
   if (row) {
     baseDrawerApi.setData(row);
+  }else {
+    baseDrawerApi.setData({})
   }
   baseDrawerApi.open();
 }
@@ -92,6 +94,7 @@ const gridOptions: VxeGridProps<NoticeItem> = {
     {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
     ...TABLE_COMMON_COLUMNS,
     {field: 'title', title: `${$t('system.notice.columns.title')}`},
+    {field: 'level', title: `${$t('system.notice.columns.level')}`},
   ],
   height: 'auto',
   keepSource: true,
@@ -130,13 +133,7 @@ function pageReload() {
 
         <template #toolbar-tools>
           <Button class="mr-2" type="primary" @click="openBaseDrawer()">
-            新增
-          </Button>
-          <Button class="mr-2" type="primary" @click="() => gridApi.query()">
-            刷新当前页面
-          </Button>
-          <Button class="mr-2" type="primary" @click="() => gridApi.reload()">
-            刷新并返回第一页
+            {{$t('common.create') }}
           </Button>
         </template>
       </Grid>

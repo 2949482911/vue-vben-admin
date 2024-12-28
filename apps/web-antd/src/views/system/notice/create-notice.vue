@@ -15,26 +15,20 @@ const notice = ref<CreateNoticeRequest>({});
 const isUpdate = ref<Boolean>(false);
 
 const [Form, formApi] = useVbenForm({
+  showDefaultActions: false,
   commonConfig: {
     // 所有表单项
     componentProps: {
       class: 'w-full',
     },
   },
-  handleSubmit: (formVal: Record<string, any>) => {
+  handleSubmit: async (formVal: Record<string, any>) => {
     if (isUpdate.value) {
-      noticeApi.fetchUpdateNotice(JSON.stringify(formVal)).then(() => {
-        drawerApi.close();
-        drawerApi.resetForm();
-      });
+      await noticeApi.fetchUpdateNotice(JSON.stringify(formVal))
     } else {
-      noticeApi.fetchCreateNotice(JSON.stringify(formVal)).then(() => {
-        drawerApi.close();
-        drawerApi.resetForm();
-      });
+      await noticeApi.fetchCreateNotice(JSON.stringify(formVal))
     }
-
-    emit('pageReload');
+    drawerApi.close();
   },
   layout: 'vertical',
   schema: [
@@ -46,9 +40,52 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
       },
       // 字段名
+      fieldName: 'id',
+      // 界面显示的label
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
+    },
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      // 字段名
       fieldName: 'title',
       // 界面显示的label
       label: `${$t('system.notice.columns.title')}`,
+      rules: 'required',
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Select',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.select')}`,
+        options: [
+          {
+            label: `${$t('system.notice.level.info')}`,
+            value: 'info',
+          },
+          {
+            label: `${$t('system.notice.level.warm')}`,
+            value: 'warm',
+          },
+          {
+            label: `${$t('system.notice.level.error')}`,
+            value: 'error',
+          },
+        ]
+      },
+      // 字段名
+      fieldName: 'level',
+      // 界面显示的label
+      label: `${$t('system.notice.columns.level')}`,
       rules: 'required',
     },
 
@@ -69,19 +106,21 @@ const [Form, formApi] = useVbenForm({
 });
 
 const [Drawer, drawerApi] = useVbenDrawer({
+  // showConfirmButton: true,
+  // showCancelButton: true,
   onCancel() {
     drawerApi.close();
+    isUpdate.value = false;
   },
   async onConfirm() {
     await formApi.submitForm();
-    await formApi.resetForm();
-    drawerApi.close();
+    isUpdate.value = false;
+    emit('pageReload');
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       notice.value = drawerApi.getData<Record<string, any>>();
-      console.log(notice.value);
-      if (notice.value) {
+      if (notice.value.id) {
         isUpdate.value = true;
         handleSetFormValue(notice.value);
       } else {
@@ -90,7 +129,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
     }
   },
 });
-
 
 
 function handleSetFormValue(row) {
@@ -103,6 +141,6 @@ const title: string = notice.value
 </script>
 <template>
   <Drawer :title="title">
-    <Form />
+    <Form/>
   </Drawer>
 </template>

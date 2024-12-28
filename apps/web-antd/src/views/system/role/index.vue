@@ -2,7 +2,7 @@
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import {Button, Switch} from 'ant-design-vue';
+import {Button, Switch, Select} from 'ant-design-vue';
 import type {CreateRoleRequest, RoleItem, UpdateRoleRequest} from "#/api/models";
 import {$t} from '@vben/locales';
 import {ROLE_TYPE_OPTIONS, STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
@@ -87,7 +87,7 @@ const gridOptions: VxeGridProps<RoleItem> = {
     { title: '序号', type: 'seq', width: 50 },
     ...TABLE_COMMON_COLUMNS,
     { field: 'name', title: `${$t('system.role.columns.name')}` },
-    { field: 'roleType', title: `${$t('system.role.columns.roleType')}` },
+    { field: 'roleType', title: `${$t('system.role.columns.roleType')}`, slots: {default: "roleType"} },
     { field: 'comment', title: `${$t('system.role.columns.comment')}` },
     { field: 'isSystem', title: `${$t('system.role.columns.isSystem')}`, slots: {default: 'isSystem'}},
   ],
@@ -133,6 +133,9 @@ function pageReload() {
 
       <template #isSystem="{ row }">
         <Switch :checked="row.isSystem == 1" />
+      </template>
+      <template #roleType="{ row }">
+        <Select :value="row.roleType" :options="ROLE_TYPE_OPTIONS" disabled mode="tags"></Select>
       </template>
 
       <template #action="{ row }">

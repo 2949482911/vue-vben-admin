@@ -3,7 +3,13 @@
     "title": "公告",
     "columns": {
       "title": "标题",
-      "content": "内容"
+      "content": "内容",
+      "level": "消息等级"
+    },
+    "level": {
+      "info": "通知",
+      "warm": "提醒",
+      "error": "重要通知"
     }
   },
   "menu": {
@@ -20,7 +26,7 @@
       "sort": "排序",
       "type": "类型",
       "hideMenu": "隐藏菜单",
-      "keepAlive" : "缓存",
+      "keepAlive": "缓存",
       "activeIcon": "激活图标",
       "badge": "徽标",
       "badgeType": "徽标类型",

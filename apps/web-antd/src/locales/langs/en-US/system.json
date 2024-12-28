@@ -3,7 +3,13 @@
     "title": "Notice",
     "columns": {
       "title": "Title",
-      "content": "Content"
+      "content": "Content",
+      "level": "Level"
+    },
+    "level": {
+      "info": "Info",
+      "warm": "Warm",
+      "error": "Error"
     }
   },
   "menu": {
