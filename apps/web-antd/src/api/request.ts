@@ -1,27 +1,29 @@
 /**
  * 该文件可自行根据业务逻辑进行调整
  */
-import type {HttpResponse} from '@vben/request';
+import type { RequestClientOptions } from '@vben/request';
+
+import { useAppConfig } from '@vben/hooks';
+import { preferences } from '@vben/preferences';
 import {
   authenticateResponseInterceptor,
+  defaultResponseInterceptor,
   errorMessageResponseInterceptor,
   RequestClient,
 } from '@vben/request';
+import { useAccessStore } from '@vben/stores';
 
-import {useAppConfig} from '@vben/hooks';
-import {preferences} from '@vben/preferences';
-import {useAccessStore} from '@vben/stores';
+import { message } from 'ant-design-vue';
 
-import {message} from 'ant-design-vue';
+import { useAuthStore } from '#/store';
 
-import {useAuthStore} from '#/store';
-
-import {authApi} from './core';
+import { refreshTokenApi } from './core';
 
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 
-function createRequestClient(baseURL: string) {
+function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   const client = new RequestClient({
+    ...options,
     baseURL,
   });
 
@@ -48,7 +50,7 @@ function createRequestClient(baseURL: string) {
    */
   async function doRefreshToken() {
     const accessStore = useAccessStore();
-    const resp = await authApi.refreshTokenApi();
+    const resp = await refreshTokenApi();
     const newToken = resp.data;
     accessStore.setAccessToken(newToken);
     return newToken;
@@ -69,19 +71,14 @@ function createRequestClient(baseURL: string) {
     },
   });
 
-  // response数据解构
-  client.addResponseInterceptor<HttpResponse>({
-    fulfilled: (response) => {
-      const { data: responseData, status } = response;
-
-      const { code, data } = responseData;
-      if (status >= 200 && status < 400 && code === 0) {
-        return data;
-      }
-
-      throw Object.assign({}, response, { response });
-    },
-  });
+  // 处理返回的响应数据格式
+  client.addResponseInterceptor(
+    defaultResponseInterceptor({
+      codeField: 'code',
+      dataField: 'data',
+      successCode: 0,
+    }),
+  );
 
   // token过期的处理
   client.addResponseInterceptor(
@@ -109,6 +106,8 @@ function createRequestClient(baseURL: string) {
   return client;
 }
 
-export const requestClient = createRequestClient(apiURL);
+export const requestClient = createRequestClient(apiURL, {
+  responseReturn: 'data',
+});
 
 export const baseRequestClient = new RequestClient({ baseURL: apiURL });

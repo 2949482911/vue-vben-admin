@@ -3,11 +3,8 @@ import {ref} from 'vue';
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import type {CreateRoleRequest} from "#/api/models";
-import ProcessDesign from "#/views/bpm/process/compents/processDesign.vue";
-import {
-  Space,
-  Button
-} from 'ant-design-vue'
+// import ProcessDesign from "#/views/bpm/process/compents/processDesign.vue";
+import ProcessDesign from "./logicflow/processDesign.vue";
 
 const emit = defineEmits(['pageReload']);
 
@@ -52,9 +49,6 @@ const title: string = notice.value
 </script>
 <template>
   <Modal :title="title">
-    <Space>
-      <Button type="primary">下载</Button>
-    </Space>
     <ProcessDesign/>
   </Modal>
 </template>

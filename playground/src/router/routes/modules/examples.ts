@@ -1,11 +1,9 @@
 import type { RouteRecordRaw } from 'vue-router';
 
-import { BasicLayout } from '#/layouts';
 import { $t } from '#/locales';
 
 const routes: RouteRecordRaw[] = [
   {
-    component: BasicLayout,
     meta: {
       icon: 'ion:layers-outline',
       keepAlive: true,
@@ -246,6 +244,33 @@ const routes: RouteRecordRaw[] = [
           badgeVariants: 'destructive',
           icon: 'material-symbols:horizontal-distribute',
           title: $t('examples.layout.col-page'),
+        },
+      },
+      {
+        name: 'TippyDemo',
+        path: '/examples/tippy',
+        component: () => import('#/views/examples/tippy/index.vue'),
+        meta: {
+          icon: 'mdi:message-settings-outline',
+          title: 'Tippy',
+        },
+      },
+      {
+        name: 'JsonViewer',
+        path: '/examples/json-viewer',
+        component: () => import('#/views/examples/json-viewer/index.vue'),
+        meta: {
+          icon: 'tabler:json',
+          title: 'JsonViewer',
+        },
+      },
+      {
+        name: 'Motion',
+        path: '/examples/motion',
+        component: () => import('#/views/examples/motion/index.vue'),
+        meta: {
+          icon: 'mdi:animation-play',
+          title: 'Motion',
         },
       },
     ],

@@ -1,6 +1,6 @@
 {
   "name": "@vben/web-antd",
-  "version": "5.5.1",
+  "version": "5.5.3",
   "homepage": "https://vben.pro",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": {
@@ -53,6 +53,8 @@
     "bpmn-js-bpmnlint": "^0.22.3",
     "bpmn-js-color-picker": "^0.7.1",
     "camunda-bpmn-moddle": "^7.0.1",
-    "@bpmn-io/properties-panel": "^3.25.1"
+    "@bpmn-io/properties-panel": "^3.25.1",
+    "@logicflow/core": "^2.0.10",
+    "@logicflow/extension": "^2.0.14"
   }
 }
