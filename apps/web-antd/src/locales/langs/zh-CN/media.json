@@ -11,13 +11,13 @@
       "sellerName": "卖家名字",
       "shopId": "店铺ID",
       "shopName": "店铺名字",
-      "shopType": "Shop Type",
-      "shopScore": "Shop Score",
-      "productScore": "Product Score",
-      "logisticsScore": "Logistics Score",
-      "serviceScore": "Service Score",
-      "afterSalesServiceScore": "After Sales Service Score",
-      "contentQualifyScore": "Qualify Score"
+      "shopType": "店铺类型",
+      "shopScore": "店铺分数",
+      "productScore": "商品分数",
+      "logisticsScore": "物流分数",
+      "serviceScore": "服务分数",
+      "afterSalesServiceScore": "售后服务",
+      "contentQualifyScore": "质量服务"
     }
   }
 }

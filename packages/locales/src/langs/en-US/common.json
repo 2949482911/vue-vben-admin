@@ -29,5 +29,6 @@
   "oldPassword": "Old Password",
   "confirmPassword": "Confirm Password",
   "load": "Load",
-  "unload": "Un Load"
+  "unload": "Un Load",
+  "auth": "Auth"
 }

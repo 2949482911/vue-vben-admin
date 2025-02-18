@@ -29,5 +29,6 @@
   "oldPassword": "旧密码",
   "confirmPassword": "确认密码",
   "load": "加载",
-  "unload": "卸载"
+  "unload": "卸载",
+  "auth": "授权"
 }
