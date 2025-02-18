@@ -27,5 +27,13 @@
     "flowable_form": "Flow Form",
     "flowable_task": "Flow Task",
     "work_flow": "Work Flow"
+  },
+  "media": {
+    "account": {
+      "title": "Media Account",
+      "kuaishou": "Kuai Shou",
+      "douyin": "Bytedance",
+      "bilibili": "Bilibili"
+    }
   }
 }

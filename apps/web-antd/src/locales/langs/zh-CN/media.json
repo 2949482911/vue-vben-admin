@@ -1,0 +1,23 @@
+{
+  "account": {
+    "columns": {
+      "platform": "平台",
+      "name": "名字",
+      "sex": "性别",
+      "head": "头像",
+      "highDefinitionHead": "高清头像",
+      "accessTokenExpires": "token失效时间",
+      "sellerId": "卖家ID",
+      "sellerName": "卖家名字",
+      "shopId": "店铺ID",
+      "shopName": "店铺名字",
+      "shopType": "Shop Type",
+      "shopScore": "Shop Score",
+      "productScore": "Product Score",
+      "logisticsScore": "Logistics Score",
+      "serviceScore": "Service Score",
+      "afterSalesServiceScore": "After Sales Service Score",
+      "contentQualifyScore": "Qualify Score"
+    }
+  }
+}

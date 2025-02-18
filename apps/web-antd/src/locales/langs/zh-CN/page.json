@@ -27,5 +27,13 @@
     "work_flow": "工作流",
     "flowable_form": "表单",
     "flowable_task": "监听"
+  },
+  "media": {
+    "account": {
+      "title": "媒体账户",
+      "kuaishou": "快手",
+      "douyin": "抖音",
+      "bilibili": "哔哩哔哩"
+    }
   }
 }

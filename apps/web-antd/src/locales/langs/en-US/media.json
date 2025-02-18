@@ -1,0 +1,23 @@
+{
+  "account": {
+    "columns": {
+      "platform": "Platform",
+      "name": "Account Name",
+      "sex": "Sex",
+      "head": "Head",
+      "highDefinitionHead": "High Definition Head",
+      "accessTokenExpires": "Access Token Expires",
+      "sellerId": "Seller",
+      "sellerName": "Seller Name",
+      "shopId": "Shop ID",
+      "shopName": "Shop Name",
+      "shopType": "Shop Type",
+      "shopScore": "Shop Score",
+      "productScore": "Product Score",
+      "logisticsScore": "Logistics Score",
+      "serviceScore": "Service Score",
+      "afterSalesServiceScore": "After Sales Service Score",
+      "contentQualifyScore": "Qualify Score"
+    }
+  }
+}
