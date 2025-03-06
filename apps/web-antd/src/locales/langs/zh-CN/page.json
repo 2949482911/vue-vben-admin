@@ -33,7 +33,8 @@
       "title": "媒体账户",
       "kuaishou": "快手",
       "douyin": "抖音",
-      "bilibili": "哔哩哔哩"
+      "bilibili": "哔哩哔哩",
+      "developer": "开发者账户"
     }
   }
 }

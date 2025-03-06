@@ -19,5 +19,15 @@
       "afterSalesServiceScore": "After Sales Service Score",
       "contentQualifyScore": "Qualify Score"
     }
+  },
+  "developer": {
+    "columns": {
+      "platform": "Platform",
+      "appName": "App Name",
+      "appId": "App Id",
+      "secret": "Secret",
+      "remark": "Remark",
+      "authorizedAccount": "Authorized Count"
+    }
   }
 }

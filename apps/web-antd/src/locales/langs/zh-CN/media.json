@@ -19,5 +19,15 @@
       "afterSalesServiceScore": "售后服务",
       "contentQualifyScore": "质量服务"
     }
+  },
+  "developer": {
+    "columns": {
+      "platform": "平台",
+      "appName": "名字",
+      "appId": "AppId",
+      "secret": "秘钥",
+      "remark": "备注",
+      "authorizedAccount": "授权数"
+    }
   }
 }

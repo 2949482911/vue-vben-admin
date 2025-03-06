@@ -33,7 +33,9 @@
       "title": "Media Account",
       "kuaishou": "Kuai Shou",
       "douyin": "Bytedance",
-      "bilibili": "Bilibili"
+      "bilibili": "Bilibili",
+      "developer": "Developer Account"
     }
+
   }
 }

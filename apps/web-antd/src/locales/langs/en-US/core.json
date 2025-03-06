@@ -29,5 +29,9 @@
   },
   "flowable_process": {
 
+  },
+  "platform": {
+    "kuaishou": "Kuai Shou",
+    "douyin": "Dou Yin"
   }
 }
