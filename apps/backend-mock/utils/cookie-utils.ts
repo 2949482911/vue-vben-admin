@@ -13,7 +13,7 @@ export function clearTokenCookie(event: H3Event<EventHandlerRequest>) {
     httpOnly: true,
     sameSite: 'none',
     secure: true,
-  })
+  });
 }
 
 export function setRefreshTokenCookie(
@@ -22,7 +22,7 @@ export function setRefreshTokenCookie(
 ) {
   setCookie(event, 'jwt', refreshToken, {
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 24 * 60 * 60, // unit: seconds
     sameSite: 'none',
     secure: true,
   });
