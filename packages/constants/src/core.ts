@@ -26,3 +26,9 @@ export const SUPPORT_LANGUAGES: LanguageOption[] = [
     value: 'en-US',
   },
 ];
+
+export enum ConstantEnum {
+  COMMON_ZERO,
+  COMMON_ENABLE,
+  COMMON_DISABLE = 9,
+}
