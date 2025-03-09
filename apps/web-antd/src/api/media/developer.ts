@@ -26,6 +26,10 @@ class DeveloperApi extends BaseApi {
   fetchBatchOptions(params: BatchOptions) {
     return requestClient.post(this.getServiceUrl("batch_options"), params)
   }
+
+  fetchAuthUrl(platform: string, accountId: string) {
+    return requestClient.get(this.getServiceUrl("auth_url"), {params: {platform, accountId}});
+  }
 }
 
 

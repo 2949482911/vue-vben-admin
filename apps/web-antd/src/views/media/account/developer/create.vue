@@ -6,20 +6,12 @@ import {Card} from 'ant-design-vue';
 import {useVbenForm} from '#/adapter/form';
 import type {OrgCreateRequest} from "#/api/models/users";
 import {developerApi} from "#/api/media";
+import {PlatformOptions} from "#/constants/locales";
 
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<OrgCreateRequest>({});
-const platformOptions = [
-  {
-    "label": "Kauishou",
-    "value": "kuaishou"
-  },
-  {
-    "label": "DouYin",
-    "value": "douyin"
-  }
-]
+
 const isUpdate = ref<Boolean>(false);
 
 
@@ -53,7 +45,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Select',
       componentProps: {
         placeholder: `${$t('common.select')}`,
-        options: platformOptions,
+        options: PlatformOptions,
       },
       fieldName: 'platform',
       label: `${$t('media.developer.columns.platform')}`,

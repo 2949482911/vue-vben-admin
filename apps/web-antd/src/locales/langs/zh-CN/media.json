@@ -28,6 +28,41 @@
       "secret": "秘钥",
       "remark": "备注",
       "authorizedAccount": "授权数"
+    },
+    "auth_account": "账户ID"
+  },
+  "brand": {
+    "columns": {
+      "platform": "平台",
+      "name": "名字",
+      "nameEn": "英文"
+    }
+  },
+  "category": {
+    "columns": {
+      "platform": "平台",
+      "platformCategoryId": "platformCategoryId",
+      "platformCategoryName": "名字",
+      "platformCategoryPid": "Pid"
+    }
+  },
+  "seller_address": {
+    "columns": {
+      "platform": "平台",
+      "addressStatus": "状态",
+      "defaultAddress": "默认",
+      "addressType": "类型",
+      "sourceType": "来源"
+    }
+  },
+  "express_template": {
+    "columns": {
+      "platform": "平台",
+      "name": "名字",
+      "calType": "计费类型",
+      "provinceName": "省",
+      "cityName": "市",
+      "districtName": "区"
     }
   }
 }

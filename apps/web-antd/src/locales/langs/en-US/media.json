@@ -28,6 +28,41 @@
       "secret": "Secret",
       "remark": "Remark",
       "authorizedAccount": "Authorized Count"
+    },
+    "auth_account": "Account Id"
+  },
+  "brand": {
+    "columns": {
+      "platform": "Platform",
+      "name": "Name",
+      "nameEn": "Name En"
+    }
+  },
+  "category": {
+    "columns": {
+      "platform": "Platform",
+      "platformCategoryId": "platformCategoryId",
+      "platformCategoryName": "Name",
+      "platformCategoryPid": "Pid"
+    }
+  },
+  "seller_address": {
+    "columns": {
+      "platform": "Platform",
+      "addressStatus": "Status",
+      "defaultAddress": "Default",
+      "addressType": "Type",
+      "sourceType": "Source"
+    }
+  },
+  "express_template": {
+    "columns": {
+      "platform": "Platform",
+      "name": "Name",
+      "calType": "Cal Type",
+      "provinceName": "Province Name",
+      "cityName": "City Name",
+      "districtName": "District Name"
     }
   }
 }

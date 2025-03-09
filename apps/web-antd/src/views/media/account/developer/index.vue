@@ -4,15 +4,12 @@ import {useVbenVxeGrid} from "#/adapter/vxe-table";
 import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
 import {Button, Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
-import {BatchOptionsType, TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import {BatchOptionsType, PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {developerApi} from '#/api/media';
 
 import Create from './create.vue'
-import type {
-  CreateDeveloperRequest,
-  DeveloperItem,
-  UpdateDeveloperRequest
-} from "#/api/models/media/developer";
+import type {CreateDeveloperRequest, DeveloperItem, UpdateDeveloperRequest} from "#/api/models/media/developer";
+import {ConstantEnum} from "@vben/constants";
 
 const [CreateModal, createModalApi] = useVbenModal({
   connectedComponent: Create,
@@ -43,6 +40,14 @@ const formOptions: VbenFormProps = {
       component: "Input",
       fieldName: "appName",
       label: `${$t("media.developer.columns.appName")}`
+    },
+    {
+      component: "Select",
+      fieldName: "platform",
+      label: `${$t("media.developer.columns.platform")}`,
+      componentProps: {
+        options: PlatformOptions,
+      }
     }
   ],
   // 控制表单是否显示折叠按钮
@@ -57,12 +62,12 @@ const formOptions: VbenFormProps = {
  * @param row
  */
 async function handlerState(row: DeveloperItem) {
-  if (row.status === 1) {
+  if (row.status === ConstantEnum.COMMON_ENABLE) {
     await developerApi.fetchBatchOptions({
       type: BatchOptionsType.DISABLE,
       targetIds: [row.id]
     })
-  }else {
+  } else {
     await developerApi.fetchBatchOptions({
       type: BatchOptionsType.Enable,
       targetIds: [row.id]
@@ -96,10 +101,11 @@ const gridOptions: VxeGridProps<DeveloperItem> = {
   },
   proxyConfig: {
     ajax: {
-      query: async (params) => {
+      query: async ({page}, args) => {
         return await developerApi.fetchDeveloperList({
-          page: params.page.currentPage,
-          pageSize: params.page.pageSize
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          ...args
         });
       }
     },
@@ -122,12 +128,12 @@ function pageReload() {
     <Page>
       <Grid>
         <template #status="{ row }">
-          <Switch :checked="row.status == 1" @change="handlerState(row)"/>
+          <Switch :checked="row.status === ConstantEnum.COMMON_ENABLE" @change="handlerState(row)"/>
         </template>
 
         <template #action="{ row }">
           <Button type="link" @click="openBaseDrawer(row)">{{ $t('common.edit') }}</Button>
-<!--          <Button type="link" @click="handlerDelete(row.id)">{{ $t('common.delete') }}</Button>-->
+          <!--          <Button type="link" @click="handlerDelete(row.id)">{{ $t('common.delete') }}</Button>-->
         </template>
 
         <template #toolbar-tools>

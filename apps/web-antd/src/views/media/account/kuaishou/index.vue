@@ -1,18 +1,35 @@
 <script lang="ts" setup name="MediaOnlineretailersManager">
-import type { VxeGridProps } from "#/adapter/vxe-table";
-import { useVbenVxeGrid } from "#/adapter/vxe-table";
-import { Page, type VbenFormProps } from "@vben/common-ui";
-import { Switch, Button } from "ant-design-vue";
-import { $t } from "@vben/locales";
-import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
-import { mediaAccountApi } from "#/api/media/account";
-import type { MediaOnlineretailersItem } from "#/api/models/media/account";
+import type {VxeGridProps} from "#/adapter/vxe-table";
+import {useVbenVxeGrid} from "#/adapter/vxe-table";
+import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
+import {Button, Switch} from "ant-design-vue";
+import {$t} from "@vben/locales";
+import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import {mediaAccountApi} from "#/api/media/account";
+import type {MediaOnlineretailersItem} from "#/api/models/media/account";
+import AuthAccount from "./auth.vue"
+
+const [AuthAccountModel, createAccountApi] = useVbenModal({
+  connectedComponent: AuthAccount,
+  centered: true,
+  modal: true,
+});
+
+
 
 
 const formOptions: VbenFormProps = {
   // 默认展开
   collapsed: false,
   schema: [
+    {
+      component: "Select",
+      fieldName: "platform",
+      label: `${$t("media.developer.columns.platform")}`,
+      componentProps: {
+        options: PlatformOptions,
+      }
+    },
     {
       component: "Input",
       fieldName: "name",
@@ -111,30 +128,27 @@ function pageReload() {
 
 
 async function handlerAuthUrl() {
-  const { data } = await mediaAccountApi.fetchMediaOnlineretailersAuthUrl("kuaishou")
-  console.log(data);
+  createAccountApi.open()
 }
 
 </script>
 
 <template>
-  <Page>
-    <Grid>
-      <template #status="{ row }">
-        <Switch :checked="row.status == 1" @change="handlerState(row)" />
-      </template>
+  <div>
+    <Page>
+      <Grid>
+        <template #status="{ row }">
+          <Switch :checked="row.status == 1" @change="handlerState(row)" />
+        </template>
 
-      <template #action="{ row }">
-        <!--        <Button type="link" @click="openCreateModal(row)">{{$t('common.edit')}}</Button>-->
-        <!--        <Button type="link" @click="handlerDelete(row.id)">{{$t('common.delete')}}</Button>-->
-      </template>
+        <template #action="{ row }">
+          <!--        <Button type="link" @click="openCreateModal(row)">{{$t('common.edit')}}</Button>-->
+          <!--        <Button type="link" @click="handlerDelete(row.id)">{{$t('common.delete')}}</Button>-->
+        </template>
 
-      <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="handlerAuthUrl">
-          {{ $t("common.auth") }}
-        </Button>
-      </template>
-    </Grid>
+      </Grid>
 
-  </Page>
+    </Page>
+    <AuthAccountModel></AuthAccountModel>
+  </div>
 </template>

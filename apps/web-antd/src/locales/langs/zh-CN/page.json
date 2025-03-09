@@ -35,6 +35,17 @@
       "douyin": "抖音",
       "bilibili": "哔哩哔哩",
       "developer": "开发者账户"
+    },
+    "goods": {
+      "title": "商品",
+      "category": "分类",
+      "brand": "品牌",
+      "item": "商品"
+    },
+    "logistics": {
+      "title": "物流",
+      "address": "地址",
+      "express_template": "运费模板"
     }
   }
 }

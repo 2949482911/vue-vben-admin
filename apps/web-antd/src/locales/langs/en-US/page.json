@@ -35,7 +35,17 @@
       "douyin": "Bytedance",
       "bilibili": "Bilibili",
       "developer": "Developer Account"
+    },
+    "goods": {
+      "title": "Goods",
+      "category": "Categories",
+      "brand": "Brand",
+      "item": "Items"
+    },
+    "logistics": {
+      "title": "Logistics",
+      "address": "Address",
+      "express_template": "Express Template"
     }
-
   }
 }
