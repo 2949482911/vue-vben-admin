@@ -43,6 +43,15 @@ class PromotionApi extends BaseApi {
   fetchCouponDelete(params: DeleteCouponRequest) {
     return requestClient.post(this.getServiceUrl("/coupon/delete"), params);
   }
+
+  /**
+   * 增长优惠卷
+   */
+  fetchCouponStockAdd(params: DeleteCouponRequest) {
+    return requestClient.post(this.getServiceUrl("/coupon/stock_add"), params);
+  }
+
+  
 }
 
 export const promotionApi: PromotionApi = new PromotionApi('/media')
