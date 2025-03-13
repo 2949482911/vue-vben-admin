@@ -27,3 +27,38 @@ export interface CategoryItem extends BaseItem {
   platformCategoryPid: string;
   children: Array<CategoryParams>;
 }
+
+
+/**
+ * item
+ */
+
+export interface MediaItemParams extends PageRequestParams {
+  platform: string;
+  title: string;
+}
+
+
+export interface MediaItemItem extends BaseItem {
+  platform: string;
+  platformItemId: string;
+  localAccountId: string;
+  relItemId: string;
+  platformAccountId: string;
+  title: string;
+  platformCategoryId: string;
+  imageUrls: string;
+  purchaseLimit: boolean;
+  details: string;
+  itemRemark: string;
+  payWay: number;
+  shortTitle: string;
+  sellingPoint: string;
+  skus: Array<MediaItemSku>
+}
+
+
+export interface MediaItemSku extends BaseItem {
+  platformItemId: string;
+
+}

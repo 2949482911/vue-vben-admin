@@ -56,7 +56,7 @@ const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
-        return await categoryApi.fetchBrandList({
+        return await categoryApi.fetchCategoryList({
           page: page.currentPage,
           pageSize: page.pageSize,
           ...args
@@ -64,7 +64,13 @@ const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
       }
     },
     autoLoad: true
-  }
+  },
+  treeConfig: {
+    parentField: 'platformCategoryPid',
+    rowField: 'platformCategoryId',
+    transform: true,
+    childrenField: "children",
+  },
 };
 
 

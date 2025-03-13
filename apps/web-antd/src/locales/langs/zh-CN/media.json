@@ -64,5 +64,20 @@
       "cityName": "市",
       "districtName": "区"
     }
+  },
+  "media_item": {
+    "columns": {
+      "platform": "平台",
+      "platformItemId": "ID",
+      "title": "标题",
+      "shortTitle": "短标题",
+      "imageUrls": "图片",
+      "purchaseLimit": "限购",
+      "platformCategoryName": "类目名字",
+      "itemRemark": "备注",
+      "auditStatus": "审核状态",
+      "sellingPoint": "卖点",
+      "skus": "SKU个数"
+    }
   }
 }

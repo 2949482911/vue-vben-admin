@@ -1,6 +1,12 @@
 import {BaseApi} from "#/api/core/baseapi";
 import {requestClient} from '#/api/request';
-import type {BrandParams, BrandItem, CategoryParams, CategoryItem} from "#/api/models/media/item";
+import type {
+  BrandParams,
+  BrandItem,
+  CategoryParams,
+  CategoryItem,
+  MediaItemParams, MediaItemItem
+} from "#/api/models/media/item";
 
 
 /**
@@ -28,3 +34,15 @@ class CategoryApi extends BaseApi {
 }
 
 export const categoryApi = new CategoryApi("/media/category")
+
+
+/**
+ * 商品
+ */
+class ItemApi extends BaseApi {
+  fetchGetItemList(params: MediaItemParams) : Promise<MediaItemItem[]> {
+    return requestClient.get<MediaItemItem[]>(this.getServiceUrl("/list"), {params});
+  }
+}
+
+export const itemApi = new ItemApi("/media/item")

@@ -64,5 +64,20 @@
       "cityName": "City Name",
       "districtName": "District Name"
     }
+  },
+  "media_item": {
+    "columns": {
+      "platform": "Platform",
+      "platformItemId": "ID",
+      "title": "Title",
+      "shortTitle": "Short Title",
+      "imageUrls": "Image List",
+      "purchaseLimit": "Purchase Limit",
+      "platformCategoryName": "Category",
+      "itemRemark": "Remark",
+      "auditStatus": "Audit Status",
+      "sellingPoint": "Selling Point",
+      "skus": "Sku Nums"
+    }
   }
 }
