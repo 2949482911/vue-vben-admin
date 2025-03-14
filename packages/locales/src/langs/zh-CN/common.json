@@ -17,6 +17,8 @@
   "search": "搜索",
   "enable": "启用",
   "disable": "禁用",
+  "enabled": "已启用",
+  "disabled": "已禁用",
   "choice": "请选择",
   "boy": "男",
   "girl": "女",
@@ -30,5 +32,8 @@
   "confirmPassword": "确认密码",
   "load": "加载",
   "unload": "卸载",
-  "auth": "授权"
+  "auth": "授权",
+  "yes": "是",
+  "no": "否",
+  "detail": "详情"
 }

@@ -30,5 +30,8 @@
   "confirmPassword": "Confirm Password",
   "load": "Load",
   "unload": "Un Load",
-  "auth": "Auth"
+  "auth": "Auth",
+  "yes": "Yes",
+  "no": "No",
+  "detail": "Detail"
 }
