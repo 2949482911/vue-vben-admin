@@ -2,7 +2,7 @@
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
 import {Page, type VbenFormProps} from "@vben/common-ui";
-import {Switch} from "ant-design-vue";
+import {Button, Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
 import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {brandApi} from "#/api/media/";
@@ -88,6 +88,9 @@ function pageReload() {
       <Grid>
         <template #status="{ row }">
           <Switch :checked="row.status == 1" @change="handlerState(row)"/>
+        </template>
+        <template #action="{ row }">
+
         </template>
       </Grid>
     </Page>

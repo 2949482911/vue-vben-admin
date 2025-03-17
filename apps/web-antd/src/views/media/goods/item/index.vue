@@ -57,6 +57,7 @@ const gridOptions: VxeGridProps<MediaItemItem> = {
     {field: "itemRemark", title: `${$t("media.media_item.columns.itemRemark")}`, width: "auto"},
     {field: "auditStatus", title: `${$t("media.media_item.columns.auditStatus")}`, width: "auto"},
     {field: "sellingPoint", title: `${$t("media.media_item.columns.sellingPoint")}`, width: "auto"},
+    {field: "stock", title: `${$t("media.media_item.columns.stock")}`, width: "auto"},
     {field: "skus", title: `${$t("media.media_item.columns.skus")}`, width: "auto"},
   ],
   pagerConfig: {
@@ -93,6 +94,13 @@ function pageReload() {
   <div>
     <Page>
       <Grid>
+
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary">
+            {{ $t('common.create') }}
+          </Button>
+        </template>
+
         <template #status="{ row  }">
           <Switch :checked="row.status == 1" @change="handlerState(row)"/>
         </template>
@@ -109,6 +117,7 @@ function pageReload() {
           <Button type="link">{{ $t('common.edit') }}</Button>
           <Button type="link">{{ $t('common.delete') }}</Button>
           <Button type="link">{{ $t('common.info') }}</Button>
+          <Button type="link">{{ $t('media.media_item.columns.stock_add') }}</Button>
         </template>
       </Grid>
     </Page>

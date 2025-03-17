@@ -10,6 +10,8 @@
       "sellerId": "卖家ID",
       "sellerName": "卖家名字",
       "shopId": "店铺ID",
+      "putStatus": "投放状态",
+      "authStatus": "授权状态",
       "shopName": "店铺名字",
       "shopType": "店铺类型",
       "shopScore": "店铺分数",
@@ -77,7 +79,9 @@
       "itemRemark": "备注",
       "auditStatus": "审核状态",
       "sellingPoint": "卖点",
-      "skus": "SKU个数"
-    }
+      "skus": "SKU个数",
+      "stock": "库存"
+    },
+    "stock_add": "库存"
   }
 }

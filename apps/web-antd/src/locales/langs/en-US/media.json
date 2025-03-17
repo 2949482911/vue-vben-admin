@@ -10,6 +10,8 @@
       "sellerId": "Seller",
       "sellerName": "Seller Name",
       "shopId": "Shop ID",
+      "putStatus": "Put state",
+      "authStatus": "Auth State",
       "shopName": "Shop Name",
       "shopType": "Shop Type",
       "shopScore": "Shop Score",
@@ -77,7 +79,9 @@
       "itemRemark": "Remark",
       "auditStatus": "Audit Status",
       "sellingPoint": "Selling Point",
-      "skus": "Sku Nums"
-    }
+      "skus": "Sku Nums",
+      "stock": "Stock"
+    },
+    "stock_add": "Stock"
   }
 }

@@ -16,8 +16,6 @@ const [AuthAccountModel, createAccountApi] = useVbenModal({
 });
 
 
-
-
 const formOptions: VbenFormProps = {
   // 默认展开
   collapsed: false,
@@ -60,12 +58,11 @@ async function handlerState(row: MediaOnlineretailersItem) {
 const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
   border: true,
   columns: [
-    { title: "序号", type: "seq", width: 50, type: "checkbox", width: 100 },
-    ...TABLE_COMMON_COLUMNS,
-    { field: "platform", title: `${$t("media.account.columns.platform")}`, width: "auto" },
-    { field: "name", title: `${$t("media.account.columns.name")}`, width: "auto" },
-    { field: "sex", title: `${$t("media.account.columns.sex")}`, width: "auto" },
-    { field: "head", title: `${$t("media.account.columns.head")}`, width: "auto" },
+    {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
+    {field: "platform", title: `${$t("media.account.columns.platform")}`, width: "auto"},
+    {field: "name", title: `${$t("media.account.columns.name")}`, width: "auto"},
+    {field: "sex", title: `${$t("media.account.columns.sex")}`, width: "auto"},
+    {field: "head", title: `${$t("media.account.columns.head")}`, width: "auto"},
     {
       field: "highDefinitionHead",
       title: `${$t("media.account.columns.highDefinitionHead")}`,
@@ -76,19 +73,21 @@ const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
       title: `${$t("media.account.columns.accessTokenExpires")}`,
       width: "auto"
     },
-    { field: "sellerId", title: `${$t("media.account.columns.sellerId")}`, width: "auto" },
-    { field: "sellerName", title: `${$t("media.account.columns.sellerName")}`, width: "auto" },
-    { field: "shopId", title: `${$t("media.account.columns.shopId")}`, width: "auto" },
-    { field: "shopName", title: `${$t("media.account.columns.shopName")}`, width: "auto" },
-    { field: "shopType", title: `${$t("media.account.columns.shopType")}`, width: "auto" },
-    { field: "shopScore", title: `${$t("media.account.columns.shopScore")}`, width: "auto" },
-    { field: "productScore", title: `${$t("media.account.columns.productScore")}`, width: "auto" },
+    {field: "sellerId", title: `${$t("media.account.columns.sellerId")}`, width: "auto"},
+    {field: "sellerName", title: `${$t("media.account.columns.sellerName")}`, width: "auto"},
+    {field: "shopId", title: `${$t("media.account.columns.shopId")}`, width: "auto"},
+    {field: "shopName", title: `${$t("media.account.columns.shopName")}`, width: "auto"},
+    {field: "shopType", title: `${$t("media.account.columns.shopType")}`, width: "auto"},
+    {field: "putStatus", title: `${$t("media.account.columns.putStatus")}`, width: "auto", slots: {default: "putStatus"}},
+    {field: "authStatus", title: `${$t("media.account.columns.authStatus")}`, width: "auto", slots: {default: "authStatus"}},
+    {field: "shopScore", title: `${$t("media.account.columns.shopScore")}`, width: "auto"},
+    {field: "productScore", title: `${$t("media.account.columns.productScore")}`, width: "auto"},
     {
       field: "logisticsScore",
       title: `${$t("media.account.columns.logisticsScore")}`,
       width: "auto"
     },
-    { field: "serviceScore", title: `${$t("media.account.columns.serviceScore")}`, width: "auto" },
+    {field: "serviceScore", title: `${$t("media.account.columns.serviceScore")}`, width: "auto"},
     {
       field: "afterSalesServiceScore",
       title: `${$t("media.account.columns.afterSalesServiceScore")}`,
@@ -98,7 +97,8 @@ const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
       field: "contentQualifyScore",
       title: `${$t("media.account.columns.contentQualifyScore")}`,
       width: "auto"
-    }
+    },
+    ...TABLE_COMMON_COLUMNS,
   ],
   pagerConfig: {
     enabled: true
@@ -120,7 +120,7 @@ const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
 };
 
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 function pageReload() {
   gridApi.query();
@@ -138,12 +138,21 @@ async function handlerAuthUrl() {
     <Page>
       <Grid>
         <template #status="{ row }">
-          <Switch :checked="row.status == 1" @change="handlerState(row)" />
+          <Switch :checked="row.status == 1" @change="handlerState(row)"/>
         </template>
 
+        <template #putStatus="{ row }">
+          <Switch :checked="row.putStatus == 1"/>
+        </template>
+
+        <template #authStatus="{ row }">
+          <Switch :checked="row.authStatus == 1"/>
+        </template>
+
+
         <template #action="{ row }">
-          <!--        <Button type="link" @click="openCreateModal(row)">{{$t('common.edit')}}</Button>-->
-          <!--        <Button type="link" @click="handlerDelete(row.id)">{{$t('common.delete')}}</Button>-->
+          <Button type="link">{{ $t('common.edit') }}</Button>
+          <Button type="link">{{ $t('common.delete') }}</Button>
         </template>
 
       </Grid>

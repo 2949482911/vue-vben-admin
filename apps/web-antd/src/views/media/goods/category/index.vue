@@ -90,6 +90,7 @@ function pageReload() {
         <template #status="{ row }">
           <Switch :checked="row.status == 1" @change="handlerState(row)"/>
         </template>
+        <template #action="{ row }"></template>
       </Grid>
     </Page>
   </div>
