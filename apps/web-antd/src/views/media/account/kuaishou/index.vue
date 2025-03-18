@@ -8,6 +8,7 @@ import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {mediaAccountApi} from "#/api/media/account";
 import type {MediaOnlineretailersItem} from "#/api/models/media/account";
 import AuthAccount from "./auth.vue"
+import {ConstantEnum} from "@vben/constants";
 
 const [AuthAccountModel, createAccountApi] = useVbenModal({
   connectedComponent: AuthAccount,
@@ -15,6 +16,60 @@ const [AuthAccountModel, createAccountApi] = useVbenModal({
   modal: true,
 });
 
+enum MediaAccountBatchOptionsEnum {
+  //  停投启投
+  PUT_STATUS = "put_status",
+  //  取消授权
+  CANCEL_AUTH = "cancel_auth",
+}
+
+/**
+ * 账户授权状态
+ */
+function getAccountAuthType() {
+  return [
+    {color: 'success', label: $t('media.account.Effective'), value: ConstantEnum.COMMON_ENABLE},
+    {color: 'error', label: $t('media.account.loseEffective'), value: ConstantEnum.COMMON_DISABLE},
+  ];
+}
+
+/**
+ *  停投启投
+ * @param row
+ */
+async function putStatus(row: Array<MediaOnlineretailersItem>) {
+  const targetIds: string[] = [];
+  var values: Map<String, Number> = new Map();
+  row.forEach(row => {
+    targetIds.push(row.id)
+    values.set(row.id, row.putStatus == ConstantEnum.COMMON_ENABLE ? ConstantEnum.COMMON_DISABLE : ConstantEnum.COMMON_ENABLE);
+  })
+  await mediaAccountApi.fetchMediaOnlineretailersBatchOptions({
+    type: MediaAccountBatchOptionsEnum.PUT_STATUS,
+    targetIds: targetIds,
+    values: Object.fromEntries(values)
+  })
+  pageReload()
+}
+
+
+/**
+ * 取消授权
+ * @param row
+ */
+async function cancelStatus(row: Array<MediaOnlineretailersItem>) {
+  const targetIds: string[] = [];
+  const values: Map<String, Number> = new Map();
+  row.forEach(row => {
+    targetIds.push(row.id)
+  })
+  await mediaAccountApi.fetchMediaOnlineretailersBatchOptions({
+    type: MediaAccountBatchOptionsEnum.CANCEL_AUTH,
+    targetIds: targetIds,
+    values: values
+  })
+  pageReload()
+}
 
 const formOptions: VbenFormProps = {
   // 默认展开
@@ -55,13 +110,34 @@ async function handlerState(row: MediaOnlineretailersItem) {
   pageReload();
 }
 
+
 const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
   border: true,
+  keepSource: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
     {field: "platform", title: `${$t("media.account.columns.platform")}`, width: "auto"},
     {field: "name", title: `${$t("media.account.columns.name")}`, width: "auto"},
-    {field: "sex", title: `${$t("media.account.columns.sex")}`, width: "auto"},
+    {
+      field: "sex",
+      title: `${$t("media.account.columns.sex")}`,
+      width: "auto",
+      cellRender: {
+        name: 'CellTag',
+        options: [
+          {
+            color: 'success',
+            label: $t('common.boy'),
+            value: 1
+          },
+          {
+            color: 'error',
+            label: $t('common.girl'),
+            value: 2
+          }
+        ]
+      },
+    },
     {field: "head", title: `${$t("media.account.columns.head")}`, width: "auto"},
     {
       field: "highDefinitionHead",
@@ -78,8 +154,19 @@ const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
     {field: "shopId", title: `${$t("media.account.columns.shopId")}`, width: "auto"},
     {field: "shopName", title: `${$t("media.account.columns.shopName")}`, width: "auto"},
     {field: "shopType", title: `${$t("media.account.columns.shopType")}`, width: "auto"},
-    {field: "putStatus", title: `${$t("media.account.columns.putStatus")}`, width: "auto", slots: {default: "putStatus"}},
-    {field: "authStatus", title: `${$t("media.account.columns.authStatus")}`, width: "auto", slots: {default: "authStatus"}},
+    {
+      field: "putStatus",
+      title: `${$t("media.account.columns.putStatus")}`,
+      width: "auto",
+      cellRender: {name: 'CellTag', options: getAccountAuthType()},
+    },
+    {
+      field: "authStatus",
+      title: `${$t("media.account.columns.authStatus")}`,
+      width: "auto",
+      cellRender: {name: 'CellTag', options: getAccountAuthType()},
+      align: 'center',
+    },
     {field: "shopScore", title: `${$t("media.account.columns.shopScore")}`, width: "auto"},
     {field: "productScore", title: `${$t("media.account.columns.productScore")}`, width: "auto"},
     {
@@ -103,15 +190,25 @@ const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
   pagerConfig: {
     enabled: true
   },
+  rowConfig: {
+    keyField: 'id',
+  },
   sortConfig: {
     multiple: true
   },
+  toolbarConfig: {
+    custom: true,
+    export: false,
+    refresh: {code: 'query'},
+    zoom: true,
+  },
   proxyConfig: {
     ajax: {
-      query: async (params) => {
+      query: async ({page}, args) => {
         return await mediaAccountApi.fetchMediaOnlineretailersList({
-          page: params.page.currentPage,
-          pageSize: params.page.pageSize
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          ...args
         });
       }
     },
@@ -127,6 +224,9 @@ function pageReload() {
 }
 
 
+/**
+ * open auth model
+ */
 async function handlerAuthUrl() {
   createAccountApi.open()
 }
@@ -145,18 +245,25 @@ async function handlerAuthUrl() {
           <Switch :checked="row.putStatus == 1"/>
         </template>
 
-        <template #authStatus="{ row }">
-          <Switch :checked="row.authStatus == 1"/>
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="handlerAuthUrl">
+            {{ $t('common.create') }}
+          </Button>
         </template>
 
-
         <template #action="{ row }">
-          <Button type="link">{{ $t('common.edit') }}</Button>
-          <Button type="link">{{ $t('common.delete') }}</Button>
+          <Button type="link" v-if="row.putStatus === ConstantEnum.COMMON_ENABLE"
+                  @click="putStatus([row])">{{ $t('media.account.putOff') }}
+          </Button>
+          <Button type="link" v-if="row.putStatus === ConstantEnum.COMMON_DISABLE"
+                  @click="putStatus([row])">{{ $t('media.account.putOn') }}
+          </Button>
+          <Button type="link" v-show="row.authStatue === ConstantEnum.COMMON_ENABLE"
+                  @click="cancelStatus([row])">{{ $t('media.account.cancelAuth') }}
+          </Button>
         </template>
 
       </Grid>
-
     </Page>
     <AuthAccountModel></AuthAccountModel>
   </div>

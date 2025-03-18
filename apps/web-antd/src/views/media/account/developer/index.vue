@@ -80,7 +80,6 @@ const gridOptions: VxeGridProps<DeveloperItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    ...TABLE_COMMON_COLUMNS,
     {field: "platform", title: `${$t("media.developer.columns.platform")}`, width: "auto"},
     {field: "appName", title: `${$t("media.developer.columns.appName")}`, width: "auto"},
     {field: "appId", title: `${$t("media.developer.columns.appId")}`, width: "auto"},
@@ -91,7 +90,7 @@ const gridOptions: VxeGridProps<DeveloperItem> = {
       title: `${$t("media.developer.columns.authorizedAccount")}`,
       width: "auto"
     },
-
+    ...TABLE_COMMON_COLUMNS,
   ],
   pagerConfig: {
     enabled: true
@@ -127,13 +126,9 @@ function pageReload() {
   <div>
     <Page>
       <Grid>
-        <template #status="{ row }">
-          <Switch :checked="row.status === ConstantEnum.COMMON_ENABLE" @change="handlerState(row)"/>
-        </template>
 
         <template #action="{ row }">
           <Button type="link" @click="openBaseDrawer(row)">{{ $t('common.edit') }}</Button>
-          <!--          <Button type="link" @click="handlerDelete(row.id)">{{ $t('common.delete') }}</Button>-->
         </template>
 
         <template #toolbar-tools>
@@ -141,7 +136,6 @@ function pageReload() {
             {{ $t('common.create') }}
           </Button>
         </template>
-
       </Grid>
     </Page>
     <CreateModal @page-reload="pageReload"></CreateModal>

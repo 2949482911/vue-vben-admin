@@ -1,4 +1,5 @@
 import {$t} from '@vben/locales';
+import {ConstantEnum} from "@vben/constants";
 
 export const TABLE_COMMON_COLUMNS = [
     {align: 'left', field: 'id', title: `${$t('core.columns.id')}`, width: 'auto'},
@@ -19,8 +20,13 @@ export const TABLE_COMMON_COLUMNS = [
     {
         field: 'status',
         title: `${$t('core.columns.status')}`,
-        slots: {default: 'status'},
         width: 'auto',
+        cellRender: {
+          name: 'CellTag' , options: [
+            {color: 'success', label: $t('media.account.Effective'), value: ConstantEnum.COMMON_ENABLE},
+            {color: 'error', label: $t('media.account.loseEffective'), value: ConstantEnum.COMMON_DISABLE}
+          ]
+        },
     },
     {
         field: 'options',
@@ -143,3 +149,4 @@ export const PlatformOptions = [
         "value": "douyin"
     }
 ]
+

@@ -1,10 +1,13 @@
-import { h } from 'vue';
+import {h} from 'vue';
 
-import { setupVbenVxeTable, useVbenVxeGrid } from '@vben/plugins/vxe-table';
+import {setupVbenVxeTable, useVbenVxeGrid} from '@vben/plugins/vxe-table';
 
-import { Button, Image } from 'ant-design-vue';
+import {Button, Image, Tag} from 'ant-design-vue';
 
-import { useVbenForm } from './form';
+import {useVbenForm} from './form';
+import {get} from '@vben/utils';
+import {$t} from "@vben/locales";
+import {objectOmit} from "@vueuse/core";
 
 setupVbenVxeTable({
   configVxeTable: (vxeUI) => {
@@ -39,19 +42,38 @@ setupVbenVxeTable({
     // 表格配置项可以用 cellRender: { name: 'CellImage' },
     vxeUI.renderer.add('CellImage', {
       renderTableDefault(_renderOpts, params) {
-        const { column, row } = params;
-        return h(Image, { src: row[column.field] });
+        const {column, row} = params;
+        return h(Image, {src: row[column.field]});
       },
     });
 
     // 表格配置项可以用 cellRender: { name: 'CellLink' },
     vxeUI.renderer.add('CellLink', {
       renderTableDefault(renderOpts) {
-        const { props } = renderOpts;
+        const {props} = renderOpts;
         return h(
           Button,
-          { size: 'small', type: 'link' },
-          { default: () => props?.text },
+          {size: 'small', type: 'link'},
+          {default: () => props?.text},
+        );
+      },
+    });
+
+    vxeUI.renderer.add('CellTag', {
+      renderTableDefault({options, props}, {column, row}) {
+        const value = get(row, column.field);
+        const tagOptions = options ?? [
+          {color: 'success', label: $t('common.enabled'), value: 1},
+          {color: 'error', label: $t('common.disabled'), value: 0},
+        ];
+        const tagItem = tagOptions.find((item) => item.value === value);
+        return h(
+          Tag,
+          {
+            ...props,
+            ...objectOmit(tagItem ?? {}, ['label']),
+          },
+          {default: () => tagItem?.label ?? value},
         );
       },
     });
@@ -62,6 +84,6 @@ setupVbenVxeTable({
   useVbenForm,
 });
 
-export { useVbenVxeGrid };
+export {useVbenVxeGrid};
 
 export type * from '@vben/plugins/vxe-table';

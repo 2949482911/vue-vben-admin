@@ -60,5 +60,22 @@ export interface MediaItemItem extends BaseItem {
 
 export interface MediaItemSku extends BaseItem {
   platformItemId: string;
+  platformSkuId: string;
+  storeId: string;
+  relSkuId: string;
+  skuStock: string;
+  skuSalePrice: number;
+  imageUrl: string;
+  skuNick: string;
+  isValid: boolean;
 
+}
+
+export interface UpdateStock {
+
+}
+
+export interface MediaStockChangeRequest {
+  platform: string;
+  updateItem: Array<UpdateStock>;
 }

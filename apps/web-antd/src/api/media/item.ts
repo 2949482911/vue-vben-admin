@@ -40,8 +40,20 @@ export const categoryApi = new CategoryApi("/media/category")
  * 商品
  */
 class ItemApi extends BaseApi {
+  /**
+   * 商品
+   * @param params
+   */
   fetchGetItemList(params: MediaItemParams) : Promise<MediaItemItem[]> {
     return requestClient.get<MediaItemItem[]>(this.getServiceUrl("/list"), {params});
+  }
+
+
+  /**
+   * 库存
+   */
+  fetchStockAdd() {
+
   }
 }
 

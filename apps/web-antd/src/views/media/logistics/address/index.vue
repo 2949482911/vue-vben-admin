@@ -1,12 +1,29 @@
 <script lang="ts" setup name="BrandManager">
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
-import {Page, type VbenFormProps} from "@vben/common-ui";
-import {Button, Switch} from "ant-design-vue";
+import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
+import {Button} from "ant-design-vue";
 import {$t} from "@vben/locales";
 import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
-import {logisticsApi} from "#/api/media/";
-import type {SellerAddressItem} from "#/api/models/media/logistics";
+import {logisticsApi, mediaAccountApi} from "#/api/media/";
+import type {
+  SellerAddressCreate,
+  SellerAddressItem,
+  SellerAddressUpdate
+} from "#/api/models/media/logistics";
+
+// 创建
+import CreateAddress from "./create.vue"
+
+const [CreateAddressModal, createModalApi] = useVbenModal({
+  connectedComponent: CreateAddress,
+  centered: true,
+  modal: true,
+});
+
+function openModal(row?: SellerAddressCreate | SellerAddressUpdate) {
+  createModalApi.open()
+}
 
 
 const formOptions: VbenFormProps = {
@@ -20,7 +37,30 @@ const formOptions: VbenFormProps = {
       componentProps: {
         options: PlatformOptions,
       }
-    }
+    },
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'ApiSelect',
+      // 对应组件的参数
+      componentProps: {
+        // 菜单接口转options格式
+        afterFetch: (data: { name: string; id: string }[]) => {
+          return data.map((item: any) => ({
+            label: `${item.name}-${item.platform}`,
+            value: item.id,
+          }));
+        },
+        // 菜单接口
+        api: async () => {
+          const {items} = await mediaAccountApi.fetchAllMediaOnlineretailers()
+          return items;
+        },
+      },
+      // 字段名
+      fieldName: 'localAccountId',
+      // 界面显示的label
+      label: `${$t("media.account.columns.platformAccountId")}`,
+    },
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
@@ -29,15 +69,10 @@ const formOptions: VbenFormProps = {
 };
 
 
-async function handlerState(row: SellerAddressItem) {
-  pageReload();
-}
-
 const gridOptions: VxeGridProps<SellerAddressItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    ...TABLE_COMMON_COLUMNS,
     {field: "platform", title: `${$t("media.seller_address.columns.platform")}`, width: "auto"},
     {
       field: "addressStatus",
@@ -55,6 +90,7 @@ const gridOptions: VxeGridProps<SellerAddressItem> = {
       width: "auto"
     },
     {field: "sourceType", title: `${$t("media.seller_address.columns.sourceType")}`, width: "auto"},
+    ...TABLE_COMMON_COLUMNS,
   ],
   pagerConfig: {
     enabled: true
@@ -90,17 +126,19 @@ function pageReload() {
   <div>
     <Page>
       <Grid>
-        <template #status="{ row }">
-          <Switch :checked="row.status == 1" @change="handlerState(row)"/>
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="openModal()">
+            {{ $t('common.create') }}
+          </Button>
         </template>
 
-
         <template #action="{ row }">
-          <Button type="link">{{ $t('common.edit') }}</Button>
+          <Button type="link" @click="openModal(row)">{{ $t('common.edit') }}</Button>
           <Button type="link">{{ $t('common.delete') }}</Button>
         </template>
       </Grid>
 
     </Page>
+    <CreateAddressModal @page-reload="pageReload"></CreateAddressModal>
   </div>
 </template>

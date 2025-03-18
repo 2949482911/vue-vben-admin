@@ -2,6 +2,7 @@
   "account": {
     "columns": {
       "platform": "Platform",
+      "platformAccountId": "Platform Account Id",
       "name": "Account Name",
       "sex": "Sex",
       "head": "Head",
@@ -20,7 +21,12 @@
       "serviceScore": "Service Score",
       "afterSalesServiceScore": "After Sales Service Score",
       "contentQualifyScore": "Qualify Score"
-    }
+    },
+    "putOff": "Put Off",
+    "putOn": "Put On",
+    "cancelAuth": "Cancel Auth",
+    "loseEffective": "Lose Effective",
+    "Effective": "Effective"
   },
   "developer": {
     "columns": {
@@ -55,6 +61,17 @@
       "defaultAddress": "Default",
       "addressType": "Type",
       "sourceType": "Source"
+    },
+    "addressType": {
+      "returnAddress": "Return",
+      "sendItems": "Send Items",
+      "consignee": "Consignee",
+      "mobile": "Mobile",
+      "province": "Province",
+      "city": "City",
+      "district": "District",
+      "address": "Address",
+      "town": "Town"
     }
   },
   "express_template": {
