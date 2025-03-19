@@ -6,11 +6,7 @@ import {Button} from "ant-design-vue";
 import {$t} from "@vben/locales";
 import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {logisticsApi, mediaAccountApi} from "#/api/media/";
-import type {
-  SellerAddressCreate,
-  SellerAddressItem,
-  SellerAddressUpdate
-} from "#/api/models/media/logistics";
+import type {SellerAddressItem} from "#/api/models/media/logistics";
 
 // 创建
 import CreateAddress from "./create.vue"
@@ -21,7 +17,29 @@ const [CreateAddressModal, createModalApi] = useVbenModal({
   modal: true,
 });
 
-function openModal(row?: SellerAddressCreate | SellerAddressUpdate) {
+function openModal(row?: SellerAddressItem) {
+  if (row) {
+    createModalApi.setData({
+      id: row.id,
+      platform: row.platform,
+      accountId: row.accountId,
+      provinceCode: row.mediaSellerAddressDetail.provinceCode,
+      province: row.mediaSellerAddressDetail.province,
+      cityCode: row.mediaSellerAddressDetail.cityCode,
+      city: row.mediaSellerAddressDetail.city,
+      districtCode: row.mediaSellerAddressDetail.districtCode,
+      district: row.mediaSellerAddressDetail.district,
+      address: row.mediaSellerAddressDetail.address,
+      town: row.mediaSellerAddressDetail.town,
+      townCode: row.mediaSellerAddressDetail.townCode,
+      consignee: row.mediaSellerAddressDetail.consignee,
+      mobile: row.mediaSellerAddressDetail.mobile,
+      defaultAddress: row.defaultAddress,
+      addressType: row.addressType,
+    })
+  }else {
+    createModalApi.setData({})
+  }
   createModalApi.open()
 }
 
@@ -127,7 +145,7 @@ function pageReload() {
     <Page>
       <Grid>
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openModal()">
+          <Button class="mr-2" type="primary" @click="openModal(null)">
             {{ $t('common.create') }}
           </Button>
         </template>

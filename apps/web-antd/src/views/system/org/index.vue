@@ -56,13 +56,13 @@ async function handlerDelete(row: OrgItem) {
 
 const gridOptions: VxeGridProps<MenuItem> = {
   columns: [
-    ...TABLE_COMMON_COLUMNS,
     {
       field: 'name',
       minWidth: 300,
       title: `${$t('system.org.columns.name')}`,
       treeNode: true,
     },
+    ...TABLE_COMMON_COLUMNS,
   ],
   proxyConfig: {
     autoLoad: true,

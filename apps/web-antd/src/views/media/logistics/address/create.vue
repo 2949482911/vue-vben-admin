@@ -1,17 +1,23 @@
 <script lang="ts" setup name="CreateAddress">
-import {h, ref} from 'vue';
+import {h, markRaw, ref} from 'vue';
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
-import {Card} from 'ant-design-vue';
+import {Card, Cascader} from 'ant-design-vue';
 import {useVbenForm} from '#/adapter/form';
-import {developerApi, mediaAccountApi} from "#/api/media";
+import {developerApi, logisticsApi, mediaAccountApi} from "#/api/media";
 import {PlatformOptions} from "#/constants/locales";
-import type {SellerAddressCreate, SellerAddressUpdate} from "#/api/models/media/logistics";
+import type {
+  District,
+  SellerAddressCreate,
+  SellerAddressUpdate
+} from "#/api/models/media/logistics";
 
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<SellerAddressCreate | SellerAddressUpdate>({});
 
+// 地区
+const districtList = ref<Array<District>>([])
 const isUpdate = ref<Boolean>(false);
 
 function getAddressType(platform: string) {
@@ -101,79 +107,124 @@ const [Form, formApi] = useVbenForm({
 
     {
       component: 'Input',
-      componentProps: {
-        options: getAddressType()
-      },
       fieldName: 'consignee',
       label: `${$t("media.seller_address.addressType.consignee")}`,
       rules: 'required',
-
     },
     {
       component: 'Input',
-      componentProps: {
-        options: getAddressType()
-      },
       fieldName: 'mobile',
       label: `${$t("media.seller_address.addressType.mobile")}`,
       rules: 'required',
-
     },
 
     {
-      component: 'Input',
+      component: markRaw(Cascader),
       componentProps: {
-        options: getAddressType()
+        options: districtList,
+        fieldNames: {
+          label: 'name',
+          value: 'id',
+          children: 'children',
+        },
+        onChange: (value: string[], selectedOptions) => {
+          formApi.setValues({
+            provinceCode: value[0],
+            province: selectedOptions[0].name,
+            cityCode: value[1],
+            city: selectedOptions[1].name,
+            districtCode: value[2],
+            district: selectedOptions[2].name,
+            townCode: value[3],
+            town: selectedOptions[3].name,
+            addressSelect: value
+          })
+        }
       },
-      fieldName: 'province',
+      fieldName: 'addressSelect',
       label: `${$t("media.seller_address.addressType.province")}`,
       rules: 'required',
-
     },
 
     {
       component: 'Input',
-      componentProps: {
-        options: getAddressType()
-      },
+      fieldName: 'province',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
+    },
+
+    {
+      component: 'Input',
+      fieldName: 'provinceCode',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
+    },
+
+    {
+      component: 'Input',
       fieldName: 'city',
-      label: `${$t("media.seller_address.addressType.city")}`,
-      rules: 'required',
-
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
     },
 
     {
       component: 'Input',
-      componentProps: {
-        options: getAddressType()
-      },
+      fieldName: 'cityCode',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
+    },
+
+
+    {
+      component: 'Input',
       fieldName: 'district',
-      label: `${$t("media.seller_address.addressType.district")}`,
-      rules: 'required',
-
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
     },
 
     {
       component: 'Input',
-      componentProps: {
-        options: getAddressType()
-      },
-      fieldName: 'town',
-      label: `${$t("media.seller_address.addressType.town")}`,
-      rules: 'required',
+      fieldName: 'districtCode',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
+    },
 
+    {
+      component: 'Input',
+      fieldName: 'town',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
+    },
+
+    {
+      component: 'Input',
+      fieldName: 'townCode',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
     },
 
     {
       component: 'Textarea',
-      componentProps: {
-        options: getAddressType()
-      },
       fieldName: 'address',
       label: `${$t("media.seller_address.addressType.address")}`,
       rules: 'required',
     },
-
     {
       component: 'Switch',
       defaultValue: false,
@@ -183,17 +234,15 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'defaultAddress',
       label: `${$t("media.seller_address.columns.defaultAddress")}`,
       rules: 'required',
-
-    },
-
+    }
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
     if (isUpdate.value) {
-      await developerApi.fetchUpdateDeveloper(JSON.stringify(values))
+      await logisticsApi.fetchSellerAddressUpdate(JSON.stringify(values))
     } else {
-      await developerApi.fetchCreateDeveloper(JSON.stringify(values))
+      await logisticsApi.fetchSellerCreateAddress(JSON.stringify(values))
     }
     modalApi.close();
   }
@@ -221,6 +270,10 @@ const [Modal, modalApi] = useVbenModal({
         isUpdate.value = false;
       }
     }
+    // 获取地区
+    logisticsApi.fetchDistrictTree().then(res => {
+      districtList.value = res
+    })
   },
 });
 

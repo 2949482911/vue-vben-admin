@@ -99,3 +99,16 @@ export interface ExpressTemplateCreate {
 export interface ExpressTemplateUpdate extends ExpressTemplateCreate{
   id: string;
 }
+
+
+/**
+ * 行政地区
+ */
+export interface District extends BaseItem {
+  code: string;
+  name: string;
+  parentId: string;
+  version: string;
+  children: Array<District>;
+}
+

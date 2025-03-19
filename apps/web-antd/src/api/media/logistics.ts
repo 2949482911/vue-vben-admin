@@ -1,6 +1,7 @@
 import {BaseApi} from "#/api/core/baseapi";
 import {requestClient} from '#/api/request';
 import type {
+  District,
   ExpressTemplateCreate,
   ExpressTemplateItem,
   ExpressTemplateParams, ExpressTemplateUpdate,
@@ -52,6 +53,13 @@ class LogisticsApi extends BaseApi {
 
   fetchExpressTemplateUpdate(params: ExpressTemplateUpdate) {
     return requestClient.post(this.getServiceUrl("express/template/update"), params);
+  }
+
+  /**
+   * 获取地区树
+   */
+  fetchDistrictTree():Promise<District[]> {
+    return requestClient.get<District[]>(this.getServiceUrl("district/tree"));
   }
 
 }
