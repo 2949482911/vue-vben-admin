@@ -150,3 +150,9 @@ export const PlatformOptions = [
     }
 ]
 
+
+
+export enum PlatformEnum {
+    KUAISHOU = "kuaishou",
+    DOUYIN = "douyin"
+}

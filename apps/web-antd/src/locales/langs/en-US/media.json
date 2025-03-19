@@ -82,6 +82,10 @@
       "provinceName": "Province Name",
       "cityName": "City Name",
       "districtName": "District Name"
+    },
+    "calType": {
+      "piece": "Piece",
+      "weight": "Weight"
     }
   },
   "media_item": {

@@ -1,4 +1,4 @@
-<script lang="ts" setup name="BrandManager">
+<script lang="ts" setup name="AddressManager">
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
 import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";

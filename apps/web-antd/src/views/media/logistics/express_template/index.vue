@@ -1,12 +1,26 @@
 <script lang="ts" setup name="BrandManager">
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
-import {Page, type VbenFormProps} from "@vben/common-ui";
+import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
 import {Button, Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
 import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {logisticsApi} from "#/api/media/";
 import type {ExpressTemplateItem} from "#/api/models/media/logistics";
+import CreateExpressTemplate from "./create.vue"
+
+
+const [CreateExpressTemplateModal, createModalApi] = useVbenModal({
+  connectedComponent: CreateExpressTemplate,
+  centered: true,
+  modal: true,
+});
+
+
+function openModal(row: ExpressTemplateItem) {
+  createModalApi.open()
+}
+
 
 
 const formOptions: VbenFormProps = {
@@ -34,21 +48,18 @@ const formOptions: VbenFormProps = {
 };
 
 
-async function handlerState(row: ExpressTemplateItem) {
-  pageReload();
-}
-
 const gridOptions: VxeGridProps<ExpressTemplateItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    ...TABLE_COMMON_COLUMNS,
     {field: "platform", title: `${$t("media.express_template.columns.platform")}`, width: "auto"},
     {field: "name", title: `${$t("media.express_template.columns.name")}`, width: "auto"},
     {field: "calType", title: `${$t("media.express_template.columns.calType")}`, width: "auto"},
     {field: "provinceName", title: `${$t("media.express_template.columns.provinceName")}`, width: "auto"},
     {field: "cityName", title: `${$t("media.express_template.columns.cityName")}`, width: "auto"},
     {field: "districtName", title: `${$t("media.express_template.columns.districtName")}`, width: "auto"},
+    ...TABLE_COMMON_COLUMNS,
+
   ],
   pagerConfig: {
     enabled: true
@@ -84,14 +95,19 @@ function pageReload() {
   <div>
     <Page>
       <Grid>
-        <template #status="{ row }">
-          <Switch :checked="row.status == 1" @change="handlerState(row)"/>
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="openModal(null)">
+            {{ $t('common.create') }}
+          </Button>
         </template>
+
         <template #action="{ row }">
           <Button type="link">{{ $t('common.edit') }}</Button>
           <Button type="link">{{ $t('common.delete') }}</Button>
         </template>
       </Grid>
     </Page>
+
+    <CreateExpressTemplateModal @page-reload="pageReload"/>
   </div>
 </template>

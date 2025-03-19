@@ -82,6 +82,10 @@
       "provinceName": "省",
       "cityName": "市",
       "districtName": "区"
+    },
+    "calType": {
+      "piece": "按件计费",
+      "weight": "按重量计费"
     }
   },
   "media_item": {
