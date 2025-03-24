@@ -171,7 +171,7 @@ const [Form, formApi] = useVbenForm({
     },
 
     {
-      component: 'Input',
+      component: 'IconPicker',
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
