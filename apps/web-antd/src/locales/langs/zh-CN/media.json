@@ -148,5 +148,43 @@
       "modifyAmount": "改价金额",
       "promotionAmount": "订单优惠总金额"
     }
+  },
+  "coupon": {
+    "columns": {
+      "platform": "平台",
+      "platformCouponId": "CouponId",
+      "name": "名字",
+      "validStartTime": "使用开始时间",
+      "validEndTime": "使用结束时间",
+      "outerUniqueKey": "OuterUniqueKey",
+      "fixedValidityTime": "使用固定时间",
+      "receiveChannel": "领取渠道",
+      "reduceAmount": "优惠券金额",
+      "receiveStartTime": "领取开始时间",
+      "receiveEndTime": "领取结束时间",
+      "threshold": "优惠券门槛",
+      "couponTargetType": "目标类型",
+      "validityType": "优惠券使用有效期类型",
+      "totalStock": "总库存",
+      "receivePerLimit": "每人限领",
+      "couponFrontType": "CouponFrontType",
+      "mediaStatus": "券状态",
+      "couponCirculation": "优惠券发行量",
+      "couponReceiveNum": "优惠券领取量",
+      "usedCouponOrderPayAmt": "优惠券拉动支付金额",
+      "couponReceiveUserCnt": "优惠券领取用户数",
+      "couponUsedNum": "优惠券使用量",
+      "couponUsedUserCnt": "转化用户数",
+      "usedCouponAmt": "优惠券消耗金额",
+      "usedCouponOrderRealPayAmt": "优惠券实际拉动支付金额"
+    }
+  },
+  "crowd": {
+    "columns": {
+      "platform": "平台",
+      "crowdName": "名字",
+      "crowdDesc": "描述",
+      "extJson": "附加JSON"
+    }
   }
 }

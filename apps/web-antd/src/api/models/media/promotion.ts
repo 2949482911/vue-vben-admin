@@ -77,3 +77,18 @@ export interface DeleteCouponRequest {
   platform: string;
   mediaAccountDeleteCoupons: MediaAccountDeleteCoupon
 }
+
+
+
+export interface CrowdParams extends PageRequestParams {
+  platform: string;
+}
+
+
+export interface CrowdItem extends BaseItem {
+  localAccountId: string;
+  platform: string;
+  crowdName: string;
+  crowdDesc: string;
+  extJson: string
+}

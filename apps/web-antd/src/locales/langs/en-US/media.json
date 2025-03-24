@@ -148,5 +148,43 @@
       "modifyAmount": "ModifyAmount",
       "promotionAmount": "PromotionAmount"
     }
+  },
+  "coupon": {
+    "columns": {
+      "platform": "Platform",
+      "platformCouponId": "CouponId",
+      "name": "Name",
+      "validStartTime": "ValidStartTime",
+      "outerUniqueKey": "OuterUniqueKey",
+      "fixedValidityTime": "FixedValidityTime",
+      "receiveChannel": "ReceiveChannel",
+      "reduceAmount": "ReduceAmount",
+      "receiveStartTime": "ReceiveStartTime",
+      "threshold": "Threshold",
+      "couponTargetType": "CouponTargetType",
+      "validityType": "ValidityType",
+      "validEndTime": "ValidEndTime",
+      "receiveEndTime": "ReceiveEndTime",
+      "totalStock": "TotalStock",
+      "receivePerLimit": "ReceivePerLimit",
+      "couponFrontType": "CouponFrontType",
+      "mediaStatus": "MediaStatus",
+      "couponCirculation": "CouponCirculation",
+      "couponReceiveNum": "CouponReceiveNum",
+      "usedCouponOrderPayAmt": "UsedCouponOrderPayAmt",
+      "couponReceiveUserCnt": "CouponReceiveUserCnt",
+      "couponUsedNum": "CouponUsedNum",
+      "couponUsedUserCnt": "CouponUsedUserCnt",
+      "usedCouponAmt": "UsedCouponAmt",
+      "usedCouponOrderRealPayAmt": "UsedCouponOrderRealPayAmt"
+    }
+  },
+  "crowd": {
+    "columns": {
+      "platform": "Platform",
+      "crowdName": "Name",
+      "crowdDesc": "Desc",
+      "extJson": "Ext"
+    }
   }
 }
