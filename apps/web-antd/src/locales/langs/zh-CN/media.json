@@ -104,5 +104,49 @@
       "stock": "库存"
     },
     "stock_add": "库存"
+  },
+  "return_order": {
+    "columns": {
+      "platform": "平台",
+      "platformRefundId": "订单ID",
+      "platformSkuId": "Sku Id",
+      "relItemId": "商品ID",
+      "handlingWay": "退款方式",
+      "negotiateStatus": "协商状态",
+      "refundFee": "金额",
+      "refundStatus": "退货状态",
+      "refundType": "类型",
+      "refundDesc": "描述",
+      "submitTime": "提交时间"
+    }
+  },
+  "order": {
+    "columns": {
+      "platform": "平台",
+      "platformOrderId": "Order Id",
+      "platformOrderNo": "Order No",
+      "payTime": "支付时间",
+      "buyerOpenId": "买家ID",
+      "buyerNickname": "买家昵称",
+      "expressFee": "运费",
+      "discountFee": "促销减价",
+      "orderStatus": "状态",
+      "orderType": "类型",
+      "orderLevel": "等级",
+      "sendTime": "发货时间",
+      "refundTime": "发起退款时间",
+      "finishTime": "结束时间",
+      "orderCreateTime": "订单创建时间",
+      "orderUpdateTime": "订单更新时间",
+      "buyerRemark": "买家备注",
+      "payType": "支付方式",
+      "remindShipmentSign": "催单次数",
+      "cancelReason": "订单取消原因",
+      "orderAmount": "订单金额",
+      "payAmount": "支付金额",
+      "postAmount": "快递费",
+      "modifyAmount": "改价金额",
+      "promotionAmount": "订单优惠总金额"
+    }
   }
 }

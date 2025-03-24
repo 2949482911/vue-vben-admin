@@ -38,7 +38,31 @@ function getCalType(platform: string) {
  * form schema
  */
 function getSchema(platform: string) {
-  const schema: Array<FormSchema> = [];
+  const schema: Array<FormSchema> = [
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'ApiSelect',
+      // 对应组件的参数
+      componentProps: {
+        afterFetch: (data: { name: string; id: string }[]) => {
+          return data.map((item: any) => ({
+            label: `${item.name}-${item.platform}`,
+            value: item.id,
+          }));
+        },
+        // 菜单接口
+        api: async () => {
+          const {items} = await mediaAccountApi.fetchAllMediaOnlineretailers(platform)
+          return items
+        },
+      },
+      // 字段名
+      fieldName: 'accountId',
+      // 界面显示的label
+      label: `${$t("media.account.columns.platformAccountId")}`,
+      rules: 'required',
+    },
+  ];
   if (platform === PlatformEnum.KUAISHOU) {
     schema.push({
       component: 'Select',
@@ -84,39 +108,19 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         placeholder: `${$t('common.select')}`,
         options: PlatformOptions,
-        onSelect: async (value) => {
-          const schema: Array<FormSchema> = getSchema(value)
-          if (schema.length > 0) {
-            await formApi.updateSchema(schema)
-          }
+        onSelect: (value) => {
+          formApi.setState((prev) => {
+              const currentSchema = prev?.schema ?? [];
+              const newSchema = getSchema(value);
+              return {
+                schema: [...currentSchema, ...newSchema],
+              };
+            }
+          )
         }
       },
       fieldName: 'platform',
       label: `${$t('media.seller_address.columns.platform')}`,
-      rules: 'required',
-    },
-
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'ApiSelect',
-      // 对应组件的参数
-      componentProps: {
-        afterFetch: (data: { name: string; id: string }[]) => {
-          return data.map((item: any) => ({
-            label: `${item.name}-${item.platform}`,
-            value: item.id,
-          }));
-        },
-        // 菜单接口
-        api: async () => {
-          const {items} = await mediaAccountApi.fetchAllMediaOnlineretailers()
-          return items
-        },
-      },
-      // 字段名
-      fieldName: 'accountId',
-      // 界面显示的label
-      label: `${$t("media.account.columns.platformAccountId")}`,
       rules: 'required',
     },
 
@@ -157,7 +161,7 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'sendProvinceName',
       dependencies: {
         show: false,
-        triggerFields: ["*"]
+        triggerFields: ["*"],
       }
     },
 
@@ -218,6 +222,11 @@ const [Form, formApi] = useVbenForm({
     modalApi.close();
   }
 });
+
+
+function platformSelect(platform: string) {
+
+}
 
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,

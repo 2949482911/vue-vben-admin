@@ -46,6 +46,19 @@
       "title": "物流",
       "address": "地址",
       "express_template": "运费模板"
+    },
+    "order": {
+      "title": "订单",
+      "order": "订单"
+    },
+    "return_order": {
+      "title": "退货",
+      "return_orders": "退货"
+    },
+    "promotion": {
+      "title": "营销",
+      "coupon": "优惠卷",
+      "crowd": "人群包"
     }
   }
 }

@@ -5,7 +5,6 @@ import type {
 } from "#/api/models/media/account";
 import {requestClient} from '#/api/request';
 import type {BatchOptions} from "#/api/models/core";
-import {qs} from 'qs';
 
 /**
  * media account

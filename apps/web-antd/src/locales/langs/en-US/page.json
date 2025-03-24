@@ -46,6 +46,19 @@
       "title": "Logistics",
       "address": "Address",
       "express_template": "Express Template"
+    },
+    "order": {
+      "title": "Order",
+      "order": "Orders"
+    },
+    "return_order": {
+      "title": "Return Order",
+      "return_orders": "Return Orders"
+    },
+    "promotion": {
+      "title": "Promotion",
+      "coupon": "Coupon",
+      "crowd": "Crowd Package"
     }
   }
 }

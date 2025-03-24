@@ -104,5 +104,49 @@
       "stock": "Stock"
     },
     "stock_add": "Stock"
+  },
+  "return_order": {
+    "columns": {
+      "platform": "Platform",
+      "platformRefundId": "Order Id",
+      "platformSkuId": "Sku Id",
+      "handlingWay": "Way",
+      "negotiateStatus": "Negotiate Status",
+      "refundFee": "Fee",
+      "refundStatus": "Return Status",
+      "refundType": "Refund Type",
+      "refundDesc": "Desc",
+      "submitTime": "Submit Time",
+      "relItemId": "ItemId"
+    }
+  },
+  "order": {
+    "columns": {
+      "platform": "Platform",
+      "platformOrderId": "Order Id",
+      "platformOrderNo": "Order No",
+      "payTime": "PayTime",
+      "buyerOpenId": "BuyerOpenId",
+      "buyerNickname": "Buyer Nickname",
+      "expressFee": "Express Fee",
+      "discountFee": "Discount Fee",
+      "orderStatus": "Status",
+      "orderType": "Order Type",
+      "orderLevel": "Order Level",
+      "sendTime": "Send Time",
+      "refundTime": "Refund Time",
+      "finishTime": "Finish Time",
+      "orderCreateTime": "Order CreateTime",
+      "orderUpdateTime": "Order UpdateTime",
+      "buyerRemark": "Buyer Remark",
+      "payType": "Pay Type",
+      "remindShipmentSign": "RemindShipmentSign",
+      "cancelReason": "CancelReason",
+      "orderAmount": "OrderAmount",
+      "payAmount": "PayAmount",
+      "postAmount": "PostAmount",
+      "modifyAmount": "ModifyAmount",
+      "promotionAmount": "PromotionAmount"
+    }
   }
 }
