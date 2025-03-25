@@ -177,6 +177,26 @@
       "couponUsedUserCnt": "CouponUsedUserCnt",
       "usedCouponAmt": "UsedCouponAmt",
       "usedCouponOrderRealPayAmt": "UsedCouponOrderRealPayAmt"
+    },
+    "validityType": {
+      "period": "Range Time",
+      "fixed": "Fixed"
+    },
+    "receiveChannel": {
+      "detail": "Detail",
+      "customer": "Customer",
+      "all_chancel": "All Chancel",
+      "activity_chancel": "Activity Chancel"
+    },
+    "couponTargetType": {
+      "items": "Items",
+      "store": "Store",
+      "category": "Category",
+      "all": "All"
+    },
+    "couponFrontType": {
+      "new_fans": "New Fans",
+      "fans": "Fans"
     }
   },
   "crowd": {
@@ -184,7 +204,8 @@
       "platform": "Platform",
       "crowdName": "Name",
       "crowdDesc": "Desc",
-      "extJson": "Ext"
+      "extJson": "Ext",
+      "tagCondition": "Tags"
     }
   }
 }

@@ -1,12 +1,30 @@
 <script lang="ts" setup name="CouponManager">
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
-import {Page, type VbenFormProps} from "@vben/common-ui";
+import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
 import {Button, Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
 import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {couponApi} from "#/api/media/";
 import type {MediaItemItem} from "#/api/models/media/item";
+import Create from './create.vue'
+import type {CouponItem} from "#/api/models";
+
+const [CreateModal, createModalApi] = useVbenModal({
+  connectedComponent: Create,
+  centered: true,
+  modal: true,
+});
+
+
+function openModal(row?: CouponItem) {
+  if (row) {
+    createModalApi.setData(row);
+  } else {
+    createModalApi.setData({})
+  }
+  createModalApi.open();
+}
 
 
 const formOptions: VbenFormProps = {
@@ -38,29 +56,73 @@ const gridOptions: VxeGridProps<MediaItemItem> = {
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
     {field: "platform", title: `${$t("media.coupon.columns.platform")}`, width: "auto"},
-    {field: "platformCouponId", title: `${$t("media.coupon.columns.platformCouponId")}`, width: "auto"},
+    {
+      field: "platformCouponId",
+      title: `${$t("media.coupon.columns.platformCouponId")}`,
+      width: "auto"
+    },
     {field: "name", title: `${$t("media.coupon.columns.name")}`, width: "auto"},
     {field: "validStartTime", title: `${$t("media.coupon.columns.validStartTime")}`, width: "auto"},
     {field: "validEndTime", title: `${$t("media.coupon.columns.validEndTime")}`, width: "auto"},
-    {field: "fixedValidityTime", title: `${$t("media.coupon.columns.fixedValidityTime")}`, width: "auto"},
+    {
+      field: "fixedValidityTime",
+      title: `${$t("media.coupon.columns.fixedValidityTime")}`,
+      width: "auto"
+    },
     {field: "receiveChannel", title: `${$t("media.coupon.columns.receiveChannel")}`, width: "auto"},
     {field: "reduceAmount", title: `${$t("media.coupon.columns.reduceAmount")}`, width: "auto"},
-    {field: "receiveStartTime", title: `${$t("media.coupon.columns.receiveStartTime")}`, width: "auto"},
+    {
+      field: "receiveStartTime",
+      title: `${$t("media.coupon.columns.receiveStartTime")}`,
+      width: "auto"
+    },
     {field: "receiveEndTime", title: `${$t("media.coupon.columns.receiveEndTime")}`, width: "auto"},
     {field: "threshold", title: `${$t("media.coupon.columns.threshold")}`, width: "auto"},
-    {field: "couponTargetType", title: `${$t("media.coupon.columns.couponTargetType")}`, width: "auto"},
+    {
+      field: "couponTargetType",
+      title: `${$t("media.coupon.columns.couponTargetType")}`,
+      width: "auto"
+    },
     {field: "validityType", title: `${$t("media.coupon.columns.validityType")}`, width: "auto"},
     {field: "totalStock", title: `${$t("media.coupon.columns.totalStock")}`, width: "auto"},
-    {field: "receivePerLimit", title: `${$t("media.coupon.columns.receivePerLimit")}`, width: "auto"},
+    {
+      field: "receivePerLimit",
+      title: `${$t("media.coupon.columns.receivePerLimit")}`,
+      width: "auto"
+    },
     {field: "mediaStatus", title: `${$t("media.coupon.columns.mediaStatus")}`, width: "auto"},
-    {field: "couponCirculation", title: `${$t("media.coupon.columns.couponCirculation")}`, width: "auto"},
-    {field: "couponReceiveNum", title: `${$t("media.coupon.columns.couponReceiveNum")}`, width: "auto"},
-    {field: "usedCouponOrderPayAmt", title: `${$t("media.coupon.columns.usedCouponOrderPayAmt")}`, width: "auto"},
-    {field: "couponReceiveUserCnt", title: `${$t("media.coupon.columns.couponReceiveUserCnt")}`, width: "auto"},
+    {
+      field: "couponCirculation",
+      title: `${$t("media.coupon.columns.couponCirculation")}`,
+      width: "auto"
+    },
+    {
+      field: "couponReceiveNum",
+      title: `${$t("media.coupon.columns.couponReceiveNum")}`,
+      width: "auto"
+    },
+    {
+      field: "usedCouponOrderPayAmt",
+      title: `${$t("media.coupon.columns.usedCouponOrderPayAmt")}`,
+      width: "auto"
+    },
+    {
+      field: "couponReceiveUserCnt",
+      title: `${$t("media.coupon.columns.couponReceiveUserCnt")}`,
+      width: "auto"
+    },
     {field: "couponUsedNum", title: `${$t("media.coupon.columns.couponUsedNum")}`, width: "auto"},
-    {field: "couponUsedUserCnt", title: `${$t("media.coupon.columns.couponUsedUserCnt")}`, width: "auto"},
+    {
+      field: "couponUsedUserCnt",
+      title: `${$t("media.coupon.columns.couponUsedUserCnt")}`,
+      width: "auto"
+    },
     {field: "usedCouponAmt", title: `${$t("media.coupon.columns.usedCouponAmt")}`, width: "auto"},
-    {field: "usedCouponOrderRealPayAmt", title: `${$t("media.coupon.columns.usedCouponOrderRealPayAmt")}`, width: "auto"},
+    {
+      field: "usedCouponOrderRealPayAmt",
+      title: `${$t("media.coupon.columns.usedCouponOrderRealPayAmt")}`,
+      width: "auto"
+    },
     ...TABLE_COMMON_COLUMNS
   ],
   pagerConfig: {
@@ -99,30 +161,18 @@ function pageReload() {
       <Grid>
 
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary">
+          <Button class="mr-2" type="primary" @click="openModal(null)">
             {{ $t('common.create') }}
           </Button>
         </template>
 
-        <template #status="{ row  }">
-          <Switch :checked="row.status == 1" @change="handlerState(row)"/>
-        </template>
-
-        <template #skus="{ row }">
-          <div>{{ row.skus.length }}</div>
-        </template>
-
-        <template #auditStatus="{ row }">
-          <div>{{ row.auditStatus }}</div>
-        </template>
 
         <template #action="{ row }">
-          <Button type="link">{{ $t('common.edit') }}</Button>
+          <Button type="link" @click="openModal(row)">{{ $t('common.edit') }}</Button>
           <Button type="link">{{ $t('common.delete') }}</Button>
-          <Button type="link">{{ $t('common.info') }}</Button>
-          <Button type="link">{{ $t('media.media_item.columns.stock_add') }}</Button>
         </template>
       </Grid>
     </Page>
+    <CreateModal @page-reload="pageReload" />
   </div>
 </template>

@@ -167,7 +167,7 @@
       "validityType": "优惠券使用有效期类型",
       "totalStock": "总库存",
       "receivePerLimit": "每人限领",
-      "couponFrontType": "CouponFrontType",
+      "couponFrontType": "券类型",
       "mediaStatus": "券状态",
       "couponCirculation": "优惠券发行量",
       "couponReceiveNum": "优惠券领取量",
@@ -177,6 +177,26 @@
       "couponUsedUserCnt": "转化用户数",
       "usedCouponAmt": "优惠券消耗金额",
       "usedCouponOrderRealPayAmt": "优惠券实际拉动支付金额"
+    },
+    "validityType": {
+      "period": "时间段",
+      "fixed": "固定时间"
+    },
+    "receiveChannel": {
+      "detail": "商详",
+      "customer": "客服发券",
+      "all_chancel": "全部推广渠道",
+      "activity_chancel": "活动渠道"
+    },
+    "couponTargetType": {
+      "items": "商品",
+      "store": "店铺",
+      "category": "类目",
+      "all": "全部通用"
+    },
+    "couponFrontType": {
+      "new_fans": "新粉丝",
+      "fans": "粉丝"
     }
   },
   "crowd": {
@@ -184,7 +204,8 @@
       "platform": "平台",
       "crowdName": "名字",
       "crowdDesc": "描述",
-      "extJson": "附加JSON"
+      "extJson": "附加JSON",
+      "tagCondition": "标签"
     }
   }
 }
