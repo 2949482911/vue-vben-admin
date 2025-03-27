@@ -341,7 +341,7 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
 
       },
-      fieldName: 'hideMenu',
+      fieldName: 'hideInMenu',
       label: `${$t('system.menu.columns.hideMenu')}`,
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
