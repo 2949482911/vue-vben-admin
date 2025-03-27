@@ -40,7 +40,9 @@
       "title": "商品",
       "category": "分类",
       "brand": "品牌",
-      "item": "商品"
+      "item": "商品",
+      "kuaishou": "快手",
+      "bilibili": "哔哩哔哩"
     },
     "logistics": {
       "title": "物流",

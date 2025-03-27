@@ -443,7 +443,7 @@ const [Form, formApi] = useVbenForm({
     } else {
       await menuApi.fetchCreateMenu(JSON.stringify(values))
     }
-    modalApi.close();
+    await modalApi.close();
   }
 });
 

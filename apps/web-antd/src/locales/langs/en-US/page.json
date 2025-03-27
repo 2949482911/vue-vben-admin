@@ -40,7 +40,9 @@
       "title": "Goods",
       "category": "Categories",
       "brand": "Brand",
-      "item": "Items"
+      "item": "Items",
+      "kuaishou": "KuaiShou",
+      "bilibili": "Bilibili"
     },
     "logistics": {
       "title": "Logistics",
