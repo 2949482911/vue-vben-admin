@@ -207,5 +207,11 @@
       "extJson": "附加JSON",
       "tagCondition": "标签"
     }
+  },
+  "push_item": {
+    "kuaishou": {
+      "desc": "快手电商批量上品",
+      "account": "账户"
+    }
   }
 }

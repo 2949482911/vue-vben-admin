@@ -1,12 +1,23 @@
 <script lang="ts" setup name="BrandManager">
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
-import {Page, type VbenFormProps} from "@vben/common-ui";
+import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
 import {Button, Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
 import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {itemApi} from "#/api/media/";
 import type {MediaItemItem} from "#/api/models/media/item";
+import SelectPlatformPushItem from "./select-platform-push-item.vue"
+
+const [SelectPlatformPushItemModel, selectPlatformPushItemModalApi] = useVbenModal({
+  connectedComponent: SelectPlatformPushItem,
+  centered: true,
+  modal: true,
+  fullscreen: false,
+  fullscreenButton: true,
+  showCollapseButton: true,
+});
+
 
 
 const formOptions: VbenFormProps = {
@@ -37,6 +48,7 @@ const formOptions: VbenFormProps = {
   // 按下回车时是否提交表单
   submitOnEnter: false
 };
+
 
 
 async function handlerState(row: MediaItemItem) {
@@ -96,7 +108,7 @@ function pageReload() {
       <Grid>
 
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary">
+          <Button class="mr-2" type="primary" @click="selectPlatformPushItemModalApi.open()">
             {{ $t('common.create') }}
           </Button>
         </template>
@@ -121,5 +133,7 @@ function pageReload() {
         </template>
       </Grid>
     </Page>
+
+    <SelectPlatformPushItemModel />
   </div>
 </template>
