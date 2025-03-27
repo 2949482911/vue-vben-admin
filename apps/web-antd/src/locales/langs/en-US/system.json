@@ -35,7 +35,8 @@
       "hideInTab": "Hide In Tab",
       "ignoreAccess": "Ignore Access",
       "menuVisibleWithForbidden": "Menu Visible With Forbidden",
-      "openInNewWindow": "Open New Window"
+      "openInNewWindow": "Open New Window",
+      "hideChildrenInMenu": "Hide Children"
     },
     "parentId": "Parent",
     "type": {

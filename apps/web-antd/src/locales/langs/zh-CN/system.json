@@ -35,7 +35,9 @@
       "hideInTab": "当前路由在标签页不展现",
       "ignoreAccess": "忽略权限",
       "menuVisibleWithForbidden": "菜单可以看到，但是访问会被重定向到403",
-      "openInNewWindow": "新窗口打开"
+      "openInNewWindow": "新窗口打开",
+      "hideChildrenInMenu": "隐藏全部子菜单"
+
     },
     "parentId": "父节点",
     "type": {
