@@ -34,7 +34,8 @@
       "hideInBreadcrumb": "Hide In Breadcrumb",
       "hideInTab": "Hide In Tab",
       "ignoreAccess": "Ignore Access",
-      "menuVisibleWithForbidden": "Menu Visible With Forbidden"
+      "menuVisibleWithForbidden": "Menu Visible With Forbidden",
+      "openInNewWindow": "Open New Window"
     },
     "parentId": "Parent",
     "type": {

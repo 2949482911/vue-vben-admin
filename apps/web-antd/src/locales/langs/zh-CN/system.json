@@ -34,7 +34,8 @@
       "hideInBreadcrumb": "当前路由在面包屑中不展现",
       "hideInTab": "当前路由在标签页不展现",
       "ignoreAccess": "忽略权限",
-      "menuVisibleWithForbidden": "菜单可以看到，但是访问会被重定向到403"
+      "menuVisibleWithForbidden": "菜单可以看到，但是访问会被重定向到403",
+      "openInNewWindow": "新窗口打开"
     },
     "parentId": "父节点",
     "type": {

@@ -433,6 +433,22 @@ const [Form, formApi] = useVbenForm({
         },
         triggerFields: ["type"]
       }
+    },
+    {
+      component: 'Checkbox',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+
+      },
+      fieldName: 'openInNewWindow',
+      label: `${$t('system.menu.columns.openInNewWindow')}`,
+      formItemClass: 'col-span-3 items-baseline',
+      dependencies: {
+        show: (values) => {
+          return values.type === 1
+        },
+        triggerFields: ["type"]
+      }
     }
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
