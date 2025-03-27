@@ -341,7 +341,7 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
 
       },
-      fieldName: 'hideMenu',
+      fieldName: 'hideInMenu',
       label: `${$t('system.menu.columns.hideMenu')}`,
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
@@ -426,6 +426,22 @@ const [Form, formApi] = useVbenForm({
       },
       fieldName: 'menuVisibleWithForbidden',
       label: `${$t('system.menu.columns.menuVisibleWithForbidden')}`,
+      formItemClass: 'col-span-3 items-baseline',
+      dependencies: {
+        show: (values) => {
+          return values.type === 1
+        },
+        triggerFields: ["type"]
+      }
+    },
+    {
+      component: 'Checkbox',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+
+      },
+      fieldName: 'openInNewWindow',
+      label: `${$t('system.menu.columns.openInNewWindow')}`,
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
