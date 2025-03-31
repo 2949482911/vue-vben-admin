@@ -209,8 +209,27 @@
     }
   },
   "push_item": {
+    "category": "Category",
+    "account": "Accounts",
+    "brand": "Brand",
+    "basis_info": "Basis Info",
+    "config": "Configuration",
+    "items": "Items",
     "kuaishou": {
-      "desc": "Batch push item with kuaishou platform."
+      "desc": "Batch push item with kuaishou platform.",
+      "item_fields": {
+        "title": "Title",
+        "purchaseLimit": "Limit",
+        "limitCount": "Limit Num",
+        "payWay": "Pay Way",
+        "stockPartner": "Stock Partner",
+        "expressTemplate": "Express Template",
+        "saleTimeFlag": "Sale Time Switch",
+        "timeOfSale": "Time Of Sale"
+      },
+      "pay_way_options": {
+        "online_pay": "Online Pay"
+      }
     }
   }
 }

@@ -20,6 +20,12 @@ export interface CategoryParams extends PageRequestParams {
   accountId: string;
 }
 
+export interface CategoryTreeParams {
+  platform: string;
+  accountIds: Array<string>;
+}
+
+
 export interface CategoryItem extends BaseItem {
   platform: string;
   platformCategoryId: string;

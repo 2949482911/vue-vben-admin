@@ -4,7 +4,7 @@ import {useVbenVxeGrid} from "#/adapter/vxe-table";
 import {Page, type VbenFormProps} from "@vben/common-ui";
 import {Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
-import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import {PlatformEnum, PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {categoryApi} from "#/api/media/";
 import type {MediaOnlineretailersItem} from "#/api/models/media/account";
 import type {CategoryItem} from "#/api/models/media/item";
@@ -20,7 +20,8 @@ const formOptions: VbenFormProps = {
       label: `${$t("media.category.columns.platform")}`,
       componentProps: {
         options: PlatformOptions,
-      }
+      },
+      defaultValue: PlatformEnum.KUAISHOU,
     },
     {
       component: "Input",
@@ -43,15 +44,17 @@ const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    ...TABLE_COMMON_COLUMNS,
     {field: "platform", title: `${$t("media.category.columns.platform")}`, width: "auto"},
-    {field: "platformCategoryName", title: `${$t("media.category.columns.platformCategoryName")}`, width: "auto"},
+    {
+      field: "platformCategoryName",
+      title: `${$t("media.category.columns.platformCategoryName")}`,
+      width: "auto",
+      treeNode: true,
+    },
+    ...TABLE_COMMON_COLUMNS,
   ],
   pagerConfig: {
     enabled: true
-  },
-  sortConfig: {
-    multiple: true
   },
   proxyConfig: {
     ajax: {
@@ -68,8 +71,9 @@ const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
   treeConfig: {
     parentField: 'platformCategoryPid',
     rowField: 'platformCategoryId',
-    transform: true,
+    transform: false,
     childrenField: "children",
+    expandAll: false
   },
 };
 

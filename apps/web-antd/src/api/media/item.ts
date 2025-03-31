@@ -5,7 +5,7 @@ import type {
   BrandItem,
   CategoryParams,
   CategoryItem,
-  MediaItemParams, MediaItemItem
+  MediaItemParams, MediaItemItem, CategoryTreeParams
 } from "#/api/models/media/item";
 
 
@@ -31,6 +31,14 @@ class CategoryApi extends BaseApi {
   fetchCategoryList(params: CategoryParams) : Promise<CategoryItem> {
     return requestClient.get<CategoryItem[]>(this.getServiceUrl("list"), {params});
   }
+
+  /**
+   * get category tree
+   * @param params
+   */
+  fetchCategoryTree(params: CategoryTreeParams) {
+    return requestClient.post<CategoryItem[]>(this.getServiceUrl("tree"), params);
+  }
 }
 
 export const categoryApi = new CategoryApi("/media/category")
@@ -53,6 +61,20 @@ class ItemApi extends BaseApi {
    * 库存
    */
   fetchStockAdd() {
+
+  }
+}
+
+
+/**
+ * 商品发布
+ */
+class ItemPushConfigApi extends BaseApi {
+
+  /**
+   * 获取类目配置
+   */
+  fetchCategoryConfig() {
 
   }
 }

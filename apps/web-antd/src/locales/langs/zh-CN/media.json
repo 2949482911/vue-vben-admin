@@ -209,9 +209,27 @@
     }
   },
   "push_item": {
+    "account": "账户",
+    "category": "类目",
+    "brand": "品牌",
+    "basis_info": "基础信息",
+    "config": "配置区",
+    "items": "商品",
     "kuaishou": {
       "desc": "快手电商批量上品",
-      "account": "账户"
+      "item_fields": {
+        "title": "标题",
+        "purchaseLimit": "是否限购",
+        "limitCount": "限购数量",
+        "payWay": "支付方式",
+        "stockPartner": "是否分仓",
+        "expressTemplate": "运费模板",
+        "saleTimeFlag": "是否定点开售",
+        "timeOfSale": "订单开售时间"
+      },
+      "pay_way_options": {
+        "online_pay": "在线支付"
+      }
     }
   }
 }

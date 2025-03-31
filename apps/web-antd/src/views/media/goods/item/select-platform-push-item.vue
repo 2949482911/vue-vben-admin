@@ -38,7 +38,6 @@ const [Form, formApi] = useVbenForm({
               })
               break;
           }
-
         }
       },
       fieldName: 'platform',
@@ -74,7 +73,7 @@ function handleSetFormValue(row) {
 </script>
 
 <template>
-  <Modal :title="title">
+  <Modal>
     <Card>
       <Form>
 
