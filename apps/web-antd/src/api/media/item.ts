@@ -5,7 +5,11 @@ import type {
   BrandItem,
   CategoryParams,
   CategoryItem,
-  MediaItemParams, MediaItemItem, CategoryTreeParams
+  MediaItemParams,
+  MediaItemItem,
+  CategoryTreeParams,
+  MediaItemDetailRequest,
+  MediaItemDetailResponse
 } from "#/api/models/media/item";
 
 
@@ -14,7 +18,7 @@ import type {
  */
 class BrandApi extends BaseApi {
 
-  fetchBrandList(params: BrandParams): Promise<BrandItem>{
+  fetchBrandList(params: BrandParams): Promise<BrandItem> {
     return requestClient.get<BrandItem[]>(this.getServiceUrl("/list"), {
       params
     })
@@ -28,7 +32,7 @@ export const brandApi = new BrandApi("/media/brand")
  * 分类
  */
 class CategoryApi extends BaseApi {
-  fetchCategoryList(params: CategoryParams) : Promise<CategoryItem> {
+  fetchCategoryList(params: CategoryParams): Promise<CategoryItem> {
     return requestClient.get<CategoryItem[]>(this.getServiceUrl("list"), {params});
   }
 
@@ -52,7 +56,7 @@ class ItemApi extends BaseApi {
    * 商品
    * @param params
    */
-  fetchGetItemList(params: MediaItemParams) : Promise<MediaItemItem[]> {
+  fetchGetItemList(params: MediaItemParams): Promise<MediaItemItem[]> {
     return requestClient.get<MediaItemItem[]>(this.getServiceUrl("/list"), {params});
   }
 
@@ -62,6 +66,14 @@ class ItemApi extends BaseApi {
    */
   fetchStockAdd() {
 
+  }
+
+  /**
+   * get item detail
+   * @param params
+   */
+  fetchItemDetail(params: MediaItemDetailRequest) {
+    return requestClient.get<MediaItemDetailResponse>(this.getServiceUrl("detail"), {params});
   }
 }
 

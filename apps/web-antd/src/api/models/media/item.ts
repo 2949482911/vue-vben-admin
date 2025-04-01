@@ -79,6 +79,9 @@ export interface MediaItemSku extends BaseItem {
 }
 
 export interface UpdateStock {
+  platform: string;
+  platformItemId;
+  platformAccountId;
 
 }
 
@@ -86,3 +89,17 @@ export interface MediaStockChangeRequest {
   platform: string;
   updateItem: Array<UpdateStock>;
 }
+
+
+export interface MediaItemDetailRequest {
+  platform: string;
+  localAccountId: string;
+  platformItemId: string;
+}
+
+
+export interface MediaItemDetailResponse {
+  item: any;
+  skus: Array<any>;
+}
+

@@ -112,6 +112,10 @@ function pageReload() {
   gridApi.query();
 }
 
+// detail model
+function openPlatformItemDetail(row: MediaItemItem) {
+
+}
 
 </script>
 
@@ -138,7 +142,7 @@ function pageReload() {
         <template #action="{ row }">
           <Button type="link">{{ $t('common.edit') }}</Button>
           <Button type="link">{{ $t('common.delete') }}</Button>
-          <Button type="link">{{ $t('action.info') }}</Button>
+          <Button type="link" @click="openPlatformItemDetail(row)">{{ $t('action.info') }}</Button>
           <Button type="link">{{ $t('media.media_item.stock_add') }}</Button>
         </template>
       </Grid>
