@@ -9,7 +9,6 @@ import {PlatformEnum} from "#/constants/locales";
 import type {CategoryItem} from "#/api/models";
 import {useVbenVxeGrid} from "@vben/plugins/vxe-table";
 import type {VxeGridProps} from '#/adapter/vxe-table';
-import {sync} from "rimraf";
 
 const payWayOptions = ref([
   {

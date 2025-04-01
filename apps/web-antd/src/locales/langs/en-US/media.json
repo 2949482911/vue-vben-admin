@@ -101,7 +101,8 @@
       "auditStatus": "Audit Status",
       "sellingPoint": "Selling Point",
       "skus": "Sku Nums",
-      "stock": "Stock"
+      "stock": "Stock",
+      "skuCount": "Sku Num"
     },
     "stock_add": "Stock"
   },

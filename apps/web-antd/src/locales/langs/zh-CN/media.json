@@ -100,8 +100,9 @@
       "itemRemark": "备注",
       "auditStatus": "审核状态",
       "sellingPoint": "卖点",
-      "skus": "SKU个数",
-      "stock": "库存"
+      "skus": "SKU",
+      "stock": "库存",
+      "skuCount": "SKU个数"
     },
     "stock_add": "库存"
   },

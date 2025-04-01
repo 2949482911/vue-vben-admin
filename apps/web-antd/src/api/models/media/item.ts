@@ -60,7 +60,8 @@ export interface MediaItemItem extends BaseItem {
   payWay: number;
   shortTitle: string;
   sellingPoint: string;
-  skus: Array<MediaItemSku>
+  skus: Array<MediaItemSku>;
+  skuCount: number;
 }
 
 
