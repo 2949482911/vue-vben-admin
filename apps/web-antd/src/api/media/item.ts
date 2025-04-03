@@ -9,7 +9,7 @@ import type {
   MediaItemItem,
   CategoryTreeParams,
   MediaItemDetailRequest,
-  MediaItemDetailResponse
+  MediaItemDetailResponse, MediaStockChangeRequest
 } from "#/api/models/media/item";
 
 
@@ -57,15 +57,15 @@ class ItemApi extends BaseApi {
    * @param params
    */
   fetchGetItemList(params: MediaItemParams): Promise<MediaItemItem[]> {
-    return requestClient.get<MediaItemItem[]>(this.getServiceUrl("/list"), {params});
+    return requestClient.get<MediaItemItem[]>(this.getServiceUrl("list"), {params});
   }
 
 
   /**
    * 库存
    */
-  fetchStockAdd() {
-
+  fetchStockAdd(params: MediaStockChangeRequest) {
+    return requestClient.post(this.getServiceUrl("stock_add"), params)
   }
 
   /**

@@ -1,4 +1,9 @@
 {
   "add": "Addition",
-  "info": "Detail"
+  "less": "Less",
+  "info": "Detail",
+  "basis": "Base Info",
+  "other": "Other",
+  "audit_info": "Audit",
+  "type": "Type"
 }

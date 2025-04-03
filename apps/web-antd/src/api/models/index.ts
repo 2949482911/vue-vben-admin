@@ -12,3 +12,4 @@ export * from "./media/developer";
 export * from "./media/item";
 export * from "./media/logistics";
 export * from "./media/promotion";
+export * from "./media/kuaishou";

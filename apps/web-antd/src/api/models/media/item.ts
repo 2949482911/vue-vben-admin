@@ -1,4 +1,5 @@
 import type {BaseItem, PageRequestParams} from "#/api/models/core";
+import type {KuaishouItemDetail, KuaishouItemSku} from './kuaishou'
 
 
 export interface BrandParams extends PageRequestParams {
@@ -79,10 +80,12 @@ export interface MediaItemSku extends BaseItem {
 }
 
 export interface UpdateStock {
-  platform: string;
-  platformItemId;
-  platformAccountId;
-
+  platformSkuId: string
+  platformItemId: string;
+  localAccountId: string;
+  type: number;
+  stock: number;
+  [key: any]
 }
 
 export interface MediaStockChangeRequest {
@@ -94,12 +97,25 @@ export interface MediaStockChangeRequest {
 export interface MediaItemDetailRequest {
   platform: string;
   localAccountId: string;
-  platformItemId: string;
+  platformSkuId: string;
+  // not request
+  platformSkuName: string;
 }
 
 
-export interface MediaItemDetailResponse {
-  item: any;
-  skus: Array<any>;
+/**
+ * media item detail basis
+ */
+export interface MediaItemDetailResponse<I, S> {
+  item: I;
+  skus: Array<S>;
+}
+
+
+/**
+ * kuaishou item detail
+ */
+export interface KuaishouItemDetailResponse extends MediaItemDetailResponse <KuaishouItemDetail, KuaishouItemSku> {
+
 }
 

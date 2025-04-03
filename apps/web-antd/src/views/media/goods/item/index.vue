@@ -4,10 +4,14 @@ import {useVbenVxeGrid} from "#/adapter/vxe-table";
 import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
 import {Button, Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
-import {PlatformEnum, PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import {PlatformEnum, PlatformOptions} from "#/constants/locales";
 import {itemApi} from "#/api/media/";
-import type {MediaItemItem} from "#/api/models/media/item";
+import type {
+  MediaItemDetailRequest,
+  MediaItemItem
+} from "#/api/models/media/item";
 import SelectPlatformPushItem from "./select-platform-push-item.vue"
+import KuaiShouItemDetail from "./kuaishou/detail.vue";
 
 const [SelectPlatformPushItemModel, selectPlatformPushItemModalApi] = useVbenModal({
   connectedComponent: SelectPlatformPushItem,
@@ -16,6 +20,12 @@ const [SelectPlatformPushItemModel, selectPlatformPushItemModalApi] = useVbenMod
   fullscreen: false,
   fullscreenButton: true,
   showCollapseButton: true,
+});
+
+const [CreateKuaiShouItemDetailModal, createKuaiShouItemDetailModalApi] = useVbenModal({
+  connectedComponent: KuaiShouItemDetail,
+  centered: true,
+  modal: true,
 });
 
 
@@ -114,16 +124,24 @@ function pageReload() {
 
 // detail model
 function openPlatformItemDetail(row: MediaItemItem) {
-
+  const data: MediaItemDetailRequest = {
+    platform: row.platform,
+    localAccountId: row.localAccountId,
+    platformItemId: row.platformItemId
+  }
+  if (row.platform == PlatformEnum.KUAISHOU) {
+    createKuaiShouItemDetailModalApi.setData(data)
+    createKuaiShouItemDetailModalApi.open()
+  }
 }
+
 
 </script>
 
 <template>
-  <div>
+  <div >
     <Page>
       <Grid>
-
         <template #toolbar-tools>
           <Button class="mr-2" type="primary" @click="selectPlatformPushItemModalApi.open()">
             {{ $t('common.create') }}
@@ -143,11 +161,11 @@ function openPlatformItemDetail(row: MediaItemItem) {
           <Button type="link">{{ $t('common.edit') }}</Button>
           <Button type="link">{{ $t('common.delete') }}</Button>
           <Button type="link" @click="openPlatformItemDetail(row)">{{ $t('action.info') }}</Button>
-          <Button type="link">{{ $t('media.media_item.stock_add') }}</Button>
         </template>
       </Grid>
     </Page>
 
     <SelectPlatformPushItemModel/>
+    <CreateKuaiShouItemDetailModal/>
   </div>
 </template>
