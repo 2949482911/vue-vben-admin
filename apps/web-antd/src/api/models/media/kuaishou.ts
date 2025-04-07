@@ -212,3 +212,62 @@ export interface KuaishouItemSku {
   skuProps: OpenApiAddSkuPropDTO[]; // 套餐详情，商品类型为团购时，才可使用该字段，非必传
   skuCertificate: SkuCertificatePropParam; // 质检参数
 }
+
+/**
+ * 快手创建商品
+ */
+
+// 快手创建商品
+
+
+
+export interface OpenApiAddSkuDTO {
+
+}
+
+
+export interface AddItemPropValue {
+
+}
+
+export interface ServiceRule {
+
+}
+
+export interface QualificationDataDTO {
+
+}
+
+
+
+// push
+export interface KuaiShouPushItem {
+  title: string; // 商品名称
+  relItemId: number; // 外部商品ID
+  categoryId: number; // 类目ID
+  imageUrls: string[]; // 图片URL列表
+  skuList: OpenApiAddSkuDTO[]; // SKU信息列表
+  purchaseLimit?: boolean; // 是否限购
+  limitCount?: number; // 限购数量
+  itemPropValues?: AddItemPropValue[]; // 商品属性值
+  details: string; // 商品详情
+  detailImageUrls: string[]; // 商品详情图URL列表
+  stockPartner?: boolean; // 是否使用库存伙伴
+  itemRemark?: string; // 商品备注
+  serviceRule: ServiceRule; // 服务规则
+  expressTemplateId: number; // 运费模板ID
+  saleTimeFlag?: boolean; // 是否设置销售时间
+  timeOfSale?: number; // 销售时间
+  payWay?: number; // 支付方式
+  multipleStock?: boolean; // 是否多库存
+  poiIds?: number[]; // POI ID列表
+  whiteBaseImageUrl?: string; // 白底图URL
+  transparentImageUrl?: string; // 透明图URL
+  shortTitle?: string; // 短标题
+  sellingPoint?: string; // 卖点
+  instructions?: string; // 指引
+  saveShelfItemQualificationData?: QualificationDataDTO[]; // 资质数据
+  offShoreMode?: number; // 海外模式
+  spuId?: number; // SPU ID
+  itemVideoId?: string; // 商品视频ID
+}

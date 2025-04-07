@@ -1,14 +1,12 @@
 <script lang="ts" setup name="KuaiShouPushItem">
 import {ref} from 'vue';
 import {Page} from '@vben/common-ui';
-import {Button, Card, Image} from 'ant-design-vue';
+import {Button, Card, Table, Input} from 'ant-design-vue';
 import {useVbenForm} from '#/adapter/form';
 import {$t} from "@vben/locales";
 import {categoryApi, mediaAccountApi, logisticsApi} from "#/api/media";
 import {PlatformEnum} from "#/constants/locales";
-import type {CategoryItem} from "#/api/models";
-import {useVbenVxeGrid} from "@vben/plugins/vxe-table";
-import type {VxeGridProps} from '#/adapter/vxe-table';
+import type {CategoryItem, KuaiShouPushItem} from "#/api/models";
 
 const payWayOptions = ref([
   {
@@ -42,6 +40,7 @@ const [CustomLayoutForm] = useVbenForm({
     {
       component: 'ApiSelect',
       fieldName: 'accountId',
+      rules: "required",
       componentProps: {
         afterFetch: (data: { name: string; id: string }[]) => {
           return data.map((item: any) => ({
@@ -49,7 +48,6 @@ const [CustomLayoutForm] = useVbenForm({
             value: item.id,
           }));
         },
-        // 菜单接口
         api: async () => {
           const {items} = await mediaAccountApi.fetchAllMediaOnlineretailers(PlatformEnum.KUAISHOU)
           return items
@@ -64,6 +62,7 @@ const [CustomLayoutForm] = useVbenForm({
     {
       component: 'TreeSelect',
       fieldName: 'categoryId',
+      rules: "required",
       componentProps: {
         treeData: categories,
         fieldNames: {
@@ -78,6 +77,40 @@ const [CustomLayoutForm] = useVbenForm({
   // 一共三列
   wrapperClass: 'grid-cols-3',
 });
+
+const [ServiceRuleForm] = useVbenForm({
+  showDefaultActions: false,
+  showCollapseButton: false,
+  wrapperClass: 'grid-cols-3',
+  commonConfig: {
+    // 所有表单项
+    componentProps: {
+      class: 'w-full',
+    },
+  },
+  layout: 'horizontal',
+  schema: [
+    {
+      component: "Select",
+      fieldName: "refundRule",
+      componentProps: {},
+      label: `${$t('media.push_item.service_rule_options.refundRule')}`,
+      rules: "required"
+    },
+    {
+      component: "DatePicker",
+      fieldName: "deliverGoodsInteralTime",
+      componentProps: {},
+      label: `${$t('media.push_item.service_rule_options.deliverGoodsInteralTime')}`,
+    },
+    {
+      component: "DatePicker",
+      fieldName: "promiseDeliveryTime",
+      componentProps: {},
+      label: `${$t('media.push_item.service_rule_options.promiseDeliveryTime')}`,
+    }
+  ]
+})
 
 const [ConfigForm] = useVbenForm({
   showDefaultActions: false,
@@ -187,47 +220,45 @@ const [ConfigForm] = useVbenForm({
   wrapperClass: 'grid-cols-3',
 })
 
-// 表单项
-const gridOptions: VxeGridProps<RowType> = {
-  columns: [
-    {title: '序号', type: 'seq', width: 50},
-    {
-      editRender: {name: 'input'},
-      field: 'title',
-      title: `${$t('media.push_item.kuaishou.item_fields.title')}`
-    },
-    {
-      editRender: {name: 'input'},
-      field: 'purchaseLimit',
-      title: `${$t('media.push_item.kuaishou.item_fields.title')}`
-    },
-    {
-      editRender: {name: 'InputNumber'},
-      field: 'limitCount',
-      title: `${$t('media.push_item.kuaishou.item_fields.limitCount')}`,
-      slots: {default: 'limitCount'},
-    },
-  ],
-  data: [
-    {
-      "title": "测试",
-      "purchaseLimit": true,
-      "limitCount": 10
-    }
-  ],
-  editConfig: {
-    mode: 'row',
-    trigger: 'click',
+// item table
+const itemList = ref<KuaiShouPushItem[]>([]);
+// item columns
+const itemColumns = ref([
+  {
+    title: '标题',
+    dataIndex: 'title',
+    key: 'title',
   },
-  pagerConfig: {
-    enabled: false
+  {
+    title: '外部商品ID',
+    dataIndex: 'relItemId',
+    key: 'relItemId',
   },
+  {
+    title: '操作',
+    dataIndex: 'action',
+    key: 'relItemId',
+  },
+]);
+
+// add item
+function addEmptyItem() {
+  itemList.value.push({
+    title: '',
+    relItemId: '',
+    imageUrls: [],
+    skuList: [],
+    itemPropValues: [],
+    details: '',
+    detailImageUrls: [],
+    stockPartner: false,
+    itemRemark: '',
+  })
 }
 
-const [Grid, gridApi] = useVbenVxeGrid({
-  gridOptions: gridOptions
-});
-
+// delete item
+function deleteItem(record) {
+}
 
 </script>
 
@@ -253,10 +284,30 @@ const [Grid, gridApi] = useVbenVxeGrid({
       <ConfigForm/>
     </Card>
 
+    <Card :title="$t('media.push_item.service_rule')">
+      <ServiceRuleForm/>
+    </Card>
+
     <Card :title="$t('media.push_item.items')">
       <template #extra>
-        <Button>{{ $t('action.add') }}</Button>
+        <Button @click="addEmptyItem">{{ $t('action.add') }}</Button>
       </template>
+      <Table :data-source="itemList" :columns="itemColumns">
+        <template #bodyCell="{column, record }">
+
+          <template v-if="column.dataIndex === 'title'">
+            <Input v-model:value="record.title"/>
+          </template>
+
+          <template v-if="column.dataIndex === 'relItemId'">
+            <Input v-model:value="record.relItemId"/>
+          </template>
+
+          <template v-else-if="column.dataIndex === 'action'">
+            <Button @click="deleteItem(record)">Delete</Button>
+          </template>
+        </template>
+      </Table>
     </Card>
   </Page>
 </template>

@@ -1,6 +1,7 @@
 <script lang="ts" setup name="BrandManager">
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
+import {ref} from "vue"
 import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
 import {Button, Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
@@ -27,6 +28,7 @@ const [CreateKuaiShouItemDetailModal, createKuaiShouItemDetailModalApi] = useVbe
   centered: true,
   modal: true,
 });
+
 
 
 const formOptions: VbenFormProps = {
@@ -116,6 +118,7 @@ const gridOptions: VxeGridProps<MediaItemItem> = {
 };
 
 
+
 const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 function pageReload() {
@@ -148,13 +151,8 @@ function openPlatformItemDetail(row: MediaItemItem) {
           </Button>
         </template>
 
-        <template #status="{ row  }">
-          <Switch :checked="row.status == 1" @change="handlerState(row)"/>
-        </template>
-
-
-        <template #auditStatus="{ row }">
-          <div>{{ row.auditStatus }}</div>
+        <template #purchaseLimit="{ row }">
+          <Switch v-model:checked="row.purchaseLimit" />
         </template>
 
         <template #action="{ row }">

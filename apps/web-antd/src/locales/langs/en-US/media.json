@@ -277,6 +277,12 @@
     "brand": "Brand",
     "basis_info": "Basis Info",
     "config": "Configuration",
+    "service_rule": "Service Rule",
+    "service_rule_options": {
+      "refundRule": "Return Rule",
+      "deliverGoodsInteralTime": "Deliver Interal Time",
+      "promiseDeliveryTime": "Promise Delivery Time"
+    },
     "items": "Items",
     "kuaishou": {
       "desc": "Batch push item with kuaishou platform.",
