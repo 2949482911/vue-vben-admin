@@ -280,10 +280,22 @@
     "config": "配置区",
     "items": "商品",
     "service_rule": "服务配置",
+    "multipleStock": "仓库存模式",
     "service_rule_options": {
       "refundRule": "退款规则",
       "deliverGoodsInteralTime": "发货间隔时间",
-      "promiseDeliveryTime": "非预售商品承诺发货时间"
+      "promiseDeliveryTime": "非预售商品承诺发货时间",
+      "immediatelyOnOfflineFlag": "立即上架"
+    },
+    "servicePromise": {
+      "title": "服务保证",
+      "options": {
+        "freshRotRefund": "坏了包退",
+        "brokenRefund": "破损包退",
+        "allergyRefund": "过敏包退",
+        "crabRefund": "蟹无忧",
+        "weightGuarantee": "足斤足两"
+      }
     },
     "kuaishou": {
       "desc": "快手电商批量上品",
@@ -295,7 +307,10 @@
         "stockPartner": "是否分仓",
         "expressTemplate": "运费模板",
         "saleTimeFlag": "是否定点开售",
-        "timeOfSale": "订单开售时间"
+        "timeOfSale": "订单开售时间",
+        "shortTitle": "短标题",
+        "relItemId": "外部ID",
+        "instructions": "使用说明"
       },
       "pay_way_options": {
         "online_pay": "在线支付"

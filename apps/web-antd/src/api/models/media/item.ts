@@ -119,3 +119,12 @@ export interface KuaishouItemDetailResponse extends MediaItemDetailResponse <Kua
 
 }
 
+
+/**
+ * 媒体资质参数
+ */
+export interface PlatformQualificationParams {
+  platform: string;
+  platformCategoryId: string;
+  localAccountId: string;
+}

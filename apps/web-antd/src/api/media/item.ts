@@ -9,7 +9,7 @@ import type {
   MediaItemItem,
   CategoryTreeParams,
   MediaItemDetailRequest,
-  MediaItemDetailResponse, MediaStockChangeRequest
+  MediaItemDetailResponse, MediaStockChangeRequest, PlatformQualificationParams
 } from "#/api/models/media/item";
 
 
@@ -77,6 +77,7 @@ class ItemApi extends BaseApi {
   }
 }
 
+export const itemApi = new ItemApi("/media/item")
 
 /**
  * 商品发布
@@ -84,11 +85,21 @@ class ItemApi extends BaseApi {
 class ItemPushConfigApi extends BaseApi {
 
   /**
-   * 获取类目配置
+   * 获取资质配置
    */
-  fetchCategoryConfig() {
+  fetchPlatformQualificationConfig(params: PlatformQualificationParams) {
+    return requestClient.get<any>(this.getServiceUrl("qualification/config"), {params});
+  }
 
+  /**
+   * 类目配置
+   * @param params
+   */
+  fetchPlatformCategoryConfig(params: PlatformQualificationParams) {
+    return requestClient.get<any>(this.getServiceUrl("category/config"), {params});
   }
 }
 
-export const itemApi = new ItemApi("/media/item")
+
+
+export const itemPushConfigApi = new ItemPushConfigApi("/media/push_item_base_config")

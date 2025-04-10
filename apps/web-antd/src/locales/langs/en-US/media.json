@@ -278,10 +278,22 @@
     "basis_info": "Basis Info",
     "config": "Configuration",
     "service_rule": "Service Rule",
+    "multipleStock": "Multiple Stock",
     "service_rule_options": {
       "refundRule": "Return Rule",
       "deliverGoodsInteralTime": "Deliver Interal Time",
-      "promiseDeliveryTime": "Promise Delivery Time"
+      "promiseDeliveryTime": "Promise Delivery Time",
+      "immediatelyOnOfflineFlag": "Put On"
+    },
+    "servicePromise": {
+      "title": "Service Promise",
+      "options": {
+        "freshRotRefund": "Fresh Rot Refund",
+        "brokenRefund": "Broken Refund",
+        "allergyRefund": "Allergy Refund",
+        "crabRefund": "Crab Refund",
+        "weightGuarantee": "Weight Guarantee"
+      }
     },
     "items": "Items",
     "kuaishou": {
@@ -294,7 +306,10 @@
         "stockPartner": "Stock Partner",
         "expressTemplate": "Express Template",
         "saleTimeFlag": "Sale Time Switch",
-        "timeOfSale": "Time Of Sale"
+        "timeOfSale": "Time Of Sale",
+        "shortTitle": "Short Title",
+        "relItemId": "Rel Item Id",
+        "instructions": "instructions"
       },
       "pay_way_options": {
         "online_pay": "Online Pay"
