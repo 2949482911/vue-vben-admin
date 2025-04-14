@@ -1,12 +1,18 @@
 <script lang="ts" setup name="KuaiShouPushItem">
 import {ref} from 'vue';
 import {Page} from '@vben/common-ui';
-import {Button, Card, Table, Input, Textarea} from 'ant-design-vue';
+import {Button, Card, Input, Table, Textarea, Space} from 'ant-design-vue';
 import {useVbenForm} from '#/adapter/form';
 import {$t} from "@vben/locales";
-import {categoryApi, mediaAccountApi, logisticsApi, itemPushConfigApi} from "#/api/media";
+import {categoryApi, itemPushConfigApi, logisticsApi, mediaAccountApi} from "#/api/media";
 import {PlatformEnum} from "#/constants/locales";
-import type {CategoryItem, KuaiShouPushItem, PlatformQualificationParams} from "#/api/models";
+import type {
+  CategoryItem,
+  KuaiShouPushItem,
+  PlatformItemPushParams,
+  PlatformQualificationParams,
+  PushItemParamsCreate
+} from "#/api/models";
 
 const payWayOptions = ref([
   {
@@ -126,7 +132,7 @@ const [CustomLayoutForm, CustomLayoutFormApi] = useVbenForm({
   wrapperClass: 'grid-cols-3',
 });
 
-const [ServiceRuleForm] = useVbenForm({
+const [ServiceRuleForm, ServiceRuleFormApi] = useVbenForm({
   showDefaultActions: false,
   showCollapseButton: false,
   wrapperClass: 'grid-cols-3',
@@ -181,7 +187,7 @@ const [ServiceRuleForm] = useVbenForm({
 
 
 // 服务保证
-const [ServicePromiseForm] = useVbenForm({
+const [ServicePromiseForm, ServicePromiseFormApi] = useVbenForm({
   showDefaultActions: false,
   showCollapseButton: false,
   wrapperClass: 'grid-cols-3',
@@ -287,7 +293,7 @@ const [ServicePromiseForm] = useVbenForm({
 })
 
 // 配置表单
-const [ConfigForm] = useVbenForm({
+const [ConfigForm, ConfigFormApi] = useVbenForm({
   showDefaultActions: false,
   showCollapseButton: false,
   commonConfig: {
@@ -566,6 +572,90 @@ function deleteSku(itemRecord, index: number) {
   itemRecord.skuList = itemRecord.skuList.filter((_, _index) => _index !== index);
 }
 
+// resetItemForm
+async function resetItemForm() {
+  await CustomLayoutFormApi.resetForm();
+  await ServiceRuleFormApi.resetForm();
+  await ServicePromiseFormApi.resetForm();
+
+  itemList.value = [];
+}
+
+// validate all form and table forms
+async function validateForm() {
+  await CustomLayoutFormApi.validate()
+  await ServiceRuleFormApi.validate()
+  await ServicePromiseFormApi.validate()
+
+  // todo table form
+}
+
+
+async function submitItemForm() {
+  const itemPushItem: PlatformItemPushParams = {
+    platform: PlatformEnum.KUAISHOU,
+    itemList: []
+  };
+  const CustomLayoutFormApiValues = await CustomLayoutFormApi.getValues();
+  const {accountId, categoryId, expressTemplateId, payWay} = CustomLayoutFormApiValues;
+  // config form
+  const ConfigFormApiValues = await ConfigFormApi.getValues();
+  const {
+    purchaseLimit,
+    limitCount,
+    stockPartner,
+    saleTimeFlag,
+    timeOfSale,
+    multipleStock
+  } = ConfigFormApiValues;
+
+  accountId.forEach(accountId => {
+    // create item params
+    const createItem: PushItemParamsCreate<KuaiShouPushItem> = {
+      localAccountId: accountId,
+      items: []
+    }
+
+    // get item list
+    itemList.value.forEach(item => {
+      createItem.items.push({
+        title: item.title,
+        relItemId: item.relItemId,
+        categoryId: categoryId,
+        imageUrls: item.imageUrls,
+        skuList: item.skuList,
+        purchaseLimit: purchaseLimit,
+        limitCount: limitCount,
+        // todo
+        itemPropValues: [],
+        details: item.details,
+        detailImageUrls: item.detailImageUrls,
+        stockPartner: stockPartner,
+        itemRemark: item.itemRemark,
+        // todo  service rule
+        serviceRule: {},
+        expressTemplateId: expressTemplateId,
+        saleTimeFlag: saleTimeFlag,
+        timeOfSale: timeOfSale,
+        payWay: payWay,
+        multipleStock: multipleStock,
+        whiteBaseImageUrl: item.whiteBaseImageUrl,
+        transparentImageUrl: item.transparentImageUrl,
+        shortTitle: item.shortTitle,
+        sellingPoint: item.sellingPoint,
+        instructions: item.instructions,
+
+        // todo saveShelfItemQualificationData
+        saveShelfItemQualificationData: [],
+      })
+    })
+
+    // add item
+    itemPushItem.itemList.push(createItem)
+  })
+
+
+}
 </script>
 
 
@@ -600,7 +690,11 @@ function deleteSku(itemRecord, index: number) {
 
     <Card :title="$t('media.push_item.items')">
       <template #extra>
-        <Button @click="addEmptyItem">{{ $t('action.add') }}</Button>
+        <Space>
+          <Button primary @click="addEmptyItem">{{ $t('action.add') }}</Button>
+          <Button primary @click="submitItemForm">{{ $t('action.submit') }}</Button>
+          <Button primary @click="resetItemForm">{{ $t('action.reset') }}</Button>
+        </Space>
       </template>
       <Table :data-source="itemList" :columns="itemColumns" :pagination="false" sticky
              :scroll="{ x: 1500 }" rowKey="relItemId">
@@ -696,8 +790,13 @@ function deleteSku(itemRecord, index: number) {
           </template>
 
           <template v-else-if="column.dataIndex === 'action'">
-            <Button @click="deleteItem(record, index)">{{ $t('common.delete') }}</Button>
-            <Button>SKU</Button>
+            <Space>
+              <Button primary danger @click="deleteItem(record, index)">{{
+                  $t('common.delete')
+                }}
+              </Button>
+              <Button>SKU</Button>
+            </Space>
           </template>
         </template>
       </Table>

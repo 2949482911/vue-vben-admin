@@ -9,7 +9,10 @@ import type {
   MediaItemItem,
   CategoryTreeParams,
   MediaItemDetailRequest,
-  MediaItemDetailResponse, MediaStockChangeRequest, PlatformQualificationParams
+  MediaItemDetailResponse,
+  MediaStockChangeRequest,
+  PlatformQualificationParams,
+  KuaiShouPushItemPrams
 } from "#/api/models/media/item";
 
 
@@ -74,6 +77,14 @@ class ItemApi extends BaseApi {
    */
   fetchItemDetail(params: MediaItemDetailRequest) {
     return requestClient.get<MediaItemDetailResponse>(this.getServiceUrl("detail"), {params});
+  }
+
+
+  /**
+   * 快手发布商品
+   */
+  fetchItemPushToKuaiShou(params: KuaiShouPushItemPrams) {
+    return requestClient.post(this.getServiceUrl("push/kuaishou"), params)
   }
 }
 

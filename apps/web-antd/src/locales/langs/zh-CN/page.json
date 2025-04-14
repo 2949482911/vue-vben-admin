@@ -28,6 +28,10 @@
     "flowable_form": "表单",
     "flowable_task": "监听"
   },
+  "asset": {
+    "title": "资产",
+    "material": "素材"
+  },
   "media": {
     "account": {
       "title": "媒体账户",

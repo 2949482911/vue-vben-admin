@@ -1,5 +1,5 @@
 import type {BaseItem, PageRequestParams} from "#/api/models/core";
-import type {KuaishouItemDetail, KuaishouItemSku} from './kuaishou'
+import type {KuaishouItemDetail, KuaishouItemSku, KuaiShouPushItem} from './kuaishou'
 
 
 export interface BrandParams extends PageRequestParams {
@@ -85,6 +85,7 @@ export interface UpdateStock {
   localAccountId: string;
   type: number;
   stock: number;
+
   [key: any]
 }
 
@@ -127,4 +128,29 @@ export interface PlatformQualificationParams {
   platform: string;
   platformCategoryId: string;
   localAccountId: string;
+}
+
+
+/**
+ * create item
+ */
+export interface PushItemParamsCreate<T> {
+  localAccountId: string;
+  items: Array<T>
+}
+
+
+/**
+ * 媒体创建商品参数
+ */
+export interface PlatformItemPushParams {
+  platform: string;
+  itemList: Array<PushItemParamsCreate>;
+}
+
+
+/**
+ * 快手 参数传递
+ */
+export interface KuaiShouPushItemPrams extends PushItemParamsCreate<KuaiShouPushItem> {
 }

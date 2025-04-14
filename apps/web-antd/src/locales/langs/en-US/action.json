@@ -5,5 +5,10 @@
   "basis": "Base Info",
   "other": "Other",
   "audit_info": "Audit",
-  "type": "Type"
+  "type": "Type",
+  "submit": "Submit",
+  "reset": "Reset",
+  "material": "Material",
+  "upload": "Upload",
+  "create_folder": "Create Folder"
 }

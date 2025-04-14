@@ -240,7 +240,7 @@ export interface QualificationDataDTO {
 
 
 
-// push
+// push item all params
 export interface KuaiShouPushItem {
   title: string; // 商品名称
   relItemId: number; // 外部商品ID

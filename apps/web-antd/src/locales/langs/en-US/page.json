@@ -28,6 +28,10 @@
     "flowable_task": "Flow Task",
     "work_flow": "Work Flow"
   },
+  "asset": {
+    "title": "资产",
+    "material": "素材"
+  },
   "media": {
     "account": {
       "title": "Media Account",
