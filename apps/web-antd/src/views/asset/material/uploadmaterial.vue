@@ -1,4 +1,4 @@
-<script setup lang="ts" name="MaterialCrowd">
+<script setup lang="ts" name="UploadMaterialModal">
 import type {CouponCreateRequest, CouponUpdateRequest} from "#/api/models";
 import {ref} from 'vue';
 import {useVbenForm} from "#/adapter/form";
@@ -46,15 +46,14 @@ const [Form, formApi] = useVbenForm({
     },
 
     {
-      component: 'Select',
+      component: "Upload",
       componentProps: {
-        placeholder: `${$t('common.select')}`,
-        options: PlatformOptions,
+        // 更多属性见：https://ant.design/components/upload-cn
+        accept: '.png,.jpg,.jpeg',
       },
-      fieldName: 'platform',
-      label: `${$t('media.seller_address.columns.platform')}`,
-      rules: 'required',
-    },
+      fieldName: "file",
+      label: "文件",
+    }
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',

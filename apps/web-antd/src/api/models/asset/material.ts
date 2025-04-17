@@ -37,3 +37,12 @@ export interface MaterialItem extends BaseItem {
   count: number;
   coverImage: string;
 }
+
+
+
+
+export interface UploadMaterialRequest {
+  file: File;
+  albumId: string;
+  albumRootId: string;
+}

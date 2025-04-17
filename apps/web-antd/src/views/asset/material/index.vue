@@ -1,5 +1,5 @@
 <script lang="ts" setup name="MaterialManager">
-import {ColPage, Page} from "@vben/common-ui";
+import {ColPage, Page, useVbenModal} from "@vben/common-ui";
 import {
   Card,
   Breadcrumb,
@@ -16,6 +16,18 @@ import {materialAlbumApi, materialApi} from "#/api/asset";
 import type {MaterialAlbumItem, MaterialItem, MaterialPageRequestParams} from "#/api/models/asset";
 import {$t} from '@vben/locales';
 import {BatchOptionsType} from "#/constants/locales";
+
+import UploadMaterialModal from "./uploadmaterial.vue"
+
+const [CreateUploadMaterialModal, createUploadMaterialModalApi] = useVbenModal({
+  connectedComponent: UploadMaterialModal,
+  centered: true,
+  modal: true,
+});
+
+function openUploadMaterialModal() {
+  createUploadMaterialModalApi.open();
+}
 
 
 const CardMeta = Card.Meta;
@@ -135,8 +147,8 @@ onMounted(() => {
       <Card class="ml-2">
         <template #title>
           <Space align="end">
-            <Button type="primary">{{ $t('action.upload') }}</Button>
-            <Button >{{ $t('action.create_folder') }}</Button>
+            <Button type="primary" @click="openUploadMaterialModal">{{ $t('action.upload') }}</Button>
+            <Button>{{ $t('action.create_folder') }}</Button>
           </Space>
         </template>
         <Space>
@@ -171,5 +183,6 @@ onMounted(() => {
         </List>
       </Card>
     </ColPage>
+    <CreateUploadMaterialModal/>
   </Page>
 </template>

@@ -3,7 +3,7 @@ import {requestClient} from '#/api/request';
 import type {
   CreateMaterialAlbumRequest,
   MaterialAlbumItem, MaterialItem, MaterialPageRequestParams,
-  UpdateMaterialAlbumRequest
+  UpdateMaterialAlbumRequest, UploadMaterialRequest
 } from "#/api/models/asset";
 import type {BatchOptions} from "#/api/models/core";
 
@@ -44,6 +44,18 @@ class MaterialApi extends BaseApi {
   fetchMaterialBatchOptions(params: BatchOptions) {
     return requestClient.post<BatchOptions>(this.getServiceUrl("batch_options"), params)
   }
+
+  /**
+   * 文件上传
+   * @param params
+   */
+  fetchMaterialUpload(params: UploadMaterialRequest) {
+    requestClient.post(this.getServiceUrl("upload_material"), params, )
+  }
 }
 
 export const materialApi = new MaterialApi("/media_service/material");
+
+
+
+
