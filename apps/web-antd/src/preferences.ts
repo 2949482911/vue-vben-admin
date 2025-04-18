@@ -12,5 +12,10 @@ export const overridesPreferences = defineOverridesPreferences({
     accessMode: 'backend',
     enableRefreshToken: false,
     compact: true,
+    authPageLayout: "panel-center",
   },
+  header: {
+    enable: true,
+    menuAlign: "center",
+  }
 });

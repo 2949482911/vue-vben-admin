@@ -1,0 +1,8 @@
+{
+  "album": {
+    "columns": {
+      "albumId": "Folder",
+      "albumRootId": "Album"
+    }
+  }
+}

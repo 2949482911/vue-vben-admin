@@ -7,17 +7,52 @@ import {PlatformOptions} from "#/constants/locales";
 import {couponApi} from "#/api/media";
 import {useVbenModal} from '@vben/common-ui';
 import {Card} from "ant-design-vue";
+import {materialAlbumApi, materialApi} from "#/api/asset";
 
 const emit = defineEmits(['pageReload']);
+
 //
+
+async function getMaterialAlbumTree() {
+  return await materialAlbumApi.fetchAlbumTree()
+}
+
+interface UploadFileParams {
+  file: File;
+  onError?: (error: Error) => void;
+  onProgress?: (progress: { percent: number }) => void;
+  onSuccess?: (data: any, file: File) => void;
+}
+
+// 文件上传
+async function upload_file({
+                             file,
+                             onError,
+                             onProgress,
+                             onSuccess,
+                           }: UploadFileParams) {
+  try {
+    onProgress?.({percent: 0});
+    const data = await materialApi.fetchUpload(file);
+    onProgress?.({percent: 100});
+    onSuccess?.(data, file);
+  } catch (error) {
+    onError?.(error instanceof Error ? error : new Error(String(error)));
+  }
+}
+
+
+async function uploadSuccess(response: any) {
+
+}
 
 
 const isUpdate = ref<Boolean>(false);
 const object = ref<CouponCreateRequest | CouponUpdateRequest>()
 
 const title: string = object.value
-  ? `${$t('common.edit')}`
-  : `${$t('common.create')}`;
+    ? `${$t('common.edit')}`
+    : `${$t('common.create')}`;
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -46,17 +81,66 @@ const [Form, formApi] = useVbenForm({
     },
 
     {
-      component: "Upload",
-      componentProps: {
-        // 更多属性见：https://ant.design/components/upload-cn
-        accept: '.png,.jpg,.jpeg',
+      component: 'Input',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
       },
-      fieldName: "file",
-      label: "文件",
-    }
+      fieldName:"width"
+    },
+    {
+      component: 'Input',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      },
+      fieldName:"width"
+    },
+
+    {
+      component: 'ApiTreeSelect',
+      componentProps: {
+        api: getMaterialAlbumTree,
+        labelField: 'name',
+        valueField: 'id',
+        childrenField: 'children',
+
+      },
+      fieldName: "albumId",
+      label: $t('asset.album.columns.albumId'),
+      rules: "required",
+    },
+
+    {
+      component: 'Upload',
+      componentProps: {
+        accept: '.png,.jpg,.jpeg',
+        // 自动携带认证信息
+        // customRequest,
+        customRequest: upload_file,
+        beforeUpload: async () => {
+          // return await formApi.validateField("")
+        },
+
+        disabled: false,
+        maxCount: 1,
+        multiple: false,
+        showUploadList: true,
+        // 上传列表的内建样式，支持四种基本样式 text, picture, picture-card 和 picture-circle
+        listType: 'picture-card',
+      },
+      fieldName: 'files',
+      label: $t('action.file'),
+      renderComponentContent: () => {
+        return {
+          default: () => $t('tips.upload_image'),
+        };
+      },
+      rules: 'required',
+    },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  wrapperClass: 'lg:grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
     if (isUpdate.value) {
       await couponApi.fetchCouponUpdate(JSON.stringify(values))

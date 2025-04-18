@@ -10,5 +10,6 @@
   "reset": "Reset",
   "material": "Material",
   "upload": "Upload",
-  "create_folder": "Create Folder"
+  "create_folder": "Create Folder",
+  "file": "File"
 }

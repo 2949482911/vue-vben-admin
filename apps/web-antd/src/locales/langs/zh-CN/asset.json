@@ -1,0 +1,8 @@
+{
+  "album": {
+    "columns": {
+      "albumId": "文件夹",
+      "albumRootId": "专辑"
+    }
+  }
+}
