@@ -2,7 +2,9 @@
   "album": {
     "columns": {
       "albumId": "文件夹",
-      "albumRootId": "专辑"
+      "albumRootId": "专辑",
+      "remark": "备注",
+      "name": "名字"
     }
   }
 }

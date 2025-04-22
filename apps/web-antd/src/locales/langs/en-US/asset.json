@@ -2,7 +2,9 @@
   "album": {
     "columns": {
       "albumId": "Folder",
-      "albumRootId": "Album"
+      "albumRootId": "Album",
+      "remark": "Remark",
+      "name": "Name"
     }
   }
 }

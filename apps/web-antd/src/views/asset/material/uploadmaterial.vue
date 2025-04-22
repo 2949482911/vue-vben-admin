@@ -3,11 +3,10 @@ import type {CouponCreateRequest, CouponUpdateRequest} from "#/api/models";
 import {ref} from 'vue';
 import {useVbenForm} from "#/adapter/form";
 import {$t} from "@vben/locales";
-import {PlatformOptions} from "#/constants/locales";
-import {couponApi} from "#/api/media";
 import {useVbenModal} from '@vben/common-ui';
 import {Card} from "ant-design-vue";
 import {materialAlbumApi, materialApi} from "#/api/asset";
+import type {UploadResponse} from "#/api/models/asset";
 
 const emit = defineEmits(['pageReload']);
 
@@ -33,8 +32,9 @@ async function upload_file({
                            }: UploadFileParams) {
   try {
     onProgress?.({percent: 0});
-    const data = await materialApi.fetchUpload(file);
+    const data: UploadResponse = await materialApi.fetchUpload(file);
     onProgress?.({percent: 100});
+    setFormData(data)
     onSuccess?.(data, file);
   } catch (error) {
     onError?.(error instanceof Error ? error : new Error(String(error)));
@@ -42,17 +42,12 @@ async function upload_file({
 }
 
 
-async function uploadSuccess(response: any) {
-
-}
-
-
 const isUpdate = ref<Boolean>(false);
 const object = ref<CouponCreateRequest | CouponUpdateRequest>()
 
 const title: string = object.value
-    ? `${$t('common.edit')}`
-    : `${$t('common.create')}`;
+  ? `${$t('common.edit')}`
+  : `${$t('common.create')}`;
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -86,7 +81,16 @@ const [Form, formApi] = useVbenForm({
         show: false,
         triggerFields: ["*"]
       },
-      fieldName:"width"
+      fieldName: "width"
+    },
+
+    {
+      component: 'Input',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      },
+      fieldName: "height"
     },
     {
       component: 'Input',
@@ -94,9 +98,69 @@ const [Form, formApi] = useVbenForm({
         show: false,
         triggerFields: ["*"]
       },
-      fieldName:"width"
+      fieldName: "fileUrl"
     },
 
+    {
+      component: 'Input',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      },
+      fieldName: "fileName"
+    },
+    {
+      component: 'Input',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      },
+      fieldName: "fileSize"
+    },
+    {
+      component: 'Input',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      },
+      fieldName: "fileType"
+    },
+
+    {
+      component: 'Input',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      },
+      fieldName: "fileMd5"
+    },
+
+    {
+      component: 'Input',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      },
+      fieldName: "cover"
+    },
+
+    {
+      component: 'Input',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      },
+      fieldName: "videoDuration"
+    },
+
+    {
+      component: 'Input',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      },
+      fieldName: "thumbnailUrl"
+    },
     {
       component: 'ApiTreeSelect',
       componentProps: {
@@ -138,14 +202,20 @@ const [Form, formApi] = useVbenForm({
       },
       rules: 'required',
     },
+
+    {
+      component: 'Textarea',
+      label: $t('asset.album.columns.remark'),
+      fieldName: "remark"
+    },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'lg:grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
     if (isUpdate.value) {
-      await couponApi.fetchCouponUpdate(JSON.stringify(values))
+      console.log("edit material", values)
     } else {
-      await couponApi.fetchCouponCreate(JSON.stringify(values))
+      await materialApi.fetchCreateMaterial(JSON.stringify(values))
     }
     await modalApi.close();
   }
@@ -181,6 +251,20 @@ function handleSetFormValue(row) {
   formApi.setValues(row);
 }
 
+
+// set upload data
+function setFormData(response: UploadResponse) {
+  formApi.setFieldValue("fileUrl", response.fileUrl);
+  formApi.setFieldValue("fileName", response.filename);
+  formApi.setFieldValue("fileSize", response.fileSize);
+  formApi.setFieldValue("fileType", response.fileType);
+  formApi.setFieldValue("fileMd5", response.fileMd5);
+  formApi.setFieldValue("cover", response.cover);
+  formApi.setFieldValue("videoDuration", response.videoDuration);
+  formApi.setFieldValue("thumbnailUrl", response.thumbnailUrl);
+  formApi.setFieldValue("width", response.width);
+  formApi.setFieldValue("height", response.height);
+}
 
 </script>
 

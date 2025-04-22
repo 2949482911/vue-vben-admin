@@ -46,3 +46,33 @@ export interface UploadMaterialRequest {
   albumId: string;
   albumRootId: string;
 }
+
+
+export interface CreateMaterialRequest {
+  albumId: string;
+  fileName: string;
+  fileMd5: string;
+  fileSize: number;
+  fileUrl: string;
+  thumbnailUrl: string;
+  fileType: string;
+  videoDuration: string;
+  width: string;
+  height: string;
+}
+
+/**
+ * UploadResponse interface
+ */
+export interface UploadResponse {
+  fileUrl: string;
+  filename: string;
+  fileSize: number;
+  width: number;
+  height: number;
+  fileType: string;
+  fileMd5: string;
+  cover: string;
+  videoDuration: string;
+  thumbnailUrl: string;
+}
