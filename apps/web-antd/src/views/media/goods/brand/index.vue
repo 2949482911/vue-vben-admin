@@ -47,10 +47,10 @@ const gridOptions: VxeGridProps<BrandItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    ...TABLE_COMMON_COLUMNS,
     {field: "platform", title: `${$t("media.account.columns.platform")}`, width: "auto"},
     {field: "name", title: `${$t("media.brand.columns.name")}`, width: "auto"},
     {field: "nameEn", title: `${$t("media.brand.columns.nameEn")}`, width: "auto"},
+    ...TABLE_COMMON_COLUMNS,
   ],
   pagerConfig: {
     enabled: true

@@ -11,5 +11,6 @@
   "material": "Material",
   "upload": "Upload",
   "create_folder": "Create Folder",
-  "file": "File"
+  "file": "File",
+  "loading_text": "Loading...."
 }

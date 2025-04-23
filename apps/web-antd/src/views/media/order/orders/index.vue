@@ -1,12 +1,29 @@
 <script lang="ts" setup name="ReturnOrdersManager">
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
-import {Page, type VbenFormProps} from "@vben/common-ui";
+import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
 import {Button, Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
-import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import {PlatformOptions} from "#/constants/locales";
 import {orderApi} from "#/api/media/";
-import type {MediaItemItem} from "#/api/models/media/item";
+
+// order info modal
+import OrderDetail from './orderdetail.vue';
+import type {OrderItem} from "#/api/models";
+
+const [CreateOrderDetailModel, CreateOrderDetailModelApi] = useVbenModal({
+  connectedComponent: OrderDetail,
+  centered: true,
+  modal: true,
+})
+
+function openOrderDetailModal(platform: string, orderId: string) {
+  CreateOrderDetailModelApi.setData({
+    platform,
+    orderId
+  });
+  CreateOrderDetailModelApi.open();
+}
 
 
 const formOptions: VbenFormProps = {
@@ -34,17 +51,25 @@ const formOptions: VbenFormProps = {
 };
 
 
-async function handlerState(row: MediaItemItem) {
+async function handlerState(row: OrderItem) {
   pageReload();
 }
 
-const gridOptions: VxeGridProps<MediaItemItem> = {
+const gridOptions: VxeGridProps<OrderItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
     {field: "platform", title: `${$t("media.order.columns.platform")}`, width: "auto"},
-    {field: "platformOrderId", title: `${$t("media.order.columns.platformOrderId")}`, width: "auto"},
-    {field: "platformOrderNo", title: `${$t("media.order.columns.platformOrderNo")}`, width: "auto"},
+    {
+      field: "platformOrderId",
+      title: `${$t("media.order.columns.platformOrderId")}`,
+      width: "auto"
+    },
+    {
+      field: "platformOrderNo",
+      title: `${$t("media.order.columns.platformOrderNo")}`,
+      width: "auto"
+    },
     {field: "payTime", title: `${$t("media.order.columns.payTime")}`, width: "auto"},
     {field: "buyerOpenId", title: `${$t("media.order.columns.buyerOpenId")}`, width: "auto"},
     {field: "buyerNickname", title: `${$t("media.order.columns.buyerNickname")}`, width: "auto"},
@@ -56,18 +81,40 @@ const gridOptions: VxeGridProps<MediaItemItem> = {
     {field: "sendTime", title: `${$t("media.order.columns.sendTime")}`, width: "auto"},
     {field: "refundTime", title: `${$t("media.order.columns.refundTime")}`, width: "auto"},
     {field: "finishTime", title: `${$t("media.order.columns.finishTime")}`, width: "auto"},
-    {field: "orderCreateTime", title: `${$t("media.order.columns.orderCreateTime")}`, width: "auto"},
-    {field: "orderUpdateTime", title: `${$t("media.order.columns.orderUpdateTime")}`, width: "auto"},
+    {
+      field: "orderCreateTime",
+      title: `${$t("media.order.columns.orderCreateTime")}`,
+      width: "auto"
+    },
+    {
+      field: "orderUpdateTime",
+      title: `${$t("media.order.columns.orderUpdateTime")}`,
+      width: "auto"
+    },
     {field: "buyerRemark", title: `${$t("media.order.columns.buyerRemark")}`, width: "auto"},
     {field: "payType", title: `${$t("media.order.columns.payType")}`, width: "auto"},
-    {field: "remindShipmentSign", title: `${$t("media.order.columns.remindShipmentSign")}`, width: "auto"},
+    {
+      field: "remindShipmentSign",
+      title: `${$t("media.order.columns.remindShipmentSign")}`,
+      width: "auto"
+    },
     {field: "cancelReason", title: `${$t("media.order.columns.cancelReason")}`, width: "auto"},
     {field: "orderAmount", title: `${$t("media.order.columns.orderAmount")}`, width: "auto"},
     {field: "payAmount", title: `${$t("media.order.columns.payAmount")}`, width: "auto"},
     {field: "postAmount", title: `${$t("media.order.columns.postAmount")}`, width: "auto"},
     {field: "modifyAmount", title: `${$t("media.order.columns.modifyAmount")}`, width: "auto"},
-    {field: "promotionAmount", title: `${$t("media.order.columns.promotionAmount")}`, width: "auto"},
-
+    {
+      field: "promotionAmount",
+      title: `${$t("media.order.columns.promotionAmount")}`,
+      width: "auto"
+    },
+    {
+      field: 'options',
+      title: `${$t('core.columns.options')}`,
+      fixed: 'right',
+      slots: {default: 'action'},
+      width: 256,
+    },
   ],
   pagerConfig: {
     enabled: true
@@ -123,12 +170,11 @@ function pageReload() {
         </template>
 
         <template #action="{ row }">
-          <Button type="link">{{ $t('common.edit') }}</Button>
-          <Button type="link">{{ $t('common.delete') }}</Button>
-          <Button type="link">{{ $t('common.info') }}</Button>
-          <Button type="link">{{ $t('media.media_item.columns.stock_add') }}</Button>
+          <Button type="link" @click="openOrderDetailModal(row.platform, row.platformOrderId)">{{ $t('action.info') }}</Button>
         </template>
       </Grid>
     </Page>
+
+    <CreateOrderDetailModel />
   </div>
 </template>

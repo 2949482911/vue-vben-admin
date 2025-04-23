@@ -14,7 +14,16 @@ class OrderApi extends BaseApi {
    * @param params
    */
   fetchOrderList(params: OrderPrams) {
-    return requestClient.get<OrderItem[]>("list", {params})
+    return requestClient.get<OrderItem[]>(this.getServiceUrl("list"), {params})
+  }
+
+  /**
+   * order detail
+   * @param platform
+   * @param orderId
+   */
+  fetchOrderDetail(platform: string, orderId: string) {
+    return requestClient.get(this.getServiceUrl("detail"), {params: {platform, orderId}})
   }
 }
 

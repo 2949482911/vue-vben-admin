@@ -11,5 +11,6 @@
   "material": "素材",
   "upload": "上传",
   "create_folder": "新建文件夹",
-  "file": "文件"
+  "file": "文件",
+  "loading_text": "正在加载...."
 }
