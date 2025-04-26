@@ -2,7 +2,7 @@
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
 import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
-import {Button, Switch} from "ant-design-vue";
+import {Button} from "ant-design-vue";
 import {$t} from "@vben/locales";
 import {PlatformOptions} from "#/constants/locales";
 import {orderApi} from "#/api/media/";
@@ -10,6 +10,7 @@ import {orderApi} from "#/api/media/";
 // order info modal
 import OrderDetail from './orderdetail.vue';
 import type {OrderItem} from "#/api/models";
+import {getOrderStatusTag, getPayMethodTag} from "#/constants";
 
 const [CreateOrderDetailModel, CreateOrderDetailModelApi] = useVbenModal({
   connectedComponent: OrderDetail,
@@ -63,7 +64,7 @@ const gridOptions: VxeGridProps<OrderItem> = {
     {
       field: "platformOrderId",
       title: `${$t("media.order.columns.platformOrderId")}`,
-      width: "auto"
+      width: "auto",
     },
     {
       field: "platformOrderNo",
@@ -75,7 +76,7 @@ const gridOptions: VxeGridProps<OrderItem> = {
     {field: "buyerNickname", title: `${$t("media.order.columns.buyerNickname")}`, width: "auto"},
     {field: "expressFee", title: `${$t("media.order.columns.expressFee")}`, width: "auto"},
     {field: "discountFee", title: `${$t("media.order.columns.discountFee")}`, width: "auto"},
-    {field: "orderStatus", title: `${$t("media.order.columns.orderStatus")}`, width: "auto"},
+    {field: "orderStatus", title: `${$t("media.order.columns.orderStatus")}`, width: "auto", slots: {default: 'orderStatus'}},
     {field: "orderType", title: `${$t("media.order.columns.orderType")}`, width: "auto"},
     {field: "orderLevel", title: `${$t("media.order.columns.orderLevel")}`, width: "auto"},
     {field: "sendTime", title: `${$t("media.order.columns.sendTime")}`, width: "auto"},
@@ -92,7 +93,7 @@ const gridOptions: VxeGridProps<OrderItem> = {
       width: "auto"
     },
     {field: "buyerRemark", title: `${$t("media.order.columns.buyerRemark")}`, width: "auto"},
-    {field: "payType", title: `${$t("media.order.columns.payType")}`, width: "auto"},
+    {field: "payType", title: `${$t("media.order.columns.payType")}`, width: "auto", slots: {default: 'payType'}},
     {
       field: "remindShipmentSign",
       title: `${$t("media.order.columns.remindShipmentSign")}`,
@@ -157,8 +158,12 @@ function pageReload() {
           </Button>
         </template>
 
-        <template #status="{ row  }">
-          <Switch :checked="row.status == 1" @change="handlerState(row)"/>
+        <template #orderStatus="{ row  }">
+         <component :is="getOrderStatusTag(row.platform, row.orderStatus)"></component>
+        </template>
+
+        <template #payType="{ row  }">
+         <component :is="getPayMethodTag(row.platform, row.payType)"></component>
         </template>
 
         <template #skus="{ row }">

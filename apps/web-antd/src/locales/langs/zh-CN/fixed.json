@@ -1,0 +1,10 @@
+{
+  "pay_method": {
+    "zero": "UnKnow",
+    "one": "Wechat",
+    "two": "Alipay",
+    "three": "平安银行",
+    "nine-nine": "银行转账",
+    "eight-eight": "支付宝先用后付"
+  }
+}
