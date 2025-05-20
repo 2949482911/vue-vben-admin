@@ -35,5 +35,7 @@
   "auth": "Auth",
   "yes": "Yes",
   "no": "No",
-  "detail": "Detail"
+  "detail": "Detail",
+  "showSearchPanel": "Show search panel",
+  "hideSearchPanel": "Hide search panel"
 }

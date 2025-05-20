@@ -3,11 +3,6 @@
  */
 export const LOGIN_PATH = '/auth/login';
 
-/**
- * @zh_CN 默认首页地址
- */
-export const DEFAULT_HOME_PATH = '/dashboard';
-
 export interface LanguageOption {
   label: string;
   value: 'en-US' | 'zh-CN';
@@ -31,12 +26,4 @@ export enum ConstantEnum {
   COMMON_ZERO,
   COMMON_ENABLE,
   COMMON_DISABLE = 9,
-}
-
-
-export enum ConstantTypeEnum {
-  COMMON_ZERO,
-  COMMON_ONE,
-  COMMON_TWO,
-  COMMON_THREE,
 }
