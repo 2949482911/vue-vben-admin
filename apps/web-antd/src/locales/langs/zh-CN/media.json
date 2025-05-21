@@ -423,5 +423,11 @@
         "online_pay": "在线支付"
       }
     }
+  },
+  "report": {
+    "order_report": {
+      "orderCount": "订单数",
+      "thirtyDaysOrderCount": "近30日订单数"
+    }
   }
 }

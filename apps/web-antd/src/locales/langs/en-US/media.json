@@ -422,5 +422,11 @@
         "online_pay": "Online Pay"
       }
     }
+  },
+  "report": {
+    "order_report": {
+      "orderCount": "Order Number",
+      "thirtyDaysOrderCount": "Thirty Days Order Count"
+    }
   }
 }

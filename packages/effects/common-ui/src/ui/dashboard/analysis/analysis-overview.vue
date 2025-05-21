@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AnalysisOverviewItem } from '../typing';
+import type {AnalysisOverviewItem} from '../typing';
 
 import {
   Card,
@@ -10,6 +10,7 @@ import {
   VbenCountToAnimator,
   VbenIcon,
 } from '@vben-core/shadcn-ui';
+import {computed} from "vue"
 
 interface Props {
   items?: AnalysisOverviewItem[];
@@ -19,9 +20,10 @@ defineOptions({
   name: 'AnalysisOverview',
 });
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   items: () => [],
 });
+
 </script>
 
 <template>
@@ -39,7 +41,7 @@ withDefaults(defineProps<Props>(), {
             class="text-xl"
             prefix=""
           />
-          <VbenIcon :icon="item.icon" class="size-8 flex-shrink-0" />
+          <VbenIcon :icon="item.icon" class="size-8 flex-shrink-0"/>
         </CardContent>
         <CardFooter class="justify-between">
           <span>{{ item.totalTitle }}</span>

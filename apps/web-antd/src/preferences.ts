@@ -13,6 +13,7 @@ export const overridesPreferences = defineOverridesPreferences({
     enableRefreshToken: false,
     compact: true,
     authPageLayout: "panel-center",
+    defaultHomePath: '/dashboard/analytics'
   },
   header: {
     enable: true,

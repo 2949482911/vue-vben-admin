@@ -1,32 +1,29 @@
 <script lang="ts" setup>
-import type { AnalysisOverviewItem } from '@vben/common-ui';
-import type { TabOption } from '@vben/types';
-
-import {
-  AnalysisChartCard,
-  AnalysisChartsTabs,
-  AnalysisOverview,
-} from '@vben/common-ui';
-import {
-  SvgBellIcon,
-  SvgCakeIcon,
-  SvgCardIcon,
-  SvgDownloadIcon,
-} from '@vben/icons';
+import type {AnalysisOverviewItem} from '@vben/common-ui';
+import {AnalysisChartCard, AnalysisChartsTabs, AnalysisOverview,} from '@vben/common-ui';
+import type {TabOption} from '@vben/types';
+import {ref, onMounted} from 'vue'
+import {orderReportApi} from "#/api/media";
+import {SvgBellIcon, SvgCakeIcon, SvgCardIcon, SvgDownloadIcon,} from '@vben/icons';
+import {$t} from '@vben/locales';
 
 import AnalyticsTrends from './analytics-trends.vue';
 import AnalyticsVisitsData from './analytics-visits-data.vue';
 import AnalyticsVisitsSales from './analytics-visits-sales.vue';
 import AnalyticsVisitsSource from './analytics-visits-source.vue';
 import AnalyticsVisits from './analytics-visits.vue';
+import {DateUtils} from "#/utils";
+import type {OrderReportResponse} from "#/api/models";
 
-const overviewItems: AnalysisOverviewItem[] = [
+// 指标
+const overviewItems = ref<Array<AnalysisOverviewItem>>([
   {
+    metricName: "OrderCount",
     icon: SvgCardIcon,
-    title: '用户量',
-    totalTitle: '总用户量',
-    totalValue: 120_000,
-    value: 2000,
+    title: `${$t('media.report.order_report.orderCount')}`,
+    totalTitle: `${$t('media.report.order_report.thirtyDaysOrderCount')}`,
+    totalValue: 0,
+    value: 0,
   },
   {
     icon: SvgCakeIcon,
@@ -49,7 +46,8 @@ const overviewItems: AnalysisOverviewItem[] = [
     totalValue: 50_000,
     value: 5000,
   },
-];
+]);
+
 
 const chartTabs: TabOption[] = [
   {
@@ -61,29 +59,72 @@ const chartTabs: TabOption[] = [
     value: 'visits',
   },
 ];
+
+//
+const orderReportResponse = ref<OrderReportResponse>();
+
+
+async function getOrderReport() {
+  // 默认获取30天内的数据
+  const date = DateUtils.generateDateRangeByDaysStr(-30)
+  orderReportResponse.value = await orderReportApi.fetchOrderReport({
+    dateList: [date.endDate, date.startDate],
+    needCname: true,
+    metrics: ["OrderCount"],
+    filters: [],
+    dimensions: ["date"],
+    decimalPoint: 2,
+  })
+
+  // set values
+  await setValues();
+}
+
+async function setValues() {
+  // set values
+  overviewItems.value.forEach(item => {
+    orderReportResponse.value.items.forEach(data => {
+      if (DateUtils.getCurrentDateStr() === data['date']) {
+        item.value = data[item.metricName] || 0
+      }
+    })
+  })
+
+  // set total
+  overviewItems.value.forEach(item => {
+    const total = orderReportResponse.value.total[0];
+    item.totalValue = total[item.metricName] || 0
+  })
+}
+
+
+onMounted(async () => {
+  await getOrderReport()
+})
+
 </script>
 
 <template>
   <div class="p-5">
-    <AnalysisOverview :items="overviewItems" />
+    <AnalysisOverview :items="overviewItems"/>
     <AnalysisChartsTabs :tabs="chartTabs" class="mt-5">
       <template #trends>
-        <AnalyticsTrends />
+        <AnalyticsTrends/>
       </template>
       <template #visits>
-        <AnalyticsVisits />
+        <AnalyticsVisits/>
       </template>
     </AnalysisChartsTabs>
 
     <div class="mt-5 w-full md:flex">
       <AnalysisChartCard class="mt-5 md:mr-4 md:mt-0 md:w-1/3" title="访问数量">
-        <AnalyticsVisitsData />
+        <AnalyticsVisitsData/>
       </AnalysisChartCard>
       <AnalysisChartCard class="mt-5 md:mr-4 md:mt-0 md:w-1/3" title="访问来源">
-        <AnalyticsVisitsSource />
+        <AnalyticsVisitsSource/>
       </AnalysisChartCard>
       <AnalysisChartCard class="mt-5 md:mt-0 md:w-1/3" title="访问来源">
-        <AnalyticsVisitsSales />
+        <AnalyticsVisitsSales/>
       </AnalysisChartCard>
     </div>
   </div>
