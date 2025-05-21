@@ -66,6 +66,7 @@ const TreeSelect = defineAsyncComponent(
   () => import('ant-design-vue/es/tree-select'),
 );
 const Upload = defineAsyncComponent(() => import('ant-design-vue/es/upload'));
+const Tree = defineAsyncComponent(() => import('ant-design-vue/es/tree'));
 
 const withDefaultPlaceholder = <T extends Component>(
   component: T,
