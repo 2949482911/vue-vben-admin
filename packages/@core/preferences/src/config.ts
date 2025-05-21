@@ -26,7 +26,7 @@ const defaultPreferences: Preferences = {
     layout: 'sidebar-nav',
     locale: 'zh-CN',
     loginExpiredMode: 'page',
-    name: 'Vben Admin',
+    name: '火力引擎',
     preferencesButtonPosition: 'auto',
     watermark: false,
     zIndex: 200,
