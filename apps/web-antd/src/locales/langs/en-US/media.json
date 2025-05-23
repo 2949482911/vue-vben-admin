@@ -426,7 +426,18 @@
   "report": {
     "order_report": {
       "orderCount": "Order Number",
-      "thirtyDaysOrderCount": "Thirty Days Order Count"
+      "thirtyDaysOrderCount": "Thirty Days Order Count",
+      "itemCount": "Item Number",
+      "thirtyDaysItemCount": "Thirty Days Order Count",
+      "buyUserCount": "Buy User Number",
+      "thirtyDaysBuyUserCount": "Thirty Days Buy User Count",
+      "orderAmount": "Order Amount",
+      "thirtyDaysOrderAmount": "Thirty Days Order Amount"
+    },
+    "chartTabs": {
+      "hour_trend_chart": "Hort Trend Chart",
+      "day_trend_chart": "Day Trend Chart",
+      "mouth_trend_chart": "Mouth Trend Chart"
     }
   }
 }

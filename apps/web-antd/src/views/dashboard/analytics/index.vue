@@ -26,38 +26,46 @@ const overviewItems = ref<Array<AnalysisOverviewItem>>([
     value: 0,
   },
   {
+    metricName: "ItemCount",
     icon: SvgCakeIcon,
-    title: '访问量',
-    totalTitle: '总访问量',
-    totalValue: 500_000,
-    value: 20_000,
+    title: `${$t('media.report.order_report.itemCount')}`,
+    totalTitle: `${$t('media.report.order_report.thirtyDaysItemCount')}`,
+    totalValue: 0,
+    value: 0,
   },
   {
+    metricName: "BuyUserCount",
     icon: SvgDownloadIcon,
-    title: '下载量',
-    totalTitle: '总下载量',
-    totalValue: 120_000,
-    value: 8000,
+    title: `${$t('media.report.order_report.buyUserCount')}`,
+    totalTitle: `${$t('media.report.order_report.thirtyDaysBuyUserCount')}`,
+    totalValue: 0,
+    value: 0,
   },
   {
+    metricName: "OrderAmount",
     icon: SvgBellIcon,
-    title: '使用量',
-    totalTitle: '总使用量',
-    totalValue: 50_000,
-    value: 5000,
+    title: `${$t('media.report.order_report.orderAmount')}`,
+    totalTitle: `${$t('media.report.order_report.thirtyDaysOrderAmount')}`,
+    totalValue: 0,
+    value: 0,
   },
 ]);
 
 
+// 图表
 const chartTabs: TabOption[] = [
   {
-    label: '流量趋势',
-    value: 'trends',
+    label: `${$t('media.report.chartTabs.hour_trend_chart')}`,
+    value: 'hour',
   },
   {
-    label: '月访问量',
-    value: 'visits',
+    label: `${$t('media.report.chartTabs.day_trend_chart')}`,
+    value: 'day',
   },
+  {
+    label: `${$t('media.report.chartTabs.mouth_trend_chart')}`,
+    value: 'mouth',
+  }
 ];
 
 //
@@ -70,12 +78,12 @@ async function getOrderReport() {
   orderReportResponse.value = await orderReportApi.fetchOrderReport({
     dateList: [date.endDate, date.startDate],
     needCname: true,
-    metrics: ["OrderCount"],
+    metrics: ["OrderCount", "ItemCount", "BuyUserCount", "OrderAmount"],
     filters: [],
     dimensions: ["date"],
     decimalPoint: 2,
   })
-
+  // console.log(orderReportResponse.value)
   // set values
   await setValues();
 }
@@ -85,15 +93,16 @@ async function setValues() {
   overviewItems.value.forEach(item => {
     orderReportResponse.value.items.forEach(data => {
       if (DateUtils.getCurrentDateStr() === data['date']) {
-        item.value = data[item.metricName] || 0
+        item.value = Number(data[item.metricName]) || 0
       }
     })
   })
 
+
   // set total
   overviewItems.value.forEach(item => {
     const total = orderReportResponse.value.total[0];
-    item.totalValue = total[item.metricName] || 0
+    item.totalValue = Number(total[item.metricName]) || 0
   })
 }
 
@@ -108,11 +117,14 @@ onMounted(async () => {
   <div class="p-5">
     <AnalysisOverview :items="overviewItems"/>
     <AnalysisChartsTabs :tabs="chartTabs" class="mt-5">
-      <template #trends>
-        <AnalyticsTrends/>
+      <template #hour>
+        <AnalyticsTrends :dim="'hour'"/>
       </template>
-      <template #visits>
-        <AnalyticsVisits/>
+      <template #day>
+        <AnalyticsTrends :dim="'date'"/>
+      </template>
+      <template #mouth>
+        <AnalyticsVisits />
       </template>
     </AnalysisChartsTabs>
 

@@ -1,15 +1,65 @@
 <script lang="ts" setup>
-import type { EchartsUIType } from '@vben/plugins/echarts';
+import type {EchartsUIType} from '@vben/plugins/echarts';
 
-import { onMounted, ref } from 'vue';
+import {onMounted, ref} from 'vue';
 
-import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
+import {EchartsUI, useEcharts} from '@vben/plugins/echarts';
+import type {OrderReportResponse} from "#/api/models";
+import {DateUtils} from "#/utils";
+import {orderReportApi} from "#/api/media";
 
 const chartRef = ref<EchartsUIType>();
-const { renderEcharts } = useEcharts(chartRef);
+const {renderEcharts} = useEcharts(chartRef);
+const orderReportResponse = ref<OrderReportResponse>();
 
-onMounted(() => {
-  renderEcharts({
+const props = defineProps({
+  "dim": {
+    type: String,
+    default: 'hour'
+  }
+});
+
+/**
+ * get report
+ */
+async function getOrderReport() {
+  let days: number = 0;
+  if (props.dim == 'date') {
+    days = -30;
+  }
+  const date = DateUtils.generateDateRangeByDaysStr(days)
+  orderReportResponse.value = await orderReportApi.fetchOrderReport({
+    dateList: [date.endDate, date.startDate],
+    needCname: true,
+    metrics: ["OrderCount"],
+    filters: [],
+    dimensions: [props.dim],
+    decimalPoint: 2,
+  })
+
+}
+
+onMounted(async () => {
+  await getOrderReport()
+
+  // handler data
+  const {items, columns} = orderReportResponse.value;
+  const hourList: Array<string> = [];
+  const dataList: Array<string> = [];
+  items.sort((x, y) => {
+    if (x[props.dim] < y[props.dim]) {
+      return -1;
+    }
+    if (x[props.dim] > y[props.dim]) {
+      return 1;
+    }
+    return 0;
+  }).forEach(x => {
+    hourList.push(x[props.dim]);
+    dataList.push(x['OrderCount'])
+  })
+
+  await renderEcharts({
     grid: {
       bottom: 0,
       containLabel: true,
@@ -20,25 +70,9 @@ onMounted(() => {
     series: [
       {
         areaStyle: {},
-        data: [
-          111, 2000, 6000, 16_000, 33_333, 55_555, 64_000, 33_333, 18_000,
-          36_000, 70_000, 42_444, 23_222, 13_000, 8000, 4000, 1200, 333, 222,
-          111,
-        ],
+        data: dataList,
         itemStyle: {
           color: '#5ab1ef',
-        },
-        smooth: true,
-        type: 'line',
-      },
-      {
-        areaStyle: {},
-        data: [
-          33, 66, 88, 333, 3333, 6200, 20_000, 3000, 1200, 13_000, 22_000,
-          11_000, 2221, 1201, 390, 198, 60, 30, 22, 11,
-        ],
-        itemStyle: {
-          color: '#019680',
         },
         smooth: true,
         type: 'line',
@@ -53,20 +87,12 @@ onMounted(() => {
       },
       trigger: 'axis',
     },
-    // xAxis: {
-    //   axisTick: {
-    //     show: false,
-    //   },
-    //   boundaryGap: false,
-    //   data: Array.from({ length: 18 }).map((_item, index) => `${index + 6}:00`),
-    //   type: 'category',
-    // },
     xAxis: {
       axisTick: {
         show: false,
       },
       boundaryGap: false,
-      data: Array.from({ length: 18 }).map((_item, index) => `${index + 6}:00`),
+      data: hourList,
       splitLine: {
         lineStyle: {
           type: 'solid',
@@ -81,7 +107,6 @@ onMounted(() => {
         axisTick: {
           show: false,
         },
-        max: 80_000,
         splitArea: {
           show: true,
         },
@@ -94,5 +119,5 @@ onMounted(() => {
 </script>
 
 <template>
-  <EchartsUI ref="chartRef" />
+  <EchartsUI ref="chartRef"/>
 </template>

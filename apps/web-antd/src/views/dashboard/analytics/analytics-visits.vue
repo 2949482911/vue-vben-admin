@@ -1,15 +1,52 @@
 <script lang="ts" setup>
-import type { EchartsUIType } from '@vben/plugins/echarts';
+import type {EchartsUIType} from '@vben/plugins/echarts';
 
-import { onMounted, ref } from 'vue';
+import {onMounted, ref} from 'vue';
 
-import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
+import {EchartsUI, useEcharts} from '@vben/plugins/echarts';
+import type {OrderReportResponse} from "#/api/models";
+import {DateUtils} from "#/utils";
+import {orderReportApi} from "#/api/media";
 
 const chartRef = ref<EchartsUIType>();
-const { renderEcharts } = useEcharts(chartRef);
+const {renderEcharts} = useEcharts(chartRef);
 
-onMounted(() => {
-  renderEcharts({
+// 数据氢气
+const orderReportResponse = ref<OrderReportResponse>();
+
+
+async function getOrderReport() {
+  let days: number = -180;
+  const date = DateUtils.generateDateRangeByDaysStr(days)
+  orderReportResponse.value = await orderReportApi.fetchOrderReport({
+    dateList: [date.endDate, date.startDate],
+    needCname: true,
+    metrics: ["OrderCount"],
+    filters: [],
+    dimensions: ['month'],
+    decimalPoint: 2,
+  })
+
+}
+
+onMounted(async () => {
+  await getOrderReport();
+  const {items, _} = orderReportResponse.value;
+  const dimsList: Array<string> = [];
+  const dataList: Array<string> = [];
+  items.sort((x, y) => {
+    if (x['date'] < y['date']) {
+      return -1;
+    }
+    if (x['date'] > y['date']) {
+      return 1;
+    }
+    return 0;
+  }).forEach(x => {
+    dimsList.push(x['date']);
+    dataList.push(x['OrderCount'])
+  })
+  await renderEcharts({
     grid: {
       bottom: 0,
       containLabel: true,
@@ -21,10 +58,7 @@ onMounted(() => {
       {
         barMaxWidth: 80,
         // color: '#4f69fd',
-        data: [
-          3000, 2000, 3333, 5000, 3200, 4200, 3200, 2100, 3000, 5100, 6000,
-          3200, 4800,
-        ],
+        data: dataList,
         type: 'bar',
       },
     ],
@@ -38,11 +72,11 @@ onMounted(() => {
       trigger: 'axis',
     },
     xAxis: {
-      data: Array.from({ length: 12 }).map((_item, index) => `${index + 1}月`),
+      data: Array.from(dimsList).map((_item, _) => `${_item}月`),
       type: 'category',
     },
     yAxis: {
-      max: 8000,
+      // max: 8000,
       splitNumber: 4,
       type: 'value',
     },
@@ -51,5 +85,5 @@ onMounted(() => {
 </script>
 
 <template>
-  <EchartsUI ref="chartRef" />
+  <EchartsUI ref="chartRef"/>
 </template>
