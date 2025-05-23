@@ -2,6 +2,7 @@
 import type {EchartsUIType} from '@vben/plugins/echarts';
 
 import {onMounted, ref} from 'vue';
+import {$t} from '@vben/locales';
 
 import {EchartsUI, useEcharts} from '@vben/plugins/echarts';
 import type {OrderReportResponse} from "#/api/models";
@@ -21,7 +22,7 @@ async function getOrderReport() {
   orderReportResponse.value = await orderReportApi.fetchOrderReport({
     dateList: [date.endDate, date.startDate],
     needCname: true,
-    metrics: ["OrderCount"],
+    metrics: ["OrderCount", "BuyUserCount", "OrderAmount"],
     filters: [],
     dimensions: ['month'],
     decimalPoint: 2,
@@ -34,6 +35,8 @@ onMounted(async () => {
   const {items, _} = orderReportResponse.value;
   const dimsList: Array<string> = [];
   const dataList: Array<string> = [];
+  const buyUserCount: Array<string> = [];
+  const orderAmount: Array<string> = []
   items.sort((x, y) => {
     if (x['date'] < y['date']) {
       return -1;
@@ -44,28 +47,44 @@ onMounted(async () => {
     return 0;
   }).forEach(x => {
     dimsList.push(x['date']);
-    dataList.push(x['OrderCount'])
+    dataList.push(x['OrderCount']);
+    buyUserCount.push(x["BuyUserCount"])
+    orderAmount.push(x["OrderAmount"])
   })
   await renderEcharts({
+    legend: {
+      data: [`${$t('media.report.metric.OrderCount')}`, `${$t('media.report.metric.BuyUserCount')}`, `${$t('media.report.metric.OrderAmount')}`]
+    },
     grid: {
-      bottom: 0,
-      containLabel: true,
-      left: '1%',
-      right: '1%',
-      top: '2 %',
+      left: '3%',
+      right: '4%',
+      bottom: '1%',
+      containLabel: true
     },
     series: [
       {
         barMaxWidth: 80,
-        // color: '#4f69fd',
         data: dataList,
         type: 'bar',
+        name: `${$t('media.report.metric.OrderCount')}`
+      },
+      {
+        barMaxWidth: 80,
+        data: buyUserCount,
+        type: 'bar',
+        name: `${$t('media.report.metric.BuyUserCount')}`
+      },
+      {
+        barMaxWidth: 80,
+        data: orderAmount,
+        type: 'bar',
+        name: `${$t('media.report.metric.OrderAmount')}`
       },
     ],
     tooltip: {
       axisPointer: {
         lineStyle: {
-          // color: '#4f69fd',
+          color: '#4f69fd',
           width: 1,
         },
       },
@@ -80,7 +99,8 @@ onMounted(async () => {
       splitNumber: 4,
       type: 'value',
     },
-  });
+  }
+  );
 });
 </script>
 

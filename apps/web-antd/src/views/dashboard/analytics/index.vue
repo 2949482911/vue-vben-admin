@@ -78,13 +78,11 @@ async function getOrderReport() {
   orderReportResponse.value = await orderReportApi.fetchOrderReport({
     dateList: [date.endDate, date.startDate],
     needCname: true,
-    metrics: ["OrderCount", "ItemCount", "BuyUserCount", "OrderAmount"],
+    metrics: ["OrderCount", "BuyUserCount", "OrderAmount"],
     filters: [],
     dimensions: ["date"],
     decimalPoint: 2,
   })
-  // console.log(orderReportResponse.value)
-  // set values
   await setValues();
 }
 
@@ -132,7 +130,7 @@ onMounted(async () => {
       <AnalysisChartCard class="mt-5 md:mr-4 md:mt-0 md:w-1/3" title="访问数量">
         <AnalyticsVisitsData/>
       </AnalysisChartCard>
-      <AnalysisChartCard class="mt-5 md:mr-4 md:mt-0 md:w-1/3" title="访问来源">
+      <AnalysisChartCard class="mt-5 md:mr-4 md:mt-0 md:w-1/3" :title="`${$t('media.report.chartTabs.dimensions_local_account')}`">
         <AnalyticsVisitsSource/>
       </AnalysisChartCard>
       <AnalysisChartCard class="mt-5 md:mt-0 md:w-1/3" title="访问来源">

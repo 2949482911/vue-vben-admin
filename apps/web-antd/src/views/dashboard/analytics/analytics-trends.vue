@@ -2,6 +2,7 @@
 import type {EchartsUIType} from '@vben/plugins/echarts';
 
 import {onMounted, ref} from 'vue';
+import {$t} from '@vben/locales';
 
 import {EchartsUI, useEcharts} from '@vben/plugins/echarts';
 import type {OrderReportResponse} from "#/api/models";
@@ -31,7 +32,7 @@ async function getOrderReport() {
   orderReportResponse.value = await orderReportApi.fetchOrderReport({
     dateList: [date.endDate, date.startDate],
     needCname: true,
-    metrics: ["OrderCount"],
+    metrics: ["OrderCount", "BuyUserCount", "OrderAmount"],
     filters: [],
     dimensions: [props.dim],
     decimalPoint: 2,
@@ -43,9 +44,11 @@ onMounted(async () => {
   await getOrderReport()
 
   // handler data
-  const {items, columns} = orderReportResponse.value;
+  const {items} = orderReportResponse.value;
   const hourList: Array<string> = [];
   const dataList: Array<string> = [];
+  const buyUserCount: Array<string> = [];
+  const orderAmount: Array<string> = []
   items.sort((x, y) => {
     if (x[props.dim] < y[props.dim]) {
       return -1;
@@ -57,25 +60,38 @@ onMounted(async () => {
   }).forEach(x => {
     hourList.push(x[props.dim]);
     dataList.push(x['OrderCount'])
+    buyUserCount.push(x['BuyUserCount'])
+    orderAmount.push(x['OrderAmount'])
   })
 
   await renderEcharts({
+    legend: {
+      data: [`${$t('media.report.metric.OrderCount')}`, `${$t('media.report.metric.BuyUserCount')}`, `${$t('media.report.metric.OrderAmount')}`]
+    },
     grid: {
-      bottom: 0,
-      containLabel: true,
-      left: '1%',
-      right: '1%',
-      top: '2 %',
+      left: '3%',
+      right: '4%',
+      bottom: '1%',
+      containLabel: true
     },
     series: [
       {
-        areaStyle: {},
         data: dataList,
-        itemStyle: {
-          color: '#5ab1ef',
-        },
-        smooth: true,
         type: 'line',
+        stack: 'Total',
+        name: `${$t('media.report.metric.OrderCount')}`
+      },
+      {
+        data: buyUserCount,
+        type: 'line',
+        stack: 'Total',
+        name: `${$t('media.report.metric.BuyUserCount')}`
+      },
+      {
+        data: orderAmount,
+        type: 'line',
+        stack: 'Total',
+        name: `${$t('media.report.metric.OrderAmount')}`
       },
     ],
     tooltip: {
@@ -89,10 +105,10 @@ onMounted(async () => {
     },
     xAxis: {
       axisTick: {
-        show: false,
+        show: true,
       },
       boundaryGap: false,
-      data: hourList,
+      data: Array.from(hourList).map((_item, _) => `${_item}${props.dim === 'hour' ? '时' : '日'}`),
       splitLine: {
         lineStyle: {
           type: 'solid',
@@ -102,19 +118,11 @@ onMounted(async () => {
       },
       type: 'category',
     },
-    yAxis: [
-      {
-        axisTick: {
-          show: false,
-        },
-        splitArea: {
-          show: true,
-        },
-        splitNumber: 4,
-        type: 'value',
-      },
-    ],
-  });
+    yAxis: {
+      type: 'value'
+    },
+  }
+  );
 });
 </script>
 

@@ -424,20 +424,26 @@
     }
   },
   "report": {
+    "metric": {
+      "OrderCount": "Order Number",
+      "BuyUserCount": "Buy User Number",
+      "OrderAmount": "Order Amount"
+    },
     "order_report": {
-      "orderCount": "Order Number",
+      "orderCount": "NowDay Order Number",
       "thirtyDaysOrderCount": "Thirty Days Order Count",
-      "itemCount": "Item Number",
+      "itemCount": "NowDay Item Number",
       "thirtyDaysItemCount": "Thirty Days Order Count",
-      "buyUserCount": "Buy User Number",
+      "buyUserCount": "NowDay Buy User Number",
       "thirtyDaysBuyUserCount": "Thirty Days Buy User Count",
-      "orderAmount": "Order Amount",
+      "orderAmount": "NowDay Order Amount",
       "thirtyDaysOrderAmount": "Thirty Days Order Amount"
     },
     "chartTabs": {
       "hour_trend_chart": "Hort Trend Chart",
       "day_trend_chart": "Day Trend Chart",
-      "mouth_trend_chart": "Mouth Trend Chart"
+      "mouth_trend_chart": "Mouth Trend Chart",
+      "dimensions_local_account": "Account Achievement"
     }
   }
 }

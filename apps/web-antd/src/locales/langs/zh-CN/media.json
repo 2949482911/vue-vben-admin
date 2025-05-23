@@ -425,20 +425,26 @@
     }
   },
   "report": {
+    "metric": {
+      "OrderCount": "订单数",
+      "BuyUserCount": "购买数",
+      "OrderAmount": "订单金额"
+    },
     "order_report": {
-      "orderCount": "订单数",
+      "orderCount": "今日订单数",
       "thirtyDaysOrderCount": "近30日订单数",
-      "itemCount": "商品数",
+      "itemCount": "今日商品数",
       "thirtyDaysItemCount": "近30日商品数",
-      "buyUserCount": "购买人数",
+      "buyUserCount": "今日购买人数",
       "thirtyDaysBuyUserCount": "近30日购买人数",
-      "orderAmount": "订单金额",
+      "orderAmount": "今日订单金额",
       "thirtyDaysOrderAmount": "近30日订单金额"
     },
     "chartTabs": {
       "hour_trend_chart": "小时趋势图",
       "day_trend_chart": "日趋势图",
-      "mouth_trend_chart": "月趋势图"
+      "mouth_trend_chart": "月趋势图",
+      "dimensions_local_account": "账户业绩"
     }
   }
 }
