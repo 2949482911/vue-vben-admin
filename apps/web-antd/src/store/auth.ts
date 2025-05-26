@@ -3,9 +3,9 @@ import type {Recordable, UserInfo} from '@vben/types';
 import {ref} from 'vue';
 import {useRouter} from 'vue-router';
 
-import {LOGIN_PATH} from '@vben/constants';
-import {preferences} from '@vben/preferences';
-import {resetAllStores, useAccessStore, useUserStore} from '@vben/stores';
+import { LOGIN_PATH } from '@vben/constants';
+import { preferences } from '@vben/preferences';
+import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
 
 import {notification} from 'ant-design-vue';
 import {defineStore} from 'pinia';
@@ -24,7 +24,6 @@ export const useAuthStore = defineStore('auth', () => {
    * 异步处理登录操作
    * Asynchronously handle the login process
    * @param params 登录表单数据
-   * @param onSuccess
    */
   async function authLogin(
     params: Recordable<any>,
@@ -34,7 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
     let userInfo: null | UserInfo = null;
     try {
       loginLoading.value = true;
-      const {accessToken} = await authApi.loginApi(params);
+      const { accessToken } = await authApi.loginApi(params);
 
       // 如果成功获取到 accessToken
       if (accessToken) {
@@ -45,10 +44,15 @@ export const useAuthStore = defineStore('auth', () => {
 
         userStore.setUserInfo(userInfo);
         accessStore.setAccessCodes(userInfo.marks);
+
         if (accessStore.loginExpired) {
           accessStore.setLoginExpired(false);
         } else {
-          onSuccess ? await onSuccess?.() : await router.push(userInfo.homePath || preferences.app.defaultHomePath,);
+          onSuccess
+            ? await onSuccess?.()
+            : await router.push(
+                userInfo.homePath || preferences.app.defaultHomePath,
+              );
         }
         if (userInfo?.nickname) {
           notification.success({
@@ -79,8 +83,8 @@ export const useAuthStore = defineStore('auth', () => {
       path: LOGIN_PATH,
       query: redirect
         ? {
-          redirect: encodeURIComponent(router.currentRoute.value.fullPath),
-        }
+            redirect: encodeURIComponent(router.currentRoute.value.fullPath),
+          }
         : {},
     });
   }
