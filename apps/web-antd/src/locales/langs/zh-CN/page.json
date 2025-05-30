@@ -65,6 +65,10 @@
       "title": "营销",
       "coupon": "优惠卷",
       "crowd": "人群包"
+    },
+    "report": {
+      "title": "报表",
+      "base": "基础报表"
     }
   }
 }
