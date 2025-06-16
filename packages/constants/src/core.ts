@@ -27,3 +27,11 @@ export enum ConstantEnum {
   COMMON_ENABLE,
   COMMON_DISABLE = 9,
 }
+
+
+export enum ConstantTypeEnum {
+  COMMON_ZERO,
+  COMMON_ONE,
+  COMMON_TWO,
+  COMMON_THREE,
+}

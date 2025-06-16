@@ -120,7 +120,7 @@ const [Form, formApi] = useVbenForm({
         .max(50, $t('ui.formRules.maxLength', [$t('system.menu.columns.title'), 30]))
         .refine(
           async (value: string) => {
-            return !(await isMenuNameExists(value, formData.value?.id));
+            // return !(await isMenuNameExists(value, formData.value?.id));
           },
           (value) => ({
             message: $t('ui.formRules.alreadyExists', [
