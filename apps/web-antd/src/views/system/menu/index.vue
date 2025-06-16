@@ -23,10 +23,22 @@ const [CreateMenuModal, createMenuModalApi] = useVbenModal({
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
     createMenuModalApi.setData(row);
-  }else {
+  } else {
     createMenuModalApi.setData({})
   }
   createMenuModalApi.open();
+}
+
+function getMenuTypeOptions() {
+  return [
+    {
+      color: 'processing',
+      label: $t('system.menu.type.menu'),
+      value: 1,
+    },
+    {color: 'default', label: $t('system.menu.type.interface'), value: 2},
+    {color: 'error', label: $t('system.menu.type.button'), value: 3},
+  ];
 }
 
 
@@ -37,7 +49,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
       minWidth: 300,
       title: `${$t('system.menu.columns.title')}`,
       treeNode: true,
-      slots: { default: 'title' },
+      slots: {default: 'title'},
     },
     {
       field: 'name',
@@ -47,14 +59,15 @@ const gridOptions: VxeGridProps<MenuItem> = {
     {
       field: 'type',
       minWidth: 300,
+      cellRender: {name: 'CellTag', options: getMenuTypeOptions()},
       title: `${$t('system.menu.columns.type')}`,
-      slots: { default: 'type' },
+      slots: {default: 'type'},
     },
     {
       field: 'icon',
       minWidth: 300,
       title: `${$t('system.menu.columns.icon')}`,
-      slots: { default: 'icon' },
+      slots: {default: 'icon'},
     },
     {
       field: 'path',
@@ -91,7 +104,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
       field: 'options',
       title: `${$t('core.columns.options')}`,
       fixed: 'right',
-      slots: { default: 'action' },
+      slots: {default: 'action'},
       width: 256,
     },
   ],
@@ -133,7 +146,7 @@ const handlerDeleteMenu = async (id) => {
   pageReload()
 }
 
-const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({gridOptions});
 
 const expandAll = () => {
   gridApi.grid?.setAllTreeExpand(true);
@@ -149,49 +162,49 @@ const pageReload = () => {
 </script>
 
 <template>
-<div>
-  <Page>
-    <Grid :table-title="$t('system.menu.title')">
+  <div>
+    <Page>
+      <Grid :table-title="$t('system.menu.title')">
 
-      <template #title="{ row }">
-        <div> {{ $t(`${row.title}`) }}</div>
-      </template>
+        <template #title="{ row }">
+          <div> {{ $t(`${row.title}`) }}</div>
+        </template>
 
-      <template #type="{ row }">
-        <Tag v-if="row.type === 1">{{ $t('system.menu.type.menu') }}</Tag>
-        <Tag v-if="row.type === 2">
-          {{ $t('system.menu.type.interface') }}
-        </Tag>
-        <Tag v-if="row.type === 3">{{ $t('system.menu.type.button') }}</Tag>
-      </template>
+        <template #type="{ row }">
+          <Tag v-if="row.type === 1">{{ $t('system.menu.type.menu') }}</Tag>
+          <Tag v-if="row.type === 2">
+            {{ $t('system.menu.type.interface') }}
+          </Tag>
+          <Tag v-if="row.type === 3">{{ $t('system.menu.type.button') }}</Tag>
+        </template>
 
-      <template #icon="{ row }">
-        <IconPicker :model-value="row.icon"></IconPicker>
-      </template>
+        <template #icon="{ row }">
+          <IconPicker :model-value="row.icon"></IconPicker>
+        </template>
 
-      <template #action="{ row }">
-        <Button type="link" @click="openBaseDrawer({parentId: row.id, sort: row.sort + 1})">
-          {{$t('common.create')}}
-        </Button>
-        <Button type="link" @click="openBaseDrawer(row)">
-          {{$t('common.edit')}}
-        </Button>
-        <Button type="link" @click="handlerDeleteMenu(row.id)">
-          {{$t('common.delete')}}
-        </Button>
-      </template>
+        <template #action="{ row }">
+          <Button type="link" @click="openBaseDrawer({parentId: row.id, sort: row.sort + 1})">
+            {{ $t('common.create') }}
+          </Button>
+          <Button type="link" @click="openBaseDrawer(row)">
+            {{ $t('common.edit') }}
+          </Button>
+          <Button type="link" @click="handlerDeleteMenu(row.id)">
+            {{ $t('common.delete') }}
+          </Button>
+        </template>
 
-      <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
-          {{$t('common.create')}}
-        </Button>
-        <Button class="mr-2" type="primary" @click="expandAll">
-          展开全部
-        </Button>
-        <Button type="primary" @click="collapseAll"> 折叠全部 </Button>
-      </template>
-    </Grid>
-  </Page>
-  <CreateMenuModal @page-reload="pageReload" />
-</div>
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
+            {{ $t('common.create') }}
+          </Button>
+          <Button class="mr-2" type="primary" @click="expandAll">
+            展开全部
+          </Button>
+          <Button type="primary" @click="collapseAll"> 折叠全部</Button>
+        </template>
+      </Grid>
+    </Page>
+    <CreateMenuModal @page-reload="pageReload"/>
+  </div>
 </template>

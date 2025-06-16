@@ -1,7 +1,7 @@
 <script lang="ts" setup name="CreateMenu">
 import type {CreateMenuRequest, MenuItem} from '#/api/models/menu';
 import {ref} from 'vue';
-import {useVbenModal} from '@vben/common-ui';
+import {useVbenModal, z} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import {Card} from 'ant-design-vue';
 import {useVbenForm} from '#/adapter/form';
@@ -12,6 +12,20 @@ const emit = defineEmits(['pageReload']);
 const notice = ref<CreateMenuRequest>({});
 const menuData = ref([])
 const isUpdate = ref<Boolean>(false);
+
+
+// menuTypeOptions
+ function getMenuTypeOptions() {
+  return [
+    {
+      color: 'processing',
+      label: $t('system.menu.type.menu'),
+      value: 1,
+    },
+    { color: 'default', label: $t('system.menu.type.interface'), value: 2 },
+    { color: 'error', label: $t('system.menu.type.button'), value: 3 },
+  ];
+}
 
 function updateMenuTitle(menu: MenuItem) {
   menu.title = `${$t(menu.title)}`
@@ -29,12 +43,25 @@ const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
     // 所有表单项
+    colon: true,
+    formItemClass: 'col-span-2 md:col-span-1',
     componentProps: {
       class: 'w-full',
     },
   },
-  layout: 'horizontal',
   schema: [
+    {
+      component: 'RadioGroup',
+      componentProps: {
+        buttonStyle: 'solid',
+        options: getMenuTypeOptions(),
+        optionType: 'button',
+      },
+      defaultValue: 1,
+      fieldName: 'type',
+      formItemClass: 'col-span-2 md:col-span-2',
+      label: $t('system.menu.columns.type'),
+    },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
@@ -87,7 +114,21 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'title',
       // 界面显示的label
       label: `${$t('system.menu.columns.title')}`,
-      rules: "required"
+      rules: z
+        .string()
+        .min(2, $t('ui.formRules.minLength', [$t('system.menu.columns.title'), 2]))
+        .max(50, $t('ui.formRules.maxLength', [$t('system.menu.columns.title'), 30]))
+        .refine(
+          async (value: string) => {
+            return !(await isMenuNameExists(value, formData.value?.id));
+          },
+          (value) => ({
+            message: $t('ui.formRules.alreadyExists', [
+              $t('system.menu.menuName'),
+              value,
+            ]),
+          }),
+        ),
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -336,14 +377,34 @@ const [Form, formApi] = useVbenForm({
     },
 
     {
+      component: 'Divider',
+      dependencies: {
+        triggerFields: ['type'],
+        show: (values) => {
+          return ![2, 3].includes(values.type);
+        },
+      },
+      fieldName: 'divider1',
+      formItemClass: 'col-span-2 md:col-span-2 pb-0',
+      hideLabel: true,
+      renderComponentContent() {
+        return {
+          default: () => $t('system.menu.advancedSettings'),
+        };
+      },
+    },
+
+    {
       component: 'Checkbox',
       componentProps: {
         placeholder: `${$t('common.input')}`,
 
       },
       fieldName: 'hideInMenu',
-      label: `${$t('system.menu.columns.hideMenu')}`,
       formItemClass: 'col-span-3 items-baseline',
+      renderComponentContent() {
+        return { default: () => `${$t('system.menu.columns.hideMenu')}`}
+      },
       dependencies: {
         show: (values) => {
           return values.type === 1
@@ -360,7 +421,11 @@ const [Form, formApi] = useVbenForm({
 
       },
       fieldName: 'keepAlive',
-      label: `${$t('system.menu.columns.keepAlive')}`,
+      renderComponentContent() {
+        return {
+          default: () => $t('system.menu.columns.keepAlive')
+        }
+      },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
@@ -377,7 +442,11 @@ const [Form, formApi] = useVbenForm({
 
       },
       fieldName: 'hideInBreadcrumb',
-      label: `${$t('system.menu.columns.hideInBreadcrumb')}`,
+      renderComponentContent() {
+        return {
+          default: () => $t('system.menu.columns.hideInBreadcrumb')
+        }
+      },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
@@ -393,7 +462,11 @@ const [Form, formApi] = useVbenForm({
 
       },
       fieldName: 'hideInTab',
-      label: `${$t('system.menu.columns.hideInTab')}`,
+      renderComponentContent() {
+        return {
+          default: () => $t('system.menu.columns.hideInTab')
+        }
+      },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
@@ -409,7 +482,11 @@ const [Form, formApi] = useVbenForm({
 
       },
       fieldName: 'ignoreAccess',
-      label: `${$t('system.menu.columns.ignoreAccess')}`,
+      renderComponentContent() {
+        return {
+          default: () => $t('system.menu.columns.ignoreAccess')
+        }
+      },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
@@ -425,7 +502,11 @@ const [Form, formApi] = useVbenForm({
 
       },
       fieldName: 'menuVisibleWithForbidden',
-      label: `${$t('system.menu.columns.menuVisibleWithForbidden')}`,
+      renderComponentContent() {
+        return {
+          default: () => $t('system.menu.columns.menuVisibleWithForbidden')
+        }
+      },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
@@ -441,7 +522,11 @@ const [Form, formApi] = useVbenForm({
 
       },
       fieldName: 'openInNewWindow',
-      label: `${$t('system.menu.columns.openInNewWindow')}`,
+      renderComponentContent() {
+        return {
+          default: () => $t('system.menu.columns.openInNewWindow')
+        }
+      },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
@@ -452,7 +537,7 @@ const [Form, formApi] = useVbenForm({
     }
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  wrapperClass: 'grid-cols-2 gap-x-4',
   handleSubmit: async (values: Record<string, any>) => {
     if (isUpdate.value) {
       await menuApi.fetchUpdateMenu(JSON.stringify(values))
