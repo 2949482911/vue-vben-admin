@@ -8,10 +8,11 @@ import type { ComponentType } from './component';
 import { setupVbenForm, useVbenForm as useForm, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 
-setupVbenForm<ComponentType>({
-  config: {
-    // ant design vue组件库默认都是 v-model:value
-    baseModelPropName: 'value',
+async function initSetupVbenForm() {
+  setupVbenForm<ComponentType>({
+    config: {
+      // ant design vue组件库默认都是 v-model:value
+      baseModelPropName: 'value',
 
     // 一些组件是 v-model:checked 或者 v-model:fileList
     modelPropNameMap: {
@@ -42,7 +43,7 @@ setupVbenForm<ComponentType>({
 
 const useVbenForm = useForm<ComponentType>;
 
-export { useVbenForm, z };
+export { initSetupVbenForm, useVbenForm, z };
 
 export type VbenFormSchema = FormSchema<ComponentType>;
 export type { VbenFormProps };
