@@ -154,3 +154,5 @@ export interface PlatformItemPushParams {
  */
 export interface KuaiShouPushItemPrams extends PushItemParamsCreate<KuaiShouPushItem> {
 }
+
+

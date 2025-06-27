@@ -13,6 +13,7 @@ import type {
 } from "#/api/models/media/item";
 import SelectPlatformPushItem from "./select-platform-push-item.vue"
 import KuaiShouItemDetail from "./kuaishou/detail.vue";
+import BilibiliItemDetail from "./bilibili/detail.vue";
 
 const [SelectPlatformPushItemModel, selectPlatformPushItemModalApi] = useVbenModal({
   connectedComponent: SelectPlatformPushItem,
@@ -29,7 +30,11 @@ const [CreateKuaiShouItemDetailModal, createKuaiShouItemDetailModalApi] = useVbe
   modal: true,
 });
 
-
+const [CreateBilibiliItemDetailModal, createBilibiliItemDetailModalApi] = useVbenModal({
+  connectedComponent: BilibiliItemDetail,
+  centered: true,
+  modal: true,
+})
 
 const formOptions: VbenFormProps = {
   // 默认展开
@@ -118,7 +123,6 @@ const gridOptions: VxeGridProps<MediaItemItem> = {
 };
 
 
-
 const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 function pageReload() {
@@ -133,8 +137,11 @@ function openPlatformItemDetail(row: MediaItemItem) {
     platformItemId: row.platformItemId
   }
   if (row.platform == PlatformEnum.KUAISHOU) {
-    createKuaiShouItemDetailModalApi.setData(data)
-    createKuaiShouItemDetailModalApi.open()
+    createKuaiShouItemDetailModalApi.setData(data);
+    createKuaiShouItemDetailModalApi.open();
+  } else if (row.platform == PlatformEnum.Bilibili) {
+    createBilibiliItemDetailModalApi.setData(data)
+    createBilibiliItemDetailModalApi.open();
   }
 }
 
@@ -142,7 +149,7 @@ function openPlatformItemDetail(row: MediaItemItem) {
 </script>
 
 <template>
-  <div >
+  <div>
     <Page>
       <Grid>
         <template #toolbar-tools>
@@ -152,7 +159,7 @@ function openPlatformItemDetail(row: MediaItemItem) {
         </template>
 
         <template #purchaseLimit="{ row }">
-          <Switch v-model:checked="row.purchaseLimit" />
+          <Switch v-model:checked="row.purchaseLimit"/>
         </template>
 
         <template #action="{ row }">
@@ -164,6 +171,9 @@ function openPlatformItemDetail(row: MediaItemItem) {
     </Page>
 
     <SelectPlatformPushItemModel/>
+    <!--    快手详情-->
     <CreateKuaiShouItemDetailModal/>
+    <!--    b站 商品详情-->
+    <CreateBilibiliItemDetailModal/>
   </div>
 </template>

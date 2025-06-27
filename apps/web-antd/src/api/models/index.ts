@@ -14,3 +14,4 @@ export * from "./media/logistics";
 export * from "./media/promotion";
 export * from "./media/kuaishou";
 export * from "./media/report";
+export * from "./media/bilibili/item";

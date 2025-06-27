@@ -167,7 +167,37 @@
       }
     },
     "stock_add": "库存",
-    "sku": "商品"
+    "sku": "商品",
+    "bilibili": {
+      "item_columns": {
+        "product_id": "商品ID",
+        "category_leaf_id":"分类",
+        "name": "名字",
+        "pic": "图片",
+        "description": "描述",
+        "text_description": "文本描述",
+        "freight_id": "运费模版id",
+        "delivery_delay_day": "承诺发货时间",
+        "presell_type": "发货模式",
+        "limit_per_buyer": "限购数量",
+        "product_format": "属性",
+        "spec_info": "商品规格",
+        "spec_pic": "商品规格",
+        "status": "商品上下架状态",
+        "recycling_status": "商品删除状态",
+        "create_time": "创建时间",
+        "update_time": "更新时间",
+        "delivery_time": "发货时间",
+        "sale_step": "销售阶段"
+      },
+      "sku_columns": {
+        "sku_id": "SkuID",
+        "stock_num": "库存",
+        "price": "价格",
+        "code": "编码",
+        "sell_properties": "属性"
+      }
+    }
   },
   "return_order": {
     "columns": {

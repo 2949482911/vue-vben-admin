@@ -29,6 +29,8 @@
   },
   "platform": {
     "kuaishou": "快手",
-    "douyin": "抖音"
+    "douyin": "抖音",
+    "bilibili": "哔站",
+    "rednote": "小红书"
   }
 }

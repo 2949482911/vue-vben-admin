@@ -32,6 +32,8 @@
   },
   "platform": {
     "kuaishou": "Kuai Shou",
-    "douyin": "Dou Yin"
+    "douyin": "Dou Yin",
+    "bilibili": "Bilibili",
+    "rednote": "Red Note"
   }
 }

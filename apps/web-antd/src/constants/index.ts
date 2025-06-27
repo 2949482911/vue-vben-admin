@@ -13,6 +13,8 @@ export function getOrderStatusTag(platform: string, status: number) {
   let orderStatusMap: Map<number, { label: string; value: number, color: string}>;
   if (platform === PlatformEnum.KUAISHOU) {
     orderStatusMap = ORDER_STATUS_MAP;
+  }else {
+    orderStatusMap = new Map<number, {label: string; value: number; color: string}>();
   }
   if (!orderStatusMap.has(status)) {
     return h(Tag, {color: 'red'},() => '未知');
@@ -26,6 +28,8 @@ export function getPayMethodTag(platform: string, payType: number) {
   let payMethodMap: Map<number, { label: string; value: number, color: string}>;
   if (platform === PlatformEnum.KUAISHOU) {
     payMethodMap = KUAISHOU_PAY_METHOD;
+  }else {
+    payMethodMap = new Map<number, {label: string; value: number; color: string}>();
   }
 
   if (!payMethodMap.has(payType)) {
@@ -34,4 +38,21 @@ export function getPayMethodTag(platform: string, payType: number) {
   const {label, _, color} = payMethodMap.get(payType);
   const labelName: string = $t(label);
   return h(Tag, {color: color},() => labelName);
+}
+
+export function getPlatformTag(platform: str) {
+  let color;
+  if (platform === PlatformEnum.KUAISHOU) {
+    color = 'green';
+  }
+  if (platform === PlatformEnum.DOUYIN) {
+    color = 'orange';
+  }
+  if (platform === PlatformEnum.Bilibili) {
+    color = 'purple';
+  }
+  if (platform === PlatformEnum.RedNote) {
+    color = 'red';
+  }
+  return h(Tag, {color: color},() => $t(`core.platform.${platform}`));
 }

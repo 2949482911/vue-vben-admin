@@ -10,7 +10,7 @@ import {orderApi} from "#/api/media/";
 // order info modal
 import OrderDetail from './orderdetail.vue';
 import type {OrderItem} from "#/api/models";
-import {getOrderStatusTag, getPayMethodTag} from "#/constants";
+import {getOrderStatusTag, getPayMethodTag, getPlatformTag} from "#/constants";
 
 const [CreateOrderDetailModel, CreateOrderDetailModelApi] = useVbenModal({
   connectedComponent: OrderDetail,
@@ -60,7 +60,7 @@ const gridOptions: VxeGridProps<OrderItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    {field: "platform", title: `${$t("media.order.columns.platform")}`, width: "auto"},
+    {field: "platform", title: `${$t("media.order.columns.platform")}`, width: "auto", slots: {default: 'platform'}},
     {
       field: "platformOrderId",
       title: `${$t("media.order.columns.platformOrderId")}`,
@@ -156,6 +156,9 @@ function pageReload() {
           <Button class="mr-2" type="primary">
             {{ $t('common.create') }}
           </Button>
+        </template>
+        <template #platform="{row}">
+          <component :is="getPlatformTag(row.platform)"></component>
         </template>
 
         <template #orderStatus="{ row  }">
