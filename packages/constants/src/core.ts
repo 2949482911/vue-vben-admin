@@ -34,4 +34,5 @@ export enum ConstantTypeEnum {
   COMMON_ONE,
   COMMON_TWO,
   COMMON_THREE,
+  COMMON_FOUR,
 }

@@ -6,6 +6,7 @@ import type {
   ReturnOrderParams
 } from "#/api/models/media/orders";
 import {requestClient} from '#/api/request';
+import type {MediaReturnOrderDetailRequest} from "#/api/models/media/return_order";
 
 
 class OrderApi extends BaseApi {
@@ -37,9 +38,17 @@ class ReturnOrderApi extends BaseApi {
    * @param params
    */
   fetchGetReturnOrderList(params: ReturnOrderParams) {
-    return requestClient.get<ReturnOrderItem[]>("order/list", {params})
+    return requestClient.get<ReturnOrderItem[]>(this.getServiceUrl("list"), {params})
+  }
+
+  /**
+   * 退货单详情
+   * @param params
+   */
+  fetchGetReturnOrderDetail(params: MediaReturnOrderDetailRequest){
+    return requestClient.get(this.getServiceUrl("detail"), {params:  params})
   }
 
 }
 
-export const returnOrderApi: ReturnOrderApi = new ReturnOrderApi("/media/return")
+export const returnOrderApi: ReturnOrderApi = new ReturnOrderApi("/media/return_order")

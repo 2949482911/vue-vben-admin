@@ -287,6 +287,11 @@ const [Modal, modalApi] = useVbenModal({
   },
 });
 
+function init() {
+  itemDetail.value = {};
+  spinning.value = false;
+}
+
 
 /**
  * get  item detail

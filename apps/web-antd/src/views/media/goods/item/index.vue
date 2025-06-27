@@ -1,19 +1,16 @@
 <script lang="ts" setup name="BrandManager">
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
-import {ref} from "vue"
 import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
 import {Button, Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
 import {PlatformEnum, PlatformOptions} from "#/constants/locales";
 import {itemApi} from "#/api/media/";
-import type {
-  MediaItemDetailRequest,
-  MediaItemItem
-} from "#/api/models/media/item";
+import type {MediaItemDetailRequest, MediaItemItem} from "#/api/models/media/item";
 import SelectPlatformPushItem from "./select-platform-push-item.vue"
 import KuaiShouItemDetail from "./kuaishou/detail.vue";
 import BilibiliItemDetail from "./bilibili/detail.vue";
+import {getPlatformTag} from "#/constants";
 
 const [SelectPlatformPushItemModel, selectPlatformPushItemModalApi] = useVbenModal({
   connectedComponent: SelectPlatformPushItem,
@@ -75,7 +72,12 @@ const gridOptions: VxeGridProps<MediaItemItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    {field: "platform", title: `${$t("media.media_item.columns.platform")}`, width: "auto"},
+    {
+      field: "platform",
+      title: `${$t("media.media_item.columns.platform")}`,
+      width: "auto",
+      slots: {default: 'platform'}
+    },
     {field: "title", title: `${$t("media.media_item.columns.title")}`, width: "auto"},
     {field: "shortTitle", title: `${$t("media.media_item.columns.shortTitle")}`, width: "auto"},
     {field: "imageUrls", title: `${$t("media.media_item.columns.imageUrls")}`, width: "auto"},
@@ -156,6 +158,10 @@ function openPlatformItemDetail(row: MediaItemItem) {
           <Button class="mr-2" type="primary" @click="selectPlatformPushItemModalApi.open()">
             {{ $t('common.create') }}
           </Button>
+        </template>
+
+        <template #platform="{row}">
+          <component :is="getPlatformTag(row.platform)"></component>
         </template>
 
         <template #purchaseLimit="{ row }">

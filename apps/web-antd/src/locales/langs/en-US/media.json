@@ -166,7 +166,37 @@
       }
     },
     "stock_add": "Stock",
-    "sku": "Sku"
+    "sku": "Sku",
+    "bilibili": {
+      "item_columns": {
+        "product_id": "Product Id",
+        "category_leaf_id": "Category",
+        "name": "Name",
+        "pic": "Pic",
+        "description": "Description",
+        "text_description": "Text Description",
+        "freight_id": "Freight",
+        "delivery_delay_day": "Delivery Delay Day",
+        "presell_type": "Presell",
+        "limit_per_buyer": "Limit Per Buyer",
+        "product_format": "Properties",
+        "spec_info": "Spec",
+        "spec_pic": "Spec Pic",
+        "status": "Status",
+        "recycling_status": "Recycling",
+        "create_time": "Create Time",
+        "update_time": "Update Time",
+        "delivery_time": "Delivery Time",
+        "sale_step": "Sale Step"
+      },
+      "sku_columns": {
+        "sku_id": "SkuID",
+        "stock_num": "Stock",
+        "price": "Price",
+        "code": "Code",
+        "sell_properties": "Properties"
+      }
+    }
   },
   "return_order": {
     "columns": {
@@ -176,11 +206,49 @@
       "handlingWay": "Way",
       "negotiateStatus": "Negotiate Status",
       "refundFee": "Fee",
-      "refundStatus": "Return Status",
+      "returnStatus": "Return Status",
       "refundType": "Refund Type",
       "refundDesc": "Desc",
       "submitTime": "Submit Time",
       "relItemId": "ItemId"
+    },
+    "bilibili": {
+      "return_type": {
+        "zero": "无需退款",
+        "one": "原路退款",
+        "two": "线下退款"
+      },
+      "columns": {
+        "after_sale_id": "Return No",
+        "order_id": "Order No",
+        "refund_type": "Refund Type",
+        "refund_status": "Status",
+        "after_sale_status": "Sale Status",
+        "refund_amount": "Amount",
+        "refund_post_amount": "Post Amount",
+        "apply_time": "Apply Time",
+        "update_time": "Update Time",
+        "reason": "Reason",
+        "after_sale_type": "Sale Type",
+        "reason_remark": "Remark",
+        "evidence": "Pic",
+        "after_sale_apply_count": "Number",
+        "return_address": "Address",
+        "post_address": "Address",
+        "real_refund_amount": "Real Amount",
+        "got_pkg": "Got Pkg",
+        "status_deadline": "Deadline Time",
+        "exchange_sku_info": "Exchange Sku",
+        "part_type": "Part Type",
+        "refund_fail_reason": "Fail Reason",
+        "apply_role": "Apply Role",
+        "refund_time": "Refund Time",
+        "return_method": "Method",
+        "arbitrate_info": "Arbitrate",
+        "logistics_info": "Logistics",
+        "record_logs_list": "Record",
+        "order_info": "Order Info"
+      }
     }
   },
   "order": {

@@ -208,10 +208,48 @@
       "handlingWay": "退款方式",
       "negotiateStatus": "协商状态",
       "refundFee": "金额",
-      "refundStatus": "退货状态",
+      "returnStatus": "退货状态",
       "refundType": "类型",
       "refundDesc": "描述",
       "submitTime": "提交时间"
+    },
+    "bilibili": {
+      "return_type": {
+        "zero": "无需退款",
+        "one": "原路退款",
+        "two": "线下退款"
+      },
+      "columns": {
+        "after_sale_id": "退货单",
+        "order_id": "订单号",
+        "refund_type": "退款类型",
+        "refund_status": "退款状态",
+        "refund_amount": "退款金额",
+        "after_sale_status": "状态",
+        "refund_post_amount": "邮费退款金额",
+        "apply_time": "申请时间",
+        "update_time": "更新时间",
+        "reason": "售后原因",
+        "after_sale_type": "售后类型",
+        "reason_remark": "售后原因备注",
+        "evidence": "买家申请退款图片凭证",
+        "after_sale_apply_count": "售后申请数量",
+        "return_address": "退货地址",
+        "post_address": "退货地址",
+        "real_refund_amount": "实际退款金额",
+        "got_pkg": "是否已收到包裹",
+        "status_deadline": "当前节点逾期时间",
+        "exchange_sku_info": "换货商品信息",
+        "part_type": "部分退状态",
+        "refund_fail_reason": "退款失败原因",
+        "apply_role": "售后申请角色",
+        "refund_time": "退款时间",
+        "return_method": "用户申请时的退货方式",
+        "arbitrate_info": "仲裁信息",
+        "logistics_info": "物流信息",
+        "record_logs_list": "售后记录列表",
+        "order_info": "订单信息"
+      }
     }
   },
   "order": {

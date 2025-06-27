@@ -1,12 +1,27 @@
 <script lang="ts" setup name="ReturnOrdersManager">
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
-import {Page, type VbenFormProps} from "@vben/common-ui";
+import {Page, type VbenFormProps, useVbenModal} from "@vben/common-ui";
 import {Button, Switch} from "ant-design-vue";
 import {$t} from "@vben/locales";
-import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
+import {PlatformEnum, PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {returnOrderApi} from "#/api/media/";
 import type {MediaItemItem} from "#/api/models/media/item";
+import {
+  getHandlerType,
+  getNegotiateStatus,
+  getPlatformTag,
+  getReturnStatus,
+  getReturnType
+} from "#/constants";
+import BilibiliReturnOrderDetail from "./detail/bilibili.vue";
+import type {MediaReturnOrderDetailRequest} from "#/api/models/media/return_order";
+
+const [CreateBilibiliReturnOrderDetailModel, createBilibiliReturnOrderDetailModel] = useVbenModal({
+  connectedComponent: BilibiliReturnOrderDetail,
+  centered: true,
+  modal: true,
+})
 
 
 const formOptions: VbenFormProps = {
@@ -42,7 +57,12 @@ const gridOptions: VxeGridProps<MediaItemItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    {field: "platform", title: `${$t("media.return_order.columns.platform")}`, width: "auto"},
+    {
+      field: "platform",
+      title: `${$t("media.return_order.columns.platform")}`,
+      width: "auto",
+      slots: {default: 'platform'}
+    },
     {
       field: "platformRefundId",
       title: `${$t("media.return_order.columns.platformRefundId")}`,
@@ -53,23 +73,58 @@ const gridOptions: VxeGridProps<MediaItemItem> = {
       title: `${$t("media.return_order.columns.platformSkuId")}`,
       width: "auto"
     },
-    {field: "handlingWay", title: `${$t("media.return_order.columns.handlingWay")}`, width: "auto"},
+    {
+      field: "handlingWay",
+      title: `${$t("media.return_order.columns.handlingWay")}`,
+      width: "auto",
+      slots: {default: 'handlingWay'}
+    },
     {
       field: "negotiateStatus",
       title: `${$t("media.return_order.columns.negotiateStatus")}`,
-      width: "auto"
+      width: "auto",
+      slots: {default: 'negotiateStatus'}
     },
     {field: "refundFee", title: `${$t("media.return_order.columns.refundFee")}`, width: "auto"},
     {
-      field: "refundStatus",
-      title: `${$t("media.return_order.columns.refundStatus")}`,
+      field: "returnStatus",
+      title: `${$t("media.return_order.columns.returnStatus")}`,
+      width: "auto",
+      slots: {default: 'returnStatus'}
+    },
+    {
+      field: "refundType",
+      title: `${$t("media.return_order.columns.refundType")}`,
+      width: "auto",
+      slots: {default: 'refundType'}
+    },
+    {field: "refundDesc", title: `${$t("media.return_order.columns.refundDesc")}`, width: "auto"},
+    {
+      field: "submitTime",
+      title: `${$t("media.return_order.columns.submitTime")}`,
+      formatter: 'formatDateTime',
       width: "auto"
     },
-    {field: "refundType", title: `${$t("media.return_order.columns.refundType")}`, width: "auto"},
-    {field: "refundDesc", title: `${$t("media.return_order.columns.refundDesc")}`, width: "auto"},
-    {field: "submitTime", title: `${$t("media.return_order.columns.submitTime")}`, width: "auto"},
     {field: "relItemId", title: `${$t("media.return_order.columns.relItemId")}`, width: "auto"},
-    ...TABLE_COMMON_COLUMNS,
+    {
+      field: 'createTime',
+      formatter: 'formatDateTime',
+      title: `${$t('core.columns.createTime')}`,
+      width: 'auto',
+    },
+    {
+      field: 'updateTime',
+      formatter: 'formatDateTime',
+      title: `${$t('core.columns.updateTime')}`,
+      width: 'auto',
+    },
+    {
+      field: 'options',
+      title: `${$t('core.columns.options')}`,
+      slots: {default: 'action'},
+      fixed: 'right',
+      width: 'auto'
+    },
   ],
   pagerConfig: {
     enabled: true
@@ -94,8 +149,26 @@ const gridOptions: VxeGridProps<MediaItemItem> = {
 
 const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
+
 function pageReload() {
   gridApi.query();
+}
+
+/**
+ * open return order detail
+ */
+function openReturnOrderDetail(platform: string, platformRefundId: string, localAccountId: string) {
+
+  const data: MediaReturnOrderDetailRequest = {
+    platform,
+    localAccountId,
+    platformRefundId,
+  }
+
+  if (platform === PlatformEnum.Bilibili) {
+    createBilibiliReturnOrderDetailModel.setData(data);
+    createBilibiliReturnOrderDetailModel.open();
+  }
 }
 
 
@@ -112,6 +185,26 @@ function pageReload() {
           </Button>
         </template>
 
+        <template #returnStatus="{row}">
+          <component :is="getReturnStatus(row.platform, row.returnStatus)"></component>
+        </template>
+
+        <template #negotiateStatus="{row}">
+          <component :is="getNegotiateStatus(row.platform, row.negotiateStatus)"></component>
+        </template>
+
+        <template #handlingWay="{row}">
+          <component :is="getHandlerType(row.platform, row.handlingWay)"></component>
+        </template>
+
+        <template #refundType="{row}">
+          <component :is="getReturnType(row.platform, row.refundType)"></component>
+        </template>
+
+        <template #platform="{row}">
+          <component :is="getPlatformTag(row.platform)"></component>
+        </template>
+
         <template #status="{ row  }">
           <Switch :checked="row.status == 1" @change="handlerState(row)"/>
         </template>
@@ -125,12 +218,15 @@ function pageReload() {
         </template>
 
         <template #action="{ row }">
-          <Button type="link">{{ $t('common.edit') }}</Button>
-          <Button type="link">{{ $t('common.delete') }}</Button>
-          <Button type="link">{{ $t('common.info') }}</Button>
-          <Button type="link">{{ $t('media.media_item.columns.stock_add') }}</Button>
+          <Button type="link"
+                  @click="openReturnOrderDetail(row.platform, row.platformRefundId, row.localAccountId)">
+            {{ $t('common.detail') }}
+          </Button>
         </template>
       </Grid>
     </Page>
+
+
+    <CreateBilibiliReturnOrderDetailModel />
   </div>
 </template>

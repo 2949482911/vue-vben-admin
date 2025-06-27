@@ -15,3 +15,4 @@ export * from "./media/promotion";
 export * from "./media/kuaishou";
 export * from "./media/report";
 export * from "./media/bilibili/item";
+export * from "./media/bilibili/return_order";
