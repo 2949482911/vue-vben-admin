@@ -39,12 +39,12 @@ const [Modal, modalApi] = useVbenModal({
     if (isOpen) {
       loading.value = true;
       orderDetailParams.value = modalApi.getData<OrderDetailParams>();
-      const {
-        order,
-        skuList
-      } = await orderApi.fetchOrderDetail(orderDetailParams.value.platform, orderDetailParams.value.orderId);
-
-      orderInfo.value = order;
+      // const {
+      //   order,
+      //   skuList
+      // } = await orderApi.fetchOrderDetail(orderDetailParams.value.platform, orderDetailParams.value.orderId);
+      //
+      // orderInfo.value = order;
       // orderSkuList.value = skuList;
     }
     loading.value = false;

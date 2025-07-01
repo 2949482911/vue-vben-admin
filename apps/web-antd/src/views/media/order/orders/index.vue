@@ -4,13 +4,14 @@ import {useVbenVxeGrid} from "#/adapter/vxe-table";
 import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
 import {Button} from "ant-design-vue";
 import {$t} from "@vben/locales";
-import {PlatformOptions} from "#/constants/locales";
+import {PlatformEnum, PlatformOptions} from "#/constants/locales";
 import {orderApi} from "#/api/media/";
 
 // order info modal
 import OrderDetail from './orderdetail.vue';
-import type {OrderItem} from "#/api/models";
-import {getOrderStatusTag, getPayMethodTag, getPlatformTag} from "#/constants";
+import type {OrderDetailRequest, OrderItem} from "#/api/models";
+import {getOrderStatusTag, getPayMethodTag, getPlatformTag, getOrderType} from "#/constants";
+import BilibiliOrderDetail from "./bilibili/detail.vue";
 
 const [CreateOrderDetailModel, CreateOrderDetailModelApi] = useVbenModal({
   connectedComponent: OrderDetail,
@@ -18,12 +19,22 @@ const [CreateOrderDetailModel, CreateOrderDetailModelApi] = useVbenModal({
   modal: true,
 })
 
-function openOrderDetailModal(platform: string, orderId: string) {
-  CreateOrderDetailModelApi.setData({
-    platform,
-    orderId
-  });
-  CreateOrderDetailModelApi.open();
+const [CreateBilibiliOrderDetailModel, CreateBilibiliOrderDetailModelApi] = useVbenModal({
+  connectedComponent: BilibiliOrderDetail,
+  centered: true,
+  modal: true,
+})
+
+function openOrderDetailModal(platform: string, orderId: string, localAccountId: string) {
+  const orderDetailRequest: OrderDetailRequest = {
+    platform: platform,
+    platformOrderId: orderId,
+    localAccountId: localAccountId
+  }
+  if (platform === PlatformEnum.Bilibili) {
+    CreateBilibiliOrderDetailModelApi.setData(orderDetailRequest);
+    CreateBilibiliOrderDetailModelApi.open();
+  }
 }
 
 
@@ -60,7 +71,12 @@ const gridOptions: VxeGridProps<OrderItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    {field: "platform", title: `${$t("media.order.columns.platform")}`, width: "auto", slots: {default: 'platform'}},
+    {
+      field: "platform",
+      title: `${$t("media.order.columns.platform")}`,
+      width: "auto",
+      slots: {default: 'platform'}
+    },
     {
       field: "platformOrderId",
       title: `${$t("media.order.columns.platformOrderId")}`,
@@ -71,17 +87,47 @@ const gridOptions: VxeGridProps<OrderItem> = {
       title: `${$t("media.order.columns.platformOrderNo")}`,
       width: "auto"
     },
-    {field: "payTime", title: `${$t("media.order.columns.payTime")}`, width: "auto"},
+    {
+      field: "payTime",
+      title: `${$t("media.order.columns.payTime")}`,
+      width: "auto",
+      formatter: 'formatDateTime',
+    },
     {field: "buyerOpenId", title: `${$t("media.order.columns.buyerOpenId")}`, width: "auto"},
     {field: "buyerNickname", title: `${$t("media.order.columns.buyerNickname")}`, width: "auto"},
     {field: "expressFee", title: `${$t("media.order.columns.expressFee")}`, width: "auto"},
     {field: "discountFee", title: `${$t("media.order.columns.discountFee")}`, width: "auto"},
-    {field: "orderStatus", title: `${$t("media.order.columns.orderStatus")}`, width: "auto", slots: {default: 'orderStatus'}},
-    {field: "orderType", title: `${$t("media.order.columns.orderType")}`, width: "auto"},
+    {
+      field: "orderStatus",
+      title: `${$t("media.order.columns.orderStatus")}`,
+      width: "auto",
+      slots: {default: 'orderStatus'}
+    },
+    {
+      field: "orderType",
+      title: `${$t("media.order.columns.orderType")}`,
+      width: "auto",
+      slots: {default: 'orderType'}
+    },
     {field: "orderLevel", title: `${$t("media.order.columns.orderLevel")}`, width: "auto"},
-    {field: "sendTime", title: `${$t("media.order.columns.sendTime")}`, width: "auto"},
-    {field: "refundTime", title: `${$t("media.order.columns.refundTime")}`, width: "auto"},
-    {field: "finishTime", title: `${$t("media.order.columns.finishTime")}`, width: "auto"},
+    {
+      field: "sendTime",
+      title: `${$t("media.order.columns.sendTime")}`,
+      width: "auto",
+      formatter: 'formatDateTime',
+    },
+    {
+      field: "refundTime",
+      title: `${$t("media.order.columns.refundTime")}`,
+      width: "auto",
+      formatter: 'formatDateTime',
+    },
+    {
+      field: "finishTime",
+      title: `${$t("media.order.columns.finishTime")}`,
+      width: "auto",
+      formatter: 'formatDateTime',
+    },
     {
       field: "orderCreateTime",
       title: `${$t("media.order.columns.orderCreateTime")}`,
@@ -90,10 +136,16 @@ const gridOptions: VxeGridProps<OrderItem> = {
     {
       field: "orderUpdateTime",
       title: `${$t("media.order.columns.orderUpdateTime")}`,
+      formatter: 'formatDateTime',
       width: "auto"
     },
     {field: "buyerRemark", title: `${$t("media.order.columns.buyerRemark")}`, width: "auto"},
-    {field: "payType", title: `${$t("media.order.columns.payType")}`, width: "auto", slots: {default: 'payType'}},
+    {
+      field: "payType",
+      title: `${$t("media.order.columns.payType")}`,
+      width: "auto",
+      slots: {default: 'payType'}
+    },
     {
       field: "remindShipmentSign",
       title: `${$t("media.order.columns.remindShipmentSign")}`,
@@ -114,7 +166,7 @@ const gridOptions: VxeGridProps<OrderItem> = {
       title: `${$t('core.columns.options')}`,
       fixed: 'right',
       slots: {default: 'action'},
-      width: 256,
+      width: 100,
     },
   ],
   pagerConfig: {
@@ -152,21 +204,16 @@ function pageReload() {
     <Page>
       <Grid>
 
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary">
-            {{ $t('common.create') }}
-          </Button>
-        </template>
         <template #platform="{row}">
           <component :is="getPlatformTag(row.platform)"></component>
         </template>
 
         <template #orderStatus="{ row  }">
-         <component :is="getOrderStatusTag(row.platform, row.orderStatus)"></component>
+          <component :is="getOrderStatusTag(row.platform, row.orderStatus)"></component>
         </template>
 
         <template #payType="{ row  }">
-         <component :is="getPayMethodTag(row.platform, row.payType)"></component>
+          <component :is="getPayMethodTag(row.platform, row.payType)"></component>
         </template>
 
         <template #skus="{ row }">
@@ -177,12 +224,20 @@ function pageReload() {
           <div>{{ row.auditStatus }}</div>
         </template>
 
+        <template #orderType="{ row }">
+          <component :is="getOrderType(row.platform, row.orderType)"></component>
+        </template>
+
         <template #action="{ row }">
-          <Button type="link" @click="openOrderDetailModal(row.platform, row.platformOrderId)">{{ $t('action.info') }}</Button>
+          <Button type="link"
+                  @click="openOrderDetailModal(row.platform, row.platformOrderId, row.localAccountId)">
+            {{ $t('action.info') }}
+          </Button>
         </template>
       </Grid>
     </Page>
 
-    <CreateOrderDetailModel />
+    <CreateOrderDetailModel/>
+    <CreateBilibiliOrderDetailModel/>
   </div>
 </template>

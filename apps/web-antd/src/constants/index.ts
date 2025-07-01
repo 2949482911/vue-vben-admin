@@ -1,19 +1,54 @@
-import type {OrderItem} from "#/api/models";
 import {PlatformEnum} from "#/constants/locales";
 import {KUAISHOU_PAY_METHOD, ORDER_STATUS_MAP} from "#/constants/kuaishou";
 import {$t} from "@vben/locales";
 import {h} from "vue";
 import {Tag} from "ant-design-vue";
-import {ConstantEnum, ConstantTypeEnum} from "@vben/constants";
+import {ConstantTypeEnum} from "@vben/constants";
+import {
+  BILIBILI_ORDER_STATUS_MAP,
+  BILIBILI_ORDER_TYPE,
+  BILIBILI_PAY_METHOD_MAP
+} from "#/constants/bilibili";
 
 export * from './kuaishou';
 export * from './locales';
+export * from './bilibili';
 
 
+/**
+ * order type
+ * @param platform
+ * @param order_type
+ */
+export function getOrderType(platform: string, order_type: number) {
+  let orderTypeMap: Map<number, { label: string; value: number, color: string }>;
+  if (platform === PlatformEnum.KUAISHOU) {
+    orderTypeMap = new Map<number, { label: string; value: number; color: string }>();
+  } else if (platform === PlatformEnum.Bilibili) {
+    orderTypeMap = BILIBILI_ORDER_TYPE;
+  } else {
+    orderTypeMap = new Map<number, { label: string; value: number; color: string }>();
+  }
+
+  if (!orderTypeMap.has(order_type)) {
+    return h(Tag, {color: 'red'}, () => '未知')
+  }
+  const {label, _, color} = orderTypeMap.get(order_type);
+  const labelName: string = $t(label);
+  return h(Tag, {color: color}, () => labelName);
+}
+
+/**
+ * 订单状态
+ * @param platform
+ * @param status
+ */
 export function getOrderStatusTag(platform: string, status: number) {
   let orderStatusMap: Map<number, { label: string; value: number, color: string }>;
   if (platform === PlatformEnum.KUAISHOU) {
     orderStatusMap = ORDER_STATUS_MAP;
+  } else if (platform === PlatformEnum.Bilibili) {
+    orderStatusMap = BILIBILI_ORDER_STATUS_MAP;
   } else {
     orderStatusMap = new Map<number, { label: string; value: number; color: string }>();
   }
@@ -25,10 +60,18 @@ export function getOrderStatusTag(platform: string, status: number) {
   return h(Tag, {color: color}, () => labelName);
 }
 
+
+/**
+ * pay method
+ * @param platform
+ * @param payType
+ */
 export function getPayMethodTag(platform: string, payType: number) {
   let payMethodMap: Map<number, { label: string; value: number, color: string }>;
   if (platform === PlatformEnum.KUAISHOU) {
     payMethodMap = KUAISHOU_PAY_METHOD;
+  } else if (platform === PlatformEnum.Bilibili) {
+    payMethodMap = BILIBILI_PAY_METHOD_MAP;
   } else {
     payMethodMap = new Map<number, { label: string; value: number; color: string }>();
   }
@@ -41,6 +84,10 @@ export function getPayMethodTag(platform: string, payType: number) {
   return h(Tag, {color: color}, () => labelName);
 }
 
+/**
+ * platform
+ * @param platform
+ */
 export function getPlatformTag(platform: string) {
   let color;
   if (platform === PlatformEnum.KUAISHOU) {
@@ -65,8 +112,8 @@ export function getPlatformTag(platform: string) {
  * @param returnType
  */
 export function getReturnType(platform: string, returnType: number) {
-  let color;
-  let text;
+  let color = 'red';
+  let text = '未知';
   if (platform === PlatformEnum.Bilibili) {
     switch (returnType) {
       case ConstantTypeEnum.COMMON_ZERO: {
@@ -95,8 +142,8 @@ export function getReturnType(platform: string, returnType: number) {
  * @param handlingWay 退款方式
  */
 export function getHandlerType(platform: string, handlingWay: number) {
-  let color;
-  let text;
+  let color = 'red';
+  let text = '未知';
 
   if (platform === PlatformEnum.Bilibili) {
     switch (handlingWay) {
@@ -127,11 +174,11 @@ export function getHandlerType(platform: string, handlingWay: number) {
  * @param returnStatus 退款方式
  */
 export function getReturnStatus(platform: string, returnStatus: number) {
-  let color;
-  let text;
+  let color = 'red';
+  let text = '未知';
 
   if (platform === PlatformEnum.Bilibili) {
-    switch(returnStatus) {
+    switch (returnStatus) {
       case ConstantTypeEnum.COMMON_ZERO: {
         color = "blue";
         text = "无退款"
@@ -169,8 +216,8 @@ export function getReturnStatus(platform: string, returnStatus: number) {
  * @param negotiateStatus
  */
 export function getNegotiateStatus(platform: string, negotiateStatus: number) {
-  let color;
-  let text;
+  let color = 'red';
+  let text = '未知';
   if (platform === PlatformEnum.Bilibili) {
     switch (negotiateStatus) {
       case ConstantTypeEnum.COMMON_ONE: {

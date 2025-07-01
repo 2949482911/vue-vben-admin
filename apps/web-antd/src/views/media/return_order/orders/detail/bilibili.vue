@@ -1,14 +1,17 @@
 <script setup lang="ts" name="BilibiliReturnOrderDetail">
 import {$t} from "@vben/locales";
-import {ref} from 'vue';
+import {h, ref} from 'vue';
 import type {
   BilibiliReturnOrderDetailResponse,
   MediaReturnOrderDetailRequest
 } from "#/api/models/media/return_order";
 import {useVbenModal} from '@vben/common-ui';
-import {useVbenForm} from "#/adapter/form";
-import {Card, Divider, Spin} from "ant-design-vue";
+import {Card, Descriptions, Divider, List, Spin, Tag} from "ant-design-vue";
 import {returnOrderApi} from "#/api/media";
+import {ConstantTypeEnum} from "@vben/constants";
+import {getHandlerType, getReturnStatus, getReturnType, PlatformEnum} from "#/constants";
+import {useVbenVxeGrid, type VxeGridProps} from "#/adapter/vxe-table";
+import type {BilibiliOrderSku} from "#/api/models/media/bilibili/orders";
 
 const title: string = `${$t('action.info')}`;
 const spinning = ref<Boolean>(false);
@@ -17,214 +20,182 @@ const orderDetailRequest = ref<MediaReturnOrderDetailRequest>();
 const returnOrderDetail = ref<BilibiliReturnOrderDetailResponse>();
 
 
-const [Form, formApi] = useVbenForm({
-  showDefaultActions: false,
-  commonConfig: {
-    // 所有表单项
-    colon: true,
-    disabled: true,
-    componentProps: {
-      class: 'w-full',
-    },
-  },
-  layout: 'horizontal',
-  schema: [
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {},
-      // 字段名
-      fieldName: 'after_sale_id',
-      label: `${$t('media.return_order.bilibili.columns.after_sale_id')}`
-    },
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {},
-      // 字段名
-      fieldName: 'order_id',
-      label: `${$t('media.return_order.bilibili.columns.order_id')}`
-    },
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {},
-      // 字段名
-      fieldName: 'after_sale_status',
-      label: `${$t('media.return_order.bilibili.columns.after_sale_status')}`
-    },
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {},
-      // 字段名
-      fieldName: 'refund_type',
-      label: `${$t('media.return_order.bilibili.columns.refund_type')}`
-    },
+function getAfter_sale_status(after_sale_status: number): Map<string, string> {
+  let color: string;
+  let text: string;
+  switch (after_sale_status) {
+    case ConstantTypeEnum.COMMON_ONE: {
+      color = "blue";
+      text = "申请退款"
+      break;
+    }
+    case ConstantTypeEnum.COMMON_TWO: {
+      color = "green";
+      text = "取消退款申请"
+      break;
+    }
+    case ConstantTypeEnum.COMMON_THREE: {
+      color = "orange";
+      text = "拒绝退款申请"
+      break;
+    }
+    case 11: {
+      color = "red";
+      text = "申请退货退款"
+      break;
+    }
+    case 12: {
+      color = "purple";
+      text = "取消退货退款申请"
+      break;
+    }
+    case 13: {
+      color = "red";
+      text = "拒绝退货退款申请"
+      break;
+    }
+    case 14: {
+      color = "green";
+      text = "待用户提交物流"
+      break;
+    }
+    case 15: {
+      color = "orange";
+      text = "待商家确认收货"
+      break;
+    }
+    case 21: {
+      color = "red";
+      text = "申请换货"
+      break;
+    }
+    case 22: {
+      color = "purple";
+      text = "取消换货申请"
+      break;
+    }
+    case 23: {
+      color = "red";
+      text = "拒绝换货申请";
+      break;
+    }
+    case 24: {
+      color = "green";
+      text = "换货待商家发货"
+      break;
+    }
+    case 25: {
+      color = "orange";
+      text = "换货发货"
+      break;
+    }
+    case 60: {
+      color = "red";
+      text = "售后完成"
+      break;
+    }
+    case 61: {
+      color = "red";
+      text = "售后终止"
+      break;
+    }
+  }
+  return h(Tag, {color: color}, () => text);
+}
 
+
+function return_method(return_method: number) {
+  let color: string;
+  let text: string;
+  switch (return_method) {
+    case ConstantTypeEnum.COMMON_ZERO: {
+      color = "blue";
+      text = "未选择";
+      break;
+    }
+    case ConstantTypeEnum.COMMON_ONE: {
+      color = "green";
+      text = "用户上传物流";
+      break;
+    }
+    case ConstantTypeEnum.COMMON_TWO: {
+      color = "red";
+      text = "上门取件";
+      break;
+    }
+  }
+  return h(Tag, {color: color}, () => text);
+}
+
+
+const gridOptions: VxeGridProps<BilibiliOrderSku> = {
+  border: true,
+  columns: [
+    {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
     {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'refund_status',
-      label: `${$t('media.return_order.bilibili.columns.refund_status')}`
+      field: "sku_id",
+      title: `${$t("media.return_order.bilibili.sku_columns.sku_id")}`,
+      width: 'auto',
     },
     {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'refund_amount',
-      label: `${$t('media.return_order.bilibili.columns.refund_amount')}`
+      field: "product_image",
+      title: `${$t("media.return_order.bilibili.sku_columns.product_image")}`,
+      width: 'auto',
     },
     {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'refund_post_amount',
-      label: `${$t('media.return_order.bilibili.columns.refund_post_amount')}`
+      field: "item_quantity",
+      title: `${$t("media.return_order.bilibili.sku_columns.item_quantity")}`,
+      width: 'auto',
     },
     {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'apply_time',
-      label: `${$t('media.return_order.bilibili.columns.apply_time')}`
+      field: "create_time",
+      title: `${$t("media.return_order.bilibili.sku_columns.create_time")}`,
+      width: 'auto',
     },
     {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'update_time',
-      label: `${$t('media.return_order.bilibili.columns.update_time')}`
+      field: "product_id",
+      title: `${$t("media.return_order.bilibili.sku_columns.product_id")}`,
+      width: 'auto',
     },
     {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'reason',
-      label: `${$t('media.return_order.bilibili.columns.reason')}`
+      field: "product_name",
+      title: `${$t("media.return_order.bilibili.sku_columns.product_name")}`,
+      width: 'auto',
     },
     {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'after_sale_type',
-      label: `${$t('media.return_order.bilibili.columns.after_sale_type')}`
+      field: "after_sale_item_num",
+      title: `${$t("media.return_order.bilibili.sku_columns.after_sale_item_num")}`,
+      width: 'auto',
     },
     {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'reason_remark',
-      label: `${$t('media.return_order.bilibili.columns.reason_remark')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'evidence',
-      label: `${$t('media.return_order.bilibili.columns.evidence')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'after_sale_apply_count',
-      label: `${$t('media.return_order.bilibili.columns.after_sale_apply_count')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'real_refund_amount',
-      label: `${$t('media.return_order.bilibili.columns.real_refund_amount')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'return_address',
-      label: `${$t('media.return_order.bilibili.columns.return_address')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'real_refund_amount',
-      label: `${$t('media.return_order.bilibili.columns.real_refund_amount')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'got_pkg',
-      label: `${$t('media.return_order.bilibili.columns.got_pkg')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'status_deadline',
-      label: `${$t('media.return_order.bilibili.columns.status_deadline')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'exchange_sku_info',
-      label: `${$t('media.return_order.bilibili.columns.exchange_sku_info')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'part_type',
-      label: `${$t('media.return_order.bilibili.columns.part_type')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'refund_fail_reason',
-      label: `${$t('media.return_order.bilibili.columns.refund_fail_reason')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'apply_role',
-      label: `${$t('media.return_order.bilibili.columns.apply_role')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'refund_time',
-      label: `${$t('media.return_order.bilibili.columns.refund_time')}`,
-      renderComponentContent: (row) => {
-        return {
-          default: () => h('div', row.refund_time),
-        };
-      }
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'return_method',
-      label: `${$t('media.return_order.bilibili.columns.return_method')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'arbitrate_info',
-      label: `${$t('media.return_order.bilibili.columns.arbitrate_info')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'logistics_info',
-      label: `${$t('media.return_order.bilibili.columns.logistics_info')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'record_logs_list',
-      label: `${$t('media.return_order.bilibili.columns.record_logs_list')}`
-    },
-    {
-      component: 'Input',
-      componentProps: {},
-      fieldName: 'order_info',
-      label: `${$t('media.return_order.bilibili.columns.order_info')}`
+      field: "sku_refund_amount",
+      title: `${$t("media.return_order.bilibili.sku_columns.sku_refund_amount")}`,
+      width: 'auto',
     },
   ],
-  // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-});
+  pagerConfig: {
+    enabled: false
+  },
+  height: 'auto',
+  data: [],
+  sortConfig: {
+    multiple: true
+  },
+  pagerConfig: {
+    enabled: false,
+  },
+  scrollY: {
+    enabled: true,
+    gt: 0,
+  },
+  proxyConfig: {
+    enabled: false,
+    autoLoad: false
+  },
+  showOverflow: true,
+};
+const [Grid, gridApi] = useVbenVxeGrid({gridOptions});
+
 
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
@@ -253,8 +224,10 @@ function init() {
 
 
 async function getReturnOrderDetail() {
+  gridApi.setLoading(true)
   returnOrderDetail.value = await returnOrderApi.fetchGetReturnOrderDetail(orderDetailRequest.value)
-  await formApi.setValues(returnOrderDetail.value.order)
+  gridApi.setGridOptions({data: returnOrderDetail.value.skus})
+  gridApi.setLoading(false)
   spinning.value = false
 }
 </script>
@@ -264,14 +237,183 @@ async function getReturnOrderDetail() {
     <Modal :title="title">
       <Card :title="`${$t('action.basis')}`" :bordered="false">
         <Spin :spinning="spinning" tip="loading...">
-          <Form>
-          </Form>
+          <Descriptions>
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.after_sale_id')">
+              {{ returnOrderDetail?.order?.after_sale_id }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.order_id')">
+              {{ returnOrderDetail?.order?.order_id }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.after_sale_status')">
+              <component :is="getAfter_sale_status(returnOrderDetail?.order?.after_sale_status)"/>
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.after_sale_type')">
+              <component
+                :is="getHandlerType(PlatformEnum.Bilibili, returnOrderDetail?.order?.after_sale_type)"/>
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.refund_status')">
+              <component
+                :is="getReturnStatus(PlatformEnum.Bilibili,returnOrderDetail?.order?.refund_status)"/>
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.refund_type')">
+              <component
+                :is="getReturnType(PlatformEnum.Bilibili,returnOrderDetail?.order?.refund_type)"/>
+            </Descriptions.Item>
+
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.reason')">
+              {{ returnOrderDetail?.order?.reason }}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              :label="$t('media.return_order.bilibili.columns.refund_fail_reason')">
+              {{ returnOrderDetail?.order?.refund_fail_reason }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.reason_remark')">
+              {{ returnOrderDetail?.order?.reason_remark }}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              :label="$t('media.return_order.bilibili.columns.after_sale_apply_count')">
+              {{ returnOrderDetail?.order?.after_sale_apply_count }}
+            </Descriptions.Item>
+
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.return_method')">
+              <component :is="return_method(returnOrderDetail?.order?.return_method)"></component>
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.got_pkg')">
+              <Tag v-if="returnOrderDetail?.order?.got_pkg === 0" color="red">
+                {{ $t('common.no') }}
+              </Tag>
+              <Tag v-else color="green">{{ $t('common.yes') }}</Tag>
+            </Descriptions.Item>
+
+          </Descriptions>
+
+          <Divider/>
+
+
+          <Descriptions>
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.refund_amount')">
+              {{ returnOrderDetail?.order?.refund_amount }}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              :label="$t('media.return_order.bilibili.columns.real_refund_amount')">
+              {{ returnOrderDetail?.order?.real_refund_amount }}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              :label="$t('media.return_order.bilibili.columns.refund_post_amount')">
+              {{ returnOrderDetail?.order?.refund_post_amount }}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              :label="$t('media.return_order.bilibili.columns.real_refund_amount')">
+              {{ returnOrderDetail?.order?.real_refund_amount }}
+            </Descriptions.Item>
+
+          </Descriptions>
+
+          <Divider/>
+
+          <Descriptions>
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.apply_time')">
+              {{ returnOrderDetail?.order?.apply_time }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.update_time')">
+              {{ returnOrderDetail?.order?.update_time }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.status_deadline')">
+              {{ returnOrderDetail?.order?.status_deadline }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.refund_time')">
+              {{ returnOrderDetail?.order?.refund_time }}
+            </Descriptions.Item>
+
+          </Descriptions>
+
+          <Divider/>
+
+          <Descriptions title="仲裁信息">
+
+            <Descriptions.Item
+              :label="$t('media.return_order.bilibili.columns.arbitrate_info.arbitrate_id')">
+              {{ returnOrderDetail?.order?.arbitrate_info?.arbitrate_id }}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              :label="$t('media.return_order.bilibili.columns.arbitrate_info.arbitrate_status')">
+              {{ returnOrderDetail?.order?.arbitrate_info?.arbitrate_status }}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              :label="$t('media.return_order.bilibili.columns.arbitrate_info.arbitrate_status_deadline')">
+              {{ returnOrderDetail?.order?.arbitrate_info?.arbitrate_status_deadline }}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              :label="$t('media.return_order.bilibili.columns.arbitrate_info.arbitrate_create_time')">
+              {{ returnOrderDetail?.order?.arbitrate_info?.arbitrate_create_time }}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              :label="$t('media.return_order.bilibili.columns.arbitrate_info.arbitrate_update_time')">
+              {{ returnOrderDetail?.order?.arbitrate_info?.arbitrate_update_time }}
+            </Descriptions.Item>
+
+          </Descriptions>
+
+          <Divider/>
+
+          <Descriptions>
+
+            <Descriptions.Item :label="$t('media.return_order.bilibili.columns.evidence')">
+              {{ returnOrderDetail?.order?.evidence }}
+            </Descriptions.Item>
+
+          </Descriptions>
+
+          <Divider/>
+
+          <Descriptions title="售后记录列表">
+
+            <Descriptions.Item>
+              <List>
+                <List.Item v-for="item in returnOrderDetail?.order?.record_logs_list">
+                  <List.Item.Meta :description="item.text">
+                    >
+                    <template #title>
+                      {{ item.operator }}
+                    </template>
+                    <template #avatar>
+                      {{ item.action }}
+                    </template>
+                  </List.Item.Meta>
+                </List.Item>
+              </List>
+            </Descriptions.Item>
+
+          </Descriptions>
+
         </Spin>
       </Card>
+      <Card title="商品信息" :bordered="false">
+        <Grid>
 
-      <Divider/>
-
-
+        </Grid>
+      </Card>
     </Modal>
   </div>
 </template>

@@ -101,7 +101,7 @@ const gridOptions: VxeGridProps<MediaItemItem> = {
       title: `${$t('core.columns.options')}`,
       fixed: 'right',
       slots: {default: 'action'},
-      width: 256,
+      width: 'auto',
     },
   ],
   pagerConfig: {

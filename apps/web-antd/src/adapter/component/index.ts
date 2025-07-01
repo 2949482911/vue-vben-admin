@@ -56,6 +56,7 @@ const Rate = defineAsyncComponent(() => import('ant-design-vue/es/rate'));
 const Select = defineAsyncComponent(() => import('ant-design-vue/es/select'));
 const Space = defineAsyncComponent(() => import('ant-design-vue/es/space'));
 const Switch = defineAsyncComponent(() => import('ant-design-vue/es/switch'));
+const Tag = defineAsyncComponent(() => import('ant-design-vue/es/tag'));
 const Textarea = defineAsyncComponent(() =>
   import('ant-design-vue/es/input').then((res) => res.Textarea),
 );
@@ -130,7 +131,8 @@ export type ComponentType =
   | 'TimePicker'
   | 'TreeSelect'
   | 'Upload'
-  | BaseFormComponentType;
+  | 'BaseFormComponentType'
+  | 'Tag';
 
 async function initComponentAdapter() {
   const components: Partial<Record<ComponentType, Component>> = {
@@ -198,6 +200,7 @@ async function initComponentAdapter() {
     TimePicker,
     TreeSelect: withDefaultPlaceholder(TreeSelect, 'select'),
     Upload,
+    Tag: withDefaultPlaceholder(Tag, 'tag'),
   };
 
   // 将组件注册到全局共享状态中

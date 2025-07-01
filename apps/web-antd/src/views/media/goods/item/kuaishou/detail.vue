@@ -8,7 +8,7 @@ import type {
 } from "#/api/models";
 import {$t} from "@vben/locales";
 import {categoryApi, itemApi} from "#/api/media";
-import {Button, Card, Divider, Spin} from "ant-design-vue";
+import {Button, Card, Divider, Spin, Descriptions, Tag, Switch} from "ant-design-vue";
 import {useVbenModal} from '@vben/common-ui';
 import {useVbenVxeGrid, type VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenForm} from "#/adapter/form";
@@ -16,6 +16,7 @@ import {PlatformEnum} from "#/constants/locales";
 
 // update stock modal
 import UpdateMediaItemStock from '../update-stock.vue'
+import {ConstantTypeEnum} from "@vben/constants";
 
 const [UpdateMediaItemStockFormModal, formUpdateMediaItemStockModalApi] = useVbenModal({
   connectedComponent: UpdateMediaItemStock,
@@ -46,6 +47,47 @@ const title: string = `${$t('action.info')}`;
 
 const itemDetailRequest = ref<MediaItemDetailRequest>({});
 const itemDetail = ref<KuaishouItemDetailResponse>();
+
+function auditStatus(auditStatus: number) {
+  let color: string;
+  let label: string;
+  switch (auditStatus) {
+    case ConstantTypeEnum.COMMON_ZERO:
+      color = "red";
+      label = '待审核';
+      break;
+    case ConstantTypeEnum.COMMON_ONE:
+      color = "blue";
+      label = '审核待修改';
+      break;
+    case ConstantTypeEnum.COMMON_TWO:
+      color = "green";
+      label = '审核通过';
+      break;
+    case ConstantTypeEnum.COMMON_THREE:
+      color = "red";
+      label = '审核拒绝';
+      break;
+  }
+  return h(Tag, {color: color}, () => label);
+}
+
+
+function onOfflineStatus(onOfflineStatus: number) {
+  let color: string;
+  let label: string;
+  switch (onOfflineStatus) {
+    case ConstantTypeEnum.COMMON_ZERO:
+      color = "red";
+      label = '已下架';
+      break;
+    case ConstantTypeEnum.COMMON_ONE:
+      color = "green";
+      label = '已上架';
+      break;
+  }
+  return h(Tag, {color: color}, () => label);
+}
 
 // item form
 const spinning = ref<Boolean>(false);
@@ -427,7 +469,7 @@ const [Modal, modalApi] = useVbenModal({
 async function getItemDetail() {
   gridApi.setLoading(true)
   itemDetail.value = await itemApi.fetchItemDetail(itemDetailRequest.value);
-  handleSetFormValue(itemDetail.value.item)
+  // handleSetFormValue(itemDetail.value.item)
   gridApi.setGridOptions({data: itemDetail.value.skus})
   gridApi.setLoading(false)
   spinning.value = false
@@ -446,12 +488,89 @@ function init() {
     <Modal :title="title">
       <Card :title="`${$t('action.basis')}`" :bordered="false">
         <Spin :spinning="spinning" tip="loading...">
-          <Form></Form>
+          <Descriptions title="基础信息">
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.platformItemId')">
+              {{ itemDetail?.item?.platformItemId }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.relItemId')">
+              {{ itemDetail?.item?.relItemId }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.title')">
+              {{ itemDetail?.item?.title }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.shortTitle')">
+              {{ itemDetail?.item?.shortTitle }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.sellingPoint')">
+              {{ itemDetail?.item?.sellingPoint }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.details')">
+              {{ itemDetail?.item?.details }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.auditStatus')">
+              <component :is="auditStatus(itemDetail?.item?.auditStatus)"></component>
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.auditReason')">
+              {{ itemDetail?.item?.auditReason }}
+            </Descriptions.Item>
+
+            <Descriptions.Item
+              :label="$t('media.media_item.kuaishou.item_columns.onOfflineStatus')">
+              <component :is="onOfflineStatus(itemDetail?.item?.onOfflineStatus)"></component>
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.purchaseLimit')">
+              <Switch :v-model="itemDetail?.item?.purchaseLimit"></Switch>
+            </Descriptions.Item>
+
+            <Descriptions.Item v-if="itemDetail?.item?.purchaseLimit"
+                               :label="$t('media.media_item.kuaishou.item_columns.purchaseLimit')">
+              {{ itemDetail?.item?.limitCount }}
+            </Descriptions.Item>
+
+
+          </Descriptions>
+
+          <Divider/>
+
+          <Descriptions>
+            <Descriptions.Item
+              :label="$t('media.media_item.kuaishou.item_columns.platformCreatedTime')">
+              {{ itemDetail?.item?.platformCreatedTime }}
+            </Descriptions.Item>
+
+
+            <Descriptions.Item
+              :label="$t('media.media_item.kuaishou.item_columns.platformUpdateTime')">
+              {{ itemDetail?.item?.platformUpdateTime }}
+            </Descriptions.Item>
+
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.timeOfSale')">
+              {{ itemDetail?.item?.timeOfSale }}
+            </Descriptions.Item>
+
+          </Descriptions>
+
+          <Divider/>
+
+          <Descriptions>
+            <Descriptions.Item :label="$t('media.media_item.kuaishou.item_columns.itemRemark')">
+              {{ itemDetail?.item?.itemRemark }}
+            </Descriptions.Item>
+
+          </Descriptions>
         </Spin>
 
       </Card>
       <Divider/>
-      <Card title="sku列表" bordered="false">
+      <Card title="sku列表" :bordered="false">
         <Grid>
           <template #action="{ row }">
             <Button type="link" @click="openFormUpdateMediaItemStockModalApi([row])">

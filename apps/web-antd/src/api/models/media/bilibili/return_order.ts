@@ -114,7 +114,7 @@ export interface BilibiliReturnOrder {
   return_method: number;
   arbitrate_info: ArbitrateInfo;
   logistics_info: LogisticsInfo;
-  record_logs_list: RecordLogsList;
+  record_logs_list: Array<RecordLogsList>;
   order_info: OrderInfo;
 }
 

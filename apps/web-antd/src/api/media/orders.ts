@@ -21,10 +21,11 @@ class OrderApi extends BaseApi {
   /**
    * order detail
    * @param platform
-   * @param orderId
+   * @param platformOrderId
+   * @param localAccountId
    */
-  fetchOrderDetail(platform: string, orderId: string) {
-    return requestClient.get(this.getServiceUrl("detail"), {params: {platform, orderId}})
+  fetchOrderDetail(platform: string, platformOrderId: string, localAccountId: string) {
+    return requestClient.get(this.getServiceUrl("detail"), {params: {platform, platformOrderId, localAccountId}})
   }
 }
 

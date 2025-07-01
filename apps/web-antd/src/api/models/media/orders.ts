@@ -401,3 +401,10 @@ export interface KuaiShouOrderSku {
   subOrderType: number;
   orderLogisticsInfo: OrderLogisticsInfo[];
 }
+
+
+export interface OrderDetailRequest {
+  platform: string;
+  platformOrderId: string;
+  localAccountId: string;
+}
