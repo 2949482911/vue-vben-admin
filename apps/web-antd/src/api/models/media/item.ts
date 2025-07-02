@@ -1,5 +1,5 @@
 import type {BaseItem, PageRequestParams} from "#/api/models/core";
-import type {KuaishouItemDetail, KuaishouItemSku, KuaiShouPushItem} from './kuaishou'
+import type {KuaishouItemDetail, KuaishouItemSku, KuaiShouPushItem} from './kuaishou/kuaishou'
 
 
 export interface BrandParams extends PageRequestParams {

@@ -135,42 +135,34 @@ const gridOptions: VxeGridProps<BilibiliOrderSku> = {
     {
       field: "sku_id",
       title: `${$t("media.return_order.bilibili.sku_columns.sku_id")}`,
-      width: 'auto',
     },
     {
       field: "product_image",
       title: `${$t("media.return_order.bilibili.sku_columns.product_image")}`,
-      width: 'auto',
     },
     {
       field: "item_quantity",
       title: `${$t("media.return_order.bilibili.sku_columns.item_quantity")}`,
-      width: 'auto',
     },
     {
       field: "create_time",
       title: `${$t("media.return_order.bilibili.sku_columns.create_time")}`,
-      width: 'auto',
     },
     {
       field: "product_id",
       title: `${$t("media.return_order.bilibili.sku_columns.product_id")}`,
-      width: 'auto',
     },
     {
       field: "product_name",
       title: `${$t("media.return_order.bilibili.sku_columns.product_name")}`,
-      width: 'auto',
     },
     {
       field: "after_sale_item_num",
       title: `${$t("media.return_order.bilibili.sku_columns.after_sale_item_num")}`,
-      width: 'auto',
     },
     {
       field: "sku_refund_amount",
       title: `${$t("media.return_order.bilibili.sku_columns.sku_refund_amount")}`,
-      width: 'auto',
     },
   ],
   pagerConfig: {

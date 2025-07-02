@@ -8,13 +8,13 @@ import {PlatformEnum, PlatformOptions} from "#/constants/locales";
 import {orderApi} from "#/api/media/";
 
 // order info modal
-import OrderDetail from './orderdetail.vue';
 import type {OrderDetailRequest, OrderItem} from "#/api/models";
 import {getOrderStatusTag, getPayMethodTag, getPlatformTag, getOrderType} from "#/constants";
 import BilibiliOrderDetail from "./bilibili/detail.vue";
+import KuaiShouOrderDetail from "./kuaishou/detail.vue";
 
-const [CreateOrderDetailModel, CreateOrderDetailModelApi] = useVbenModal({
-  connectedComponent: OrderDetail,
+const [CreateKuaiShouOrderDetailModel, CreateKuaiShouOrderDetailModelApi] = useVbenModal({
+  connectedComponent: KuaiShouOrderDetail,
   centered: true,
   modal: true,
 })
@@ -34,6 +34,10 @@ function openOrderDetailModal(platform: string, orderId: string, localAccountId:
   if (platform === PlatformEnum.Bilibili) {
     CreateBilibiliOrderDetailModelApi.setData(orderDetailRequest);
     CreateBilibiliOrderDetailModelApi.open();
+  }
+  if (platform === PlatformEnum.KUAISHOU) {
+    CreateKuaiShouOrderDetailModelApi.setData(orderDetailRequest);
+    CreateKuaiShouOrderDetailModelApi.open();
   }
 }
 
@@ -237,7 +241,7 @@ function pageReload() {
       </Grid>
     </Page>
 
-    <CreateOrderDetailModel/>
     <CreateBilibiliOrderDetailModel/>
+    <CreateKuaiShouOrderDetailModel/>
   </div>
 </template>

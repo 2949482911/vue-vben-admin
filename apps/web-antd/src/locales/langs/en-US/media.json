@@ -391,7 +391,9 @@
         "operatorName": "Operator Name"
       },
       "addressUpdateAuditInfo": "Address Update Audit Info",
-      "subOrderDetail": "Sub Order Detail"
+      "subOrderDetail": "Sub Order Detail",
+      "sellerBearAmount": "Bear Amount",
+      "taxAmount": "Total Tax Amount"
     },
     "order_status": {
       "one": "UnKnow",

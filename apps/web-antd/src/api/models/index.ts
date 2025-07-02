@@ -12,7 +12,7 @@ export * from "./media/developer";
 export * from "./media/item";
 export * from "./media/logistics";
 export * from "./media/promotion";
-export * from "./media/kuaishou";
+export * from "./media/kuaishou/item";
 export * from "./media/report";
 export * from "./media/bilibili/item";
 export * from "./media/bilibili/return_order";

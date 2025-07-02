@@ -351,7 +351,6 @@ const gridOptions: VxeGridProps<BilibiliOrderSku> = {
       field: "shop_code",
       title: `${$t("media.order.bilibili.sku_columns.shop_code")}`,
       width: "auto",
-
     },
   ],
   pagerConfig: {

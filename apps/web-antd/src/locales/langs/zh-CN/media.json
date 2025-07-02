@@ -392,7 +392,9 @@
         "operatorName": "操作人"
       },
       "addressUpdateAuditInfo": "买家申请修改收货地址的审核信息",
-      "subOrderDetail": "附属订单信息"
+      "subOrderDetail": "附属订单信息",
+      "sellerBearAmount": "卖家承担金额",
+      "taxAmount": "税费总金额"
     },
     "order_status": {
       "one": "未知状态",
