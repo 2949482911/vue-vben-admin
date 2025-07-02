@@ -8,8 +8,13 @@ import {BatchOptionsType, PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constan
 import {developerApi} from '#/api/media';
 
 import Create from './create.vue'
-import type {CreateDeveloperRequest, DeveloperItem, UpdateDeveloperRequest} from "#/api/models/media/developer";
+import type {
+  CreateDeveloperRequest,
+  DeveloperItem,
+  UpdateDeveloperRequest
+} from "#/api/models/media/developer";
 import {ConstantEnum} from "@vben/constants";
+import {getPlatformTag} from "#/constants";
 
 const [CreateModal, createModalApi] = useVbenModal({
   connectedComponent: Create,
@@ -80,7 +85,12 @@ const gridOptions: VxeGridProps<DeveloperItem> = {
   border: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    {field: "platform", title: `${$t("media.developer.columns.platform")}`, width: "auto"},
+    {
+      field: "platform",
+      title: `${$t("media.developer.columns.platform")}`,
+      width: "auto",
+      slots: {default: 'platform'}
+    },
     {field: "appName", title: `${$t("media.developer.columns.appName")}`, width: "auto"},
     {field: "appId", title: `${$t("media.developer.columns.appId")}`, width: "auto"},
     {field: "secret", title: `${$t("media.developer.columns.secret")}`, width: "auto"},
@@ -126,6 +136,9 @@ function pageReload() {
   <div>
     <Page>
       <Grid>
+        <template #platform="{row}">
+          <component :is="getPlatformTag(row.platform)"></component>
+        </template>
 
         <template #action="{ row }">
           <Button type="link" @click="openBaseDrawer(row)">{{ $t('common.edit') }}</Button>

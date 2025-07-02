@@ -2,13 +2,15 @@
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "#/adapter/vxe-table";
 import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
-import {Button, Switch} from "ant-design-vue";
+import {Button, Switch, Tag} from "ant-design-vue";
 import {$t} from "@vben/locales";
 import {PlatformOptions, TABLE_COMMON_COLUMNS} from "#/constants/locales";
 import {mediaAccountApi} from "#/api/media/account";
 import type {MediaOnlineretailersItem} from "#/api/models/media/account";
 import AuthAccount from "./auth.vue"
-import {ConstantEnum} from "@vben/constants";
+import {ConstantEnum, ConstantTypeEnum} from "@vben/constants";
+import {getPlatformTag} from "#/constants";
+import {h} from 'vue'
 
 const [AuthAccountModel, createAccountApi] = useVbenModal({
   connectedComponent: AuthAccount,
@@ -21,6 +23,27 @@ enum MediaAccountBatchOptionsEnum {
   PUT_STATUS = "put_status",
   //  取消授权
   CANCEL_AUTH = "cancel_auth",
+}
+
+function sex(sex: number) {
+  let color: string;
+  let label: string;
+  sex = Number(sex);
+  switch (sex) {
+    case ConstantTypeEnum.COMMON_ZERO:
+      color = 'red';
+      label = `未知`
+      break;
+    case ConstantTypeEnum.COMMON_ONE:
+      color = 'blue';
+      label = `${$t('common.boy')}`;
+      break;
+    case ConstantTypeEnum.COMMON_TWO:
+      color = 'green';
+      label = `${$t('common.girl')}`;
+      break;
+  }
+  return h(Tag, {color: color}, () => label)
 }
 
 /**
@@ -116,27 +139,18 @@ const gridOptions: VxeGridProps<MediaOnlineretailersItem> = {
   keepSource: true,
   columns: [
     {title: "序号", type: "seq", width: 50, type: "checkbox", width: 100},
-    {field: "platform", title: `${$t("media.account.columns.platform")}`, width: "auto"},
+    {
+      field: "platform",
+      title: `${$t("media.account.columns.platform")}`,
+      width: "auto",
+      slots: {default: 'platform'}
+    },
     {field: "name", title: `${$t("media.account.columns.name")}`, width: "auto"},
     {
       field: "sex",
       title: `${$t("media.account.columns.sex")}`,
       width: "auto",
-      cellRender: {
-        name: 'CellTag',
-        options: [
-          {
-            color: 'success',
-            label: $t('common.boy'),
-            value: 1
-          },
-          {
-            color: 'error',
-            label: $t('common.girl'),
-            value: 2
-          }
-        ]
-      },
+      slots: {default: 'sex'}
     },
     {field: "head", title: `${$t("media.account.columns.head")}`, width: "auto"},
     {
@@ -237,6 +251,15 @@ async function handlerAuthUrl() {
   <div>
     <Page>
       <Grid>
+
+        <template #sex="{row}">
+          <component :is="sex(row.sex)"></component>
+        </template>
+
+        <template #platform="{row}">
+          <component :is="getPlatformTag(row.platform)"></component>
+        </template>
+
         <template #status="{ row }">
           <Switch :checked="row.status == 1" @change="handlerState(row)"/>
         </template>

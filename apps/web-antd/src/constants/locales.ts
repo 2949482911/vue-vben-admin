@@ -157,7 +157,7 @@ export const PlatformOptions = [
     "value": "bilibili"
   },
   {
-    "label": `${$t('core.platform.rednote')}`,
+    "label": `${$t('core.platform.red_note')}`,
     "value": "red_note"
   }
 ]
