@@ -12,6 +12,7 @@ import type {OrderDetailRequest, OrderItem} from "#/api/models";
 import {getOrderStatusTag, getPayMethodTag, getPlatformTag, getOrderType} from "#/constants";
 import BilibiliOrderDetail from "./bilibili/detail.vue";
 import KuaiShouOrderDetail from "./kuaishou/detail.vue";
+import RedNoteOrderDetail from "./rednote/detail.vue";
 
 const [CreateKuaiShouOrderDetailModel, CreateKuaiShouOrderDetailModelApi] = useVbenModal({
   connectedComponent: KuaiShouOrderDetail,
@@ -21,6 +22,12 @@ const [CreateKuaiShouOrderDetailModel, CreateKuaiShouOrderDetailModelApi] = useV
 
 const [CreateBilibiliOrderDetailModel, CreateBilibiliOrderDetailModelApi] = useVbenModal({
   connectedComponent: BilibiliOrderDetail,
+  centered: true,
+  modal: true,
+})
+
+const [CreateRedNoteOrderDetailModel, CreateRedNoteOrderDetailModelApi] = useVbenModal({
+  connectedComponent: RedNoteOrderDetail,
   centered: true,
   modal: true,
 })
@@ -38,6 +45,10 @@ function openOrderDetailModal(platform: string, orderId: string, localAccountId:
   if (platform === PlatformEnum.KUAISHOU) {
     CreateKuaiShouOrderDetailModelApi.setData(orderDetailRequest);
     CreateKuaiShouOrderDetailModelApi.open();
+  }
+  if (platform === PlatformEnum.RedNote) {
+    CreateRedNoteOrderDetailModelApi.setData(orderDetailRequest);
+    CreateRedNoteOrderDetailModelApi.open();
   }
 }
 
@@ -243,5 +254,6 @@ function pageReload() {
 
     <CreateBilibiliOrderDetailModel/>
     <CreateKuaiShouOrderDetailModel/>
+    <CreateRedNoteOrderDetailModel />
   </div>
 </template>

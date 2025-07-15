@@ -16,3 +16,6 @@ export * from "./media/kuaishou/item";
 export * from "./media/report";
 export * from "./media/bilibili/item";
 export * from "./media/bilibili/return_order";
+export * from "./media/rednote/item";
+export * from "./media/rednote/order";
+export * from "./media/rednote/return_order";

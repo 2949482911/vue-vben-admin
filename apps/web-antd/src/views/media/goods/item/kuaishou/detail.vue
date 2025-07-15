@@ -424,9 +424,7 @@ const gridOptions: VxeGridProps<KuaishouItemSku> = {
       width: 256,
     },
   ],
-  pagerConfig: {
-    enabled: false
-  },
+  height: 'auto',
   data: [],
   sortConfig: {
     multiple: true
@@ -434,10 +432,15 @@ const gridOptions: VxeGridProps<KuaishouItemSku> = {
   pagerConfig: {
     enabled: false,
   },
-  proxyConfig: {
+  scrollY: {
     enabled: true,
+    gt: 0,
+  },
+  proxyConfig: {
+    enabled: false,
     autoLoad: false
-  }
+  },
+  showOverflow: true,
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({gridOptions});

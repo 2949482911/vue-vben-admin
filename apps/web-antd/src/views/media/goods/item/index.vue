@@ -10,6 +10,7 @@ import type {MediaItemDetailRequest, MediaItemItem} from "#/api/models/media/ite
 import SelectPlatformPushItem from "./select-platform-push-item.vue"
 import KuaiShouItemDetail from "./kuaishou/detail.vue";
 import BilibiliItemDetail from "./bilibili/detail.vue";
+import RedNoteItemDetail from './rednote/detail.vue';
 import {getPlatformTag} from "#/constants";
 
 const [SelectPlatformPushItemModel, selectPlatformPushItemModalApi] = useVbenModal({
@@ -29,6 +30,13 @@ const [CreateKuaiShouItemDetailModal, createKuaiShouItemDetailModalApi] = useVbe
 
 const [CreateBilibiliItemDetailModal, createBilibiliItemDetailModalApi] = useVbenModal({
   connectedComponent: BilibiliItemDetail,
+  centered: true,
+  modal: true,
+})
+
+
+const [CreateRedNoteItemDetailModal, createRedNoteItemDetailModalApi] = useVbenModal({
+  connectedComponent: RedNoteItemDetail,
   centered: true,
   modal: true,
 })
@@ -142,8 +150,11 @@ function openPlatformItemDetail(row: MediaItemItem) {
     createKuaiShouItemDetailModalApi.setData(data);
     createKuaiShouItemDetailModalApi.open();
   } else if (row.platform == PlatformEnum.Bilibili) {
-    createBilibiliItemDetailModalApi.setData(data)
+    createBilibiliItemDetailModalApi.setData(data);
     createBilibiliItemDetailModalApi.open();
+  }else if (row.platform == PlatformEnum.RedNote) {
+    createRedNoteItemDetailModalApi.setData(data);
+    createRedNoteItemDetailModalApi.open();
   }
 }
 
@@ -177,9 +188,11 @@ function openPlatformItemDetail(row: MediaItemItem) {
     </Page>
 
     <SelectPlatformPushItemModel/>
-    <!--    快手详情-->
+    <!--    快手 商品详情-->
     <CreateKuaiShouItemDetailModal/>
     <!--    b站 商品详情-->
     <CreateBilibiliItemDetailModal/>
+    <!--    小红书 商品详情-->
+    <CreateRedNoteItemDetailModal/>
   </div>
 </template>

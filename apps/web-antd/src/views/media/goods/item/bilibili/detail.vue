@@ -101,9 +101,7 @@ const gridOptions: VxeGridProps<BilibiliItemSku> = {
       title: `${$t("media.media_item.bilibili.sku_columns.price")}`,
     },
   ],
-  pagerConfig: {
-    enabled: false
-  },
+  height: 'auto',
   data: [],
   sortConfig: {
     multiple: true
@@ -111,10 +109,15 @@ const gridOptions: VxeGridProps<BilibiliItemSku> = {
   pagerConfig: {
     enabled: false,
   },
-  proxyConfig: {
+  scrollY: {
     enabled: true,
+    gt: 0,
+  },
+  proxyConfig: {
+    enabled: false,
     autoLoad: false
-  }
+  },
+  showOverflow: true,
 };
 const [Grid, gridApi] = useVbenVxeGrid({gridOptions});
 

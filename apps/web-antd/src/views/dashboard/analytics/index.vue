@@ -127,13 +127,13 @@ onMounted(async () => {
     </AnalysisChartsTabs>
 
     <div class="mt-5 w-full md:flex">
-      <AnalysisChartCard class="mt-5 md:mr-4 md:mt-0 md:w-1/3" title="访问数量">
+      <AnalysisChartCard class="mt-5 md:mr-4 md:mt-0 md:w-1/3" title="媒体订单">
         <AnalyticsVisitsData/>
       </AnalysisChartCard>
       <AnalysisChartCard class="mt-5 md:mr-4 md:mt-0 md:w-1/3" :title="`${$t('media.report.chartTabs.dimensions_local_account')}`">
         <AnalyticsVisitsSource/>
       </AnalysisChartCard>
-      <AnalysisChartCard class="mt-5 md:mt-0 md:w-1/3" title="访问来源">
+      <AnalysisChartCard class="mt-5 md:mt-0 md:w-1/3" title="平台占比">
         <AnalyticsVisitsSales/>
       </AnalysisChartCard>
     </div>

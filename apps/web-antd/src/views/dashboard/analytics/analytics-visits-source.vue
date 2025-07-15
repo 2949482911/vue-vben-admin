@@ -56,7 +56,7 @@ onMounted(async () => {
         animationEasing: 'exponentialInOut',
         animationType: 'scale',
         avoidLabelOverlap: false,
-        color: ['#5ab1ef', '#b6a2de', '#67e0e3', '#2ec7c9'],
+        // color: ['#5ab1ef', '#b6a2de', '#67e0e3', '#2ec7c9'],
         data: dataList,
         emphasis: {
           label: {
