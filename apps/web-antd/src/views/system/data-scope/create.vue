@@ -201,7 +201,9 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
-    await (isUpdate.value ? dataRangeApi.fetchUpdateDataRange(JSON.stringify(values)) : dataRangeApi.fetchCreateDataRange(JSON.stringify(values)));
+    await (isUpdate.value
+      ? dataRangeApi.fetchUpdateDataRange(JSON.stringify(values))
+      : dataRangeApi.fetchCreateDataRange(JSON.stringify(values)));
     modalApi.close();
   },
 });
