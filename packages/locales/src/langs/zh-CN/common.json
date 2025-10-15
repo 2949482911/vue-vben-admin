@@ -29,5 +29,7 @@
   "list": "列表",
   "batch_options": "批量操作",
   "authorization": "授权",
-  "select": "选择"
+  "select": "选择",
+  "disable": "禁止",
+  "enable": "启用"
 }

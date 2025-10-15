@@ -31,7 +31,7 @@
       "activeIcon": "激活图标",
       "badge": "徽标",
       "badgeType": "徽标类型",
-      "badgeVariants": "徽标颜色",
+      "badgeVariants": "徽标样式",
       "hideInBreadcrumb": "当前路由在面包屑中不展现",
       "hideInTab": "当前路由在标签页不展现",
       "ignoreAccess": "忽略权限",

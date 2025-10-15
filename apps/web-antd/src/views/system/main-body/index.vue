@@ -1,17 +1,24 @@
 <script lang="ts" setup name="MainBodyManager">
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import type {CreateMenuRequest, UpdateMenuRequest,} from '#/api/models/menu';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
-import {Button, Switch, Tag} from 'ant-design-vue';
-import {mainBodyApi} from '#/api';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { MainBodyItem } from '#/api/models';
+import type { CreateMenuRequest, UpdateMenuRequest } from '#/api/models/menu';
+
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Button, Switch, Tag } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { mainBodyApi } from '#/api';
+import {
+  BatchOptionsType,
+  STATUS_SELECT,
+  TABLE_COMMON_COLUMNS,
+} from '#/constants/locales';
 
 import Create from './create.vue';
-import type {MainBodyItem} from "#/api/models";
-
 
 const [CreateModal, createModalApi] = useVbenModal({
   connectedComponent: Create,
@@ -19,39 +26,35 @@ const [CreateModal, createModalApi] = useVbenModal({
   modal: true,
 });
 
-
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
     createModalApi.setData(row);
   } else {
-    createModalApi.setData({})
+    createModalApi.setData({});
   }
   createModalApi.open();
 }
 
 async function handlerState(row: MainBodyItem) {
-  if (row.status == 1) {
-    await mainBodyApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.DISABLE,
-    })
-  }else {
-    await mainBodyApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.Enable,
-    })
-  }
-  pageReload()
+  await (row.status == 1
+    ? mainBodyApi.fetchBatchOptions({
+        targetIds: [row.id],
+        type: BatchOptionsType.DISABLE,
+      })
+    : mainBodyApi.fetchBatchOptions({
+        targetIds: [row.id],
+        type: BatchOptionsType.Enable,
+      }));
+  pageReload();
 }
 
 async function handlerDelete(row: MainBodyItem) {
   await mainBodyApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.DELETE,
-  })
-  pageReload()
+  });
+  pageReload();
 }
-
 
 const formOptions: VbenFormProps = {
   // 默认展开
@@ -72,7 +75,6 @@ const formOptions: VbenFormProps = {
       fieldName: 'status',
       label: `${$t('core.columns.status')}`,
     },
-
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
@@ -80,10 +82,8 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-
 const gridOptions: VxeGridProps<MainBodyItem> = {
   columns: [
-    ...TABLE_COMMON_COLUMNS,
     {
       field: 'name',
       title: `${$t('system.mainbody.columns.name')}`,
@@ -96,42 +96,45 @@ const gridOptions: VxeGridProps<MainBodyItem> = {
       field: 'remark',
       title: `${$t('system.mainbody.columns.remark')}`,
     },
+    ...TABLE_COMMON_COLUMNS,
   ],
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({page}, args) => {
-        return await mainBodyApi.fetchMainList(
-          {
-            page: page.currentPage,
-            pageSize: page.pageSize,
-            ...args
-          }
-        );
+      query: async ({ page }, args) => {
+        return await mainBodyApi.fetchMainList({
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          ...args,
+        });
       },
     },
   },
   pagerConfig: {
     enabled: true,
   },
+  toolbarConfig: {
+    custom: true,
+    export: false,
+    refresh: true,
+    search: true,
+    zoom: true,
+  },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 const pageReload = () => {
   gridApi.reload();
 };
-
-
 </script>
 
 <template>
   <div>
     <Page>
       <Grid :table-title="$t('system.user.title')">
-
         <template #status="{ row }">
-          <Switch :checked="row.status == 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status == 1" @click="handlerState(row)" />
         </template>
 
         <template #sex="{ row }">
@@ -155,6 +158,6 @@ const pageReload = () => {
         </template>
       </Grid>
     </Page>
-    <CreateModal @page-reload="pageReload"/>
+    <CreateModal @page-reload="pageReload" />
   </div>
 </template>

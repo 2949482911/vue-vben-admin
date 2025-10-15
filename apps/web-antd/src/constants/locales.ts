@@ -37,7 +37,7 @@ export const STATUS_SELECT = [
     label: `${$t('common.disable')}`,
     value: 9,
   },
-]
+];
 
 export const SEX_SELECT = [
   {
@@ -48,8 +48,7 @@ export const SEX_SELECT = [
     label: `${$t('common.girl')}`,
     value: 2,
   },
-]
-
+];
 
 export const DATA_SCOPE = [
   {
@@ -88,9 +87,7 @@ export const DATA_SCOPE = [
     label: `${$t('core.data_range_type.self_main_scope')}`,
     value: 9,
   },
-]
-
-
+];
 
 export const ROLE_TYPE_OPTIONS = [
   {
@@ -113,19 +110,10 @@ export const ROLE_TYPE_OPTIONS = [
     label: `${$t('core.role_type.main_user')}`,
     value: 5,
   },
-]
-
-
-export const FLOWABLE_PROCESS_TYPE = [
-  {
-    label: `${$t('core.role_type.super_admin')}`,
-    value: 1,
-  },
-]
-
+];
 
 export enum BatchOptionsType {
-  DISABLE= "disable",
-  Enable = "enable",
-  Delete = "delete"
+  Delete = 'delete',
+  DISABLE = 'disable',
+  Enable = 'enable',
 }

@@ -1,35 +1,38 @@
 <script lang="ts" setup name="AccountManager">
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {onMounted, reactive, ref} from 'vue'
-import type {CreateMenuRequest, UpdateMenuRequest,} from '#/api/models/menu';
-import {ColPage, Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import type { VbenFormProps } from '@vben/common-ui';
+
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { CreateMenuRequest, UpdateMenuRequest } from '#/api/models/menu';
+import type { OrgItem, UserItem } from '#/api/models/users';
+
+import { onMounted, reactive, ref } from 'vue';
+
+import { ColPage, Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Button, Card, Switch, Tag, Tree } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { orgApi, userApi } from '#/api';
 import {
   BatchOptionsType,
   SEX_SELECT,
   STATUS_SELECT,
-  TABLE_COMMON_COLUMNS
-} from "#/constants/locales";
-import {Button, Card, Switch, Tag, Tree} from 'ant-design-vue';
-import {orgApi, userApi} from '#/api';
-
+  TABLE_COMMON_COLUMNS,
+} from '#/constants/locales';
 
 import Create from './create.vue';
-import type {OrgItem, UserItem} from "#/api/models/users";
 
 async function handleState(row: UserItem) {
-  if (row.status == 1) {
-    await userApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.DISABLE
-    })
-  } else {
-    await userApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.Enable
-    })
-  }
+  await (row.status == 1
+    ? userApi.fetchBatchOptions({
+        targetIds: [row.id],
+        type: BatchOptionsType.DISABLE,
+      })
+    : userApi.fetchBatchOptions({
+        targetIds: [row.id],
+        type: BatchOptionsType.Enable,
+      }));
   pageReload();
 }
 
@@ -37,7 +40,7 @@ async function handlerDelete(row: UserItem) {
   await userApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
-  })
+  });
   pageReload();
 }
 
@@ -47,13 +50,13 @@ const [CreateModal, createModalApi] = useVbenModal({
   modal: true,
 });
 
-const orgTreeData = ref<OrgItem[]>([])
+const orgTreeData = ref<OrgItem[]>([]);
 
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
     createModalApi.setData(row);
   } else {
-    createModalApi.setData({})
+    createModalApi.setData({});
   }
   createModalApi.open();
 }
@@ -110,10 +113,8 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-
 const gridOptions: VxeGridProps<UserItem> = {
   columns: [
-    ...TABLE_COMMON_COLUMNS,
     {
       field: 'avatar',
       title: `${$t('system.user.columns.avatar')}`,
@@ -141,35 +142,41 @@ const gridOptions: VxeGridProps<UserItem> = {
     {
       field: 'sex',
       title: `${$t('system.user.columns.sex')}`,
-      slots: {default: 'sex'},
+      slots: { default: 'sex' },
     },
 
     {
       field: 'roleIds',
       title: `${$t('system.user.columns.roleIds')}`,
-      slots: {default: 'roleIds'},
+      slots: { default: 'roleIds' },
     },
+    ...TABLE_COMMON_COLUMNS,
   ],
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({page}, args) => {
-        return await userApi.fetchUserList(
-          {
-            page: page.currentPage,
-            pageSize: page.pageSize,
-            ...args
-          }
-        );
+      query: async ({ page }, args) => {
+        return await userApi.fetchUserList({
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          ...args,
+        });
       },
     },
   },
   pagerConfig: {
     enabled: true,
   },
+  toolbarConfig: {
+    custom: true,
+    export: false,
+    refresh: true,
+    search: true,
+    zoom: true,
+  },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 const pageReload = () => {
   gridApi.reload();
@@ -180,44 +187,48 @@ const pageReload = () => {
  * @param selectedKeys 选中的节点ID
  * @param node 当前节点
  */
-function handlerOrgPageList(selectedKeys: string[], {node} ) {
-  gridApi.reload({orgId: node.id});
+function handlerOrgPageList(selectedKeys: string[], { node }) {
+  gridApi.reload({ orgId: node.id });
 }
 
 onMounted(() => {
-  orgApi.fetchOrgTree().then(res => {
-    orgTreeData.value = res
-  })
-})
-
+  orgApi.fetchOrgTree().then((res) => {
+    orgTreeData.value = res;
+  });
+});
 </script>
 
 <template>
   <div>
-    <ColPage
-      auto-content-height
-      v-bind="props"
-    >
+    <ColPage auto-content-height v-bind="props">
       <template #left="{ isCollapsed, expand }">
         <div
           :style="{ minWidth: '200px' }"
           class="border-border bg-card mr-2 rounded-[var(--radius)] border p-2"
         >
-          <Tree :tree-data="orgTreeData" :field-names="{ title: 'name', key: 'id', children: 'children'}" @select="handlerOrgPageList"></Tree>
+          <Tree
+            :tree-data="orgTreeData"
+            :field-names="{ title: 'name', key: 'id', children: 'children' }"
+            @select="handlerOrgPageList"
+          />
         </div>
       </template>
       <Card class="ml-2">
         <Page>
           <Grid :table-title="$t('system.user.title')">
             <template #roleIds="{ row }">
-              <Tag v-for="item in row.roleList" v-if="row.roleList.length > 0" :key="item.id">
+              <Tag
+                v-for="item in row.roleList"
+                v-if="row.roleList.length > 0"
+                :key="item.id"
+              >
                 {{ item.name }}
               </Tag>
               <div v-else>-</div>
             </template>
 
             <template #status="{ row }">
-              <Switch :checked="row.status == 1" @click="handleState(row)"/>
+              <Switch :checked="row.status == 1" @click="handleState(row)" />
             </template>
 
             <template #sex="{ row }">
@@ -244,6 +255,6 @@ onMounted(() => {
       </Card>
     </ColPage>
 
-    <CreateModal @page-reload="pageReload"/>
+    <CreateModal @page-reload="pageReload" />
   </div>
 </template>

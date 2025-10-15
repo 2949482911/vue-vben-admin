@@ -1,16 +1,23 @@
 <script lang="ts" setup name="NoticeManager">
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import {Page, useVbenDrawer, type VbenFormProps} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { NoticeItem } from '#/api/models';
 
-import {Button, Switch} from 'ant-design-vue';
-import {noticeApi} from '#/api';
-import {BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS} from '#/constants/locales';
+import { Page, useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Button, Switch } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { noticeApi } from '#/api';
+import {
+  BatchOptionsType,
+  STATUS_SELECT,
+  TABLE_COMMON_COLUMNS,
+} from '#/constants/locales';
 
 import CreateNotice from './create-notice.vue';
-import type {NoticeItem} from "#/api/models";
 
 const [CreateNoticeDrawer, baseDrawerApi] = useVbenDrawer({
   // 连接抽离的组件
@@ -19,40 +26,35 @@ const [CreateNoticeDrawer, baseDrawerApi] = useVbenDrawer({
   footer: true,
 });
 
-
 async function handlerState(row: NoticeItem) {
-  if (row.status == 1) {
-    await noticeApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.DISABLE,
-    })
-  } else {
-    await noticeApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.Enable,
-    })
-  }
+  await (row.status == 1
+    ? noticeApi.fetchBatchOptions({
+        targetIds: [row.id],
+        type: BatchOptionsType.DISABLE,
+      })
+    : noticeApi.fetchBatchOptions({
+        targetIds: [row.id],
+        type: BatchOptionsType.Enable,
+      }));
   pageReload();
 }
-
 
 async function handlerDelete(row: NoticeItem) {
   await noticeApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
-  })
+  });
   pageReload();
 }
 
 function openBaseDrawer(row?: NoticeItem) {
   if (row) {
     baseDrawerApi.setData(row);
-  }else {
-    baseDrawerApi.setData({})
+  } else {
+    baseDrawerApi.setData({});
   }
   baseDrawerApi.open();
 }
-
 
 const formOptions: VbenFormProps = {
   // 默认展开
@@ -90,29 +92,36 @@ const gridOptions: VxeGridProps<NoticeItem> = {
     highlight: true,
     labelField: 'name',
   },
+  toolbarConfig: {
+    custom: true,
+    export: false,
+    refresh: true,
+    search: true,
+    zoom: true,
+  },
   columns: [
-    {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
+    { title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100 },
+    { field: 'title', title: `${$t('system.notice.columns.title')}` },
+    { field: 'level', title: `${$t('system.notice.columns.level')}` },
     ...TABLE_COMMON_COLUMNS,
-    {field: 'title', title: `${$t('system.notice.columns.title')}`},
-    {field: 'level', title: `${$t('system.notice.columns.level')}`},
   ],
   height: 'auto',
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         return await noticeApi.getNoticeList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args
+          ...args,
         });
       },
     },
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 function pageReload() {
   gridApi.reload();
@@ -124,20 +133,24 @@ function pageReload() {
     <Page auto-content-height>
       <Grid>
         <template #action="{ row }">
-          <Button type="link" @click="openBaseDrawer(row)">{{ $t('common.edit') }}</Button>
-          <Button type="link" @click="handlerDelete(row)">{{ $t('common.delete') }}</Button>
+          <Button type="link" @click="openBaseDrawer(row)">
+            {{ $t('common.edit') }}
+          </Button>
+          <Button type="link" @click="handlerDelete(row)">
+            {{ $t('common.delete') }}
+          </Button>
         </template>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>
 
         <template #toolbar-tools>
           <Button class="mr-2" type="primary" @click="openBaseDrawer()">
-            {{$t('common.create') }}
+            {{ $t('common.create') }}
           </Button>
         </template>
       </Grid>
     </Page>
-    <CreateNoticeDrawer @page-reload="pageReload"/>
+    <CreateNoticeDrawer @page-reload="pageReload" />
   </div>
 </template>

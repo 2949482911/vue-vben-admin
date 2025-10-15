@@ -168,6 +168,9 @@ catalogs:
     axios-mock-adapter:
       specifier: ^2.1.0
       version: 2.1.0
+    bpmn-js:
+      specifier: ^18.1.2
+      version: 18.6.2
     cac:
       specifier: ^6.7.14
       version: 6.7.14
@@ -668,6 +671,9 @@ importers:
       '@logicflow/extension':
         specifier: ^2.0.14
         version: 2.0.21(@logicflow/core@2.0.16)
+      '@vben-core/menu-ui':
+        specifier: workspace:*
+        version: link:../../packages/@core/ui-kit/menu-ui
       '@vben/access':
         specifier: workspace:*
         version: link:../../packages/effects/access

@@ -44,6 +44,8 @@ interface BasicUserInfo {
    * 头像
    */
   avatar: string;
+  email: string;
+  // 主体管理员
   mainAdmin: boolean;
   mainId: string;
   mainName: string;
@@ -56,6 +58,8 @@ interface BasicUserInfo {
   orgId: string;
   orgName: string;
   phone: string;
+  // 平台管理员
+  platformAdmin: boolean;
   /**
    * 用户昵称
    */

@@ -1,18 +1,31 @@
 <script lang="ts" setup name="DataRangeManager">
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {onMounted, ref} from 'vue'
-import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models/menu';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS} from "#/constants/locales";
-import {Button, Switch, Tag} from 'ant-design-vue';
-import {dataRangeApi, orgApi} from '#/api';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {
+  CreateMenuRequest,
+  MenuItem,
+  UpdateMenuRequest,
+} from '#/api/models/menu';
+import type { DataRangeItem, OrgItem } from '#/api/models/users';
+
+import { onMounted, ref } from 'vue';
+
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Button, Switch, Tag } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { dataRangeApi, orgApi } from '#/api';
+import {
+  BatchOptionsType,
+  DATA_SCOPE,
+  STATUS_SELECT,
+  TABLE_COMMON_COLUMNS,
+} from '#/constants/locales';
 
 import Create from './create.vue';
-import type {DataRangeItem, OrgItem} from "#/api/models/users";
-
 
 const [CreateModal, createModalApi] = useVbenModal({
   connectedComponent: Create,
@@ -20,41 +33,37 @@ const [CreateModal, createModalApi] = useVbenModal({
   modal: true,
 });
 
-const orgTreeData = ref<OrgItem[]>([])
+const orgTreeData = ref<OrgItem[]>([]);
 
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
     createModalApi.setData(row);
   } else {
-    createModalApi.setData({})
+    createModalApi.setData({});
   }
   createModalApi.open();
 }
 
 async function handlerState(row: DataRangeItem) {
-  if (row.status == 1) {
-    await dataRangeApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.DISABLE,
-    })
-  } else {
-    await dataRangeApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.Enable,
-    })
-  }
+  await (row.status == 1
+    ? dataRangeApi.fetchBatchOptions({
+        targetIds: [row.id],
+        type: BatchOptionsType.DISABLE,
+      })
+    : dataRangeApi.fetchBatchOptions({
+        targetIds: [row.id],
+        type: BatchOptionsType.Enable,
+      }));
   pageReload();
 }
-
 
 async function handlerDelete(id: string) {
   await dataRangeApi.fetchBatchOptions({
     targetIds: [id],
     type: BatchOptionsType.Delete,
-  })
+  });
   pageReload();
 }
-
 
 const formOptions: VbenFormProps = {
   // 默认展开
@@ -81,10 +90,8 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-
 const gridOptions: VxeGridProps<MenuItem> = {
   columns: [
-    ...TABLE_COMMON_COLUMNS,
     {
       field: 'name',
       title: `${$t('system.data_scope.columns.name')}`,
@@ -92,6 +99,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
     {
       field: 'type',
       title: `${$t('system.data_scope.columns.type')}`,
+      slots: { default: 'type' },
     },
     {
       field: 'code',
@@ -101,47 +109,57 @@ const gridOptions: VxeGridProps<MenuItem> = {
       field: 'remark',
       title: `${$t('system.data_scope.columns.remark')}`,
     },
+    ...TABLE_COMMON_COLUMNS,
   ],
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({page}, args) => {
-        return await dataRangeApi.fetchDataRangeList(
-          {
-            page: page.currentPage,
-            pageSize: page.pageSize,
-            ...args
-          }
-        );
+      query: async ({ page }, args) => {
+        return await dataRangeApi.fetchDataRangeList({
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          ...args,
+        });
       },
     },
   },
   pagerConfig: {
     enabled: true,
   },
+  toolbarConfig: {
+    custom: true,
+    export: false,
+    refresh: true,
+    search: true,
+    zoom: true,
+  },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 const pageReload = () => {
   gridApi.reload();
 };
 
 onMounted(() => {
-  orgApi.fetchOrgTree().then(res => {
-    orgTreeData.value = res
-  })
-})
-
+  orgApi.fetchOrgTree().then((res) => {
+    orgTreeData.value = res;
+  });
+});
 </script>
 
 <template>
   <div>
     <Page>
       <Grid :table-title="$t('system.user.title')">
-
         <template #status="{ row }">
-          <Switch :checked="row.status == 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status == 1" @click="handlerState(row)" />
+        </template>
+
+        <template #type="{ row }">
+          <Tag>
+            {{ DATA_SCOPE.filter((x) => x.value == row.type)[0].label }}
+          </Tag>
         </template>
 
         <template #sex="{ row }">
@@ -157,7 +175,6 @@ onMounted(() => {
           <Button type="link" @click="handlerDelete(row.id)">
             {{ $t('common.delete') }}
           </Button>
-
         </template>
 
         <template #toolbar-tools>
@@ -167,6 +184,6 @@ onMounted(() => {
         </template>
       </Grid>
     </Page>
-    <CreateModal @page-reload="pageReload"/>
+    <CreateModal @page-reload="pageReload" />
   </div>
 </template>

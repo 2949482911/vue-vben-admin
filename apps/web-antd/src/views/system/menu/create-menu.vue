@@ -1,21 +1,24 @@
 <script lang="ts" setup name="CreateMenu">
-import type {CreateMenuRequest, MenuItem} from '#/api/models/menu';
-import {ref} from 'vue';
-import {useVbenModal, z} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {Card} from 'ant-design-vue';
-import {useVbenForm} from '#/adapter/form';
-import {menuApi} from '#/api';
+import type { CreateMenuRequest, MenuItem } from '#/api/models/menu';
+
+import { ref } from 'vue';
+
+import { useVbenModal, z } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Card } from 'ant-design-vue';
+
+import { useVbenForm } from '#/adapter/form';
+import { menuApi } from '#/api';
 
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<CreateMenuRequest>({});
-const menuData = ref([])
+const menuData = ref([]);
 const isUpdate = ref<Boolean>(false);
 
-
 // menuTypeOptions
- function getMenuTypeOptions() {
+function getMenuTypeOptions() {
   return [
     {
       color: 'processing',
@@ -28,16 +31,14 @@ const isUpdate = ref<Boolean>(false);
 }
 
 function updateMenuTitle(menu: MenuItem) {
-  menu.title = `${$t(menu.title)}`
+  menu.title = `${$t(menu.title)}`;
   if (!menu.children) {
-    return
+    return;
   }
-  menu.children.forEach(x => {
-    updateMenuTitle(x)
-  })
+  menu.children.forEach((x) => {
+    updateMenuTitle(x);
+  });
 }
-
-
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -74,8 +75,8 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ["*"]
-      }
+        triggerFields: ['*'],
+      },
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -91,9 +92,9 @@ const [Form, formApi] = useVbenForm({
           title: 'title',
           value: 'id',
           children: 'children',
-        }
+        },
       },
-      renderComponentContent: (value, _) =>  {
+      renderComponentContent: (value, _) => {
         return {
           strengthText: () => $t(`${value.title}`),
         };
@@ -116,11 +117,17 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('system.menu.columns.title')}`,
       rules: z
         .string()
-        .min(2, $t('ui.formRules.minLength', [$t('system.menu.columns.title'), 2]))
-        .max(50, $t('ui.formRules.maxLength', [$t('system.menu.columns.title'), 30]))
+        .min(
+          2,
+          $t('ui.formRules.minLength', [$t('system.menu.columns.title'), 2]),
+        )
+        .max(
+          50,
+          $t('ui.formRules.maxLength', [$t('system.menu.columns.title'), 30]),
+        )
         .refine(
           async (value: string) => {
-            return !(await isMenuNameExists(value, formData.value?.id));
+            return false;
           },
           (value) => ({
             message: $t('ui.formRules.alreadyExists', [
@@ -160,15 +167,14 @@ const [Form, formApi] = useVbenForm({
           {
             label: `${$t('system.menu.type.button')}`,
             value: 3,
-          }
-        ]
+          },
+        ],
       },
       fieldName: 'type',
       label: `${$t('system.menu.columns.type')}`,
       rules: 'required',
       disabled: isUpdate,
     },
-
 
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -184,13 +190,13 @@ const [Form, formApi] = useVbenForm({
 
       dependencies: {
         show: (val) => {
-          return val.type === 1
+          return val.type === 1;
         },
         required: (value) => {
-          return value.type === 1
+          return value.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
 
     {
@@ -205,10 +211,10 @@ const [Form, formApi] = useVbenForm({
           return val.type === 1;
         },
         required: (value) => {
-          return value.type === 1
+          return value.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
 
     {
@@ -222,8 +228,8 @@ const [Form, formApi] = useVbenForm({
         show: (val) => {
           return val.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
 
     {
@@ -237,8 +243,8 @@ const [Form, formApi] = useVbenForm({
         show: (val) => {
           return val.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
 
     {
@@ -247,14 +253,14 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
         options: [
           {
-            label: "dot",
-            value: "dot",
+            label: 'dot',
+            value: 'dot',
           },
           {
-            label: "normal",
-            value: "normal",
+            label: 'normal',
+            value: 'normal',
           },
-        ]
+        ],
       },
       fieldName: 'badgeType',
       label: `${$t('system.menu.columns.badgeType')}`,
@@ -262,8 +268,8 @@ const [Form, formApi] = useVbenForm({
         show: (val) => {
           return val.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
 
     {
@@ -272,26 +278,26 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
         options: [
           {
-            label: "default",
-            value: "default",
+            label: 'default',
+            value: 'default',
           },
           {
-            label: "destructive",
-            value: "destructive",
+            label: 'destructive',
+            value: 'destructive',
           },
           {
-            label: "primary",
-            value: "primary",
+            label: 'primary',
+            value: 'primary',
           },
           {
-            label: "success",
-            value: "success",
+            label: 'success',
+            value: 'success',
           },
           {
-            label: "warning",
-            value: "warning",
+            label: 'warning',
+            value: 'warning',
           },
-        ]
+        ],
       },
       fieldName: 'badgeVariants',
       label: `${$t('system.menu.columns.badgeVariants')}`,
@@ -300,10 +306,9 @@ const [Form, formApi] = useVbenForm({
           return val.type === 1;
         },
 
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
-
 
     {
       component: 'Input',
@@ -314,13 +319,13 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('system.menu.columns.path')}`,
       dependencies: {
         show: (val) => {
-          return val.type == 1
+          return val.type == 1;
         },
         required: (val) => {
-          return val.type === 1
+          return val.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
 
     {
@@ -342,10 +347,10 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('system.menu.columns.redirect')}`,
       dependencies: {
         show: (values) => {
-          return values.type === 1
+          return values.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
     {
       component: 'Input',
@@ -356,10 +361,10 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('system.menu.columns.backendUrl')}`,
       dependencies: {
         show: (values) => {
-          return values.type === 2
+          return values.type === 2;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
     {
       component: 'Input',
@@ -370,10 +375,10 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('system.menu.columns.mark')}`,
       dependencies: {
         show: (values) => {
-          return values.type === 2
+          return values.type === 2;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
 
     {
@@ -398,154 +403,144 @@ const [Form, formApi] = useVbenForm({
       component: 'Checkbox',
       componentProps: {
         placeholder: `${$t('common.input')}`,
-
       },
       fieldName: 'hideInMenu',
       formItemClass: 'col-span-3 items-baseline',
       renderComponentContent() {
-        return { default: () => `${$t('system.menu.columns.hideMenu')}`}
+        return { default: () => `${$t('system.menu.columns.hideMenu')}` };
       },
       dependencies: {
         show: (values) => {
-          return values.type === 1
+          return values.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
-
 
     {
       component: 'Checkbox',
       componentProps: {
         placeholder: `${$t('common.input')}`,
-
       },
       fieldName: 'keepAlive',
       renderComponentContent() {
         return {
-          default: () => $t('system.menu.columns.keepAlive')
-        }
+          default: () => $t('system.menu.columns.keepAlive'),
+        };
       },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
-          return values.type === 1
+          return values.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
 
     {
       component: 'Checkbox',
       componentProps: {
         placeholder: `${$t('common.input')}`,
-
       },
       fieldName: 'hideInBreadcrumb',
       renderComponentContent() {
         return {
-          default: () => $t('system.menu.columns.hideInBreadcrumb')
-        }
+          default: () => $t('system.menu.columns.hideInBreadcrumb'),
+        };
       },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
-          return values.type === 1
+          return values.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
     {
       component: 'Checkbox',
       componentProps: {
         placeholder: `${$t('common.input')}`,
-
       },
       fieldName: 'hideInTab',
       renderComponentContent() {
         return {
-          default: () => $t('system.menu.columns.hideInTab')
-        }
+          default: () => $t('system.menu.columns.hideInTab'),
+        };
       },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
-          return values.type === 1
+          return values.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
     {
       component: 'Checkbox',
       componentProps: {
         placeholder: `${$t('common.input')}`,
-
       },
       fieldName: 'ignoreAccess',
       renderComponentContent() {
         return {
-          default: () => $t('system.menu.columns.ignoreAccess')
-        }
+          default: () => $t('system.menu.columns.ignoreAccess'),
+        };
       },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
-          return values.type === 1
+          return values.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
     {
       component: 'Checkbox',
       componentProps: {
         placeholder: `${$t('common.input')}`,
-
       },
       fieldName: 'menuVisibleWithForbidden',
       renderComponentContent() {
         return {
-          default: () => $t('system.menu.columns.menuVisibleWithForbidden')
-        }
+          default: () => $t('system.menu.columns.menuVisibleWithForbidden'),
+        };
       },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
-          return values.type === 1
+          return values.type === 1;
         },
-        triggerFields: ["type"]
-      }
+        triggerFields: ['type'],
+      },
     },
     {
       component: 'Checkbox',
       componentProps: {
         placeholder: `${$t('common.input')}`,
-
       },
       fieldName: 'openInNewWindow',
       renderComponentContent() {
         return {
-          default: () => $t('system.menu.columns.openInNewWindow')
-        }
+          default: () => $t('system.menu.columns.openInNewWindow'),
+        };
       },
       formItemClass: 'col-span-3 items-baseline',
       dependencies: {
         show: (values) => {
-          return values.type === 1
+          return values.type === 1;
         },
-        triggerFields: ["type"]
-      }
-    }
+        triggerFields: ['type'],
+      },
+    },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-2 gap-x-4',
   handleSubmit: async (values: Record<string, any>) => {
-    if (isUpdate.value) {
-      await menuApi.fetchUpdateMenu(JSON.stringify(values))
-    } else {
-      await menuApi.fetchCreateMenu(JSON.stringify(values))
-    }
+    await (isUpdate.value
+      ? menuApi.fetchUpdateMenu(JSON.stringify(values))
+      : menuApi.fetchCreateMenu(JSON.stringify(values)));
     modalApi.close();
-  }
+  },
 });
 
 const [Modal, modalApi] = useVbenModal({
@@ -555,10 +550,10 @@ const [Modal, modalApi] = useVbenModal({
     modalApi.close();
     isUpdate.value = false;
   },
-  async onConfirm()  {
+  async onConfirm() {
     await formApi.submitForm();
     isUpdate.value = false;
-    emit("pageReload");
+    emit('pageReload');
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
@@ -572,17 +567,16 @@ const [Modal, modalApi] = useVbenModal({
           handleSetFormValue(notice.value);
         }
       }
-      menuApi.fetchMenuTree().then(res => {
-        menuData.value = res
-        menuData.value.forEach(x => {
-          x.title = `${$t(x.title)}`
-          updateMenuTitle(x)
-        })
-      })
+      menuApi.fetchMenuTree().then((res) => {
+        menuData.value = res;
+        menuData.value.forEach((x) => {
+          x.title = `${$t(x.title)}`;
+          updateMenuTitle(x);
+        });
+      });
     }
   },
 });
-
 
 function handleSetFormValue(row) {
   formApi.setValues(row);
@@ -595,9 +589,7 @@ const title: string = notice.value
 <template>
   <Modal :title="title">
     <Card>
-      <Form>
-
-      </Form>
+      <Form />
     </Card>
   </Modal>
 </template>

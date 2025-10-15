@@ -1,18 +1,22 @@
 <script lang="ts" setup name="DeptManager">
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import type {CreateMenuRequest, MenuItem, UpdateMenuRequest,} from '#/api/models/menu';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {
+  CreateMenuRequest,
+  MenuItem,
+  UpdateMenuRequest,
+} from '#/api/models/menu';
+import type { OrgItem } from '#/api/models/users';
 
-import {Page, useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import {Button, Switch} from 'ant-design-vue';
-import {orgApi} from '#/api';
+import { Button, Switch } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { orgApi } from '#/api';
+import { BatchOptionsType, TABLE_COMMON_COLUMNS } from '#/constants/locales';
 
 import Create from './create.vue';
-import {BatchOptionsType, TABLE_COMMON_COLUMNS} from "#/constants/locales";
-import type {OrgItem} from "#/api/models/users";
-
 
 const [CreateModal, createModalApi] = useVbenModal({
   connectedComponent: Create,
@@ -20,29 +24,25 @@ const [CreateModal, createModalApi] = useVbenModal({
   modal: true,
 });
 
-
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
     createModalApi.setData(row);
   } else {
-    createModalApi.setData({})
+    createModalApi.setData({});
   }
   createModalApi.open();
 }
 
-
 async function handlerState(row: OrgItem) {
-  if (row.status === 1) {
-    await orgApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.DISABLE,
-    })
-  } else {
-    await orgApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.Enable,
-    })
-  }
+  await (row.status === 1
+    ? orgApi.fetchBatchOptions({
+        targetIds: [row.id],
+        type: BatchOptionsType.DISABLE,
+      })
+    : orgApi.fetchBatchOptions({
+        targetIds: [row.id],
+        type: BatchOptionsType.Enable,
+      }));
   pageReload();
 }
 
@@ -50,19 +50,19 @@ async function handlerDelete(row: OrgItem) {
   await orgApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.DELETE,
-  })
+  });
   await pageReload();
 }
 
 const gridOptions: VxeGridProps<MenuItem> = {
   columns: [
-    ...TABLE_COMMON_COLUMNS,
     {
       field: 'name',
       minWidth: 300,
       title: `${$t('system.org.columns.name')}`,
       treeNode: true,
     },
+    ...TABLE_COMMON_COLUMNS,
   ],
   proxyConfig: {
     autoLoad: true,
@@ -86,9 +86,16 @@ const gridOptions: VxeGridProps<MenuItem> = {
     rowField: 'id',
     transform: false,
   },
+  toolbarConfig: {
+    custom: true,
+    export: false,
+    refresh: true,
+    search: true,
+    zoom: true,
+  },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
 const pageReload = () => {
   gridApi.reload();
 };
@@ -98,9 +105,8 @@ const pageReload = () => {
   <div>
     <Page>
       <Grid :table-title="$t('system.menu.title')">
-
         <template #status="{ row }">
-          <Switch :checked="row.status == 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status == 1" @click="handlerState(row)" />
         </template>
 
         <template #action="{ row }">
@@ -122,6 +128,6 @@ const pageReload = () => {
         </template>
       </Grid>
     </Page>
-    <CreateModal @page-reload="pageReload"/>
+    <CreateModal @page-reload="pageReload" />
   </div>
 </template>

@@ -1,10 +1,13 @@
 <script lang="ts" setup name="CreateRole">
+import type { Recordable } from '@vben-core/typings';
+
 import type { CreateRoleRequest } from '#/api/models';
 import type { MenuItem } from '#/api/models/menu';
 
 import { ref } from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
+import { Tree, useVbenModal } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
 
 import { Card } from 'ant-design-vue';
@@ -77,26 +80,28 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'Tree',
       required: true,
-      componentProps: {
-        treeData: menuData,
-        rowKey: 'id',
-        checkedKeys,
-        height: 200,
-        checkable: true,
-        multiple: true,
-        checkStrictly: true,
-        onCheck: (checkedKeys, info) => {
-          // let checkedKeysResult = [...checkedKeys, ...info.halfCheckedKeys];
-          if (menuParentIds.value.indexOf(info.node.parentId)) {
-            menuParentIds.value.push(info.node.parentId);
-          }
-        },
-        fieldNames: {
-          key: 'id',
-          children: 'children',
-          title: 'title',
-        },
-      },
+      formItemClass: 'items-start',
+      modelPropName: 'modelValue',
+      // componentProps: {
+      //   treeData: menuData,
+      //   rowKey: 'id',
+      //   checkedKeys,
+      //   height: 200,
+      //   checkable: true,
+      //   multiple: true,
+      //   checkStrictly: true,
+      //   // onCheck: (checkedKeys, info) => {
+      //   //   // let checkedKeysResult = [...checkedKeys, ...info.halfCheckedKeys];
+      //   //   if (menuParentIds.value.indexOf(info.node.parentId)) {
+      //   //     menuParentIds.value.push(info.node.parentId);
+      //   //   }
+      //   // },
+      //   fieldNames: {
+      //     key: 'id',
+      //     children: 'children',
+      //     title: 'title',
+      //   },
+      // },
       fieldName: 'menuIds',
       label: `${$t('system.role.columns.menuIds')}`,
     },
@@ -104,14 +109,15 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
-    if (menuParentIds.value.length > 0) {
-      menuParentIds.value.push(...values.menuIds);
-      values.menuIds = menuParentIds.value;
-    }
+    // if (menuParentIds.value.length > 0) {
+    //   // menuParentIds.value.push(...values.menuIds);
+    //   values.menuIds = menuParentIds.value;
+    // }
+    // values.menuIds = checkedKeys.value;
     await (isUpdate.value
       ? roleApi.fetchUpdateRole(JSON.stringify(values))
       : roleApi.fetchCreateRole(JSON.stringify(values)));
-    modalApi.close();
+    await modalApi.close();
   },
 });
 
@@ -131,12 +137,12 @@ const [Modal, modalApi] = useVbenModal({
   onCancel() {
     modalApi.close();
     isUpdate.value = false;
-    checkedKeys.value = [];
+    // checkedKeys.value = [];
   },
   async onConfirm() {
     await formApi.submitForm();
     isUpdate.value = false;
-    checkedKeys.value = [];
+    // checkedKeys.value = [];
     emit('pageReload');
   },
   onOpenChange(isOpen: boolean) {
@@ -144,7 +150,7 @@ const [Modal, modalApi] = useVbenModal({
       notice.value = modalApi.getData<Record<string, any>>();
       if (notice.value.id) {
         isUpdate.value = true;
-        checkedKeys.value = notice.value.menuIds;
+        // checkedKeys.value = notice.value.menuIds;
         // notice.value.menuIds = []
         handleSetFormValue(notice.value);
       } else {
@@ -166,6 +172,15 @@ function handleSetFormValue(row) {
   formApi.setValues(row);
 }
 
+function getNodeClass(node: Recordable<any>) {
+  const classes: string[] = [];
+  if (node.value?.type === 2) {
+    classes.push('inline-flex');
+  }
+
+  return classes.join(' ');
+}
+
 const title: string = notice.value
   ? `${$t('common.edit')}`
   : `${$t('common.create')}`;
@@ -173,7 +188,25 @@ const title: string = notice.value
 <template>
   <Modal :title="title">
     <Card>
-      <Form />
+      <Form>
+        <template #menuIds="slotProps">
+          <Tree
+            :tree-data="menuData"
+            multiple
+            bordered
+            :default-expanded-level="2"
+            v-bind="slotProps"
+            :get-node-class="getNodeClass"
+            value-field="id"
+            label-field="title"
+          >
+            <template #node="{ value }">
+              <IconifyIcon v-if="value.icon" :icon="value.icon" />
+              {{ $t(value.title) }}
+            </template>
+          </Tree>
+        </template>
+      </Form>
     </Card>
   </Modal>
 </template>
