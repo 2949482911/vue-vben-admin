@@ -27,5 +27,9 @@
     "work_flow": "工作流",
     "flowable_form": "表单",
     "flowable_task": "监听"
+  },
+  "ocpx": {
+    "title": "OCPX",
+    "ocpx_task": "Ocpx任务"
   }
 }

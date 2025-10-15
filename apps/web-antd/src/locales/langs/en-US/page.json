@@ -27,5 +27,9 @@
     "flowable_form": "Flow Form",
     "flowable_task": "Flow Task",
     "work_flow": "Work Flow"
+  },
+  "ocpx": {
+    "title": "OCPX",
+    "ocpx_task": "Ocpx任务"
   }
 }
