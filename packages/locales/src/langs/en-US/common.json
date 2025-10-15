@@ -22,5 +22,12 @@
   "detail": "Detail",
   "showSearchPanel": "Show search panel",
   "hideSearchPanel": "Hide search panel",
-  "input": "Please Input"
+  "input": "Please Input",
+  "boy": "Boy",
+  "girl": "Girl",
+  "choice": "Choice",
+  "list": "List Set",
+  "batch_options": "Batch Options",
+  "authorization": "Authorization",
+  "select": "Select"
 }

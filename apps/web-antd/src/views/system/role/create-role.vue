@@ -81,7 +81,7 @@ const [Form, formApi] = useVbenForm({
         height: 200,
         checkable: true,
         multiple: true,
-        // checkStrictly: true,
+        checkStrictly: true,
         onCheck: (checkedKeys, info) => {
           // let checkedKeysResult = [...checkedKeys, ...info.halfCheckedKeys];
           if (menuParentIds.value.indexOf(info.node.parentId)) {
