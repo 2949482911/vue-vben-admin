@@ -1,23 +1,26 @@
 <script lang="ts" setup name="CreateRole">
-import type {MenuItem} from '#/api/models/menu';
-import {ref} from 'vue';
-import {useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {Card} from 'ant-design-vue';
-import {useVbenForm} from '#/adapter/form';
-import {menuApi, roleApi} from '#/api';
-import {ROLE_TYPE_OPTIONS} from "#/constants/locales";
-import type {CreateRoleRequest} from "#/api/models";
+import type { CreateRoleRequest } from '#/api/models';
+import type { MenuItem } from '#/api/models/menu';
+
+import { ref } from 'vue';
+
+import { useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Card } from 'ant-design-vue';
+
+import { useVbenForm } from '#/adapter/form';
+import { menuApi, roleApi } from '#/api';
+import { ROLE_TYPE_OPTIONS } from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<CreateRoleRequest>({});
 const isUpdate = ref<Boolean>(false);
-const menuData = ref<MenuItem>([])
-const menuParentIds = ref<string[]>([])
+const menuData = ref<MenuItem>([]);
+const menuParentIds = ref<string[]>([]);
 
 const checkedKeys = ref<string[]>([]);
-
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -41,14 +44,14 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ["*"]
-      }
+        triggerFields: ['*'],
+      },
     },
     {
       component: 'Input',
       fieldName: 'name',
       required: true,
-      label: `${$t('system.role.columns.name')}`
+      label: `${$t('system.role.columns.name')}`,
     },
 
     {
@@ -60,24 +63,24 @@ const [Form, formApi] = useVbenForm({
       },
       fieldName: 'roleType',
       required: true,
-      label: `${$t('system.role.columns.roleType')}`
+      label: `${$t('system.role.columns.roleType')}`,
     },
     {
       component: 'Textarea',
       componentProps: {
         max: 200,
-        line: 5
+        line: 5,
       },
       fieldName: 'comment',
       label: `${$t('system.role.columns.comment')}`,
     },
     {
-      component: "Tree",
+      component: 'Tree',
       required: true,
       componentProps: {
         treeData: menuData,
         rowKey: 'id',
-        checkedKeys: checkedKeys,
+        checkedKeys,
         height: 200,
         checkable: true,
         multiple: true,
@@ -96,32 +99,30 @@ const [Form, formApi] = useVbenForm({
       },
       fieldName: 'menuIds',
       label: `${$t('system.role.columns.menuIds')}`,
-    }
+    },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
     if (menuParentIds.value.length > 0) {
-      menuParentIds.value.push(...values["menuIds"])
-      values["menuIds"] = menuParentIds.value
+      menuParentIds.value.push(...values.menuIds);
+      values.menuIds = menuParentIds.value;
     }
-    if (isUpdate.value) {
-      await roleApi.fetchUpdateRole(JSON.stringify(values));
-    } else {
-      await roleApi.fetchCreateRole(JSON.stringify(values));
-    }
+    await (isUpdate.value
+      ? roleApi.fetchUpdateRole(JSON.stringify(values))
+      : roleApi.fetchCreateRole(JSON.stringify(values)));
     modalApi.close();
-  }
+  },
 });
 
 function updateMenuTitle(menu: MenuItem) {
-  menu.title = `${$t(menu.title)}`
+  menu.title = `${$t(menu.title)}`;
   if (!menu.children) {
-    return
+    return;
   }
-  menu.children.forEach(x => {
-    updateMenuTitle(x)
-  })
+  menu.children.forEach((x) => {
+    updateMenuTitle(x);
+  });
 }
 
 const [Modal, modalApi] = useVbenModal({
@@ -130,37 +131,36 @@ const [Modal, modalApi] = useVbenModal({
   onCancel() {
     modalApi.close();
     isUpdate.value = false;
-    checkedKeys.value = []
+    checkedKeys.value = [];
   },
   async onConfirm() {
     await formApi.submitForm();
     isUpdate.value = false;
-    checkedKeys.value = []
-    emit("pageReload");
+    checkedKeys.value = [];
+    emit('pageReload');
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       notice.value = modalApi.getData<Record<string, any>>();
       if (notice.value.id) {
         isUpdate.value = true;
-        checkedKeys.value = notice.value.menuIds
+        checkedKeys.value = notice.value.menuIds;
         // notice.value.menuIds = []
         handleSetFormValue(notice.value);
       } else {
         isUpdate.value = false;
       }
-      menuApi.fetchMenuTree().then(res => {
-        menuData.value = res
+      menuApi.fetchMenuTree().then((res) => {
+        menuData.value = res;
         // 获取国际化名字
-        menuData.value.forEach(x => {
-          x.title = `${$t(x.title)}`
-          updateMenuTitle(x)
-        })
-      })
+        menuData.value.forEach((x) => {
+          x.title = `${$t(x.title)}`;
+          updateMenuTitle(x);
+        });
+      });
     }
   },
 });
-
 
 function handleSetFormValue(row) {
   formApi.setValues(row);
@@ -173,9 +173,7 @@ const title: string = notice.value
 <template>
   <Modal :title="title">
     <Card>
-      <Form>
-
-      </Form>
+      <Form />
     </Card>
   </Modal>
 </template>
