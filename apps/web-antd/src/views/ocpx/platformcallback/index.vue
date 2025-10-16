@@ -1,26 +1,40 @@
-<script lang="ts" setup name="NoticeManager">
-import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
+<script lang="ts" setup name="PlatformCallbackManager">
+import type { VbenFormProps } from '@vben/common-ui';
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {
-  type CreateRoleRequest,
-  type NoticeItem,
-  type PlatformcallbackItem,
-  type UpdateRoleRequest
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {
+  CreateRoleRequest,
+  NoticeItem,
+  PlatformcallbackItem,
+  UpdateRoleRequest,
 } from '#/api/models';
-import {$t} from '@vben/locales';
 
-import {Button, Switch} from 'ant-design-vue';
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Button, Switch } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { platformCallbackApi } from '#/api/core/ocpx';
 import {
   BatchOptionsType,
   PLATFORM,
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
-import {platformCallbackApi} from "#/api/core/ocpx";
 
 import CreateObjectRequestComp from './create.vue';
+import DetailConfig from './detailconfig.vue';
+
+// config detail
+const [DetailConfigModel, detailConfigModalApi] = useVbenModal({
+  connectedComponent: DetailConfig,
+});
+
+function openDetailConfig(row: PlatformcallbackItem) {
+  detailConfigModalApi.setData(row.config);
+  detailConfigModalApi.open();
+}
 
 const [CreateObjectModal, createObjectApi] = useVbenModal({
   connectedComponent: CreateObjectRequestComp,
@@ -28,8 +42,9 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
   modal: true,
 });
 
-
-function openCreateModal(row: CreateRoleRequest | UpdateRoleRequest | PlatformcallbackItem) {
+function openCreateModal(
+  row: CreateRoleRequest | PlatformcallbackItem | UpdateRoleRequest,
+) {
   if (row.id) {
     createObjectApi.setData(row);
   } else {
@@ -37,7 +52,6 @@ function openCreateModal(row: CreateRoleRequest | UpdateRoleRequest | Platformca
   }
   createObjectApi.open();
 }
-
 
 async function handlerState(row: NoticeItem) {
   // await (row.status == 1
@@ -70,7 +84,7 @@ const formOptions: VbenFormProps = {
         options: PLATFORM,
         placeholder: `${$t('common.choice')}`,
       },
-      fieldName: 'status',
+      fieldName: 'platform',
       label: `${$t('ocpx.platform.title')}`,
     },
     {
@@ -114,11 +128,18 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
-    {field: 'platform', title: `${$t('ocpx.platformcallback.columns.platform')}`},
-    {field: 'name', title: `${$t('ocpx.platformcallback.columns.name')}`},
-    {field: 'config', title: `${$t('ocpx.platformcallback.columns.config')}`},
-    {field: 'remark', title: `${$t('ocpx.platformcallback.columns.remark')}`},
+    { title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100 },
+    {
+      field: 'platform',
+      title: `${$t('ocpx.platformcallback.columns.platform')}`,
+    },
+    { field: 'name', title: `${$t('ocpx.platformcallback.columns.name')}` },
+    {
+      field: 'config',
+      title: `${$t('ocpx.platformcallback.columns.config')}`,
+      slots: { default: 'config' },
+    },
+    { field: 'remark', title: `${$t('ocpx.platformcallback.columns.remark')}` },
     ...TABLE_COMMON_COLUMNS,
   ],
   height: 'auto',
@@ -126,7 +147,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         return await platformCallbackApi.fetchPlatformcallbackList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -137,7 +158,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 function pageReload() {
   gridApi.reload();
@@ -148,6 +169,11 @@ function pageReload() {
   <div>
     <Page auto-content-height>
       <Grid>
+        <template #config="{ row }">
+          <Button type="link" @click="openDetailConfig(row)">
+            {{ $t('common.detail') }}
+          </Button>
+        </template>
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
             {{ $t('common.edit') }}
@@ -157,7 +183,7 @@ function pageReload() {
           </Button>
         </template>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>
 
         <template #toolbar-tools>
@@ -167,6 +193,7 @@ function pageReload() {
         </template>
       </Grid>
     </Page>
-    <CreateObjectModal @page-reload="pageReload"/>
+    <CreateObjectModal @page-reload="pageReload" />
+    <DetailConfigModel />
   </div>
 </template>

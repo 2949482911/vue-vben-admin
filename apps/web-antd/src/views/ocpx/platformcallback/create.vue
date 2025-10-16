@@ -1,18 +1,23 @@
 <script lang="ts" setup name="CreateNotice">
-import type {CreatePlatformCallbackRequest, UpdatePlatformCallbackRequest} from '#/api/models';
+import type {
+  CreatePlatformCallbackRequest,
+  UpdatePlatformCallbackRequest,
+} from '#/api/models';
 
-import {ref} from 'vue';
+import { ref } from 'vue';
 
-import {useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import {useVbenForm} from '#/adapter/form';
-import {platformCallbackApi} from "#/api/core/ocpx";
-import {PLATFORM} from "#/constants/locales";
+import { useVbenForm } from '#/adapter/form';
+import { platformCallbackApi } from '#/api/core/ocpx';
+import { PLATFORM } from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
-const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest>({});
+const objectRequest = ref<
+  CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest
+>({});
 const isUpdate = ref<Boolean>(false);
 
 const [Form, formApi] = useVbenForm({
@@ -25,16 +30,16 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
-    const result = await formApi.validate()
+    const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
-    formVal["config"] = JSON.parse(formVal["config"])
-    if (isUpdate.value) {
-      await platformCallbackApi.fetchPlatformcallbackUpdate(JSON.stringify(formVal))
-    } else {
-      await platformCallbackApi.fetchPlatformcallbackCreate(JSON.stringify(formVal))
-    }
+    formVal.config = JSON.parse(formVal.config);
+    await (isUpdate.value
+      ? platformCallbackApi.fetchPlatformcallbackUpdate(JSON.stringify(formVal))
+      : platformCallbackApi.fetchPlatformcallbackCreate(
+          JSON.stringify(formVal),
+        ));
     await drawerApi.close();
   },
   schema: [
@@ -50,8 +55,8 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ["*"]
-      }
+        triggerFields: ['*'],
+      },
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -59,7 +64,7 @@ const [Form, formApi] = useVbenForm({
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-        options: PLATFORM
+        options: PLATFORM,
       },
       // 字段名
       fieldName: 'platform',
@@ -73,7 +78,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Input',
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`
+        placeholder: `${$t('common.input')}`,
       },
       // 字段名
       fieldName: 'name',
@@ -87,7 +92,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Input',
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`
+        placeholder: `${$t('common.input')}`,
       },
       // 字段名
       fieldName: 'config',
@@ -133,14 +138,13 @@ const [Modal, modalApi] = useVbenModal({
       objectRequest.value = modalApi.getData<Record<string, any>>();
       if (objectRequest.value.id) {
         isUpdate.value = true;
-        handleSetFormValue(notice.value);
+        handleSetFormValue(objectRequest.value);
       } else {
         isUpdate.value = false;
       }
     }
   },
 });
-
 
 function handleSetFormValue(row) {
   formApi.setValues(row);
@@ -152,6 +156,6 @@ const title: string = objectRequest.value
 </script>
 <template>
   <Modal :title="title">
-    <Form/>
+    <Form />
   </Modal>
 </template>
