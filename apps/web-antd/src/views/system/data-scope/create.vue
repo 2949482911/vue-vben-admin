@@ -188,7 +188,7 @@ const [Form, formApi] = useVbenForm({
           return false;
         },
         required: (val) => {
-          if (val.type == 3 || val.type == 4) {
+          if (val.type === 3 || val.type === 4) {
             return true;
           }
           return false;
@@ -204,7 +204,7 @@ const [Form, formApi] = useVbenForm({
     await (isUpdate.value
       ? dataRangeApi.fetchUpdateDataRange(JSON.stringify(values))
       : dataRangeApi.fetchCreateDataRange(JSON.stringify(values)));
-    modalApi.close();
+    await modalApi.close();
   },
 });
 
@@ -216,6 +216,10 @@ const [Modal, modalApi] = useVbenModal({
     isUpdate.value = false;
   },
   async onConfirm() {
+    const result = await formApi.validate();
+    if (!result.valid) {
+      return;
+    }
     await formApi.submitForm();
     isUpdate.value = false;
     await emit('pageReload');

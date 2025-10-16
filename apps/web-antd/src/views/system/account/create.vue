@@ -1,21 +1,24 @@
 <script lang="ts" setup name="CreateOrg">
-import {ref} from 'vue';
-import {useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {Card} from 'ant-design-vue';
-import {useVbenForm} from '#/adapter/form';
-import {orgApi, roleApi, userApi, dataRangeApi} from '#/api';
-import type {OrgCreateRequest} from "#/api/models/users";
-import {SEX_SELECT} from "#/constants/locales";
+import type { OrgCreateRequest } from '#/api/models/users';
+
+import { ref } from 'vue';
+
+import { useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Card } from 'ant-design-vue';
+
+import { useVbenForm } from '#/adapter/form';
+import { dataRangeApi, orgApi, roleApi, userApi } from '#/api';
+import { SEX_SELECT } from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<OrgCreateRequest>({});
-const menuData = ref([])
-const roleData = ref([])
-const dataRangeData = ref([])
+const menuData = ref([]);
+const roleData = ref([]);
+const dataRangeData = ref([]);
 const isUpdate = ref<Boolean>(false);
-
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -39,8 +42,8 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ["*"]
-      }
+        triggerFields: ['*'],
+      },
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -56,7 +59,7 @@ const [Form, formApi] = useVbenForm({
           label: 'name',
           value: 'id',
           children: 'children',
-        }
+        },
       },
       // 字段名
       fieldName: 'orgId',
@@ -140,7 +143,7 @@ const [Form, formApi] = useVbenForm({
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-        options: SEX_SELECT
+        options: SEX_SELECT,
       },
       // 字段名
       fieldName: 'sex',
@@ -156,13 +159,13 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         placeholder: `${$t('common.input')}`,
         options: SEX_SELECT,
-        mode: "multiple",
+        mode: 'multiple',
         options: roleData,
         fieldNames: {
           label: 'name',
           value: 'id',
           children: 'children',
-        }
+        },
       },
       // 字段名
       fieldName: 'roleIds',
@@ -185,26 +188,24 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
     },
     {
-      component: "InputPassword",
-      fieldName: "authPw",
+      component: 'InputPassword',
+      fieldName: 'authPw',
       label: `${$t('system.user.columns.password')}`,
       dependencies: {
         required: () => {
-          return !isUpdate.value
-        }
-      }
-    }
+          return !isUpdate.value;
+        },
+      },
+    },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
-    if (isUpdate.value) {
-      await userApi.fetchUpdateUser(JSON.stringify(values))
-    } else {
-      await userApi.fetchCreateUser(JSON.stringify(values))
-    }
-    modalApi.close();
-  }
+    await (isUpdate.value
+      ? userApi.fetchUpdateUser(JSON.stringify(values))
+      : userApi.fetchCreateUser(JSON.stringify(values)));
+    await modalApi.close();
+  },
 });
 
 const [Modal, modalApi] = useVbenModal({
@@ -215,8 +216,12 @@ const [Modal, modalApi] = useVbenModal({
     isUpdate.value = false;
   },
   async onConfirm() {
+    const result = await formApi.validate();
+    if (!result.valid) {
+      return;
+    }
     await formApi.submitForm();
-    emit("pageReload");
+    emit('pageReload');
     isUpdate.value = false;
   },
   onOpenChange(isOpen: boolean) {
@@ -228,19 +233,20 @@ const [Modal, modalApi] = useVbenModal({
       } else {
         isUpdate.value = false;
       }
-      orgApi.fetchOrgTree().then(res => {
-        menuData.value = res
-      })
-      roleApi.fetchRoleList({page: 1, pageSize: 10000}).then(res => {
-        roleData.value = res
-      })
-      dataRangeApi.fetchDataRangeList({page: 1, pageSize: 10000}).then(res => {
-        dataRangeData.value = res.items
-      })
+      orgApi.fetchOrgTree().then((res) => {
+        menuData.value = res;
+      });
+      roleApi.fetchRoleList({ page: 1, pageSize: 10_000 }).then((res) => {
+        roleData.value = res;
+      });
+      dataRangeApi
+        .fetchDataRangeList({ page: 1, pageSize: 10_000 })
+        .then((res) => {
+          dataRangeData.value = res.items;
+        });
     }
   },
 });
-
 
 function handleSetFormValue(row) {
   formApi.setValues(row);
@@ -253,9 +259,7 @@ const title: string = notice.value
 <template>
   <Modal :title="title">
     <Card>
-      <Form>
-
-      </Form>
+      <Form />
     </Card>
   </Modal>
 </template>

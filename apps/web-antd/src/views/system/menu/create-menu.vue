@@ -539,7 +539,7 @@ const [Form, formApi] = useVbenForm({
     await (isUpdate.value
       ? menuApi.fetchUpdateMenu(JSON.stringify(values))
       : menuApi.fetchCreateMenu(JSON.stringify(values)));
-    modalApi.close();
+    await modalApi.close();
   },
 });
 
@@ -551,6 +551,10 @@ const [Modal, modalApi] = useVbenModal({
     isUpdate.value = false;
   },
   async onConfirm() {
+    const result = await formApi.validate();
+    if (!result.valid) {
+      return;
+    }
     await formApi.submitForm();
     isUpdate.value = false;
     emit('pageReload');
