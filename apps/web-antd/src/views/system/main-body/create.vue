@@ -85,12 +85,16 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
+    const result = await formApi.validate()
+    if (!result.valid) {
+      return
+    }
     if (isUpdate.value) {
       await mainBodyApi.fetchMainUpdate(JSON.stringify(values))
     } else {
       await mainBodyApi.fetchMainCreate(JSON.stringify(values))
     }
-    modalApi.close();
+    await modalApi.close();
   }
 });
 

@@ -203,7 +203,7 @@ const [Form, formApi] = useVbenForm({
     } else {
       await userApi.fetchCreateUser(JSON.stringify(values))
     }
-    modalApi.close();
+    await modalApi.close();
   }
 });
 
@@ -215,6 +215,10 @@ const [Modal, modalApi] = useVbenModal({
     isUpdate.value = false;
   },
   async onConfirm() {
+    const result = await formApi.validate()
+    if (!result.valid) {
+      return
+    }
     await formApi.submitForm();
     emit("pageReload");
     isUpdate.value = false;

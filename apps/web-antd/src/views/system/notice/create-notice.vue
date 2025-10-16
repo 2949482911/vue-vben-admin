@@ -28,7 +28,7 @@ const [Form, formApi] = useVbenForm({
     } else {
       await noticeApi.fetchCreateNotice(JSON.stringify(formVal))
     }
-    drawerApi.close();
+    await drawerApi.close();
   },
   layout: 'vertical',
   schema: [
@@ -113,6 +113,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
     isUpdate.value = false;
   },
   async onConfirm() {
+    const result = await formApi.validate()
+    if (!result.valid) {
+      return
+    }
     await formApi.submitForm();
     isUpdate.value = false;
     emit('pageReload');

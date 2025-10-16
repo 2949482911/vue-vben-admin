@@ -72,6 +72,7 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'name',
       // 界面显示的label
       label: `${$t('system.org.columns.name')}`,
+      rules: 'required',
     },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
@@ -82,7 +83,7 @@ const [Form, formApi] = useVbenForm({
     } else {
       await orgApi.fetchOrgCreate(JSON.stringify(values))
     }
-    modalApi.close();
+    await modalApi.close();
   }
 });
 
@@ -94,6 +95,10 @@ const [Modal, modalApi] = useVbenModal({
     isUpdate.value = false;
   },
   async onConfirm() {
+    const result = await formApi.validate()
+    if (!result.valid) {
+      return
+    }
     await formApi.submitForm();
     isUpdate.value = false;
     emit("pageReload");

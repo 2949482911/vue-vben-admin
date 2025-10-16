@@ -1,19 +1,19 @@
 <script lang="ts" setup name="CreateOrg">
-import type { UserInfo } from '@vben/types';
+import type {UserInfo} from '@vben/types';
 
-import type { OrgCreateRequest, UserItem } from '#/api/models/users';
+import type {OrgCreateRequest, UserItem} from '#/api/models/users';
 
-import { ref } from 'vue';
+import {ref} from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { useUserStore } from '@vben/stores';
+import {useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
+import {useUserStore} from '@vben/stores';
 
-import { Card } from 'ant-design-vue';
+import {Card} from 'ant-design-vue';
 
-import { useVbenForm } from '#/adapter/form';
-import { dataRangeApi, orgApi, userApi } from '#/api';
-import { DATA_SCOPE } from '#/constants/locales';
+import {useVbenForm} from '#/adapter/form';
+import {dataRangeApi, orgApi, userApi} from '#/api';
+import {DATA_SCOPE} from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
@@ -201,8 +201,9 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
+
     await (isUpdate.value ? dataRangeApi.fetchUpdateDataRange(JSON.stringify(values)) : dataRangeApi.fetchCreateDataRange(JSON.stringify(values)));
-    modalApi.close();
+    await modalApi.close();
   },
 });
 
@@ -214,6 +215,10 @@ const [Modal, modalApi] = useVbenModal({
     isUpdate.value = false;
   },
   async onConfirm() {
+    const result = await formApi.validate()
+    if (!result.valid) {
+      return
+    }
     await formApi.submitForm();
     isUpdate.value = false;
     await emit('pageReload');
@@ -242,7 +247,7 @@ const title: string = notice.value
 <template>
   <Modal :title="title">
     <Card>
-      <Form />
+      <Form/>
     </Card>
   </Modal>
 </template>
