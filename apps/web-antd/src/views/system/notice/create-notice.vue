@@ -1,13 +1,13 @@
 <script lang="ts" setup name="CreateNotice">
-import type {CreateNoticeRequest} from '#/api/models';
+import type { CreateNoticeRequest } from '#/api/models';
 
-import {ref} from 'vue';
+import { ref } from 'vue';
 
-import {useVbenDrawer} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import {useVbenForm} from '#/adapter/form';
-import {noticeApi} from '#/api';
+import { useVbenForm } from '#/adapter/form';
+import { noticeApi } from '#/api';
 
 const emit = defineEmits(['pageReload']);
 
@@ -23,11 +23,9 @@ const [Form, formApi] = useVbenForm({
     },
   },
   handleSubmit: async (formVal: Record<string, any>) => {
-    if (isUpdate.value) {
-      await noticeApi.fetchUpdateNotice(JSON.stringify(formVal))
-    } else {
-      await noticeApi.fetchCreateNotice(JSON.stringify(formVal))
-    }
+    await (isUpdate.value
+      ? noticeApi.fetchUpdateNotice(JSON.stringify(formVal))
+      : noticeApi.fetchCreateNotice(JSON.stringify(formVal)));
     await drawerApi.close();
   },
   layout: 'vertical',
@@ -44,8 +42,8 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ["*"]
-      }
+        triggerFields: ['*'],
+      },
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -80,7 +78,7 @@ const [Form, formApi] = useVbenForm({
             label: `${$t('system.notice.level.error')}`,
             value: 'error',
           },
-        ]
+        ],
       },
       // 字段名
       fieldName: 'level',
@@ -113,9 +111,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
     isUpdate.value = false;
   },
   async onConfirm() {
-    const result = await formApi.validate()
+    const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
     await formApi.submitForm();
     isUpdate.value = false;
@@ -134,7 +132,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
 });
 
-
 function handleSetFormValue(row) {
   formApi.setValues(row);
 }
@@ -145,6 +142,6 @@ const title: string = notice.value
 </script>
 <template>
   <Drawer :title="title">
-    <Form/>
+    <Form />
   </Drawer>
 </template>

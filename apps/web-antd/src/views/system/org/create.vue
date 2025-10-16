@@ -1,18 +1,21 @@
 <script lang="ts" setup name="CreateOrg">
-import {ref} from 'vue';
-import {useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {Card} from 'ant-design-vue';
-import {useVbenForm} from '#/adapter/form';
-import {orgApi} from '#/api';
-import type {OrgCreateRequest} from "#/api/models/users";
+import type { OrgCreateRequest } from '#/api/models/users';
+
+import { ref } from 'vue';
+
+import { useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Card } from 'ant-design-vue';
+
+import { useVbenForm } from '#/adapter/form';
+import { orgApi } from '#/api';
 
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<OrgCreateRequest>({});
-const menuData = ref([])
+const menuData = ref([]);
 const isUpdate = ref<Boolean>(false);
-
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -36,8 +39,8 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ["*"]
-      }
+        triggerFields: ['*'],
+      },
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -53,7 +56,7 @@ const [Form, formApi] = useVbenForm({
           label: 'name',
           value: 'id',
           children: 'children',
-        }
+        },
       },
       // 字段名
       fieldName: 'parentId',
@@ -78,13 +81,11 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
-    if (isUpdate.value) {
-      await orgApi.fetchOrgUpdate(JSON.stringify(values))
-    } else {
-      await orgApi.fetchOrgCreate(JSON.stringify(values))
-    }
+    await (isUpdate.value
+      ? orgApi.fetchOrgUpdate(JSON.stringify(values))
+      : orgApi.fetchOrgCreate(JSON.stringify(values)));
     await modalApi.close();
-  }
+  },
 });
 
 const [Modal, modalApi] = useVbenModal({
@@ -95,13 +96,13 @@ const [Modal, modalApi] = useVbenModal({
     isUpdate.value = false;
   },
   async onConfirm() {
-    const result = await formApi.validate()
+    const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
     await formApi.submitForm();
     isUpdate.value = false;
-    emit("pageReload");
+    emit('pageReload');
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
@@ -112,13 +113,12 @@ const [Modal, modalApi] = useVbenModal({
       } else {
         isUpdate.value = false;
       }
-      orgApi.fetchOrgTree().then(res => {
-        menuData.value = res
-      })
+      orgApi.fetchOrgTree().then((res) => {
+        menuData.value = res;
+      });
     }
   },
 });
-
 
 function handleSetFormValue(row) {
   formApi.setValues(row);
@@ -131,9 +131,7 @@ const title: string = notice.value
 <template>
   <Modal :title="title">
     <Card>
-      <Form>
-
-      </Form>
+      <Form />
     </Card>
   </Modal>
 </template>

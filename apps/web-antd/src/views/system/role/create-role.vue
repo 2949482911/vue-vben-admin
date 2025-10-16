@@ -1,19 +1,18 @@
 <script lang="ts" setup name="CreateRole">
+import type { CreateRoleRequest } from '#/api/models';
+import type { MenuItem } from '#/api/models/menu';
 
-import type {CreateRoleRequest} from '#/api/models';
-import type {MenuItem} from '#/api/models/menu';
+import { ref } from 'vue';
 
-import {ref} from 'vue';
+import { Tree, useVbenModal } from '@vben/common-ui';
+import { IconifyIcon } from '@vben/icons';
+import { $t } from '@vben/locales';
 
-import {Tree, useVbenModal} from '@vben/common-ui';
-import {IconifyIcon} from '@vben/icons';
-import {$t} from '@vben/locales';
+import { Card } from 'ant-design-vue';
 
-import {Card} from 'ant-design-vue';
-
-import {useVbenForm} from '#/adapter/form';
-import {menuApi, roleApi} from '#/api';
-import {ROLE_TYPE_OPTIONS} from '#/constants/locales';
+import { useVbenForm } from '#/adapter/form';
+import { menuApi, roleApi } from '#/api';
+import { ROLE_TYPE_OPTIONS } from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
@@ -134,9 +133,9 @@ const [Modal, modalApi] = useVbenModal({
     // checkedKeys.value = [];
   },
   async onConfirm() {
-    const result = await formApi.validate()
+    const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
     await formApi.submitForm();
     isUpdate.value = false;

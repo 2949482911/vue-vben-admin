@@ -1,15 +1,15 @@
 <script lang="ts" setup name="CreateMenu">
-import type {CreateMenuRequest, MenuItem} from '#/api/models/menu';
+import type { CreateMenuRequest, MenuItem } from '#/api/models/menu';
 
-import {ref} from 'vue';
+import { ref } from 'vue';
 
-import {useVbenModal, z} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { useVbenModal, z } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import {Card} from 'ant-design-vue';
+import { Card } from 'ant-design-vue';
 
-import {useVbenForm} from '#/adapter/form';
-import {menuApi} from '#/api';
+import { useVbenForm } from '#/adapter/form';
+import { menuApi } from '#/api';
 
 const emit = defineEmits(['pageReload']);
 
@@ -25,8 +25,8 @@ function getMenuTypeOptions() {
       label: $t('system.menu.type.menu'),
       value: 1,
     },
-    {color: 'default', label: $t('system.menu.type.interface'), value: 2},
-    {color: 'error', label: $t('system.menu.type.button'), value: 3},
+    { color: 'default', label: $t('system.menu.type.interface'), value: 2 },
+    { color: 'error', label: $t('system.menu.type.button'), value: 3 },
   ];
 }
 
@@ -407,7 +407,7 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'hideInMenu',
       formItemClass: 'col-span-3 items-baseline',
       renderComponentContent() {
-        return {default: () => `${$t('system.menu.columns.hideMenu')}`};
+        return { default: () => `${$t('system.menu.columns.hideMenu')}` };
       },
       dependencies: {
         show: (values) => {
@@ -551,9 +551,9 @@ const [Modal, modalApi] = useVbenModal({
     isUpdate.value = false;
   },
   async onConfirm() {
-    const result = await formApi.validate()
+    const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
     await formApi.submitForm();
     isUpdate.value = false;
@@ -593,7 +593,7 @@ const title: string = notice.value
 <template>
   <Modal :title="title">
     <Card>
-      <Form/>
+      <Form />
     </Card>
   </Modal>
 </template>

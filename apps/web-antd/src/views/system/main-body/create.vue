@@ -1,19 +1,22 @@
 <script lang="ts" setup name="CreateOrg">
-import {ref} from 'vue';
-import {useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {Card} from 'ant-design-vue';
-import {useVbenForm} from '#/adapter/form';
-import {orgApi, roleApi, mainBodyApi} from '#/api';
-import type {OrgCreateRequest} from "#/api/models/users";
+import type { OrgCreateRequest } from '#/api/models/users';
+
+import { ref } from 'vue';
+
+import { useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Card } from 'ant-design-vue';
+
+import { useVbenForm } from '#/adapter/form';
+import { mainBodyApi, orgApi, roleApi } from '#/api';
 
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<OrgCreateRequest>({});
-const menuData = ref([])
-const roleData = ref([])
+const menuData = ref([]);
+const roleData = ref([]);
 const isUpdate = ref<Boolean>(false);
-
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -37,8 +40,8 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ["*"]
-      }
+        triggerFields: ['*'],
+      },
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -80,22 +83,19 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: `${$t('system.mainbody.columns.remark')}`,
     },
-
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
-    const result = await formApi.validate()
+    const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
-    if (isUpdate.value) {
-      await mainBodyApi.fetchMainUpdate(JSON.stringify(values))
-    } else {
-      await mainBodyApi.fetchMainCreate(JSON.stringify(values))
-    }
+    await (isUpdate.value
+      ? mainBodyApi.fetchMainUpdate(JSON.stringify(values))
+      : mainBodyApi.fetchMainCreate(JSON.stringify(values)));
     await modalApi.close();
-  }
+  },
 });
 
 const [Modal, modalApi] = useVbenModal({
@@ -108,7 +108,7 @@ const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
     await formApi.submitForm();
     isUpdate.value = false;
-    emit("pageReload");
+    emit('pageReload');
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
@@ -119,16 +119,15 @@ const [Modal, modalApi] = useVbenModal({
       } else {
         isUpdate.value = false;
       }
-      orgApi.fetchOrgTree().then(res => {
-        menuData.value = res
-      })
-      roleApi.fetchRoleList({page: 1000}).then(res => {
-        roleData.value = res.items
-      })
+      orgApi.fetchOrgTree().then((res) => {
+        menuData.value = res;
+      });
+      roleApi.fetchRoleList({ page: 1000 }).then((res) => {
+        roleData.value = res.items;
+      });
     }
   },
 });
-
 
 function handleSetFormValue(row) {
   formApi.setValues(row);
@@ -141,9 +140,7 @@ const title: string = notice.value
 <template>
   <Modal :title="title">
     <Card>
-      <Form>
-
-      </Form>
+      <Form />
     </Card>
   </Modal>
 </template>
