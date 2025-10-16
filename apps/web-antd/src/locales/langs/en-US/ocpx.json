@@ -1,0 +1,17 @@
+{
+  "platformcallback": {
+    "columns": {
+      "id": "Id",
+      "name": "Name",
+      "platform": "Platform",
+      "config": "Config",
+      "remark": "Remark"
+    }
+  },
+  "platform": {
+    "title": "Media Platform",
+    "vivo": "VIVO",
+    "oppo": "oppo",
+    "huawei": "HUAWEI"
+  }
+}

@@ -117,3 +117,21 @@ export enum BatchOptionsType {
   DISABLE = 'disable',
   Enable = 'enable',
 }
+
+
+
+// 媒体列表
+export const PLATFORM = [
+  {
+    label: `${$t('ocpx.platform.vivo')}`,
+    value: 'vivo',
+  },
+  {
+    label: `${$t('ocpx.platform.huawei')}`,
+    value: 'huawei',
+  },
+  {
+    label: `${$t('ocpx.platform.oppo')}`,
+    value: 'oppo',
+  },
+]

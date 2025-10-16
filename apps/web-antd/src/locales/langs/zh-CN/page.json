@@ -30,6 +30,9 @@
   },
   "ocpx": {
     "title": "OCPX",
-    "ocpx_task": "Ocpx任务"
+    "ocpx_task": "Ocpx任务",
+    "match": "Ocpx映射",
+    "platformcallback": "媒体回传配置",
+    "platformbehaviora": "转化媒体配置"
   }
 }

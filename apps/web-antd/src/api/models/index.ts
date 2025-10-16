@@ -6,3 +6,4 @@ export * from "./main-body"
 export * from './users'
 export * from "./bpm"
 export * from "./dashboard";
+export * from "./ocpx"

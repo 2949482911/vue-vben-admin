@@ -30,6 +30,9 @@
   },
   "ocpx": {
     "title": "OCPX",
-    "ocpx_task": "Ocpx任务"
+    "ocpx_task": "Ocpx Task",
+    "match": "Ocpx Match",
+    "platformcallback": "Callback Platform",
+    "platformbehaviora": "Behaviora Platform"
   }
 }

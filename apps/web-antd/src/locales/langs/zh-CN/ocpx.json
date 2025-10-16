@@ -1,0 +1,17 @@
+{
+  "platformcallback": {
+    "columns": {
+      "id": "Id",
+      "name": "名字",
+      "platform": "平台",
+      "config": "配置",
+      "remark": "备注"
+    }
+  },
+  "platform": {
+    "title": "平台",
+    "vivo": "VIVO",
+    "oppo": "oppo",
+    "huawei": "HUAWEI"
+  }
+}
