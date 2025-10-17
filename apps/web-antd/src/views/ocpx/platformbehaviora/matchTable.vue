@@ -6,16 +6,7 @@ import {$t} from "@vben/locales";
 import {Button, Input} from "ant-design-vue";
 import {ref} from "vue";
 
-const matchDataList = ref<OcpxPlatformMatch[]>([
-  {
-    advertiserId: "账户ID",
-    campaignId: "计划ID",
-    adgroupId: "组ID",
-    promotionId: "推广ID",
-    creativeId: "创意ID",
-    matchId: "匹配ID",
-  }
-])
+const matchDataList = []
 
 //
 const gridOptions: VxeGridProps<OcpxPlatformMatch> = {
@@ -34,37 +25,28 @@ const gridOptions: VxeGridProps<OcpxPlatformMatch> = {
     {
       field: 'campaignId',
       title: `${$t('ocpx.behavioraplatform.columns.campaignId')}`,
-      editRender: {
-        name: 'input',
-      }
+      slots: {default: 'campaignId'}
+
     },
     {
       field: 'adgroupId',
       title: `${$t('ocpx.behavioraplatform.columns.adgroupId')}`,
-      editRender: {
-        name: 'input',
-      }
+      slots: {default: 'adgroupId'}
     },
     {
       field: 'promotionId',
       title: `${$t('ocpx.behavioraplatform.columns.promotionId')}`,
-      editRender: {
-        name: 'input',
-      }
+      slots: {default: 'promotionId'}
     },
     {
       field: 'creativeId',
       title: `${$t('ocpx.behavioraplatform.columns.creativeId')}`,
-      editRender: {
-        name: 'input',
-      }
+      slots: {default: 'creativeId'}
     },
     {
       field: 'matchId',
       title: `${$t('ocpx.behavioraplatform.columns.matchId')}`,
-      editRender: {
-        name: 'input',
-      }
+      slots: {default: 'matchId'}
     },
     {
       field: 'options',
@@ -78,11 +60,6 @@ const gridOptions: VxeGridProps<OcpxPlatformMatch> = {
   pagerConfig: {
     enabled: false,
   },
-  data: matchDataList.value,
-  editConfig: {
-    mode: 'row',
-    trigger: 'click',
-  },
 };
 
 
@@ -90,7 +67,7 @@ const [Grid, gridApi] = useVbenVxeGrid({gridOptions});
 
 function addMatchCol() {
   console.log(matchDataList.value)
-  matchDataList.value.push({
+  matchDataList.push({
     advertiserId: "",
     campaignId: "",
     adgroupId: "",
@@ -98,7 +75,8 @@ function addMatchCol() {
     creativeId: "",
     matchId: "",
   })
-  gridApi.setGridOptions({data: matchDataList.value})
+  gridApi.setGridOptions({data: matchDataList})
+  gridApi.reload()
 }
 
 </script>
@@ -106,8 +84,28 @@ function addMatchCol() {
 <template>
   <Page>
     <Grid>
-      <template #advertiserId="{ row }">
-        <Input :value="row.advertiserId"/>
+      <template #advertiserId="{ row, seq }">
+        <Input v-model:value="matchDataList[seq].advertiserId"/>
+      </template>
+
+      <template #campaignId="{ row, seq }">
+        <Input v-model:value="matchDataList[seq].campaignId"/>
+      </template>
+
+      <template #adgroupId="{ row, seq }">
+        <Input v-model:value="matchDataList[seq].adgroupId"/>
+      </template>
+
+      <template #promotionId="{ row, seq }">
+        <Input v-model:value="matchDataList[seq].promotionId"/>
+      </template>
+
+      <template #creativeId="{ row, seq }">
+        <Input v-model:value="matchDataList[seq].creativeId"/>
+      </template>
+
+      <template #matchId="{ row, seq }">
+        <Input v-model:value="matchDataList[seq].matchId"/>
       </template>
 
       <template #action="{ row }">
