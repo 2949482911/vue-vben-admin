@@ -12,6 +12,35 @@
     "title": "平台",
     "vivo": "VIVO",
     "oppo": "oppo",
-    "huawei": "HUAWEI"
+    "huawei": "HUAWEI",
+    "jd": "京东"
+  },
+  "behavioraplatform": {
+    "columns": {
+      "name": "名字",
+      "platform": "平台",
+      "config": "配置",
+      "remark": "备注",
+      "model": "模式",
+      "matchField": "匹配字段",
+      "matchId": "匹配ID",
+      "advertiserId": "账户ID",
+      "campaignId": "计划ID",
+      "adgroupId": "广告组ID",
+      "promotionId": "广告ID",
+      "creativeId": "创意ID"
+    },
+    "model": {
+      "callback": "回调",
+      "match": "匹配",
+      "async": "异步"
+    },
+    "matchField": {
+      "clickId": "点击ID",
+      "campaignId": "计划ID",
+      "adgroupId": "广告组ID",
+      "promotionId": "广告ID",
+      "creativeId": "创意ID"
+    }
   }
 }

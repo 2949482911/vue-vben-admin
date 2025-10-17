@@ -1,0 +1,27 @@
+<script lang="ts" setup name="DetailConfig">
+import { ref } from 'vue';
+
+import { JsonViewer, useVbenModal } from '@vben/common-ui';
+
+const jsonData = ref<Map<string, any>>({});
+
+const [Modal, modalApi] = useVbenModal({
+  onCancel() {
+    modalApi.close();
+  },
+  onClosed() {
+    modalApi.close();
+  },
+  onConfirm() {
+    modalApi.close();
+  },
+  onOpened() {
+    jsonData.value = modalApi.getData<Record<string, any>>();
+  },
+});
+</script>
+<template>
+  <Modal>
+    <JsonViewer :value="jsonData" />
+  </Modal>
+</template>

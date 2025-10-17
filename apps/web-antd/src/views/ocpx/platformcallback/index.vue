@@ -1,7 +1,7 @@
 <script lang="ts" setup name="PlatformCallbackManager">
-import type { VbenFormProps } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {VxeGridProps} from '#/adapter/vxe-table';
 import type {
   CreateRoleRequest,
   NoticeItem,
@@ -9,13 +9,13 @@ import type {
   UpdateRoleRequest,
 } from '#/api/models';
 
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {Page, useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Button, Switch } from 'ant-design-vue';
+import {Button, Switch} from 'ant-design-vue';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { platformCallbackApi } from '#/api/core/ocpx';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {platformCallbackApi} from '#/api/core/ocpx';
 import {
   BatchOptionsType,
   PLATFORM,
@@ -128,18 +128,25 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
     zoom: true,
   },
   columns: [
-    { title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100 },
+    {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
     {
       field: 'platform',
       title: `${$t('ocpx.platformcallback.columns.platform')}`,
+      width: "auto"
     },
-    { field: 'name', title: `${$t('ocpx.platformcallback.columns.name')}` },
+    {
+      field: 'name', title: `${$t('ocpx.platformcallback.columns.name')}`, width: "auto"
+    },
     {
       field: 'config',
       title: `${$t('ocpx.platformcallback.columns.config')}`,
-      slots: { default: 'config' },
+      slots: {default: 'config'},
+      width: "auto"
     },
-    { field: 'remark', title: `${$t('ocpx.platformcallback.columns.remark')}` },
+    {
+      field: 'remark', title: `${$t('ocpx.platformcallback.columns.remark')}`, width: "auto"
+    },
+
     ...TABLE_COMMON_COLUMNS,
   ],
   height: 'auto',
@@ -147,7 +154,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, args) => {
+      query: async ({page}, args) => {
         return await platformCallbackApi.fetchPlatformcallbackList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -158,7 +165,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 function pageReload() {
   gridApi.reload();
@@ -183,7 +190,7 @@ function pageReload() {
           </Button>
         </template>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
+          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
         </template>
 
         <template #toolbar-tools>
@@ -193,7 +200,7 @@ function pageReload() {
         </template>
       </Grid>
     </Page>
-    <CreateObjectModal @page-reload="pageReload" />
-    <DetailConfigModel />
+    <CreateObjectModal @page-reload="pageReload"/>
+    <DetailConfigModel/>
   </div>
 </template>

@@ -146,4 +146,8 @@ export const PLATFORM = [
     label: `${$t('ocpx.platform.oppo')}`,
     value: 'oppo',
   },
+  {
+    label: `${$t('ocpx.platform.jd')}`,
+    value: 'jd',
+  },
 ]

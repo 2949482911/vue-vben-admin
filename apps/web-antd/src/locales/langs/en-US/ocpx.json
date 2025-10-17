@@ -12,6 +12,35 @@
     "title": "Media Platform",
     "vivo": "VIVO",
     "oppo": "oppo",
-    "huawei": "HUAWEI"
+    "huawei": "HUAWEI",
+    "jd": "JD"
+  },
+  "behavioraplatform": {
+    "columns": {
+      "name": "Name",
+      "platform": "Platform",
+      "config": "Config",
+      "remark": "Remark",
+      "model": "Model",
+      "matchField": "Match Field",
+      "matchId": "Match ID",
+      "advertiserId": "Advertiser Id",
+      "campaignId": "Campaign Id",
+      "adgroupId": "Adgroup Id",
+      "promotionId": "Promotion Id",
+      "creativeId": "Creative Id"
+    },
+    "model": {
+      "callback": "Callback",
+      "match": "match",
+      "async": "async"
+    },
+    "matchField": {
+      "clickId": "Click Id",
+      "campaignId": "Campaign Id",
+      "adgroupId": "AdGroup Id",
+      "promotionId": "Promotion Id",
+      "creativeId": "Creative Id"
+    }
   }
 }

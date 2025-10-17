@@ -1,10 +1,13 @@
 import {BaseApi} from "#/api/core/baseapi";
 import {requestClient} from "#/api/request";
 import type {
+  BehavioraPlatformPageRequest, CreateBehavioraPlatformRequest,
   CreatePlatformCallbackRequest,
   PlatformcallbackItem,
-  PlatformcallbackPageRequest, UpdatePlatformCallbackRequest
+  PlatformcallbackPageRequest, UpdatePlatformCallbackRequest,
+  UpdateBehavioraPlatformRequest
 } from "#/api/models";
+import type {BehavioraPlatformItem} from "#/api/models/ocpx";
 
 
 class PlatformCallbackApi extends BaseApi {
@@ -27,3 +30,24 @@ class PlatformCallbackApi extends BaseApi {
 }
 
 export const platformCallbackApi = new PlatformCallbackApi("/platform/platformcallback");
+
+
+class BehavioraPlatformApi extends BaseApi {
+
+  fetchBehavioraPlatformList(params: BehavioraPlatformPageRequest) {
+    return requestClient.get<BehavioraPlatformItem[]>(this.getServiceUrl("list"));
+  }
+
+
+  fetchCreateBehavioraPlatform(params: CreateBehavioraPlatformRequest) {
+    return requestClient.post(this.getServiceUrl("create"), params);
+  }
+
+
+  fetchUpdateBehavioraPlatform(params: UpdateBehavioraPlatformRequest) {
+    return requestClient.post(this.getServiceUrl("update"), params);
+  }
+}
+
+
+export const behavioraPlatformApi = new BehavioraPlatformApi("/platform/platformbehaviora");
