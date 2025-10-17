@@ -106,7 +106,6 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'phone',
       // 界面显示的label
       label: `${$t('system.user.columns.phone')}`,
-      rules: 'required',
     },
 
     {
@@ -120,7 +119,6 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'qq',
       // 界面显示的label
       label: `${$t('system.user.columns.qq')}`,
-      rules: 'required',
     },
 
     {
@@ -158,7 +156,6 @@ const [Form, formApi] = useVbenForm({
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-        options: SEX_SELECT,
         mode: 'multiple',
         options: roleData,
         fieldNames: {
@@ -237,7 +234,7 @@ const [Modal, modalApi] = useVbenModal({
         menuData.value = res;
       });
       roleApi.fetchRoleList({ page: 1, pageSize: 10_000 }).then((res) => {
-        roleData.value = res;
+        roleData.value = res.items;
       });
       dataRangeApi
         .fetchDataRangeList({ page: 1, pageSize: 10_000 })
