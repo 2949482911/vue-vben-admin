@@ -1,19 +1,19 @@
 <script lang="ts" setup name="AccountManager">
-import type { VbenFormProps } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { CreateMenuRequest, UpdateMenuRequest } from '#/api/models/menu';
-import type { OrgItem, UserItem } from '#/api/models/users';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import type {CreateMenuRequest, UpdateMenuRequest} from '#/api/models/menu';
+import type {OrgItem, UserItem} from '#/api/models/users';
 
-import { onMounted, reactive, ref } from 'vue';
+import {onMounted, reactive, ref} from 'vue';
 
-import { ColPage, Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {ColPage, Page, useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Button, Card, Switch, Tag, Tree } from 'ant-design-vue';
+import {Button, Card, Switch, Tag, Tree} from 'ant-design-vue';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { orgApi, userApi } from '#/api';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {orgApi, userApi} from '#/api';
 import {
   BatchOptionsType,
   SEX_SELECT,
@@ -26,13 +26,13 @@ import Create from './create.vue';
 async function handleState(row: UserItem) {
   await (row.status == 1
     ? userApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.DISABLE,
-      })
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+    })
     : userApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.Enable,
-      }));
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+    }));
   pageReload();
 }
 
@@ -118,44 +118,59 @@ const gridOptions: VxeGridProps<UserItem> = {
     {
       field: 'avatar',
       title: `${$t('system.user.columns.avatar')}`,
+      width: 'auto',
     },
     {
       field: 'nickname',
       title: `${$t('system.user.columns.nickname')}`,
+      width: 'auto',
+
     },
     {
       field: 'authName',
       title: `${$t('system.user.columns.authName')}`,
+      width: 'auto',
+
     },
     {
       field: 'phone',
       title: `${$t('system.user.columns.phone')}`,
+      width: 'auto',
+
     },
     {
       field: 'qq',
       title: `${$t('system.user.columns.qq')}`,
+      width: 'auto',
+
     },
     {
       field: 'email',
       title: `${$t('system.user.columns.email')}`,
+      width: 'auto',
+
     },
     {
       field: 'sex',
       title: `${$t('system.user.columns.sex')}`,
-      slots: { default: 'sex' },
+      slots: {default: 'sex'},
+      width: 'auto',
+
     },
 
     {
       field: 'roleIds',
       title: `${$t('system.user.columns.roleIds')}`,
-      slots: { default: 'roleIds' },
+      slots: {default: 'roleIds'},
+      width: 'auto',
+
     },
     ...TABLE_COMMON_COLUMNS,
   ],
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({ page }, args) => {
+      query: async ({page}, args) => {
         return await userApi.fetchUserList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -176,7 +191,7 @@ const gridOptions: VxeGridProps<UserItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 const pageReload = () => {
   gridApi.reload();
@@ -187,8 +202,8 @@ const pageReload = () => {
  * @param selectedKeys 选中的节点ID
  * @param node 当前节点
  */
-function handlerOrgPageList(selectedKeys: string[], { node }) {
-  gridApi.reload({ orgId: node.id });
+function handlerOrgPageList(selectedKeys: string[], {node}) {
+  gridApi.reload({orgId: node.id});
 }
 
 onMounted(() => {
@@ -228,12 +243,12 @@ onMounted(() => {
             </template>
 
             <template #status="{ row }">
-              <Switch :checked="row.status == 1" @click="handleState(row)" />
+              <Switch :checked="row.status == 1" @click="handleState(row)"/>
             </template>
 
             <template #sex="{ row }">
-              <Tag v-if="row.sex == 1">{{ $t('common.boy') }}</Tag>
-              <Tag v-else>{{ $t('common.girl') }}</Tag>
+              <Tag v-if="row.sex === 1" color="red">{{ $t('common.boy') }}</Tag>
+              <Tag v-else color="green">{{ $t('common.girl') }}</Tag>
             </template>
 
             <template #action="{ row }">
@@ -255,6 +270,6 @@ onMounted(() => {
       </Card>
     </ColPage>
 
-    <CreateModal @page-reload="pageReload" />
+    <CreateModal @page-reload="pageReload"/>
   </div>
 </template>

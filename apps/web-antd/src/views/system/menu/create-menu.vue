@@ -127,7 +127,7 @@ const [Form, formApi] = useVbenForm({
         )
         .refine(
           async (value: string) => {
-            return false;
+            return true;
           },
           (value) => ({
             message: $t('ui.formRules.alreadyExists', [
