@@ -1,5 +1,5 @@
 <script lang="ts" setup name="CreateNotice">
-import type {BehavioraPlatformItem,} from '#/api/models';
+import type {BehavioraPlatformItem, OcpxPlatformMatch,} from '#/api/models';
 
 import {ref} from 'vue';
 
@@ -8,56 +8,17 @@ import {$t} from '@vben/locales';
 
 import {useVbenForm} from '#/adapter/form';
 import {behavioraPlatformApi} from '#/api/core/ocpx';
-import {PLATFORM} from '#/constants/locales';
+import {MatchFieldSelect, ModelSelect, PLATFORM} from '#/constants/locales';
 import {Card} from "ant-design-vue";
 import MatchTable from "./matchTable.vue";
 
 const emit = defineEmits(['pageReload']);
+// 创建表格
+const matchTableRef = ref<any>();
 
+// 匹配列表
+const ocpxPlatformMatchList = ref<Array<OcpxPlatformMatch>>([]);
 
-// 匹配下拉
-const modelSelect = [
-  {
-    label: `${$t('ocpx.behavioraplatform.model.callback')}`,
-    value: 'callback',
-  },
-  {
-    label: `${$t('ocpx.behavioraplatform.model.match')}`,
-    value: 'match',
-  },
-  {
-    label: `${$t('ocpx.behavioraplatform.model.async')}`,
-    value: 'async',
-  },
-]
-
-const matchFieldSelect = [
-  {
-    label: `${$t('ocpx.behavioraplatform.matchField.clickId')}`,
-    value: 'clickId',
-  },
-
-  {
-    label: `${$t('ocpx.behavioraplatform.matchField.campaignId')}`,
-    value: 'campaignId',
-  },
-
-  {
-    label: `${$t('ocpx.behavioraplatform.matchField.adgroupId')}`,
-    value: 'adgroupId',
-  },
-
-  {
-    label: `${$t('ocpx.behavioraplatform.matchField.promotionId')}`,
-    value: 'promotionId',
-  },
-
-  {
-    label: `${$t('ocpx.behavioraplatform.matchField.creativeId')}`,
-    value: 'creativeId',
-  },
-
-]
 
 const objectRequest = ref<BehavioraPlatformItem>({});
 const isUpdate = ref<Boolean>(false);
@@ -78,12 +39,15 @@ const [Form, formApi] = useVbenForm({
       return;
     }
     formVal.config = JSON.parse(formVal.config);
+    if (ocpxPlatformMatchList.value.length > 0) {
+      formVal.ocpxPlatformMatches = ocpxPlatformMatchList.value;
+    }
     await (isUpdate.value
-      ? behavioraPlatformApi.fetchUpdateBehavioraPlatform(JSON.stringify(formVal))
-      : behavioraPlatformApi.fetchCreateBehavioraPlatform(
-        JSON.stringify(formVal),
-      ));
-    await drawerApi.close();
+        ? behavioraPlatformApi.fetchUpdateBehavioraPlatform(JSON.stringify(formVal))
+        : behavioraPlatformApi.fetchCreateBehavioraPlatform(
+            JSON.stringify(formVal),
+        ));
+    await formApi.resetForm();
   },
   schema: [
     {
@@ -150,7 +114,7 @@ const [Form, formApi] = useVbenForm({
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-        options: modelSelect,
+        options: ModelSelect,
         onChange(value) {
           matchModel.value = value
         }
@@ -169,7 +133,7 @@ const [Form, formApi] = useVbenForm({
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-        options: matchFieldSelect
+        options: MatchFieldSelect
       },
       // 字段名
       fieldName: 'matchField',
@@ -200,6 +164,8 @@ const [Modal, modalApi] = useVbenModal({
   fullscreenButton: false,
   onCancel() {
     modalApi.close();
+    formApi.resetForm();
+    ocpxPlatformMatchList.value = [];
     isUpdate.value = false;
   },
   async onConfirm() {
@@ -210,6 +176,7 @@ const [Modal, modalApi] = useVbenModal({
     await formApi.submitForm();
     isUpdate.value = false;
     emit('pageReload');
+    await modalApi.close();
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
@@ -217,6 +184,9 @@ const [Modal, modalApi] = useVbenModal({
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
+        ocpxPlatformMatchList.value = objectRequest.value.ocpxPlatformMatchList;
+        matchModel.value = objectRequest.value.model;
+
       } else {
         isUpdate.value = false;
       }
@@ -229,8 +199,8 @@ function handleSetFormValue(row) {
 }
 
 const title: string = objectRequest.value.id
-  ? `${$t('common.edit')}`
-  : `${$t('common.create')}`;
+    ? `${$t('common.edit')}`
+    : `${$t('common.create')}`;
 </script>
 <template>
   <Modal :title="title">
@@ -240,7 +210,7 @@ const title: string = objectRequest.value.id
     </Card>
 
     <Card :bordered="false" v-if="matchModel === 'match'">
-      <MatchTable></MatchTable>
+      <MatchTable ref="matchTableRef" :match-data-list="ocpxPlatformMatchList"></MatchTable>
     </Card>
   </Modal>
 </template>

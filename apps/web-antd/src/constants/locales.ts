@@ -151,3 +151,49 @@ export const PLATFORM = [
     value: 'jd',
   },
 ]
+
+
+
+// 匹配下拉
+export const ModelSelect = [
+  {
+    label: `${$t('ocpx.behavioraplatform.model.callback')}`,
+    value: 'callback',
+  },
+  {
+    label: `${$t('ocpx.behavioraplatform.model.match')}`,
+    value: 'match',
+  },
+  {
+    label: `${$t('ocpx.behavioraplatform.model.async')}`,
+    value: 'async',
+  },
+]
+
+export const MatchFieldSelect = [
+  {
+    label: `${$t('ocpx.behavioraplatform.matchField.clickId')}`,
+    value: 'clickId',
+  },
+
+  {
+    label: `${$t('ocpx.behavioraplatform.matchField.campaignId')}`,
+    value: 'campaignId',
+  },
+
+  {
+    label: `${$t('ocpx.behavioraplatform.matchField.adgroupId')}`,
+    value: 'adgroupId',
+  },
+
+  {
+    label: `${$t('ocpx.behavioraplatform.matchField.promotionId')}`,
+    value: 'promotionId',
+  },
+
+  {
+    label: `${$t('ocpx.behavioraplatform.matchField.creativeId')}`,
+    value: 'creativeId',
+  },
+
+]

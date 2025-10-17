@@ -26,5 +26,6 @@
     "belong_dept_sub_dept": "所属部门及子部门",
     "main_scope": "指定主体权限",
     "self_main_scope": "所属主体权限"
-  }
+  },
+  "copy": "复制"
 }

@@ -12,11 +12,11 @@ import type {
 } from '#/api/models';
 import {$t} from '@vben/locales';
 
-import {Button, Switch} from 'ant-design-vue';
+import {Button, Switch, Tag} from 'ant-design-vue';
 import {behavioraPlatformApi} from '#/api/core/ocpx';
 import {
-  BatchOptionsType,
-  PLATFORM,
+  BatchOptionsType, MatchFieldSelect, ModelSelect,
+  PLATFORM, ROLE_TYPE_OPTIONS,
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
@@ -41,7 +41,7 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
 });
 
 function openCreateModal(
-  row: CreateRoleRequest | PlatformcallbackItem | UpdateRoleRequest,
+    row: CreateRoleRequest | PlatformcallbackItem | UpdateRoleRequest,
 ) {
   if (row.id) {
     createObjectApi.setData(row);
@@ -126,7 +126,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', type: 'checkbox', width: 100},
+    {title: '序号', type: 'seq', type: 'checkbox', width: 'auto'},
     {
       field: 'platform',
       title: `${$t('ocpx.behavioraplatform.columns.platform')}`,
@@ -140,12 +140,18 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
     {
       field: 'model',
       title: `${$t('ocpx.behavioraplatform.columns.model')}`,
-      width: "auto"
+      width: "auto",
+      slots: {
+        default: 'model'
+      }
     },
     {
       field: 'matchField',
       title: `${$t('ocpx.behavioraplatform.columns.matchField')}`,
-      width: "auto"
+      width: "auto",
+      slots: {
+        default: 'matchField'
+      }
     },
     {
       field: 'config',
@@ -187,6 +193,24 @@ function pageReload() {
   <div>
     <Page auto-content-height>
       <Grid>
+
+        <template #model="{ row }">
+          <Tag color="red">
+            {{
+              ModelSelect.filter((x) => x.value == row.model)[0].label
+            }}
+          </Tag>
+        </template>
+
+
+        <template #matchField="{ row }">
+          <Tag color="orange">
+            {{
+              MatchFieldSelect.filter((x) => x.value == row.matchField)[0].label
+            }}
+          </Tag>
+        </template>
+
         <template #config="{ row }">
           <Button type="link" @click="openDetailConfig(row)">
             {{ $t('common.detail') }}

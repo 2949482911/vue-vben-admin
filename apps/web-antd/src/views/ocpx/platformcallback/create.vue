@@ -30,17 +30,12 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
-    const result = await formApi.validate();
-    if (!result.valid) {
-      return;
-    }
     formVal.config = JSON.parse(formVal.config);
     await (isUpdate.value
       ? platformCallbackApi.fetchPlatformcallbackUpdate(JSON.stringify(formVal))
       : platformCallbackApi.fetchPlatformcallbackCreate(
           JSON.stringify(formVal),
         ));
-    await drawerApi.close();
   },
   schema: [
     {
@@ -122,13 +117,14 @@ const [Modal, modalApi] = useVbenModal({
   fullscreenButton: false,
   onCancel() {
     modalApi.close();
+    formApi.resetForm();
     isUpdate.value = false;
   },
   async onConfirm() {
-    // const result = await formApi.validate()
-    // if (!result.valid) {
-    //   return
-    // }
+    const result = await formApi.validate()
+    if (!result.valid) {
+      return
+    }
     await formApi.submitForm();
     isUpdate.value = false;
     emit('pageReload');
