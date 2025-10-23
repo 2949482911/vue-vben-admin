@@ -30,5 +30,10 @@
   "flowable_process": {
 
   },
-  "copy": "Copy"
+  "copy": "Copy",
+  "more": "More",
+  "clickmonitor": "Click Monitor",
+  "baseInfo": "Base Info",
+  "configuration": "Configuration",
+  "behavioracallbackrecord": "Callback Record"
 }

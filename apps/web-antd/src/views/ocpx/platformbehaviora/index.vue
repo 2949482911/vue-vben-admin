@@ -15,8 +15,10 @@ import {$t} from '@vben/locales';
 import {Button, Switch, Tag} from 'ant-design-vue';
 import {behavioraPlatformApi} from '#/api/core/ocpx';
 import {
-  BatchOptionsType, MatchFieldSelect, ModelSelect,
-  PLATFORM, ROLE_TYPE_OPTIONS,
+  BatchOptionsType,
+  MatchFieldSelect,
+  ModelSelect,
+  PLATFORM,
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
@@ -41,7 +43,7 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
 });
 
 function openCreateModal(
-    row: CreateRoleRequest | PlatformcallbackItem | UpdateRoleRequest,
+  row: CreateRoleRequest | PlatformcallbackItem | UpdateRoleRequest,
 ) {
   if (row.id) {
     createObjectApi.setData(row);
@@ -52,22 +54,25 @@ function openCreateModal(
 }
 
 async function handlerState(row: NoticeItem) {
-  // await (row.status == 1
-  //   ? noticeApi.fetchBatchOptions({
-  //     targetIds: [row.id],
-  //     type: BatchOptionsType.DISABLE,
-  //   })
-  //   : noticeApi.fetchBatchOptions({
-  //     targetIds: [row.id],
-  //     type: BatchOptionsType.Enable,
-  //   }));
+  await (row.status == 1
+    ? behavioraPlatformApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+      values: new Map<string, any>(),
+    })
+    : behavioraPlatformApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+      values: new Map<string, any>(),
+    }));
   pageReload();
 }
 
 async function handlerDelete(row: NoticeItem) {
-  await noticeApi.fetchBatchOptions({
+  await behavioraPlatformApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
+    values: new Map<string, any>(),
   });
   pageReload();
 }

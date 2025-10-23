@@ -54,22 +54,26 @@ function openCreateModal(
 }
 
 async function handlerState(row: NoticeItem) {
-  // await (row.status == 1
-  //   ? noticeApi.fetchBatchOptions({
-  //     targetIds: [row.id],
-  //     type: BatchOptionsType.DISABLE,
-  //   })
-  //   : noticeApi.fetchBatchOptions({
-  //     targetIds: [row.id],
-  //     type: BatchOptionsType.Enable,
-  //   }));
+  await (row.status == 1
+    ? platformCallbackApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+      values: new Map<string, any>(),
+    })
+    : platformCallbackApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+      values: new Map<string, any>(),
+    }));
   pageReload();
 }
 
 async function handlerDelete(row: NoticeItem) {
-  await noticeApi.fetchBatchOptions({
+  await platformCallbackApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
+    values: new Map<string, any>(),
+
   });
   pageReload();
 }

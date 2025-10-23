@@ -27,5 +27,11 @@
     "main_scope": "指定主体权限",
     "self_main_scope": "所属主体权限"
   },
-  "copy": "复制"
+  "copy": "复制",
+  "more": "更多",
+  "clickmonitor": "监测链接",
+  "baseInfo": "基础信息",
+  "configuration": "配置信息",
+  "behavioracallbackrecord": "转化回传记录"
+
 }

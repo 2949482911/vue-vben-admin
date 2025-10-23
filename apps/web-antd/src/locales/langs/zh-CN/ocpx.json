@@ -13,7 +13,8 @@
     "vivo": "VIVO",
     "oppo": "oppo",
     "huawei": "HUAWEI",
-    "jd": "京东"
+    "jd": "京东",
+    "jdkj": "京东科技"
   },
   "behavioraplatform": {
     "columns": {
@@ -41,6 +42,23 @@
       "adgroupId": "广告组ID",
       "promotionId": "广告ID",
       "creativeId": "创意ID"
+    }
+  },
+  "ocpx_task": {
+    "columns": {
+      "name": "名字",
+      "platform": "平台",
+      "description": "描述",
+      "taskState": "任务状态",
+      "behavioraPlatform": "转化平台",
+      "platformCallback": "回调平台",
+      "clickRangeDay": "点击回溯天数"
+    },
+    "callback_record_columns": {
+      "behavioraPlatformName": "转化媒体",
+      "platformCallbackName": "回传媒体",
+      "respCode": "响应码",
+      "respMsg": "消息"
     }
   }
 }

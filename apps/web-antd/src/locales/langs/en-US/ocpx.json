@@ -13,7 +13,8 @@
     "vivo": "VIVO",
     "oppo": "oppo",
     "huawei": "HUAWEI",
-    "jd": "JD"
+    "jd": "JD",
+    "jdkj": "jdkj"
   },
   "behavioraplatform": {
     "columns": {
@@ -41,6 +42,23 @@
       "adgroupId": "AdGroup Id",
       "promotionId": "Promotion Id",
       "creativeId": "Creative Id"
+    }
+  },
+  "ocpx_task": {
+    "columns": {
+      "name": "Name",
+      "platform": "Platform",
+      "description": "Description",
+      "taskState": "Task State",
+      "behavioraPlatform": "Behaviora Platform",
+      "platformCallback": "Callback Platform",
+      "clickRangeDay": "Click Range Day Ago"
+    },
+    "callback_record_columns": {
+      "behavioraPlatformName": "Behaviora Name",
+      "platformCallbackName": "Callback Name",
+      "respCode": "Code",
+      "respMsg": "Message"
     }
   }
 }

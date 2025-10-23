@@ -15,7 +15,6 @@ export const TABLE_COMMON_COLUMNS = [
     formatter: 'formatDateTime',
     title: `${$t('core.columns.createTime')}`,
     width: 'auto',
-
   },
   {
     field: 'updateTime',
@@ -149,6 +148,18 @@ export const PLATFORM = [
   {
     label: `${$t('ocpx.platform.jd')}`,
     value: 'jd',
+  },
+]
+
+
+export const BEHAVIORA_PLATFORM = [
+  {
+    label: `${$t('ocpx.platform.jd')}`,
+    value: 'jd',
+  },
+  {
+    label: `${$t('ocpx.platform.jdkj')}`,
+    value: 'jdkj',
   },
 ]
 
