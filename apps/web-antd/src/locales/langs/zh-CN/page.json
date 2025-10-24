@@ -32,7 +32,14 @@
     "title": "OCPX",
     "ocpx_task": "Ocpx任务",
     "match": "Ocpx映射",
-    "platformcallback": "媒体回传",
+    "platformcallback": "回传媒体",
     "platformbehaviora": "转化媒体"
+  },
+  "marketing": {
+    "title": "营销",
+    "advertiser": {
+      "title": "广告主",
+      "developer": "开发者"
+    }
   }
 }

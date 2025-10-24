@@ -52,7 +52,8 @@
       "taskState": "Task State",
       "behavioraPlatform": "Behaviora Platform",
       "platformCallback": "Callback Platform",
-      "clickRangeDay": "Click Range Day Ago"
+      "clickRangeDay": "Click Range Day Ago",
+      "callbackRate": "Callback Rate"
     },
     "callback_record_columns": {
       "behavioraPlatformName": "Behaviora Name",

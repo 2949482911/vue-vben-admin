@@ -159,6 +159,16 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
       width: "auto"
     },
     {
+      field: 'callbackRate',
+      title: `${$t('ocpx.ocpx_task.columns.callbackRate')}`,
+      width: "auto"
+    },
+    {
+      field: 'callbackRate',
+      title: `${$t('ocpx.ocpx_task.columns.clickRangeDay')}`,
+      width: "auto"
+    },
+    {
       field: 'description', title: `${$t('ocpx.ocpx_task.columns.description')}`, width: "auto"
     },
 
@@ -217,7 +227,9 @@ function pageReload() {
             <template #overlay>
               <Menu>
                 <MenuItem @click="openClickMonitor(row)">{{ $t('core.clickmonitor') }}</MenuItem>
-                <MenuItem @click="openBehavioracallbackrecord(row)">{{ $t('core.behavioracallbackrecord') }}</MenuItem>
+                <MenuItem @click="openBehavioracallbackrecord(row)">
+                  {{ $t('core.behavioracallbackrecord') }}
+                </MenuItem>
               </Menu>
             </template>
           </Dropdown>
@@ -233,6 +245,6 @@ function pageReload() {
     </Page>
     <CreateObjectModal @page-reload="pageReload"/>
     <ClickMonitorModal/>
-    <BehavioracallbackrecordModel />
+    <BehavioracallbackrecordModel/>
   </div>
 </template>

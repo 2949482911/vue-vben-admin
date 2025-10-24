@@ -52,7 +52,8 @@
       "taskState": "任务状态",
       "behavioraPlatform": "转化平台",
       "platformCallback": "回调平台",
-      "clickRangeDay": "点击回溯天数"
+      "clickRangeDay": "点击回溯天数",
+      "callbackRate": "回传比例"
     },
     "callback_record_columns": {
       "behavioraPlatformName": "转化媒体",

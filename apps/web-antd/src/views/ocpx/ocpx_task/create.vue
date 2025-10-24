@@ -90,6 +90,25 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
       defaultValue: 1,
     },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'InputNumber',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        min: 0,
+        max: 100,
+        formatter: value => `${value}%`,
+        parser: value => value.replace('%', '')
+      },
+      // 字段名
+      fieldName: 'callbackRate',
+      // 界面显示的label
+      label: `${$t('ocpx.ocpx_task.columns.callbackRate')}`,
+      rules: 'required',
+      defaultValue: 100,
+    },
     {
       component: 'ApiSelect',
       fieldName: 'behavioraPlatformIds',
@@ -150,10 +169,10 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'clickRangeDay',
       componentProps: {
         marks: {
-          3: '3天',
-          7: '7天',
-          15: '15天',
-          30: '30天',
+          3: '3',
+          7: '7',
+          15: '15',
+          30: '30',
         },
         max: 30,
         min: 3
