@@ -95,19 +95,23 @@ const gridOptions: VxeGridProps<MenuItem> = {
     {
       field: 'name',
       title: `${$t('system.data_scope.columns.name')}`,
+      width: 'auto',
     },
     {
       field: 'type',
       title: `${$t('system.data_scope.columns.type')}`,
       slots: { default: 'type' },
+      width: 'auto',
     },
     {
       field: 'code',
       title: `${$t('system.data_scope.columns.code')}`,
+      width: 'auto',
     },
     {
       field: 'remark',
       title: `${$t('system.data_scope.columns.remark')}`,
+      width: 'auto',
     },
     ...TABLE_COMMON_COLUMNS,
   ],

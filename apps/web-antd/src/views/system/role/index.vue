@@ -1,20 +1,20 @@
 <script lang="ts" setup name="RoleManager">
-import type { VbenFormProps } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {VxeGridProps} from '#/adapter/vxe-table';
 import type {
   CreateRoleRequest,
   RoleItem,
   UpdateRoleRequest,
 } from '#/api/models';
 
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {Page, useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Button, Switch, Tag } from 'ant-design-vue';
+import {Button, Switch, Tag} from 'ant-design-vue';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { roleApi } from '#/api/core/role';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {roleApi} from '#/api/core/role';
 import {
   ROLE_TYPE_OPTIONS,
   STATUS_SELECT,
@@ -100,18 +100,20 @@ const gridOptions: VxeGridProps<RoleItem> = {
     zoom: true,
   },
   columns: [
-    { title: '序号', type: 'seq', width: 50 },
-    { field: 'name', title: `${$t('system.role.columns.name')}` },
+    {title: '序号', type: 'seq', width: 50},
+    {field: 'name', title: `${$t('system.role.columns.name')}`, width: 'auto',},
     {
       field: 'roleType',
       title: `${$t('system.role.columns.roleType')}`,
-      slots: { default: 'roleType' },
+      slots: {default: 'roleType'},
+      width: 'auto',
     },
-    { field: 'comment', title: `${$t('system.role.columns.comment')}` },
+    {field: 'comment', title: `${$t('system.role.columns.comment')}`, width: 'auto',},
     {
       field: 'isSystem',
       title: `${$t('system.role.columns.isSystem')}`,
-      slots: { default: 'isSystem' },
+      slots: {default: 'isSystem'},
+      width: 'auto',
     },
     ...TABLE_COMMON_COLUMNS,
   ],
@@ -134,7 +136,7 @@ const gridOptions: VxeGridProps<RoleItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 function pageReload() {
   gridApi.query();
@@ -145,11 +147,11 @@ function pageReload() {
   <Page>
     <Grid>
       <template #status="{ row }">
-        <Switch :checked="row.status == 1" @change="handlerState(row)" />
+        <Switch :checked="row.status == 1" @change="handlerState(row)"/>
       </template>
 
       <template #isSystem="{ row }">
-        <Switch :checked="row.isSystem == 1" />
+        <Switch :checked="row.isSystem == 1"/>
       </template>
       <template #roleType="{ row }">
         <Tag>
@@ -175,6 +177,6 @@ function pageReload() {
       </template>
     </Grid>
 
-    <CreateModal @page-reload="pageReload" />
+    <CreateModal @page-reload="pageReload"/>
   </Page>
 </template>

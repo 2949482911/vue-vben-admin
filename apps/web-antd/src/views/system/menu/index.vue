@@ -60,6 +60,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
       field: 'name',
       minWidth: 300,
       title: `${$t('system.menu.columns.name')}`,
+      width: 'auto',
     },
     {
       field: 'type',
