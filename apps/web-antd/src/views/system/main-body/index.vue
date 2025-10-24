@@ -87,14 +87,17 @@ const gridOptions: VxeGridProps<MainBodyItem> = {
     {
       field: 'name',
       title: `${$t('system.mainbody.columns.name')}`,
+      width: 'auto',
     },
     {
       field: 'email',
       title: `${$t('system.mainbody.columns.email')}`,
+      width: 'auto',
     },
     {
       field: 'remark',
       title: `${$t('system.mainbody.columns.remark')}`,
+      width: 'auto',
     },
     ...TABLE_COMMON_COLUMNS,
   ],
