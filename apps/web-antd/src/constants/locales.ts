@@ -149,6 +149,21 @@ export const PLATFORM = [
     label: `${$t('ocpx.platform.jd')}`,
     value: 'jd',
   },
+  {
+    label: `${$t('ocpx.platform.bytedance')}`,
+    value: 'bytedance',
+  },
+]
+
+
+/**
+ * 授权账户媒体
+ */
+export const AUTH_ACCOUNT_PLATFORM = [
+  {
+    label: `${$t('ocpx.platform.vivo')}`,
+    value: 'vivo',
+  },
 ]
 
 
@@ -160,6 +175,10 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: `${$t('ocpx.platform.jdkj')}`,
     value: 'jdkj',
+  },
+  {
+    label: `${$t('ocpx.platform.kuake')}`,
+    value: 'kuake',
   },
 ]
 

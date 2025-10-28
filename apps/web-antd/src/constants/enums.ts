@@ -7,4 +7,6 @@ export enum Platform {
   HUAWEI = 'huawei',
   JD = "jd",
   JDKJ = "jdkj", // 京东科技
+  KUAKE = "kuake",
+  BYTEDANCE = "bytedance",
 }

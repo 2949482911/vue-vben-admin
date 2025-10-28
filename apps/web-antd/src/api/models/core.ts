@@ -1,6 +1,7 @@
 export interface PageRequestParams {
   page: number;
   pageSize: number;
+  status: number;
 }
 
 export interface BaseItem {
@@ -16,7 +17,6 @@ export interface BaseItem {
 export interface DeleteItem {
   ids: string[];
 }
-
 
 
 export interface BatchOptions {

@@ -19,9 +19,9 @@ const matchTableRef = ref<any>();
 
 // 匹配列表
 const ocpxPlatformMatchList = ref<Array<OcpxPlatformMatch>>([]);
-
-
+// edit request
 const objectRequest = ref<BehavioraPlatformItem>({});
+
 const isUpdate = ref<Boolean>(false);
 const matchModel = ref<string>('callback');
 
@@ -89,6 +89,111 @@ platformConfigForm.set(Platform.JDKJ, [
   },
 
 ]);
+
+// kuake
+platformConfigForm.set(Platform.KUAKE, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'ch',
+    // 界面显示的label
+    label: `ch`,
+    rules: 'required',
+  },
+
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'gateway',
+    // 界面显示的label
+    label: `gateway`,
+    rules: 'required',
+  },
+
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'token',
+    // 界面显示的label
+    label: `token`,
+    rules: 'required',
+  },
+
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'act',
+    // 界面显示的label
+    label: `act`,
+    rules: 'required',
+  },
+
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'srcPlat',
+    // 界面显示的label
+    label: `srcPlat`,
+    rules: 'required',
+  },
+
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'type',
+    // 界面显示的label
+    label: `type`,
+    rules: 'required',
+    defaultValue: 'click'
+  },
+
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    defaultValue: 'com.quark.browser',
+    // 字段名
+    fieldName: 'targetPkg',
+    // 界面显示的label
+    label: `targetPkg`,
+    rules: 'required',
+  },
+])
+
+
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,

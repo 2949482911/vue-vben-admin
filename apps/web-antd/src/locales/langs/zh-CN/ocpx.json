@@ -11,10 +11,12 @@
   "platform": {
     "title": "平台",
     "vivo": "VIVO",
-    "oppo": "oppo",
+    "oppo": "OPPO",
     "huawei": "HUAWEI",
     "jd": "京东",
-    "jdkj": "京东科技"
+    "jdkj": "京东科技",
+    "kuake": "夸克",
+    "bytedance": "巨量引擎"
   },
   "behavioraplatform": {
     "columns": {

@@ -3,7 +3,7 @@ import { ref } from 'vue';
 
 import { JsonViewer, useVbenModal } from '@vben/common-ui';
 
-const jsonData = ref<Map<string, any>>({});
+const jsonData = ref<Record<string, any>>({});
 
 const [Modal, modalApi] = useVbenModal({
   onCancel() {

@@ -11,10 +11,12 @@
   "platform": {
     "title": "Media Platform",
     "vivo": "VIVO",
-    "oppo": "oppo",
+    "oppo": "OPPO",
     "huawei": "HUAWEI",
     "jd": "JD",
-    "jdkj": "jdkj"
+    "jdkj": "JDKJ",
+    "kuake": "KUAKE",
+    "bytedance": "Bytedance"
   },
   "behavioraplatform": {
     "columns": {

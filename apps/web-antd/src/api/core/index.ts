@@ -7,5 +7,5 @@ export * from './role';
 export * from "./main-body";
 export * from "./bpm";
 export * from "./dashboard";
-
-
+export * from "./marketing";
+export * from "./ocpx";

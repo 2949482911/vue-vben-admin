@@ -50,6 +50,20 @@ platformConfigForm.set(Platform.VIVO, [
     label: `pkgName`,
     rules: 'required',
   },
+  {
+    // 媒体配置表单
+    component: 'Select',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+      multiple: true,
+    },
+    // 字段名
+    fieldName: 'advertiser',
+    // 界面显示的label
+    label: `advertiser`,
+    rules: 'required',
+  },
 ]);
 // oppo 配置清单
 platformConfigForm.set(Platform.OPPO, [
@@ -128,7 +142,11 @@ platformConfigForm.set(Platform.HUAWEI, [
     label: 'secretKey',
     rules: 'required',
   },
-])
+]);
+// 字节回传
+platformConfigForm.set(Platform.BYTEDANCE, [])
+
+
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
@@ -183,7 +201,7 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         placeholder: `${$t('common.input')}`,
         options: PLATFORM,
-        onSelect: value => {
+        onSelect: (value: string) => {
           configFormApi.setState((_) => {
             return {
               schema: platformConfigForm.get(value)

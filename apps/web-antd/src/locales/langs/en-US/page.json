@@ -34,5 +34,13 @@
     "match": "Ocpx Match",
     "platformcallback": "Callback Platform",
     "platformbehaviora": "Behaviora Platform"
+  },
+  "marketing": {
+    "title": "Marketing",
+    "account": {
+      "title": "账户",
+      "advertiser": "Advertiser",
+      "developer": "Developer"
+    }
   }
 }

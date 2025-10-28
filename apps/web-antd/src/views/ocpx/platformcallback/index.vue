@@ -1,20 +1,13 @@
 <script lang="ts" setup name="PlatformCallbackManager">
 import type {VbenFormProps} from '@vben/common-ui';
+import {Page, useVbenModal} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
-import type {
-  CreateRoleRequest,
-  NoticeItem,
-  PlatformcallbackItem,
-  UpdateRoleRequest,
-} from '#/api/models';
-
-import {Page, useVbenModal} from '@vben/common-ui';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import type {PlatformcallbackItem,} from '#/api/models';
 import {$t} from '@vben/locales';
 
 import {Button, Switch} from 'ant-design-vue';
-
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {platformCallbackApi} from '#/api/core/ocpx';
 import {
   BatchOptionsType,
@@ -43,7 +36,7 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
 });
 
 function openCreateModal(
-  row: CreateRoleRequest | PlatformcallbackItem | UpdateRoleRequest,
+  row: PlatformcallbackItem
 ) {
   if (row.id) {
     createObjectApi.setData(row);
@@ -53,7 +46,7 @@ function openCreateModal(
   createObjectApi.open();
 }
 
-async function handlerState(row: NoticeItem) {
+async function handlerState(row: PlatformcallbackItem) {
   await (row.status == 1
     ? platformCallbackApi.fetchBatchOptions({
       targetIds: [row.id],
@@ -68,7 +61,7 @@ async function handlerState(row: NoticeItem) {
   pageReload();
 }
 
-async function handlerDelete(row: NoticeItem) {
+async function handlerDelete(row: PlatformcallbackItem) {
   await platformCallbackApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,

@@ -1,0 +1,31 @@
+{
+  "advertiser": {
+    "authAccount": "Auth Account",
+    "authType": "Auth Type",
+    "authUrl": "Auth Url",
+    "columns": {
+      "advertiserId": "Advertiser Id",
+      "advertiserName": "Name",
+      "roleType": "Role",
+      "remark": "Remark",
+      "platformRemark": "Platform Remark",
+      "putStatue": "Put Statue",
+      "platformStatus": "PlatformS tatus",
+      "balance": "Balance",
+      "dailyBudget": "Daily Budget",
+      "companyName": "Company",
+      "platformAuditState": "Audit State"
+    }
+  },
+  "developer": {
+    "columns": {
+      "platform": "Platform",
+      "name": "Name",
+      "apiKey": "Api Key",
+      "apiSecret": "ApiSecret",
+      "isSystem": "isSystem",
+      "remark": "Remark",
+      "authCount": "Auth Count"
+    }
+  }
+}

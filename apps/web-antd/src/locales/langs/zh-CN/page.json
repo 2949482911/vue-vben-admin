@@ -37,8 +37,9 @@
   },
   "marketing": {
     "title": "营销",
-    "advertiser": {
-      "title": "广告主",
+    "account": {
+      "title": "账户",
+      "advertiser": "广告主",
       "developer": "开发者"
     }
   }

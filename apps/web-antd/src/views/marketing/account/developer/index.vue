@@ -1,35 +1,23 @@
-<script lang="ts" setup name="PlatformCallbackManager">
+<script lang="ts" setup name="DeveloperManager">
 import type {VbenFormProps} from '@vben/common-ui';
 import {Page, useVbenModal} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import type {BehavioraPlatformItem,} from '#/api/models';
+import type {DeveloperItem,} from '#/api/models';
 import {$t} from '@vben/locales';
 
-import {Button, Switch, Tag} from 'ant-design-vue';
-import {behavioraPlatformApi} from '#/api/core/ocpx';
+import {Button, Switch} from 'ant-design-vue';
+import {developerApi} from '#/api/core';
 import {
   BatchOptionsType,
-  MatchFieldSelect,
-  ModelSelect,
   PLATFORM,
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
 
 import CreateObjectRequestComp from './create.vue';
-import DetailConfig from './detailconfig.vue';
 
-// config detail
-const [DetailConfigModel, detailConfigModalApi] = useVbenModal({
-  connectedComponent: DetailConfig,
-});
-
-function openDetailConfig(row: BehavioraPlatformItem) {
-  detailConfigModalApi.setData(row.config);
-  detailConfigModalApi.open();
-}
 
 const [CreateObjectModal, createObjectApi] = useVbenModal({
   connectedComponent: CreateObjectRequestComp,
@@ -38,7 +26,7 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
 });
 
 function openCreateModal(
-  row: BehavioraPlatformItem
+  row: DeveloperItem
 ) {
   if (row.id) {
     createObjectApi.setData(row);
@@ -48,14 +36,14 @@ function openCreateModal(
   createObjectApi.open();
 }
 
-async function handlerState(row: BehavioraPlatformItem) {
+async function handlerState(row: DeveloperItem) {
   await (row.status == 1
-    ? behavioraPlatformApi.fetchBatchOptions({
+    ? developerApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>(),
     })
-    : behavioraPlatformApi.fetchBatchOptions({
+    : developerApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>(),
@@ -63,11 +51,12 @@ async function handlerState(row: BehavioraPlatformItem) {
   pageReload();
 }
 
-async function handlerDelete(row: BehavioraPlatformItem) {
-  await behavioraPlatformApi.fetchBatchOptions({
+async function handlerDelete(row: DeveloperItem) {
+  await developerApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>(),
+
   });
   pageReload();
 }
@@ -88,7 +77,7 @@ const formOptions: VbenFormProps = {
     {
       component: 'Input',
       fieldName: 'name',
-      label: `${$t('ocpx.behavioraplatform.columns.name')}`,
+      label: `${$t('marketing.developer.columns.name')}`,
     },
     {
       component: 'DatePicker',
@@ -112,7 +101,7 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
+const gridOptions: VxeGridProps<DeveloperItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
@@ -126,45 +115,35 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', type: 'checkbox', width: 'auto'},
+    {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
     {
       field: 'platform',
-      title: `${$t('ocpx.behavioraplatform.columns.platform')}`,
+      title: `${$t('marketing.developer.columns.platform')}`,
       width: "auto"
     },
     {
-      field: 'name',
-      title: `${$t('ocpx.behavioraplatform.columns.name')}`,
+      field: 'name', title: `${$t('marketing.developer.columns.name')}`, width: "auto"
+    },
+    {
+      field: 'apiKey',
+      title: `${$t('marketing.developer.columns.apiKey')}`,
       width: "auto"
+
     },
     {
-      field: 'model',
-      title: `${$t('ocpx.behavioraplatform.columns.model')}`,
-      width: "auto",
-      slots: {
-        default: 'model'
-      }
-    },
-    {
-      field: 'matchField',
-      title: `${$t('ocpx.behavioraplatform.columns.matchField')}`,
-      width: "auto",
-      slots: {
-        default: 'matchField'
-      }
-    },
-    {
-      field: 'config',
-      title: `${$t('ocpx.behavioraplatform.columns.config')}`,
-      slots: {default: 'config'},
+      field: 'apiSecret',
+      title: `${$t('marketing.developer.columns.apiSecret')}`,
       width: "auto"
+
     },
     {
-      field: 'remark',
-      title: `${$t('ocpx.behavioraplatform.columns.remark')}`,
-      width: "auto"
+      field: 'remark', title: `${$t('marketing.developer.columns.remark')}`, width: "auto"
     },
-    ...TABLE_COMMON_COLUMNS
+    {
+      field: 'authCount', title: `${$t('marketing.developer.columns.authCount')}`, width: "auto"
+    },
+
+    ...TABLE_COMMON_COLUMNS,
   ],
   height: 'auto',
   keepSource: true,
@@ -172,7 +151,7 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
-        return await behavioraPlatformApi.fetchBehavioraPlatformList({
+        return await developerApi.fetchDeveloperList({
           page: page.currentPage,
           pageSize: page.pageSize,
           ...args,
@@ -193,29 +172,6 @@ function pageReload() {
   <div>
     <Page auto-content-height>
       <Grid>
-
-        <template #model="{ row }">
-          <Tag color="red">
-            {{
-              ModelSelect.filter((x) => x.value == row.model)[0].label
-            }}
-          </Tag>
-        </template>
-
-
-        <template #matchField="{ row }">
-          <Tag color="orange">
-            {{
-              MatchFieldSelect.filter((x) => x.value == row.matchField)[0].label
-            }}
-          </Tag>
-        </template>
-
-        <template #config="{ row }">
-          <Button type="link" @click="openDetailConfig(row)">
-            {{ $t('common.detail') }}
-          </Button>
-        </template>
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
             {{ $t('common.edit') }}
@@ -224,7 +180,6 @@ function pageReload() {
             {{ $t('common.delete') }}
           </Button>
         </template>
-
         <template #status="{ row }">
           <Switch :checked="row.status === 1" @click="handlerState(row)"/>
         </template>
@@ -237,6 +192,5 @@ function pageReload() {
       </Grid>
     </Page>
     <CreateObjectModal @page-reload="pageReload"/>
-    <DetailConfigModel/>
   </div>
 </template>

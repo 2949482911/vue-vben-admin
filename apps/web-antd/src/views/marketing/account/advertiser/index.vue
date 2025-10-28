@@ -1,45 +1,49 @@
-<script lang="ts" setup name="PlatformCallbackManager">
+<script lang="ts" setup name="AdvertiserManager">
 import type {VbenFormProps} from '@vben/common-ui';
 import {Page, useVbenModal} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import type {BehavioraPlatformItem,} from '#/api/models';
+import type {PlatformcallbackItem,} from '#/api/models';
 import {$t} from '@vben/locales';
 
-import {Button, Switch, Tag} from 'ant-design-vue';
-import {behavioraPlatformApi} from '#/api/core/ocpx';
+import {Button, Switch} from 'ant-design-vue';
+import {advertiserApi} from '#/api/core';
 import {
   BatchOptionsType,
-  MatchFieldSelect,
-  ModelSelect,
   PLATFORM,
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
 
 import CreateObjectRequestComp from './create.vue';
-import DetailConfig from './detailconfig.vue';
+import AuthAccount from './authaccount.vue';
 
-// config detail
-const [DetailConfigModel, detailConfigModalApi] = useVbenModal({
-  connectedComponent: DetailConfig,
+
+/**
+ * 授权弹窗
+ */
+const [AuthAccountModal, authAccountModalApi] = useVbenModal({
+  connectedComponent: AuthAccount,
+  centered: true,
+  modal: true,
 });
 
-function openDetailConfig(row: BehavioraPlatformItem) {
-  detailConfigModalApi.setData(row.config);
-  detailConfigModalApi.open();
+function openAuthAccountModal() {
+  authAccountModalApi.open();
 }
 
+
+/**
+ * 创建弹窗
+ */
 const [CreateObjectModal, createObjectApi] = useVbenModal({
   connectedComponent: CreateObjectRequestComp,
   centered: true,
   modal: true,
 });
 
-function openCreateModal(
-  row: BehavioraPlatformItem
-) {
+function openCreateModal(row: PlatformcallbackItem) {
   if (row.id) {
     createObjectApi.setData(row);
   } else {
@@ -48,14 +52,14 @@ function openCreateModal(
   createObjectApi.open();
 }
 
-async function handlerState(row: BehavioraPlatformItem) {
+async function handlerState(row: PlatformcallbackItem) {
   await (row.status == 1
-    ? behavioraPlatformApi.fetchBatchOptions({
+    ? advertiserApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>(),
     })
-    : behavioraPlatformApi.fetchBatchOptions({
+    : advertiserApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>(),
@@ -63,11 +67,12 @@ async function handlerState(row: BehavioraPlatformItem) {
   pageReload();
 }
 
-async function handlerDelete(row: BehavioraPlatformItem) {
-  await behavioraPlatformApi.fetchBatchOptions({
+async function handlerDelete(row: PlatformcallbackItem) {
+  await advertiserApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>(),
+
   });
   pageReload();
 }
@@ -88,7 +93,7 @@ const formOptions: VbenFormProps = {
     {
       component: 'Input',
       fieldName: 'name',
-      label: `${$t('ocpx.behavioraplatform.columns.name')}`,
+      label: `${$t('marketing.developer.columns.name')}`,
     },
     {
       component: 'DatePicker',
@@ -112,7 +117,7 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
+const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
@@ -126,45 +131,80 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', type: 'checkbox', width: 'auto'},
+    {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
     {
       field: 'platform',
-      title: `${$t('ocpx.behavioraplatform.columns.platform')}`,
+      title: `${$t('ocpx.platform.title')}`,
       width: "auto"
     },
     {
-      field: 'name',
-      title: `${$t('ocpx.behavioraplatform.columns.name')}`,
+      field: 'advertiserId',
+      title: `${$t('marketing.advertiser.columns.advertiserId')}`,
       width: "auto"
     },
+
     {
-      field: 'model',
-      title: `${$t('ocpx.behavioraplatform.columns.model')}`,
-      width: "auto",
-      slots: {
-        default: 'model'
-      }
-    },
-    {
-      field: 'matchField',
-      title: `${$t('ocpx.behavioraplatform.columns.matchField')}`,
-      width: "auto",
-      slots: {
-        default: 'matchField'
-      }
-    },
-    {
-      field: 'config',
-      title: `${$t('ocpx.behavioraplatform.columns.config')}`,
-      slots: {default: 'config'},
+      field: 'advertiserName',
+      title: `${$t('marketing.advertiser.columns.advertiserName')}`,
       width: "auto"
     },
+
+    {
+      field: 'roleType',
+      title: `${$t('marketing.advertiser.columns.roleType')}`,
+      width: "auto"
+    },
+
     {
       field: 'remark',
-      title: `${$t('ocpx.behavioraplatform.columns.remark')}`,
+      title: `${$t('marketing.advertiser.columns.remark')}`,
       width: "auto"
     },
-    ...TABLE_COMMON_COLUMNS
+
+    {
+      field: 'platformRemark',
+      title: `${$t('marketing.advertiser.columns.platformRemark')}`,
+      width: "auto"
+    },
+
+    {
+      field: 'putStatue',
+      title: `${$t('marketing.advertiser.columns.putStatue')}`,
+      width: "auto"
+    },
+
+    {
+      field: 'platformStatus',
+      title: `${$t('marketing.advertiser.columns.platformStatus')}`,
+      width: "auto"
+    },
+
+    {
+      field: 'balance',
+      title: `${$t('marketing.advertiser.columns.balance')}`,
+      width: "auto"
+    },
+
+
+    {
+      field: 'dailyBudget',
+      title: `${$t('marketing.advertiser.columns.dailyBudget')}`,
+      width: "auto"
+    },
+
+    {
+      field: 'companyName',
+      title: `${$t('marketing.advertiser.columns.companyName')}`,
+      width: "auto"
+    },
+
+    {
+      field: 'platformAuditState',
+      title: `${$t('marketing.advertiser.columns.platformAuditState')}`,
+      width: "auto"
+    },
+
+    ...TABLE_COMMON_COLUMNS,
   ],
   height: 'auto',
   keepSource: true,
@@ -172,7 +212,7 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
-        return await behavioraPlatformApi.fetchBehavioraPlatformList({
+        return await advertiserApi.fetchAdvertiserList({
           page: page.currentPage,
           pageSize: page.pageSize,
           ...args,
@@ -193,29 +233,6 @@ function pageReload() {
   <div>
     <Page auto-content-height>
       <Grid>
-
-        <template #model="{ row }">
-          <Tag color="red">
-            {{
-              ModelSelect.filter((x) => x.value == row.model)[0].label
-            }}
-          </Tag>
-        </template>
-
-
-        <template #matchField="{ row }">
-          <Tag color="orange">
-            {{
-              MatchFieldSelect.filter((x) => x.value == row.matchField)[0].label
-            }}
-          </Tag>
-        </template>
-
-        <template #config="{ row }">
-          <Button type="link" @click="openDetailConfig(row)">
-            {{ $t('common.detail') }}
-          </Button>
-        </template>
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
             {{ $t('common.edit') }}
@@ -224,7 +241,6 @@ function pageReload() {
             {{ $t('common.delete') }}
           </Button>
         </template>
-
         <template #status="{ row }">
           <Switch :checked="row.status === 1" @click="handlerState(row)"/>
         </template>
@@ -233,10 +249,14 @@ function pageReload() {
           <Button class="mr-2" type="primary" @click="openCreateModal">
             {{ $t('common.create') }}
           </Button>
+
+          <Button class="mr-2" type="primary" danger @click="openAuthAccountModal">
+            {{ $t('marketing.advertiser.authAccount') }}
+          </Button>
         </template>
       </Grid>
     </Page>
     <CreateObjectModal @page-reload="pageReload"/>
-    <DetailConfigModel/>
+    <AuthAccountModal />
   </div>
 </template>
