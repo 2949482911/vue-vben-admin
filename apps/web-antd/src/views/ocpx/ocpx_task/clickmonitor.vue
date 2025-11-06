@@ -1,12 +1,26 @@
 <script lang="ts" setup name="ClickMonitor">
 import {ref} from 'vue';
-import {Textarea} from "ant-design-vue";
+import {Table, Card} from "ant-design-vue";
 
 import {useVbenModal} from '@vben/common-ui';
 import {clickMonitorApi} from "#/api/core/ocpx";
 import type {ClickMonitorResponse} from "#/api/models";
+import {$t} from "@vben/locales";
 
-const clickMonitor = ref<ClickMonitorResponse>({});
+const clickMonitor = ref<Array<ClickMonitorResponse>>([]);
+const columns = [
+  {
+    title: `${$t('ocpx.ocpx_task.clickmonitor.name')}`,
+    dataIndex: 'name',
+    label: 'Name'
+  },
+  {
+    title: `${$t('ocpx.ocpx_task.clickmonitor.url')}`,
+    dataIndex: 'url',
+    label: 'Url'
+  },
+]
+
 
 const [Modal, modalApi] = useVbenModal({
   onCancel() {
@@ -31,6 +45,10 @@ const [Modal, modalApi] = useVbenModal({
 </script>
 <template>
   <Modal>
-    <Textarea :value="clickMonitor.url" readonly :rows="6"></Textarea>
+    <Card>
+      <Table :columns="columns" :data-source="clickMonitor">
+
+      </Table>
+    </Card>
   </Modal>
 </template>

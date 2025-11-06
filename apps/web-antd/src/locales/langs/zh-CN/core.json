@@ -32,6 +32,7 @@
   "clickmonitor": "监测链接",
   "baseInfo": "基础信息",
   "configuration": "配置信息",
-  "behavioracallbackrecord": "转化回传记录"
+  "behavioracallbackrecord": "回传记录",
+  "behaviorRecord": "转化记录"
 
 }

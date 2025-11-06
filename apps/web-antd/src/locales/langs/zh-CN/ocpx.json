@@ -5,7 +5,10 @@
       "name": "名字",
       "platform": "平台",
       "config": "配置",
-      "remark": "备注"
+      "remark": "备注",
+      "advertiserId": "账户ID",
+      "advertiserName": "账户名字",
+      "ratio": "比例"
     }
   },
   "platform": {
@@ -58,10 +61,22 @@
       "callbackRate": "回传比例"
     },
     "callback_record_columns": {
-      "behavioraPlatformName": "转化媒体",
+      "behaviorPlatformName": "转化媒体",
       "platformCallbackName": "回传媒体",
       "respCode": "响应码",
-      "respMsg": "消息"
+      "respMsg": "消息",
+      "success": "是否成功"
+    },
+    "behavior_record_columns": {
+      "behaviorPlatformName": "转化媒体",
+      "platformCallbackName": "回传媒体",
+      "respCode": "响应码",
+      "respMsg": "消息",
+      "success": "是否成功"
+    },
+    "clickmonitor": {
+      "name": "转化配置名字",
+      "url": "点击监测"
     }
   }
 }

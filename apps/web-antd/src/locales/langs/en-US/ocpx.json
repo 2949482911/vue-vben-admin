@@ -5,7 +5,10 @@
       "name": "Name",
       "platform": "Platform",
       "config": "Config",
-      "remark": "Remark"
+      "remark": "Remark",
+      "advertiserId": "Advertiser",
+      "advertiserName": "Advertiser Name",
+      "ratio": "Ratio"
     }
   },
   "platform": {
@@ -52,16 +55,28 @@
       "platform": "Platform",
       "description": "Description",
       "taskState": "Task State",
-      "behavioraPlatform": "Behaviora Platform",
+      "behavioraPlatform": "Behavior Platform",
       "platformCallback": "Callback Platform",
       "clickRangeDay": "Click Range Day Ago",
       "callbackRate": "Callback Rate"
     },
     "callback_record_columns": {
-      "behavioraPlatformName": "Behaviora Name",
+      "behaviorPlatformName": "Behavior Name",
       "platformCallbackName": "Callback Name",
       "respCode": "Code",
-      "respMsg": "Message"
+      "respMsg": "Message",
+      "success": "Is Success"
+    },
+    "behavior_record_columns": {
+      "behaviorPlatformName": "Behavior Name",
+      "platformCallbackName": "Callback Name",
+      "respCode": "Code",
+      "respMsg": "Message",
+      "success": "Is Success"
+    },
+    "clickmonitor": {
+      "name": "Behaviora Name",
+      "url": "Click Link"
     }
   }
 }

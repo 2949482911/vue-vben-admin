@@ -127,7 +127,7 @@ platformConfigForm.set(Platform.OPPO, [
     rules: 'required',
   },
 ]);
-
+// 华为配置表
 platformConfigForm.set(Platform.HUAWEI, [
   {
     // 媒体配置表单
@@ -145,7 +145,6 @@ platformConfigForm.set(Platform.HUAWEI, [
 ]);
 // 字节回传
 platformConfigForm.set(Platform.BYTEDANCE, [])
-
 
 
 const [ConfigForm, configFormApi] = useVbenForm({
@@ -228,6 +227,66 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'name',
       // 界面显示的label
       label: `${$t('ocpx.platformcallback.columns.name')}`,
+      rules: 'required',
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      // 字段名
+      fieldName: 'advertiserId',
+      // 界面显示的label
+      label: `${$t('ocpx.platformcallback.columns.advertiserId')}`,
+      rules: 'required',
+      dependencies: {
+        show: (value) => {
+          return value.platform !== Platform.VIVO;
+        },
+        triggerFields: ["platform"]
+      }
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      // 字段名
+      fieldName: 'advertiserName',
+      // 界面显示的label
+      label: `${$t('ocpx.platformcallback.columns.advertiserName')}`,
+      rules: 'required',
+      dependencies: {
+        show: (value) => {
+          return value.platform !== Platform.VIVO;
+        },
+        triggerFields: ["platform"]
+      }
+    },
+
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'InputNumber',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        min: 0,
+        max: 100,
+        formatter: (value: number) => `${value}%`,
+        parser: (value: string) => value.replace('%', '')
+      },
+      // 字段名
+      fieldName: 'ratio',
+      defaultValue: 100,
+      // 界面显示的label
+      label: `${$t('ocpx.platformcallback.columns.ratio')}`,
       rules: 'required',
     },
 

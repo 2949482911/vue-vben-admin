@@ -1,4 +1,4 @@
-<script setup lang="ts" name="Behavioracallbackrecordlist">
+<script setup lang="ts" name="BehaviorRecordList">
 import {useVbenVxeGrid} from "@vben/plugins/vxe-table";
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import type {OcpxBehavioracallbackRecordItem} from "#/api/models";
@@ -32,7 +32,7 @@ const formOptions: VbenFormProps = {
     {
       component: 'Input',
       fieldName: 'behavioraPlatformId',
-      label: `${$t('ocpx.ocpx_task.callback_record_columns.behavioraPlatformName')}`,
+      label: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorPlatformName')}`,
     },
   ],
   // 控制表单是否显示折叠按钮
@@ -59,15 +59,15 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
     {
       field: 'behavioraPlatformName',
-      title: `${$t('ocpx.ocpx_task.callback_record_columns.behaviorPlatformName')}`,
+      title: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorPlatformName')}`,
     },
     {
       field: 'platformCallbackName',
-      title: `${$t('ocpx.ocpx_task.callback_record_columns.platformCallbackName')}`,
+      title: `${$t('ocpx.ocpx_task.behavior_record_columns.platformCallbackName')}`,
     },
     {
       field: 'respCode',
-      title: `${$t('ocpx.ocpx_task.callback_record_columns.respCode')}`,
+      title: `${$t('ocpx.ocpx_task.behavior_record_columns.respCode')}`,
     },
     {
       field: 'respMsg',
@@ -92,7 +92,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
-        return await ocpxTaskApi.fetchOcpxBehavioracallbackRecordList({
+        return await ocpxTaskApi.fetchOxpcBehaviorRecordList({
           page: page.currentPage,
           pageSize: page.pageSize,
           ...args,

@@ -159,12 +159,7 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
       width: "auto"
     },
     {
-      field: 'callbackRate',
-      title: `${$t('ocpx.ocpx_task.columns.callbackRate')}`,
-      width: "auto"
-    },
-    {
-      field: 'callbackRate',
+      field: 'clickRangeDay',
       title: `${$t('ocpx.ocpx_task.columns.clickRangeDay')}`,
       width: "auto"
     },
@@ -229,6 +224,9 @@ function pageReload() {
                 <MenuItem @click="openClickMonitor(row)">{{ $t('core.clickmonitor') }}</MenuItem>
                 <MenuItem @click="openBehavioracallbackrecord(row)">
                   {{ $t('core.behavioracallbackrecord') }}
+                </MenuItem>
+                <MenuItem @click="openBehavioracallbackrecord(row)">
+                  {{ $t('core.behaviorRecord') }}
                 </MenuItem>
               </Menu>
             </template>

@@ -111,9 +111,14 @@ export interface UpdateOcpxTaskRequest extends CreateOcpxTaskRequest {
 }
 
 
+/**
+ * 点击练级
+ */
 export interface ClickMonitorResponse {
   url: string;
+  name: string;
 }
+
 
 
 export interface OcpxBehavioracallbackRecordPageRequest extends PageRequestParams{
@@ -131,4 +136,5 @@ export interface OcpxBehavioracallbackRecordItem extends BaseItem {
   respCode:  number;
   respMsg: string;
   respData: Map<string, any>;
+  success: boolean;
 }

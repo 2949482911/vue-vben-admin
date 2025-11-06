@@ -35,5 +35,7 @@
   "clickmonitor": "Click Monitor",
   "baseInfo": "Base Info",
   "configuration": "Configuration",
-  "behavioracallbackrecord": "Callback Record"
+  "behavioracallbackrecord": "Callback Record",
+  "behaviorRecord": "Behavior Record"
+
 }

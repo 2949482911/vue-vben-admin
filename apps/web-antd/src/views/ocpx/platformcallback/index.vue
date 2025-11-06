@@ -135,6 +135,23 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
       field: 'name', title: `${$t('ocpx.platformcallback.columns.name')}`, width: "auto"
     },
     {
+      field: 'advertiserId',
+      title: `${$t('ocpx.platformcallback.columns.advertiserId')}`,
+      width: "auto"
+    },
+    {
+      field: 'advertiserName',
+      title: `${$t('ocpx.platformcallback.columns.advertiserName')}`,
+      width: "auto"
+    },
+
+    {
+      field: 'ratio',
+      title: `${$t('ocpx.platformcallback.columns.ratio')}`,
+      width: "auto"
+    },
+
+    {
       field: 'config',
       title: `${$t('ocpx.platformcallback.columns.config')}`,
       slots: {default: 'config'},
