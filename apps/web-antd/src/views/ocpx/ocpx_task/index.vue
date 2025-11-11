@@ -1,13 +1,16 @@
 <script lang="ts" setup name="PlatformCallbackManager">
-import type {VbenFormProps} from '@vben/common-ui';
-import {Page, useVbenModal} from '@vben/common-ui';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {Button, Dropdown, Menu, MenuItem, Switch, Tag} from 'ant-design-vue';
-import type {NoticeItem, OcpxTaskItem,} from '#/api/models';
-import {$t} from '@vben/locales';
-import {ocpxTaskApi} from '#/api/core/ocpx';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { NoticeItem, OcpxTaskItem } from '#/api/models';
+
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Button, Dropdown, Menu, MenuItem, Switch, Tag } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { ocpxTaskApi } from '#/api/core/ocpx';
 import {
   BatchOptionsType,
   PLATFORM,
@@ -15,32 +18,48 @@ import {
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
 
-import CreateObjectRequestComp from './create.vue';
-import ClickMonitor from './clickmonitor.vue';
 import Behavioracallbackrecordlist from './behavioracallbackrecordlist.vue';
-
+import BehaviorRecordList from './behaviorrecordlist.vue';
+import ClickMonitor from './clickmonitor.vue';
+import CreateObjectRequestComp from './create.vue';
 
 const [ClickMonitorModal, clickMonitorApi] = useVbenModal({
   connectedComponent: ClickMonitor,
   centered: true,
   modal: true,
-})
+});
 
-// 转化事件列表
-const [BehavioracallbackrecordModel, behavioracallbackrecordApi] = useVbenModal({
-  connectedComponent: Behavioracallbackrecordlist,
-  centered: true,
-  modal: true,
-})
+// 转化回调事件列表
+const [BehavioracallbackrecordModel, behavioracallbackrecordApi] = useVbenModal(
+  {
+    connectedComponent: Behavioracallbackrecordlist,
+    centered: true,
+    modal: true,
+  },
+);
 
 function openClickMonitor(row: OcpxTaskItem) {
-  clickMonitorApi.setData({taskId: row.id});
+  clickMonitorApi.setData({ taskId: row.id });
   clickMonitorApi.open();
 }
 
 function openBehavioracallbackrecord(row: OcpxTaskItem) {
-  behavioracallbackrecordApi.setData({taskId: row.id});
+  behavioracallbackrecordApi.setData({ taskId: row.id });
   behavioracallbackrecordApi.open();
+}
+
+// =================
+
+// 转化请求事件列表
+const [BehaviorRecordModel, behaviorRecordApi] = useVbenModal({
+  connectedComponent: BehaviorRecordList,
+  centered: true,
+  modal: true,
+});
+
+function openBehaviorRecord(row: OcpxTaskItem) {
+  behaviorRecordApi.setData({ taskId: row.id });
+  behaviorRecordApi.open();
 }
 
 const [CreateObjectModal, createObjectApi] = useVbenModal({
@@ -49,9 +68,7 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
   modal: true,
 });
 
-function openCreateModal(
-  row: OcpxTaskItem,
-) {
+function openCreateModal(row: OcpxTaskItem) {
   if (row.id) {
     createObjectApi.setData(row);
   } else {
@@ -61,20 +78,19 @@ function openCreateModal(
 }
 
 async function handlerState(row: NoticeItem) {
-  await (row.status == 1
+  await (row.status === 1
     ? ocpxTaskApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.DISABLE,
-      values: new Map<string, any>(),
-    })
+        targetIds: [row.id],
+        type: BatchOptionsType.DISABLE,
+        values: new Map<string, any>(),
+      })
     : ocpxTaskApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.Enable,
-      values: new Map<string, any>(),
-    }));
+        targetIds: [row.id],
+        type: BatchOptionsType.Enable,
+        values: new Map<string, any>(),
+      }));
   pageReload();
 }
-
 
 /**
  * delete ocpx task
@@ -85,7 +101,7 @@ async function handlerDelete(row: OcpxTaskItem) {
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>(),
-  })
+  });
   await gridApi.reload();
 }
 
@@ -143,28 +159,32 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
+    { title: '序号', type: 'seq', width: 50 },
     {
       field: 'platform',
       title: `${$t('ocpx.ocpx_task.columns.platform')}`,
-      width: "auto"
+      width: 'auto',
     },
     {
-      field: 'name', title: `${$t('ocpx.ocpx_task.columns.name')}`, width: "auto"
+      field: 'name',
+      title: `${$t('ocpx.ocpx_task.columns.name')}`,
+      width: 'auto',
     },
     {
       field: 'taskState',
       title: `${$t('ocpx.ocpx_task.columns.taskState')}`,
-      slots: {default: 'taskState'},
-      width: "auto"
+      slots: { default: 'taskState' },
+      width: 'auto',
     },
     {
       field: 'clickRangeDay',
       title: `${$t('ocpx.ocpx_task.columns.clickRangeDay')}`,
-      width: "auto"
+      width: 'auto',
     },
     {
-      field: 'description', title: `${$t('ocpx.ocpx_task.columns.description')}`, width: "auto"
+      field: 'description',
+      title: `${$t('ocpx.ocpx_task.columns.description')}`,
+      width: 'auto',
     },
 
     ...TABLE_COMMON_COLUMNS,
@@ -174,7 +194,7 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         return await ocpxTaskApi.fetchOcpxTaskList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -185,7 +205,7 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 function pageReload() {
   gridApi.reload();
@@ -198,14 +218,15 @@ function pageReload() {
       <Grid>
         <template #taskState="{ row }">
           <Tag color="red">
-            {{ STATUS_SELECT.filter((x) => x.value == row.taskState)[0].label }}
+            {{
+              STATUS_SELECT.filter((x) => x.value === row.taskState)[0].label
+            }}
           </Tag>
         </template>
 
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>
-
 
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
@@ -221,11 +242,13 @@ function pageReload() {
             </Button>
             <template #overlay>
               <Menu>
-                <MenuItem @click="openClickMonitor(row)">{{ $t('core.clickmonitor') }}</MenuItem>
+                <MenuItem @click="openClickMonitor(row)">
+                  {{ $t('core.clickmonitor') }}
+                </MenuItem>
                 <MenuItem @click="openBehavioracallbackrecord(row)">
                   {{ $t('core.behavioracallbackrecord') }}
                 </MenuItem>
-                <MenuItem @click="openBehavioracallbackrecord(row)">
+                <MenuItem @click="openBehaviorRecord(row)">
                   {{ $t('core.behaviorRecord') }}
                 </MenuItem>
               </Menu>
@@ -238,11 +261,11 @@ function pageReload() {
             {{ $t('common.create') }}
           </Button>
         </template>
-
       </Grid>
     </Page>
-    <CreateObjectModal @page-reload="pageReload"/>
-    <ClickMonitorModal/>
-    <BehavioracallbackrecordModel/>
+    <CreateObjectModal @page-reload="pageReload" />
+    <ClickMonitorModal />
+    <BehavioracallbackrecordModel />
+    <BehaviorRecordModel />
   </div>
 </template>

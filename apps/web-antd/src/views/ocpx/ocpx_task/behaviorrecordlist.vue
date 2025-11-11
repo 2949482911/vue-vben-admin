@@ -1,12 +1,16 @@
 <script setup lang="ts" name="BehaviorRecordList">
-import {useVbenVxeGrid} from "@vben/plugins/vxe-table";
-import type {VxeGridProps} from "#/adapter/vxe-table";
-import type {OcpxBehavioracallbackRecordItem} from "#/api/models";
-import {$t} from "@vben/locales";
-import {ocpxTaskApi} from "#/api/core/ocpx";
-import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import {Tag} from "ant-design-vue";
+import type { VbenFormProps } from '@vben/common-ui';
 
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { OcpxBehaviorRecordItem } from '#/api/models';
+
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+import { useVbenVxeGrid } from '@vben/plugins/vxe-table';
+
+import { Tag } from 'ant-design-vue';
+
+import { ocpxTaskApi } from '#/api/core/ocpx';
 
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
@@ -19,11 +23,9 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-
     }
-  }
+  },
 });
-
 
 // 默认展开
 const formOptions: VbenFormProps = {
@@ -41,8 +43,7 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-
-const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
+const gridOptions: VxeGridProps<OcpxBehaviorRecordItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
@@ -56,7 +57,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
+    { title: '序号', type: 'seq', width: 50 },
     {
       field: 'behavioraPlatformName',
       title: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorPlatformName')}`,
@@ -77,8 +78,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     {
       field: 'success',
       title: `${$t('ocpx.ocpx_task.behavior_record_columns.success')}`,
-      slots: {default: 'success'},
-
+      slots: { default: 'success' },
     },
     {
       field: 'createTime',
@@ -91,19 +91,18 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         return await ocpxTaskApi.fetchOxpcBehaviorRecordList({
           page: page.currentPage,
           pageSize: page.pageSize,
           ...args,
-          ocpxTaskId: modalApi.getData()["taskId"]
+          ocpxTaskId: modalApi.getData().taskId,
         });
       },
     },
   },
-}
-const [Grid] = useVbenVxeGrid({formOptions, gridOptions});
-
+};
+const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
 <template>
@@ -111,18 +110,16 @@ const [Grid] = useVbenVxeGrid({formOptions, gridOptions});
     <Modal>
       <Page auto-content-height>
         <Grid>
-
           <template #success="{ row }">
-            <Tag color="green" v-if="row.success">{{ $t('common.yes') }}</Tag>
+            <Tag color="green" v-if="row.requestSuccess">
+              {{ $t('common.yes') }}
+            </Tag>
             <Tag color="red" v-else>{{ $t('common.no') }}</Tag>
           </template>
-
         </Grid>
       </Page>
     </Modal>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

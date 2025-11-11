@@ -12,6 +12,10 @@ export const overridesPreferences = defineOverridesPreferences({
     accessMode: 'backend',
     enableRefreshToken: false,
     compact: true,
-    defaultHomePath: "/dashboard"
+    defaultHomePath: '/dashboard',
+    authPageLayout: 'panel-center',
+  },
+  theme: {
+    mode: 'auto',
   },
 });

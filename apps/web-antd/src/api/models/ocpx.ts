@@ -1,10 +1,9 @@
-import type {BaseItem, PageRequestParams} from "#/api/models/core";
-
+import type { BaseItem, PageRequestParams } from '#/api/models/core';
 
 // callback page request
 export interface PlatformcallbackPageRequest extends PageRequestParams {
   name?: string;
-  platform?: string
+  platform?: string;
 }
 
 // callback platform list
@@ -15,7 +14,6 @@ export interface PlatformcallbackItem extends BaseItem {
   remark: string;
 }
 
-
 export interface CreatePlatformCallbackRequest {
   name: string;
   platform: string;
@@ -23,10 +21,10 @@ export interface CreatePlatformCallbackRequest {
   remark: string;
 }
 
-export interface UpdatePlatformCallbackRequest extends CreatePlatformCallbackRequest {
+export interface UpdatePlatformCallbackRequest
+  extends CreatePlatformCallbackRequest {
   id: string;
 }
-
 
 // 转化媒体配置
 export interface BehavioraPlatformItem extends BaseItem {
@@ -51,12 +49,10 @@ export interface OcpxPlatformMatch extends BaseItem {
   matchId: string;
 }
 
-
 export interface BehavioraPlatformPageRequest extends PageRequestParams {
   name?: string;
   platform?: string;
 }
-
 
 // 创建转化配置
 export interface CreateBehavioraPlatformRequest {
@@ -69,15 +65,13 @@ export interface CreateBehavioraPlatformRequest {
   remark: string;
 }
 
-
 // 编辑转化配置
-export interface UpdateBehavioraPlatformRequest extends CreateBehavioraPlatformRequest {
+export interface UpdateBehavioraPlatformRequest
+  extends CreateBehavioraPlatformRequest {
   id: string;
 }
 
-
 // ocpx task
-
 
 export interface OpcxTaskPageRequest extends PageRequestParams {
   name?: string;
@@ -94,7 +88,6 @@ export interface OcpxTaskItem extends BaseItem {
   platformCallbackIds: Array<number>;
 }
 
-
 // ocpx task create request instance params
 export interface CreateOcpxTaskRequest {
   platform: string;
@@ -110,7 +103,6 @@ export interface UpdateOcpxTaskRequest extends CreateOcpxTaskRequest {
   id: string;
 }
 
-
 /**
  * 点击练级
  */
@@ -119,10 +111,9 @@ export interface ClickMonitorResponse {
   name: string;
 }
 
-
-
-export interface OcpxBehavioracallbackRecordPageRequest extends PageRequestParams{
-  ocpxTaskId: string
+export interface OcpxBehavioracallbackRecordPageRequest
+  extends PageRequestParams {
+  ocpxTaskId: string;
 }
 
 // ocpx 执行 任务记录
@@ -133,8 +124,25 @@ export interface OcpxBehavioracallbackRecordItem extends BaseItem {
   platformCallbackId: string;
   platformCallbackName: string;
   requestPrams: Map<string, any>;
-  respCode:  number;
+  respCode: number;
   respMsg: string;
   respData: Map<string, any>;
   success: boolean;
+  clickId: string;
+  requestId: string;
+}
+
+// 转化请求记录
+export interface OcpxBehaviorRecordItem extends BaseItem {
+  taskId: string;
+  behavioraPlatformId: string;
+  behavioraPlatformName: string;
+  platformCallbackId: string;
+  platformCallbackName: string;
+  clickId: string;
+  requestId: string;
+  respCode: number;
+  respMsg: string;
+  respData: Map<string, any>;
+  requestSuccess: boolean;
 }
