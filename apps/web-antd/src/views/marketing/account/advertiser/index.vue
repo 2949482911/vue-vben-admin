@@ -130,7 +130,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
     zoom: true,
   },
   columns: [
-    { title: '序号', type: 'seq', width: 50, },
+    { title: '序号', type: 'seq', width: 50 },
     {
       field: 'platform',
       title: `${$t('ocpx.platform.title')}`,
