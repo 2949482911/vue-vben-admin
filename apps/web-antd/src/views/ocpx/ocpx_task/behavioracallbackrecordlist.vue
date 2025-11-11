@@ -56,7 +56,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
+    {title: '序号', type: 'seq', width: 50},
     {
       field: 'behavioraPlatformName',
       title: `${$t('ocpx.ocpx_task.callback_record_columns.behaviorPlatformName')}`,

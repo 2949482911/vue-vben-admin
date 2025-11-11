@@ -24,12 +24,12 @@ const gridOptions: VxeGridProps<OcpxPlatformMatch> = {
     labelField: 'name',
   },
   columns: [
-    {title: '序号', type: 'seq', type: 'checkbox', width: 100},
+    {title: '序号', type: 'seq'},
     {
       field: 'platform',
       title: `${$t('ocpx.behavioraplatform.columns.platform')}`,
       slots: {default: 'platform'},
-      watch: 'auto'
+      width: 'auto'
     },
     {
       field: 'advertiserId',
