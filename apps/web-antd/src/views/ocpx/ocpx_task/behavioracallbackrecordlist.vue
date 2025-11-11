@@ -32,7 +32,7 @@ const formOptions: VbenFormProps = {
     {
       component: 'Input',
       fieldName: 'behavioraPlatformId',
-      label: `${$t('ocpx.ocpx_task.callback_record_columns.behavioraPlatformName')}`,
+      label: `${$t('ocpx.ocpx_task.callback_record_columns.platformCallbackName')}`,
     },
   ],
   // 控制表单是否显示折叠按钮
