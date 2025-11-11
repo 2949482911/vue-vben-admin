@@ -1,14 +1,16 @@
 <script lang="ts" setup name="AdvertiserManager">
-import type {VbenFormProps} from '@vben/common-ui';
-import {Page, useVbenModal} from '@vben/common-ui';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import type {PlatformcallbackItem,} from '#/api/models';
-import {$t} from '@vben/locales';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { PlatformcallbackItem } from '#/api/models';
 
-import {Button, Switch} from 'ant-design-vue';
-import {advertiserApi} from '#/api/core';
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Button, Switch, Tag } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { advertiserApi } from '#/api/core';
 import {
   BatchOptionsType,
   PLATFORM,
@@ -16,9 +18,8 @@ import {
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
 
-import CreateObjectRequestComp from './create.vue';
 import AuthAccount from './authaccount.vue';
-
+import CreateObjectRequestComp from './create.vue';
 
 /**
  * 授权弹窗
@@ -32,7 +33,6 @@ const [AuthAccountModal, authAccountModalApi] = useVbenModal({
 function openAuthAccountModal() {
   authAccountModalApi.open();
 }
-
 
 /**
  * 创建弹窗
@@ -53,17 +53,17 @@ function openCreateModal(row: PlatformcallbackItem) {
 }
 
 async function handlerState(row: PlatformcallbackItem) {
-  await (row.status == 1
+  await (row.status === 1
     ? advertiserApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.DISABLE,
-      values: new Map<string, any>(),
-    })
+        targetIds: [row.id],
+        type: BatchOptionsType.DISABLE,
+        values: new Map<string, any>(),
+      })
     : advertiserApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.Enable,
-      values: new Map<string, any>(),
-    }));
+        targetIds: [row.id],
+        type: BatchOptionsType.Enable,
+        values: new Map<string, any>(),
+      }));
   pageReload();
 }
 
@@ -72,7 +72,6 @@ async function handlerDelete(row: PlatformcallbackItem) {
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>(),
-
   });
   pageReload();
 }
@@ -131,77 +130,77 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100},
+    { title: '序号', type: 'seq', width: 50, },
     {
       field: 'platform',
       title: `${$t('ocpx.platform.title')}`,
-      width: "auto"
+      width: 'auto',
     },
     {
       field: 'advertiserId',
       title: `${$t('marketing.advertiser.columns.advertiserId')}`,
-      width: "auto"
+      width: 'auto',
     },
 
     {
       field: 'advertiserName',
       title: `${$t('marketing.advertiser.columns.advertiserName')}`,
-      width: "auto"
+      width: 'auto',
     },
 
     {
-      field: 'roleType',
-      title: `${$t('marketing.advertiser.columns.roleType')}`,
-      width: "auto"
+      field: 'advertiserRole',
+      title: `${$t('marketing.advertiser.columns.advertiserRole')}`,
+      width: 'auto',
+      slots: { default: 'advertiserRole' },
     },
 
     {
       field: 'remark',
       title: `${$t('marketing.advertiser.columns.remark')}`,
-      width: "auto"
+      width: 'auto',
     },
 
     {
       field: 'platformRemark',
       title: `${$t('marketing.advertiser.columns.platformRemark')}`,
-      width: "auto"
+      width: 'auto',
     },
 
     {
       field: 'putStatue',
       title: `${$t('marketing.advertiser.columns.putStatue')}`,
-      width: "auto"
+      width: 'auto',
     },
 
     {
       field: 'platformStatus',
       title: `${$t('marketing.advertiser.columns.platformStatus')}`,
-      width: "auto"
+      width: 'auto',
     },
 
     {
       field: 'balance',
       title: `${$t('marketing.advertiser.columns.balance')}`,
-      width: "auto"
+      width: 'auto',
     },
-
 
     {
       field: 'dailyBudget',
       title: `${$t('marketing.advertiser.columns.dailyBudget')}`,
-      width: "auto"
+      width: 'auto',
     },
 
     {
       field: 'companyName',
       title: `${$t('marketing.advertiser.columns.companyName')}`,
-      width: "auto"
+      width: 'auto',
     },
 
     {
       field: 'platformAuditState',
       title: `${$t('marketing.advertiser.columns.platformAuditState')}`,
-      width: "auto"
+      width: 'auto',
     },
 
     ...TABLE_COMMON_COLUMNS,
@@ -211,7 +210,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         return await advertiserApi.fetchAdvertiserList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -222,7 +221,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 function pageReload() {
   gridApi.reload();
@@ -233,6 +232,9 @@ function pageReload() {
   <div>
     <Page auto-content-height>
       <Grid>
+        <template #advertiserRole="{ row }">
+          <Tag color="red">{{ row.advertiserRole }}</Tag>
+        </template>
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
             {{ $t('common.edit') }}
@@ -242,7 +244,7 @@ function pageReload() {
           </Button>
         </template>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>
 
         <template #toolbar-tools>
@@ -250,13 +252,18 @@ function pageReload() {
             {{ $t('common.create') }}
           </Button>
 
-          <Button class="mr-2" type="primary" danger @click="openAuthAccountModal">
+          <Button
+            class="mr-2"
+            type="primary"
+            danger
+            @click="openAuthAccountModal"
+          >
             {{ $t('marketing.advertiser.authAccount') }}
           </Button>
         </template>
       </Grid>
     </Page>
-    <CreateObjectModal @page-reload="pageReload"/>
+    <CreateObjectModal @page-reload="pageReload" />
     <AuthAccountModal />
   </div>
 </template>

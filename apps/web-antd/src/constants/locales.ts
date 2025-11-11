@@ -1,14 +1,21 @@
-import {$t} from '@vben/locales';
+import { $t } from '@vben/locales';
 
 export const TABLE_COMMON_COLUMNS = [
   {
-    align: 'left', field: 'id', title: `${$t('core.columns.id')}`, width: 'auto',
+    align: 'left',
+    field: 'id',
+    title: `${$t('core.columns.id')}`,
+    width: 'auto',
   },
   {
-    field: 'createUsername', title: `${$t('core.columns.createUsername')}`, width: 'auto',
+    field: 'createUsername',
+    title: `${$t('core.columns.createUsername')}`,
+    width: 'auto',
   },
   {
-    field: 'updateUsername', title: `${$t('core.columns.updateUsername')}`, width: 'auto',
+    field: 'updateUsername',
+    title: `${$t('core.columns.updateUsername')}`,
+    width: 'auto',
   },
   {
     field: 'createTime',
@@ -21,20 +28,18 @@ export const TABLE_COMMON_COLUMNS = [
     formatter: 'formatDateTime',
     title: `${$t('core.columns.updateTime')}`,
     width: 'auto',
-
   },
   {
     field: 'status',
     title: `${$t('core.columns.status')}`,
-    slots: {default: 'status'},
+    slots: { default: 'status' },
     width: 'auto',
-
   },
   {
     field: 'options',
     title: `${$t('core.columns.options')}`,
     fixed: 'right',
-    slots: {default: 'action'},
+    slots: { default: 'action' },
     width: 'auto',
   },
 ];
@@ -129,8 +134,6 @@ export enum BatchOptionsType {
   Enable = 'enable',
 }
 
-
-
 // 媒体列表
 export const PLATFORM = [
   {
@@ -153,8 +156,7 @@ export const PLATFORM = [
     label: `${$t('ocpx.platform.bytedance')}`,
     value: 'bytedance',
   },
-]
-
+];
 
 /**
  * 授权账户媒体
@@ -164,8 +166,7 @@ export const AUTH_ACCOUNT_PLATFORM = [
     label: `${$t('ocpx.platform.vivo')}`,
     value: 'vivo',
   },
-]
-
+];
 
 export const BEHAVIORA_PLATFORM = [
   {
@@ -180,9 +181,11 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.kuake')}`,
     value: 'kuake',
   },
-]
-
-
+  {
+    label: `${$t('ocpx.platform.alipay')}`,
+    value: 'alipay',
+  },
+];
 
 // 匹配下拉
 export const ModelSelect = [
@@ -198,7 +201,7 @@ export const ModelSelect = [
     label: `${$t('ocpx.behavioraplatform.model.async')}`,
     value: 'async',
   },
-]
+];
 
 export const MatchFieldSelect = [
   {
@@ -225,5 +228,4 @@ export const MatchFieldSelect = [
     label: `${$t('ocpx.behavioraplatform.matchField.creativeId')}`,
     value: 'creativeId',
   },
-
-]
+];

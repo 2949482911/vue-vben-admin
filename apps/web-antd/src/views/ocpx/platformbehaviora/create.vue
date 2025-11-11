@@ -1,17 +1,23 @@
 <script lang="ts" setup name="CreateNotice">
-import type {BehavioraPlatformItem, OcpxPlatformMatch,} from '#/api/models';
+import type { BehavioraPlatformItem, OcpxPlatformMatch } from '#/api/models';
 
-import {ref} from 'vue';
+import { ref } from 'vue';
 
-import {useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import {useVbenForm} from '#/adapter/form';
-import {behavioraPlatformApi} from '#/api/core/ocpx';
-import {BEHAVIORA_PLATFORM, MatchFieldSelect, ModelSelect, PLATFORM} from '#/constants/locales';
-import {Card, Divider} from "ant-design-vue";
-import MatchTable from "./matchTable.vue";
-import {Platform} from "#/constants/enums";
+import { Card, Divider } from 'ant-design-vue';
+
+import { useVbenForm } from '#/adapter/form';
+import { behavioraPlatformApi } from '#/api/core/ocpx';
+import { Platform } from '#/constants/enums';
+import {
+  BEHAVIORA_PLATFORM,
+  MatchFieldSelect,
+  ModelSelect,
+} from '#/constants/locales';
+
+import MatchTable from './matchTable.vue';
 
 const emit = defineEmits(['pageReload']);
 // 创建表格
@@ -87,7 +93,6 @@ platformConfigForm.set(Platform.JDKJ, [
     label: `account_id`,
     rules: 'required',
   },
-
 ]);
 
 // kuake
@@ -174,7 +179,7 @@ platformConfigForm.set(Platform.KUAKE, [
     // 界面显示的label
     label: `type`,
     rules: 'required',
-    defaultValue: 'click'
+    defaultValue: 'click',
   },
 
   {
@@ -191,9 +196,10 @@ platformConfigForm.set(Platform.KUAKE, [
     label: `targetPkg`,
     rules: 'required',
   },
-])
+]);
 
-
+// 支付宝
+platformConfigForm.set(Platform.ALIPAY, []);
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
@@ -206,8 +212,7 @@ const [ConfigForm, configFormApi] = useVbenForm({
   layout: 'horizontal',
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   schema: platformConfigForm.get(Platform.JD),
-})
-
+});
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -224,7 +229,7 @@ const [Form, formApi] = useVbenForm({
       return;
     }
     formVal.config = await configFormApi.getValues();
-    if (ocpxPlatformMatchList.value && ocpxPlatformMatchList.value.length> 0) {
+    if (ocpxPlatformMatchList.value && ocpxPlatformMatchList.value.length > 0) {
       formVal.ocpxPlatformMatches = ocpxPlatformMatchList.value;
     }
     await (isUpdate.value
@@ -255,13 +260,13 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         placeholder: `${$t('common.input')}`,
         options: BEHAVIORA_PLATFORM,
-        onSelect: value => {
+        onSelect: (value: string) => {
           configFormApi.setState((_) => {
             return {
               schema: platformConfigForm.get(value),
-            }
-          })
-        }
+            };
+          });
+        },
       },
       defaultValue: Platform.JD,
       // 字段名
@@ -293,8 +298,8 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
         options: ModelSelect,
         onChange(value) {
-          matchModel.value = value
-        }
+          matchModel.value = value;
+        },
       },
       defaultValue: 'callback',
       // 字段名
@@ -310,14 +315,14 @@ const [Form, formApi] = useVbenForm({
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-        options: MatchFieldSelect
+        options: MatchFieldSelect,
       },
       // 字段名
       fieldName: 'matchField',
       // 界面显示的label
       label: `${$t('ocpx.behavioraplatform.columns.matchField')}`,
       rules: 'required',
-      defaultValue: 'clickId'
+      defaultValue: 'clickId',
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -335,7 +340,6 @@ const [Form, formApi] = useVbenForm({
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
 });
 
-
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
   fullscreenButton: false,
@@ -347,10 +351,10 @@ const [Modal, modalApi] = useVbenModal({
     await modalApi.close();
   },
   async onConfirm() {
-    const result = await formApi.validate()
+    const result = await formApi.validate();
     const configFormResult = await configFormApi.validate();
     if (!result.valid && !configFormResult.valid) {
-      return
+      return;
     }
     await formApi.submitForm();
     await configFormApi.resetForm();
@@ -366,7 +370,6 @@ const [Modal, modalApi] = useVbenModal({
         handleSetFormValue(objectRequest.value);
         ocpxPlatformMatchList.value = objectRequest.value.ocpxPlatformMatchList;
         matchModel.value = objectRequest.value.model;
-
       } else {
         isUpdate.value = false;
       }
@@ -379,7 +382,7 @@ function handleSetFormValue(row: BehavioraPlatformItem) {
   configFormApi.setState((_) => {
     return {
       schema: platformConfigForm.get(row.platform),
-    }
+    };
   });
   configFormApi.setValues(row.config);
 }
@@ -393,16 +396,19 @@ const title: string = objectRequest.value.id
     <Divider>{{ $t('core.baseInfo') }}</Divider>
 
     <Card :bordered="false">
-      <Form/>
+      <Form />
     </Card>
 
     <Divider>{{ $t('core.configuration') }}</Divider>
     <Card :bordered="false">
-      <ConfigForm/>
+      <ConfigForm />
     </Card>
 
     <Card :bordered="false" v-if="matchModel === 'match'">
-      <MatchTable ref="matchTableRef" :match-data-list="ocpxPlatformMatchList"></MatchTable>
+      <MatchTable
+        ref="matchTableRef"
+        :match-data-list="ocpxPlatformMatchList"
+      />
     </Card>
   </Modal>
 </template>

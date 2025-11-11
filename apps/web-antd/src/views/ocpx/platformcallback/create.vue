@@ -1,24 +1,23 @@
 <script lang="ts" setup name="CreateNotice">
-import type {
-  PlatformcallbackItem,
-} from '#/api/models';
+import type { PlatformcallbackItem } from '#/api/models';
 
-import {ref} from 'vue';
+import { ref } from 'vue';
 
-import {useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import {useVbenForm} from '#/adapter/form';
-import {platformCallbackApi} from '#/api/core/ocpx';
-import {PLATFORM} from '#/constants/locales';
-import {Divider} from "ant-design-vue";
-import {Platform} from "#/constants/enums";
+import { Divider } from 'ant-design-vue';
+
+import { useVbenForm } from '#/adapter/form';
+import { advertiserApi } from '#/api';
+import { platformCallbackApi } from '#/api/core/ocpx';
+import { Platform } from '#/constants/enums';
+import { PLATFORM } from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
 const objectRequest = ref<PlatformcallbackItem>({});
 const isUpdate = ref<Boolean>(false);
-
 
 // 媒体配置表单
 const platformConfigForm = new Map<string, Array<any>>();
@@ -52,16 +51,43 @@ platformConfigForm.set(Platform.VIVO, [
   },
   {
     // 媒体配置表单
-    component: 'Select',
+    component: 'ApiSelect',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.select')}`,
+      api: async (params: any) => {
+        return await advertiserApi.fetchAdvertiserList(params);
+      },
+      onSelect: async (_, data: any) => {
+        await formApi.setFieldValue('advertiserId', data.advertiserId);
+        await formApi.setFieldValue('advertiserName', data.label);
+      },
+      params: {
+        page: 1,
+        size: 1000,
+      },
+      valueField: 'id',
+      labelField: 'advertiserName',
+      resultField: 'items',
+    },
+    // 字段名
+    fieldName: 'advertiserName',
+    // 界面显示的label
+    label: `advertiser`,
+    rules: 'required',
+  },
+
+  {
+    // 媒体配置表单
+    component: 'Input',
     // 对应组件的参数
     componentProps: {
       placeholder: `${$t('common.input')}`,
-      multiple: true,
     },
     // 字段名
-    fieldName: 'advertiser',
+    fieldName: 'srcId',
     // 界面显示的label
-    label: `advertiser`,
+    label: `srcId`,
     rules: 'required',
   },
 ]);
@@ -117,8 +143,8 @@ platformConfigForm.set(Platform.OPPO, [
         {
           label: 'oppo',
           value: '1',
-        }
-      ]
+        },
+      ],
     },
     // 字段名
     fieldName: 'channel',
@@ -144,8 +170,7 @@ platformConfigForm.set(Platform.HUAWEI, [
   },
 ]);
 // 字节回传
-platformConfigForm.set(Platform.BYTEDANCE, [])
-
+platformConfigForm.set(Platform.BYTEDANCE, []);
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
@@ -158,8 +183,7 @@ const [ConfigForm, configFormApi] = useVbenForm({
   schema: platformConfigForm.get(Platform.VIVO),
   layout: 'horizontal',
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-})
-
+});
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -171,11 +195,10 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
-    formVal.config = await configFormApi.getValues()
+    formVal.config = await configFormApi.getValues();
     await (isUpdate.value
       ? platformCallbackApi.fetchPlatformcallbackUpdate(formVal)
-      : platformCallbackApi.fetchPlatformcallbackCreate(formVal,
-      ));
+      : platformCallbackApi.fetchPlatformcallbackCreate(formVal));
   },
   schema: [
     {
@@ -203,10 +226,10 @@ const [Form, formApi] = useVbenForm({
         onSelect: (value: string) => {
           configFormApi.setState((_) => {
             return {
-              schema: platformConfigForm.get(value)
-            }
-          })
-        }
+              schema: platformConfigForm.get(value),
+            };
+          });
+        },
       },
       // 字段名
       fieldName: 'platform',
@@ -246,8 +269,8 @@ const [Form, formApi] = useVbenForm({
         show: (value) => {
           return value.platform !== Platform.VIVO;
         },
-        triggerFields: ["platform"]
-      }
+        triggerFields: ['platform'],
+      },
     },
 
     {
@@ -266,10 +289,9 @@ const [Form, formApi] = useVbenForm({
         show: (value) => {
           return value.platform !== Platform.VIVO;
         },
-        triggerFields: ["platform"]
-      }
+        triggerFields: ['platform'],
+      },
     },
-
 
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -280,7 +302,7 @@ const [Form, formApi] = useVbenForm({
         min: 0,
         max: 100,
         formatter: (value: number) => `${value}%`,
-        parser: (value: string) => value.replace('%', '')
+        parser: (value: string) => value.replace('%', ''),
       },
       // 字段名
       fieldName: 'ratio',
@@ -296,7 +318,6 @@ const [Form, formApi] = useVbenForm({
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-
       },
       // 字段名
       fieldName: 'remark',
@@ -306,7 +327,6 @@ const [Form, formApi] = useVbenForm({
   ],
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
 });
-
 
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
@@ -321,7 +341,7 @@ const [Modal, modalApi] = useVbenModal({
     const result = await formApi.validate();
     const configFormApiResult = await configFormApi.validate();
     if (!result.valid && !configFormApiResult.valid) {
-      return
+      return;
     }
     await formApi.submitForm();
     await configFormApi.resetForm();
@@ -347,7 +367,7 @@ function handleSetFormValue(row: PlatformcallbackItem) {
   configFormApi.setState((_) => {
     return {
       schema: platformConfigForm.get(row.platform),
-    }
+    };
   });
   configFormApi.setValues(row.config);
 }
@@ -360,9 +380,9 @@ const title: string = objectRequest.value
   <Modal :title="title">
     <Divider>{{ $t('core.baseInfo') }}</Divider>
 
-    <Form/>
+    <Form />
 
     <Divider>{{ $t('core.configuration') }}</Divider>
-    <ConfigForm/>
+    <ConfigForm />
   </Modal>
 </template>

@@ -7,6 +7,7 @@
       "advertiserId": "账户ID",
       "advertiserName": "账户名字",
       "roleType": "角色",
+      "advertiserRole": "角色",
       "remark": "备注",
       "platformRemark": "媒体备注",
       "putStatue": "投放状态",

@@ -7,6 +7,7 @@
       "advertiserId": "Advertiser Id",
       "advertiserName": "Name",
       "roleType": "Role",
+      "advertiserRole": "Role",
       "remark": "Remark",
       "platformRemark": "Platform Remark",
       "putStatue": "Put Statue",

@@ -2,11 +2,12 @@
  * 媒体平台枚举
  */
 export enum Platform {
-  VIVO = "vivo",
-  OPPO = "oppo",
+  ALIPAY = 'alipay',
+  BYTEDANCE = 'bytedance',
   HUAWEI = 'huawei',
-  JD = "jd",
-  JDKJ = "jdkj", // 京东科技
-  KUAKE = "kuake",
-  BYTEDANCE = "bytedance",
+  JD = 'jd',
+  JDKJ = 'jdkj', // 京东科技
+  KUAKE = 'kuake',
+  OPPO = 'oppo',
+  VIVO = 'vivo',
 }

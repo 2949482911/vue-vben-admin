@@ -1,19 +1,21 @@
 <script lang="ts" setup name="PlatformCallbackManager">
-import type {VbenFormProps} from '@vben/common-ui';
-import {Page, useVbenModal} from '@vben/common-ui';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import type {BehavioraPlatformItem,} from '#/api/models';
-import {$t} from '@vben/locales';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { BehavioraPlatformItem } from '#/api/models';
 
-import {Button, Switch, Tag} from 'ant-design-vue';
-import {behavioraPlatformApi} from '#/api/core/ocpx';
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { Button, Switch, Tag } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { behavioraPlatformApi } from '#/api/core/ocpx';
 import {
   BatchOptionsType,
+  BEHAVIORA_PLATFORM,
   MatchFieldSelect,
   ModelSelect,
-  PLATFORM,
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
@@ -37,9 +39,7 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
   modal: true,
 });
 
-function openCreateModal(
-  row: BehavioraPlatformItem
-) {
+function openCreateModal(row: BehavioraPlatformItem) {
   if (row.id) {
     createObjectApi.setData(row);
   } else {
@@ -49,17 +49,17 @@ function openCreateModal(
 }
 
 async function handlerState(row: BehavioraPlatformItem) {
-  await (row.status == 1
+  await (row.status === 1
     ? behavioraPlatformApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.DISABLE,
-      values: new Map<string, any>(),
-    })
+        targetIds: [row.id],
+        type: BatchOptionsType.DISABLE,
+        values: new Map<string, any>(),
+      })
     : behavioraPlatformApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.Enable,
-      values: new Map<string, any>(),
-    }));
+        targetIds: [row.id],
+        type: BatchOptionsType.Enable,
+        values: new Map<string, any>(),
+      }));
   pageReload();
 }
 
@@ -79,7 +79,7 @@ const formOptions: VbenFormProps = {
       component: 'Select',
       componentProps: {
         allowClear: true,
-        options: PLATFORM,
+        options: BEHAVIORA_PLATFORM,
         placeholder: `${$t('common.choice')}`,
       },
       fieldName: 'platform',
@@ -126,52 +126,52 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', type: 'checkbox', width: 'auto'},
+    { title: '序号', type: 'seq', width: 'auto' },
     {
       field: 'platform',
       title: `${$t('ocpx.behavioraplatform.columns.platform')}`,
-      width: "auto"
+      width: 'auto',
     },
     {
       field: 'name',
       title: `${$t('ocpx.behavioraplatform.columns.name')}`,
-      width: "auto"
+      width: 'auto',
     },
     {
       field: 'model',
       title: `${$t('ocpx.behavioraplatform.columns.model')}`,
-      width: "auto",
+      width: 'auto',
       slots: {
-        default: 'model'
-      }
+        default: 'model',
+      },
     },
     {
       field: 'matchField',
       title: `${$t('ocpx.behavioraplatform.columns.matchField')}`,
-      width: "auto",
+      width: 'auto',
       slots: {
-        default: 'matchField'
-      }
+        default: 'matchField',
+      },
     },
     {
       field: 'config',
       title: `${$t('ocpx.behavioraplatform.columns.config')}`,
-      slots: {default: 'config'},
-      width: "auto"
+      slots: { default: 'config' },
+      width: 'auto',
     },
     {
       field: 'remark',
       title: `${$t('ocpx.behavioraplatform.columns.remark')}`,
-      width: "auto"
+      width: 'auto',
     },
-    ...TABLE_COMMON_COLUMNS
+    ...TABLE_COMMON_COLUMNS,
   ],
   height: 'auto',
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         return await behavioraPlatformApi.fetchBehavioraPlatformList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -182,7 +182,7 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 function pageReload() {
   gridApi.reload();
@@ -193,20 +193,17 @@ function pageReload() {
   <div>
     <Page auto-content-height>
       <Grid>
-
         <template #model="{ row }">
           <Tag color="red">
-            {{
-              ModelSelect.filter((x) => x.value == row.model)[0].label
-            }}
+            {{ ModelSelect.filter((x) => x.value === row.model)[0].label }}
           </Tag>
         </template>
-
 
         <template #matchField="{ row }">
           <Tag color="orange">
             {{
-              MatchFieldSelect.filter((x) => x.value == row.matchField)[0].label
+              MatchFieldSelect.filter((x) => x.value === row.matchField)[0]
+                .label
             }}
           </Tag>
         </template>
@@ -226,7 +223,7 @@ function pageReload() {
         </template>
 
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>
 
         <template #toolbar-tools>
@@ -236,7 +233,7 @@ function pageReload() {
         </template>
       </Grid>
     </Page>
-    <CreateObjectModal @page-reload="pageReload"/>
-    <DetailConfigModel/>
+    <CreateObjectModal @page-reload="pageReload" />
+    <DetailConfigModel />
   </div>
 </template>
