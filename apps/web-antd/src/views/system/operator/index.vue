@@ -32,7 +32,7 @@ const gridOptions: VxeGridProps<RowType> = {
     labelField: 'name',
   },
   columns: [
-    { title: '序号', type: 'seq', width: 50, type: 'checkbox', width: 100 },
+    { title: '序号', type: 'seq', width: 100 },
     { field: 'url', title: `${$t('system.operator.columns.url')}` },
     ...TABLE_COMMON_COLUMNS,
   ],
