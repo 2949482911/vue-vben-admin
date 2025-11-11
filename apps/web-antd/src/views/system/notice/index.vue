@@ -100,7 +100,7 @@ const gridOptions: VxeGridProps<NoticeItem> = {
     zoom: true,
   },
   columns: [
-    { title: '序号', type: 'seq', type: 'checkbox', width: 100 },
+    { title: '序号', type: 'seq', width: 100 },
     { field: 'title', title: `${$t('system.notice.columns.title')}` },
     { field: 'level', title: `${$t('system.notice.columns.level')}` },
     ...TABLE_COMMON_COLUMNS,
