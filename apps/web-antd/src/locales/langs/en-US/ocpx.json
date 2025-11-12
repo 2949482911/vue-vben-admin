@@ -20,7 +20,8 @@
     "jdkj": "JDKJ",
     "kuake": "KUAKE",
     "bytedance": "Bytedance",
-    "alipay": "AliPay"
+    "alipay": "AliPay",
+    "xmly": "Xima"
   },
   "behavioraplatform": {
     "columns": {
@@ -44,6 +45,7 @@
     },
     "matchField": {
       "clickId": "Click Id",
+      "requestId": "Request Id",
       "campaignId": "Campaign Id",
       "adgroupId": "AdGroup Id",
       "promotionId": "Promotion Id",

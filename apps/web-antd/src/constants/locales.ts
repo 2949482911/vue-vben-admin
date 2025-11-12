@@ -185,6 +185,10 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.alipay')}`,
     value: 'alipay',
   },
+  {
+    label: `${$t('ocpx.platform.xmly')}`,
+    value: 'xmly',
+  },
 ];
 
 // 匹配下拉
@@ -204,6 +208,10 @@ export const ModelSelect = [
 ];
 
 export const MatchFieldSelect = [
+  {
+    label: `${$t('ocpx.behavioraplatform.matchField.requestId')}`,
+    value: 'requestId',
+  },
   {
     label: `${$t('ocpx.behavioraplatform.matchField.clickId')}`,
     value: 'clickId',

@@ -1,16 +1,16 @@
 <script lang="ts" setup name="AdvertiserManager">
-import type { VbenFormProps } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { PlatformcallbackItem } from '#/api/models';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import type {AdvertiserItem} from '#/api/models';
 
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {Page, useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Button, Switch, Tag } from 'ant-design-vue';
+import {Button, Switch, Tag} from 'ant-design-vue';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { advertiserApi } from '#/api/core';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {advertiserApi} from '#/api/core';
 import {
   BatchOptionsType,
   PLATFORM,
@@ -55,15 +55,15 @@ function openCreateModal(row: PlatformcallbackItem) {
 async function handlerState(row: PlatformcallbackItem) {
   await (row.status === 1
     ? advertiserApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.DISABLE,
-        values: new Map<string, any>(),
-      })
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+      values: new Map<string, any>(),
+    })
     : advertiserApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.Enable,
-        values: new Map<string, any>(),
-      }));
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+      values: new Map<string, any>(),
+    }));
   pageReload();
 }
 
@@ -116,7 +116,7 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-const gridOptions: VxeGridProps<PlatformcallbackItem> = {
+const gridOptions: VxeGridProps<AdvertiserItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
@@ -130,7 +130,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
     zoom: true,
   },
   columns: [
-    { title: '序号', type: 'seq', width: 50 },
+    {title: '序号', type: 'seq', width: 50},
     {
       field: 'platform',
       title: `${$t('ocpx.platform.title')}`,
@@ -152,7 +152,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
       field: 'advertiserRole',
       title: `${$t('marketing.advertiser.columns.advertiserRole')}`,
       width: 'auto',
-      slots: { default: 'advertiserRole' },
+      slots: {default: 'advertiserRole'},
     },
 
     {
@@ -177,6 +177,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
       field: 'platformStatus',
       title: `${$t('marketing.advertiser.columns.platformStatus')}`,
       width: 'auto',
+      slots: {default: 'platformStatus'}
     },
 
     {
@@ -201,6 +202,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
       field: 'platformAuditState',
       title: `${$t('marketing.advertiser.columns.platformAuditState')}`,
       width: 'auto',
+      slots: {default: 'platformAuditState'}
     },
 
     ...TABLE_COMMON_COLUMNS,
@@ -210,7 +212,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, args) => {
+      query: async ({page}, args) => {
         return await advertiserApi.fetchAdvertiserList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -221,7 +223,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 function pageReload() {
   gridApi.reload();
@@ -235,6 +237,15 @@ function pageReload() {
         <template #advertiserRole="{ row }">
           <Tag color="red">{{ row.advertiserRole }}</Tag>
         </template>
+
+        <template #platformStatus="{row}">
+          <Tag color="green">{{ row.platformStatus }}</Tag>
+        </template>
+
+        <template #platformAuditState="{row}">
+          <Tag color="orange">{{ row.platformAuditState }}</Tag>
+        </template>
+
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
             {{ $t('common.edit') }}
@@ -244,7 +255,7 @@ function pageReload() {
           </Button>
         </template>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
+          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
         </template>
 
         <template #toolbar-tools>
@@ -263,7 +274,7 @@ function pageReload() {
         </template>
       </Grid>
     </Page>
-    <CreateObjectModal @page-reload="pageReload" />
-    <AuthAccountModal />
+    <CreateObjectModal @page-reload="pageReload"/>
+    <AuthAccountModal/>
   </div>
 </template>

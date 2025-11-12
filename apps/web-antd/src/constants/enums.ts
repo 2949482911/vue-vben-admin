@@ -10,4 +10,5 @@ export enum Platform {
   KUAKE = 'kuake',
   OPPO = 'oppo',
   VIVO = 'vivo',
+  XMLY = "xmly"
 }

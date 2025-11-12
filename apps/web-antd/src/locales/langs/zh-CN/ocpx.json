@@ -20,7 +20,8 @@
     "jdkj": "京东科技",
     "kuake": "夸克",
     "bytedance": "巨量引擎",
-    "alipay": "支付宝"
+    "alipay": "支付宝",
+    "xmly": "喜马拉雅"
   },
   "behavioraplatform": {
     "columns": {
@@ -44,6 +45,7 @@
     },
     "matchField": {
       "clickId": "点击ID",
+      "requestId": "请求ID",
       "campaignId": "计划ID",
       "adgroupId": "广告组ID",
       "promotionId": "广告ID",

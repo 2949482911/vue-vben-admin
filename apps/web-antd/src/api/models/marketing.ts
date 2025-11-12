@@ -19,6 +19,7 @@ export interface AdvertiserItem extends BaseItem {
   advertiserName: string;
   roleType: string;
   remark: string;
+  advertiserRole: string;
   platformRemark: string;
   putStatue: number;
   platformStatus: string;

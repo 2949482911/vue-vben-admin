@@ -1,16 +1,16 @@
 <script lang="ts" setup name="CreateNotice">
-import type { BehavioraPlatformItem, OcpxPlatformMatch } from '#/api/models';
+import type {BehavioraPlatformItem, OcpxPlatformMatch} from '#/api/models';
 
-import { ref } from 'vue';
+import {ref} from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Card, Divider } from 'ant-design-vue';
+import {Card, Divider} from 'ant-design-vue';
 
-import { useVbenForm } from '#/adapter/form';
-import { behavioraPlatformApi } from '#/api/core/ocpx';
-import { Platform } from '#/constants/enums';
+import {useVbenForm} from '#/adapter/form';
+import {behavioraPlatformApi} from '#/api/core/ocpx';
+import {Platform} from '#/constants/enums';
 import {
   BEHAVIORA_PLATFORM,
   MatchFieldSelect,
@@ -200,6 +200,62 @@ platformConfigForm.set(Platform.KUAKE, [
 
 // 支付宝
 platformConfigForm.set(Platform.ALIPAY, []);
+platformConfigForm.set(Platform.XMLY, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'channel',
+    // 界面显示的label
+    label: `channel`,
+    rules: 'required',
+  },
+
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'secretKey',
+    // 界面显示的label
+    label: `secretKey`,
+    rules: 'required',
+  },
+
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'xima_agent',
+    // 界面显示的label
+    label: `xima_agent`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'rta_trace_id',
+    // 界面显示的label
+    label: `rta_trace_id`,
+    rules: 'required',
+  },
+]);
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
@@ -297,7 +353,7 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         placeholder: `${$t('common.input')}`,
         options: ModelSelect,
-        onChange(value) {
+        onChange(value: string) {
           matchModel.value = value;
         },
       },
@@ -322,7 +378,7 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: `${$t('ocpx.behavioraplatform.columns.matchField')}`,
       rules: 'required',
-      defaultValue: 'clickId',
+      defaultValue: 'requestId',
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -396,12 +452,12 @@ const title: string = objectRequest.value.id
     <Divider>{{ $t('core.baseInfo') }}</Divider>
 
     <Card :bordered="false">
-      <Form />
+      <Form/>
     </Card>
 
     <Divider>{{ $t('core.configuration') }}</Divider>
     <Card :bordered="false">
-      <ConfigForm />
+      <ConfigForm/>
     </Card>
 
     <Card :bordered="false" v-if="matchModel === 'match'">
