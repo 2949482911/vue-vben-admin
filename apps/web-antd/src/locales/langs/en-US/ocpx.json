@@ -8,8 +8,12 @@
       "remark": "Remark",
       "advertiserId": "Advertiser",
       "advertiserName": "Advertiser Name",
-      "ratio": "Ratio"
-    }
+      "ratio": "Ratio",
+      "behaviorType": "Event Name"
+    },
+    "behaviorTypeMoel": "Event Model",
+    "auto": "Auto",
+    "custom": "Customer"
   },
   "platform": {
     "title": "Media Platform",
@@ -61,7 +65,8 @@
       "behavioraPlatform": "Behavior Platform",
       "platformCallback": "Callback Platform",
       "clickRangeDay": "Click Range Day Ago",
-      "callbackRate": "Callback Rate"
+      "callbackRate": "Callback Rate",
+      "hadClick": "Had Click"
     },
     "callback_record_columns": {
       "behaviorPlatformName": "Behavior Name",

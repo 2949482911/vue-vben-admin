@@ -1,16 +1,16 @@
 <script lang="ts" setup name="PlatformCallbackManager">
-import type { VbenFormProps } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { NoticeItem, OcpxTaskItem } from '#/api/models';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import type {NoticeItem, OcpxTaskItem} from '#/api/models';
 
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {Page, useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Button, Dropdown, Menu, MenuItem, Switch, Tag } from 'ant-design-vue';
+import {Button, Dropdown, Menu, MenuItem, Switch, Tag} from 'ant-design-vue';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { ocpxTaskApi } from '#/api/core/ocpx';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {ocpxTaskApi} from '#/api/core/ocpx';
 import {
   BatchOptionsType,
   PLATFORM,
@@ -39,12 +39,12 @@ const [BehavioracallbackrecordModel, behavioracallbackrecordApi] = useVbenModal(
 );
 
 function openClickMonitor(row: OcpxTaskItem) {
-  clickMonitorApi.setData({ taskId: row.id });
+  clickMonitorApi.setData({taskId: row.id});
   clickMonitorApi.open();
 }
 
 function openBehavioracallbackrecord(row: OcpxTaskItem) {
-  behavioracallbackrecordApi.setData({ taskId: row.id });
+  behavioracallbackrecordApi.setData({taskId: row.id});
   behavioracallbackrecordApi.open();
 }
 
@@ -58,7 +58,7 @@ const [BehaviorRecordModel, behaviorRecordApi] = useVbenModal({
 });
 
 function openBehaviorRecord(row: OcpxTaskItem) {
-  behaviorRecordApi.setData({ taskId: row.id });
+  behaviorRecordApi.setData({taskId: row.id});
   behaviorRecordApi.open();
 }
 
@@ -80,15 +80,15 @@ function openCreateModal(row: OcpxTaskItem) {
 async function handlerState(row: NoticeItem) {
   await (row.status === 1
     ? ocpxTaskApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.DISABLE,
-        values: new Map<string, any>(),
-      })
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+      values: new Map<string, any>(),
+    })
     : ocpxTaskApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.Enable,
-        values: new Map<string, any>(),
-      }));
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+      values: new Map<string, any>(),
+    }));
   pageReload();
 }
 
@@ -159,7 +159,7 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
     zoom: true,
   },
   columns: [
-    { title: '序号', type: 'seq', width: 50 },
+    {title: '序号', type: 'seq', width: 50},
     {
       field: 'platform',
       title: `${$t('ocpx.ocpx_task.columns.platform')}`,
@@ -173,7 +173,13 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
     {
       field: 'taskState',
       title: `${$t('ocpx.ocpx_task.columns.taskState')}`,
-      slots: { default: 'taskState' },
+      slots: {default: 'taskState'},
+      width: 'auto',
+    },
+    {
+      field: 'hadClick',
+      title: `${$t('ocpx.ocpx_task.columns.hadClick')}`,
+      slots: {default: 'hadClick'},
       width: 'auto',
     },
     {
@@ -194,7 +200,7 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, args) => {
+      query: async ({page}, args) => {
         return await ocpxTaskApi.fetchOcpxTaskList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -205,7 +211,7 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 function pageReload() {
   gridApi.reload();
@@ -217,15 +223,20 @@ function pageReload() {
     <Page auto-content-height>
       <Grid>
         <template #taskState="{ row }">
-          <Tag color="red">
+          <Tag color="green">
             {{
               STATUS_SELECT.filter((x) => x.value === row.taskState)[0].label
             }}
           </Tag>
         </template>
 
+        <template #hadClick="{row}">
+          <Tag color="green" v-if="row.hadClick">{{ $t('core.had') }}</Tag>
+          <Tag v-else color="red">{{ $t('core.empty') }}</Tag>
+        </template>
+
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
+          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
         </template>
 
         <template #action="{ row }">
@@ -263,9 +274,9 @@ function pageReload() {
         </template>
       </Grid>
     </Page>
-    <CreateObjectModal @page-reload="pageReload" />
-    <ClickMonitorModal />
-    <BehavioracallbackrecordModel />
-    <BehaviorRecordModel />
+    <CreateObjectModal @page-reload="pageReload"/>
+    <ClickMonitorModal/>
+    <BehavioracallbackrecordModel/>
+    <BehaviorRecordModel/>
   </div>
 </template>

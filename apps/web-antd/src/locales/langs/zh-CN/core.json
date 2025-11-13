@@ -1,4 +1,6 @@
 {
+  "had": "有",
+  "empty": "无",
   "columns": {
     "createTime": "创建时间",
     "updateTime": "修改时间",

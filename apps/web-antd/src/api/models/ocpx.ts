@@ -1,4 +1,4 @@
-import type { BaseItem, PageRequestParams } from '#/api/models/core';
+import type {BaseItem, PageRequestParams} from '#/api/models/core';
 
 // callback page request
 export interface PlatformcallbackPageRequest extends PageRequestParams {
@@ -12,6 +12,9 @@ export interface PlatformcallbackItem extends BaseItem {
   platform: string;
   config: Map<string, any>;
   remark: string;
+  behaviorType: string;
+  behaviorTypeMoel: string;
+  behaviorTypeName: string;
 }
 
 export interface CreatePlatformCallbackRequest {
@@ -86,6 +89,7 @@ export interface OcpxTaskItem extends BaseItem {
   callbackRate: number;
   behavioraPlatformIds: Array<number>;
   platformCallbackIds: Array<number>;
+  hadClick: boolean;
 }
 
 // ocpx task create request instance params
@@ -145,4 +149,13 @@ export interface OcpxBehaviorRecordItem extends BaseItem {
   respMsg: string;
   respData: Map<string, any>;
   requestSuccess: boolean;
+}
+
+
+/**
+ * 回传媒体事件类型
+ */
+export interface PlatformCallbackBehaviorTypeItem {
+  label: string;
+  value: string;
 }

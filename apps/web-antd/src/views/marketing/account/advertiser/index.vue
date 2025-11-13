@@ -91,12 +91,12 @@ const formOptions: VbenFormProps = {
     },
     {
       component: 'Input',
-      fieldName: 'name',
+      fieldName: 'advertiserName',
       label: `${$t('marketing.developer.columns.name')}`,
     },
     {
       component: 'DatePicker',
-      fieldName: 'datePicker',
+      fieldName: 'createTime',
       label: 'Date',
     },
     {

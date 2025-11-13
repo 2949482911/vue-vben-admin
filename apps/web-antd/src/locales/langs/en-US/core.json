@@ -1,4 +1,6 @@
 {
+  "had": "Had",
+  "empty": "Empty",
   "columns": {
     "createTime": "Create Time",
     "updateTime": "Update Time",

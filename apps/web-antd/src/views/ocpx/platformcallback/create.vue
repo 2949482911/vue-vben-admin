@@ -1,18 +1,18 @@
 <script lang="ts" setup name="CreateNotice">
-import type { PlatformcallbackItem } from '#/api/models';
+import type {PlatformCallbackBehaviorTypeItem, PlatformcallbackItem} from '#/api/models';
 
-import { ref } from 'vue';
+import {ref} from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Divider } from 'ant-design-vue';
+import {Divider} from 'ant-design-vue';
 
-import { useVbenForm } from '#/adapter/form';
-import { advertiserApi } from '#/api';
-import { platformCallbackApi } from '#/api/core/ocpx';
-import { Platform } from '#/constants/enums';
-import { PLATFORM } from '#/constants/locales';
+import {useVbenForm} from '#/adapter/form';
+import {advertiserApi} from '#/api';
+import {platformCallbackApi} from '#/api/core/ocpx';
+import {Platform} from '#/constants/enums';
+import {PLATFORM} from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
@@ -172,6 +172,20 @@ platformConfigForm.set(Platform.HUAWEI, [
 // 字节回传
 platformConfigForm.set(Platform.BYTEDANCE, []);
 
+
+/**
+ *
+ * @param platform 平台
+ */
+async function getPlatformCallbackBehaviorTypeItem(platform: string) {
+  behaviorTypeList.value = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(
+    platform
+  );
+}
+
+const behaviorTypeList = ref<Array<PlatformCallbackBehaviorTypeItem>>([]);
+
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -223,12 +237,17 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         placeholder: `${$t('common.input')}`,
         options: PLATFORM,
-        onSelect: (value: string) => {
+        onSelect: async (value: string) => {
           configFormApi.setState((_) => {
             return {
               schema: platformConfigForm.get(value),
             };
           });
+          // 更新字段
+          const values = await formApi.getValues();
+          if (values["behaviorTypeMoel"] === 'custom') {
+            await getPlatformCallbackBehaviorTypeItem(value)
+          }
         },
       },
       // 字段名
@@ -293,6 +312,61 @@ const [Form, formApi] = useVbenForm({
       },
     },
 
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Select',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        options: [
+          {
+            label: `${$t('ocpx.platformcallback.auto')}`,
+            value: 'auto',
+          },
+          {
+            label: `${$t('ocpx.platformcallback.custom')}`,
+            value: 'custom',
+          }
+        ],
+        onSelect: async (value: string) => {
+          if (value === "custom") {
+            const values = await  formApi.getValues();
+            await getPlatformCallbackBehaviorTypeItem(values["platform"])
+          }
+        }
+      },
+      defaultValue: 'auto',
+      // 字段名
+      fieldName: 'behaviorTypeMoel',
+      // 界面显示的label
+      label: `${$t('ocpx.platformcallback.behaviorTypeMoel')}`,
+      rules: 'required',
+    },
+
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Select',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.select')}`,
+        options: behaviorTypeList,
+      },
+      // 字段名
+      fieldName: 'behaviorType',
+      // 界面显示的label
+      label: `${$t('ocpx.platformcallback.columns.behaviorType')}`,
+      rules: 'required',
+      dependencies: {
+        show: (value) => {
+          return value.behaviorTypeMoel === 'custom';
+        },
+        triggerFields: ['behaviorTypeMoel'],
+      },
+    },
+
+
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'InputNumber',
@@ -355,6 +429,7 @@ const [Modal, modalApi] = useVbenModal({
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
+        getPlatformCallbackBehaviorTypeItem(objectRequest.value.platform);
       } else {
         isUpdate.value = false;
       }
@@ -380,9 +455,9 @@ const title: string = objectRequest.value
   <Modal :title="title">
     <Divider>{{ $t('core.baseInfo') }}</Divider>
 
-    <Form />
+    <Form/>
 
     <Divider>{{ $t('core.configuration') }}</Divider>
-    <ConfigForm />
+    <ConfigForm/>
   </Modal>
 </template>

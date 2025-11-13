@@ -7,7 +7,7 @@ import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import type {PlatformcallbackItem,} from '#/api/models';
 import {$t} from '@vben/locales';
 
-import {Button, Switch} from 'ant-design-vue';
+import {Button, Switch, Tag} from 'ant-design-vue';
 import {platformCallbackApi} from '#/api/core/ocpx';
 import {
   BatchOptionsType,
@@ -152,6 +152,13 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
     },
 
     {
+      field: 'behaviorType',
+      title: `${$t('ocpx.platformcallback.columns.behaviorType')}`,
+      width: "auto",
+      slots: {default : 'behaviorType'}
+    },
+
+    {
       field: 'config',
       title: `${$t('ocpx.platformcallback.columns.config')}`,
       slots: {default: 'config'},
@@ -190,6 +197,12 @@ function pageReload() {
   <div>
     <Page auto-content-height>
       <Grid>
+        <template #behaviorType="{row}">
+          <Tag color="green" v-if="row.behaviorTypeMoel === 'auto'">
+            {{$t('ocpx.platformcallback.auto')}}
+          </Tag>
+          <Tag v-else color="red">{{ row.behaviorTypeName }}</Tag>
+        </template>
         <template #config="{ row }">
           <Button type="link" @click="openDetailConfig(row)">
             {{ $t('common.detail') }}

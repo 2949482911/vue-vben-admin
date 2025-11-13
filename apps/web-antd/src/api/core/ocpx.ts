@@ -7,7 +7,7 @@ import type {
   CreateOcpxTaskRequest,
   CreatePlatformCallbackRequest, OcpxBehavioracallbackRecordPageRequest,
   OcpxTaskItem,
-  OpcxTaskPageRequest,
+  OpcxTaskPageRequest, PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
   PlatformcallbackPageRequest,
   UpdateBehavioraPlatformRequest,
@@ -36,6 +36,17 @@ class PlatformCallbackApi extends BaseApi {
 
   fetchBatchOptions(params: BatchOptions) {
     return requestClient.post(this.getServiceUrl("batch_options"), params)
+  }
+
+  /**
+   * 获取回传媒体支持的转化事件类型
+   */
+  fetchPlatformCallbackBehaviorTypeItem(platform: string) {
+    return requestClient.get<PlatformCallbackBehaviorTypeItem[]>(this.getServiceUrl("behavior_type_list"), {
+      params: {
+        platform: platform
+      }
+    })
   }
 }
 

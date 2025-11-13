@@ -38,20 +38,23 @@ async function handlerState(row: OrgItem) {
     ? orgApi.fetchBatchOptions({
         targetIds: [row.id],
         type: BatchOptionsType.DISABLE,
+        values: new Map<string, any>()
       })
     : orgApi.fetchBatchOptions({
         targetIds: [row.id],
         type: BatchOptionsType.Enable,
-      }));
+        values: new Map<string, any>()
+    }));
   pageReload();
 }
 
 async function handlerDelete(row: OrgItem) {
   await orgApi.fetchBatchOptions({
     targetIds: [row.id],
-    type: BatchOptionsType.DELETE,
+    type: BatchOptionsType.Delete,
+    values: new Map<string, any>()
   });
-  await pageReload();
+  pageReload();
 }
 
 const gridOptions: VxeGridProps<MenuItem> = {
