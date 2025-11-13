@@ -1,17 +1,17 @@
 <script lang="ts" setup name="MainBodyManager">
-import type { VbenFormProps } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { MainBodyItem } from '#/api/models';
-import type { CreateMenuRequest, UpdateMenuRequest } from '#/api/models/menu';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import type {MainBodyItem} from '#/api/models';
+import type {CreateMenuRequest, UpdateMenuRequest} from '#/api/models/menu';
 
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {Page, useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Button, Switch, Tag } from 'ant-design-vue';
+import {Button, Switch, Tag} from 'ant-design-vue';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { mainBodyApi } from '#/api';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {mainBodyApi} from '#/api';
 import {
   BatchOptionsType,
   STATUS_SELECT,
@@ -38,20 +38,23 @@ function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
 async function handlerState(row: MainBodyItem) {
   await (row.status == 1
     ? mainBodyApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.DISABLE,
-      })
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+      values: new Map<string, any>()
+    })
     : mainBodyApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.Enable,
-      }));
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+      values: new Map<string, any>()
+
+    }));
   pageReload();
 }
 
 async function handlerDelete(row: MainBodyItem) {
   await mainBodyApi.fetchBatchOptions({
     targetIds: [row.id],
-    type: BatchOptionsType.DELETE,
+    type: BatchOptionsType.Delete,
   });
   pageReload();
 }
@@ -104,7 +107,7 @@ const gridOptions: VxeGridProps<MainBodyItem> = {
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({ page }, args) => {
+      query: async ({page}, args) => {
         return await mainBodyApi.fetchMainList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -125,7 +128,7 @@ const gridOptions: VxeGridProps<MainBodyItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 const pageReload = () => {
   gridApi.reload();
@@ -137,7 +140,7 @@ const pageReload = () => {
     <Page>
       <Grid :table-title="$t('system.user.title')">
         <template #status="{ row }">
-          <Switch :checked="row.status == 1" @click="handlerState(row)" />
+          <Switch :checked="row.status == 1" @click="handlerState(row)"/>
         </template>
 
         <template #sex="{ row }">
@@ -161,6 +164,6 @@ const pageReload = () => {
         </template>
       </Grid>
     </Page>
-    <CreateModal @page-reload="pageReload" />
+    <CreateModal @page-reload="pageReload"/>
   </div>
 </template>
