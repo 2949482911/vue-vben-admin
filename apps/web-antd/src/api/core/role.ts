@@ -1,11 +1,5 @@
-import { requestClient } from '#/api/request';
-import type {
-  RoleItem,
-  RoleSearchParams,
-  CreateRoleRequest,
-  UpdateRoleRequest,
-} from "#/api/models";
-import type {DeleteItem} from "#/api/models/core";
+import {requestClient} from '#/api/request';
+import type {CreateRoleRequest, RoleItem, RoleSearchParams, UpdateRoleRequest,} from "#/api/models";
 import {BaseApi} from "#/api/core/baseapi";
 
 
@@ -20,7 +14,7 @@ class RoleApi extends BaseApi {
    * @param params params
    */
   public fetchRoleList(params: RoleSearchParams): Promise<RoleItem[]> {
-    return requestClient.get<RoleItem>(this.getServiceUrl("list"), {params})
+    return requestClient.get<RoleItem[]>(this.getServiceUrl("list"), {params})
   }
 
   /**

@@ -48,7 +48,7 @@ class UserApi extends BaseApi {
 
 class OrgApi extends BaseApi {
 
-  fetchOrgTree(): Promise<OrgModel[]> {
+  fetchOrgTree(): Promise<OrgItem[]> {
     return requestClient.get<OrgItem[]>(this.getServiceUrl("list"));
   }
 
