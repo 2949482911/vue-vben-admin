@@ -1,23 +1,23 @@
 <script lang="ts" setup name="DataRangeManager">
-import type { VbenFormProps } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {VxeGridProps} from '#/adapter/vxe-table';
 import type {
   CreateMenuRequest,
   MenuItem,
   UpdateMenuRequest,
 } from '#/api/models/menu';
-import type { DataRangeItem, OrgItem } from '#/api/models/users';
+import type {DataRangeItem, OrgItem} from '#/api/models/users';
 
-import { onMounted, ref } from 'vue';
+import {onMounted, ref} from 'vue';
 
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {Page, useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Button, Switch, Tag } from 'ant-design-vue';
+import {Button, Switch, Tag} from 'ant-design-vue';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { dataRangeApi, orgApi } from '#/api';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {dataRangeApi, orgApi} from '#/api';
 import {
   BatchOptionsType,
   DATA_SCOPE,
@@ -47,13 +47,16 @@ function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
 async function handlerState(row: DataRangeItem) {
   await (row.status == 1
     ? dataRangeApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.DISABLE,
-      })
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+      values: new Map<string, any>(),
+    })
     : dataRangeApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.Enable,
-      }));
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+      values: new Map<string, any>(),
+
+    }));
   pageReload();
 }
 
@@ -61,6 +64,8 @@ async function handlerDelete(id: string) {
   await dataRangeApi.fetchBatchOptions({
     targetIds: [id],
     type: BatchOptionsType.Delete,
+    values: new Map<string, any>(),
+
   });
   pageReload();
 }
@@ -100,7 +105,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
     {
       field: 'type',
       title: `${$t('system.data_scope.columns.type')}`,
-      slots: { default: 'type' },
+      slots: {default: 'type'},
       width: 'auto',
     },
     {
@@ -118,7 +123,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({ page }, args) => {
+      query: async ({page}, args) => {
         return await dataRangeApi.fetchDataRangeList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -139,7 +144,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 const pageReload = () => {
   gridApi.reload();
@@ -157,7 +162,7 @@ onMounted(() => {
     <Page>
       <Grid :table-title="$t('system.user.title')">
         <template #status="{ row }">
-          <Switch :checked="row.status == 1" @click="handlerState(row)" />
+          <Switch :checked="row.status == 1" @click="handlerState(row)"/>
         </template>
 
         <template #type="{ row }">
@@ -188,6 +193,6 @@ onMounted(() => {
         </template>
       </Grid>
     </Page>
-    <CreateModal @page-reload="pageReload" />
+    <CreateModal @page-reload="pageReload"/>
   </div>
 </template>

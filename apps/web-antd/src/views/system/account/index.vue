@@ -28,10 +28,13 @@ async function handleState(row: UserItem) {
     ? userApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.DISABLE,
+      values: new Map<string, any>(),
     })
     : userApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.Enable,
+      values: new Map<string, any>(),
+
     }));
   pageReload();
 }
@@ -40,6 +43,7 @@ async function handlerDelete(row: UserItem) {
   await userApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
+    values: new Map<string, any>(),
   });
   pageReload();
 }
