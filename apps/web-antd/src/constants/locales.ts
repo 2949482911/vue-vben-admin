@@ -1,6 +1,7 @@
 import { $t } from '@vben/locales';
 
 export const TABLE_COMMON_COLUMNS = [
+  {title: '序号', type: 'checkbox', fixed: 'left', width: 'auto',},
   {
     align: 'left',
     field: 'id',

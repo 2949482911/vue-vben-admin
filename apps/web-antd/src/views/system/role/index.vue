@@ -100,8 +100,11 @@ const gridOptions: VxeGridProps<RoleItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', width: 50},
-    {field: 'name', title: `${$t('system.role.columns.name')}`, width: 'auto',},
+    {
+      field: 'name',
+      title: `${$t('system.role.columns.name')}`,
+      width: 'auto',
+    },
     {
       field: 'roleType',
       title: `${$t('system.role.columns.roleType')}`,
@@ -153,6 +156,7 @@ function pageReload() {
       <template #isSystem="{ row }">
         <Switch :checked="row.isSystem == 1"/>
       </template>
+
       <template #roleType="{ row }">
         <Tag>
           {{
