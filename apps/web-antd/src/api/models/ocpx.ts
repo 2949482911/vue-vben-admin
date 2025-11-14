@@ -37,6 +37,7 @@ export interface BehavioraPlatformItem extends BaseItem {
   remark: string;
   model: string;
   ocpxPlatformMatchList: Array<OcpxPlatformMatch>;
+  simulate: boolean;
 }
 
 // 转化匹配列表
@@ -66,6 +67,7 @@ export interface CreateBehavioraPlatformRequest {
   ocpxPlatformMatches: Array<OcpxPlatformMatch>;
   matchField: string;
   remark: string;
+  simulate: boolean;
 }
 
 // 编辑转化配置
@@ -113,6 +115,9 @@ export interface UpdateOcpxTaskRequest extends CreateOcpxTaskRequest {
 export interface ClickMonitorResponse {
   url: string;
   name: string;
+  ocpxTaskId: string;
+  platformCallbackId: string;
+  platform: string;
 }
 
 export interface OcpxBehavioracallbackRecordPageRequest
@@ -158,4 +163,14 @@ export interface OcpxBehaviorRecordItem extends BaseItem {
 export interface PlatformCallbackBehaviorTypeItem {
   label: string;
   value: string;
+}
+
+
+/**
+ * 回调测试
+ */
+export interface TestCallbackRequest {
+  ocpxTaskId: string;
+  platformCallbackId: string;
+  behaviorType: string;
 }

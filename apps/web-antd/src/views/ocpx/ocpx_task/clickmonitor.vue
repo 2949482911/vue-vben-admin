@@ -1,28 +1,68 @@
 <script lang="ts" setup name="ClickMonitor">
-import {ref} from 'vue';
-import {Table, Card} from "ant-design-vue";
+import {Button} from "ant-design-vue";
 
 import {useVbenModal} from '@vben/common-ui';
 import {clickMonitorApi} from "#/api/core/ocpx";
 import type {ClickMonitorResponse} from "#/api/models";
 import {$t} from "@vben/locales";
+import {useVbenVxeGrid, type VxeGridProps} from "#/adapter/vxe-table";
+import TestCallback from './testcallback.vue';
 
-const clickMonitor = ref<Array<ClickMonitorResponse>>([]);
-const columns = [
+const [TestCallbackModal, testCallbackApi] = useVbenModal(
   {
-    title: `${$t('ocpx.ocpx_task.clickmonitor.name')}`,
-    dataIndex: 'name',
-    label: 'Name'
+    connectedComponent: TestCallback,
+    centered: true,
+    modal: true,
   },
-  {
-    title: `${$t('ocpx.ocpx_task.clickmonitor.url')}`,
-    dataIndex: 'url',
-    label: 'Url'
+);
+
+
+function openTestCallbackModal(row: ClickMonitorResponse) {
+  testCallbackApi.setData(row)
+  testCallbackApi.open();
+}
+
+
+const gridOptions: VxeGridProps<ClickMonitorResponse> = {
+  border: true,
+  checkboxConfig: {
+    highlight: true,
+    labelField: 'name',
   },
-]
+  columns: [
+    {
+      title: `${$t('ocpx.ocpx_task.clickmonitor.name')}`,
+      field: 'name',
+    },
+    {
+      title: `${$t('ocpx.ocpx_task.clickmonitor.url')}`,
+      field: 'url',
+    },
+    {
+      field: 'options',
+      title: `${$t('core.columns.options')}`,
+      fixed: 'right',
+      slots: {default: 'action'},
+      width: 'auto',
+    },
+  ],
+  height: 'auto',
+  // keepSource: true,
+  pagerConfig: {
+    enabled: false
+  },
+  proxyConfig: {
+    enabled: false,
+  }
+}
+
+const [Grid, gridApi] = useVbenVxeGrid({gridOptions});
 
 
 const [Modal, modalApi] = useVbenModal({
+  fullscreen: true,
+  fullscreenButton: false,
+  bordered: false,
   onCancel() {
     modalApi.close();
   },
@@ -39,16 +79,27 @@ const [Modal, modalApi] = useVbenModal({
     if (!open) {
       await modalApi.close();
     }
-    clickMonitor.value = await clickMonitorApi.fetchGenClickUrl(modalApi.getData()["taskId"])
+    gridApi.setLoading(true);
+    const dataList = await clickMonitorApi.fetchGenClickUrl(modalApi.getData()["taskId"])
+    gridApi.setGridOptions({
+      data: dataList,
+    });
+    await gridApi.reload();
+    gridApi.setLoading(false);
   },
 });
+
+
 </script>
 <template>
   <Modal>
-    <Card>
-      <Table :columns="columns" :data-source="clickMonitor">
-
-      </Table>
-    </Card>
+    <Grid>
+      <template #action="{ row }">
+        <Button type="link" @click="openTestCallbackModal(row)">
+          {{ $t('ocpx.ocpx_task.clickmonitor.testCallback') }}
+        </Button>
+      </template>
+    </Grid>
+    <TestCallbackModal/>
   </Modal>
 </template>

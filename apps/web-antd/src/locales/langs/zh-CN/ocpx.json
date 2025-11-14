@@ -40,7 +40,8 @@
       "campaignId": "计划ID",
       "adgroupId": "广告组ID",
       "promotionId": "广告ID",
-      "creativeId": "创意ID"
+      "creativeId": "创意ID",
+      "simulate": "虚拟回传"
     },
     "model": {
       "callback": "回调",
@@ -85,7 +86,8 @@
     },
     "clickmonitor": {
       "name": "转化配置名字",
-      "url": "点击监测"
+      "url": "点击监测",
+      "testCallback": "联调回传"
     }
   }
 }

@@ -1,16 +1,16 @@
 <script lang="ts" setup name="PlatformCallbackManager">
-import type { VbenFormProps } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { BehavioraPlatformItem } from '#/api/models';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import type {BehavioraPlatformItem} from '#/api/models';
 
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {Page, useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Button, Switch, Tag } from 'ant-design-vue';
+import {Button, Switch, Tag} from 'ant-design-vue';
 
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { behavioraPlatformApi } from '#/api/core/ocpx';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {behavioraPlatformApi} from '#/api/core/ocpx';
 import {
   BatchOptionsType,
   BEHAVIORA_PLATFORM,
@@ -51,15 +51,15 @@ function openCreateModal(row: BehavioraPlatformItem) {
 async function handlerState(row: BehavioraPlatformItem) {
   await (row.status === 1
     ? behavioraPlatformApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.DISABLE,
-        values: new Map<string, any>(),
-      })
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+      values: new Map<string, any>(),
+    })
     : behavioraPlatformApi.fetchBatchOptions({
-        targetIds: [row.id],
-        type: BatchOptionsType.Enable,
-        values: new Map<string, any>(),
-      }));
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+      values: new Map<string, any>(),
+    }));
   pageReload();
 }
 
@@ -126,7 +126,7 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
     zoom: true,
   },
   columns: [
-    { title: '序号', type: 'seq', width: 'auto' },
+    {title: '序号', type: 'seq', width: 'auto'},
     {
       field: 'platform',
       title: `${$t('ocpx.behavioraplatform.columns.platform')}`,
@@ -154,9 +154,17 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
       },
     },
     {
+      field: 'simulate',
+      title: `${$t('ocpx.behavioraplatform.columns.simulate')}`,
+      width: 'auto',
+      slots: {
+        default: 'simulate',
+      },
+    },
+    {
       field: 'config',
       title: `${$t('ocpx.behavioraplatform.columns.config')}`,
-      slots: { default: 'config' },
+      slots: {default: 'config'},
       width: 'auto',
     },
     {
@@ -171,7 +179,7 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, args) => {
+      query: async ({page}, args) => {
         return await behavioraPlatformApi.fetchBehavioraPlatformList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -182,7 +190,7 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 function pageReload() {
   gridApi.reload();
@@ -197,6 +205,13 @@ function pageReload() {
           <Tag color="red">
             {{ ModelSelect.filter((x) => x.value === row.model)[0].label }}
           </Tag>
+        </template>
+
+        <template #simulate="{ row }">
+          <Tag color="green" v-if="row.simulate">
+            {{$t('common.yes')}}
+          </Tag>
+          <Tag color="red" v-else> {{ $t('common.no')}}</Tag>
         </template>
 
         <template #matchField="{ row }">
@@ -223,7 +238,7 @@ function pageReload() {
         </template>
 
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
+          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
         </template>
 
         <template #toolbar-tools>
@@ -233,7 +248,7 @@ function pageReload() {
         </template>
       </Grid>
     </Page>
-    <CreateObjectModal @page-reload="pageReload" />
-    <DetailConfigModel />
+    <CreateObjectModal @page-reload="pageReload"/>
+    <DetailConfigModel/>
   </div>
 </template>

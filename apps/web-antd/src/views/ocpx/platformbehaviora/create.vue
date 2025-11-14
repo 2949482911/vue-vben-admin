@@ -26,7 +26,21 @@ const matchTableRef = ref<any>();
 // 匹配列表
 const ocpxPlatformMatchList = ref<Array<OcpxPlatformMatch>>([]);
 // edit request
-const objectRequest = ref<BehavioraPlatformItem>({});
+const objectRequest = ref<BehavioraPlatformItem>({
+  config: new Map(),
+  createTime: "",
+  createUsername: "",
+  id: "",
+  model: "",
+  name: "",
+  ocpxPlatformMatchList: [],
+  platform: "",
+  remark: "",
+  simulate: false,
+  status: 0,
+  updateTime: "",
+  updateUsername: ""
+});
 
 const isUpdate = ref<Boolean>(false);
 const matchModel = ref<string>('callback');
@@ -136,7 +150,6 @@ platformConfigForm.set(Platform.KUAKE, [
     fieldName: 'token',
     // 界面显示的label
     label: `token`,
-    rules: 'required',
   },
 
   {
@@ -150,6 +163,7 @@ platformConfigForm.set(Platform.KUAKE, [
     fieldName: 'act',
     // 界面显示的label
     label: `act`,
+    defaultValue: "new",
     rules: 'required',
   },
 
@@ -195,6 +209,20 @@ platformConfigForm.set(Platform.KUAKE, [
     // 界面显示的label
     label: `targetPkg`,
     rules: 'required',
+  },
+
+
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'product',
+    // 界面显示的label
+    label: `product`,
   },
 ]);
 
@@ -316,8 +344,8 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         placeholder: `${$t('common.input')}`,
         options: BEHAVIORA_PLATFORM,
-        onSelect: (value: string) => {
-          configFormApi.setState((_) => {
+        onSelect: async (value: string) => {
+           configFormApi.setState((_) => {
             return {
               schema: platformConfigForm.get(value),
             };
@@ -379,6 +407,31 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('ocpx.behavioraplatform.columns.matchField')}`,
       rules: 'required',
       defaultValue: 'requestId',
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Select',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        options: [
+          {
+            label: `${$t('common.yes')}`,
+            value: true,
+          },
+          {
+            label: `${$t('common.no')}`,
+            value: false,
+          }
+        ],
+      },
+      // 字段名
+      fieldName: 'simulate',
+      // 界面显示的label
+      label: `${$t('ocpx.behavioraplatform.columns.simulate')}`,
+      rules: 'required',
+      defaultValue: false,
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型

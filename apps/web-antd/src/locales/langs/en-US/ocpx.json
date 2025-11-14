@@ -40,7 +40,8 @@
       "campaignId": "Campaign Id",
       "adgroupId": "Adgroup Id",
       "promotionId": "Promotion Id",
-      "creativeId": "Creative Id"
+      "creativeId": "Creative Id",
+      "simulate": "Simulate Callback"
     },
     "model": {
       "callback": "Callback",
@@ -84,7 +85,8 @@
     },
     "clickmonitor": {
       "name": "Behaviora Name",
-      "url": "Click Link"
+      "url": "Click Link",
+      "testCallback": "Test Callback"
     }
   }
 }

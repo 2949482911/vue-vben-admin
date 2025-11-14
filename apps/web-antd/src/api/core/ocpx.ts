@@ -9,7 +9,7 @@ import type {
   OcpxTaskItem,
   OpcxTaskPageRequest, PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
-  PlatformcallbackPageRequest,
+  PlatformcallbackPageRequest, TestCallbackRequest,
   UpdateBehavioraPlatformRequest,
   UpdateOcpxTaskRequest,
   UpdatePlatformCallbackRequest,
@@ -133,6 +133,13 @@ class ClickMonitorApi extends BaseApi {
 
   fetchGenClickUrl(taskId: string) {
     return requestClient.get<Array<ClickMonitorResponse>>(this.getServiceUrl("gen_click_url"), {params: {ocpxTaskId: taskId}});
+  }
+
+  /**
+   * 联调测试
+   */
+  fetchTestCallback(params: TestCallbackRequest) {
+    return requestClient.get(this.getServiceUrl("test_callback"), {params})
   }
 }
 
