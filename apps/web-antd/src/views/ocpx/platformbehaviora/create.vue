@@ -227,7 +227,70 @@ platformConfigForm.set(Platform.KUAKE, [
 ]);
 
 // 支付宝
-platformConfigForm.set(Platform.ALIPAY, []);
+platformConfigForm.set(Platform.ALIPAY, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'requestFrom',
+    // 界面显示的label
+    label: `requestFrom`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'pid',
+    // 界面显示的label
+    label: `pid`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'partnerId',
+    // 界面显示的label
+    label: `partnerId`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Select',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+      options: [
+        {
+          value: 'click',
+          label: 'click',
+        },
+        {
+          value: 'expose',
+          label: 'expose',
+        }
+      ]
+    },
+    // 字段名
+    fieldName: 'action',
+    // 界面显示的label
+    label: `action`,
+    rules: 'required',
+  },
+]);
 platformConfigForm.set(Platform.XMLY, [
   {
     // 媒体配置表单
