@@ -12,6 +12,7 @@ import { message } from 'ant-design-vue';
 
 import { BasicLayout, IFrameView } from '#/layouts';
 import { $t } from '#/locales';
+import {useAuthStore} from "#/store";
 
 const forbiddenComponent = () => import('#/views/_core/fallback/forbidden.vue');
 
@@ -31,6 +32,7 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
         duration: 1.5,
       });
       const userStore = useUserStore();
+      const authStore = useAuthStore();
       const userInfo: UserInfo =
         userStore.userInfo || (await authStore.fetchUserInfo());
       return userInfo.menu;

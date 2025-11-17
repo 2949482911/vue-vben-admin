@@ -90,16 +90,16 @@ function setupAccessGuard(router: Router) {
     if (accessStore.isAccessChecked) {
       return true;
     }
-
+    debugger
     // 生成路由表
     // 当前登录用户拥有的角色标识列表
     const userInfo: UserInfo =
       userStore.userInfo || (await authStore.fetchUserInfo());
-    const userRoles = userInfo.roles ?? [];
+    // const userRoles = userInfo.roleVOList ?? [];
 
     // 生成菜单和路由
     const { accessibleMenus, accessibleRoutes } = await generateAccess({
-      roles: userRoles,
+      roles: [],
       router,
       // 则会在菜单中显示，但是访问会被重定向到403
       routes: accessRoutes,
