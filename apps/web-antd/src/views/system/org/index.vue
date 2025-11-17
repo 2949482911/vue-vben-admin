@@ -104,7 +104,7 @@ const pageReload = () => {
 <template>
   <div>
     <Page>
-      <Grid :table-title="$t('system.menu.title')">
+      <Grid>
         <template #status="{ row }">
           <Switch :checked="row.status == 1" @click="handlerState(row)" />
         </template>

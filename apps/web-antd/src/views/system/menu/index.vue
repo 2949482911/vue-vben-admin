@@ -170,7 +170,7 @@ const pageReload = () => {
 <template>
   <div>
     <Page>
-      <Grid :table-title="$t('system.menu.title')">
+      <Grid>
         <template #title="{ row }">
           <div class="flex w-full items-center gap-1">
             <div class="size-5 flex-shrink-0">
