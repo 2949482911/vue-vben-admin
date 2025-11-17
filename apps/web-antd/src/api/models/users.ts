@@ -103,7 +103,6 @@ export interface DataRangeItem extends BaseItem {
  *
  */
 export interface CreateDataRangeRequest {
-  id: string;
   name: string;
   type: number;
   remark: string;
@@ -113,7 +112,7 @@ export interface CreateDataRangeRequest {
  *
  */
 export interface UpdateDataRangeRequest extends CreateDataRangeRequest {
-  m: string;
+  id: string;
 }
 
 /**

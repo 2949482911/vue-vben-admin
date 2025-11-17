@@ -1,5 +1,5 @@
 <script lang="ts" setup name="CreateRole">
-import type {CreateRoleRequest} from '#/api/models';
+import type {CreateRoleRequest, UpdateRoleRequest} from '#/api/models';
 import type {MenuItem} from '#/api/models/menu';
 
 import {ref} from 'vue';
@@ -16,7 +16,13 @@ import {ROLE_TYPE_OPTIONS} from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
-const createObject = ref<CreateRoleRequest>({comment: "", id: "", menuIds: [], name: "", roleType: 0});
+const createObject = ref<CreateRoleRequest | UpdateRoleRequest>({
+  comment: "",
+  id: "",
+  menuIds: [],
+  name: "",
+  roleType: 0
+});
 const isUpdate = ref<Boolean>(false);
 const menuData = ref<MenuItem[]>([]);
 // const menuParentIds = ref<string[]>([]);
@@ -88,12 +94,12 @@ const [Form, formApi] = useVbenForm({
       //   checkable: true,
       //   multiple: true,
       //   checkStrictly: true,
-      //   // onCheck: (checkedKeys, info) => {
-      //   //   // let checkedKeysResult = [...checkedKeys, ...info.halfCheckedKeys];
-      //   //   if (menuParentIds.value.indexOf(info.node.parentId)) {
-      //   //     menuParentIds.value.push(info.node.parentId);
-      //   //   }
-      //   // },
+      //   onCheck: (checkedKeys, info) => {
+      //     let checkedKeysResult = [...checkedKeys, ...info.halfCheckedKeys];
+      //     if (menuParentIds.value.indexOf(info.node.parentId)) {
+      //       menuParentIds.value.push(info.node.parentId);
+      //     }
+      //   },
       //   fieldNames: {
       //     key: 'id',
       //     children: 'children',
@@ -108,8 +114,8 @@ const [Form, formApi] = useVbenForm({
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
     await (isUpdate.value
-      ? roleApi.fetchUpdateRole(JSON.stringify(values))
-      : roleApi.fetchCreateRole(JSON.stringify(values)));
+      ? roleApi.fetchUpdateRole(values as UpdateRoleRequest)
+      : roleApi.fetchCreateRole(values as CreateRoleRequest));
     await modalApi.close();
   },
 });
@@ -130,7 +136,7 @@ const [Modal, modalApi] = useVbenModal({
   onCancel() {
     modalApi.close();
     isUpdate.value = false;
-    // checkedKeys.value = [];
+    checkedKeys.value = [];
   },
   async onConfirm() {
     const result = await formApi.validate();
@@ -143,12 +149,10 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      debugger
-      createObject.value = modalApi.getData<Record<string, any>>();
+      createObject.value = modalApi.getData<Record<string, any>>() as CreateRoleRequest | UpdateRoleRequest;
       if (createObject.value.id) {
         isUpdate.value = true;
-        // checkedKeys.value = notice.value.menuIds;
-        // notice.value.menuIds = []
+        checkedKeys.value = createObject.value.menuIds;
         handleSetFormValue(createObject.value);
       } else {
         isUpdate.value = false;
@@ -165,7 +169,7 @@ const [Modal, modalApi] = useVbenModal({
   },
 });
 
-function handleSetFormValue(row) {
+function handleSetFormValue(row: CreateRoleRequest | UpdateRoleRequest) {
   formApi.setValues(row);
 }
 
@@ -189,14 +193,17 @@ const title: string = createObject.value
         <template #menuIds="slotProps">
           <Tree
             :tree-data="menuData"
-            multiple
+            :multiple="true"
             bordered
+            :check-strictly="false"
             :default-expanded-level="2"
             v-bind="slotProps"
             :get-node-class="getNodeClass"
             value-field="id"
             label-field="title"
             icon-field="meta.icon"
+            :defaultValue="checkedKeys"
+            :autoCheckParent="true"
           >
             <template #node="{ value }">
               <IconifyIcon v-if="value.icon" :icon="value.icon"/>

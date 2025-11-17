@@ -1,25 +1,15 @@
 <script lang="ts" setup name="RoleManager">
 import type {VbenFormProps} from '@vben/common-ui';
+import {Page, useVbenModal} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
-import type {
-  CreateRoleRequest,
-  RoleItem,
-  UpdateRoleRequest,
-} from '#/api/models';
-
-import {Page, useVbenModal} from '@vben/common-ui';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import type {RoleItem,} from '#/api/models';
 import {$t} from '@vben/locales';
 
 import {Button, Switch, Tag} from 'ant-design-vue';
-
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {roleApi} from '#/api/core/role';
-import {
-  ROLE_TYPE_OPTIONS,
-  STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
+import {ROLE_TYPE_OPTIONS, STATUS_SELECT, TABLE_COMMON_COLUMNS,} from '#/constants/locales';
 import CreateRole from '#/views/system/role/create-role.vue';
 
 const formOptions: VbenFormProps = {
@@ -69,7 +59,6 @@ const [CreateModal, createModalApi] = useVbenModal({
  * @param row
  */
 function openCreateModal(row: RoleItem) {
-  debugger
   if (row.id) {
     createModalApi.setData(row);
   } else {
@@ -160,7 +149,7 @@ function pageReload() {
       <template #roleType="{ row }">
         <Tag>
           {{
-            ROLE_TYPE_OPTIONS.filter((x) => x.value == row.roleType)[0].label
+            ROLE_TYPE_OPTIONS.filter((x) => x.value === row.roleType)[0].label
           }}
         </Tag>
       </template>
