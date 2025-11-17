@@ -1,19 +1,51 @@
 <script lang="ts" setup name="CreateMenu">
-import type { CreateMenuRequest, MenuItem } from '#/api/models/menu';
+import type {CreateMenuRequest, MenuItem, UpdateMenuRequest} from '#/api/models/menu';
 
-import { ref } from 'vue';
+import {ref} from 'vue';
 
-import { useVbenModal, z } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {useVbenModal, z} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Card } from 'ant-design-vue';
+import {Card} from 'ant-design-vue';
 
-import { useVbenForm } from '#/adapter/form';
-import { menuApi } from '#/api';
+import {useVbenForm} from '#/adapter/form';
+import {menuApi} from '#/api';
 
 const emit = defineEmits(['pageReload']);
 
-const notice = ref<CreateMenuRequest>({});
+const createObject = ref<CreateMenuRequest | UpdateMenuRequest>({
+  id: "",
+  activeIcon: "",
+  affixTab: false,
+  affixTabOrder: 0,
+  backendUrl: "",
+  badge: "",
+  badgeType: "",
+  badgeVariants: "",
+  component: "",
+  hideChildrenInMenu: false,
+  hideInBreadcrumb: false,
+  hideInMenu: 0,
+  hideInTab: false,
+  icon: "",
+  id: "",
+  iframeSrc: "",
+  ignoreAccess: false,
+  isInternal: 0,
+  isLogin: 0,
+  isWhite: 0,
+  link: "",
+  mark: "",
+  menuVisibleWithForbidden: false,
+  name: "",
+  openInNewWindow: false,
+  parentId: "",
+  path: "",
+  redirect: "",
+  sort: 0,
+  title: "",
+  type: 0
+});
 const menuData = ref([]);
 const isUpdate = ref<Boolean>(false);
 
@@ -25,8 +57,8 @@ function getMenuTypeOptions() {
       label: $t('system.menu.type.menu'),
       value: 1,
     },
-    { color: 'default', label: $t('system.menu.type.interface'), value: 2 },
-    { color: 'error', label: $t('system.menu.type.button'), value: 3 },
+    {color: 'default', label: $t('system.menu.type.interface'), value: 2},
+    {color: 'error', label: $t('system.menu.type.button'), value: 3},
   ];
 }
 
@@ -173,7 +205,9 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'type',
       label: `${$t('system.menu.columns.type')}`,
       rules: 'required',
-      disabled: isUpdate,
+      dependencies: {
+        disabled: isUpdate.value
+      }
     },
 
     {
@@ -407,7 +441,7 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'hideInMenu',
       formItemClass: 'col-span-3 items-baseline',
       renderComponentContent() {
-        return { default: () => `${$t('system.menu.columns.hideMenu')}` };
+        return {default: () => `${$t('system.menu.columns.hideMenu')}`};
       },
       dependencies: {
         show: (values) => {
@@ -561,14 +595,14 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      notice.value = modalApi.getData<Record<string, any>>();
-      if (notice.value.id) {
+      createObject.value = modalApi.getData<Record<string, any>>();
+      if (createObject.value.id) {
         isUpdate.value = true;
-        handleSetFormValue(notice.value);
+        handleSetFormValue(createObject.value);
       } else {
         isUpdate.value = false;
-        if (notice.value.parentId) {
-          handleSetFormValue(notice.value);
+        if (createObject.value.parentId) {
+          handleSetFormValue(createObject.value);
         }
       }
       menuApi.fetchMenuTree().then((res) => {
@@ -586,14 +620,14 @@ function handleSetFormValue(row) {
   formApi.setValues(row);
 }
 
-const title: string = notice.value
+const title: string = createObject.value
   ? `${$t('common.edit')}`
   : `${$t('common.create')}`;
 </script>
 <template>
   <Modal :title="title">
     <Card>
-      <Form />
+      <Form/>
     </Card>
   </Modal>
 </template>
