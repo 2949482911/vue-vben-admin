@@ -1,25 +1,25 @@
 <script lang="ts" setup name="CreateRole">
-import type { CreateRoleRequest } from '#/api/models';
-import type { MenuItem } from '#/api/models/menu';
+import type {CreateRoleRequest} from '#/api/models';
+import type {MenuItem} from '#/api/models/menu';
 
-import { ref } from 'vue';
+import {ref} from 'vue';
 
-import { Tree, useVbenModal } from '@vben/common-ui';
-import { IconifyIcon } from '@vben/icons';
-import { $t } from '@vben/locales';
+import {Tree, useVbenModal} from '@vben/common-ui';
+import {IconifyIcon} from '@vben/icons';
+import {$t} from '@vben/locales';
 
-import { Card } from 'ant-design-vue';
+import {Card} from 'ant-design-vue';
 
-import { useVbenForm } from '#/adapter/form';
-import { menuApi, roleApi } from '#/api';
-import { ROLE_TYPE_OPTIONS } from '#/constants/locales';
+import {useVbenForm} from '#/adapter/form';
+import {menuApi, roleApi} from '#/api';
+import {ROLE_TYPE_OPTIONS} from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
-const notice = ref<CreateRoleRequest>({});
+const createObject = ref<CreateRoleRequest>({comment: "", id: "", menuIds: [], name: "", roleType: 0});
 const isUpdate = ref<Boolean>(false);
-const menuData = ref<MenuItem>([]);
-const menuParentIds = ref<string[]>([]);
+const menuData = ref<MenuItem[]>([]);
+// const menuParentIds = ref<string[]>([]);
 
 const checkedKeys = ref<string[]>([]);
 
@@ -51,7 +51,7 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'Input',
       fieldName: 'name',
-      required: true,
+      rules: 'required',
       label: `${$t('system.role.columns.name')}`,
     },
 
@@ -63,7 +63,7 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.choice')}`,
       },
       fieldName: 'roleType',
-      required: true,
+      rules: 'required',
       label: `${$t('system.role.columns.roleType')}`,
     },
     {
@@ -77,7 +77,7 @@ const [Form, formApi] = useVbenForm({
     },
     {
       component: 'Tree',
-      required: true,
+      rules: 'required',
       formItemClass: 'items-start',
       modelPropName: 'modelValue',
       // componentProps: {
@@ -143,12 +143,13 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      notice.value = modalApi.getData<Record<string, any>>();
-      if (notice.value.id) {
+      debugger
+      createObject.value = modalApi.getData<Record<string, any>>();
+      if (createObject.value.id) {
         isUpdate.value = true;
         // checkedKeys.value = notice.value.menuIds;
         // notice.value.menuIds = []
-        handleSetFormValue(notice.value);
+        handleSetFormValue(createObject.value);
       } else {
         isUpdate.value = false;
       }
@@ -177,7 +178,7 @@ function getNodeClass(node: any) {
   return classes.join(' ');
 }
 
-const title: string = notice.value
+const title: string = createObject.value
   ? `${$t('common.edit')}`
   : `${$t('common.create')}`;
 </script>
@@ -195,9 +196,10 @@ const title: string = notice.value
             :get-node-class="getNodeClass"
             value-field="id"
             label-field="title"
+            icon-field="meta.icon"
           >
             <template #node="{ value }">
-              <IconifyIcon v-if="value.icon" :icon="value.icon" />
+              <IconifyIcon v-if="value.icon" :icon="value.icon"/>
               {{ $t(value.title) }}
             </template>
           </Tree>

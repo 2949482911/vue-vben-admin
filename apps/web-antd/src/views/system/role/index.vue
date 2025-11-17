@@ -68,7 +68,8 @@ const [CreateModal, createModalApi] = useVbenModal({
  *
  * @param row
  */
-function openCreateModal(row: CreateRoleRequest | UpdateRoleRequest) {
+function openCreateModal(row: RoleItem) {
+  debugger
   if (row.id) {
     createModalApi.setData(row);
   } else {
@@ -96,7 +97,6 @@ const gridOptions: VxeGridProps<RoleItem> = {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
   columns: [
