@@ -14,4 +14,8 @@ export const overridesPreferences = defineOverridesPreferences({
     compact: true,
     defaultHomePath: "/dashboard"
   },
+  theme: {
+    mode: 'auto'
+  },
+
 });
