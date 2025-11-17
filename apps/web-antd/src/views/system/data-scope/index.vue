@@ -1,22 +1,20 @@
 <script lang="ts" setup name="DataRangeManager">
 import type {VbenFormProps} from '@vben/common-ui';
+import {Page, useVbenModal} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import type {
-  CreateMenuRequest,
-  MenuItem,
-  UpdateMenuRequest,
-} from '#/api/models/menu';
-import type {DataRangeItem, OrgItem} from '#/api/models/users';
+  CreateDataRangeRequest,
+  DataRangeItem,
+  OrgItem,
+  UpdateDataRangeRequest
+} from '#/api/models/users';
 
 import {onMounted, ref} from 'vue';
-
-import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
 import {Button, Switch, Tag} from 'ant-design-vue';
-
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {dataRangeApi, orgApi} from '#/api';
 import {
   BatchOptionsType,
@@ -35,7 +33,7 @@ const [CreateModal, createModalApi] = useVbenModal({
 
 const orgTreeData = ref<OrgItem[]>([]);
 
-function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
+function openBaseDrawer(row?: CreateDataRangeRequest | UpdateDataRangeRequest) {
   if (row) {
     createModalApi.setData(row);
   } else {
@@ -95,7 +93,7 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-const gridOptions: VxeGridProps<MenuItem> = {
+const gridOptions: VxeGridProps<DataRangeItem> = {
   columns: [
     {
       field: 'name',

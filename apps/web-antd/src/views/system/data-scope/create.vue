@@ -1,40 +1,54 @@
 <script lang="ts" setup name="CreateOrg">
-import type { UserInfo } from '@vben/types';
+import type {UserInfo} from '@vben/types';
 
-import type { OrgCreateRequest, UserItem } from '#/api/models/users';
+import type {
+  CreateDataRangeRequest,
+  UpdateDataRangeRequest,
+  UserItem
+} from '#/api/models/users';
 
-import { ref } from 'vue';
+import {ref} from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { useUserStore } from '@vben/stores';
+import {useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
+import {useUserStore} from '@vben/stores';
 
-import { Card } from 'ant-design-vue';
+import {Card} from 'ant-design-vue';
 
-import { useVbenForm } from '#/adapter/form';
-import { dataRangeApi, orgApi, userApi } from '#/api';
-import { DATA_SCOPE } from '#/constants/locales';
+import {useVbenForm} from '#/adapter/form';
+import {dataRangeApi, orgApi, userApi} from '#/api';
+import {DATA_SCOPE} from '#/constants/locales';
+import type {MenuItem} from "#/api/models";
 
 const emit = defineEmits(['pageReload']);
 
-const notice = ref<OrgCreateRequest>({});
-const menuData = ref([]);
+const notice = ref<CreateDataRangeRequest | UpdateDataRangeRequest>({
+  id: "",
+  name: "",
+  remark: "",
+  type: 0
+});
+const menuData = ref<MenuItem>([]);
 const isUpdate = ref<Boolean>(false);
 const userList = ref<UserItem>([]);
 // 用户信息
 const userInfo: UserInfo = useUserStore().userInfo;
-const dataScope = ref<[]>();
+const dataScope = ref<{ label: string, value: number }[]>();
 
-filterDataScope();
 
 // // 过滤筛选项
-function filterDataScope(): [] {
+function filterDataScope() {
   dataScope.value = [...DATA_SCOPE];
   if (userInfo.mainAdmin) {
-    dataScope.value = dataScope.value.filter(
-      (x) => ![5, 8].indexOf(x.value) < 0,
-    );
+    let newDataScope: { label: string, value: number }[] = [];
+    dataScope.value.forEach((item) => {
+      if (item.value != 5 && item.value != 8) {
+        newDataScope.push(item);
+      }
+    })
+    dataScope.value = newDataScope;
   }
+  console.log(dataScope.value);
 }
 
 const [Form, formApi] = useVbenForm({
@@ -86,7 +100,6 @@ const [Form, formApi] = useVbenForm({
         options: dataScope,
       },
       // 字段名
-      defaultValue: 1,
       fieldName: 'type',
       // 界面显示的label
       label: `${$t('system.data_scope.columns.type')}`,
@@ -202,8 +215,8 @@ const [Form, formApi] = useVbenForm({
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
     await (isUpdate.value
-      ? dataRangeApi.fetchUpdateDataRange(JSON.stringify(values))
-      : dataRangeApi.fetchCreateDataRange(JSON.stringify(values)));
+      ? dataRangeApi.fetchUpdateDataRange(values as UpdateDataRangeRequest)
+      : dataRangeApi.fetchCreateDataRange(values as CreateDataRangeRequest));
     await modalApi.close();
   },
 });
@@ -222,11 +235,11 @@ const [Modal, modalApi] = useVbenModal({
     }
     await formApi.submitForm();
     isUpdate.value = false;
-    await emit('pageReload');
+    emit('pageReload');
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      notice.value = modalApi.getData<Record<string, any>>();
+      notice.value = modalApi.getData<Record<string, any>>() as UpdateDataRangeRequest | CreateDataRangeRequest;
       if (notice.value.id) {
         isUpdate.value = true;
         handleSetFormValue(notice.value);
@@ -234,10 +247,13 @@ const [Modal, modalApi] = useVbenModal({
         isUpdate.value = false;
       }
     }
+
+    filterDataScope();
+    console.log(dataScope.value);
   },
 });
 
-function handleSetFormValue(row) {
+function handleSetFormValue(row: UpdateDataRangeRequest | CreateDataRangeRequest) {
   formApi.setValues(row);
 }
 
@@ -248,7 +264,7 @@ const title: string = notice.value
 <template>
   <Modal :title="title">
     <Card>
-      <Form />
+      <Form/>
     </Card>
   </Modal>
 </template>
