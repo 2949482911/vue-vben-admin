@@ -13,6 +13,7 @@ export const overridesPreferences = defineOverridesPreferences({
     enableRefreshToken: false,
     compact: true,
     defaultHomePath: "/dashboard",
+    authPageLayout: 'panel-center',
   },
   theme: {
     mode: 'auto',
