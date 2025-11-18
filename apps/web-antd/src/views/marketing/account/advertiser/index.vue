@@ -120,7 +120,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
-    labelField: 'name',
+    labelField: 'advertiserName',
   },
   toolbarConfig: {
     custom: true,
@@ -130,7 +130,6 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', width: 50},
     {
       field: 'platform',
       title: `${$t('ocpx.platform.title')}`,

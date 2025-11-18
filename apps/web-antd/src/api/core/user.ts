@@ -17,7 +17,7 @@ import type {
   UserItem,
   UserSearchRequest
 } from "#/api/models/users";
-import {qs} from 'qs';
+import {qs} from "qs";
 import type {BatchOptions} from "#/api/models/core";
 
 class UserApi extends BaseApi {
@@ -81,11 +81,11 @@ class OrgApi extends BaseApi {
   fetchOrgDelete(ids: string[]) {
     return requestClient.get(this.getServiceUrl("delete"),
       {
-      params: {ids: ids},
-      paramsSerializer: function (params) {
-        return qs.stringify(params, {arrayFormat: 'repeat'});
-      },
-    });
+        params: {ids: ids},
+        paramsSerializer: function (params) {
+          return qs.stringify(params, {arrayFormat: 'repeat'});
+        },
+      });
   }
 
   fetchBatchOptions(params: BatchOptions) {

@@ -126,7 +126,6 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', width: 'auto'},
     {
       field: 'platform',
       title: `${$t('ocpx.behavioraplatform.columns.platform')}`,

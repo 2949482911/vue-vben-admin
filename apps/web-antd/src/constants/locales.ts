@@ -1,4 +1,4 @@
-import { $t } from '@vben/locales';
+import {$t} from '@vben/locales';
 
 export const TABLE_COMMON_COLUMNS = [
   {title: '序号', type: 'checkbox', fixed: 'left', width: 'auto',},
@@ -33,14 +33,14 @@ export const TABLE_COMMON_COLUMNS = [
   {
     field: 'status',
     title: `${$t('core.columns.status')}`,
-    slots: { default: 'status' },
+    slots: {default: 'status'},
     width: 'auto',
   },
   {
     field: 'options',
     title: `${$t('core.columns.options')}`,
     fixed: 'right',
-    slots: { default: 'action' },
+    slots: {default: 'action'},
     width: 'auto',
   },
 ];
@@ -135,7 +135,9 @@ export enum BatchOptionsType {
   Enable = 'enable',
 }
 
-// 媒体列表
+/**
+ * 回传媒体
+ */
 export const PLATFORM = [
   {
     label: `${$t('ocpx.platform.vivo')}`,
@@ -157,6 +159,10 @@ export const PLATFORM = [
     label: `${$t('ocpx.platform.bytedance')}`,
     value: 'bytedance',
   },
+  {
+    label: `${$t('ocpx.platform.honor')}`,
+    value: 'honor',
+  },
 ];
 
 /**
@@ -169,6 +175,9 @@ export const AUTH_ACCOUNT_PLATFORM = [
   },
 ];
 
+/**
+ * 转化媒体
+ */
 export const BEHAVIORA_PLATFORM = [
   {
     label: `${$t('ocpx.platform.jd')}`,
@@ -189,6 +198,10 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: `${$t('ocpx.platform.xmly')}`,
     value: 'xmly',
+  },
+  {
+    label: `${$t('ocpx.platform.kuaishou')}`,
+    value: 'kuaishou',
   },
 ];
 

@@ -171,6 +171,23 @@ platformConfigForm.set(Platform.HUAWEI, [
 ]);
 // 字节回传
 platformConfigForm.set(Platform.BYTEDANCE, []);
+// 荣耀
+platformConfigForm.set(Platform.HONOR, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    defaultValue: 'test',
+    // 字段名
+    fieldName: 'test',
+    // 界面显示的label
+    label: 'test',
+    rules: 'required',
+  },
+]);
 
 
 /**
@@ -331,8 +348,10 @@ const [Form, formApi] = useVbenForm({
         ],
         onSelect: async (value: string) => {
           if (value === "custom") {
-            const values = await  formApi.getValues();
+            const values = await formApi.getValues();
             await getPlatformCallbackBehaviorTypeItem(values["platform"])
+          } else {
+            await formApi.setFieldValue("behaviorType", "");
           }
         }
       },

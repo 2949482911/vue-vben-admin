@@ -10,5 +10,7 @@ export enum Platform {
   KUAKE = 'kuake',
   OPPO = 'oppo',
   VIVO = 'vivo',
-  XMLY = "xmly"
+  XMLY = "xmly",
+  HONOR = "honor",
+  KUAISHOU = "kuaishou"
 }

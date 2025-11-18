@@ -115,7 +115,6 @@ const gridOptions: VxeGridProps<DeveloperItem> = {
     zoom: true,
   },
   columns: [
-    {title: '序号', type: 'seq', width: 50},
     {
       field: 'platform',
       title: `${$t('marketing.developer.columns.platform')}`,
