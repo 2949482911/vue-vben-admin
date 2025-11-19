@@ -28,7 +28,6 @@ const createObject = ref<CreateMenuRequest | UpdateMenuRequest>({
   hideInMenu: 0,
   hideInTab: false,
   icon: "",
-  id: "",
   iframeSrc: "",
   ignoreAccess: false,
   isInternal: 0,

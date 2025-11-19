@@ -15,6 +15,7 @@ export interface PlatformcallbackItem extends BaseItem {
   behaviorType: string;
   behaviorTypeMoel: string;
   behaviorTypeName: string;
+  onlyClick: boolean;
 }
 
 export interface CreatePlatformCallbackRequest {
@@ -22,6 +23,7 @@ export interface CreatePlatformCallbackRequest {
   platform: string;
   config: Map<string, any>;
   remark: string;
+  onlyClick: boolean;
 }
 
 export interface UpdatePlatformCallbackRequest

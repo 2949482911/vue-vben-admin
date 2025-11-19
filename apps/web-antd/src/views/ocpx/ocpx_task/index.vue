@@ -190,6 +190,8 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
       field: 'description',
       title: `${$t('ocpx.ocpx_task.columns.description')}`,
       width: 'auto',
+      maxWidth: "200",
+      showFooterOverflow: "tooltip"
     },
 
     ...TABLE_COMMON_COLUMNS,

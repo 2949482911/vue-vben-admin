@@ -9,7 +9,8 @@
       "advertiserId": "账户ID",
       "advertiserName": "账户名字",
       "ratio": "比例",
-      "behaviorType": "回传事件"
+      "behaviorType": "回传事件",
+      "onlyClick": "仅接受点击"
     },
     "behaviorTypeMoel": "事件模式",
     "auto": "自动匹配",
@@ -70,7 +71,6 @@
       "clickRangeDay": "点击回溯天数",
       "callbackRate": "回传比例",
       "hadClick": "点击"
-
     },
     "callback_record_columns": {
       "behaviorPlatformName": "转化媒体",

@@ -1,5 +1,9 @@
 <script lang="ts" setup name="CreateNotice">
-import type {PlatformCallbackBehaviorTypeItem, PlatformcallbackItem} from '#/api/models';
+import type {
+  CreatePlatformCallbackRequest,
+  PlatformCallbackBehaviorTypeItem,
+  PlatformcallbackItem, UpdatePlatformCallbackRequest
+} from '#/api/models';
 
 import {ref} from 'vue';
 
@@ -16,13 +20,16 @@ import {PLATFORM} from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
-const objectRequest = ref<PlatformcallbackItem>({});
+const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest>({
+  onlyClick: false, config: new Map<string, any>(), id: "", name: "", platform: "", remark: ""
+});
 const isUpdate = ref<Boolean>(false);
 
 // 媒体配置表单
 const platformConfigForm = new Map<string, Array<any>>();
 // vivo 配置清单
 platformConfigForm.set(Platform.VIVO, [
+
   {
     // 媒体配置表单
     component: 'Input',
@@ -51,6 +58,46 @@ platformConfigForm.set(Platform.VIVO, [
   },
   {
     // 媒体配置表单
+    component: 'Select',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.select')}`,
+      options: [
+        {
+          label: "手动输入",
+          value: "input"
+        },
+        {
+          label: "选择",
+          value: "select"
+        }
+      ],
+    },
+    // 字段名
+    fieldName: 'advertiserType',
+    // 界面显示的label
+    label: `advertiserType`,
+    defaultValue: "select",
+    rules: 'required',
+  },
+
+
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'srcId',
+    // 界面显示的label
+    label: `srcId`,
+    rules: 'required',
+  },
+
+  {
+    // 媒体配置表单
     component: 'ApiSelect',
     // 对应组件的参数
     componentProps: {
@@ -75,20 +122,52 @@ platformConfigForm.set(Platform.VIVO, [
     // 界面显示的label
     label: `advertiser`,
     rules: 'required',
+    dependencies: {
+      show: (value: any) => {
+        return value.advertiserType == 'select';
+      },
+      triggerFields: ['advertiserType'],
+    }
   },
 
   {
-    // 媒体配置表单
+    // 组件需要在 #/adapter.ts内注册，并加上类型
     component: 'Input',
     // 对应组件的参数
     componentProps: {
       placeholder: `${$t('common.input')}`,
     },
     // 字段名
-    fieldName: 'srcId',
+    fieldName: 'advertiserId',
     // 界面显示的label
-    label: `srcId`,
+    label: `${$t('ocpx.platformcallback.columns.advertiserId')}`,
     rules: 'required',
+    dependencies: {
+      show: (value: any) => {
+        return value.advertiserType == 'input';
+      },
+      triggerFields: ['advertiserType'],
+    },
+  },
+
+  {
+    // 组件需要在 #/adapter.ts内注册，并加上类型
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'advertiserName',
+    // 界面显示的label
+    label: `${$t('ocpx.platformcallback.columns.advertiserName')}`,
+    rules: 'required',
+    dependencies: {
+      show: (value: any) => {
+        return value.advertiserType == 'input';
+      },
+      triggerFields: ['advertiserType'],
+    },
   },
 ]);
 // oppo 配置清单
@@ -211,7 +290,7 @@ const [ConfigForm, configFormApi] = useVbenForm({
       class: 'w-full',
     },
   },
-  schema: platformConfigForm.get(Platform.VIVO),
+  schema: [],
   layout: 'horizontal',
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
 });
@@ -227,9 +306,13 @@ const [Form, formApi] = useVbenForm({
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
     formVal.config = await configFormApi.getValues();
+    if (formVal.config.advertiserId) {
+      formVal.advertiserId = formVal.config.advertiserId;
+      formVal.advertiserName = formVal.config.advertiserName;
+    }
     await (isUpdate.value
-      ? platformCallbackApi.fetchPlatformcallbackUpdate(formVal)
-      : platformCallbackApi.fetchPlatformcallbackCreate(formVal));
+      ? platformCallbackApi.fetchPlatformcallbackUpdate(formVal as UpdatePlatformCallbackRequest)
+      : platformCallbackApi.fetchPlatformcallbackCreate(formVal as CreatePlatformCallbackRequest));
   },
   schema: [
     {
@@ -269,7 +352,6 @@ const [Form, formApi] = useVbenForm({
       },
       // 字段名
       fieldName: 'platform',
-      defaultValue: Platform.VIVO,
       // 界面显示的label
       label: `${$t('ocpx.platformcallback.columns.platform')}`,
       rules: 'required',
@@ -327,6 +409,32 @@ const [Form, formApi] = useVbenForm({
         },
         triggerFields: ['platform'],
       },
+    },
+
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Select',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.select')}`,
+        options: [
+          {
+            label: `${$t('common.yes')}`,
+            value: true,
+          },
+          {
+            label: `${$t('common.no')}`,
+            value: false,
+          }
+        ]
+      },
+      // 字段名
+      fieldName: 'onlyClick',
+      defaultValue: false,
+      // 界面显示的label
+      label: `${$t('ocpx.platformcallback.columns.onlyClick')}`,
+      rules: 'required',
     },
 
 
@@ -424,11 +532,12 @@ const [Form, formApi] = useVbenForm({
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
   fullscreenButton: false,
-  onCancel() {
-    modalApi.close();
-    formApi.resetForm();
+  async onCancel() {
+    await formApi.resetForm();
+    await configFormApi.resetForm();
     objectRequest.value = {};
     isUpdate.value = false;
+    await modalApi.close();
   },
   async onConfirm() {
     const result = await formApi.validate();
@@ -444,7 +553,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<Record<string, any>>();
+      objectRequest.value = modalApi.getData<Record<string, any>>() as CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest;
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
@@ -452,11 +561,17 @@ const [Modal, modalApi] = useVbenModal({
       } else {
         isUpdate.value = false;
       }
+    } else {
+      configFormApi.setState((_) => {
+        return {
+          schema: []
+        };
+      });
     }
   },
 });
 
-function handleSetFormValue(row: PlatformcallbackItem) {
+function handleSetFormValue(row: PlatformcallbackItem | CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest) {
   formApi.setValues(row);
   configFormApi.setState((_) => {
     return {

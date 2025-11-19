@@ -158,13 +158,21 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
     },
 
     {
+      field: 'onlyClick',
+      title: `${$t('ocpx.platformcallback.columns.onlyClick')}`,
+      width: "auto",
+      slots: {default : 'onlyClick'}
+    },
+
+    {
       field: 'config',
       title: `${$t('ocpx.platformcallback.columns.config')}`,
       slots: {default: 'config'},
       width: "auto"
     },
     {
-      field: 'remark', title: `${$t('ocpx.platformcallback.columns.remark')}`, width: "auto"
+      field: 'remark', title: `${$t('ocpx.platformcallback.columns.remark')}`,
+      width: "auto"
     },
 
     ...TABLE_COMMON_COLUMNS,
@@ -196,6 +204,14 @@ function pageReload() {
   <div>
     <Page auto-content-height>
       <Grid>
+
+        <template #onlyClick="{row}">
+          <Tag color="green" v-if="row.onlyClick">
+            {{$t('common.yes')}}
+          </Tag>
+          <Tag v-else color="red">{{$t('common.no')}}</Tag>
+        </template>
+
         <template #behaviorType="{row}">
           <Tag color="green" v-if="row.behaviorTypeMoel === 'auto'">
             {{$t('ocpx.platformcallback.auto')}}
