@@ -10,7 +10,8 @@
       "advertiserName": "Advertiser Name",
       "ratio": "Ratio",
       "behaviorType": "Event Name",
-      "onlyClick": "Only Receive Click"
+      "onlyClick": "Only Receive Click",
+      "hadClick": "Has Click"
     },
     "behaviorTypeMoel": "Event Model",
     "auto": "Auto",

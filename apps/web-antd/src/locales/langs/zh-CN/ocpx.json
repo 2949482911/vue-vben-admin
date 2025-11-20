@@ -10,7 +10,8 @@
       "advertiserName": "账户名字",
       "ratio": "比例",
       "behaviorType": "回传事件",
-      "onlyClick": "仅接受点击"
+      "onlyClick": "仅接受点击",
+      "hadClick": "点击"
     },
     "behaviorTypeMoel": "事件模式",
     "auto": "自动匹配",

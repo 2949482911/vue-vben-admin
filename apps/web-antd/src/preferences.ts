@@ -17,5 +17,12 @@ export const overridesPreferences = defineOverridesPreferences({
   },
   theme: {
     mode: 'auto',
+    builtinType: 'deep-blue',
+    radius: '0.75'
   },
+  breadcrumb: {
+    enable: true,
+    showIcon: true,
+    styleType: 'background'
+  }
 });

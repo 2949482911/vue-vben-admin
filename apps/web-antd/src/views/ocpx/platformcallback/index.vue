@@ -163,6 +163,12 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
       width: "auto",
       slots: {default : 'onlyClick'}
     },
+    {
+      field: 'hadClick',
+      title: `${$t('ocpx.platformcallback.columns.hadClick')}`,
+      width: "auto",
+      slots: {default : 'hadClick'}
+    },
 
     {
       field: 'config',
@@ -204,6 +210,13 @@ function pageReload() {
   <div>
     <Page auto-content-height>
       <Grid>
+
+        <template #hadClick="{row}">
+          <Tag color="green" v-if="row.hadClick">
+            {{$t('common.yes')}}
+          </Tag>
+          <Tag v-else color="red">{{$t('common.no')}}</Tag>
+        </template>
 
         <template #onlyClick="{row}">
           <Tag color="green" v-if="row.onlyClick">
