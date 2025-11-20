@@ -234,7 +234,7 @@ onMounted(() => {
       </template>
       <Card class="ml-2">
         <Page>
-          <Grid :table-title="$t('system.user.title')">
+          <Grid>
             <template #roleIds="{ row }">
               <Tag
                 v-for="item in row.roleList"

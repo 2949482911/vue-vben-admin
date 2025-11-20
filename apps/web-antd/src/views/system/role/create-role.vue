@@ -84,28 +84,22 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'Tree',
       rules: 'required',
-      formItemClass: 'items-start',
-      modelPropName: 'modelValue',
-      // componentProps: {
-      //   treeData: menuData,
-      //   rowKey: 'id',
-      //   checkedKeys,
-      //   height: 200,
-      //   checkable: true,
-      //   multiple: true,
-      //   checkStrictly: true,
-      //   onCheck: (checkedKeys, info) => {
-      //     let checkedKeysResult = [...checkedKeys, ...info.halfCheckedKeys];
-      //     if (menuParentIds.value.indexOf(info.node.parentId)) {
-      //       menuParentIds.value.push(info.node.parentId);
-      //     }
-      //   },
-      //   fieldNames: {
-      //     key: 'id',
-      //     children: 'children',
-      //     title: 'title',
-      //   },
-      // },
+      // formItemClass: 'items-start',
+      // modelPropName: 'modelValue',
+      componentProps: {
+        treeData: menuData,
+        checkable: true,
+        multiple: true,
+        checkStrictly: false,
+        fieldNames: {
+          key: 'id',
+          children: 'children',
+          title: 'title',
+        },
+        autoCheckParent: true,
+        defaultExpandedLevel: 2,
+        checkedKeys: checkedKeys,
+      },
       fieldName: 'menuIds',
       label: `${$t('system.role.columns.menuIds')}`,
     },
@@ -152,10 +146,11 @@ const [Modal, modalApi] = useVbenModal({
       createObject.value = modalApi.getData<Record<string, any>>() as CreateRoleRequest | UpdateRoleRequest;
       if (createObject.value.id) {
         isUpdate.value = true;
-        checkedKeys.value = createObject.value.menuIds;
+        checkedKeys.value = createObject.value.menuIds || [];
         handleSetFormValue(createObject.value);
       } else {
         isUpdate.value = false;
+        checkedKeys.value = [];
       }
       menuApi.fetchMenuTree().then((res) => {
         menuData.value = res;
@@ -173,14 +168,14 @@ function handleSetFormValue(row: CreateRoleRequest | UpdateRoleRequest) {
   formApi.setValues(row);
 }
 
-function getNodeClass(node: any) {
-  const classes: string[] = [];
-  if (node.value?.type === 2) {
-    classes.push('inline-flex');
-  }
-
-  return classes.join(' ');
-}
+// function getNodeClass(node: any) {
+//   const classes: string[] = [];
+//   if (node.value?.type === 2) {
+//     classes.push('inline-flex');
+//   }
+//
+//   return classes.join(' ');
+// }
 
 const title: string = createObject.value
   ? `${$t('common.edit')}`
@@ -190,27 +185,27 @@ const title: string = createObject.value
   <Modal :title="title">
     <Card>
       <Form>
-        <template #menuIds="slotProps">
-          <Tree
-            :tree-data="menuData"
-            :multiple="true"
-            bordered
-            :check-strictly="false"
-            :default-expanded-level="2"
-            v-bind="slotProps"
-            :get-node-class="getNodeClass"
-            value-field="id"
-            label-field="title"
-            icon-field="meta.icon"
-            :defaultValue="checkedKeys"
-            :autoCheckParent="true"
-          >
-            <template #node="{ value }">
-              <IconifyIcon v-if="value.icon" :icon="value.icon"/>
-              {{ $t(value.title) }}
-            </template>
-          </Tree>
-        </template>
+<!--        <template #menuIds="slotProps">-->
+<!--          <Tree-->
+<!--            :tree-data="menuData"-->
+<!--            :multiple="true"-->
+<!--            bordered-->
+<!--            :check-strictly="false"-->
+<!--            :default-expanded-level="2"-->
+<!--            v-bind="slotProps"-->
+<!--            :get-node-class="getNodeClass"-->
+<!--            value-field="id"-->
+<!--            label-field="title"-->
+<!--            icon-field="meta.icon"-->
+<!--            :defaultValue="checkedKeys"-->
+<!--            :autoCheckParent="true"-->
+<!--          >-->
+<!--            <template #node="{ value }">-->
+<!--              <IconifyIcon v-if="value.icon" :icon="value.icon"/>-->
+<!--              {{ $t(value.title) }}-->
+<!--            </template>-->
+<!--          </Tree>-->
+<!--        </template>-->
       </Form>
     </Card>
   </Modal>
