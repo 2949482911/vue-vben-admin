@@ -163,6 +163,10 @@ export const PLATFORM = [
     label: `${$t('ocpx.platform.honor')}`,
     value: 'honor',
   },
+  {
+    label: `${$t('ocpx.platform.baidu')}`,
+    value: 'baidu',
+  },
 ];
 
 /**

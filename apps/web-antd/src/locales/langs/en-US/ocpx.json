@@ -29,7 +29,8 @@
     "alipay": "AliPay",
     "xmly": "Xima",
     "honor": "honor",
-    "kuaishou": "kuaishou"
+    "kuaishou": "kuaishou",
+    "baidu": "baidu"
   },
   "behavioraplatform": {
     "columns": {

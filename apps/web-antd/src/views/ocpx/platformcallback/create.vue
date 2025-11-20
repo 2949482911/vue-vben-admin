@@ -268,6 +268,41 @@ platformConfigForm.set(Platform.HONOR, [
   },
 ]);
 
+// 百度
+platformConfigForm.set(Platform.BAIDU, [
+  {
+    // 媒体配置表单
+    component: 'Select',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.select')}`,
+      options: [
+        {
+          label: "OAID",
+          value: "OAID"
+        },
+        {
+          label: "IMEI",
+          value: "IMEI"
+        },
+        {
+          label: "CAID",
+          value: "CAID"
+        }, {
+          label: "IDFA",
+          value: "IDFA"
+        },
+      ]
+    },
+    defaultValue: 'OAID',
+    // 字段名
+    fieldName: 'join_type',
+    // 界面显示的label
+    label: 'join_type',
+    rules: 'required',
+  },
+])
+
 
 /**
  *

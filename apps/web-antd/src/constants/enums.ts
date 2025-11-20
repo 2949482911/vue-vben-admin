@@ -12,5 +12,6 @@ export enum Platform {
   VIVO = 'vivo',
   XMLY = "xmly",
   HONOR = "honor",
-  KUAISHOU = "kuaishou"
+  KUAISHOU = "kuaishou",
+  BAIDU = "baidu",
 }

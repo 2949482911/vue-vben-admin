@@ -97,6 +97,10 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'behavioraPlatformIds',
       label: `${$t('ocpx.ocpx_task.columns.behavioraPlatform')}`,
       componentProps: {
+        showSearch: true,
+        filterOption: (inputValue: string, option: {label: string}) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
         mode: 'multiple',
         placeholder: `${$t('common.select')}`,
         api: async (params: any) => {
@@ -119,8 +123,12 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('ocpx.ocpx_task.columns.platformCallback')}`,
       componentProps: {
         mode: 'multiple',
+        showSearch: true,
+        filterOption: (inputValue: string, option: {label: string}) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
         placeholder: `${$t('common.select')}`,
-        api: async (params) => {
+        api: async (params: any) => {
           return await platformCallbackApi.fetchPlatformcallbackList(params);
         },
         params: {
