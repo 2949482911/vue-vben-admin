@@ -75,6 +75,11 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
+      component: 'Input',
+      fieldName: 'id',
+      label: `id`,
+    },
+    {
       component: 'Select',
       componentProps: {
         allowClear: true,
@@ -154,20 +159,20 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
       field: 'behaviorType',
       title: `${$t('ocpx.platformcallback.columns.behaviorType')}`,
       width: "auto",
-      slots: {default : 'behaviorType'}
+      slots: {default: 'behaviorType'}
     },
 
     {
       field: 'onlyClick',
       title: `${$t('ocpx.platformcallback.columns.onlyClick')}`,
       width: "auto",
-      slots: {default : 'onlyClick'}
+      slots: {default: 'onlyClick'}
     },
     {
       field: 'hadClick',
       title: `${$t('ocpx.platformcallback.columns.hadClick')}`,
       width: "auto",
-      slots: {default : 'hadClick'}
+      slots: {default: 'hadClick'}
     },
 
     {
@@ -213,21 +218,21 @@ function pageReload() {
 
         <template #hadClick="{row}">
           <Tag color="green" v-if="row.hadClick">
-            {{$t('common.yes')}}
+            {{ $t('common.yes') }}
           </Tag>
-          <Tag v-else color="red">{{$t('common.no')}}</Tag>
+          <Tag v-else color="red">{{ $t('common.no') }}</Tag>
         </template>
 
         <template #onlyClick="{row}">
           <Tag color="green" v-if="row.onlyClick">
-            {{$t('common.yes')}}
+            {{ $t('common.yes') }}
           </Tag>
-          <Tag v-else color="red">{{$t('common.no')}}</Tag>
+          <Tag v-else color="red">{{ $t('common.no') }}</Tag>
         </template>
 
         <template #behaviorType="{row}">
           <Tag color="green" v-if="row.behaviorTypeMoel === 'auto'">
-            {{$t('ocpx.platformcallback.auto')}}
+            {{ $t('ocpx.platformcallback.auto') }}
           </Tag>
           <Tag v-else color="red">{{ row.behaviorTypeName }}</Tag>
         </template>
