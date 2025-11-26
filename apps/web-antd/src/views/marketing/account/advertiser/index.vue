@@ -7,7 +7,7 @@ import type {AdvertiserItem} from '#/api/models';
 import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
-import {Button, Switch, Tag} from 'ant-design-vue';
+import {Button, Switch, Tag, Dropdown, Menu, MenuItem} from 'ant-design-vue';
 
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {advertiserApi} from '#/api/core';
@@ -76,6 +76,17 @@ async function handlerDelete(row: AdvertiserItem) {
   pageReload();
 }
 
+
+async function handlerPutState(row: AdvertiserItem) {
+  const putStatue: string = row.putStatue == 1 ? 'stop_put_status' : 'start_put_status';
+  await advertiserApi.fetchBatchOptions({
+    targetIds: [row.id],
+    type: putStatue,
+    values: new Map<string, any>(),
+  });
+  pageReload();
+}
+
 const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
@@ -94,6 +105,24 @@ const formOptions: VbenFormProps = {
       fieldName: 'advertiserName',
       label: `${$t('marketing.developer.columns.name')}`,
     },
+
+    {
+      component: 'Input',
+      fieldName: 'advertiserId',
+      label: `${$t('marketing.advertiser.columns.advertiserId')}`,
+    },
+
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: STATUS_SELECT,
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'putStatue',
+      label: `${$t('marketing.advertiser.columns.putStatue')}`
+    },
+
     {
       component: 'DatePicker',
       fieldName: 'createTime',
@@ -170,6 +199,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       field: 'putStatue',
       title: `${$t('marketing.advertiser.columns.putStatue')}`,
       width: 'auto',
+      slots: {default: 'putStatue'}
     },
 
     {
@@ -233,6 +263,9 @@ function pageReload() {
   <div>
     <Page auto-content-height>
       <Grid>
+        <template #putStatue="{row}">
+          <Switch :checked="row.putStatue === 1" @click="handlerPutState(row)"></Switch>
+        </template>
         <template #advertiserRole="{ row }">
           <Tag color="red">{{ row.advertiserRole }}</Tag>
         </template>
@@ -252,6 +285,20 @@ function pageReload() {
           <Button type="link" @click="handlerDelete(row)">
             {{ $t('common.delete') }}
           </Button>
+
+          <Dropdown>
+            <Button type="link">
+              {{ $t('core.more') }}
+            </Button>
+            <template #overlay>
+              <Menu>
+                <MenuItem>
+                  投放
+                </MenuItem>
+              </Menu>
+            </template>
+          </Dropdown>
+
         </template>
         <template #status="{ row }">
           <Switch :checked="row.status === 1" @click="handlerState(row)"/>
