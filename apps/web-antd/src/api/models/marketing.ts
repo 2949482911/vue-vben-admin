@@ -30,15 +30,15 @@ export interface AdvertiserItem extends BaseItem {
 }
 
 
-
 export interface CreateAdvertiserRequest {
 
 }
 
 
-export interface UpdateAdvertiserRequest extends CreateAdvertiserRequest{
+export interface UpdateAdvertiserRequest extends CreateAdvertiserRequest {
 
 }
+
 /**
  * 账户授权请求iD
  */
@@ -77,4 +77,73 @@ export interface CreateDeveloperRequest {
 
 export interface UpdateDeveloperRequest extends CreateDeveloperRequest {
   id: string;
+}
+
+
+// 报表
+
+export interface CreateSystemMetric {
+  ename: string;
+  cname: string;
+  description: string;
+  metricType: number;
+  formula: string;
+  tags: Array<number>;
+  platformMetricMap: Array<PlatformMetricMap>;
+  implMethod: string;
+}
+
+
+export interface UpdateMetric extends CreateSystemMetric {
+  id: string;
+}
+
+export interface SystemMetricPageRequest extends PageRequestParams {
+  ename: string;
+  cname: string;
+}
+
+
+export interface MetricItem extends BaseItem {
+  ename: string;
+  cname: string;
+  description: string;
+  metricType: number;
+  formula: string;
+  tags: Array<number>;
+  platformMetricMap: Array<Map<string, any>>;
+  calculateLogic: Array<string>;
+  implMethod: string;
+  isSystem: boolean;
+  isCustom: boolean;
+  calculateSort: number;
+  sort: number;
+}
+
+
+export interface PlatformMetricMap {
+  platform: string;
+  metricName: string;
+}
+
+
+// 报表数据响应
+export interface AdReportResponse {
+  dims: Array<string>;
+  cname: Map<string, string>;
+  items: Array<Map<string, string>>;
+  summary: Map<string, string>;
+}
+
+export interface AdReportRequest {
+  dateTimeRange: Array<string>;
+  queryMetric: Array<number>;
+  dims: Array<string>;
+  needCname: boolean;
+  decimalPoint: number;
+  filters: Array<{
+    field: string;
+    operator: number;
+    values: Array<any>
+  }>
 }

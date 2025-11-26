@@ -38,6 +38,9 @@
   "baseInfo": "Base Info",
   "configuration": "Configuration",
   "behavioracallbackrecord": "Callback Record",
-  "behaviorRecord": "Behavior Record"
+  "behaviorRecord": "Behavior Record",
+  "metric": "Metric",
+  "checkAll": "Check All"
+
 
 }

@@ -1,11 +1,14 @@
 import {BaseApi} from "#/api/core/baseapi";
 import type {
+  AdReportRequest,
+  AdReportResponse,
   AdvertiserItem,
   AdvertiserPageRequest,
   AuthAdvertiserRequest, CreateAdvertiserRequest,
-  CreateDeveloperRequest,
+  CreateDeveloperRequest, CreateSystemMetric,
   DeveloperItem,
-  DeveloperPageRequest, UpdateAdvertiserRequest, UpdateDeveloperRequest
+  DeveloperPageRequest, MetricItem,
+  SystemMetricPageRequest, UpdateAdvertiserRequest, UpdateDeveloperRequest, UpdateMetric
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -68,3 +71,57 @@ class AdvertiserApi extends BaseApi {
 }
 
 export const advertiserApi = new AdvertiserApi("/platform/advertiser");
+
+
+// 指标接口
+
+class MetricApi extends BaseApi {
+
+  fetchCreateSystemMetric(params: CreateSystemMetric) {
+    return requestClient.post(this.getServiceUrl("create_system_metric"), params)
+  }
+
+
+  fetchCreateMetric(params: CreateSystemMetric) {
+    return requestClient.post(this.getServiceUrl("create_metric"), params)
+  }
+
+  fetchUpdateMetric(params: UpdateMetric) {
+    return requestClient.post(this.getServiceUrl("update"), params)
+  }
+
+
+  fetchSystemMetricList(params: SystemMetricPageRequest) {
+    return requestClient.get<MetricItem>(this.getServiceUrl("system_metric_list"), {
+      params
+    })
+  }
+
+
+  /**
+   * 获取查询指标列表
+   */
+  fetchMetric() {
+    return requestClient.get<MetricItem>(this.getServiceUrl("query_metric"))
+  }
+
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch",), params)
+  }
+
+}
+
+export const metricApi = new MetricApi("/platform/metric");
+
+
+/**
+ * report data
+ */
+class ReportApi extends BaseApi {
+  fetchAdReport(params: AdReportRequest) {
+    return requestClient.post<AdReportResponse>(this.getServiceUrl("adreport"), params)
+  }
+}
+
+
+export const reportApi = new ReportApi("/platform/report");

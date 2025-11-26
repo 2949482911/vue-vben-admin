@@ -111,7 +111,7 @@ platformConfigForm.set(Platform.VIVO, [
       },
       params: {
         page: 1,
-        size: 1000,
+        pageSize: 1000,
       },
       valueField: 'id',
       labelField: 'advertiserName',

@@ -39,9 +39,14 @@
   "marketing": {
     "title": "Marketing",
     "account": {
-      "title": "账户",
+      "title": "Account",
       "advertiser": "Advertiser",
       "developer": "Developer"
+    },
+    "report": {
+      "title": "Report",
+      "metric": "Metric",
+      "adreportdata": "Ad Report Data"
     }
   }
 }

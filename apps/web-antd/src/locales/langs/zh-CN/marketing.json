@@ -28,5 +28,38 @@
       "remark": "备注",
       "authCount": "授权数"
     }
+  },
+  "metric": {
+    "columns": {
+      "ename": "英文名字",
+      "cname": "中文名字",
+      "description": "描述",
+      "metricType": "类型",
+      "formula": "公式",
+      "calculateLogic": "计算公式",
+      "platformMetricMap": "指标映射",
+      "implMethod": "指标方法",
+      "isSystem": "系统",
+      "isCustom": "自建",
+      "calculateSort": "计算顺序",
+      "sort": "顺序"
+    },
+    "metricType": {
+      "atomic": "原子指标",
+      "derive": "派生指标",
+      "eventMetric": "事件指标"
+    }
+  },
+  "report": {
+    "dims": {
+      "title": "维度",
+      "hour": "小时",
+      "day": "天",
+      "week": "周",
+      "month": "月",
+      "quarter": "季度",
+      "year": "年",
+      "advertiser": "账户"
+    }
   }
 }

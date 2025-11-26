@@ -28,5 +28,38 @@
       "remark": "Remark",
       "authCount": "Auth Count"
     }
+  },
+  "metric": {
+    "columns": {
+      "ename": "EName",
+      "cname": "Cname",
+      "description": "Description",
+      "metricType": "Type",
+      "formula": "formula",
+      "calculateLogic": "Calculate Logic",
+      "platformMetricMap": "Platform Metric Map",
+      "implMethod": "implMethod",
+      "isSystem": "System",
+      "isCustom": "Custom",
+      "calculateSort": "Calculate Sort",
+      "sort": "sort"
+    },
+    "metricType": {
+      "atomic": "Atomic Metric",
+      "derive": "Derive Metric",
+      "eventMetric": "Event Metric"
+    }
+  },
+  "report": {
+    "dims": {
+      "title": "Dims",
+      "hour": "Hour",
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year",
+      "advertiser": "Advertiser"
+    }
   }
 }

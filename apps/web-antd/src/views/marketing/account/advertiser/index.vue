@@ -43,7 +43,7 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
   modal: true,
 });
 
-function openCreateModal(row: PlatformcallbackItem) {
+function openCreateModal(row: AdvertiserItem) {
   if (row.id) {
     createObjectApi.setData(row);
   } else {
@@ -52,7 +52,7 @@ function openCreateModal(row: PlatformcallbackItem) {
   createObjectApi.open();
 }
 
-async function handlerState(row: PlatformcallbackItem) {
+async function handlerState(row: AdvertiserItem) {
   await (row.status === 1
     ? advertiserApi.fetchBatchOptions({
       targetIds: [row.id],
@@ -67,7 +67,7 @@ async function handlerState(row: PlatformcallbackItem) {
   pageReload();
 }
 
-async function handlerDelete(row: PlatformcallbackItem) {
+async function handlerDelete(row: AdvertiserItem) {
   await advertiserApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,

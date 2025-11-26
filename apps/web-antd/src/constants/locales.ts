@@ -255,3 +255,49 @@ export const MatchFieldSelect = [
     value: 'creativeId',
   },
 ];
+
+
+/**
+ * 激活报表媒体
+ */
+export const ACTIVE_PLATFORM = [
+  {
+    label: `${$t('ocpx.platform.vivo')}`,
+    value: 'vivo',
+  },
+];
+
+
+/**
+ * 报表维度
+ */
+export const DIMS = [
+  {
+    label: `${$t('marketing.report.dims.hour')}`,
+    value: 'hour',
+  },
+  {
+    label: `${$t('marketing.report.dims.day')}`,
+    value: 'day',
+  },
+  {
+    label: `${$t('marketing.report.dims.week')}`,
+    value: 'week',
+  },
+  {
+    label: `${$t('marketing.report.dims.month')}`,
+    value: 'month',
+  },
+  {
+    label: `${$t('marketing.report.dims.quarter')}`,
+    value: 'quarter',
+  },
+  {
+    label: `${$t('marketing.report.dims.year')}`,
+    value: 'year',
+  },
+  {
+    label: `${$t('marketing.report.dims.advertiser')}`,
+    value: 'advertiser',
+  }
+]
