@@ -28,9 +28,10 @@
     "bytedance": "Bytedance",
     "alipay": "AliPay",
     "xmly": "Xima",
-    "honor": "honor",
-    "kuaishou": "kuaishou",
-    "baidu": "baidu"
+    "honor": "Honor",
+    "kuaishou": "Kuaishou",
+    "baidu": "BaiDu",
+    "netease": "NetEase"
   },
   "behavioraplatform": {
     "columns": {

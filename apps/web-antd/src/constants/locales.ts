@@ -207,6 +207,10 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.kuaishou')}`,
     value: 'kuaishou',
   },
+  {
+    label: `${$t('ocpx.platform.netease')}`,
+    value: 'netease',
+  },
 ];
 
 // 匹配下拉

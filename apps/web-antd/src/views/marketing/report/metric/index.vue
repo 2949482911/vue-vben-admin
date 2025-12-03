@@ -220,7 +220,12 @@ function pageReload() {
           <Tag color="green" v-else-if="row.metricType === 2">
             {{ $t('marketing.metric.metricType.derive') }}
           </Tag>
-          <Tag color="orange" v-else> {{ $t('marketing.metric.metricType.eventMetric') }}</Tag>
+          <Tag color="green" v-else-if="row.metricType === 3">
+            {{ $t('marketing.metric.metricType.eventMetric') }}
+          </Tag>
+          <Tag color="orange" v-else>
+            {{ $t('marketing.metric.metricType.platformMetric') }} - {{row.platform}}
+          </Tag>
         </template>
 
         <template #isSystem="{row}">

@@ -145,7 +145,7 @@ function delMatchData(index: number) {
         <Button type="link" @click="copyMatchData(row)">
           {{ $t('core.copy') }}
         </Button>
-        <Button type="link" @coll="delMatchData(seq)">
+        <Button type="link" @click="delMatchData(seq)">
           {{ $t('common.delete') }}
         </Button>
       </template>

@@ -42,12 +42,14 @@
       "isSystem": "System",
       "isCustom": "Custom",
       "calculateSort": "Calculate Sort",
-      "sort": "sort"
+      "sort": "sort",
+      "platform": "Platform"
     },
     "metricType": {
       "atomic": "Atomic Metric",
       "derive": "Derive Metric",
-      "eventMetric": "Event Metric"
+      "eventMetric": "Event Metric",
+      "platformMetric": "Platform Metric"
     }
   },
   "report": {

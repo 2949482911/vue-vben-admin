@@ -42,12 +42,16 @@
       "isSystem": "系统",
       "isCustom": "自建",
       "calculateSort": "计算顺序",
-      "sort": "顺序"
+      "sort": "顺序",
+      "platform": "平台"
+
     },
     "metricType": {
       "atomic": "原子指标",
       "derive": "派生指标",
-      "eventMetric": "事件指标"
+      "eventMetric": "事件指标",
+      "platformMetric": "媒体指标"
+
     }
   },
   "report": {

@@ -105,6 +105,9 @@ platformConfigForm.set(Platform.VIVO, [
       api: async (params: any) => {
         return await advertiserApi.fetchAdvertiserList(params);
       },
+      filterOption: (inputValue: string, option: {label: string}) => {
+        return option.label.toLowerCase().includes(inputValue.toLowerCase());
+      },
       onSelect: async (_, data: any) => {
         await formApi.setFieldValue('advertiserId', data.advertiserId);
         await formApi.setFieldValue('advertiserName', data.label);

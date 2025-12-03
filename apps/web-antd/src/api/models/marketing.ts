@@ -7,6 +7,7 @@ import type {BaseItem, PageRequestParams} from "#/api/models/core";
 export interface AdvertiserPageRequest extends PageRequestParams {
   advertiserId: string;
   advertiserName: string;
+  putStatus: number;
 }
 
 
@@ -118,6 +119,7 @@ export interface MetricItem extends BaseItem {
   isCustom: boolean;
   calculateSort: number;
   sort: number;
+  platform: string;
 }
 
 

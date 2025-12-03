@@ -106,7 +106,7 @@ class MetricApi extends BaseApi {
   }
 
   fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("batch",), params)
+    return requestClient.post(this.getServiceUrl("batch_options",), params)
   }
 
 }

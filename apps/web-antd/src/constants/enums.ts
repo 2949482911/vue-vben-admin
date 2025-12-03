@@ -14,4 +14,5 @@ export enum Platform {
   HONOR = "honor",
   KUAISHOU = "kuaishou",
   BAIDU = "baidu",
+  NETEASE = "netease",
 }

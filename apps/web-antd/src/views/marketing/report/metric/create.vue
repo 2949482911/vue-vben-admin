@@ -132,6 +132,9 @@ const [Form, formApi] = useVbenForm({
             showPlatformMetricMap.value = false;
             defaultPlatformMetricMap();
           }
+          if (value === 4) {
+            showPlatformMetricMap.value = false;
+          }
         },
         options: [
           {
@@ -146,6 +149,10 @@ const [Form, formApi] = useVbenForm({
             label: `${$t('marketing.metric.metricType.eventMetric')}`,
             value: 3,
           },
+          {
+            label: `${$t('marketing.metric.metricType.platformMetric')}`,
+            value: 4,
+          },
         ]
       },
       defaultValue: 1,
@@ -153,6 +160,25 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'metricType',
       label: `${$t('marketing.metric.columns.metricType')}`,
     },
+
+    {
+      component: 'Select',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        options: ACTIVE_PLATFORM
+      },
+      rules: 'required',
+      fieldName: 'platform',
+      label: `${$t('marketing.metric.columns.platform')}`,
+      dependencies: {
+        show: async () => {
+          const formVal = await formApi.getValues()
+          return formVal["metricType"] === 4;
+        },
+        triggerFields: ["metricType"]
+      }
+    },
+
 
     {
       component: 'Select',
@@ -206,34 +232,44 @@ const [Form, formApi] = useVbenForm({
 });
 
 
+const columns = [
+  {title: '序号', type: 'seq'},
+  {
+    field: 'platform',
+    title: `${$t('ocpx.behavioraplatform.columns.platform')}`,
+    slots: {default: 'platform'},
+  },
+  {
+    field: 'metricName',
+    title: `指标名字`,
+    slots: {default: 'metricName'},
+  },
+
+  {
+    field: 'options',
+    title: `${$t('core.columns.options')}`,
+    fixed: 'right',
+    slots: {default: 'action'},
+  },
+]
+
 // 原子指标映射
 const gridOptions: VxeGridProps<PlatformMetricMap> = {
   border: true,
   checkboxConfig: {
     highlight: true,
   },
-  columns: [
-    {title: '序号', type: 'seq'},
-    {
-      field: 'platform',
-      title: `${$t('ocpx.behavioraplatform.columns.platform')}`,
-      slots: {default: 'platform'},
-    },
-    {
-      field: 'metricName',
-      title: `指标名字`,
-      slots: {default: 'metricName'},
-    }
-
-  ],
+  columns: columns,
   // height: 'auto',
   keepSource: true,
   proxyConfig: {
     enabled: false,
+    autoLoad: false,
   },
   data: objectRequest.value.platformMetricMap,
   pagerConfig: {
     enabled: false,
+
   },
 };
 
@@ -249,6 +285,12 @@ function addPlatformMetric() {
   })
   gridApi.setGridOptions({data: platformMetricMap.value})
   gridApi.reload()
+}
+
+// 删除映射列
+function deletePlatformMetricMap(index: number) {
+  platformMetricMap.value = platformMetricMap.value.splice(platformMetricMap.value.indexOf(index), 1);
+  gridApi.setGridOptions({data: platformMetricMap.value})
 }
 
 
@@ -294,6 +336,7 @@ const [Modal, modalApi] = useVbenModal({
       } else {
         isUpdate.value = false;
       }
+      gridApi.setGridOptions({data: platformMetricMap.value, columns: columns})
     }
   },
 });
@@ -301,8 +344,7 @@ const [Modal, modalApi] = useVbenModal({
 function handleSetFormValue(row: UpdateMetric | CreateSystemMetric) {
   formApi.setValues(row);
   platformMetricMap.value = row.platformMetricMap;
-  gridApi.setGridOptions({data: platformMetricMap.value})
-  gridApi.reload();
+
 }
 
 const title: string = isUpdate.value
@@ -318,12 +360,17 @@ const title: string = isUpdate.value
         <template #platform="{seq}">
           <Select :options="ACTIVE_PLATFORM"
                   v-model:value="platformMetricMap[seq-1].platform" width="100%">
-
           </Select>
         </template>
 
         <template #metricName="{seq}">
           <Input v-model:value="platformMetricMap[seq-1].metricName"/>
+        </template>
+
+        <template #action="{ seq }">
+          <Button type="link" @click="deletePlatformMetricMap(seq as number)">
+            {{ $t('common.delete') }}
+          </Button>
         </template>
 
         <template #toolbar-tools>

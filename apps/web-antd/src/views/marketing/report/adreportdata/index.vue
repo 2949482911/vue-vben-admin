@@ -8,11 +8,36 @@ import {$t} from "@vben/locales";
 import {advertiserApi, reportApi} from "#/api";
 import {Button} from "ant-design-vue";
 import SelectMetricModal from './selectmetric.vue';
+import type {AdvertiserPageRequest} from "#/api/models";
 
 
 const [SelectMetricModalModal, selectMetricModalApi] = useVbenModal({
   connectedComponent: SelectMetricModal,
 });
+
+
+// reloadGrid 重载数据
+function reloadGrid(columns: string[], items: any[]) {
+  const newColumns: any[] = [
+    {title: '序号', type: 'seq', width: 'auto',},
+  ];
+  columns.forEach(x => {
+    newColumns.push({
+      field: x,
+      title: x,
+      width: 'auto',
+    })
+  })
+  gridApi.setGridOptions({
+    columns: newColumns,
+    data: items
+  })
+}
+
+// 获取确认的指标
+function confirmMetric(metricIds: string[]) {
+  gridApi.formApi.setFieldValue('queryMetric', metricIds)
+}
 
 
 function openPlatformMetricMapDetailModal() {
@@ -26,6 +51,11 @@ const formOptions: VbenFormProps = {
     {
       component: 'RangePicker',
       defaultValue: [],
+      componentProps: {
+        placeholder: [`${$t('common.select')}`, `${$t('common.select')}`],
+        format: ['YYYY-MM-DD', 'YYYY-MM-DD'],
+        valueFormat: 'YYYY-MM-DD'
+      },
       fieldName: 'dateTimeRange',
       label: 'Time',
       rules: 'required',
@@ -41,8 +71,6 @@ const formOptions: VbenFormProps = {
       fieldName: 'platform',
       label: `${$t('ocpx.platform.title')}`,
     },
-
-
     {
       component: 'Select',
       componentProps: {
@@ -62,12 +90,16 @@ const formOptions: VbenFormProps = {
       componentProps: {
         placeholder: `${$t('common.select')}`,
         mode: 'multiple',
-        api: async (params: any) => {
+        api: async (params: AdvertiserPageRequest) => {
           return await advertiserApi.fetchAdvertiserList(params);
+        },
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
         params: {
           page: 1,
           pageSize: 1000,
+          putStatue: 1,
         },
         valueField: 'id',
         labelField: 'advertiserName',
@@ -78,6 +110,17 @@ const formOptions: VbenFormProps = {
       // 界面显示的label
       label: `${$t('marketing.advertiser.columns.advertiserName')}`,
     },
+    {
+      defaultValue: [],
+      fieldName: 'queryMetric',
+      label: '指标',
+      rules: 'required',
+      component: 'ApiSelect',
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
@@ -93,7 +136,7 @@ const gridOptions: VxeGridProps<Array<Map<string, string>>> = {
   },
   toolbarConfig: {
     custom: true,
-    export: false,
+    export: true,
     refresh: true,
     search: true,
     zoom: true,
@@ -107,13 +150,20 @@ const gridOptions: VxeGridProps<Array<Map<string, string>>> = {
     ajax: {
       query: async ({}, args) => {
         return reportApi.fetchAdReport(args)
-      }
+      },
     },
+    response: {
+      list: 'items',
+      result: (res: any) => {
+        reloadGrid(res.data.columns, res.data.items)
+        return res.data
+      }
+    }
   },
 };
 
 
-const [Grid, _] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 </script>
 
@@ -128,7 +178,7 @@ const [Grid, _] = useVbenVxeGrid({formOptions, gridOptions});
         </template>
       </Grid>
     </Page>
-    <SelectMetricModalModal/>
+    <SelectMetricModalModal @confirmMetric="confirmMetric"/>
   </div>
 </template>
 

@@ -5,6 +5,7 @@ import {metricApi} from "#/api";
 import type {MetricItem} from "#/api/models";
 import {Checkbox, Divider, CheckboxGroup, Space} from 'ant-design-vue'
 
+const emit = defineEmits(['confirmMetric']);
 
 const state = reactive({
   indeterminate: true,
@@ -25,10 +26,9 @@ const [Modal, modalApi] = useVbenModal({
     await modalApi.close();
   },
   async onConfirm() {
+    // 调用父组件 将选中的值返回给父组件
+    emit('confirmMetric', state.checkedList);
     await modalApi.close();
-  },
-  onOpenChange(isOpen: boolean) {
-    console.log(isOpen);
   },
 });
 
@@ -64,7 +64,7 @@ onMounted(() => {
         <Checkbox
           v-model:checked="state.checkAll"
           :indeterminate="state.indeterminate"
-          @change="onCheckAllChange">{{$t('core.checkAll')}}
+          @change="onCheckAllChange">{{ $t('core.checkAll') }}
         </Checkbox>
         <Divider/>
         <Space size="large">

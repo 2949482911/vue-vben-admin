@@ -367,6 +367,23 @@ platformConfigForm.set(Platform.KUAISHOU, [
   },
 ]);
 
+// 网易
+platformConfigForm.set(Platform.NETEASE, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'did',
+    // 界面显示的label
+    label: `did`,
+    rules: 'required',
+  },
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
