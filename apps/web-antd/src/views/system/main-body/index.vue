@@ -104,6 +104,12 @@ const gridOptions: VxeGridProps<MainBodyItem> = {
     },
     ...TABLE_COMMON_COLUMNS,
   ],
+  checkboxConfig: {
+    checkField: 'id',
+    highlight: true,
+    labelField: 'id',
+    range: true,
+  },
   proxyConfig: {
     autoLoad: true,
     ajax: {
