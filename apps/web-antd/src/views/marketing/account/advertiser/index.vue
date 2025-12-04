@@ -149,7 +149,8 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
-    labelField: 'advertiserName',
+    labelField: 'id',
+    range: true,
   },
   toolbarConfig: {
     custom: true,
