@@ -75,6 +75,7 @@ const TimePicker = defineAsyncComponent(
 const TreeSelect = defineAsyncComponent(
   () => import('ant-design-vue/es/tree-select'),
 );
+const Tree = defineAsyncComponent(() => import('ant-design-vue/es/tree'));
 const Upload = defineAsyncComponent(() => import('ant-design-vue/es/upload'));
 const Image = defineAsyncComponent(() => import('ant-design-vue/es/image'));
 const PreviewGroup = defineAsyncComponent(() =>

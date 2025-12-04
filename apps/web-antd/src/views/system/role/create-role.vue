@@ -168,14 +168,14 @@ function handleSetFormValue(row: CreateRoleRequest | UpdateRoleRequest) {
   formApi.setValues(row);
 }
 
-// function getNodeClass(node: any) {
-//   const classes: string[] = [];
-//   if (node.value?.type === 2) {
-//     classes.push('inline-flex');
-//   }
-//
-//   return classes.join(' ');
-// }
+function getNodeClass(node: any) {
+  const classes: string[] = [];
+  if (node.value?.type === 2) {
+    classes.push('inline-flex');
+  }
+
+  return classes.join(' ');
+}
 
 const title: string = createObject.value
   ? `${$t('common.edit')}`
@@ -185,27 +185,27 @@ const title: string = createObject.value
   <Modal :title="title">
     <Card>
       <Form>
-<!--        <template #menuIds="slotProps">-->
-<!--          <Tree-->
-<!--            :tree-data="menuData"-->
-<!--            :multiple="true"-->
-<!--            bordered-->
-<!--            :check-strictly="false"-->
-<!--            :default-expanded-level="2"-->
-<!--            v-bind="slotProps"-->
-<!--            :get-node-class="getNodeClass"-->
-<!--            value-field="id"-->
-<!--            label-field="title"-->
-<!--            icon-field="meta.icon"-->
-<!--            :defaultValue="checkedKeys"-->
-<!--            :autoCheckParent="true"-->
-<!--          >-->
-<!--            <template #node="{ value }">-->
-<!--              <IconifyIcon v-if="value.icon" :icon="value.icon"/>-->
-<!--              {{ $t(value.title) }}-->
-<!--            </template>-->
-<!--          </Tree>-->
-<!--        </template>-->
+        <template #menuIds="slotProps">
+          <Tree
+            :tree-data="menuData"
+            :multiple="true"
+            bordered
+            :check-strictly="false"
+            :default-expanded-level="2"
+            v-bind="slotProps"
+            :get-node-class="getNodeClass"
+            value-field="id"
+            label-field="title"
+            icon-field="meta.icon"
+            :defaultValue="checkedKeys"
+            :autoCheckParent="true"
+          >
+            <template #node="{ value }">
+              <IconifyIcon v-if="value.icon" :icon="value.icon"/>
+              {{ $t(value.title) }}
+            </template>
+          </Tree>
+        </template>
       </Form>
     </Card>
   </Modal>
