@@ -28,8 +28,10 @@ const formOptions: VbenFormProps = {
 const gridOptions: VxeGridProps<RowType> = {
   border: true,
   checkboxConfig: {
+    checkField: 'id',
     highlight: true,
-    labelField: 'name',
+    labelField: 'id',
+    range: true,
   },
   columns: [
     { title: '序号', type: 'seq', width: 100 },

@@ -88,6 +88,12 @@ const gridOptions: VxeGridProps<RoleItem> = {
     refresh: true,
     zoom: true,
   },
+  checkboxConfig: {
+    checkField: 'id',
+    highlight: true,
+    labelField: 'id',
+    range: true,
+  },
   columns: [
     {
       field: 'name',

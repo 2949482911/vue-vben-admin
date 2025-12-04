@@ -89,8 +89,10 @@ const formOptions: VbenFormProps = {
 const gridOptions: VxeGridProps<NoticeItem> = {
   border: true,
   checkboxConfig: {
+    checkField: 'id',
     highlight: true,
-    labelField: 'name',
+    labelField: 'id',
+    range: true,
   },
   toolbarConfig: {
     custom: true,
@@ -99,6 +101,7 @@ const gridOptions: VxeGridProps<NoticeItem> = {
     search: true,
     zoom: true,
   },
+
   columns: [
     { title: '序号', type: 'seq', width: 100 },
     { field: 'title', title: `${$t('system.notice.columns.title')}` },

@@ -3,38 +3,31 @@ import {$t} from '@vben/locales';
 export const TABLE_COMMON_COLUMNS = [
   {title: '序号', type: 'checkbox', fixed: 'left', width: 'auto',},
   {
-    align: 'left',
-    field: 'id',
-    title: `${$t('core.columns.id')}`,
-    width: 'auto',
+    field: 'createUsername', title: `${$t('core.columns.createUsername')}`, width: 'auto',
   },
   {
-    field: 'createUsername',
-    title: `${$t('core.columns.createUsername')}`,
-    width: 'auto',
-  },
-  {
-    field: 'updateUsername',
-    title: `${$t('core.columns.updateUsername')}`,
-    width: 'auto',
+    field: 'updateUsername', title: `${$t('core.columns.updateUsername')}`, width: 'auto',
   },
   {
     field: 'createTime',
     formatter: 'formatDateTime',
     title: `${$t('core.columns.createTime')}`,
     width: 'auto',
+
   },
   {
     field: 'updateTime',
     formatter: 'formatDateTime',
     title: `${$t('core.columns.updateTime')}`,
     width: 'auto',
+
   },
   {
     field: 'status',
     title: `${$t('core.columns.status')}`,
     slots: {default: 'status'},
     width: 'auto',
+
   },
   {
     field: 'options',
