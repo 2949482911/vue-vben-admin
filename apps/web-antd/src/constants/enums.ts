@@ -15,4 +15,5 @@ export enum Platform {
   KUAISHOU = "kuaishou",
   BAIDU = "baidu",
   NETEASE = "netease",
+  JD_GYX = "jdgyx",
 }

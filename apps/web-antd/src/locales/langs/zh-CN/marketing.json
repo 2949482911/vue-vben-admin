@@ -65,5 +65,14 @@
       "year": "年",
       "advertiser": "账户"
     }
+  },
+  "project": {
+    "columns": {
+      "name": "名字",
+      "description": "描述",
+      "packageName": "包名",
+      "projectType": "类型",
+      "icon": "图标"
+    }
   }
 }

@@ -5,10 +5,11 @@ import type {
   AdvertiserItem,
   AdvertiserPageRequest,
   AuthAdvertiserRequest, CreateAdvertiserRequest,
-  CreateDeveloperRequest, CreateSystemMetric,
+  CreateDeveloperRequest, CreateProjectRequest, CreateSystemMetric,
   DeveloperItem,
-  DeveloperPageRequest, MetricItem,
-  SystemMetricPageRequest, UpdateAdvertiserRequest, UpdateDeveloperRequest, UpdateMetric
+  DeveloperPageRequest, MetricItem, ProjectItem, ProjectPageRequest,
+  SystemMetricPageRequest, UpdateAdvertiserRequest, UpdateDeveloperRequest, UpdateMetric,
+  UpdateProjectRequest
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -125,3 +126,29 @@ class ReportApi extends BaseApi {
 
 
 export const reportApi = new ReportApi("/platform/report");
+
+
+/**
+ * project
+ */
+
+
+class ProjectApi extends BaseApi {
+  fetchProjectList(params: ProjectPageRequest) {
+    return requestClient.get<ProjectItem>(this.getServiceUrl("list"), {params})
+  }
+
+  fetchCreateProject(data: CreateProjectRequest) {
+    return requestClient.post(this.getServiceUrl("create_project"), data)
+  }
+
+  fetchUpdateProject(data: UpdateProjectRequest) {
+    return requestClient.post(this.getServiceUrl("create_project"), data)
+  }
+
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params)
+  }
+}
+
+export const projectApi = new ProjectApi("/platform/project");

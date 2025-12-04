@@ -121,6 +121,11 @@ export interface ClickMonitorResponse {
   ocpxTaskId: string;
   platformCallbackId: string;
   platform: string;
+  behaviorCallbackUrls: Array<{
+    url: string;
+    platformBehaviorId: string;
+    name: string;
+  }>;
 }
 
 export interface OcpxBehavioracallbackRecordPageRequest

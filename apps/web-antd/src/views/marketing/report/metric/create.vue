@@ -329,7 +329,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<Record<string, any>>() as UpdateMetric | CreateSystemMetric;
+      objectRequest.value = modalApi.getData<UpdateMetric | CreateSystemMetric>();
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);

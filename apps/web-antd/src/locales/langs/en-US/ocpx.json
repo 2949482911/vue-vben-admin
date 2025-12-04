@@ -31,7 +31,8 @@
     "honor": "Honor",
     "kuaishou": "Kuaishou",
     "baidu": "BaiDu",
-    "netease": "NetEase"
+    "netease": "NetEase",
+    "jdgyx": "Jd GYX"
   },
   "behavioraplatform": {
     "columns": {
@@ -92,6 +93,7 @@
     "clickmonitor": {
       "name": "Behaviora Name",
       "url": "Click Link",
+      "callback": "Callback Url",
       "testCallback": "Test Callback"
     }
   }

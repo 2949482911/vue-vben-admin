@@ -31,7 +31,8 @@
     "honor": "荣耀",
     "kuaishou": "快手",
     "baidu": "百度",
-    "netease": "网易"
+    "netease": "网易",
+    "jdgyx": "京东-广义新"
   },
   "behavioraplatform": {
     "columns": {
@@ -92,6 +93,7 @@
     "clickmonitor": {
       "name": "转化配置名字",
       "url": "点击监测",
+      "callback": "回调链接",
       "testCallback": "联调回传"
     }
   }

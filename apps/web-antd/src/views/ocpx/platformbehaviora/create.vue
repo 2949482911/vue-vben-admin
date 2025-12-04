@@ -382,6 +382,32 @@ platformConfigForm.set(Platform.NETEASE, [
     label: `did`,
     rules: 'required',
   },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'aid',
+    label: `aid`,
+    rules: 'required',
+  },
+])
+
+// 京东广义新
+platformConfigForm.set(Platform.JD_GYX, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'test',
+    // 界面显示的label
+    label: `test`,
+    rules: 'required',
+  },
 ])
 
 const [ConfigForm, configFormApi] = useVbenForm({
@@ -444,7 +470,7 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
         options: BEHAVIORA_PLATFORM,
         onSelect: async (value: string) => {
-           configFormApi.setState((_) => {
+          configFormApi.setState((_) => {
             return {
               schema: platformConfigForm.get(value),
             };

@@ -149,3 +149,37 @@ export interface AdReportRequest {
     values: Array<any>
   }>
 }
+
+/**
+ * project request/response/page class
+ */
+
+export interface ProjectPageRequest extends PageRequestParams {
+  name: string;
+  projectType: number;
+  packageName: string
+}
+
+
+export interface ProjectItem extends BaseItem {
+  name: string;
+  projectType: number;
+  packageName: string
+  description: string;
+  icon: string;
+}
+
+
+
+export interface CreateProjectRequest {
+  name: string;
+  projectType: number;
+  packageName: string
+  description: string;
+  icon: string;
+}
+
+
+export interface UpdateProjectRequest extends CreateProjectRequest {
+  id: string;
+}

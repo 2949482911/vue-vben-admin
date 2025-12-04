@@ -1,5 +1,5 @@
 <script lang="ts" setup name="ClickMonitor">
-import {Button} from "ant-design-vue";
+import {Button, List, ListItem, ListItemMeta} from "ant-design-vue";
 
 import {useVbenModal} from '@vben/common-ui';
 import {clickMonitorApi} from "#/api/core/ocpx";
@@ -37,6 +37,13 @@ const gridOptions: VxeGridProps<ClickMonitorResponse> = {
     {
       title: `${$t('ocpx.ocpx_task.clickmonitor.url')}`,
       field: 'url',
+    },
+    {
+      title: `${$t('ocpx.ocpx_task.clickmonitor.callback')}`,
+      field: 'callback',
+      slots: {
+        default: "callback"
+      }
     },
     {
       field: 'options',
@@ -94,6 +101,22 @@ const [Modal, modalApi] = useVbenModal({
 <template>
   <Modal>
     <Grid>
+      <template #callback="{ row }">
+        <List item-layout="horizontal" :data-source="row.behaviorCallbackUrls">
+          <template #renderItem="{ item }">
+            <ListItem>
+              <ListItemMeta
+                :description="item.name"
+              >
+                <template #title>
+                  <div>{{ item.url }}</div>
+                </template>
+
+              </ListItemMeta>
+            </ListItem>
+          </template>
+        </List>
+      </template>
       <template #action="{ row }">
         <Button type="link" @click="openTestCallbackModal(row)">
           {{ $t('ocpx.ocpx_task.clickmonitor.testCallback') }}

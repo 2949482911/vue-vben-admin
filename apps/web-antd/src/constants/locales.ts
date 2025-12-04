@@ -211,6 +211,10 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.netease')}`,
     value: 'netease',
   },
+  {
+    label: `${$t('ocpx.platform.jdgyx')}`,
+    value: 'jdgyx',
+  },
 ];
 
 // 匹配下拉
@@ -302,6 +306,6 @@ export const DIMS = [
   },
   {
     label: `${$t('marketing.report.dims.advertiser')}`,
-    value: 'advertiser',
+    value: 'platform_account_id',
   }
 ]

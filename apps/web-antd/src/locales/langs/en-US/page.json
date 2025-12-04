@@ -38,6 +38,7 @@
   },
   "marketing": {
     "title": "Marketing",
+    "project": "Project",
     "account": {
       "title": "Account",
       "advertiser": "Advertiser",

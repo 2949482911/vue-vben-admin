@@ -26,11 +26,15 @@ function reloadGrid(columns: string[], items: any[]) {
       field: x,
       title: x,
       width: 'auto',
+      sortable: true,
     })
   })
   gridApi.setGridOptions({
     columns: newColumns,
-    data: items
+    data: items,
+    pagerConfig: {
+      total: items.length,
+    }
   })
 }
 
@@ -141,10 +145,12 @@ const gridOptions: VxeGridProps<Array<Map<string, string>>> = {
     search: true,
     zoom: true,
   },
+  exportConfig: {},
   columns: [],
   height: 'auto',
   keepSource: true,
-  pagerConfig: {},
+  pagerConfig: {
+  },
   proxyConfig: {
     autoLoad: false,
     ajax: {
@@ -171,6 +177,7 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
   <div>
     <Page auto-content-height>
       <Grid>
+
         <template #toolbar-tools>
           <Button class="mr-2" type="primary" @click="openPlatformMetricMapDetailModal" danger>
             {{ $t('core.metric') }}

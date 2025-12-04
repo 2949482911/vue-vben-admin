@@ -63,5 +63,14 @@
       "year": "Year",
       "advertiser": "Advertiser"
     }
+  },
+  "project": {
+    "columns": {
+      "name": "Name",
+      "description": "Description",
+      "packageName": "Package Name",
+      "projectType": "Type",
+      "icon": "Icon"
+    }
   }
 }
