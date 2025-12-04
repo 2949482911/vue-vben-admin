@@ -122,8 +122,6 @@ const gridOptions: VxeGridProps<DataRangeItem> = {
     highlight: true,
     labelField: 'id',
     range: true,
-    checkField: 'id',
-    checkAll: false
   },
   proxyConfig: {
     autoLoad: true,

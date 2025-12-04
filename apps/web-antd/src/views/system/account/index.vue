@@ -186,9 +186,7 @@ const gridOptions: VxeGridProps<UserItem> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    checkField: 'id',
     range: true,
-    checkAll: false,
   },
   pagerConfig: {
     enabled: true,
