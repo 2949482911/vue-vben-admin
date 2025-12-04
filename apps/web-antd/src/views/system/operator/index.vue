@@ -28,6 +28,7 @@ const formOptions: VbenFormProps = {
 const gridOptions: VxeGridProps<RowType> = {
   border: true,
   checkboxConfig: {
+    checkAll: false,
     checkField: 'id',
     highlight: true,
     labelField: 'id',
