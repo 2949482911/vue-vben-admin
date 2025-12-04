@@ -89,8 +89,6 @@ const formOptions: VbenFormProps = {
 const gridOptions: VxeGridProps<NoticeItem> = {
   border: true,
   checkboxConfig: {
-    checkAll: false,
-    checkField: 'id',
     highlight: true,
     labelField: 'id',
     range: true,
