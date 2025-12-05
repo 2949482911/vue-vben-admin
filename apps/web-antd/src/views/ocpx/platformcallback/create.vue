@@ -111,13 +111,12 @@ platformConfigForm.set(Platform.VIVO, [
       },
       onSelect: async (_, data: any) => {
         await formApi.setFieldValue('advertiserId', data.advertiserId);
-        await formApi.setFieldValue('advertiserName', data.label);
       },
       params: {
         page: 1,
-        pageSize: 1000,
+        pageSize: 10000,
       },
-      valueField: 'id',
+      valueField: 'advertiserName',
       labelField: 'advertiserName',
       resultField: 'items',
     },
