@@ -81,6 +81,7 @@ const Image = defineAsyncComponent(() => import('ant-design-vue/es/image'));
 const PreviewGroup = defineAsyncComponent(() =>
   import('ant-design-vue/es/image').then((res) => res.ImagePreviewGroup),
 );
+const Slider = defineAsyncComponent(() => import('ant-design-vue/es/slider'));
 
 const withDefaultPlaceholder = <T extends Component>(
   component: T,
@@ -354,6 +355,7 @@ export type ComponentType =
   | 'Tree'
   | 'TreeSelect'
   | 'Upload'
+  | 'Slider'
   | BaseFormComponentType;
 
 async function initComponentAdapter() {
@@ -423,6 +425,7 @@ async function initComponentAdapter() {
     TreeSelect: withDefaultPlaceholder(TreeSelect, 'select'),
     Upload: withPreviewUpload(),
     Tree,
+    Slider,
   };
 
   // 将组件注册到全局共享状态中
