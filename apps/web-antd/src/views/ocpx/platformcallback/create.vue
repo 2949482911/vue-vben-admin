@@ -101,6 +101,7 @@ platformConfigForm.set(Platform.VIVO, [
     component: 'ApiSelect',
     // 对应组件的参数
     componentProps: {
+      showSearch: true,
       placeholder: `${$t('common.select')}`,
       api: async (params: any) => {
         return await advertiserApi.fetchAdvertiserList(params);
