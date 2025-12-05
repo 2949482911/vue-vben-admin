@@ -15,7 +15,8 @@
       "balance": "余额",
       "dailyBudget": "日预算",
       "companyName": "公司名字",
-      "platformAuditState": "媒体审核状态"
+      "platformAuditState": "媒体审核状态",
+      "projectId": "项目"
     }
   },
   "developer": {

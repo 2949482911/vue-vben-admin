@@ -27,7 +27,10 @@ export interface AdvertiserItem extends BaseItem {
   balance: number;
   dailyBudget: number;
   companyName: string;
+  putStatus: number;
+  projectId: string;
   platformAuditState: string;
+  config: Map<string, any>;
 }
 
 
@@ -36,8 +39,12 @@ export interface CreateAdvertiserRequest {
 }
 
 
-export interface UpdateAdvertiserRequest extends CreateAdvertiserRequest {
-
+export interface UpdateAdvertiserRequest {
+  id: string;
+  putStatue: number;
+  remark: string;
+  projectId: string;
+  config: Map<string, any>;
 }
 
 /**
@@ -168,7 +175,6 @@ export interface ProjectItem extends BaseItem {
   description: string;
   icon: string;
 }
-
 
 
 export interface CreateProjectRequest {

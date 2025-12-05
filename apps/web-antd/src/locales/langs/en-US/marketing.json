@@ -15,7 +15,8 @@
       "balance": "Balance",
       "dailyBudget": "Daily Budget",
       "companyName": "Company",
-      "platformAuditState": "Audit State"
+      "platformAuditState": "Audit State",
+      "projectId": "Project"
     }
   },
   "developer": {

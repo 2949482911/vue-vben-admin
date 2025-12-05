@@ -154,7 +154,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   },
   toolbarConfig: {
     custom: true,
-    export: false,
+    export: true,
     refresh: true,
     search: true,
     zoom: true,
@@ -174,6 +174,12 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     {
       field: 'advertiserName',
       title: `${$t('marketing.advertiser.columns.advertiserName')}`,
+      width: 'auto',
+    },
+
+    {
+      field: 'projectName',
+      title: `${$t('marketing.advertiser.columns.projectId')}`,
       width: 'auto',
     },
 
@@ -240,6 +246,14 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   height: 'auto',
   keepSource: true,
   pagerConfig: {},
+  exportConfig: {
+    filename: '',
+    types: [
+      "csv",
+      "xlsx",
+      "xls"
+    ]
+  },
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
