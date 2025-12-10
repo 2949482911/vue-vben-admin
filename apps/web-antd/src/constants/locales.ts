@@ -160,6 +160,10 @@ export const PLATFORM = [
     label: `${$t('ocpx.platform.baidu')}`,
     value: 'baidu',
   },
+  {
+    label: `${$t('ocpx.platform.kuaishou')}`,
+    value: 'kuaishou',
+  },
 ];
 
 /**

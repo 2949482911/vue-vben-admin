@@ -21,6 +21,7 @@ export interface AdvertiserItem extends BaseItem {
   roleType: string;
   remark: string;
   advertiserRole: string;
+  advertiserRoleName: string;
   platformRemark: string;
   putStatue: number;
   platformStatus: string;
@@ -46,6 +47,23 @@ export interface UpdateAdvertiserRequest {
   projectId: string;
   config: Map<string, any>;
 }
+
+
+
+// 返回的子账户列表
+export interface AccountChildResponse {
+  advertiserId: string;
+  advertiserName: string;
+  exist: boolean;
+}
+
+
+// 导入子账户
+export interface ImportChildRequest{
+  id: string;
+  advertiserIds: Array<string>;
+}
+
 
 /**
  * 账户授权请求iD

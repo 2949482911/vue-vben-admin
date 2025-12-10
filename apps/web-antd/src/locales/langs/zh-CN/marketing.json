@@ -17,6 +17,11 @@
       "companyName": "公司名字",
       "platformAuditState": "媒体审核状态",
       "projectId": "项目"
+    },
+    "advertiserRole": {
+      "proxy": "代理",
+      "advertiser": "广告主",
+      "personal": "个人"
     }
   },
   "developer": {

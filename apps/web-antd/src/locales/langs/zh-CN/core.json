@@ -37,5 +37,7 @@
   "behavioracallbackrecord": "回传记录",
   "behaviorRecord": "转化记录",
   "metric": "指标",
-  "checkAll": "全选"
+  "checkAll": "全选",
+  "import": "导入",
+  "exist": "存在"
 }

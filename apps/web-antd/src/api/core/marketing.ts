@@ -1,5 +1,6 @@
 import {BaseApi} from "#/api/core/baseapi";
 import type {
+  AccountChildResponse,
   AdReportRequest,
   AdReportResponse,
   AdvertiserItem,
@@ -7,7 +8,7 @@ import type {
   AuthAdvertiserRequest, CreateAdvertiserRequest,
   CreateDeveloperRequest, CreateProjectRequest, CreateSystemMetric,
   DeveloperItem,
-  DeveloperPageRequest, MetricItem, ProjectItem, ProjectPageRequest,
+  DeveloperPageRequest, ImportChildRequest, MetricItem, ProjectItem, ProjectPageRequest,
   SystemMetricPageRequest, UpdateAdvertiserRequest, UpdateDeveloperRequest, UpdateMetric,
   UpdateProjectRequest
 } from "#/api/models/marketing";
@@ -69,6 +70,23 @@ class AdvertiserApi extends BaseApi {
     return requestClient.post(this.getServiceUrl("batch_options"), params)
   }
 
+
+  /**
+   * 获取子账户
+   * @param id
+   */
+  fetchAccountChild(id: string) {
+    return requestClient.get<AccountChildResponse>(this.getServiceUrl("account_child"), {params: {id: id}})
+  }
+
+
+  /**
+   * 导入子账户
+   * @param data
+   */
+  fetchImportChild(data: ImportChildRequest) {
+    return requestClient.post(this.getServiceUrl("import_child"), data)
+  }
 }
 
 export const advertiserApi = new AdvertiserApi("/platform/advertiser");
@@ -143,7 +161,7 @@ class ProjectApi extends BaseApi {
   }
 
   fetchUpdateProject(data: UpdateProjectRequest) {
-    return requestClient.post(this.getServiceUrl("create_project"), data)
+    return requestClient.post(this.getServiceUrl("update_project"), data)
   }
 
   fetchBatchOptions(params: BatchOptions) {

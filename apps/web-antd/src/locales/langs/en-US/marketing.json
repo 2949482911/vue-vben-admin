@@ -17,6 +17,11 @@
       "companyName": "Company",
       "platformAuditState": "Audit State",
       "projectId": "Project"
+    },
+    "advertiserRole": {
+      "proxy": "代理",
+      "advertiser": "广告主",
+      "personal": "个人"
     }
   },
   "developer": {

@@ -40,7 +40,7 @@
   "behavioracallbackrecord": "Callback Record",
   "behaviorRecord": "Behavior Record",
   "metric": "Metric",
-  "checkAll": "Check All"
-
-
+  "checkAll": "Check All",
+  "import": "Import",
+  "exist": "Exist"
 }

@@ -20,6 +20,7 @@ import {
 
 import AuthAccount from './authaccount.vue';
 import CreateObjectRequestComp from './create.vue';
+import ImportChildAdvertiser from './importchildadvertiser.vue';
 
 /**
  * 授权弹窗
@@ -51,6 +52,23 @@ function openCreateModal(row: AdvertiserItem) {
   }
   createObjectApi.open();
 }
+
+
+
+
+const [ImportChildAdvertiserModal, improtChildApi] = useVbenModal({
+  connectedComponent: ImportChildAdvertiser,
+  centered: true,
+  modal: true,
+});
+
+
+
+function openImportChildModal(row: AdvertiserItem) {
+  improtChildApi.setData({id: row.id});
+  improtChildApi.open();
+}
+
 
 async function handlerState(row: AdvertiserItem) {
   await (row.status === 1
@@ -100,6 +118,31 @@ const formOptions: VbenFormProps = {
       fieldName: 'platform',
       label: `${$t('ocpx.platform.title')}`,
     },
+
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: [
+          {
+            label: `${$t('marketing.advertiser.advertiserRole.proxy')}`,
+            value: 'proxy',
+          },
+          {
+            label: `${$t('marketing.advertiser.advertiserRole.advertiser')}`,
+            value: 'advertiser',
+          },
+          {
+            label: `${$t('marketing.advertiser.advertiserRole.personal')}`,
+            value: 'personal',
+          },
+        ],
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'advertiserRole',
+      label: `${$t('marketing.advertiser.columns.advertiserRole')}`,
+    },
+
     {
       component: 'Input',
       fieldName: 'advertiserName',
@@ -282,7 +325,7 @@ function pageReload() {
           <Switch :checked="row.putStatue === 1" @click="handlerPutState(row)"></Switch>
         </template>
         <template #advertiserRole="{ row }">
-          <Tag color="red">{{ row.advertiserRole }}</Tag>
+          <Tag color="red">{{ row.advertiserRoleName }}</Tag>
         </template>
 
         <template #platformStatus="{row}">
@@ -310,6 +353,9 @@ function pageReload() {
                 <MenuItem>
                   投放
                 </MenuItem>
+                <MenuItem v-if="row.advertiserRole === 'proxy'" @click="openImportChildModal(row)">
+                  {{ $t('core.import')}}
+                </MenuItem>
               </Menu>
             </template>
           </Dropdown>
@@ -332,10 +378,12 @@ function pageReload() {
           >
             {{ $t('marketing.advertiser.authAccount') }}
           </Button>
+
         </template>
       </Grid>
     </Page>
     <CreateObjectModal @page-reload="pageReload"/>
     <AuthAccountModal/>
+    <ImportChildAdvertiserModal @page-reload="pageReload" />
   </div>
 </template>
