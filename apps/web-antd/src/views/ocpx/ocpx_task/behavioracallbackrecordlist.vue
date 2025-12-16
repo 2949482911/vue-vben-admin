@@ -3,9 +3,9 @@ import {useVbenVxeGrid} from "@vben/plugins/vxe-table";
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import type {OcpxBehavioracallbackRecordItem} from "#/api/models";
 import {$t} from "@vben/locales";
-import {ocpxTaskApi} from "#/api/core/ocpx";
+import {ocpxTaskApi, clickMonitorApi} from "#/api/core/ocpx";
 import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import {Tag} from "ant-design-vue";
+import {Tag, Button} from "ant-design-vue";
 
 
 const [Modal, modalApi] = useVbenModal({
@@ -23,6 +23,16 @@ const [Modal, modalApi] = useVbenModal({
     }
   }
 });
+
+
+/**
+ * 重提转换回传
+ * @param row
+ */
+async function rePushBehaviorCallback(row: OcpxBehavioracallbackRecordItem) {
+  await clickMonitorApi.fetchRePushBehaviorCallback(row.id)
+  await gridApi.reload();
+}
 
 
 // 默认展开
@@ -85,6 +95,13 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
       formatter: 'formatDateTime',
       title: `${$t('core.columns.createTime')}`,
     },
+    {
+      field: 'options',
+      title: `${$t('core.columns.options')}`,
+      fixed: 'right',
+      slots: {default: 'action'},
+      width: 'auto',
+    },
   ],
   height: 'auto',
   keepSource: true,
@@ -102,7 +119,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     },
   },
 }
-const [Grid] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 </script>
 
@@ -115,6 +132,13 @@ const [Grid] = useVbenVxeGrid({formOptions, gridOptions});
           <template #success="{ row }">
             <Tag color="green" v-if="row.success">{{ $t('common.yes') }}</Tag>
             <Tag color="red" v-else>{{ $t('common.no') }}</Tag>
+          </template>
+
+
+          <template #action="{ row }">
+            <Button type="link" v-if="!row.success" @click="rePushBehaviorCallback(row)">
+              {{ $t('core.repush') }}
+            </Button>
           </template>
 
         </Grid>

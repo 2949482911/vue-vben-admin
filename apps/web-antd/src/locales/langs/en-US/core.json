@@ -42,5 +42,6 @@
   "metric": "Metric",
   "checkAll": "Check All",
   "import": "Import",
-  "exist": "Exist"
+  "exist": "Exist",
+  "repush": "Re Push"
 }
