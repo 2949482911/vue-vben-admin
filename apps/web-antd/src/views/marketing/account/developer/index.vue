@@ -10,8 +10,8 @@ import {$t} from '@vben/locales';
 import {Button, Switch} from 'ant-design-vue';
 import {developerApi} from '#/api/core';
 import {
+  AUTH_ACCOUNT_PLATFORM,
   BatchOptionsType,
-  PLATFORM,
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
@@ -68,7 +68,7 @@ const formOptions: VbenFormProps = {
       component: 'Select',
       componentProps: {
         allowClear: true,
-        options: PLATFORM,
+        options: AUTH_ACCOUNT_PLATFORM,
         placeholder: `${$t('common.choice')}`,
       },
       fieldName: 'platform',

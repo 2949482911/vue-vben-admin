@@ -166,6 +166,9 @@ export const PLATFORM = [
   },
 ];
 
+
+
+
 /**
  * 授权账户媒体
  */
@@ -173,6 +176,10 @@ export const AUTH_ACCOUNT_PLATFORM = [
   {
     label: `${$t('ocpx.platform.vivo')}`,
     value: 'vivo',
+  },
+  {
+    label: `${$t('ocpx.platform.tb')}`,
+    value: 'tb',
   },
 ];
 
@@ -211,6 +218,10 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: `${$t('ocpx.platform.jdgyx')}`,
     value: 'jdgyx',
+  },
+  {
+    label: `${$t('ocpx.platform.tb')}`,
+    value: 'tb',
   },
 ];
 

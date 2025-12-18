@@ -410,6 +410,50 @@ platformConfigForm.set(Platform.JD_GYX, [
   },
 ])
 
+
+// 京东广义新
+platformConfigForm.set(Platform.TB, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'session',
+    // 界面显示的label
+    label: `session`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'appKey',
+    // 界面显示的label
+    label: `appKey`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'appSecret',
+    // 界面显示的label
+    label: `appSecret`,
+    rules: 'required',
+  },
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -532,6 +576,13 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('ocpx.behavioraplatform.columns.matchField')}`,
       rules: 'required',
       defaultValue: 'requestId',
+      dependencies: {
+        show: async () =>  {
+          const data = await formApi.getValues();
+          return data["model"] != 'async';
+        },
+        triggerFields: ["model"]
+      }
     },
 
     {
@@ -557,6 +608,13 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('ocpx.behavioraplatform.columns.simulate')}`,
       rules: 'required',
       defaultValue: false,
+      dependencies: {
+        show: async () =>  {
+          const data = await formApi.getValues();
+          return data["model"] != 'async';
+        },
+        triggerFields: ["model"]
+      }
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
