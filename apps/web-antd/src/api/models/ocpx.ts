@@ -25,6 +25,8 @@ export interface CreatePlatformCallbackRequest {
   config: Map<string, any>;
   remark: string;
   onlyClick: boolean;
+  advertiserId: string;
+  advertiserName: string;
 }
 
 export interface UpdatePlatformCallbackRequest

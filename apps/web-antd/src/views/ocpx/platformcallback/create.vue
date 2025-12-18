@@ -21,6 +21,7 @@ import {PLATFORM} from '#/constants/locales';
 const emit = defineEmits(['pageReload']);
 
 const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest>({
+  advertiserId: "", advertiserName: "",
   onlyClick: false, config: new Map<string, any>(), id: "", name: "", platform: "", remark: ""
 });
 const isUpdate = ref<Boolean>(false);
@@ -111,6 +112,7 @@ platformConfigForm.set(Platform.VIVO, [
       },
       onSelect: async (_, data: any) => {
         await formApi.setFieldValue('advertiserId', data.advertiserId);
+        await configFormApi.setFieldValue('advertiserId', data.advertiserId);
       },
       params: {
         page: 1,
@@ -362,6 +364,7 @@ const [Form, formApi] = useVbenForm({
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
     formVal.config = await configFormApi.getValues();
+    debugger
     if (formVal.config.advertiserId) {
       formVal.advertiserId = formVal.config.advertiserId;
       formVal.advertiserName = formVal.config.advertiserName;
@@ -591,7 +594,14 @@ const [Modal, modalApi] = useVbenModal({
   async onCancel() {
     await formApi.resetForm();
     await configFormApi.resetForm();
-    objectRequest.value = {};
+    objectRequest.value = {
+      config: new Map<string, any>(),
+      id: '',
+      name: '',
+      onlyClick: false,
+      platform: 'vivo',
+      remark: ''
+    };
     isUpdate.value = false;
     await modalApi.close();
   },
