@@ -411,21 +411,8 @@ platformConfigForm.set(Platform.JD_GYX, [
 ])
 
 
-// 京东广义新
+// 淘宝
 platformConfigForm.set(Platform.TB, [
-  {
-    // 媒体配置表单
-    component: 'Input',
-    // 对应组件的参数
-    componentProps: {
-      placeholder: `${$t('common.input')}`,
-    },
-    // 字段名
-    fieldName: 'session',
-    // 界面显示的label
-    label: `session`,
-    rules: 'required',
-  },
   {
     // 媒体配置表单
     component: 'Input',
