@@ -1,4 +1,5 @@
 import type {BaseItem, PageRequestParams} from "#/api/models/core";
+import type {RoleItem} from "#/api/models/role";
 
 export interface RegisterUser {
   email: string;
@@ -51,6 +52,7 @@ export interface UserItem extends BaseItem {
   email: string;
   sex: number;
   roleIds: string[];
+  roleList: RoleItem[],
 }
 
 /**
