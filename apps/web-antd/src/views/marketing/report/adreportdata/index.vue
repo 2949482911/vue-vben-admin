@@ -57,7 +57,8 @@ function reloadGrid(columns: string[], pageData: any[]) {
     newColumns.push({
       field: key,
       title: key,
-      minWidth: 120,
+      width: 'auto',
+      sortable: true,
     });
   });
   gridApi.setGridOptions({
@@ -180,7 +181,7 @@ const formOptions: VbenFormProps = {
   showCollapseButton: true,
   // 按下回车时是否提交表单
   submitOnEnter: false,
-  
+
   // ⭐⭐⭐ 关键：接管“搜索”按钮
   handleSubmit: async (values) => {
     // 1️⃣ 重置到第一页
