@@ -101,7 +101,7 @@
       "url": "Click Link",
       "callback": "Callback Url",
       "testCallback": "Test Callback",
-      "directLink": "Direct Link",
+      "directLink": "Direct Link"
     }
   }
 }
