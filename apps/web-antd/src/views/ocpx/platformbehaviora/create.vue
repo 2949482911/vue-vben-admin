@@ -564,7 +564,7 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
       defaultValue: 'requestId',
       dependencies: {
-        show: async () =>  {
+        show: async () => {
           const data = await formApi.getValues();
           return data["model"] != 'async';
         },
@@ -596,7 +596,7 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
       defaultValue: false,
       dependencies: {
-        show: async () =>  {
+        show: async () => {
           const data = await formApi.getValues();
           return data["model"] != 'async';
         },
