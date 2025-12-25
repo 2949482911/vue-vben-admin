@@ -49,12 +49,17 @@
       "adgroupId": "Adgroup Id",
       "promotionId": "Promotion Id",
       "creativeId": "Creative Id",
-      "simulate": "Simulate Callback"
+      "simulate": "Simulate Callback",
+      "type": "Type"
     },
     "model": {
       "callback": "Callback",
       "match": "match",
       "async": "async"
+    },
+    "type": {
+      "callback": "callback",
+      "direct_link": "Direct Link"
     },
     "matchField": {
       "clickId": "Click Id",
@@ -95,7 +100,8 @@
       "name": "Behaviora Name",
       "url": "Click Link",
       "callback": "Callback Url",
-      "testCallback": "Test Callback"
+      "testCallback": "Test Callback",
+      "directLink": "Direct Link",
     }
   }
 }

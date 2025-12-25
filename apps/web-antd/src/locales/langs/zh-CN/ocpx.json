@@ -49,12 +49,17 @@
       "adgroupId": "广告组ID",
       "promotionId": "广告ID",
       "creativeId": "创意ID",
-      "simulate": "虚拟回传"
+      "simulate": "虚拟回传",
+      "type": "类型"
     },
     "model": {
       "callback": "回调",
       "match": "匹配",
       "async": "异步"
+    },
+    "type": {
+      "callback": "回传",
+      "direct_link": "直连"
     },
     "matchField": {
       "clickId": "点击ID",
@@ -95,7 +100,8 @@
       "name": "转化配置名字",
       "url": "点击监测",
       "callback": "回调链接",
-      "testCallback": "联调回传"
+      "testCallback": "联调回传",
+      "directLink": "直连监测"
     }
   }
 }
