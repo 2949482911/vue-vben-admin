@@ -156,6 +156,7 @@ export interface PlatformMetricMap {
 
 // 报表数据响应
 export interface AdReportResponse {
+  data: any;
   dims: Array<string>;
   cname: Map<string, string>;
   items: Array<Map<string, string>>;

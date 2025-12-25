@@ -1,54 +1,104 @@
 <script setup lang="ts" name="AdReportDataManager">
-
-
-import {useVbenVxeGrid, type VxeGridProps} from "#/adapter/vxe-table";
-import {Page, useVbenModal, type VbenFormProps} from "@vben/common-ui";
-import {ACTIVE_PLATFORM, DIMS} from "#/constants/locales";
-import {$t} from "@vben/locales";
+import { ref, reactive } from "vue";
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
+import { $t } from "@vben/locales";
+import { Button } from "ant-design-vue";
+import SelectMetricModal from "./selectmetric.vue";
+import type { AdvertiserPageRequest } from "#/api/models";
 import {advertiserApi, reportApi} from "#/api";
-import {Button} from "ant-design-vue";
-import SelectMetricModal from './selectmetric.vue';
-import type {AdvertiserPageRequest} from "#/api/models";
-
-
+/* ---------------- 弹窗 ---------------- */
 const [SelectMetricModalModal, selectMetricModalApi] = useVbenModal({
   connectedComponent: SelectMetricModal,
 });
-
-
-// reloadGrid 重载数据
-function reloadGrid(columns: string[], items: any[]) {
-  const newColumns: any[] = [
-    {title: '序号', type: 'seq', width: 'auto',},
-  ];
-  columns.forEach(x => {
-    newColumns.push({
-      field: x,
-      title: x,
-      width: 'auto',
-      sortable: true,
-    })
-  })
-  gridApi.setGridOptions({
-    columns: newColumns,
-    data: items,
-    pagerConfig: {
-      total: items.length,
-    }
-  })
-}
-
-// 获取确认的指标
-function confirmMetric(metricIds: string[]) {
-  gridApi.formApi.setFieldValue('queryMetric', metricIds)
-}
-
-
 function openPlatformMetricMapDetailModal() {
   selectMetricModalApi.open();
 }
 
+//尾部合计
+// const totalAtTheEnd = reactive<any>({
+//   seq: '平均',
+//   name: '-',
+//   age: '',
+//   rate: '',
+//   num: ''
+// })
 
+/* ---------------- 本地分页核心状态 ---------------- */
+//第一步：把proxyConfig设置成空，不然proxyConfig每次分页都会请求后台数据，影响前端分页
+const allData = ref<any[]>([]); // 接口返回的全部数据
+const pager = reactive({
+  currentPage: 1,
+  pageSize: 10,
+  total: 0,
+});
+
+/* ---------------- 初始化：只请求一次 ---------------- */
+//第二步：请求数据，拿到全部数据，根据当前页面条数，截取好第一页展示的数据
+async function init(args?:any) {
+  pager.currentPage = 1;
+  const res = await reportApi.fetchAdReport(args) as any
+  allData.value = res.items.map((item:any,index:number)=>({...item,seq:index+1}));
+  pager.total = res.items.length;
+  // totalAtTheEnd.value = res.summary[0]
+  reloadGrid(res.columns, allData.value.slice(0, pager.pageSize));
+  // console.log(totalAtTheEnd.value,'22222222222');
+  // console.log(res.columns,'res.columns');
+}
+
+/* ---------------- 构建列 + 设置分页数据 ---------------- */
+//第三步：创建全新的表头，设置好表格数据total、currentPage、pageSize
+function reloadGrid(columns: string[], pageData: any[]) {
+  const newColumns: any[] = [
+    { title: "序号", field: "seq", width: "auto" },
+  ];
+  columns.forEach((key) => {
+    newColumns.push({
+      field: key,
+      title: key,
+      minWidth: 120,
+    });
+  });
+  gridApi.setGridOptions({
+    columns: newColumns,
+    data: pageData,
+    pagerConfig: {
+      total: pager.total,
+      currentPage: pager.currentPage,
+      pageSize: pager.pageSize,
+    },
+  });
+}
+
+/* ---------------- 前端分页 slice ---------------- */
+//第四步：分页截取的方法
+function updatePageData() {
+  const start = (pager.currentPage - 1) * pager.pageSize;
+  const end = pager.currentPage * pager.pageSize;
+  const pageData = allData.value.slice(start, end);
+
+  gridApi.setGridOptions({
+    data: pageData,
+    pagerConfig: {
+      total: pager.total,
+      currentPage: pager.currentPage,
+      pageSize: pager.pageSize,
+    },
+  });
+}
+
+/* ---------------- Grid 事件：分页 ---------------- */
+//第五步：分页事件
+const gridEvents = {
+  pageChange({ currentPage, pageSize }:{ currentPage:number, pageSize:number }) {
+    pager.currentPage = currentPage;
+    pager.pageSize = pageSize;
+    updatePageData();
+  },
+};
+
+/* ---------------- 表单配置（保持你的不动） ---------------- */
 const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
@@ -130,46 +180,61 @@ const formOptions: VbenFormProps = {
   showCollapseButton: true,
   // 按下回车时是否提交表单
   submitOnEnter: false,
-};
+  
+  // ⭐⭐⭐ 关键：接管“搜索”按钮
+  handleSubmit: async (values) => {
+    // 1️⃣ 重置到第一页
+    pager.currentPage = 1;
 
-const gridOptions: VxeGridProps<Array<Map<string, string>>> = {
-  border: true,
-  checkboxConfig: {
-    highlight: true,
-    labelField: 'ename',
+    // 2️⃣ 用表单条件重新请求你的服务
+    // 现在是 mock，后面换真实接口即可
+    await init(values);
   },
+
+  // （可选）重置按钮
+  handleReset: async (values) => {
+   await gridApi.formApi.resetForm();
+  },
+};
+function reloadFromStart(metricIds: string[]) {
+  gridApi.formApi.setFieldValue('queryMetric', metricIds)
+
+}
+/* ---------------- Grid 配置（关键点） ---------------- */
+const gridOptions: VxeGridProps = {
+  border: true,
+  height: "auto",
+  keepSource: true,
+  columns: [],
+  data: [],
   toolbarConfig: {
     custom: true,
     export: true,
     refresh: true,
-    search: true,
+    refreshOptions: {
+      query:async () => {
+       await  gridApi.formApi.submitForm()
+      }
+    },
     zoom: true,
   },
-  exportConfig: {},
-  columns: [],
-  height: 'auto',
-  keepSource: true,
   pagerConfig: {
+    enabled: true,
+    pageSize: pager.pageSize,
+    currentPage: pager.currentPage,
   },
-  proxyConfig: {
-    autoLoad: false,
-    ajax: {
-      query: async ({}, args) => {
-        return reportApi.fetchAdReport(args)
-      },
-    },
-    response: {
-      list: 'items',
-      result: (res: any) => {
-        reloadGrid(res.data.columns, res.data.items)
-        return res.data
-      }
-    }
-  },
+  proxyConfig: undefined, // 保持
+  // footerData: [
+  //   totalAtTheEnd
+  // ]
 };
 
+const [Grid, gridApi] = useVbenVxeGrid({
+  formOptions,
+  gridOptions,
+  gridEvents,
+});
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 </script>
 
@@ -185,7 +250,7 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
         </template>
       </Grid>
     </Page>
-    <SelectMetricModalModal @confirmMetric="confirmMetric"/>
+    <SelectMetricModalModal @confirmMetric="reloadFromStart"/>
   </div>
 </template>
 

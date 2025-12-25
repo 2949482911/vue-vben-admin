@@ -1,23 +1,29 @@
 <script setup lang="ts" name="SelectMetricModal">
-import {Page, useVbenModal} from '@vben/common-ui';
-import {onMounted, ref, reactive} from 'vue';
-import {metricApi} from "#/api";
-import type {MetricItem} from "#/api/models";
-import {Checkbox, Divider, CheckboxGroup, Space} from 'ant-design-vue'
+import { Page, useVbenModal } from '@vben/common-ui';
+import { onMounted, ref, reactive, watch } from 'vue';
+import { metricApi } from '#/api';
+import type { MetricItem } from '#/api/models';
+import { Checkbox, Divider, CheckboxGroup, Space, InputSearch } from 'ant-design-vue';
 
 const emit = defineEmits(['confirmMetric']);
 
+// 搜索关键字
+const indicatorValue = ref('');
+
+// checkbox 状态
 const state = reactive({
   indeterminate: true,
   checkAll: false,
-  checkedList: ['Apple', 'Orange'],
+  checkedList: [] as string[],
 });
 
-// metric list
+// 原始指标列表（不动）
 const metricList = ref<MetricItem[]>([]);
-const checkboxOptionTypeList = ref<{ label: string, value: string }[]>([]);
 
-// metric list
+// 实际用于展示的 checkbox options
+const checkboxOptionTypeList = ref<{ label: string; value: string }[]>([]);
+
+// Modal
 const [Modal, modalApi] = useVbenModal({
   fullscreen: false,
   fullscreenButton: false,
@@ -26,55 +32,99 @@ const [Modal, modalApi] = useVbenModal({
     await modalApi.close();
   },
   async onConfirm() {
-    // 调用父组件 将选中的值返回给父组件
     emit('confirmMetric', state.checkedList);
     await modalApi.close();
   },
 });
 
+// 拉取指标
 async function getMetricList() {
-  const dataList: Array<MetricItem> = await metricApi.fetchMetric();
+  const dataList:any = await metricApi.fetchMetric();
   metricList.value = dataList;
-  dataList.forEach(x => {
-    checkboxOptionTypeList.value.push({
-      label: x.cname,
-      value: x.id
-    })
-  })
+  updateCheckboxOptions(dataList);
 }
 
+// 根据列表更新 checkbox options
+function updateCheckboxOptions(list: MetricItem[]) {
+  checkboxOptionTypeList.value = list.map(item => ({
+    label: item.cname,
+    value: item.id,
+  }));
+}
+
+// 🔍 实时搜索（核心）
+watch(indicatorValue, (keyword) => {
+  const searchText = keyword.trim().toLowerCase();
+
+  if (!searchText) {
+    // 关键字为空，恢复全部
+    updateCheckboxOptions(metricList.value);
+    return;
+  }
+
+  const filteredList = metricList.value.filter(item =>
+    item.cname.toLowerCase().includes(searchText)
+  );
+
+  updateCheckboxOptions(filteredList);
+});
+
+// 全选
 const onCheckAllChange = (e: any) => {
-  const plainOptions: string[] = [];
-  metricList.value.forEach(x => plainOptions.push(x.id));
+  const currentOptions = checkboxOptionTypeList.value.map(x => x.value);
+
   Object.assign(state, {
-    checkedList: e.target.checked ? plainOptions : [],
+    checkedList: e.target.checked ? currentOptions : [],
     indeterminate: false,
   });
 };
 
 onMounted(() => {
-  getMetricList()
+  getMetricList();
 });
 </script>
 
 <template>
   <div>
-    <Modal>
+    <Modal class="w-[720px] max-w-[720px] mx-auto">
+      <div style="padding-left: 1rem;">
+        <InputSearch
+          v-model:value="indicatorValue"
+          placeholder="请输入指标名称搜索"
+          style="width: 200px"
+          allowClear
+        />
+      </div>
+
       <Page>
         <Checkbox
           v-model:checked="state.checkAll"
           :indeterminate="state.indeterminate"
-          @change="onCheckAllChange">{{ $t('core.checkAll') }}
+          @change="onCheckAllChange"
+        >
+          {{ $t('core.checkAll') }}
         </Checkbox>
-        <Divider/>
+
+        <Divider />
+
         <Space size="large">
-          <CheckboxGroup :options="checkboxOptionTypeList" v-model:value="state.checkedList"/>
+          <CheckboxGroup
+            class="metric-checkbox-group"
+            :options="checkboxOptionTypeList"
+            v-model:value="state.checkedList"
+          />
         </Space>
       </Page>
     </Modal>
   </div>
 </template>
 
-<style scoped>
 
+<style lang="scss" scoped>
+  //指标全选按钮分列排序每行三个，一起三列
+  .metric-checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 16px;
+  }
 </style>
