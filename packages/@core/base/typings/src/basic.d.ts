@@ -1,4 +1,4 @@
-import type { RouteRecordStringComponent } from './vue-router';
+import type {RouteRecordStringComponent} from './vue-router';
 
 interface BasicOption {
   label: string;
@@ -82,4 +82,4 @@ interface BasicUserInfo {
 
 type ClassType = Array<object | string> | object | string;
 
-export type { BasicOption, BasicUserInfo, ClassType, SelectOption, TabOption };
+export type {BasicOption, BasicUserInfo, ClassType, SelectOption, TabOption, BasicRole};

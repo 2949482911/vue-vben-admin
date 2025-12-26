@@ -1,8 +1,9 @@
 <script lang="ts" setup name="CreateRole">
 import type {CreateRoleRequest, UpdateRoleRequest} from '#/api/models';
 import type {MenuItem} from '#/api/models/menu';
+import type {BasicRole} from '@vben-core/typings/src/basic';
 
-import {ref} from 'vue';
+import {ref, onMounted} from 'vue';
 
 import {Tree, useVbenModal} from '@vben/common-ui';
 import {IconifyIcon} from '@vben/icons';
@@ -13,8 +14,10 @@ import {Card} from 'ant-design-vue';
 import {useVbenForm} from '#/adapter/form';
 import {menuApi, roleApi} from '#/api';
 import {ROLE_TYPE_OPTIONS} from '#/constants/locales';
+import {useUserStore} from "@vben/stores";
 
 const emit = defineEmits(['pageReload']);
+const userStore = useUserStore();
 
 const createObject = ref<CreateRoleRequest | UpdateRoleRequest>({
   comment: "",
@@ -25,6 +28,20 @@ const createObject = ref<CreateRoleRequest | UpdateRoleRequest>({
 });
 const isUpdate = ref<Boolean>(false);
 const menuData = ref<MenuItem[]>([]);
+const roleType = ref<Array<{ label: string, value: number }>>([
+  {
+    label: `${$t('core.role_type.platform_user')}`,
+    value: 3,
+  },
+  {
+    label: `${$t('core.role_type.main_admin')}`,
+    value: 4,
+  },
+  {
+    label: `${$t('core.role_type.main_user')}`,
+    value: 5,
+  },
+]);
 // const menuParentIds = ref<string[]>([]);
 
 const checkedKeys = ref<string[]>([]);
@@ -64,7 +81,7 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'Select',
       componentProps: {
-        options: ROLE_TYPE_OPTIONS,
+        options: roleType,
         allowClear: true,
         placeholder: `${$t('common.choice')}`,
       },
@@ -176,6 +193,20 @@ function getNodeClass(node: any) {
 
   return classes.join(' ');
 }
+
+onMounted(() => {
+  //  handler role type options
+  //  if (userStore.userInfo?.maxRoleCode)
+  var supperUser: boolean = false
+  userStore.roles.forEach((role: BasicRole) => {
+    if (role.roleType === 1) {
+      supperUser = true
+    }
+  })
+  if (supperUser) {
+    roleType.value = ROLE_TYPE_OPTIONS
+  }
+})
 
 const title: string = createObject.value
   ? `${$t('common.edit')}`

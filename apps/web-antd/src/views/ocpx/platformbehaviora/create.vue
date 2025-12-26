@@ -39,7 +39,9 @@ const objectRequest = ref<BehavioraPlatformItem>({
   simulate: false,
   status: 0,
   updateTime: "",
-  updateUsername: ""
+  updateUsername: "",
+  type: 1,
+  directLink: ''
 });
 
 const isUpdate = ref<Boolean>(false);
@@ -210,7 +212,6 @@ platformConfigForm.set(Platform.KUAKE, [
     label: `targetPkg`,
     rules: 'required',
   },
-
 
   {
     // 媒体配置表单
@@ -528,6 +529,38 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: `${$t('ocpx.behavioraplatform.columns.name')}`,
       rules: 'required',
+    },
+
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Select',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        options: [
+          {
+            label: `${$t('ocpx.behavioraplatform.type.callback')}`,
+            value: 1,
+          },
+          {
+            label: `${$t('ocpx.behavioraplatform.type.direct_link')}`,
+            value: 2,
+          },
+        ],
+      },
+      defaultValue: 1,
+      // 字段名
+      fieldName: 'type',
+      // 界面显示的label
+      label: `${$t('ocpx.behavioraplatform.columns.type')}`,
+      rules: 'required',
+      dependencies: {
+        show: async () => {
+          const data = await formApi.getValues();
+          return data["platform"] === Platform.KUAKE;
+        },
+        triggerFields: ["platform"]
+      }
     },
 
     {

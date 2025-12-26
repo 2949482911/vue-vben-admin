@@ -43,6 +43,8 @@ export interface BehavioraPlatformItem extends BaseItem {
   model: string;
   ocpxPlatformMatchList: Array<OcpxPlatformMatch>;
   simulate: boolean;
+  type: number,
+  directLink: string
 }
 
 // 转化匹配列表
@@ -127,6 +129,7 @@ export interface ClickMonitorResponse {
     url: string;
     platformBehaviorId: string;
     name: string;
+    directLink: string
   }>;
 }
 

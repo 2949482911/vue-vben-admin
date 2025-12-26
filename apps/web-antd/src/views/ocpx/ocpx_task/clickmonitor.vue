@@ -46,6 +46,13 @@ const gridOptions: VxeGridProps<ClickMonitorResponse> = {
       }
     },
     {
+      title: `${$t('ocpx.ocpx_task.clickmonitor.directLink')}`,
+      field: 'directLink',
+      slots: {
+        default: "directLink"
+      }
+    },
+    {
       field: 'options',
       title: `${$t('core.columns.options')}`,
       fixed: 'right',
@@ -117,6 +124,25 @@ const [Modal, modalApi] = useVbenModal({
           </template>
         </List>
       </template>
+
+
+      <template #directLink="{ row }">
+        <List item-layout="horizontal" :data-source="row.behaviorCallbackUrls">
+          <template #renderItem="{ item }">
+            <ListItem>
+              <ListItemMeta
+                :description="item.name"
+              >
+                <template #title>
+                  <div>{{ item.directLink }}</div>
+                </template>
+
+              </ListItemMeta>
+            </ListItem>
+          </template>
+        </List>
+      </template>
+
       <template #action="{ row }">
         <Button type="link" @click="openTestCallbackModal(row)">
           {{ $t('ocpx.ocpx_task.clickmonitor.testCallback') }}

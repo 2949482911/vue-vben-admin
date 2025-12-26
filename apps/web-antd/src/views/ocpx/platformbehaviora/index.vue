@@ -167,6 +167,14 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
       },
     },
     {
+      field: 'type',
+      title: `${$t('ocpx.behavioraplatform.columns.type')}`,
+      width: 'auto',
+      slots: {
+        default: 'type',
+      },
+    },
+    {
       field: 'config',
       title: `${$t('ocpx.behavioraplatform.columns.config')}`,
       slots: {default: 'config'},
@@ -212,11 +220,19 @@ function pageReload() {
           </Tag>
         </template>
 
+        <template #type="{ row }">
+          <Tag color="green" v-if="row.type === 1">
+            {{ $t('ocpx.behavioraplatform.type.callback') }}
+          </Tag>
+          <Tag color="red" v-else> {{  $t('ocpx.behavioraplatform.type.direct_link') }}</Tag>
+        </template>
+
+
         <template #simulate="{ row }">
           <Tag color="green" v-if="row.simulate">
-            {{$t('common.yes')}}
+            {{ $t('common.yes') }}
           </Tag>
-          <Tag color="red" v-else> {{ $t('common.no')}}</Tag>
+          <Tag color="red" v-else> {{ $t('common.no') }}</Tag>
         </template>
 
         <template #matchField="{ row }">
