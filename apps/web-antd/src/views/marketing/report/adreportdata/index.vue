@@ -16,15 +16,6 @@ function openPlatformMetricMapDetailModal() {
   selectMetricModalApi.open();
 }
 
-//尾部合计
-// const totalAtTheEnd = reactive<any>({
-//   seq: '平均',
-//   name: '-',
-//   age: '',
-//   rate: '',
-//   num: ''
-// })
-
 /* ---------------- 本地分页核心状态 ---------------- */
 //第一步：把proxyConfig设置成空，不然proxyConfig每次分页都会请求后台数据，影响前端分页
 const allData = ref<any[]>([]); // 接口返回的全部数据
@@ -41,15 +32,12 @@ async function init(args?:any) {
   const res = await reportApi.fetchAdReport(args) as any
   allData.value = res.items.map((item:any,index:number)=>({...item,seq:index+1}));
   pager.total = res.items.length;
-  // totalAtTheEnd.value = res.summary[0]
-  reloadGrid(res.columns, allData.value.slice(0, pager.pageSize));
-  // console.log(totalAtTheEnd.value,'22222222222');
-  // console.log(res.columns,'res.columns');
+  reloadGrid(res.columns, allData.value.slice(0, pager.pageSize),res.summary[0]);
 }
 
 /* ---------------- 构建列 + 设置分页数据 ---------------- */
 //第三步：创建全新的表头，设置好表格数据total、currentPage、pageSize
-function reloadGrid(columns: string[], pageData: any[]) {
+function reloadGrid(columns: string[], pageData: any[],footData:any) {
   const newColumns: any[] = [
     { title: "序号", field: "seq", width: "auto" },
   ];
@@ -68,6 +56,11 @@ function reloadGrid(columns: string[], pageData: any[]) {
       currentPage: pager.currentPage,
       pageSize: pager.pageSize,
     },
+    //表尾数据展示
+    footerData:[{
+        seq:'合计：',
+        ...footData
+    }]
   });
 }
 
@@ -202,6 +195,7 @@ function reloadFromStart(metricIds: string[]) {
 }
 /* ---------------- Grid 配置（关键点） ---------------- */
 const gridOptions: VxeGridProps = {
+  showFooter: true,//开启表尾
   border: true,
   height: "auto",
   keepSource: true,
@@ -218,15 +212,15 @@ const gridOptions: VxeGridProps = {
     },
     zoom: true,
   },
+  exportConfig: {},
   pagerConfig: {
     enabled: true,
+    total: pager.total,
     pageSize: pager.pageSize,
     currentPage: pager.currentPage,
   },
   proxyConfig: undefined, // 保持
-  // footerData: [
-  //   totalAtTheEnd
-  // ]
+  footerData: []
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({

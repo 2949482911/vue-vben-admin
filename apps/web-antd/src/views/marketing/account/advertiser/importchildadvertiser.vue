@@ -2,11 +2,20 @@
 // 导入子账户
 import {useVbenModal} from '@vben/common-ui';
 import {Page} from '@vben/common-ui';
-import {ref} from 'vue';
+import {reactive, ref} from 'vue';
 import {advertiserApi} from "#/api/core";
 import {useVbenVxeGrid, type VxeGridProps} from "#/adapter/vxe-table";
 import type {AccountChildResponse} from "#/api/models";
 import {$t} from "@vben/locales";
+
+//设置分页参数
+const pages = reactive({
+  total:0,
+  currentPage:1,
+  pageSize:10
+})
+//弹框导入列表的全部数据
+const importData = ref<AccountChildResponse | any>()
 
 const emit = defineEmits(['pageReload']);
 const objectRequest = ref<{ id: string; }>({id: '',})
@@ -32,8 +41,20 @@ const [Modal, modalApi] = useVbenModal({
     if (isOpen) {
       objectRequest.value = modalApi.getData<{ id: string; }>();
       gridApi.setLoading(true);
-      const advertiserList: AccountChildResponse[] = await advertiserApi.fetchAccountChild(objectRequest.value.id)
-      gridApi.setGridOptions({data: advertiserList});
+
+      importData.value = await advertiserApi.fetchAccountChild(objectRequest.value.id)
+      pages.total = importData.value.length
+      
+      gridApi.setGridOptions({
+        data: importData.value, 
+        pagerConfig: {
+          total: pages.total,
+          currentPage: pages.currentPage,
+          pageSize: pages.pageSize,
+        },
+      });
+
+      updatePageData()
       gridApi.setLoading(false);
     }
   },
@@ -42,6 +63,7 @@ const [Modal, modalApi] = useVbenModal({
 
 const gridOptions: VxeGridProps<AccountChildResponse> = {
   border: true,
+  height: "600px",
   checkboxConfig: {
     highlight: true,
     labelField: 'advertiserId',
@@ -53,6 +75,7 @@ const gridOptions: VxeGridProps<AccountChildResponse> = {
     }
   },
   toolbarConfig: {},
+  data:[],
   columns: [
     {title: '序号', type: 'checkbox', fixed: 'left', width: 'auto',},
 
@@ -67,33 +90,61 @@ const gridOptions: VxeGridProps<AccountChildResponse> = {
       title: `${$t('marketing.advertiser.columns.advertiserName')}`,
       width: 'auto',
     },
-
   ],
   keepSource: true,
+  proxyConfig: undefined,
   pagerConfig: {
-    enabled: false,
-  },
-  proxyConfig: {
-    autoLoad: false,
+    enabled: true,
+    total:pages.total,
+    pageSize: pages.pageSize,
+    currentPage: pages.currentPage,
+    pageSizes: [10, 20],
   },
 };
 
+//设置前端分页更新事件
+function updatePageData(){
+  const start = (pages.currentPage - 1) * pages.pageSize
+  const end = pages.currentPage * pages.pageSize
+  const pageData = importData.value.slice(start,end)
+  gridApi.setGridOptions({
+    data:pageData,
+    pagerConfig:{
+      total:pages.total,
+      currentPage:pages.currentPage,
+      pageSize:pages.pageSize
+    }
+  })
+}
 
-const [Grid, gridApi] = useVbenVxeGrid({gridOptions});
+//前端分页按钮事件
+const gridEvents = {
+  pageChange({currentPage,pageSize}:{currentPage:number,pageSize:number}){
+    pages.currentPage = currentPage;
+    pages.pageSize = pageSize
+    updatePageData();
+  }
+}
+
+
+const [Grid, gridApi] = useVbenVxeGrid({gridOptions,gridEvents});
 
 
 </script>
 
 <template>
   <Page>
-    <Modal>
+    <Modal class="w-[605px]">
       <Grid></Grid>
     </Modal>
   </Page>
 </template>
 
-<style scoped>
-
+<style scoped lang="scss">
+:deep(.vxe-table--body),
+:deep(.vxe-table--header){
+  width: 100% !important;
+}
 </style>
 
 
