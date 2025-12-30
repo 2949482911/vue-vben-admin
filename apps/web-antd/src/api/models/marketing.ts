@@ -55,7 +55,6 @@ export interface AccountChildResponse {
   advertiserId: string;
   advertiserName: string;
   exist: boolean;
-  length: number
 }
 
 

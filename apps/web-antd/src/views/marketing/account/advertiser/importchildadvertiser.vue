@@ -7,6 +7,7 @@ import {advertiserApi} from "#/api/core";
 import {useVbenVxeGrid, type VxeGridProps} from "#/adapter/vxe-table";
 import type {AccountChildResponse} from "#/api/models";
 import {$t} from "@vben/locales";
+import {InputSearch} from "ant-design-vue";
 
 //设置分页参数
 const pages = reactive({
@@ -15,7 +16,9 @@ const pages = reactive({
   pageSize:10
 })
 //弹框导入列表的全部数据
-const importData = ref<AccountChildResponse | any>()
+const importData = ref<AccountChildResponse | any>([])
+  // 当前用于分页的数据（搜索后 or 原始）
+const filterData = ref<AccountChildResponse | any>([])
 
 const emit = defineEmits(['pageReload']);
 const objectRequest = ref<{ id: string; }>({id: '',})
@@ -27,6 +30,7 @@ const [Modal, modalApi] = useVbenModal({
     gridApi.setGridOptions({data: []});
     objectRequest.value = {id: ''};
     await modalApi.close();
+    accountName.value = ''
   },
   async onConfirm() {
     const checkedRecords = gridApi.grid.getCheckboxRecords();
@@ -36,6 +40,7 @@ const [Modal, modalApi] = useVbenModal({
     objectRequest.value = {id: ''};
     emit('pageReload');
     await modalApi.close();
+    accountName.value = ''
   },
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
@@ -43,18 +48,13 @@ const [Modal, modalApi] = useVbenModal({
       gridApi.setLoading(true);
 
       importData.value = await advertiserApi.fetchAccountChild(objectRequest.value.id)
-      pages.total = importData.value.length
+      // 初始化搜索数据 = 全量数据
+      filterData.value = [...importData.value];
+      pages.total = filterData.value.length
+      pages.currentPage = 1
       
-      gridApi.setGridOptions({
-        data: importData.value, 
-        pagerConfig: {
-          total: pages.total,
-          currentPage: pages.currentPage,
-          pageSize: pages.pageSize,
-        },
-      });
 
-      updatePageData()
+      updatePageData(filterData.value)
       gridApi.setLoading(false);
     }
   },
@@ -103,14 +103,13 @@ const gridOptions: VxeGridProps<AccountChildResponse> = {
 };
 
 //设置前端分页更新事件
-function updatePageData(){
+function updatePageData(dataArr:[]){
   const start = (pages.currentPage - 1) * pages.pageSize
   const end = pages.currentPage * pages.pageSize
-  const pageData = importData.value.slice(start,end)
   gridApi.setGridOptions({
-    data:pageData,
+    data:dataArr.slice(start, end),
     pagerConfig:{
-      total:pages.total,
+      total:dataArr.length,
       currentPage:pages.currentPage,
       pageSize:pages.pageSize
     }
@@ -122,10 +121,25 @@ const gridEvents = {
   pageChange({currentPage,pageSize}:{currentPage:number,pageSize:number}){
     pages.currentPage = currentPage;
     pages.pageSize = pageSize
-    updatePageData();
+    updatePageData(filterData.value);
   }
 }
 
+//项目名字筛选
+const accountName = ref<string>()
+function onSearch(valueText:string){
+  pages.currentPage = 1;
+   if (!valueText) {
+    // 清空搜索：还原原始数据
+    filterData.value = [...importData.value];
+  } else {
+    filterData.value = importData.value.filter((item:AccountChildResponse) =>
+      item.advertiserName?.includes(valueText)
+    );
+  }
+  pages.total = filterData.value.length;
+  updatePageData(filterData.value);
+}
 
 const [Grid, gridApi] = useVbenVxeGrid({gridOptions,gridEvents});
 
@@ -135,6 +149,14 @@ const [Grid, gridApi] = useVbenVxeGrid({gridOptions,gridEvents});
 <template>
   <Page>
     <Modal class="w-[605px]">
+      <div style="padding-left: 0.5rem;">
+        <InputSearch
+          v-model:value="accountName"
+          placeholder="请输入账户名字搜索"
+          style="width: 200px"
+          @search="onSearch"
+        />
+      </div>
       <Grid></Grid>
     </Modal>
   </Page>
