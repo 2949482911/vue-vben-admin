@@ -163,18 +163,18 @@ export interface AdReportResponse {
   summary: Map<string, string>;
 }
 
-export interface AdReportRequest {
-  dateTimeRange: Array<string>;
-  queryMetric: Array<number>;
-  dims: Array<string>;
-  needCname: boolean;
-  decimalPoint: number;
-  filters: Array<{
-    field: string;
-    operator: number;
-    values: Array<any>
-  }>
-}
+// export interface AdReportRequest {
+//   dateTimeRange: Array<string>;
+//   queryMetric: Array<number>;
+//   dims: Array<string>;
+//   needCname: boolean;
+//   decimalPoint: number;
+//   filters: Array<{
+//     field: string;
+//     operator: number;
+//     values: Array<any>
+//   }>
+// }
 
 /**
  * project request/response/page class
@@ -208,3 +208,24 @@ export interface CreateProjectRequest {
 export interface UpdateProjectRequest extends CreateProjectRequest {
   id: string;
 }
+
+export interface ReportFilter {
+  field: string;
+  operator: number;
+  values: string[];
+}
+
+export interface AdReportRequest {
+  /** 时间范围 */
+  dateTimeRange: string[];
+  /** 维度 */
+  dims: string[];
+  /** 查询指标 */
+  queryMetric: string[];
+  /** 平台 */
+  platform?: ReportFilter[];
+  /** 账户名字 */
+  filters?: ReportFilter[];
+}
+
+

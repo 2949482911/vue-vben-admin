@@ -6,7 +6,7 @@ import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
 import { $t } from "@vben/locales";
 import { Button } from "ant-design-vue";
 import SelectMetricModal from "./selectmetric.vue";
-import type { AdvertiserPageRequest } from "#/api/models";
+import type { AdReportRequest, AdvertiserPageRequest, ReportFilter } from "#/api/models";
 import {advertiserApi, reportApi} from "#/api";
 /* ---------------- 弹窗 ---------------- */
 const [SelectMetricModalModal, selectMetricModalApi] = useVbenModal({
@@ -149,7 +149,7 @@ const formOptions: VbenFormProps = {
           pageSize: 1000,
           putStatue: 1,
         },
-        valueField: 'id',
+        valueField: 'advertiserId',
         labelField: 'advertiserName',
         resultField: 'items',
       },
@@ -174,22 +174,51 @@ const formOptions: VbenFormProps = {
   showCollapseButton: true,
   // 按下回车时是否提交表单
   submitOnEnter: false,
-
-  // ⭐⭐⭐ 关键：接管“搜索”按钮
   handleSubmit: async (values) => {
-    // 1️⃣ 重置到第一页
-    pager.currentPage = 1;
-
-    // 2️⃣ 用表单条件重新请求你的服务
-    // 现在是 mock，后面换真实接口即可
-    await init(values);
-  },
+  // 1、重置到第一页
+  pager.currentPage = 1;
+  // 2、参数结构转换
+  const params = buildReportParams(values);
+  // 3、用新参数请求接口
+  await init(params);
+},
 
   // （可选）重置按钮
-  handleReset: async (values) => {
+  handleReset: async () => {
    await gridApi.formApi.resetForm();
   },
 };
+
+// 封装搜索传参数据结构调整事件(箭头函数)
+const makeFilter = (
+  field: string,
+  values?: string[],
+  operator = 1,
+): ReportFilter[] | undefined =>
+  values?.length
+    ? [{ field, operator, values }]
+    : undefined;
+
+// 过滤搜索条件
+function buildReportParams(values: any): AdReportRequest {
+  const {
+    advertiserId,
+    dateTimeRange,
+    dims,
+    platform,
+    queryMetric,
+  } = values;
+
+  return {
+    dateTimeRange,
+    dims,
+    queryMetric,
+    platform: makeFilter('platform', platform),
+    filters: makeFilter('platform_account_id', advertiserId),
+  };
+}
+
+
 function reloadFromStart(metricIds: string[]) {
   gridApi.formApi.setFieldValue('queryMetric', metricIds)
 

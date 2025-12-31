@@ -18,9 +18,11 @@ import {
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
 
-import AuthAccount from './authaccount.vue';
-import CreateObjectRequestComp from './create.vue';
+import AuthAccount from './authaccount.vue';//授权弹窗
+import CreateObjectRequestComp from './create.vue';//新增|修改弹窗
+import BatchOperationComp from './batchOperation.vue';//批量修改弹窗
 import ImportChildAdvertiser from './importchildadvertiser.vue';
+import { ref } from 'vue';
 
 /**
  * 授权弹窗
@@ -53,7 +55,19 @@ function openCreateModal(row: AdvertiserItem) {
   createObjectApi.open();
 }
 
+/**
+ * 批量修改弹窗
+ */
+const [BatchOperationModal, BatchOperationApi] = useVbenModal({
+  connectedComponent: BatchOperationComp,
+  centered: true,
+  modal: true,
+});
 
+function openBatchOptions() {
+  BatchOperationApi.setData(selectedRows.value);
+  BatchOperationApi.open();
+}
 
 
 const [ImportChildAdvertiserModal, improtChildApi] = useVbenModal({
@@ -194,6 +208,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     highlight: true,
     labelField: 'id',
     range: true,
+    // reserve: true,
   },
   toolbarConfig: {
     custom: true,
@@ -308,12 +323,32 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       },
     },
   },
+  // rowConfig: {
+  //   keyField: 'id',
+  // },
 };
+// 勾选的数组
+const selectedRows = ref<AdvertiserItem[]>([])
+const gridEvents = {
+  checkboxChange:({records}:{records:AdvertiserItem[]})=>{
+    selectedRows.value = records
+  },
+  //全选事件
+  checkboxAll:({records}:{records:AdvertiserItem[]})=>{
+    selectedRows.value = records
+  },
+  //当分页时也需要置灰批量操作按钮
+  proxyQuery:({})=>{
+    selectedRows.value = []
+  }
+}
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions,gridEvents});
 
 function pageReload() {
   gridApi.reload();
+  // 在批量操作修改项目后，把数组设置为空，控制按钮置灰
+  selectedRows.value = []
 }
 </script>
 
@@ -366,6 +401,18 @@ function pageReload() {
         </template>
 
         <template #toolbar-tools>
+          <Dropdown trigger="click" placement="bottomCenter">
+            <Button class="mr-2" type="primary" :disabled="selectedRows.length===0">
+              {{ $t('common.batch_options') }}
+            </Button>
+            <template #overlay>
+              <Menu>
+                <MenuItem  @click="openBatchOptions">
+                  批量修改项目
+                </MenuItem>
+              </Menu>
+            </template>
+          </Dropdown>
           <Button class="mr-2" type="primary" @click="openCreateModal">
             {{ $t('common.create') }}
           </Button>
@@ -384,6 +431,11 @@ function pageReload() {
     </Page>
     <CreateObjectModal @page-reload="pageReload"/>
     <AuthAccountModal/>
+    <BatchOperationModal @page-reload="pageReload"/>
     <ImportChildAdvertiserModal @page-reload="pageReload" />
   </div>
 </template>
+
+<style scoped lang="scss">
+
+</style>
