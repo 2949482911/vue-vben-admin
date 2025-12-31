@@ -16,5 +16,6 @@ export enum Platform {
   BAIDU = "baidu",
   NETEASE = "netease",
   JD_GYX = "jdgyx",
-  TB = "tb"
+  TB = "tb",
+  REDNOTE = "rednote"
 }

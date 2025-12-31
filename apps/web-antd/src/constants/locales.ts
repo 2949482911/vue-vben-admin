@@ -223,6 +223,12 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.tb')}`,
     value: 'tb',
   },
+  {
+    label: `${$t('ocpx.platform.rednote')}`,
+    value: 'rednote',
+  },
+
+
 ];
 
 // 匹配下拉
