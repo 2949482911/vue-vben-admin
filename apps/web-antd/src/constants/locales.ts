@@ -223,6 +223,10 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.tb')}`,
     value: 'tb',
   },
+  {
+    label: "淘宝联盟",
+    value: 'tb_union',
+  },
 ];
 
 // 匹配下拉

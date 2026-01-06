@@ -1,7 +1,7 @@
 <script lang="ts" setup name="CreateNotice">
 import type {BehavioraPlatformItem, OcpxPlatformMatch} from '#/api/models';
 
-import {ref} from 'vue';
+import {ref,h} from 'vue';
 
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -442,6 +442,146 @@ platformConfigForm.set(Platform.TB, [
   },
 ])
 
+// 淘宝联盟
+platformConfigForm.set(Platform.TB_UNION, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'channel',
+    // 界面显示的label
+    label: `channel`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'taskId',
+    // 界面显示的label
+    label: `taskId`,
+    rules: 'required',
+  },
+  {
+    // 组件需要在 #/adapter.ts内注册，并加上类型
+    component: 'Select',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+      options: [
+        {
+          label: "曝光",
+          value: 1,
+        },
+        {
+          label: "点击",
+          value: 2,
+        },
+      ],
+    },
+    defaultValue: 2,
+    // 字段名
+    fieldName: 'action',
+    // 界面显示的label
+    label: "行为类型",
+    rules: 'required'
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'tbkId',
+    // 界面显示的label
+    label: `tbkId1`,
+    rules: 'required',
+    suffix: () =>
+    h('div', { class: 'flex gap-2' }, [
+      h('span', {
+        class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+        onClick: batchAddSchema
+      }, '+'),
+      h('span', {
+        class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+        onClick: batchDeleteSchema
+      }, '-')
+    ])
+  }
+])
+
+//增加tbkId输入框
+function batchAddSchema() {
+  configFormApi.setState((prev) => {
+    const schema = prev?.schema ?? [];
+
+    // 找出已有 tbkId 的数量
+    const tbkCount = schema.filter(item =>
+      item.fieldName?.startsWith('tbkId')
+    ).length;
+
+    const newIndex = tbkCount + 1;
+
+    return {
+      schema: [
+        ...schema,
+        {
+          component: 'Input',
+          componentProps: {
+            placeholder: `请输入 tbkId${newIndex}`,
+          },
+          fieldName: `tbkId${newIndex}`, // 字段名 tbkId1, tbkId2, ...
+          label: `tbkId${newIndex}`,      // 显示顺序也对应
+          rules: 'required',
+          suffix: () =>
+          h('div', { class: 'flex gap-2' }, [
+            h('span', {
+              class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+              onClick: batchAddSchema
+            }, '+'),
+            h('span', {
+              class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+              onClick: batchDeleteSchema
+            }, '-')
+          ])
+        },
+      ],
+    };
+  });
+}
+
+//删除tbkId输入框
+function batchDeleteSchema() {
+  configFormApi.setState((prev) => {
+    const schema = prev?.schema ?? [];
+
+    // 找出所有 tbkId 索引
+    const tbkIndexes = schema
+      .map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.fieldName?.startsWith('tbkId'));
+
+    // 至少保留 tbkId1
+    if (tbkIndexes.length <= 1) return { schema };
+
+    // 删除最后一个 tbkId
+    const lastIndex = tbkIndexes[tbkIndexes.length - 1].index;
+    const newSchema = [...schema];
+    newSchema.splice(lastIndex, 1);
+
+    return { schema: newSchema };
+  });
+}
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -469,7 +609,31 @@ const [Form, formApi] = useVbenForm({
     if (!result.valid) {
       return;
     }
-    formVal.config = await configFormApi.getValues();
+    //如果是淘宝联盟我需要做一些修改
+    if(formVal.platform === "tb_union"){
+      const configValues = await configFormApi.getValues();
+      // 获取 tbkId 动态字段，按顺序生成数组
+      const tbkIdArray = Object.keys(configValues)
+        .filter(k => k.startsWith('tbkId'))
+        .sort((a, b) => parseInt(a.replace('tbkId','')) - parseInt(b.replace('tbkId','')))
+        .map(k => configValues[k])
+        .filter(v => v != null && v !== ''); // 过滤 null 和 空字符串
+
+      // 合并提交数据
+      const submitData = {
+        ...configValues,
+        tbkIdList: tbkIdArray
+      };
+
+      // 删除 tbkId1, tbkId2, ...
+      Object.keys(submitData)
+        .filter(k => k.startsWith('tbkId') && k !== 'tbkIdList')
+        .forEach(k => delete submitData[k]);
+
+      formVal.config = submitData;
+    }else{
+      formVal.config = await configFormApi.getValues();
+    }
     if (ocpxPlatformMatchList.value && ocpxPlatformMatchList.value.length > 0) {
       formVal.ocpxPlatformMatches = ocpxPlatformMatchList.value;
     }
@@ -507,6 +671,12 @@ const [Form, formApi] = useVbenForm({
               schema: platformConfigForm.get(value),
             };
           });
+          // 平台切换成淘宝联盟时需要更新行为类型默认值
+          if(value==="tb_union"){
+            configFormApi.setValues({
+              action: 2
+            });
+          }
         },
       },
       defaultValue: Platform.JD,
@@ -614,11 +784,11 @@ const [Form, formApi] = useVbenForm({
         options: [
           {
             label: `${$t('common.yes')}`,
-            value: true,
+            value: "true",
           },
           {
             label: `${$t('common.no')}`,
-            value: false,
+            value: "false",
           }
         ],
       },
@@ -627,7 +797,7 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: `${$t('ocpx.behavioraplatform.columns.simulate')}`,
       rules: 'required',
-      defaultValue: false,
+      defaultValue: "false",
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
@@ -691,12 +861,53 @@ const [Modal, modalApi] = useVbenModal({
 
 function handleSetFormValue(row: BehavioraPlatformItem) {
   formApi.setValues(row);
-  configFormApi.setState((_) => {
-    return {
-      schema: platformConfigForm.get(row.platform),
-    };
-  });
-  configFormApi.setValues(row.config);
+  // 先获取原有平台配置schema
+  let schema = platformConfigForm.get(row.platform) ?? [];
+  // 如果是淘宝联盟并且有tbkId数组
+  if (row.platform === "tb_union" && Array.isArray(row.config?.tbkIdList)) {
+    const tbkArray: string[] = row.config.tbkIdList;
+    // 生成 tbkId schema
+    const tbkSchema = tbkArray.map((val, idx) => ({
+      component: 'Input',
+      componentProps: {
+        placeholder: `请输入 tbkId${idx + 1}`,
+      },
+      fieldName: `tbkId${idx + 1}`,
+      label: `tbkId${idx + 1}`,
+      rules: 'required',
+      defaultValue: val,
+      suffix: () =>
+      h('div', { class: 'flex gap-2' }, [
+        h('span', {
+          class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+          onClick: batchAddSchema
+        }, '+'),
+        h('span', {
+          class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+          onClick: batchDeleteSchema
+        }, '-')
+      ])
+    }));
+    // 替换掉原本tbkId的schema
+    schema = schema.filter(item => !item.fieldName?.startsWith('tbkId'));
+    schema = [...schema, ...tbkSchema];
+    // 设置schema
+    configFormApi.setState({ schema });
+
+    // 设置values
+    const values: Record<string, any> = {...row.config };
+    tbkArray.forEach((val, idx) => {
+      values[`tbkId${idx + 1}`] = val;
+    });
+    configFormApi.setValues(values);
+  }else{
+    configFormApi.setState((_) => {
+      return {
+        schema: platformConfigForm.get(row.platform),
+      };
+    });
+    configFormApi.setValues(row.config);
+  }
 }
 
 const title: string = objectRequest.value.id

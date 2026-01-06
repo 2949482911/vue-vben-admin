@@ -22,5 +22,5 @@ export interface DeleteItem {
 export interface BatchOptions {
   targetIds: string[];
   type: string;
-  values: Map<string, any>;
+  values: Record<string, any>;
 }

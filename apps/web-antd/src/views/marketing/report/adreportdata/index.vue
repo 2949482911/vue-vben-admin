@@ -1,13 +1,14 @@
 <script setup lang="ts" name="AdReportDataManager">
-import { ref, reactive } from "vue";
+import { ref, reactive,computed, onMounted } from "vue";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
 import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
 import { $t } from "@vben/locales";
 import { Button } from "ant-design-vue";
 import SelectMetricModal from "./selectmetric.vue";
-import type { AdvertiserPageRequest } from "#/api/models";
-import {advertiserApi, reportApi} from "#/api";
+import type { AdReportRequest, AdvertiserPageRequest, ReportFilter } from "#/api/models";
+import {advertiserApi, reportApi,projectApi} from "#/api";
+import type { ProjectItem } from "../../account/advertiser/advertiser";
 /* ---------------- 弹窗 ---------------- */
 const [SelectMetricModalModal, selectMetricModalApi] = useVbenModal({
   connectedComponent: SelectMetricModal,
@@ -28,11 +29,18 @@ const pager = reactive({
 /* ---------------- 初始化：只请求一次 ---------------- */
 //第二步：请求数据，拿到全部数据，根据当前页面条数，截取好第一页展示的数据
 async function init(args?:any) {
-  pager.currentPage = 1;
-  const res = await reportApi.fetchAdReport(args) as any
-  allData.value = res.items.map((item:any,index:number)=>({...item,seq:index+1}));
-  pager.total = res.items.length;
-  reloadGrid(res.columns, allData.value.slice(0, pager.pageSize),res.summary[0]);
+  try {
+    gridApi.setLoading(true);
+
+    pager.currentPage = 1;
+    const res = await reportApi.fetchAdReport(args) as any
+    allData.value = res.items.map((item:any,index:number)=>({...item,seq:index+1}));
+    pager.total = res.items.length;
+    reloadGrid(res.columns, allData.value.slice(0, pager.pageSize),res.summary[0]);
+  } finally {
+    //无论成功/失败，一定关闭
+    gridApi.setLoading(false);
+  }
 }
 
 /* ---------------- 构建列 + 设置分页数据 ---------------- */
@@ -65,9 +73,16 @@ function reloadGrid(columns: string[], pageData: any[],footData:any) {
   });
 }
 
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /* ---------------- 前端分页 slice ---------------- */
 //第四步：分页截取的方法
-function updatePageData() {
+async function updatePageData() {
+  gridApi.setLoading(true);
+  // 人为制造分页 loading
+  await sleep(500);
   const start = (pager.currentPage - 1) * pager.pageSize;
   const end = pager.currentPage * pager.pageSize;
   const pageData = allData.value.slice(start, end);
@@ -80,6 +95,7 @@ function updatePageData() {
       pageSize: pager.pageSize,
     },
   });
+  gridApi.setLoading(false);
 }
 
 /* ---------------- Grid 事件：分页 ---------------- */
@@ -91,6 +107,26 @@ const gridEvents = {
     updatePageData();
   },
 };
+
+// 定义接受项目名称数组
+const projectOptions = ref<ProjectItem[]>([]);
+
+// 页面加载时请求数据
+onMounted(async () => {
+  const res = await projectApi.fetchProjectList({
+    page: 1,
+    size: 1000,
+  });
+  projectOptions.value = res.items;  
+});
+
+//computed是响应式的，如果直接赋值projectOptions已经晚了，schema已经初始化完成了异步数据没有触发表单更新
+const projectSelectOptions = computed(() =>
+  projectOptions.value.map((item:ProjectItem) => ({
+    label: item.name,
+    value: item.id,
+  }))
+);
 
 /* ---------------- 表单配置（保持你的不动） ---------------- */
 const formOptions: VbenFormProps = {
@@ -149,7 +185,7 @@ const formOptions: VbenFormProps = {
           pageSize: 1000,
           putStatue: 1,
         },
-        valueField: 'id',
+        valueField: 'advertiserId',
         labelField: 'advertiserName',
         resultField: 'items',
       },
@@ -168,28 +204,81 @@ const formOptions: VbenFormProps = {
         show: false,
         triggerFields: ["*"]
       }
-    }
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        options: projectSelectOptions,//options不能直接传ref
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'projectId',
+      label: '项目',
+    },
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
   // 按下回车时是否提交表单
   submitOnEnter: false,
-
-  // ⭐⭐⭐ 关键：接管“搜索”按钮
   handleSubmit: async (values) => {
-    // 1️⃣ 重置到第一页
-    pager.currentPage = 1;
-
-    // 2️⃣ 用表单条件重新请求你的服务
-    // 现在是 mock，后面换真实接口即可
-    await init(values);
-  },
+  // 1、重置到第一页
+  pager.currentPage = 1;
+  // 2、参数结构转换
+  const params = buildReportParams(values);
+  // 3、用新参数请求接口
+  await init(params);
+},
 
   // （可选）重置按钮
-  handleReset: async (values) => {
+  handleReset: async () => {
    await gridApi.formApi.resetForm();
   },
 };
+
+// 封装搜索传参数据结构调整事件(箭头函数)
+const makeFilter = (
+  field: string,
+  values?: string[],
+  operator = 1,
+): ReportFilter[] | undefined =>
+  values?.length
+    ? [{ field, operator, values }]
+    : undefined;
+
+// 过滤搜索条件
+function buildReportParams(values: any): AdReportRequest {
+  const {
+    advertiserId,
+    dateTimeRange,
+    dims,
+    platform,
+    queryMetric,
+    projectId
+  } = values;
+
+  // projectid现在拿到的是字符串需要转化成字符串数组，因为现在不是多选，选出来的就是字符串
+  const normalizeArray = (val?: string | string[]) =>
+    val ? (Array.isArray(val) ? val : [val]) : undefined;
+
+  const filters: ReportFilter[] = [
+    ...(makeFilter('platform', platform) ?? []),
+    ...(makeFilter('platform_account_id', advertiserId) ?? []),
+    ...(makeFilter('projectId', normalizeArray(projectId)) ?? []),
+  ];
+
+  return {
+    dateTimeRange,
+    dims,
+    queryMetric,
+    filters: filters.length ? filters : undefined,
+  };
+}
+
+
 function reloadFromStart(metricIds: string[]) {
   gridApi.formApi.setFieldValue('queryMetric', metricIds)
 
