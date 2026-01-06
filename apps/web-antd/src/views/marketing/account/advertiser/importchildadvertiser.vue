@@ -2,12 +2,30 @@
 // 导入子账户
 import {useVbenModal} from '@vben/common-ui';
 import {Page} from '@vben/common-ui';
-import {reactive, ref} from 'vue';
+import {reactive, ref, computed} from 'vue';
 import {advertiserApi} from "#/api/core";
 import {useVbenVxeGrid, type VxeGridProps} from "#/adapter/vxe-table";
-import type {AccountChildResponse} from "#/api/models";
+import type {AccountChildResponse, AdvertiserItem} from "#/api/models";
 import {$t} from "@vben/locales";
+
 import {InputSearch} from "ant-design-vue";
+
+import {InputSearch, Checkbox, Select } from "ant-design-vue";
+import type { ProjectItem } from './advertiser';
+
+//父传子接受的项目下拉数据列表
+const props = defineProps<{
+  projectOptions: ProjectItem[];
+}>();
+//转换成响应式
+const projectItemOptions = computed(() =>
+  props.projectOptions.map(item => ({
+    label: item.name,
+    value: item.id,
+  }))
+);
+//所属项目字段
+const projectStr = ref()
 
 //设置分页参数
 const pages = reactive({
@@ -23,6 +41,8 @@ const filterData = ref<AccountChildResponse | any>([])
 const emit = defineEmits(['pageReload']);
 const objectRequest = ref<{ id: string; }>({id: '',})
 
+const isSlect = ref(true)
+
 const [Modal, modalApi] = useVbenModal({
   fullscreenButton: false,
   closeOnPressEscape: false,
@@ -31,6 +51,7 @@ const [Modal, modalApi] = useVbenModal({
     objectRequest.value = {id: ''};
     await modalApi.close();
     accountName.value = ''
+
   },
   async onConfirm() {
     const checkedRecords = gridApi.grid.getCheckboxRecords();
@@ -41,6 +62,8 @@ const [Modal, modalApi] = useVbenModal({
     emit('pageReload');
     await modalApi.close();
     accountName.value = ''
+    checked.value = false
+
   },
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
@@ -63,7 +86,7 @@ const [Modal, modalApi] = useVbenModal({
 
 const gridOptions: VxeGridProps<AccountChildResponse> = {
   border: true,
-  height: "600px",
+  height: "491.5px",
   checkboxConfig: {
     highlight: true,
     labelField: 'advertiserId',
@@ -102,8 +125,15 @@ const gridOptions: VxeGridProps<AccountChildResponse> = {
   },
 };
 
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 //设置前端分页更新事件
-function updatePageData(dataArr:[]){
+async function updatePageData(dataArr:[]){
+   gridApi.setLoading(true);
+
+  await sleep(500);
   const start = (pages.currentPage - 1) * pages.pageSize
   const end = pages.currentPage * pages.pageSize
   gridApi.setGridOptions({
@@ -114,6 +144,7 @@ function updatePageData(dataArr:[]){
       pageSize:pages.pageSize
     }
   })
+  gridApi.setLoading(false);
 }
 
 //前端分页按钮事件
@@ -122,47 +153,50 @@ const gridEvents = {
     pages.currentPage = currentPage;
     pages.pageSize = pageSize
     updatePageData(filterData.value);
-  }
-}
-
-//项目名字筛选
-const accountName = ref<string>()
-function onSearch(valueText:string){
-  pages.currentPage = 1;
-   if (!valueText) {
-    // 清空搜索：还原原始数据
-    filterData.value = [...importData.value];
-  } else {
-    filterData.value = importData.value.filter((item:AccountChildResponse) =>
-      item.advertiserName?.includes(valueText)
-    );
-  }
-  pages.total = filterData.value.length;
-  updatePageData(filterData.value);
-}
-
-const [Grid, gridApi] = useVbenVxeGrid({gridOptions,gridEvents});
-
-
-</script>
-
-<template>
-  <Page>
-    <Modal class="w-[605px]">
-      <div style="padding-left: 0.5rem;">
+      <div class="filterClass">
         <InputSearch
           v-model:value="accountName"
           placeholder="请输入账户名字搜索"
           style="width: 200px"
           @search="onSearch"
         />
+        <!-- <Checkbox v-model:checked="checked" @change="changeBool">只展示可新增账户</Checkbox > -->
       </div>
+      <!-- <div class="belongingClass">
+        <div style="font-size: 13px;">所属项目：</div>
+        <Select
+          :disabled="isSlect"
+          style="width: 133px"
+          v-model:value="projectStr"
+          show-search
+          allow-clear
+          :filter-option="(input, option) =>
+            option?.label?.toLowerCase().includes(input.toLowerCase())
+          "
+          :options="projectItemOptions"
+          placeholder="请选择项目">
+        </Select>
+      </div> -->
       <Grid></Grid>
     </Modal>
   </Page>
 </template>
 
 <style scoped lang="scss">
+.filterClass{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding:0 0.5rem;
+}
+
+.belongingClass{
+  display: flex;
+  align-items: center;
+  padding:0.5rem 0.5rem 0;
+
+}
+
 :deep(.vxe-table--body),
 :deep(.vxe-table--header){
   width: 100% !important;

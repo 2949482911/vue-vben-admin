@@ -227,8 +227,10 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.rednote')}`,
     value: 'rednote',
   },
-
-
+  {
+    label: "淘宝联盟",
+    value: "tb_union",
+  },
 ];
 
 // 匹配下拉

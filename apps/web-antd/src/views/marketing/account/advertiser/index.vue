@@ -11,6 +11,7 @@ import {Button, Switch, Tag, Dropdown, Menu, MenuItem} from 'ant-design-vue';
 
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {advertiserApi} from '#/api/core';
+import {projectApi} from "#/api";
 import {
   BatchOptionsType,
   PLATFORM,
@@ -22,7 +23,8 @@ import AuthAccount from './authaccount.vue';//授权弹窗
 import CreateObjectRequestComp from './create.vue';//新增|修改弹窗
 import BatchOperationComp from './batchOperation.vue';//批量修改弹窗
 import ImportChildAdvertiser from './importchildadvertiser.vue';
-import { ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import type { ProjectItem } from "./advertiser";
 
 /**
  * 授权弹窗
@@ -119,6 +121,27 @@ async function handlerPutState(row: AdvertiserItem) {
   pageReload();
 }
 
+// 定义接受项目名称数组
+const projectOptions = ref<ProjectItem[]>([]);
+
+// 页面加载时请求数据
+onMounted(async () => {
+  const res = await projectApi.fetchProjectList({
+    page: 1,
+    size: 1000,
+  });
+  projectOptions.value = res.items;  
+});
+
+//computed是响应式的，如果直接赋值projectOptions已经晚了，schema已经初始化完成了异步数据没有触发表单更新
+const projectSelectOptions = computed(() =>
+  projectOptions.value.map((item:ProjectItem) => ({
+    label: item.name,
+    value: item.id,
+  }))
+);
+
+
 const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
@@ -194,6 +217,20 @@ const formOptions: VbenFormProps = {
       },
       fieldName: 'status',
       label: `${$t('core.columns.status')}`,
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        options: projectSelectOptions,//options不能直接传ref
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'projectId',
+      label: '项目',
     },
   ],
   // 控制表单是否显示折叠按钮
@@ -432,7 +469,7 @@ function pageReload() {
     <CreateObjectModal @page-reload="pageReload"/>
     <AuthAccountModal/>
     <BatchOperationModal @page-reload="pageReload"/>
-    <ImportChildAdvertiserModal @page-reload="pageReload" />
+    <ImportChildAdvertiserModal @page-reload="pageReload" :projectOptions="projectOptions"/>
   </div>
 </template>
 

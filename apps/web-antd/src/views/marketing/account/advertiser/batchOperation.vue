@@ -60,6 +60,7 @@ const [Modal, modalApi] = useVbenModal({
   centered: true,
   fullscreenButton: false,
   closeOnPressEscape: false,
+  contentClass:'modalStyle',
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const data = modalApi.getData<AdvertiserItem[]>();
@@ -96,5 +97,7 @@ const [Modal, modalApi] = useVbenModal({
 </template>
 
 <style scoped lang="scss">
-
+:global(.z-popup .modalStyle) {
+  min-height: 50px !important;
+}
 </style>
