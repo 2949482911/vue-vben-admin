@@ -48,6 +48,7 @@
       "title": "Report",
       "metric": "Metric",
       "adreportdata": "Ad Report Data"
-    }
+    },
+    "material": "Material"
   }
 }
