@@ -592,9 +592,9 @@ platformConfigForm.set(Platform.REDNOTE, [
       placeholder: `${$t('common.input')}`,
     },
     // 字段名
-    fieldName: 'test',
+    fieldName: 'xhs_channel',
     // 界面显示的label
-    label: `test`,
+    label: `xhs_channel`,
     rules: 'required',
   },
 ])
