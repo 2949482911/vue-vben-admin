@@ -1,21 +1,74 @@
 <script setup lang="ts" name="AdReportDataManager">
-import { ref, reactive,computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { Page, useVbenDrawer, useVbenModal, type VbenFormProps } from "@vben/common-ui";
 import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
 import { $t } from "@vben/locales";
 import { Button } from "ant-design-vue";
 import SelectMetricModal from "./selectmetric.vue";
-import type { AdReportRequest, AdvertiserPageRequest, ReportFilter } from "#/api/models";
+import type { AdReportRequest, AdvertiserPageRequest, ReportFilter, searchDataFilter } from "#/api/models";
 import {advertiserApi, reportApi,projectApi} from "#/api";
 import type { ProjectItem } from "../../account/advertiser/advertiser";
-/* ---------------- 弹窗 ---------------- */
+import SaveTemplateModal from "./saveTemplate.vue";
+import TemplateListDrawer from './templateList.vue';
+import dayjs from 'dayjs';
+
+/* ---------------- 模板抽屉 ---------------- */
+// 模板列表抽屉弹框
+const [TemplateDrawer, drawerApi] = useVbenDrawer({
+  // 连接抽离的组件
+  connectedComponent: TemplateListDrawer,
+});
+//模板列表抽屉打开
+function openTemplateListModalModal(){
+  drawerApi.open();
+}
+
+//用来保存使用模板回显的指标数据，传过去指标模板回显
+const templateQueryMetric = ref<Record<string, any>>({})
+
+//子传父的数据模板回显事件
+async function handleUseTemplate(template: searchDataFilter) {
+  templateQueryMetric.value = template
+  await gridApi.formApi.resetForm();
+  await gridApi.formApi.setValues(template)
+  searchData.value = await gridApi.formApi.getValues() as unknown as searchDataFilter;
+  await init(searchData.value)
+
+}
+
+/* ---------------- 指标弹窗 ---------------- */
 const [SelectMetricModalModal, selectMetricModalApi] = useVbenModal({
   connectedComponent: SelectMetricModal,
 });
-function openPlatformMetricMapDetailModal() {
+async function openPlatformMetricMapDetailModal() {
   selectMetricModalApi.open();
 }
+
+/* ---------------- 保存模板弹窗 ---------------- */
+
+//搜索的数据传给子组件用来保存模板
+const searchData = ref<searchDataFilter>({
+  advertiserId: [],
+  dims: [],
+  platform: [],
+  projectId: '',
+  queryMetric: [],
+  dateTimeRange: ['',''],
+})
+const [SaveTemplateModalModal, sveTemplateModalApi] = useVbenModal({
+  connectedComponent: SaveTemplateModal,
+});
+async function openSaveTemplateModalModal() {
+  searchData.value = await gridApi.formApi.getValues() as unknown as searchDataFilter;
+  sveTemplateModalApi.open();
+}
+//保存模板成功子组件通知父组件重新刷新form表单
+async function handleTemplateSaved() {
+  await gridApi.formApi.resetForm();
+  templateQueryMetric.value.queryMetric = []
+}
+
 
 /* ---------------- 本地分页核心状态 ---------------- */
 //第一步：把proxyConfig设置成空，不然proxyConfig每次分页都会请求后台数据，影响前端分页
@@ -128,17 +181,23 @@ const projectSelectOptions = computed(() =>
   }))
 );
 
-/* ---------------- 表单配置（保持你的不动） ---------------- */
+/* ---------------- 表单配置 ---------------- */
 const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
       component: 'RangePicker',
-      defaultValue: [],
+      defaultValue: [
+        dayjs().subtract(6, 'day').format('YYYY-MM-DD'), // 7天前（含今天）
+        dayjs().format('YYYY-MM-DD'),                    // 今天
+      ],
       componentProps: {
         placeholder: [`${$t('common.select')}`, `${$t('common.select')}`],
         format: ['YYYY-MM-DD', 'YYYY-MM-DD'],
-        valueFormat: 'YYYY-MM-DD'
+        valueFormat: 'YYYY-MM-DD',
+        disabledDate: (current: any) => {
+          return current && current > dayjs().endOf('day');
+        },
       },
       fieldName: 'dateTimeRange',
       label: 'Time',
@@ -319,22 +378,30 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridEvents,
 });
 
-
 </script>
 
 <template>
   <div>
     <Page auto-content-height>
       <Grid>
-
+        <template #reset-before>
+          <Button type="primary" @click="openSaveTemplateModalModal">
+            保存模板
+          </Button>
+        </template>
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openPlatformMetricMapDetailModal" danger>
+          <Button class="mr-2" type="primary" @click="openTemplateListModalModal">
+            报表模板
+          </Button>
+          <Button type="primary" @click="openPlatformMetricMapDetailModal" danger>
             {{ $t('core.metric') }}
           </Button>
         </template>
       </Grid>
     </Page>
-    <SelectMetricModalModal @confirmMetric="reloadFromStart"/>
+    <SelectMetricModalModal @confirmMetric="reloadFromStart" :templateQueryMetric="templateQueryMetric"/>
+    <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData"/>
+    <TemplateDrawer @useTemplate="handleUseTemplate"/>
   </div>
 </template>
 

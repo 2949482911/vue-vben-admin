@@ -62,6 +62,7 @@ export interface AccountChildResponse {
 export interface ImportChildRequest{
   id: string;
   advertiserIds: Array<string>;
+  projectId:string;
 }
 
 
@@ -227,5 +228,58 @@ export interface AdReportRequest {
   /** 账户名字 */
   filters?: ReportFilter[];
 }
+
+export interface ReportTemplate {
+  name: string;
+  type: string;
+  remark: string;
+  template: Record<string, any>;
+}
+
+/**搜索的数据传给子组件用来保存模板*/
+export interface searchDataFilter {
+  advertiserId: string[];
+  dims: string[];
+  platform: string[];
+  projectId:string;
+  queryMetric:string[];
+  dateTimeRange?:[string, string];
+}
+
+/**模板列表数据类型*/
+export interface templateListType {
+  page: number;
+  pageSize: number;
+  name?: string;
+  type?:string;
+}
+
+/**删除模板列表数据类型*/
+export interface delTemplate {
+  targetIds: string[];
+  type:string;
+  values: Record<string, any>;
+}
+
+/**模板列表数据每项类型*/
+export interface TemplateDto {
+  id: string;
+  mainId: string;
+  name: string;
+  type: string;
+  status: number;
+  del: number;
+  orgId: string;
+  orgCode: string;
+  createdBy: string;
+  createUsername: string;
+  createTime: string;
+  updatedBy: string;
+  updateUsername: string;
+  updateTime: string;
+  remark: string | null;
+  template: Record<string, any>;
+}
+
 
 

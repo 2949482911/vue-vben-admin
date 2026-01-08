@@ -45,7 +45,7 @@ const [Form, formApi] = useVbenForm({
     },
   },
   layout: 'horizontal',
-  handleSubmit: async (formVal: AdvertiserItem) => {
+  handleSubmit: async (formVal: Record<string, any>) => {
     await (isUpdate.value ? advertiserApi.fetchUpdateAdvertiser({
         id: formVal.id,
         putStatue: formVal.putStatue,

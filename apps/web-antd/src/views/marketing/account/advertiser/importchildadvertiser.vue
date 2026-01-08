@@ -49,20 +49,23 @@ const [Modal, modalApi] = useVbenModal({
     await modalApi.close();
     accountName.value = ''
     checked.value = false
+    projectStr.value = ''
+    isSlect.value = true
 
   },
   async onConfirm() {
     const checkedRecords = gridApi.grid.getCheckboxRecords();
-    console.log(checkedRecords,'checkedRecords');
-    
-    // const advertiserIds: string[] = checkedRecords.map((item) => item.advertiserId);
-    // await advertiserApi.fetchImportChild({id: objectRequest.value.id, advertiserIds})
-    // gridApi.setGridOptions({data: []});
-    // objectRequest.value = {id: ''};
-    // emit('pageReload');
-    // await modalApi.close();
-    // accountName.value = ''
-    // checked.value = false
+    const advertiserIds: string[] = checkedRecords.map((item) => item.advertiserId);
+    await advertiserApi.fetchImportChild({id: objectRequest.value.id, advertiserIds,projectId:projectStr.value})
+    gridApi.setGridOptions({data: []});
+    objectRequest.value = {id: ''};
+    emit('pageReload');
+    await modalApi.close();
+    accountName.value = ''
+    checked.value = false
+    projectStr.value = ''
+    isSlect.value = true
+
   },
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
@@ -143,6 +146,7 @@ async function updatePageData(dataArr:[]){
       pageSize:pages.pageSize
     }
   })
+  isSlect.value = true
   gridApi.setLoading(false);
 }
 
@@ -189,6 +193,7 @@ function onSearch(valueText:string){
 const checked = ref(false)
 function changeBool(){
   filterExist(checked.value)
+  isSlect.value = true
 }
 
 // 过滤展示只展示可新增账户
@@ -219,7 +224,22 @@ const [Grid, gridApi] = useVbenVxeGrid({gridOptions,gridEvents});
           style="width: 200px"
           @search="onSearch"
         />
-        <!-- <Checkbox v-model:checked="checked" @change="changeBool">只展示可新增账户</Checkbox > -->
+        <Checkbox v-model:checked="checked" @change="changeBool">只展示可新增账户</Checkbox >
+      </div>
+      <div class="belongingClass">
+        <div style="font-size: 13px;">所属项目：</div>
+        <Select
+          :disabled="isSlect"
+          style="width: 133px"
+          v-model:value="projectStr"
+          show-search
+          allow-clear
+          :filter-option="(input, option) =>
+            option?.label?.toLowerCase().includes(input.toLowerCase())
+          "
+          :options="projectItemOptions"
+          placeholder="请选择项目">
+        </Select>
       </div>
       <!-- <div class="belongingClass">
         <div style="font-size: 13px;">所属项目：</div>

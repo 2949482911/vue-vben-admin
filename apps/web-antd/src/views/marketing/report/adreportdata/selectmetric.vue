@@ -1,11 +1,16 @@
 <script setup lang="ts" name="SelectMetricModal">
 import { Page, useVbenModal } from '@vben/common-ui';
-import { onMounted, ref, reactive, watch } from 'vue';
+import { onMounted, ref, reactive, watch, nextTick } from 'vue';
 import { metricApi } from '#/api';
-import type { MetricItem } from '#/api/models';
+import type { MetricItem,searchDataFilter } from '#/api/models';
 import { Checkbox, Divider, CheckboxGroup, Space, InputSearch } from 'ant-design-vue';
 
 const emit = defineEmits(['confirmMetric']);
+
+//接收父组件使用模板传回来的指标回显数组
+const props = defineProps<{
+  templateQueryMetric:searchDataFilter
+}>()
 
 // 搜索关键字
 const indicatorValue = ref('');
@@ -35,6 +40,15 @@ const [Modal, modalApi] = useVbenModal({
     emit('confirmMetric', state.checkedList);
     await modalApi.close();
   },
+  async onOpenChange(isOpen){
+    if(isOpen && props.templateQueryMetric?.queryMetric?.length){
+       nextTick(()=>{
+        state.checkedList = [...props.templateQueryMetric.queryMetric]
+      })
+    }else{
+      state.checkedList = []
+    }
+  }
 });
 
 // 拉取指标
@@ -52,22 +66,39 @@ function updateCheckboxOptions(list: MetricItem[]) {
   }));
 }
 
-// 🔍 实时搜索（核心）
+// 实时搜索（核心）
 watch(indicatorValue, (keyword) => {
   const searchText = keyword.trim().toLowerCase();
-
   if (!searchText) {
     // 关键字为空，恢复全部
     updateCheckboxOptions(metricList.value);
     return;
   }
-
   const filteredList = metricList.value.filter(item =>
     item.cname.toLowerCase().includes(searchText)
   );
-
   updateCheckboxOptions(filteredList);
 });
+
+//监听指标全选框和未全选框的状态
+watch(
+  () => state.checkedList,
+  (val) => {
+    const total = checkboxOptionTypeList.value.length;
+    if (val.length === 0) {
+      state.checkAll = false;
+      state.indeterminate = false;
+    } else if (val.length === total) {
+      state.checkAll = true;
+      state.indeterminate = false;
+    } else {
+      state.checkAll = false;
+      state.indeterminate = true;
+    }
+  },
+  { deep: true }
+);
+
 
 // 全选
 const onCheckAllChange = (e: any) => {

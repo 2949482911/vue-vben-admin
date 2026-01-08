@@ -10,7 +10,10 @@ import type {
   DeveloperItem,
   DeveloperPageRequest, ImportChildRequest, MetricItem, ProjectItem, ProjectPageRequest,
   SystemMetricPageRequest, UpdateAdvertiserRequest, UpdateDeveloperRequest, UpdateMetric,
-  UpdateProjectRequest
+  UpdateProjectRequest,
+  ReportTemplate,
+  templateListType,
+  delTemplate
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -170,3 +173,21 @@ class ProjectApi extends BaseApi {
 }
 
 export const projectApi = new ProjectApi("/platform/project");
+
+/**
+ * 报表保存模板
+ */
+class ReportTemplateApi extends BaseApi {
+  fetchReportTemplate(params: ReportTemplate) {
+    return requestClient.post(this.getServiceUrl("template_create"), params)
+  }
+
+  fetchGetTemplateList(params: templateListType) {
+    return requestClient.get(this.getServiceUrl("template_list"), {params: params})
+  }
+  fetchDelTemplate(params: delTemplate) {
+    return requestClient.post(this.getServiceUrl("template_batch_options"), params)
+  }
+}
+
+export const reportTemplateApi = new ReportTemplateApi("/platform/report_configuration");
