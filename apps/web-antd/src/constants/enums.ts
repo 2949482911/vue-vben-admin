@@ -17,5 +17,6 @@ export enum Platform {
   NETEASE = "netease",
   JD_GYX = "jdgyx",
   TB = "tb",
+  REDNOTE = "rednote",
   TB_UNION = "tb_union"
 }

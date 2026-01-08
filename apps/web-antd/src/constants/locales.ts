@@ -224,6 +224,12 @@ export const BEHAVIORA_PLATFORM = [
     value: 'tb',
   },
   {
+    label: `${$t('ocpx.platform.rednote')}`,
+    value: 'rednote',
+  },
+
+
+  {
     label: "淘宝联盟",
     value: 'tb_union',
   },
