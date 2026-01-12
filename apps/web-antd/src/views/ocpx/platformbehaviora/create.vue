@@ -599,6 +599,23 @@ platformConfigForm.set(Platform.REDNOTE, [
   },
 ])
 
+// 聚创
+platformConfigForm.set(Platform.KARANG, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'pid',
+    // 界面显示的label
+    label: `pid`,
+    rules: 'required',
+  },
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {

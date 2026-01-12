@@ -233,6 +233,10 @@ export const BEHAVIORA_PLATFORM = [
     label: "淘宝联盟",
     value: 'tb_union',
   },
+  {
+    label: `${$t('ocpx.platform.karang')}`,
+    value: 'karang',
+  },
 ];
 
 // 匹配下拉
@@ -327,3 +331,16 @@ export const DIMS = [
     value: 'platform_account_id',
   }
 ]
+
+
+
+/**
+ * oauth2 授权
+ */
+export const AUTH_PLATFORM = [
+  {
+    label: `${$t('ocpx.platform.vivo')}`,
+    value: 'vivo',
+  },
+
+];

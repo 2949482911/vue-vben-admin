@@ -18,5 +18,6 @@ export enum Platform {
   JD_GYX = "jdgyx",
   TB = "tb",
   REDNOTE = "rednote",
-  TB_UNION = "tb_union"
+  TB_UNION = "tb_union",
+  KARANG = "karang"
 }

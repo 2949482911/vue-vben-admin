@@ -8,12 +8,25 @@ import {$t} from '@vben/locales';
 
 import {useVbenForm} from '#/adapter/form';
 import {developerApi} from '#/api/core';
-import {AUTH_ACCOUNT_PLATFORM, AUTH_PLATFORM} from '#/constants/locales';
+import {AUTH_ACCOUNT_PLATFORM} from '#/constants/locales';
 import {Platform} from "#/constants/enums";
 
 const emit = defineEmits(['pageReload']);
 
-const objectRequest = ref<DeveloperItem>({});
+const objectRequest = ref<DeveloperItem>({
+  apiKey: "",
+  apiSecret: "",
+  authCount: "",
+  createTime: "",
+  createUsername: "",
+  id: "",
+  name: "",
+  platform: "",
+  remark: "",
+  status: 0,
+  updateTime: "",
+  updateUsername: ""
+});
 const isUpdate = ref<Boolean>(false);
 
 
