@@ -233,6 +233,12 @@ export const BEHAVIORA_PLATFORM = [
     label: "淘宝联盟",
     value: 'tb_union',
   },
+
+  {
+    label: `${$t('ocpx.platform.qwen')}`,
+    value: 'qwen',
+  },
+
 ];
 
 // 匹配下拉
