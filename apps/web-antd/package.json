@@ -26,6 +26,9 @@
     "#/*": "./src/*"
   },
   "dependencies": {
+    "@bpmn-io/properties-panel": "^3.25.1",
+    "@logicflow/core": "^2.0.10",
+    "@logicflow/extension": "^2.0.14",
     "@vben-core/menu-ui": "workspace:*",
     "@vben/access": "workspace:*",
     "@vben/common-ui": "workspace:*",
@@ -43,19 +46,17 @@
     "@vben/types": "workspace:*",
     "@vben/utils": "workspace:*",
     "@vueuse/core": "catalog:",
+    "ali-oss": "^6.23.0",
     "ant-design-vue": "catalog:",
-    "dayjs": "catalog:",
-    "pinia": "catalog:",
-    "vue": "catalog:",
-    "vue-router": "catalog:",
-    "epic-designer": "catalog:",
     "bpmn-js": "catalog:",
-    "bpmn-js-properties-panel": "^5.30.0",
     "bpmn-js-bpmnlint": "^0.22.3",
     "bpmn-js-color-picker": "^0.7.1",
+    "bpmn-js-properties-panel": "^5.30.0",
     "camunda-bpmn-moddle": "^7.0.1",
-    "@bpmn-io/properties-panel": "^3.25.1",
-    "@logicflow/core": "^2.0.10",
-    "@logicflow/extension": "^2.0.14"
+    "dayjs": "catalog:",
+    "epic-designer": "catalog:",
+    "pinia": "catalog:",
+    "vue": "catalog:",
+    "vue-router": "catalog:"
   }
 }

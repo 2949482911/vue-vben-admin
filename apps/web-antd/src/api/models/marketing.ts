@@ -281,5 +281,96 @@ export interface TemplateDto {
   template: Record<string, any>;
 }
 
+//素材库
+
+/**目录树*/
+export interface FolderItem {
+  /** 子节点 */
+  children: FolderItem[];
+  /** 创建时间 */
+  createTime: string;
+  /** 创建人名称 */
+  createUsername: string;
+  /** 创建人 ID */
+  createdBy: string;
+  /** 当前节点 ID */
+  id: string;
+  /** 层级 */
+  level: number;
+  /** 文件夹名称 */
+  name: string;
+  /** 父级 ID */
+  parentId: string;
+  /** 备注 */
+  remark: string;
+  /** 根节点 ID */
+  rootId: string;
+  /** 状态：1 启用 / 0 禁用 */
+  status: number;
+  /** 更新时间 */
+  updateTime: string;
+  /** 更新人名称 */
+  updateUsername: string;
+  /** 更新人 ID */
+  updatedBy: string;
+}
+
+/**创建文件夹 */
+export interface CreateFolderParams {
+  name: string;
+  parentId?: string;
+  remark?: string;
+}
+
+/**素材列表数据类型 */
+export interface MaterialListParams {
+  name: string;
+  albumId: string;
+  pageSize:number;
+  current:number;
+}
+
+/**上传素材 */
+export interface FileInfo {
+  /** 名称 */
+  name: string;
+  /** 相册 ID */
+  albumId: string;
+  /** 文件 MD5 */
+  fileMd5: string;
+  /** 文件大小（字节） */
+  fileSize: number;
+  /** 文件地址 */
+  fileUrl: string;
+  /** 缩略图地址 */
+  thumbnailUrl: string;
+  /** 图片高度 */
+  height: number;
+  /** 图片宽度 */
+  width: number;
+}
+
+/**编辑素材 */
+export interface EditPaletteParams {
+  id:string,
+  name: string,
+  albumId: string
+}
+
+/**全部文件 */
+export interface AllFilesParams {
+  name?: string,
+  albumId?: string,
+}
+
+/**临时凭证 */
+export interface voucherParams {
+  accessKeyId: string,
+  accessKeySecret: string,
+  expiration: string,
+  securityToken: string
+}
+
+
 
 
