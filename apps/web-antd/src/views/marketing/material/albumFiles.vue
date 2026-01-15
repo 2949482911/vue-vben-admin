@@ -4,17 +4,16 @@ import { Dropdown, Menu, MenuItem, Pagination } from "ant-design-vue";
 import { uploadEditApi } from '#/api/core';
 import { reactive, watch } from "vue";
 import type { FolderItem } from '#/api/models';
-import type { TreeProps } from 'ant-design-vue';
 
 const props = defineProps<{
-  treeData: FolderItem[] | TreeProps[];
+  treeItem: FolderItem[]
 }
 >()
 
 watch(
-  () => props.treeData,
+  () => props.treeItem,
   (newVal) => {
-    // 当 props.treeData 有数据时才调用接口
+    // 当 props.treeItem 有数据时才调用接口
     if (newVal && newVal.length) {
       fileList();
     }
@@ -30,10 +29,11 @@ const pages = reactive({
 const onShowSizeChange = (current: number, pageSize: number) => {
   pages.current = current
   pages.pageSize = pageSize
+  fileList();
 };
 
 async function fileList(){
-  const firstFolder = (props.treeData as FolderItem[])[0];
+  const firstFolder = props.treeItem[0];
   if (!firstFolder) return;
   try{
     const res = await uploadEditApi.fetchMaterialList({

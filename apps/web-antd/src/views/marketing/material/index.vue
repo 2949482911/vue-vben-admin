@@ -6,11 +6,13 @@ import NewFolder from "./newFolder.vue";
 import UploadMaterials from "./uploadMaterials.vue";
 import AlbumFiles from "./albumFiles.vue";
 import { materialLibraryApi } from '#/api/core';
-// import type { FolderItem } from "#/api/models";
 import type { TreeProps } from 'ant-design-vue';
+import type { Key } from "ant-design-vue/es/vc-tree-select/interface";
+import type { FolderItem } from "#/api/models";
 
 // 树的数据
 const treeData = ref<TreeProps['treeData']>([]);
+const expandedKeys = ref<Key[]>([]);
 
 const selectedKeys = ref<string[]>([]);
 
@@ -21,8 +23,7 @@ onMounted(async()=>{
 async function requestTreeNode(){
   const res = await materialLibraryApi.fetchDirectoryTreeList()
   treeData.value = res
-  console.log(treeData.value,'树结构');
-
+  treeItem.value = [res[0]]
 }
 
 //--------新建文件夹弹框------------
@@ -35,7 +36,6 @@ async function newBuilt(row:any){
   newFolderApi.open()
   if (row) {
     idEditStr.value = row
-  //  await newFolderApi.setValues(row)
     console.log(idEditStr.value,'编辑文件夹打开来的数据');
   }
 }
@@ -47,7 +47,12 @@ const [UploadMaterialsModal, drawerApi] = useVbenDrawer({
 
 function upMaterial(){
   drawerApi.open()
-  console.log("点击了上传素材按钮");
+}
+
+//树结点的选择
+const treeItem = ref<FolderItem[]>()
+function itemFile(selectedKeys:Key[],selectedNodes:any){
+  treeItem.value = selectedNodes.selectedNodes
 }
 
 
@@ -63,12 +68,14 @@ function upMaterial(){
             <div class="tree">
               <DirectoryTree
                 v-model:selectedKeys="selectedKeys"
+                v-model:expandedKeys="expandedKeys"
                 :tree-data="treeData"
                 :field-names="{
                   title: 'name',
                   key: 'id',
                   children: 'children'
                 }"
+                @select="itemFile"
               >
               </DirectoryTree>
             </div>
@@ -80,7 +87,7 @@ function upMaterial(){
               <Button type="primary" @click="upMaterial">上传素材</Button>
               <Button style="margin: 0 0 0 5px;" @click="newBuilt">新建文件夹</Button>
             </div>
-            <AlbumFiles @open-file="newBuilt" :treeData="treeData ?? []"/>
+            <AlbumFiles @open-file="newBuilt" :treeItem="treeItem ?? []"/>
           </div>
         </Col>
       </Row>
