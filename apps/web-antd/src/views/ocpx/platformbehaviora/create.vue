@@ -929,7 +929,6 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'filterBehavior',
       // 界面显示的label
       label: '过滤事件',
-      rules: 'required', 
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
