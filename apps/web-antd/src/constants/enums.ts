@@ -19,5 +19,6 @@ export enum Platform {
   TB = "tb",
   REDNOTE = "rednote",
   TB_UNION = "tb_union",
+  QWEN = "qwen",
   KARANG = "karang"
 }

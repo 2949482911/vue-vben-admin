@@ -13,7 +13,11 @@ import type {
   UpdateProjectRequest,
   ReportTemplate,
   templateListType,
-  delTemplate
+  delTemplate,
+  CreateFolderParams,
+  MaterialListParams,
+  FileInfo,
+  EditPaletteParams,
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -191,3 +195,51 @@ class ReportTemplateApi extends BaseApi {
 }
 
 export const reportTemplateApi = new ReportTemplateApi("/platform/report_configuration");
+
+/**
+ * 素材库
+ */
+class MaterialLibraryApi extends BaseApi {
+  /**目录树*/
+  fetchDirectoryTreeList() {
+    return requestClient.get(this.getServiceUrl("tree"))
+  }
+  /**创建文件夹*/
+  fetchCreateFile(params: CreateFolderParams) {
+    return requestClient.post(this.getServiceUrl("create"), params)
+  }
+}
+
+export const materialLibraryApi = new MaterialLibraryApi("/platform/album");
+
+/**
+ * 素材库
+ */
+class UploadEditApi extends BaseApi {
+  /**上传素材*/
+  fetchUploadMaterials(params: FileInfo) {
+    return requestClient.post(this.getServiceUrl("create"), params)
+  }
+  /**编辑素材*/
+  fetchEditMaterials(params: EditPaletteParams) {
+    return requestClient.post(this.getServiceUrl(""), params)
+  }
+  /**素材列表*/
+  fetchMaterialList(params: MaterialListParams) {
+    return requestClient.get(this.getServiceUrl("list"), {params})
+  }
+}
+
+export const uploadEditApi = new UploadEditApi("/platform/material");
+
+/**
+ * 素材库文件上传凭证
+ */
+class UploadCredentialsApi extends BaseApi {
+  /**上传凭证*/
+  fetchEvidence() {
+    return requestClient.get(this.getServiceUrl("sts_token"))
+  }
+}
+
+export const uploadCredentialsApi = new UploadCredentialsApi("/platform/aliyun");

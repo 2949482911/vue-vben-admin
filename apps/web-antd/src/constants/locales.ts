@@ -237,6 +237,12 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.karang')}`,
     value: 'karang',
   },
+
+  {
+    label: `${$t('ocpx.platform.qwen')}`,
+    value: 'qwen',
+  },
+
 ];
 
 // 匹配下拉

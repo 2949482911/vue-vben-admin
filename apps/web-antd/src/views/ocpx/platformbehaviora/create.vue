@@ -1,7 +1,7 @@
 <script lang="ts" setup name="CreateNotice">
 import type {BehavioraPlatformItem, OcpxPlatformMatch} from '#/api/models';
 
-import {ref,h} from 'vue';
+import {ref, h} from 'vue';
 
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -507,16 +507,16 @@ platformConfigForm.set(Platform.TB_UNION, [
     label: `tbkId1`,
     rules: 'required',
     suffix: () =>
-    h('div', { class: 'flex gap-2' }, [
-      h('span', {
-        class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
-        onClick: batchAddSchema
-      }, '+'),
-      h('span', {
-        class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
-        onClick: batchDeleteSchema
-      }, '-')
-    ])
+      h('div', {class: 'flex gap-2'}, [
+        h('span', {
+          class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+          onClick: batchAddSchema
+        }, '+'),
+        h('span', {
+          class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+          onClick: batchDeleteSchema
+        }, '-')
+      ])
   }
 ])
 
@@ -544,16 +544,16 @@ function batchAddSchema() {
           label: `tbkId${newIndex}`,      // 显示顺序也对应
           rules: 'required',
           suffix: () =>
-          h('div', { class: 'flex gap-2' }, [
-            h('span', {
-              class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
-              onClick: batchAddSchema
-            }, '+'),
-            h('span', {
-              class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
-              onClick: batchDeleteSchema
-            }, '-')
-          ])
+            h('div', {class: 'flex gap-2'}, [
+              h('span', {
+                class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+                onClick: batchAddSchema
+              }, '+'),
+              h('span', {
+                class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+                onClick: batchDeleteSchema
+              }, '-')
+            ])
         },
       ],
     };
@@ -567,18 +567,18 @@ function batchDeleteSchema() {
 
     // 找出所有 tbkId 索引
     const tbkIndexes = schema
-      .map((item, index) => ({ item, index }))
-      .filter(({ item }) => item.fieldName?.startsWith('tbkId'));
+      .map((item, index) => ({item, index}))
+      .filter(({item}) => item.fieldName?.startsWith('tbkId'));
 
     // 至少保留 tbkId1
-    if (tbkIndexes.length <= 1) return { schema };
+    if (tbkIndexes.length <= 1) return {schema};
 
     // 删除最后一个 tbkId
     const lastIndex = tbkIndexes[tbkIndexes.length - 1].index;
     const newSchema = [...schema];
     newSchema.splice(lastIndex, 1);
 
-    return { schema: newSchema };
+    return {schema: newSchema};
   });
 }
 
@@ -616,6 +616,85 @@ platformConfigForm.set(Platform.KARANG, [
   },
 ])
 
+platformConfigForm.set(Platform.QWEN, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'ch',
+    // 界面显示的label
+    label: `ch`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'gateway',
+    // 界面显示的label
+    label: `gateway`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'act',
+    // 界面显示的label
+    label: `act`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'srcPlat',
+    // 界面显示的label
+    label: `srcPlat`,
+    rules: 'required',
+  }, {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'targetPkg',
+    // 界面显示的label
+    label: `targetPkg`,
+    rules: 'required',
+  }, {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'type',
+    // 界面显示的label
+    label: `type`,
+    rules: 'required',
+  },
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -644,12 +723,12 @@ const [Form, formApi] = useVbenForm({
       return;
     }
     //如果是淘宝联盟我需要做一些修改
-    if(formVal.platform === "tb_union"){
+    if (formVal.platform === "tb_union") {
       const configValues = await configFormApi.getValues();
       // 获取 tbkId 动态字段，按顺序生成数组
       const tbkIdArray = Object.keys(configValues)
         .filter(k => k.startsWith('tbkId'))
-        .sort((a, b) => parseInt(a.replace('tbkId','')) - parseInt(b.replace('tbkId','')))
+        .sort((a, b) => parseInt(a.replace('tbkId', '')) - parseInt(b.replace('tbkId', '')))
         .map(k => configValues[k])
         .filter(v => v != null && v !== ''); // 过滤 null 和 空字符串
 
@@ -665,7 +744,7 @@ const [Form, formApi] = useVbenForm({
         .forEach(k => delete submitData[k]);
 
       formVal.config = submitData;
-    }else{
+    } else {
       formVal.config = await configFormApi.getValues();
     }
     if (ocpxPlatformMatchList.value && ocpxPlatformMatchList.value.length > 0) {
@@ -706,7 +785,7 @@ const [Form, formApi] = useVbenForm({
             };
           });
           // 平台切换成淘宝联盟时需要更新行为类型默认值
-          if(value==="tb_union"){
+          if (value === "tb_union") {
             configFormApi.setValues({
               action: 2
             });
@@ -761,7 +840,7 @@ const [Form, formApi] = useVbenForm({
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
-          return data["platform"] === Platform.KUAKE;
+          return data["platform"] === Platform.KUAKE || data["platform"] === Platform.QWEN;
         },
         triggerFields: ["platform"]
       }
@@ -911,30 +990,30 @@ function handleSetFormValue(row: BehavioraPlatformItem) {
       rules: 'required',
       defaultValue: val,
       suffix: () =>
-      h('div', { class: 'flex gap-2' }, [
-        h('span', {
-          class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
-          onClick: batchAddSchema
-        }, '+'),
-        h('span', {
-          class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
-          onClick: batchDeleteSchema
-        }, '-')
-      ])
+        h('div', {class: 'flex gap-2'}, [
+          h('span', {
+            class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+            onClick: batchAddSchema
+          }, '+'),
+          h('span', {
+            class: 'bg-white text-black border border-gray-300 rounded px-3 py-1 cursor-pointer hover:bg-gray-100',
+            onClick: batchDeleteSchema
+          }, '-')
+        ])
     }));
     // 替换掉原本tbkId的schema
     schema = schema.filter(item => !item.fieldName?.startsWith('tbkId'));
     schema = [...schema, ...tbkSchema];
     // 设置schema
-    configFormApi.setState({ schema });
+    configFormApi.setState({schema});
 
     // 设置values
-    const values: Record<string, any> = {...row.config };
+    const values: Record<string, any> = {...row.config};
     tbkArray.forEach((val, idx) => {
       values[`tbkId${idx + 1}`] = val;
     });
     configFormApi.setValues(values);
-  }else{
+  } else {
     configFormApi.setState((_) => {
       return {
         schema: platformConfigForm.get(row.platform),
