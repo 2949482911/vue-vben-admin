@@ -1,5 +1,5 @@
 <script lang="ts" setup name="CreateNotice">
-import type {BehavioraPlatformItem, OcpxPlatformMatch} from '#/api/models';
+import type {BehavioraPlatformItem, OcpxPlatformMatch, PlatformCallbackBehaviorTypeItem} from '#/api/models';
 
 import {ref, h} from 'vue';
 
@@ -9,7 +9,7 @@ import {$t} from '@vben/locales';
 import {Card, Divider} from 'ant-design-vue';
 
 import {useVbenForm} from '#/adapter/form';
-import {behavioraPlatformApi} from '#/api/core/ocpx';
+import {behavioraPlatformApi, platformCallbackApi} from '#/api/core/ocpx';
 import {Platform} from '#/constants/enums';
 import {
   BEHAVIORA_PLATFORM,
@@ -37,6 +37,7 @@ const objectRequest = ref<BehavioraPlatformItem>({
   platform: "",
   remark: "",
   simulate: false,
+  filterBehavior:[],
   status: 0,
   updateTime: "",
   updateUsername: "",
@@ -691,6 +692,13 @@ const [ConfigForm, configFormApi] = useVbenForm({
   schema: platformConfigForm.get(Platform.JD),
 });
 
+//过滤事件的下拉
+const filterModelSelect = ref<PlatformCallbackBehaviorTypeItem[]>([])
+
+async function filterModel(value:string){
+  filterModelSelect.value = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(value)
+}
+
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -767,11 +775,17 @@ const [Form, formApi] = useVbenForm({
               schema: platformConfigForm.get(value),
             };
           });
+          formApi.setValues({
+            filterBehavior: []
+          });
           // 平台切换成淘宝联盟时需要更新行为类型默认值
           if (value === "tb_union") {
             configFormApi.setValues({
               action: 2
             });
+          }
+          if(value != "tb" && value != "jd"){
+            filterModel(value)
           }
         },
       },
@@ -904,6 +918,28 @@ const [Form, formApi] = useVbenForm({
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Select',
+      // 对应组件的参数
+      componentProps: {
+        mode:"multiple",
+        placeholder: `${$t('common.input')}`,
+        options: filterModelSelect,
+      },
+      // 字段名
+      fieldName: 'filterBehavior',
+      // 界面显示的label
+      label: '过滤事件',
+      rules: 'required', 
+      dependencies: {
+        show: async () => {
+          const data = await formApi.getValues();
+          return data["platform"] !== Platform.JD && data["platform"] !== Platform.TB;
+        },
+        triggerFields: ["platform"]
+      },
+    },
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Textarea',
       // 对应组件的参数
       componentProps: {
@@ -931,7 +967,7 @@ const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
     const result = await formApi.validate();
     const configFormResult = await configFormApi.validate();
-    if (!result.valid && !configFormResult.valid) {
+    if (!result.valid || !configFormResult.valid) {
       return;
     }
     await formApi.submitForm();

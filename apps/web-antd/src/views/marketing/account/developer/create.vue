@@ -8,7 +8,7 @@ import {$t} from '@vben/locales';
 
 import {useVbenForm} from '#/adapter/form';
 import {developerApi} from '#/api/core';
-import {AUTH_ACCOUNT_PLATFORM, AUTH_PLATFORM} from '#/constants/locales';
+import {AUTH_ACCOUNT_PLATFORM} from '#/constants/locales';
 import {Platform} from "#/constants/enums";
 
 const emit = defineEmits(['pageReload']);

@@ -181,6 +181,10 @@ export const AUTH_ACCOUNT_PLATFORM = [
     label: `${$t('ocpx.platform.tb')}`,
     value: 'tb',
   },
+  {
+    label: '华为商店',
+    value: 'huawei_store',
+  },
 ];
 
 /**
