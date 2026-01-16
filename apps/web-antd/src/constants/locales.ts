@@ -337,3 +337,13 @@ export const DIMS = [
     value: 'platform_account_id',
   }
 ]
+
+/**
+ * 广告主新增弹框的平台下拉
+ */
+export const ADVERTISET_ADDED = [
+  {
+    label:'华为商店',
+    value: 'huawei_store',
+  }
+]
