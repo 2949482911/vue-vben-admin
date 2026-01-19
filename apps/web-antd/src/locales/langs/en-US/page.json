@@ -42,7 +42,8 @@
     "account": {
       "title": "Account",
       "advertiser": "Advertiser",
-      "developer": "Developer"
+      "developer": "Developer",
+      "balanceDetail": "Balance Detail"
     },
     "report": {
       "title": "Report",
