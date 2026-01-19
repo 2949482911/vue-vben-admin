@@ -18,6 +18,7 @@ import {
 } from '#/constants/locales';
 
 import MatchTable from './matchTable.vue';
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 // 创建表格
@@ -709,42 +710,35 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
-    const result = await formApi.validate();
-    if (!result.valid) {
-      return;
-    }
-    //如果是淘宝联盟我需要做一些修改
-    if (formVal.platform === "tb_union") {
-      const configValues = await configFormApi.getValues();
-      // 获取 tbkId 动态字段，按顺序生成数组
-      const tbkIdArray = Object.keys(configValues)
+    // 1️⃣ trim 主表单
+    const baseForm = trimObject(formVal);
+
+    // 2️⃣ trim config 表单（关键）
+    const rawConfig = await configFormApi.getValues();
+    const config = trimObject(rawConfig);
+
+    // 3️⃣ 淘宝联盟特殊处理
+    if (baseForm.platform === 'tb_union') {
+      const tbkIdArray = Object.keys(config)
         .filter(k => k.startsWith('tbkId'))
-        .sort((a, b) => parseInt(a.replace('tbkId', '')) - parseInt(b.replace('tbkId', '')))
-        .map(k => configValues[k])
-        .filter(v => v != null && v !== ''); // 过滤 null 和 空字符串
+        .sort((a, b) => Number(a.replace('tbkId', '')) - Number(b.replace('tbkId', '')))
+        .map(k => config[k])
+        .filter(v => v);
 
-      // 合并提交数据
-      const submitData = {
-        ...configValues,
-        tbkIdList: tbkIdArray
-      };
+      config.tbkIdList = tbkIdArray;
 
-      // 删除 tbkId1, tbkId2, ...
-      Object.keys(submitData)
+      Object.keys(config)
         .filter(k => k.startsWith('tbkId') && k !== 'tbkIdList')
-        .forEach(k => delete submitData[k]);
+        .forEach(k => delete config[k]);
+    }
 
-      formVal.config = submitData;
-    } else {
-      formVal.config = await configFormApi.getValues();
-    }
-    if (ocpxPlatformMatchList.value && ocpxPlatformMatchList.value.length > 0) {
-      formVal.ocpxPlatformMatches = ocpxPlatformMatchList.value;
-    }
+    // 4️⃣ 合并
+    baseForm.config = config;
+
+    // 5️⃣ 提交
     await (isUpdate.value
-      ? behavioraPlatformApi.fetchUpdateBehavioraPlatform(formVal)
-      : behavioraPlatformApi.fetchCreateBehavioraPlatform(formVal));
-    await formApi.resetForm();
+      ? behavioraPlatformApi.fetchUpdateBehavioraPlatform(baseForm)
+      : behavioraPlatformApi.fetchCreateBehavioraPlatform(baseForm));
   },
   schema: [
     {
@@ -952,6 +946,17 @@ const [Form, formApi] = useVbenForm({
   ],
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
 });
+
+
+function trimFormValue(obj: Record<string, any>) {
+  const result: Record<string, any> = {};
+  Object.keys(obj || {}).forEach((key) => {
+    const val = obj[key];
+    result[key] =
+      typeof val === 'string' ? val.trim() : val;
+  });
+  return result;
+}
 
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
