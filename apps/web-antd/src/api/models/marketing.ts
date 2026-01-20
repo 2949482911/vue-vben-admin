@@ -5,9 +5,11 @@ import type {BaseItem, PageRequestParams} from "#/api/models/core";
  * 账户请求
  */
 export interface AdvertiserPageRequest extends PageRequestParams {
-  advertiserId: string;
-  advertiserName: string;
-  putStatus: number;
+  advertiserId?: string;
+  advertiserName?: string;
+  putStatus?: number;
+  platform?:string;
+  putStatue?:number
 }
 
 
@@ -405,4 +407,19 @@ export interface PageResult {
   pageSize: number;
 }
 
+/**账户消耗详情 */
+export interface AdvertiserCostDetailType {
+  page: number;
+  pageSize: number;
+  platform: string;
+  dateTime: [string, string];      
+  dims: string[];                 
+  advertiserId: string[];          
+}
 
+export interface PageResponse<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+}

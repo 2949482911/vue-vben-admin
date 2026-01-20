@@ -20,6 +20,8 @@ import type {
   DeveloperListResponse,
   AdvertiserDeveloperBindRequest,
   PageResult,
+  AdvertiserCostDetailType,
+  PageResponse,
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -59,11 +61,11 @@ class AdvertiserApi extends BaseApi {
    * @param params
    */
   fetchAuthUrl(params: AuthAdvertiserRequest) {
-    return requestClient.get(this.getServiceUrl("auth_url"), {params: params})
+    return requestClient.get(this.getServiceUrl("auth_url"), {params})
   }
 
   fetchAdvertiserList(params: AdvertiserPageRequest) {
-    return requestClient.get<AdvertiserItem>(this.getServiceUrl("list"), {params: params})
+    return requestClient.get<PageResponse<AdvertiserItem>>(this.getServiceUrl("list"), {params})
   }
 
   /**华为商店新增接口 */
@@ -97,6 +99,11 @@ class AdvertiserApi extends BaseApi {
    */
   fetchImportChild(data: ImportChildRequest) {
     return requestClient.post(this.getServiceUrl("import_child"), data)
+  }
+
+  /**账户消耗详情 */
+  fetchAdvertiserCostDetail(data: AdvertiserCostDetailType) {
+    return requestClient.post(this.getServiceUrl("advertiser_cost_detail"), data)
   }
 }
 

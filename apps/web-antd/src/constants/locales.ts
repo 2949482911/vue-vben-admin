@@ -164,6 +164,10 @@ export const PLATFORM = [
     label: `${$t('ocpx.platform.kuaishou')}`,
     value: 'kuaishou',
   },
+  {
+    label: '华为商店',
+    value: 'huawei_store',
+  },
 ];
 
 
@@ -345,5 +349,19 @@ export const ADVERTISET_ADDED = [
   {
     label:'华为商店',
     value: 'huawei_store',
+  }
+]
+
+/**
+ * 营销账户-账户消耗明细下拉
+ */
+export const CONSUMPTION_DETAIL_DIMENSION = [
+  {
+    label:'天',
+    value: 'day',
+  },
+  {
+    label:'appId',
+    value: 'appId',
   }
 ]
