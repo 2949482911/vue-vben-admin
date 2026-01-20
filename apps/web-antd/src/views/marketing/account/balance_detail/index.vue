@@ -152,6 +152,11 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       field: 'AdStarCouponCostMoney',
       title: '耀星券消耗金额',
       width: '120',
+    },
+    {
+      field: 'AdGiftCostMoney',
+      title: '赠送金消耗金额',
+      width: '120',
     }
   ],
   height: 'auto',

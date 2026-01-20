@@ -17,6 +17,7 @@ import {
 
 import CreateObjectRequestComp from './create.vue';
 import PlatformMetricMapDetail from './platformmetricmapdetail.vue';
+import { trimObject } from '#/utils/trim';
 
 const [PlatformMetricMapDetailModal, platformMetricMapDetailApi] = useVbenModal({
   connectedComponent: PlatformMetricMapDetail,
@@ -36,9 +37,9 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
 });
 
 function openCreateModal(
-  row: MetricItem
+  row?: MetricItem
 ) {
-  if (row.id) {
+  if (row?.id) {
     createObjectApi.setData(row);
   } else {
     createObjectApi.setData({});
@@ -113,7 +114,6 @@ const gridOptions: VxeGridProps<MetricItem> = {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
   columns: [
@@ -175,7 +175,7 @@ const gridOptions: VxeGridProps<MetricItem> = {
       field: 'sort', title: `${$t('marketing.metric.columns.sort')}`, width: "auto"
     },
 
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   height: 'auto',
   keepSource: true,
@@ -183,10 +183,11 @@ const gridOptions: VxeGridProps<MetricItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
+        const params = trimObject(args);
         return await metricApi.fetchSystemMetricList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...params,
         });
       },
     },
@@ -251,7 +252,7 @@ function pageReload() {
         </template>
 
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openCreateModal">
+          <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
             {{ $t('common.create') }}
           </Button>
         </template>

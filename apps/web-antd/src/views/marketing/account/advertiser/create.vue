@@ -6,6 +6,7 @@ import {useVbenForm} from "#/adapter/form";
 import type {AdvertiserItem, DeveloperItem} from "#/api/models";
 import {advertiserApi, projectApi, developerApi} from "#/api";
 import {STATUS_SELECT, ADVERTISET_ADDED} from "#/constants/locales";
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
@@ -50,30 +51,31 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
+    const params = trimObject(formVal);
     await (isUpdate.value ? advertiserApi.fetchUpdateAdvertiser({
-        id: formVal.id,
-        putStatue: formVal.putStatue,
-        remark: formVal.remark,
-        projectId: formVal.projectId,
-        platform: formVal.platform,
-        advertiserId: formVal.advertiserId,
-        advertiserName: formVal.advertiserName,
-        developerId: formVal.developerId,
+        id: params.id,
+        putStatue: params.putStatue,
+        remark: params.remark,
+        projectId: params.projectId,
+        platform: params.platform,
+        advertiserId: params.advertiserId,
+        advertiserName: params.advertiserName,
+        developerId: params.developerId,
         config: {},
-        advertiserRole: formVal.advertiserRole,
-        putStatus: formVal.putStatue,
+        advertiserRole: params.advertiserRole,
+        putStatus: params.putStatue,
       })
       : 
       advertiserApi.fetchCreateAdvertiser({
-        platform: formVal.platform,
-        advertiserId: formVal.advertiserId,
-        advertiserName: formVal.advertiserName,
-        developerId: formVal.developerId,
+        platform: params.platform,
+        advertiserId: params.advertiserId,
+        advertiserName: params.advertiserName,
+        developerId: params.developerId,
         config: {},
-        advertiserRole: formVal.advertiserRole,
-        putStatus: formVal.putStatue,
-        projectId: formVal.projectId,
-        remark: formVal.remark,
+        advertiserRole: params.advertiserRole,
+        putStatus: params.putStatue,
+        projectId: params.projectId,
+        remark: params.remark,
       })
     )
   },
