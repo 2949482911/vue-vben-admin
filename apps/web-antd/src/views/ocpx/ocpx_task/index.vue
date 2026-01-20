@@ -2,7 +2,7 @@
 import type {VbenFormProps} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
-import type {NoticeItem, OcpxTaskItem} from '#/api/models';
+import type {OcpxTaskItem} from '#/api/models';
 
 import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -22,6 +22,7 @@ import Behavioracallbackrecordlist from './behavioracallbackrecordlist.vue';
 import BehaviorRecordList from './behaviorrecordlist.vue';
 import ClickMonitor from './clickmonitor.vue';
 import CreateObjectRequestComp from './create.vue';
+import { trimObject } from '#/utils/trim';
 
 const [ClickMonitorModal, clickMonitorApi] = useVbenModal({
   connectedComponent: ClickMonitor,
@@ -68,8 +69,8 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
   modal: true,
 });
 
-function openCreateModal(row: OcpxTaskItem) {
-  if (row.id) {
+function openCreateModal(row?: OcpxTaskItem) {
+  if (row?.id) {
     createObjectApi.setData(row);
   } else {
     createObjectApi.setData({});
@@ -77,7 +78,7 @@ function openCreateModal(row: OcpxTaskItem) {
   createObjectApi.open();
 }
 
-async function handlerState(row: NoticeItem) {
+async function handlerState(row: OcpxTaskItem) {
   await (row.status === 1
     ? ocpxTaskApi.fetchBatchOptions({
       targetIds: [row.id],
@@ -161,7 +162,6 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
   columns: [
@@ -200,7 +200,7 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
       showFooterOverflow: "tooltip"
     },
 
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   height: 'auto',
   keepSource: true,
@@ -208,10 +208,12 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
+        const params = trimObject(args);
+
         return await ocpxTaskApi.fetchOcpxTaskList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...params,
         });
       },
     },
@@ -232,7 +234,7 @@ function pageReload() {
         <template #taskState="{ row }">
           <Tag color="green">
             {{
-              STATUS_SELECT.filter((x) => x.value === row.taskState)[0].label
+              STATUS_SELECT.find((x) => x.value === row.taskState)?.label
             }}
           </Tag>
         </template>
@@ -275,7 +277,7 @@ function pageReload() {
         </template>
 
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openCreateModal">
+          <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
             {{ $t('common.create') }}
           </Button>
         </template>

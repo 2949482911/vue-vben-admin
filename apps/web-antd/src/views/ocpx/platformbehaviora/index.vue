@@ -22,6 +22,7 @@ import {
 
 import CreateObjectRequestComp from './create.vue';
 import DetailConfig from './detailconfig.vue';
+import { trimObject } from '#/utils/trim';
 
 // config detail
 const [DetailConfigModel, detailConfigModalApi] = useVbenModal({
@@ -39,8 +40,8 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
   modal: true,
 });
 
-function openCreateModal(row: BehavioraPlatformItem) {
-  if (row.id) {
+function openCreateModal(row?: BehavioraPlatformItem) {
+  if (row?.id) {
     createObjectApi.setData(row);
   } else {
     createObjectApi.setData({});
@@ -128,7 +129,6 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
   columns: [
@@ -185,7 +185,7 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
       title: `${$t('ocpx.behavioraplatform.columns.remark')}`,
       width: 'auto',
     },
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   height: 'auto',
   keepSource: true,
@@ -193,10 +193,11 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
+        const params = trimObject(args);
         return await behavioraPlatformApi.fetchBehavioraPlatformList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...params,
         });
       },
     },
@@ -216,7 +217,7 @@ function pageReload() {
       <Grid>
         <template #model="{ row }">
           <Tag color="red">
-            {{ ModelSelect.filter((x) => x.value === row.model)[0].label }}
+            {{ ModelSelect.find((x) => x.value === row.model)?.label }}
           </Tag>
         </template>
 
@@ -238,8 +239,7 @@ function pageReload() {
         <template #matchField="{ row }">
           <Tag color="orange">
             {{
-              MatchFieldSelect.filter((x) => x.value === row.matchField)[0]
-                .label
+              MatchFieldSelect.find(x => x.value === row.matchField)?.label || '-'
             }}
           </Tag>
         </template>
@@ -263,7 +263,7 @@ function pageReload() {
         </template>
 
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openCreateModal">
+          <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
             {{ $t('common.create') }}
           </Button>
         </template>

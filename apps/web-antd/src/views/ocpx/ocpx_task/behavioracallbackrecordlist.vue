@@ -6,6 +6,7 @@ import {$t} from "@vben/locales";
 import {ocpxTaskApi, clickMonitorApi} from "#/api/core/ocpx";
 import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
 import {Tag, Button} from "ant-design-vue";
+import { trimObject } from "#/utils/trim";
 
 
 const [Modal, modalApi] = useVbenModal({
@@ -62,7 +63,6 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
   columns: [
@@ -109,10 +109,12 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
+        const params = trimObject(args);
+
         return await ocpxTaskApi.fetchOcpxBehavioracallbackRecordList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...params,
           ocpxTaskId: modalApi.getData()["taskId"]
         });
       },

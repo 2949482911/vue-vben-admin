@@ -5,10 +5,9 @@ import type {
   AdReportResponse,
   AdvertiserItem,
   AdvertiserPageRequest,
-  AuthAdvertiserRequest, CreateAdvertiserRequest,
+  AuthAdvertiserRequest, 
   CreateDeveloperRequest, CreateProjectRequest, CreateSystemMetric,
-  DeveloperItem,
-  DeveloperPageRequest, ImportChildRequest, MetricItem, ProjectItem, ProjectPageRequest,
+  DeveloperPageRequest, ImportChildRequest, MetricItem, ProjectPageRequest,
   SystemMetricPageRequest, UpdateAdvertiserRequest, UpdateDeveloperRequest, UpdateMetric,
   UpdateProjectRequest,
   ReportTemplate,
@@ -18,6 +17,11 @@ import type {
   MaterialListParams,
   FileInfo,
   EditPaletteParams,
+  DeveloperListResponse,
+  AdvertiserDeveloperBindRequest,
+  PageResult,
+  AdvertiserCostDetailType,
+  PageResponse,
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -28,7 +32,7 @@ import type {BatchOptions} from "#/api/models/core";
  */
 class DeveloperApi extends BaseApi {
   fetchDeveloperList(params: DeveloperPageRequest) {
-    return requestClient.get<DeveloperItem>(this.getServiceUrl("list"), {params: params})
+    return requestClient.get<DeveloperListResponse>(this.getServiceUrl("list"), {params: params})
   }
 
   fetchCreateDeveloper(params: CreateDeveloperRequest) {
@@ -57,17 +61,19 @@ class AdvertiserApi extends BaseApi {
    * @param params
    */
   fetchAuthUrl(params: AuthAdvertiserRequest) {
-    return requestClient.get(this.getServiceUrl("auth_url"), {params: params})
+    return requestClient.get(this.getServiceUrl("auth_url"), {params})
   }
 
   fetchAdvertiserList(params: AdvertiserPageRequest) {
-    return requestClient.get<AdvertiserItem>(this.getServiceUrl("list"), {params: params})
+    return requestClient.get<PageResponse<AdvertiserItem>>(this.getServiceUrl("list"), {params})
   }
 
-  fetchCreateAdvertiser(params: CreateAdvertiserRequest) {
+  /**华为商店新增接口 */
+  fetchCreateAdvertiser(params: AdvertiserDeveloperBindRequest) {
     return requestClient.post(this.getServiceUrl("create"), params)
   }
 
+  /**华为商店更新接口 */
   fetchUpdateAdvertiser(params: UpdateAdvertiserRequest) {
     return requestClient.post(this.getServiceUrl("update"), params)
   }
@@ -93,6 +99,11 @@ class AdvertiserApi extends BaseApi {
    */
   fetchImportChild(data: ImportChildRequest) {
     return requestClient.post(this.getServiceUrl("import_child"), data)
+  }
+
+  /**账户消耗详情 */
+  fetchAdvertiserCostDetail(data: AdvertiserCostDetailType) {
+    return requestClient.post(this.getServiceUrl("advertiser_cost_detail"), data)
   }
 }
 
@@ -160,7 +171,7 @@ export const reportApi = new ReportApi("/platform/report");
 
 class ProjectApi extends BaseApi {
   fetchProjectList(params: ProjectPageRequest) {
-    return requestClient.get<ProjectItem>(this.getServiceUrl("list"), {params})
+    return requestClient.get<PageResult>(this.getServiceUrl("list"), {params})
   }
 
   fetchCreateProject(data: CreateProjectRequest) {

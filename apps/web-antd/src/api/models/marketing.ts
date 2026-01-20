@@ -5,9 +5,11 @@ import type {BaseItem, PageRequestParams} from "#/api/models/core";
  * 账户请求
  */
 export interface AdvertiserPageRequest extends PageRequestParams {
-  advertiserId: string;
-  advertiserName: string;
-  putStatus: number;
+  advertiserId?: string;
+  advertiserName?: string;
+  putStatus?: number;
+  platform?:string;
+  putStatue?:number
 }
 
 
@@ -21,7 +23,7 @@ export interface AdvertiserItem extends BaseItem {
   roleType: string;
   remark: string;
   advertiserRole: string;
-  advertiserRoleName: string;
+  advertiserRoleName?: string;
   platformRemark: string;
   putStatue: number;
   platformStatus: string;
@@ -40,12 +42,11 @@ export interface CreateAdvertiserRequest {
 }
 
 
-export interface UpdateAdvertiserRequest {
+export interface UpdateAdvertiserRequest extends AdvertiserDeveloperBindRequest {
   id: string;
   putStatue: number;
   remark: string;
   projectId: string;
-  config: Map<string, any>;
 }
 
 
@@ -80,8 +81,9 @@ export interface AuthAdvertiserRequest {
 
 
 export interface DeveloperPageRequest extends PageRequestParams {
-  platform: string;
-  name: string;
+  platform?: string;
+  name?: string;
+  status?: number
 }
 
 export interface DeveloperItem extends BaseItem {
@@ -164,27 +166,14 @@ export interface AdReportResponse {
   summary: Map<string, string>;
 }
 
-// export interface AdReportRequest {
-//   dateTimeRange: Array<string>;
-//   queryMetric: Array<number>;
-//   dims: Array<string>;
-//   needCname: boolean;
-//   decimalPoint: number;
-//   filters: Array<{
-//     field: string;
-//     operator: number;
-//     values: Array<any>
-//   }>
-// }
-
 /**
  * project request/response/page class
  */
 
 export interface ProjectPageRequest extends PageRequestParams {
-  name: string;
-  projectType: number;
-  packageName: string
+  name?: string;
+  projectType?: number;
+  packageName?: string;
 }
 
 
@@ -371,6 +360,66 @@ export interface voucherParams {
   securityToken: string
 }
 
+/**广告主新增开发者下拉 */
+export interface DeveloperItems {
+  id: string;
+  name: string;
+  platform: string;
+  apiKey: string;
+  apiSecret: string;
+  status: number;
+  isSystem: number;
+  authCount: string;
+  remark: string;
+  createTime: string;
+  updateTime: string;
+  createdBy: string;
+  updatedBy: string;
+  createUsername: string;
+  updateUsername: string;
+}
 
+export interface DeveloperListResponse {
+  items: DeveloperItems[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pageCount: number; 
+}
 
+/**华为商店 */
+export interface AdvertiserDeveloperBindRequest {
+  platform: string;
+  advertiserId: string;
+  advertiserName: string;
+  developerId: string;
+  config: Record<string, any>;
+  advertiserRole: string;
+  putStatus: number;
+  projectId: string;
+  remark: string;
+}
 
+export interface PageResult {
+  items: [];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+/**账户消耗详情 */
+export interface AdvertiserCostDetailType {
+  page: number;
+  pageSize: number;
+  platform: string;
+  dateTime: [string, string];      
+  dims: string[];                 
+  advertiserId: string[];          
+}
+
+export interface PageResponse<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
+}

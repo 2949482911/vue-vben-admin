@@ -2,7 +2,7 @@
 import type {VbenFormProps} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
-import type {AdvertiserItem} from '#/api/models';
+import type {AdvertiserItem, DeveloperItem} from '#/api/models';
 
 import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -11,7 +11,7 @@ import {Button, Switch, Tag, Dropdown, Menu, MenuItem} from 'ant-design-vue';
 
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {advertiserApi} from '#/api/core';
-import {projectApi} from "#/api";
+import {projectApi, developerApi} from "#/api";
 import {
   BatchOptionsType,
   PLATFORM,
@@ -48,8 +48,8 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
   modal: true,
 });
 
-function openCreateModal(row: AdvertiserItem) {
-  if (row.id) {
+function openCreateModal(row?: AdvertiserItem) {
+  if (row?.id) {
     createObjectApi.setData(row);
   } else {
     createObjectApi.setData({});
@@ -124,13 +124,23 @@ async function handlerPutState(row: AdvertiserItem) {
 // 定义接受项目名称数组
 const projectOptions = ref<ProjectItem[]>([]);
 
+interface DeveloperOption {
+  label: string;
+  value: string;
+}
+const developerOption = ref<DeveloperOption[]>([])
 // 页面加载时请求数据
 onMounted(async () => {
   const res = await projectApi.fetchProjectList({
     page: 1,
-    size: 1000,
+    pageSize: 1000,
   });
   projectOptions.value = res.items;  
+  const resOption = await developerApi.fetchDeveloperList({ page:1, pageSize:200 })
+  developerOption.value = resOption.items.map((item:DeveloperItem) => ({
+    label: item.name,
+    value: item.id,
+  }));
 });
 
 //computed是响应式的，如果直接赋值projectOptions已经晚了，schema已经初始化完成了异步数据没有触发表单更新
@@ -155,7 +165,17 @@ const formOptions: VbenFormProps = {
       fieldName: 'platform',
       label: `${$t('ocpx.platform.title')}`,
     },
-
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        placeholder: `${$t('common.choice')}`,
+        options: developerOption,
+      },
+      // 字段名
+      fieldName: 'developerId',
+      label: '开发者'
+    },
     {
       component: 'Select',
       componentProps: {
@@ -251,13 +271,17 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     custom: true,
     export: true,
     refresh: true,
-    search: true,
     zoom: true,
   },
   columns: [
     {
       field: 'platform',
       title: `${$t('ocpx.platform.title')}`,
+      width: 'auto',
+    },
+    {
+      field: 'developerName',
+      title: '开发者',
       width: 'auto',
     },
     {
@@ -336,7 +360,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       slots: {default: 'platformAuditState'}
     },
 
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   height: 'auto',
   keepSource: true,
@@ -450,7 +474,7 @@ function pageReload() {
               </Menu>
             </template>
           </Dropdown>
-          <Button class="mr-2" type="primary" @click="openCreateModal">
+          <Button class="mr-2" type="primary" @click="() => openCreateModal()">
             {{ $t('common.create') }}
           </Button>
 
