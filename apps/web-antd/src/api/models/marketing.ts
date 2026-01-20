@@ -112,6 +112,7 @@ export interface UpdateDeveloperRequest extends CreateDeveloperRequest {
 // 报表
 
 export interface CreateSystemMetric {
+  id?:string,
   ename: string;
   cname: string;
   description: string;
@@ -187,6 +188,7 @@ export interface ProjectItem extends BaseItem {
 
 
 export interface CreateProjectRequest {
+  id?: string;
   name: string;
   projectType: number;
   packageName: string

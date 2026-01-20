@@ -17,6 +17,7 @@ import {
 } from '#/constants/locales';
 
 import CreateObjectRequestComp from './create.vue';
+import { trimObject } from '#/utils/trim';
 
 
 const [CreateObjectModal, createObjectApi] = useVbenModal({
@@ -26,9 +27,9 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
 });
 
 function openCreateModal(
-  row: DeveloperItem
+  row?: DeveloperItem
 ) {
-  if (row.id) {
+  if (row?.id) {
     createObjectApi.setData(row);
   } else {
     createObjectApi.setData({});
@@ -112,7 +113,6 @@ const gridOptions: VxeGridProps<DeveloperItem> = {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
   columns: [
@@ -143,7 +143,7 @@ const gridOptions: VxeGridProps<DeveloperItem> = {
       field: 'authCount', title: `${$t('marketing.developer.columns.authCount')}`, width: "auto"
     },
 
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   height: 'auto',
   keepSource: true,
@@ -151,10 +151,11 @@ const gridOptions: VxeGridProps<DeveloperItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
+        const params = trimObject(args);
         return await developerApi.fetchDeveloperList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...params,
         });
       },
     },
@@ -185,7 +186,7 @@ function pageReload() {
         </template>
 
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openCreateModal">
+          <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
             {{ $t('common.create') }}
           </Button>
         </template>

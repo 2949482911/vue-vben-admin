@@ -25,6 +25,7 @@ import BatchOperationComp from './batchOperation.vue';//批量修改弹窗
 import ImportChildAdvertiser from './importchildadvertiser.vue';
 import { computed, onMounted, ref } from 'vue';
 import type { ProjectItem } from "./advertiser";
+import { trimObject } from '#/utils/trim';
 
 /**
  * 授权弹窗
@@ -376,10 +377,11 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
+        const params = trimObject(args);
         return await advertiserApi.fetchAdvertiserList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...params,
         });
       },
     },

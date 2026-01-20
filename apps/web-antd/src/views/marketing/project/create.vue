@@ -9,6 +9,7 @@ import type {
 } from "#/api/models";
 import {projectApi} from "#/api";
 import {useVbenForm} from "#/adapter/form";
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
@@ -35,9 +36,11 @@ const [Form, formApi] = useVbenForm({
     },
   },
   layout: 'horizontal',
-  handleSubmit: async (formVal: CreateProjectRequest | UpdateProjectRequest) => {
-    await (isUpdate.value ? projectApi.fetchUpdateProject(formVal as UpdateProjectRequest)
-      : projectApi.fetchCreateProject(formVal))
+  handleSubmit: async (values) => {
+    const formVal = values as CreateProjectRequest | UpdateProjectRequest;
+    const params = trimObject(formVal);
+    await (isUpdate.value ? projectApi.fetchUpdateProject(params as UpdateProjectRequest)
+      : projectApi.fetchCreateProject(params))
   },
   schema: [
     {

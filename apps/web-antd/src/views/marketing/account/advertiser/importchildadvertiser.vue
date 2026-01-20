@@ -183,7 +183,7 @@ function onSearch(valueText:string){
     filterData.value = [...importData.value];
   } else {
     filterData.value = importData.value.filter((item:AccountChildResponse) =>
-      item.advertiserName?.includes(valueText)
+      item.advertiserName?.includes(valueText.trim())
     );
   }
   pages.total = filterData.value.length;
