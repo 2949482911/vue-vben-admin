@@ -5,6 +5,7 @@ export enum Platform {
   ALIPAY = 'alipay',
   BYTEDANCE = 'bytedance',
   HUAWEI = 'huawei',
+  HUAWEI_STORE = "huawei_store",
   JD = 'jd',
   JDKJ = 'jdkj', // 京东科技
   KUAKE = 'kuake',
@@ -20,5 +21,6 @@ export enum Platform {
   REDNOTE = "rednote",
   TB_UNION = "tb_union",
   QWEN = "qwen",
-  KARANG = "karang"
+  KARANG = "karang",
+  JUNBO = "junbo",
 }

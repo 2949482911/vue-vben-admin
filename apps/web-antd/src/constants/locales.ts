@@ -251,6 +251,11 @@ export const BEHAVIORA_PLATFORM = [
     value: 'qwen',
   },
 
+  {
+    label: `${$t('ocpx.platform.junbo')}`,
+    value: 'junbo',
+  },
+
 ];
 
 // 匹配下拉

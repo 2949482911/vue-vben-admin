@@ -1,5 +1,9 @@
 <script lang="ts" setup name="CreateNotice">
-import type {BehavioraPlatformItem, OcpxPlatformMatch, PlatformCallbackBehaviorTypeItem} from '#/api/models';
+import type {
+  BehavioraPlatformItem,
+  CreateBehavioraPlatformRequest, OcpxPlatformMatch, PlatformCallbackBehaviorTypeItem,
+  UpdateBehavioraPlatformRequest
+} from '#/api/models';
 
 import {ref, h} from 'vue';
 
@@ -18,7 +22,7 @@ import {
 } from '#/constants/locales';
 
 import MatchTable from './matchTable.vue';
-import { trimObject } from '#/utils/trim';
+import {trimObject} from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 // 创建表格
@@ -38,7 +42,7 @@ const objectRequest = ref<BehavioraPlatformItem>({
   platform: "",
   remark: "",
   simulate: false,
-  filterBehavior:[],
+  filterBehavior: [],
   status: 0,
   updateTime: "",
   updateUsername: "",
@@ -697,6 +701,23 @@ platformConfigForm.set(Platform.QWEN, [
   },
 ])
 
+// 俊波
+platformConfigForm.set(Platform.JUNBO, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'meta',
+    // 界面显示的label
+    label: `meta`,
+    rules: 'required',
+  },
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -713,7 +734,7 @@ const [ConfigForm, configFormApi] = useVbenForm({
 //过滤事件的下拉
 const filterModelSelect = ref<PlatformCallbackBehaviorTypeItem[]>([])
 
-async function filterModel(value:string){
+async function filterModel(value: string) {
   filterModelSelect.value = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(value)
 }
 
@@ -754,8 +775,8 @@ const [Form, formApi] = useVbenForm({
 
     // 5️⃣ 提交
     await (isUpdate.value
-      ? behavioraPlatformApi.fetchUpdateBehavioraPlatform(baseForm)
-      : behavioraPlatformApi.fetchCreateBehavioraPlatform(baseForm));
+      ? behavioraPlatformApi.fetchUpdateBehavioraPlatform(baseForm as UpdateBehavioraPlatformRequest)
+      : behavioraPlatformApi.fetchCreateBehavioraPlatform(baseForm as CreateBehavioraPlatformRequest));
   },
   schema: [
     {
@@ -795,7 +816,7 @@ const [Form, formApi] = useVbenForm({
               action: 2
             });
           }
-          if(value != "tb" && value != "jd"){
+          if (value != "tb" && value != "jd") {
             filterModel(value)
           }
         },
@@ -932,7 +953,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Select',
       // 对应组件的参数
       componentProps: {
-        mode:"multiple",
+        mode: "multiple",
         placeholder: `${$t('common.input')}`,
         options: filterModelSelect,
       },
