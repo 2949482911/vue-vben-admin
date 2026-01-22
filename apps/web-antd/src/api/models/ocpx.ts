@@ -42,9 +42,11 @@ export interface BehavioraPlatformItem extends BaseItem {
   remark: string;
   model: string;
   ocpxPlatformMatchList: Array<OcpxPlatformMatch>;
+  filterBehavior: Array<string>;
   simulate: boolean;
   type: number,
-  directLink: string
+  directLink: string,
+  matchField?: number | string;
 }
 
 // 转化匹配列表

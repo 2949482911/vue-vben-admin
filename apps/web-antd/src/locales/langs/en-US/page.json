@@ -42,7 +42,8 @@
     "account": {
       "title": "Account",
       "advertiser": "Advertiser",
-      "developer": "Developer"
+      "developer": "Developer",
+      "balanceDetail": "Balance Detail"
     },
     "report": {
       "title": "Report",
@@ -50,5 +51,12 @@
       "adreportdata": "Ad Report Data"
     },
     "material": "Material"
+  },
+  "tools": {
+    "title": "Tools",
+    "csjp": {
+      "title": "Pangolin",
+      "product": "Product"
+    }
   }
 }

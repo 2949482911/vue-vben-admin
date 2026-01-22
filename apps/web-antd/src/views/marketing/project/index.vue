@@ -12,6 +12,7 @@ import {projectApi} from '#/api/core';
 import {BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS,} from '#/constants/locales';
 
 import CreateProject from "./create.vue";
+import { trimObject } from '#/utils/trim';
 
 const [CreateObjectModal, createObjectApi] = useVbenModal({
   connectedComponent: CreateProject,
@@ -20,9 +21,9 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
 });
 
 function openCreateModal(
-  row: ProjectItem
+  row?: ProjectItem
 ) {
-  if (row.id) {
+  if (row?.id) {
     createObjectApi.setData(row);
   } else {
     createObjectApi.setData({});
@@ -97,7 +98,6 @@ const gridOptions: VxeGridProps<ProjectItem> = {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
   columns: [
@@ -121,7 +121,7 @@ const gridOptions: VxeGridProps<ProjectItem> = {
       field: 'icon', title: `${$t('marketing.project.columns.icon')}`, width: "auto"
     },
 
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   height: 'auto',
   keepSource: true,
@@ -129,10 +129,11 @@ const gridOptions: VxeGridProps<ProjectItem> = {
   proxyConfig: {
     ajax: {
       query: async ({page}, args) => {
+        const params = trimObject(args);
         return await projectApi.fetchProjectList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...params,
         });
       },
     },
@@ -165,7 +166,7 @@ function pageReload() {
         </template>
 
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openCreateModal">
+          <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
             {{ $t('common.create') }}
           </Button>
         </template>

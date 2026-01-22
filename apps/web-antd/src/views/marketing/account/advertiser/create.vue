@@ -3,12 +3,12 @@ import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import {ref} from 'vue';
 import {useVbenForm} from "#/adapter/form";
-import type {AdvertiserItem} from "#/api/models";
-import {advertiserApi, projectApi} from "#/api";
-import {STATUS_SELECT} from "#/constants/locales";
+import type {AdvertiserItem, DeveloperItem} from "#/api/models";
+import {advertiserApi, projectApi, developerApi} from "#/api";
+import {STATUS_SELECT, ADVERTISET_ADDED} from "#/constants/locales";
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
-
 
 const objectRequest = ref<AdvertiserItem>({
   config: new Map<string, any>(), projectId: "", putStatus: 0,
@@ -35,6 +35,11 @@ const objectRequest = ref<AdvertiserItem>({
 
 const isUpdate = ref<Boolean>(false);
 
+interface DeveloperOption {
+  label: string;
+  value: string;
+}
+const developerOption = ref<DeveloperOption[]>([])
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -46,14 +51,33 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
+    const params = trimObject(formVal);
     await (isUpdate.value ? advertiserApi.fetchUpdateAdvertiser({
-        id: formVal.id,
-        putStatue: formVal.putStatue,
-        remark: formVal.remark,
-        projectId: formVal.projectId,
-        config: formVal.config,
+        id: params.id,
+        putStatue: params.putStatue,
+        remark: params.remark,
+        projectId: params.projectId,
+        platform: params.platform,
+        advertiserId: params.advertiserId,
+        advertiserName: params.advertiserName,
+        developerId: params.developerId,
+        config: {},
+        advertiserRole: params.advertiserRole,
+        putStatus: params.putStatue,
       })
-      : undefined)
+      : 
+      advertiserApi.fetchCreateAdvertiser({
+        platform: params.platform,
+        advertiserId: params.advertiserId,
+        advertiserName: params.advertiserName,
+        developerId: params.developerId,
+        config: {},
+        advertiserRole: params.advertiserRole,
+        putStatus: params.putStatue,
+        projectId: params.projectId,
+        remark: params.remark,
+      })
+    )
   },
   schema: [
     {
@@ -71,18 +95,105 @@ const [Form, formApi] = useVbenForm({
         triggerFields: ['*'],
       },
     },
-
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        placeholder: `${$t('common.choice')}`,
+        options: ADVERTISET_ADDED,
+      },
+      rules: 'required',
+      // 字段名
+      fieldName: 'platform',
+      label: '平台',
+      dependencies: {
+        show: (value) => !value.id,
+        triggerFields: ['id'],
+      },
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        placeholder: `${$t('common.choice')}`,
+        options: developerOption,
+      },
+      rules: 'required',
+      // 字段名
+      fieldName: 'developerId',
+      label: '开发者',
+      dependencies: {
+        show: value => {
+          return !value.id && value.platform === 'huawei_store'
+        },
+        triggerFields: ['platform','id']
+      }
+    },
+    {
+      component: "Input",
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      rules: 'required',
+      fieldName: 'advertiserId',
+      label: '账户ID',
+      dependencies: {
+        show: (value) => !value.id,
+        triggerFields: ['id'],
+      },
+    },
+    {
+      component: "Input",
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      rules: 'required',
+      fieldName: 'advertiserName',
+      label: '账户名称',
+      dependencies: {
+        show: (value) => !value.id,
+        triggerFields: ['id'],
+      },
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: [
+          {
+            label: `${$t('marketing.advertiser.advertiserRole.proxy')}`,
+            value: 'proxy',
+          },
+          {
+            label: `${$t('marketing.advertiser.advertiserRole.advertiser')}`,
+            value: 'advertiser',
+          },
+          {
+            label: `${$t('marketing.advertiser.advertiserRole.personal')}`,
+            value: 'personal',
+          },
+        ],
+        placeholder: `${$t('common.choice')}`,
+      },
+      rules: 'required',
+      // 字段名
+      fieldName: 'advertiserRole',
+      label: '角色',
+      dependencies: {
+        show: (value) => !value.id,
+        triggerFields: ['id'],
+      },
+    },
     {
       component: 'Select',
       componentProps: {
         placeholder: `${$t('common.choice')}`,
         options: STATUS_SELECT,
       },
+      defaultValue:9,
       // 字段名
       fieldName: 'putStatue',
       label: `${$t('marketing.advertiser.columns.putStatue')}`
     },
-
     {
       component: "Textarea",
       componentProps: {
@@ -161,13 +272,18 @@ const [Modal, modalApi] = useVbenModal({
 
     await modalApi.close();
   },
-  onOpenChange(isOpen: boolean) {
+  async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       objectRequest.value = modalApi.getData<AdvertiserItem>();
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
       }
+      const res = await developerApi.fetchDeveloperList({platform:'huawei_store', page:1, pageSize:200 })
+      developerOption.value = res.items.map((item:DeveloperItem) => ({
+        label: item.name,
+        value: item.id,
+      }));
     } else {
       isUpdate.value = false;
     }

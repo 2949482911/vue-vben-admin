@@ -1,5 +1,5 @@
 <script lang="ts" setup name="CreateOcpxTask">
-import type {OcpxTaskItem,} from '#/api/models';
+import type {OcpxTaskItem, UpdateOcpxTaskRequest,} from '#/api/models';
 
 import {ref} from 'vue';
 
@@ -9,10 +9,11 @@ import {$t} from '@vben/locales';
 import {useVbenForm} from '#/adapter/form';
 import {behavioraPlatformApi, ocpxTaskApi, platformCallbackApi} from '#/api/core/ocpx';
 import {PLATFORM, STATUS_SELECT} from '#/constants/locales';
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
-const objectRequest = ref<OcpxTaskItem>({});
+const objectRequest = ref<Partial<OcpxTaskItem>>({});
 const isUpdate = ref<Boolean>(false);
 
 const [Form, formApi] = useVbenForm({
@@ -25,9 +26,13 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
-    await (isUpdate.value
-      ? ocpxTaskApi.fetchUpdateOcpxTask(formVal)
-      : ocpxTaskApi.fetchCreateOcpxTask(formVal,));
+    const params = trimObject(formVal) as UpdateOcpxTaskRequest;
+
+    if (isUpdate.value) {
+      await ocpxTaskApi.fetchUpdateOcpxTask(params);
+    } else {
+      await ocpxTaskApi.fetchCreateOcpxTask(params);
+    }
   },
   schema: [
     {
@@ -209,7 +214,7 @@ const [Modal, modalApi] = useVbenModal({
   },
 });
 
-function handleSetFormValue(row) {
+function handleSetFormValue(row: Partial<OcpxTaskItem>) {
   formApi.setValues(row);
 }
 

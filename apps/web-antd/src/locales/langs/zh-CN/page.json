@@ -42,7 +42,8 @@
     "account": {
       "title": "账户",
       "advertiser": "广告主",
-      "developer": "开发者"
+      "developer": "开发者",
+      "balanceDetail": "账户消耗明细"
     },
     "report": {
       "title": "报表",
@@ -50,5 +51,12 @@
       "adreportdata": "广告效果数据"
     },
     "material": "素材库"
+  },
+  "tools": {
+    "title": "工具",
+    "csjp": {
+      "title": "穿山甲",
+      "product": "商品"
+    }
   }
 }

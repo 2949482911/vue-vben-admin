@@ -1,7 +1,9 @@
 export interface PageRequestParams {
   page: number;
   pageSize: number;
-  status: number;
+  status?: number;
+  platform?:string;
+  putStatue?:number
 }
 
 export interface BaseItem {

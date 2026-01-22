@@ -16,6 +16,7 @@ import type {VxeGridProps} from "#/adapter/vxe-table";
 import {useVbenVxeGrid} from "@vben/plugins/vxe-table";
 import {Button, Divider, Select, Input} from 'ant-design-vue';
 import {ACTIVE_PLATFORM} from "#/constants/locales";
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 // 媒体字段映射
@@ -64,9 +65,10 @@ const [Form, formApi] = useVbenForm({
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
     formVal.platformMetricMap = platformMetricMap.value;
+    const params = trimObject(formVal);
     await (isUpdate.value
-      ? metricApi.fetchUpdateMetric(formVal as UpdateMetric)
-      : metricApi.fetchCreateMetric(formVal as CreateSystemMetric));
+      ? metricApi.fetchUpdateMetric(params as UpdateMetric)
+      : metricApi.fetchCreateMetric(params as CreateSystemMetric));
   },
   schema: [
     {
@@ -259,7 +261,7 @@ const gridOptions: VxeGridProps<PlatformMetricMap> = {
   checkboxConfig: {
     highlight: true,
   },
-  columns: columns,
+  columns: columns as [],
   // height: 'auto',
   keepSource: true,
   proxyConfig: {

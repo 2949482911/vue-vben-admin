@@ -11,6 +11,7 @@ import { useVbenVxeGrid } from '@vben/plugins/vxe-table';
 import { Tag } from 'ant-design-vue';
 
 import { ocpxTaskApi } from '#/api/core/ocpx';
+import { trimObject } from '#/utils/trim';
 
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
@@ -53,7 +54,6 @@ const gridOptions: VxeGridProps<OcpxBehaviorRecordItem> = {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
   columns: [
@@ -92,10 +92,12 @@ const gridOptions: VxeGridProps<OcpxBehaviorRecordItem> = {
   proxyConfig: {
     ajax: {
       query: async ({ page }, args) => {
+        const params = trimObject(args);
+
         return await ocpxTaskApi.fetchOxpcBehaviorRecordList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...params,
           ocpxTaskId: modalApi.getData().taskId,
         });
       },

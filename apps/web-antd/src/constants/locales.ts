@@ -164,6 +164,10 @@ export const PLATFORM = [
     label: `${$t('ocpx.platform.kuaishou')}`,
     value: 'kuaishou',
   },
+  {
+    label: '华为商店',
+    value: 'huawei_store',
+  },
 ];
 
 
@@ -180,6 +184,10 @@ export const AUTH_ACCOUNT_PLATFORM = [
   {
     label: `${$t('ocpx.platform.tb')}`,
     value: 'tb',
+  },
+  {
+    label: '华为商店',
+    value: 'huawei_store',
   },
 ];
 
@@ -338,15 +346,26 @@ export const DIMS = [
   }
 ]
 
-
+/**
+ * 广告主新增弹框的平台下拉
+ */
+export const ADVERTISET_ADDED = [
+  {
+    label:'华为商店',
+    value: 'huawei_store',
+  }
+]
 
 /**
- * oauth2 授权
+ * 营销账户-账户消耗明细下拉
  */
-export const AUTH_PLATFORM = [
+export const CONSUMPTION_DETAIL_DIMENSION = [
   {
-    label: `${$t('ocpx.platform.vivo')}`,
-    value: 'vivo',
+    label:'天',
+    value: 'day',
   },
-
-];
+  {
+    label:'appId',
+    value: 'appId',
+  }
+]
