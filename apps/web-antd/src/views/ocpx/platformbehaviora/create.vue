@@ -524,6 +524,32 @@ platformConfigForm.set(Platform.TB_UNION, [
 platformConfigForm.set(Platform.CSJP, [
   {
     // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'appId',
+    // 界面显示的label
+    label: 'appId',
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'appSecret',
+    // 界面显示的label
+    label: 'appSecret',
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
     component: 'Select',
     // 对应组件的参数
     componentProps: {
