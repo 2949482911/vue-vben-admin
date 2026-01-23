@@ -1,6 +1,6 @@
 export interface PageRequestParams {
   page: number;
-  pageSize: number;
+  pageSize?: number;
   status?: number;
   platform?:string;
   putStatue?:number

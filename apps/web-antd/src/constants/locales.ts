@@ -250,6 +250,10 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.qwen')}`,
     value: 'qwen',
   },
+  {
+    label: '穿山甲',
+    value: 'csjp',
+  },
 
   {
     label: `${$t('ocpx.platform.junbo')}`,

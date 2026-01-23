@@ -20,7 +20,8 @@ export enum Platform {
   TB = "tb",
   REDNOTE = "rednote",
   TB_UNION = "tb_union",
+  CSJP = "csjp",
   QWEN = "qwen",
   KARANG = "karang",
-  JUNBO = "junbo",
+  JUNBO = "junbo"
 }

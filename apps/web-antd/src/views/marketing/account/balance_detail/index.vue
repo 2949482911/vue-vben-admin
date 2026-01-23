@@ -82,6 +82,9 @@ const formOptions: VbenFormProps = {
         mode: 'multiple',
         placeholder: `${$t('common.choice')}`,
         options: developerOption,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
       },
       fieldName: 'advertiserId',
       label: '账户名字'

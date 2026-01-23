@@ -24,17 +24,24 @@ function openTemplateListModalModal(){
   drawerApi.open();
 }
 
-//用来保存使用模板回显的指标数据，传过去指标模板回显
-const templateQueryMetric = ref<Record<string, any>>({})
+const currentQueryMetric = ref<string[]>([]);
 
 //子传父的数据模板回显事件
 async function handleUseTemplate(template: searchDataFilter) {
-  templateQueryMetric.value = template
+  // 1️⃣ 重置表单
   await gridApi.formApi.resetForm();
-  await gridApi.formApi.setValues(template)
-  searchData.value = await gridApi.formApi.getValues() as unknown as searchDataFilter;
-  await init(searchData.value)
 
+  // 2️⃣ 回填模板数据
+  await gridApi.formApi.setValues(template);
+
+  // 3️⃣ ⭐ 同步当前指标（关键）
+  currentQueryMetric.value = template.queryMetric
+    ? [...template.queryMetric]
+    : [];
+
+  // 4️⃣ 搜索
+  const values = await gridApi.formApi.getValues() as searchDataFilter;
+  await init(values);
 }
 
 /* ---------------- 指标弹窗 ---------------- */
@@ -66,7 +73,6 @@ async function openSaveTemplateModalModal() {
 //保存模板成功子组件通知父组件重新刷新form表单
 async function handleTemplateSaved() {
   await gridApi.formApi.resetForm();
-  templateQueryMetric.value.queryMetric = []
 }
 
 
@@ -284,17 +290,40 @@ const formOptions: VbenFormProps = {
   // 按下回车时是否提交表单
   submitOnEnter: false,
   handleSubmit: async (values) => {
-  // 1、重置到第一页
-  pager.currentPage = 1;
-  // 2、参数结构转换
-  const params = buildReportParams(values);
-  // 3、用新参数请求接口
-  await init(params);
-},
+    // 1、重置到第一页
+    pager.currentPage = 1;
+    currentQueryMetric.value = values.queryMetric || [];
+    // 2、参数结构转换
+    const params = buildReportParams(values);
+    // 3、用新参数请求接口
+    await init(params);
+  },
 
   // （可选）重置按钮
   handleReset: async () => {
-   await gridApi.formApi.resetForm();
+    // 1️⃣ 重置表单
+    await gridApi.formApi.resetForm();
+    await gridApi.formApi.setFieldValue('queryMetric', []);
+
+    // 2️⃣ 清空指标状态
+    currentQueryMetric.value = [];
+    
+    // 3️⃣ 重置分页
+    allData.value = [];
+    pager.currentPage = 1;
+    pager.total = 0;
+
+    // 4️⃣ 清空表格
+    gridApi.setGridOptions({
+      data: [],
+      columns: [],
+      footerData: [],
+      pagerConfig: {
+        total: 0,
+        currentPage: 1,
+        pageSize: pager.pageSize,
+      },
+    });
   },
 };
 
@@ -340,7 +369,7 @@ function buildReportParams(values: any): AdReportRequest {
 
 function reloadFromStart(metricIds: string[]) {
   gridApi.formApi.setFieldValue('queryMetric', metricIds)
-
+  currentQueryMetric.value = metricIds;
 }
 /* ---------------- Grid 配置（关键点） ---------------- */
 const gridOptions: VxeGridProps = {
@@ -399,7 +428,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
         </template>
       </Grid>
     </Page>
-    <SelectMetricModalModal @confirmMetric="reloadFromStart" :templateQueryMetric="templateQueryMetric"/>
+    <SelectMetricModalModal @confirmMetric="reloadFromStart" :selectedMetrics="currentQueryMetric"/>
     <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData"/>
     <TemplateDrawer @useTemplate="handleUseTemplate"/>
   </div>

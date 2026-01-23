@@ -1,9 +1,5 @@
 <script lang="ts" setup name="CreateNotice">
-import type {
-  BehavioraPlatformItem,
-  CreateBehavioraPlatformRequest, OcpxPlatformMatch, PlatformCallbackBehaviorTypeItem,
-  UpdateBehavioraPlatformRequest
-} from '#/api/models';
+import type {BehavioraPlatformItem, CreateBehavioraPlatformRequest, OcpxPlatformMatch, PlatformCallbackBehaviorTypeItem, UpdateBehavioraPlatformRequest} from '#/api/models';
 
 import {ref, h} from 'vue';
 
@@ -25,8 +21,6 @@ import MatchTable from './matchTable.vue';
 import {trimObject} from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
-// 创建表格
-const matchTableRef = ref<any>();
 
 // 匹配列表
 const ocpxPlatformMatchList = ref<Array<OcpxPlatformMatch>>([]);
@@ -41,8 +35,8 @@ const objectRequest = ref<BehavioraPlatformItem>({
   ocpxPlatformMatchList: [],
   platform: "",
   remark: "",
-  simulate: false,
-  filterBehavior: [],
+  simulate: 0,
+  filterBehavior:[],
   status: 0,
   updateTime: "",
   updateUsername: "",
@@ -526,6 +520,87 @@ platformConfigForm.set(Platform.TB_UNION, [
   }
 ])
 
+// 穿山甲
+platformConfigForm.set(Platform.CSJP, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'appId',
+    // 界面显示的label
+    label: 'appId',
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'appSecret',
+    // 界面显示的label
+    label: 'appSecret',
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Select',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: '请选择',
+      options: [
+        {
+          value: 1,
+          label: '商品分销订单',
+        },
+        {
+          value: 2,
+          label: '直播间分销订单',
+        },
+        {
+          value: 3,
+          label: '活动类型订单',
+        }
+      ]
+    },
+    defaultValue:2,
+    // 字段名
+    fieldName: 'order_type',
+    // 界面显示的label
+    label: '订单类型',
+  },
+  {
+    // 媒体配置表单
+    component: 'Select',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: '请选择',
+      options: [
+        {
+          value: 'pay',
+          label: '按照支付时间查询特定时间范围内的订单',
+        },
+        {
+          value: 'update',
+          label: '按照订单更新时间查询特定时间范围内的订单',
+        }
+      ]
+    },
+    defaultValue:'pay',
+    // 字段名
+    fieldName: 'time_type',
+    // 界面显示的label
+    label: 'time_type',
+    rules: 'required',
+  },
+])
+
 //增加tbkId输入框
 function batchAddSchema() {
   configFormApi.setState((prev) => {
@@ -580,9 +655,10 @@ function batchDeleteSchema() {
     if (tbkIndexes.length <= 1) return {schema};
 
     // 删除最后一个 tbkId
-    const lastIndex = tbkIndexes[tbkIndexes.length - 1].index;
+    const last = tbkIndexes.at(-1);
+    if (!last) return { schema };
     const newSchema = [...schema];
-    newSchema.splice(lastIndex, 1);
+    newSchema.splice(last.index, 1);
 
     return {schema: newSchema};
   });
@@ -734,7 +810,7 @@ const [ConfigForm, configFormApi] = useVbenForm({
 //过滤事件的下拉
 const filterModelSelect = ref<PlatformCallbackBehaviorTypeItem[]>([])
 
-async function filterModel(value: string) {
+async function filterModel(value:string){
   filterModelSelect.value = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(value)
 }
 
@@ -773,6 +849,8 @@ const [Form, formApi] = useVbenForm({
     // 4️⃣ 合并
     baseForm.config = config;
 
+    baseForm.simulate = Boolean(baseForm.simulate);
+
     // 5️⃣ 提交
     await (isUpdate.value
       ? behavioraPlatformApi.fetchUpdateBehavioraPlatform(baseForm as UpdateBehavioraPlatformRequest)
@@ -802,11 +880,21 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
         options: BEHAVIORA_PLATFORM,
         onSelect: async (value: string) => {
-          configFormApi.setState((_) => {
-            return {
-              schema: platformConfigForm.get(value),
-            };
+          const schema = platformConfigForm.get(value) ?? [];
+          // 1️⃣ 切 schema
+          configFormApi.setState({ schema });
+          // 2️⃣ 收集 schema 里的 defaultValue
+          const defaultValues: Record<string, any> = {};
+          schema.forEach((item) => {
+            if (item.fieldName && item.defaultValue !== undefined) {
+              defaultValues[item.fieldName] = item.defaultValue;
+            }
           });
+
+          // 3️⃣ 主动写入默认值（关键）
+          if (Object.keys(defaultValues).length) {
+            configFormApi.setValues(defaultValues);
+          }
           formApi.setValues({
             filterBehavior: []
           });
@@ -816,7 +904,7 @@ const [Form, formApi] = useVbenForm({
               action: 2
             });
           }
-          if (value != "tb" && value != "jd") {
+          if(value != "tb" && value != "jd" && value != "csjp"){
             filterModel(value)
           }
         },
@@ -920,17 +1008,17 @@ const [Form, formApi] = useVbenForm({
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Select',
-      // 对应组件的参数
+      //因为后端定义的是bool值但是我这边前端掉换成0和1，select绑定bool值会有警告
       componentProps: {
         placeholder: `${$t('common.input')}`,
         options: [
           {
             label: `${$t('common.yes')}`,
-            value: "true",
+            value: 1,
           },
           {
             label: `${$t('common.no')}`,
-            value: "false",
+            value: 0,
           }
         ],
       },
@@ -939,7 +1027,7 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: `${$t('ocpx.behavioraplatform.columns.simulate')}`,
       rules: 'required',
-      defaultValue: "false",
+      defaultValue: 0,
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
@@ -953,7 +1041,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Select',
       // 对应组件的参数
       componentProps: {
-        mode: "multiple",
+        mode:"multiple",
         placeholder: `${$t('common.input')}`,
         options: filterModelSelect,
       },
@@ -964,7 +1052,7 @@ const [Form, formApi] = useVbenForm({
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
-          return data["platform"] !== Platform.JD && data["platform"] !== Platform.TB;
+          return data["platform"] !== Platform.JD && data["platform"] !== Platform.TB && data["platform"] !== Platform.CSJP;
         },
         triggerFields: ["platform"]
       },
@@ -984,17 +1072,6 @@ const [Form, formApi] = useVbenForm({
   ],
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
 });
-
-
-function trimFormValue(obj: Record<string, any>) {
-  const result: Record<string, any> = {};
-  Object.keys(obj || {}).forEach((key) => {
-    const val = obj[key];
-    result[key] =
-      typeof val === 'string' ? val.trim() : val;
-  });
-  return result;
-}
 
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
@@ -1020,7 +1097,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<Record<string, any>>();
+      objectRequest.value = modalApi.getData<BehavioraPlatformItem>();
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
@@ -1034,12 +1111,20 @@ const [Modal, modalApi] = useVbenModal({
 });
 
 function handleSetFormValue(row: BehavioraPlatformItem) {
-  formApi.setValues(row);
+  //因为后端定义的是bool值但是我这边前端掉换成0和1，select绑定bool值会有警告
+  formApi.setValues({
+    ...row,
+    simulate: row.simulate ? 1 : 0, // 关键这一行
+  });
+  // 统一：Map -> 普通对象
+  const configObj = row.config instanceof Map
+    ? Object.fromEntries(row.config.entries())
+    : row.config;
   // 先获取原有平台配置schema
   let schema = platformConfigForm.get(row.platform) ?? [];
   // 如果是淘宝联盟并且有tbkId数组
-  if (row.platform === "tb_union" && Array.isArray(row.config?.tbkIdList)) {
-    const tbkArray: string[] = row.config.tbkIdList;
+  if (row.platform === 'tb_union' && Array.isArray(configObj.tbkIdList)) {
+    const tbkArray: string[] = configObj.tbkIdList;
     // 生成 tbkId schema
     const tbkSchema = tbkArray.map((val, idx) => ({
       component: 'Input',
@@ -1069,7 +1154,7 @@ function handleSetFormValue(row: BehavioraPlatformItem) {
     configFormApi.setState({schema});
 
     // 设置values
-    const values: Record<string, any> = {...row.config};
+    const values: Record<string, any> = {...configObj};
     tbkArray.forEach((val, idx) => {
       values[`tbkId${idx + 1}`] = val;
     });
@@ -1080,7 +1165,7 @@ function handleSetFormValue(row: BehavioraPlatformItem) {
         schema: platformConfigForm.get(row.platform),
       };
     });
-    configFormApi.setValues(row.config);
+    configFormApi.setValues(configObj);
   }
 }
 
