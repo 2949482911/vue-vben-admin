@@ -175,6 +175,7 @@ export interface ProjectPageRequest extends PageRequestParams {
   name?: string;
   projectType?: number;
   packageName?: string;
+  size?:number;
 }
 
 

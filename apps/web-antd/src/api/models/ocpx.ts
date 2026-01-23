@@ -43,7 +43,7 @@ export interface BehavioraPlatformItem extends BaseItem {
   model: string;
   ocpxPlatformMatchList: Array<OcpxPlatformMatch>;
   filterBehavior: Array<string>;
-  simulate: boolean;
+  simulate: boolean | number;
   type: number,
   directLink: string,
   matchField?: number | string;

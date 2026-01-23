@@ -1,15 +1,15 @@
 <script setup lang="ts" name="SelectMetricModal">
 import { Page, useVbenModal } from '@vben/common-ui';
-import { onMounted, ref, reactive, watch, nextTick } from 'vue';
+import { onMounted, ref, reactive, watch, nextTick, computed } from 'vue';
 import { metricApi } from '#/api';
-import type { MetricItem,searchDataFilter } from '#/api/models';
+import type { MetricItem } from '#/api/models';
 import { Checkbox, Divider, CheckboxGroup, Space, InputSearch } from 'ant-design-vue';
 
 const emit = defineEmits(['confirmMetric']);
 
 //接收父组件使用模板传回来的指标回显数组
 const props = defineProps<{
-  templateQueryMetric:searchDataFilter
+  selectedMetrics: string[]
 }>()
 
 // 搜索关键字
@@ -24,6 +24,17 @@ const state = reactive({
 
 // 原始指标列表（不动）
 const metricList = ref<MetricItem[]>([]);
+
+const visibleMetricIds = computed(() => {
+  const keyword = indicatorValue.value.trim().toLowerCase();
+  if (!keyword) {
+    return metricList.value.map(item => item.id);
+  }
+  return metricList.value
+    .filter(item => item.cname.toLowerCase().includes(keyword))
+    .map(item => item.id);
+});
+
 
 // 实际用于展示的 checkbox options
 const checkboxOptionTypeList = ref<{ label: string; value: string }[]>([]);
@@ -41,12 +52,12 @@ const [Modal, modalApi] = useVbenModal({
     await modalApi.close();
   },
   async onOpenChange(isOpen){
-    if(isOpen && props.templateQueryMetric?.queryMetric?.length){
-       nextTick(()=>{
-        state.checkedList = [...props.templateQueryMetric.queryMetric]
-      })
-    }else{
-      state.checkedList = []
+    if (isOpen) {
+      nextTick(() => {
+        state.checkedList = props.selectedMetrics
+          ? [...props.selectedMetrics]
+          : [];
+      });
     }
   }
 });
@@ -104,11 +115,21 @@ watch(
 const onCheckAllChange = (e: any) => {
   const currentOptions = checkboxOptionTypeList.value.map(x => x.value);
 
-  Object.assign(state, {
-    checkedList: e.target.checked ? currentOptions : [],
-    indeterminate: false,
-  });
+  if (e.target.checked) {
+    // ✅ 追加（去重）
+    state.checkedList = Array.from(
+      new Set([...state.checkedList, ...currentOptions])
+    );
+  } else {
+    // ✅ 只取消“当前搜索结果”里的
+    state.checkedList = state.checkedList.filter(
+      val => !currentOptions.includes(val)
+    );
+  }
+
+  state.indeterminate = false;
 };
+
 
 onMounted(() => {
   getMetricList();
@@ -139,11 +160,18 @@ onMounted(() => {
         <Divider />
 
         <Space size="large">
-          <CheckboxGroup
-            class="metric-checkbox-group"
-            :options="checkboxOptionTypeList"
-            v-model:value="state.checkedList"
-          />
+          <CheckboxGroup v-model:value="state.checkedList">
+            <div class="metric-checkbox-group">
+              <Checkbox
+                v-for="item in metricList"
+                :key="item.id"
+                :value="item.id"
+                v-show="visibleMetricIds.includes(item.id)"
+              >
+                {{ item.cname }}
+              </Checkbox>
+            </div>
+          </CheckboxGroup>
         </Space>
       </Page>
     </Modal>
