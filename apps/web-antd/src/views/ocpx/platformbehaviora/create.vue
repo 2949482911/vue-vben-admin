@@ -292,6 +292,7 @@ platformConfigForm.set(Platform.ALIPAY, [
     rules: 'required',
   },
 ]);
+
 platformConfigForm.set(Platform.XMLY, [
   {
     // 媒体配置表单
@@ -349,9 +350,7 @@ platformConfigForm.set(Platform.XMLY, [
   },
 ]);
 
-
 // 快手
-
 platformConfigForm.set(Platform.KUAISHOU, [
   {
     // 媒体配置表单
@@ -410,7 +409,6 @@ platformConfigForm.set(Platform.JD_GYX, [
     rules: 'required',
   },
 ])
-
 
 // 淘宝
 platformConfigForm.set(Platform.TB, [
@@ -597,6 +595,23 @@ platformConfigForm.set(Platform.CSJP, [
     fieldName: 'time_type',
     // 界面显示的label
     label: 'time_type',
+    rules: 'required',
+  },
+])
+
+// 努比亚
+platformConfigForm.set(Platform.NBY, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'test',
+    // 界面显示的label
+    label: `test`,
     rules: 'required',
   },
 ])
@@ -870,7 +885,7 @@ const [Form, formApi] = useVbenForm({
               action: 2
             });
           }
-          if(value != "tb" && value != "jd" && value != "csjp"){
+          if(value != "tb" && value != "jd" && value != "csjp" && value != "nubia"){
             filterModel(value)
           }
         },

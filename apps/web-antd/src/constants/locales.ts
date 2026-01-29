@@ -168,6 +168,10 @@ export const PLATFORM = [
     label: '华为商店',
     value: 'huawei_store',
   },
+  {
+    label: '努比亚',
+    value: 'nubia',
+  },
 ];
 
 
@@ -248,6 +252,10 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: '穿山甲',
     value: 'csjp',
+  },
+  {
+    label: '努比亚',
+    value: 'nubia',
   },
 
 ];

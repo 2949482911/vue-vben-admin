@@ -20,5 +20,6 @@ export enum Platform {
   REDNOTE = "rednote",
   TB_UNION = "tb_union",
   QWEN = "qwen",
-  CSJP = "csjp"
+  CSJP = "csjp",
+  NBY = "nubia"
 }
