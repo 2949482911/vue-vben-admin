@@ -236,10 +236,10 @@ export interface searchDataFilter {
   projectId:string;
   queryMetric:string[];
   dateTimeRange?:[string, string];
-  platformAccountIds:string[];
-  campaignIds:string[];
-  groupIds:string[];
-  promotionIds:string[];
+  campaign_id?:string[];
+  adgroup_id?:string[];
+  promotion_id?:string[];
+  creative_id?:string[];
 }
 
 /**模板列表数据类型*/

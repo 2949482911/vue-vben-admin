@@ -12,6 +12,17 @@ import type { ProjectItem } from "../../account/advertiser/advertiser";
 import SaveTemplateModal from "./saveTemplate.vue";
 import TemplateListDrawer from './templateList.vue';
 import dayjs from 'dayjs';
+import { useAdLinkage } from './adDropdown'
+
+const {
+  planOptions,
+  advertisementOptions,
+  adGroupOptions,
+  creativityOptions,
+  loadAdLinkage,
+  resetLoadedMap,
+  setGridApi,
+} = useAdLinkage()
 
 /* ---------------- 模板抽屉 ---------------- */
 // 模板列表抽屉弹框
@@ -41,7 +52,8 @@ async function handleUseTemplate(template: searchDataFilter) {
 
   // 4️⃣ 搜索
   const values = await gridApi.formApi.getValues() as searchDataFilter;
-  await init(values);
+  const params = buildReportParams(values);
+  await init(params);
 }
 
 /* ---------------- 指标弹窗 ---------------- */
@@ -62,6 +74,10 @@ const searchData = ref<searchDataFilter>({
   projectId: '',
   queryMetric: [],
   dateTimeRange: ['',''],
+  campaign_id:[],
+  adgroup_id:[],
+  promotion_id:[],
+  creative_id:[]
 })
 const [SaveTemplateModalModal, sveTemplateModalApi] = useVbenModal({
   connectedComponent: SaveTemplateModal,
@@ -216,6 +232,7 @@ const formOptions: VbenFormProps = {
         options: ACTIVE_PLATFORM,
         mode: 'multiple',
         placeholder: `${$t('common.choice')}`,
+        onChange:resetLoadedMap
       },
       fieldName: 'platform',
       label: `${$t('ocpx.platform.title')}`,
@@ -245,6 +262,7 @@ const formOptions: VbenFormProps = {
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
+        onChange: resetLoadedMap,
         params: {
           page: 1,
           pageSize: 1000,
@@ -284,6 +302,77 @@ const formOptions: VbenFormProps = {
       fieldName: 'projectId',
       label: '项目',
     },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        mode: 'multiple',
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        options: planOptions,
+        onFocus: async () => {
+          await loadAdLinkage('campaign')
+        },
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'campaign_id',
+      label: '计划',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        mode: 'multiple',
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        options: advertisementOptions,
+        onFocus: async () => {
+          await loadAdLinkage('promotion')
+        },
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'promotion_id',
+      label: '广告',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        mode: 'multiple',
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        options: adGroupOptions,
+        onFocus: async () => {
+          await loadAdLinkage('adgroup')
+        },
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'adgroup_id',
+      label: '广告组',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        mode: 'multiple',
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        options: creativityOptions,
+        onFocus: async () => {
+          await loadAdLinkage('creative')
+        },
+      },
+      fieldName: 'creative_id',
+      label: '创意',
+    },
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
@@ -304,9 +393,14 @@ const formOptions: VbenFormProps = {
     // 1️⃣ 重置表单
     await gridApi.formApi.resetForm();
     await gridApi.formApi.setFieldValue('queryMetric', []);
+    await resetLoadedMap
 
     // 2️⃣ 清空指标状态
     currentQueryMetric.value = [];
+    planOptions.value = []
+    advertisementOptions.value = []
+    adGroupOptions.value = []
+    creativityOptions.value = []
     
     // 3️⃣ 重置分页
     allData.value = [];
@@ -345,7 +439,11 @@ function buildReportParams(values: any): AdReportRequest {
     dims,
     platform,
     queryMetric,
-    projectId
+    projectId,
+    campaign_id,
+    adgroup_id,
+    promotion_id,
+    creative_id
   } = values;
 
   // projectid现在拿到的是字符串需要转化成字符串数组，因为现在不是多选，选出来的就是字符串
@@ -356,6 +454,10 @@ function buildReportParams(values: any): AdReportRequest {
     ...(makeFilter('platform', platform) ?? []),
     ...(makeFilter('platform_account_id', advertiserId) ?? []),
     ...(makeFilter('projectId', normalizeArray(projectId)) ?? []),
+    ...(makeFilter('campaign_id', normalizeArray(campaign_id)) ?? []),
+    ...(makeFilter('adgroup_id', normalizeArray(adgroup_id)) ?? []),
+    ...(makeFilter('promotion_id', normalizeArray(promotion_id)) ?? []),
+    ...(makeFilter('creative_id', normalizeArray(creative_id)) ?? []),
   ];
 
   return {
@@ -406,6 +508,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,
   gridEvents,
 });
+setGridApi(gridApi)
 
 </script>
 

@@ -243,6 +243,8 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   proxyConfig: undefined,
 };
 
+const fixedLeftKeys = ['APPID', 'day', '开发者ID', '账户ID'];
+
 async function init(args?: any) {
   try {
     gridApi.setLoading(true);
@@ -256,13 +258,17 @@ async function init(args?: any) {
     );
     // ② 生成列
     const newColumns = [
-      { title: '序号', field: 'seq', width: 'auto' },
-      ...res.columns.map((key: string) => ({
-        field: key,
-        title: key,
-        width: 'auto',
-        sortable: true,
-      })),
+      { title: '序号', field: 'seq', width: 'auto', fixed: 'left' },
+      ...res.columns.map((key: string) => {
+        const isFixedLeft = fixedLeftKeys.includes(key);
+        return {
+          field: key,
+          title: key,
+          width: 'auto',
+          sortable: true,
+          ...(isFixedLeft ? { fixed: 'left' } : {}),
+        };
+      }),
     ];
     // ③ 更新 Grid（只用当前页数据）
     gridApi.setGridOptions({
