@@ -156,7 +156,6 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    range: true,
   },
   toolbarConfig: {
     custom: true,

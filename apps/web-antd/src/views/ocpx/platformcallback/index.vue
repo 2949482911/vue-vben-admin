@@ -36,9 +36,9 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
 });
 
 function openCreateModal(
-  row: PlatformcallbackItem
+  row?: PlatformcallbackItem
 ) {
-  if (row.id) {
+  if (row?.id) {
     createObjectApi.setData(row);
   } else {
     createObjectApi.setData({});
@@ -121,13 +121,11 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    range: true,
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
   columns: [
@@ -187,7 +185,7 @@ const gridOptions: VxeGridProps<PlatformcallbackItem> = {
       width: "auto"
     },
 
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   height: 'auto',
   keepSource: true,
@@ -255,7 +253,7 @@ function pageReload() {
         </template>
 
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openCreateModal">
+          <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
             {{ $t('common.create') }}
           </Button>
         </template>

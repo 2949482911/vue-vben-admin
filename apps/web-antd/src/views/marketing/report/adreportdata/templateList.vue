@@ -44,7 +44,6 @@ const gridOptions: VxeGridProps = {
   ],
   checkboxConfig: {
     highlight: true,
-    range: true,
   },
   pagerConfig: {
     enabled: true,

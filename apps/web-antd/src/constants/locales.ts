@@ -374,5 +374,13 @@ export const CONSUMPTION_DETAIL_DIMENSION = [
   {
     label:'appId',
     value: 'appId',
+  },
+  {
+    label:'开发者Id',
+    value: 'developerId',
+  },
+  {
+    label:'账户Id',
+    value: 'platform_account_id',
   }
 ]

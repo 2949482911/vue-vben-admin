@@ -92,7 +92,6 @@ const gridOptions: VxeGridProps<AccountChildResponse> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'advertiserId',
-    range: true,
     checkMethod(params: {
       row: AccountChildResponse
     }): boolean {

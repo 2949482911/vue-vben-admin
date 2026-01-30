@@ -108,7 +108,6 @@ const gridOptions: VxeGridProps<MetricItem> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    range: true,
   },
   toolbarConfig: {
     custom: true,

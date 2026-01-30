@@ -1,5 +1,5 @@
 <script lang="ts" setup name="ClickMonitor">
-import {Button, List, ListItem, ListItemMeta} from "ant-design-vue";
+import {Button, message } from "ant-design-vue";
 
 import {useVbenModal} from '@vben/common-ui';
 import {clickMonitorApi} from "#/api/core/ocpx";
@@ -37,19 +37,15 @@ const gridOptions: VxeGridProps<ClickMonitorResponse> = {
     {
       title: `${$t('ocpx.ocpx_task.clickmonitor.url')}`,
       field: 'url',
+      slots: {
+        default: "url"
+      }
     },
     {
       title: `${$t('ocpx.ocpx_task.clickmonitor.callback')}`,
       field: 'callback',
       slots: {
         default: "callback"
-      }
-    },
-    {
-      title: `${$t('ocpx.ocpx_task.clickmonitor.directLink')}`,
-      field: 'directLink',
-      slots: {
-        default: "directLink"
       }
     },
     {
@@ -98,51 +94,46 @@ const [Modal, modalApi] = useVbenModal({
     gridApi.setGridOptions({
       data: dataList,
     });
-    await gridApi.reload();
+    // await gridApi.reload();
     gridApi.setLoading(false);
   },
 });
+
+function copyCallback(text: string) {
+  if (!text) return;
+  //clipboard api官方复制操作 writeText是异步Promise
+  navigator.clipboard.writeText(text).then(() => {
+    message.success('已复制');
+  });
+}
 
 
 </script>
 <template>
   <Modal>
     <Grid>
+      <template #url="{ row }">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <Button
+          type="link"
+          @click="copyCallback(row.url)"
+          >
+            一键复制
+          </Button>
+        </div>
+      </template>
       <template #callback="{ row }">
-        <List item-layout="horizontal" :data-source="row.behaviorCallbackUrls">
-          <template #renderItem="{ item }">
-            <ListItem>
-              <ListItemMeta
-                :description="item.name"
-              >
-                <template #title>
-                  <div>{{ item.url }}</div>
-                </template>
-
-              </ListItemMeta>
-            </ListItem>
-          </template>
-        </List>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <Button
+            v-for="item in row.behaviorCallbackUrls"
+            :key="item.url"
+            type="link"
+            @click="copyCallback(item.url)"
+          >
+            {{ item.name }}
+          </Button>
+        </div>
       </template>
-
-
-      <template #directLink="{ row }">
-        <List item-layout="horizontal" :data-source="row.behaviorCallbackUrls">
-          <template #renderItem="{ item }">
-            <ListItem>
-              <ListItemMeta
-                :description="item.name"
-              >
-                <template #title>
-                  <div>{{ item.directLink }}</div>
-                </template>
-
-              </ListItemMeta>
-            </ListItem>
-          </template>
-        </List>
-      </template>
-
       <template #action="{ row }">
         <Button type="link" @click="openTestCallbackModal(row)">
           {{ $t('ocpx.ocpx_task.clickmonitor.testCallback') }}

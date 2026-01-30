@@ -22,6 +22,8 @@ import type {
   PageResult,
   AdvertiserCostDetailType,
   PageResponse,
+  AppNameOptionsType,
+  PlatformMatchRequest,
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -64,6 +66,7 @@ class AdvertiserApi extends BaseApi {
     return requestClient.get(this.getServiceUrl("auth_url"), {params})
   }
 
+  /**广告主List */
   fetchAdvertiserList(params: AdvertiserPageRequest) {
     return requestClient.get<PageResponse<AdvertiserItem>>(this.getServiceUrl("list"), {params})
   }
@@ -78,11 +81,9 @@ class AdvertiserApi extends BaseApi {
     return requestClient.post(this.getServiceUrl("update"), params)
   }
 
-
   fetchBatchOptions(params: BatchOptions) {
     return requestClient.post(this.getServiceUrl("batch_options"), params)
   }
-
 
   /**
    * 获取子账户
@@ -91,7 +92,6 @@ class AdvertiserApi extends BaseApi {
   fetchAccountChild(id: string) {
     return requestClient.get<AccountChildResponse>(this.getServiceUrl("account_child"), {params: {id: id}})
   }
-
 
   /**
    * 导入子账户
@@ -104,6 +104,11 @@ class AdvertiserApi extends BaseApi {
   /**账户消耗详情 */
   fetchAdvertiserCostDetail(data: AdvertiserCostDetailType) {
     return requestClient.post(this.getServiceUrl("advertiser_cost_detail"), data)
+  }
+
+  /**账户消耗详情-appName下拉 */
+  fetchAdvertiserAppOptions(params: AppNameOptionsType) {
+    return requestClient.get(this.getServiceUrl("app"), {params})
   }
 }
 
@@ -157,6 +162,11 @@ export const metricApi = new MetricApi("/platform/metric");
 class ReportApi extends BaseApi {
   fetchAdReport(params: AdReportRequest) {
     return requestClient.post<AdReportResponse>(this.getServiceUrl("adreport"), params)
+  }
+
+  /**广告效果数据-计划、广告、广告组、创意联动下拉 */
+  fetchAdLinkage(params: PlatformMatchRequest) {
+    return requestClient.post(this.getServiceUrl("stat_select"), params)
   }
 }
 

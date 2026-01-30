@@ -123,7 +123,6 @@ const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    range: true,
   },
   toolbarConfig: {
     custom: true,

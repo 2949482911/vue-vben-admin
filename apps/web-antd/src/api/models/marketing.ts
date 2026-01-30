@@ -236,6 +236,10 @@ export interface searchDataFilter {
   projectId:string;
   queryMetric:string[];
   dateTimeRange?:[string, string];
+  platformAccountIds:string[];
+  campaignIds:string[];
+  groupIds:string[];
+  promotionIds:string[];
 }
 
 /**模板列表数据类型*/
@@ -412,12 +416,14 @@ export interface PageResult {
 
 /**账户消耗详情 */
 export interface AdvertiserCostDetailType {
-  page: number;
-  pageSize: number;
+  // page: number;
+  // pageSize: number;
   platform: string;
   dateTime: [string, string];      
   dims: string[];                 
-  advertiserId: string[];          
+  advertiserId: string[];
+  huwaweiAppIdList: string[];       
+  developerId: string[];       
 }
 
 export interface PageResponse<T> {
@@ -425,4 +431,20 @@ export interface PageResponse<T> {
   page: number;
   pageSize: number;
   total: number;
+}
+
+/**账户消耗详情-appName下拉请求接口类型 */
+export interface AppNameOptionsType {
+  platform: string;
+  developerId?: string;       
+}
+
+/**广告效果数据-广告联动下拉 */
+export interface PlatformMatchRequest {
+  platform: string;
+  type: string;
+  platformAccountIds: string[];
+  campaignIds?: string[];
+  groupIds?: string[];
+  promotionIds?: string[];
 }

@@ -60,6 +60,7 @@ export interface OcpxPlatformMatch extends BaseItem {
   creativeId: string;
   behavioraPlatform: string;
   matchId: string;
+  _isNew?:boolean
 }
 
 export interface BehavioraPlatformPageRequest extends PageRequestParams {
