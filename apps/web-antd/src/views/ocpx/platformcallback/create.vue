@@ -110,7 +110,7 @@ platformConfigForm.set(Platform.VIVO, [
       filterOption: (inputValue: string, option: {label: string}) => {
         return option.label.toLowerCase().includes(inputValue.toLowerCase());
       },
-      onSelect: async (_, data: any) => {
+      onSelect: async (_:any, data: any) => {
         await formApi.setFieldValue('advertiserId', data.advertiserId);
         await configFormApi.setFieldValue('advertiserId', data.advertiserId);
       },
@@ -344,6 +344,23 @@ platformConfigForm.set(Platform.BYTEDANCE, [
   },
 ])
 
+// 努比亚
+platformConfigForm.set(Platform.NBY, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'test',
+    // 界面显示的label
+    label: `test`,
+    rules: 'required',
+  },
+])
+
 
 /**
  *
@@ -382,7 +399,6 @@ const [Form, formApi] = useVbenForm({
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
     formVal.config = await configFormApi.getValues();
-    debugger
     if (formVal.config.advertiserId) {
       formVal.advertiserId = formVal.config.advertiserId;
       formVal.advertiserName = formVal.config.advertiserName;
@@ -638,7 +654,7 @@ const [Modal, modalApi] = useVbenModal({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       objectRequest.value = modalApi.getData<Record<string, any>>() as CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest;
-      if (objectRequest.value.id) {
+      if ('id' in objectRequest.value) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
         getPlatformCallbackBehaviorTypeItem(objectRequest.value.platform);

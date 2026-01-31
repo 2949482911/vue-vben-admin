@@ -45,7 +45,7 @@ const objectRequest = ref<BehavioraPlatformItem>({
 });
 
 const isUpdate = ref<Boolean>(false);
-const matchModel = ref<string>('callback');
+const matchModel = ref<string>('match');
 
 // 配置项
 const platformConfigForm = new Map<string, Array<any>>();
@@ -292,6 +292,7 @@ platformConfigForm.set(Platform.ALIPAY, [
     rules: 'required',
   },
 ]);
+
 platformConfigForm.set(Platform.XMLY, [
   {
     // 媒体配置表单
@@ -349,9 +350,7 @@ platformConfigForm.set(Platform.XMLY, [
   },
 ]);
 
-
 // 快手
-
 platformConfigForm.set(Platform.KUAISHOU, [
   {
     // 媒体配置表单
@@ -410,7 +409,6 @@ platformConfigForm.set(Platform.JD_GYX, [
     rules: 'required',
   },
 ])
-
 
 // 淘宝
 platformConfigForm.set(Platform.TB, [
@@ -597,6 +595,23 @@ platformConfigForm.set(Platform.CSJP, [
     fieldName: 'time_type',
     // 界面显示的label
     label: 'time_type',
+    rules: 'required',
+  },
+])
+
+// 努比亚
+platformConfigForm.set(Platform.NBY, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'test',
+    // 界面显示的label
+    label: `test`,
     rules: 'required',
   },
 ])
@@ -814,6 +829,8 @@ async function filterModel(value:string){
   filterModelSelect.value = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(value)
 }
 
+const matchTableRef = ref<InstanceType<typeof MatchTable>>()
+
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -851,6 +868,12 @@ const [Form, formApi] = useVbenForm({
 
     baseForm.simulate = Boolean(baseForm.simulate);
 
+    if(baseForm.platform === 'jd'){
+      const matchList = matchTableRef.value?.getSubmitData() ?? []
+      console.log(matchList,'matchListmatchList');
+      
+      baseForm.ocpxPlatformMatches = matchList
+    }
     // 5️⃣ 提交
     await (isUpdate.value
       ? behavioraPlatformApi.fetchUpdateBehavioraPlatform(baseForm as UpdateBehavioraPlatformRequest)
@@ -904,7 +927,18 @@ const [Form, formApi] = useVbenForm({
               action: 2
             });
           }
-          if(value != "tb" && value != "jd" && value != "csjp"){
+          if (value === "jd") {
+            formApi.setValues({
+              model: 'match'
+            });
+            matchModel.value = 'match'
+          }else{
+            formApi.setValues({
+              model: 'callback',
+            });
+            matchModel.value = 'callback'
+          }
+          if(value != "tb" && value != "jd" && value != "csjp" && value != "nubia"){
             filterModel(value)
           }
         },
@@ -974,7 +1008,7 @@ const [Form, formApi] = useVbenForm({
           matchModel.value = value;
         },
       },
-      defaultValue: 'callback',
+      defaultValue: 'match',
       // 字段名
       fieldName: 'model',
       // 界面显示的label

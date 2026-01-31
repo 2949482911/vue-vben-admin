@@ -168,6 +168,10 @@ export const PLATFORM = [
     label: '华为商店',
     value: 'huawei_store',
   },
+  {
+    label: '努比亚',
+    value: 'nubia',
+  },
 ];
 
 
@@ -254,6 +258,10 @@ export const BEHAVIORA_PLATFORM = [
     label: '穿山甲',
     value: 'csjp',
   },
+  {
+    label: '努比亚',
+    value: 'nubia',
+  },
 
   {
     label: `${$t('ocpx.platform.junbo')}`,
@@ -325,10 +333,10 @@ export const ACTIVE_PLATFORM = [
  * 报表维度
  */
 export const DIMS = [
-  {
-    label: `${$t('marketing.report.dims.hour')}`,
-    value: 'hour',
-  },
+  // {
+  //   label: `${$t('marketing.report.dims.hour')}`,
+  //   value: 'hour',
+  // },
   {
     label: `${$t('marketing.report.dims.day')}`,
     value: 'day',
@@ -352,6 +360,22 @@ export const DIMS = [
   {
     label: `${$t('marketing.report.dims.advertiser')}`,
     value: 'platform_account_id',
+  },
+  {
+    label: '创意维度',
+    value: 'creative_id',
+  },
+  {
+    label: '计划维度',
+    value: 'campaign_id',
+  },
+  {
+    label: '广告组维度',
+    value: 'adgroup_id',
+  },
+  {
+    label: '广告维度',
+    value: 'promotion_id',
   }
 ]
 
@@ -376,5 +400,13 @@ export const CONSUMPTION_DETAIL_DIMENSION = [
   {
     label:'appId',
     value: 'appId',
+  },
+  {
+    label:'开发者Id',
+    value: 'developerId',
+  },
+  {
+    label:'账户Id',
+    value: 'platform_account_id',
   }
 ]

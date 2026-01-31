@@ -25,8 +25,8 @@ export interface CreatePlatformCallbackRequest {
   config: Map<string, any>;
   remark: string;
   onlyClick: boolean;
-  advertiserId: string;
-  advertiserName: string;
+  advertiserId?: string;
+  advertiserName?: string;
 }
 
 export interface UpdatePlatformCallbackRequest
@@ -60,6 +60,7 @@ export interface OcpxPlatformMatch extends BaseItem {
   creativeId: string;
   behavioraPlatform: string;
   matchId: string;
+  _isNew?:boolean
 }
 
 export interface BehavioraPlatformPageRequest extends PageRequestParams {

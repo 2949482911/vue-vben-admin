@@ -116,12 +116,11 @@ const gridOptions: VxeGridProps<DataRangeItem> = {
       title: `${$t('system.data_scope.columns.remark')}`,
       width: 'auto',
     },
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    range: true,
   },
   proxyConfig: {
     autoLoad: true,
@@ -142,7 +141,6 @@ const gridOptions: VxeGridProps<DataRangeItem> = {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
 };

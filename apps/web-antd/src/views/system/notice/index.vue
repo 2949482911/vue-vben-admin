@@ -91,13 +91,11 @@ const gridOptions: VxeGridProps<NoticeItem> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    range: true,
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
 
@@ -105,7 +103,7 @@ const gridOptions: VxeGridProps<NoticeItem> = {
     { title: '序号', type: 'seq', width: 100 },
     { field: 'title', title: `${$t('system.notice.columns.title')}` },
     { field: 'level', title: `${$t('system.notice.columns.level')}` },
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   height: 'auto',
   keepSource: true,

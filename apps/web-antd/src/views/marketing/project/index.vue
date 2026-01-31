@@ -92,7 +92,6 @@ const gridOptions: VxeGridProps<ProjectItem> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    range: true,
   },
   toolbarConfig: {
     custom: true,

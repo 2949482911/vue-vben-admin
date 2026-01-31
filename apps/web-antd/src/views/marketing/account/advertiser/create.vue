@@ -134,6 +134,22 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
       },
       rules: 'required',
+      // 字段名
+      fieldName: 'companyName',
+      label: '二代主体',
+      dependencies: {
+        show: value => {
+          return !value.id && value.platform === 'huawei_store'
+        },
+        triggerFields: ['platform','id']
+      }
+    },
+    {
+      component: "Input",
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      rules: 'required',
       fieldName: 'advertiserId',
       label: '账户ID',
       dependencies: {

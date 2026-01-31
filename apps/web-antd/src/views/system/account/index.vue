@@ -169,7 +169,7 @@ const gridOptions: VxeGridProps<UserItem> = {
       width: 'auto',
 
     },
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   proxyConfig: {
     autoLoad: true,
@@ -186,7 +186,6 @@ const gridOptions: VxeGridProps<UserItem> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    range: true,
   },
   pagerConfig: {
     enabled: true,
@@ -195,7 +194,6 @@ const gridOptions: VxeGridProps<UserItem> = {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
     zoom: true,
   },
 };

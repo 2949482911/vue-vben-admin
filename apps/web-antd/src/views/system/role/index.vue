@@ -91,7 +91,6 @@ const gridOptions: VxeGridProps<RoleItem> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    range: true,
   },
   columns: [
     {
@@ -112,7 +111,7 @@ const gridOptions: VxeGridProps<RoleItem> = {
       slots: {default: 'isSystem'},
       width: 'auto',
     },
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   pagerConfig: {
     enabled: true,

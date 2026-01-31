@@ -30,12 +30,11 @@ const gridOptions: VxeGridProps<RowType> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
-    range: true,
   },
   columns: [
     { title: '序号', type: 'seq', width: 100 },
     { field: 'url', title: `${$t('system.operator.columns.url')}` },
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS as any,
   ],
   height: 'auto',
   keepSource: true,
