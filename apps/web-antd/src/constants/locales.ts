@@ -268,6 +268,12 @@ export const BEHAVIORA_PLATFORM = [
     value: 'junbo',
   },
 
+  {
+    label: `${$t('ocpx.platform.four4711')}`,
+    value: '4711',
+  },
+
+
 ];
 
 // 匹配下拉

@@ -809,6 +809,23 @@ platformConfigForm.set(Platform.JUNBO, [
   },
 ])
 
+
+platformConfigForm.set(Platform.FOUR711, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'sid',
+    // 界面显示的label
+    label: `sid`,
+    rules: 'required',
+  },
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -871,7 +888,7 @@ const [Form, formApi] = useVbenForm({
     if(baseForm.platform === 'jd'){
       const matchList = matchTableRef.value?.getSubmitData() ?? []
       console.log(matchList,'matchListmatchList');
-      
+
       baseForm.ocpxPlatformMatches = matchList
     }
     // 5️⃣ 提交

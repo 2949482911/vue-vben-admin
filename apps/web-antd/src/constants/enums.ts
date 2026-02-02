@@ -24,5 +24,6 @@ export enum Platform {
   CSJP = "csjp",
   NBY = "nubia",
   KARANG = "karang",
-  JUNBO = "junbo"
+  JUNBO = "junbo",
+  FOUR711 = "4711"
 }
