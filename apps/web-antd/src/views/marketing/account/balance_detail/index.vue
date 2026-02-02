@@ -67,7 +67,7 @@ async function loadAdvertiserOptions(platform: string) {
   });
 
   developerOption.value = res.items.map((item) => ({
-    label: item.advertiserName + '/' + item.companyName,
+    label: item.companyName,
     value: item.advertiserId,
   }));
 }
@@ -166,7 +166,7 @@ const formOptions: VbenFormProps = {
         },
       },
       fieldName: 'advertiserId',
-      label: '账户名字'
+      label: '公司名字'
     },
     {
       component: 'Select',
