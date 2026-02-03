@@ -448,3 +448,9 @@ export interface PlatformMatchRequest {
   groupIds?: string[];
   promotionIds?: string[];
 }
+
+/**账户消耗详情-账户名字下拉请求接口类型 */
+export interface AdCompanyOptionsType {
+  platform: string;    
+}
+

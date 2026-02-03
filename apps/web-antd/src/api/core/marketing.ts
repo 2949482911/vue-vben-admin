@@ -24,6 +24,7 @@ import type {
   PageResponse,
   AppNameOptionsType,
   PlatformMatchRequest,
+  AdCompanyOptionsType,
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -109,6 +110,10 @@ class AdvertiserApi extends BaseApi {
   /**账户消耗详情-appName下拉 */
   fetchAdvertiserAppOptions(params: AppNameOptionsType) {
     return requestClient.get(this.getServiceUrl("app"), {params})
+  }
+  /**账户消耗详情-账户名字下拉 */
+  fetchAdCompanyOptions(params: AdCompanyOptionsType) {
+    return requestClient.get(this.getServiceUrl("advertiser_company"), {params})
   }
 }
 

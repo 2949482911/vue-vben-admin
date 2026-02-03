@@ -33,6 +33,7 @@ const defaultQueryParams = {
 
 onMounted(() => {
   // 默认平台
+  loadAdCompanyOptions('huawei_store');
   loadAdvertiserOptions('huawei_store');
   aGenerationOptions('huawei_store')
   appNameOptions('huawei_store')
@@ -50,6 +51,7 @@ interface AdvertiserApp {
 }
 
 const developerOption = ref<DeveloperOption[]>([])
+const adCompanyOption = ref<string[]>([])
 const aGenerationOption = ref<DeveloperOption[]>([])
 const appNameOption = ref<DeveloperOption[]>([])
 
@@ -67,8 +69,23 @@ async function loadAdvertiserOptions(platform: string) {
   });
 
   developerOption.value = res.items.map((item) => ({
-    label: item.companyName,
+    label: item.advertiserName,
     value: item.advertiserId,
+  }));
+}
+
+/**默认平台为华为商店，然后拿到公司名字的下拉事件 */
+async function loadAdCompanyOptions(platform: string) {
+  adCompanyOption.value = [];
+
+  if (!platform) return;
+
+  const res = await advertiserApi.fetchAdCompanyOptions({
+    platform,
+  });
+  adCompanyOption.value = res.companyList.map((item:string) => ({
+    label: item,
+    value: item,
   }));
 }
 
@@ -134,9 +151,10 @@ const formOptions: VbenFormProps = {
         options: ADVERTISET_ADDED,
         placeholder: `${$t('common.choice')}`,
         onChange: async (val: string) => {
+          await loadAdCompanyOptions(val);
           await loadAdvertiserOptions(val);
           await appNameOptions(val);
-          await aGenerationOptions(val)
+          await aGenerationOptions(val);
         },
       },
       rules: 'required',
@@ -166,6 +184,20 @@ const formOptions: VbenFormProps = {
         },
       },
       fieldName: 'advertiserId',
+      label: '账户名字'
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        mode: 'multiple',
+        placeholder: `${$t('common.choice')}`,
+        options: adCompanyOption,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+      },
+      fieldName: 'companyNames',
       label: '公司名字'
     },
     {
