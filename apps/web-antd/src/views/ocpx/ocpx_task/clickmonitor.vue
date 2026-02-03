@@ -49,6 +49,13 @@ const gridOptions: VxeGridProps<ClickMonitorResponse> = {
       }
     },
     {
+      title: `${$t('ocpx.ocpx_task.clickmonitor.directLink')}`,
+      field: 'directLink',
+      slots: {
+        default: "directLink"
+      }
+    },
+    {
       field: 'options',
       title: `${$t('core.columns.options')}`,
       fixed: 'right',
@@ -131,6 +138,19 @@ function copyCallback(text: string) {
             @click="copyCallback(item.url)"
           >
             {{ item.name }}
+          </Button>
+        </div>
+      </template>
+      <template #directLink="{ row }">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <Button
+            v-for="item in row.behaviorCallbackUrls"
+            :key="item.url"
+            type="link"
+            :disabled="!item.directLink"
+            @click="copyCallback(item.directLink)"
+          >
+            {{ item.directLink ? '一键复制' : '——' }}
           </Button>
         </div>
       </template>
