@@ -21,5 +21,6 @@ export enum Platform {
   TB_UNION = "tb_union",
   QWEN = "qwen",
   CSJP = "csjp",
-  NBY = "nubia"
+  NBY = "nubia",
+  GYXHW = "gyx_huawei"
 }

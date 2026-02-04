@@ -24,7 +24,7 @@ export interface CreatePlatformCallbackRequest {
   platform: string;
   config: Map<string, any>;
   remark: string;
-  onlyClick: boolean;
+  onlyClick: boolean | number;
   advertiserId?: string;
   advertiserName?: string;
 }

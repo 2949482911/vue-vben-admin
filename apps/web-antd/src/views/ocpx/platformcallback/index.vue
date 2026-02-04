@@ -11,7 +11,7 @@ import {Button, Switch, Tag} from 'ant-design-vue';
 import {platformCallbackApi} from '#/api/core/ocpx';
 import {
   BatchOptionsType,
-  PLATFORM,
+  BACKHAUL,
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
@@ -83,7 +83,7 @@ const formOptions: VbenFormProps = {
       component: 'Select',
       componentProps: {
         allowClear: true,
-        options: PLATFORM,
+        options: BACKHAUL,
         placeholder: `${$t('common.choice')}`,
       },
       fieldName: 'platform',

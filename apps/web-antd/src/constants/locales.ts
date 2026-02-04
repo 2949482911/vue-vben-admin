@@ -174,6 +174,53 @@ export const PLATFORM = [
   },
 ];
 
+/**
+ * 回传媒体
+ */
+export const BACKHAUL = [
+  {
+    label: `${$t('ocpx.platform.vivo')}`,
+    value: 'vivo',
+  },
+  {
+    label: `${$t('ocpx.platform.huawei')}`,
+    value: 'huawei',
+  },
+  {
+    label: `${$t('ocpx.platform.oppo')}`,
+    value: 'oppo',
+  },
+  {
+    label: `${$t('ocpx.platform.bytedance')}`,
+    value: 'bytedance',
+  },
+  {
+    label: `${$t('ocpx.platform.honor')}`,
+    value: 'honor',
+  },
+  {
+    label: `${$t('ocpx.platform.baidu')}`,
+    value: 'baidu',
+  },
+  {
+    label: `${$t('ocpx.platform.kuaishou')}`,
+    value: 'kuaishou',
+  },
+  {
+    label: '华为商店',
+    value: 'huawei_store',
+  },
+  {
+    label: '努比亚',
+    value: 'nubia',
+  },
+  {
+    label: '广义新华为',
+    value: 'gyx_huawei',
+  }
+];
+
+
 
 
 
