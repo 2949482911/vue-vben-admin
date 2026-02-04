@@ -129,7 +129,7 @@ export enum BatchOptionsType {
 }
 
 /**
- * 回传媒体
+ * Ocpx平台
  */
 export const PLATFORM = [
   {
@@ -172,6 +172,10 @@ export const PLATFORM = [
     label: '努比亚',
     value: 'nubia',
   },
+  {
+    label: '广义新华为',
+    value: 'gyx_huawei',
+  }
 ];
 
 /**
