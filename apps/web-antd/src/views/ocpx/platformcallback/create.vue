@@ -268,6 +268,19 @@ platformConfigForm.set(Platform.GYXHW, [
     label: 'secretKey',
     rules: 'required',
   },
+   {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'clickUrl',
+    // 界面显示的label
+    label: '监测链接',
+    rules: 'required',
+  },
 ]);
 // 字节回传
 platformConfigForm.set(Platform.BYTEDANCE, []);
