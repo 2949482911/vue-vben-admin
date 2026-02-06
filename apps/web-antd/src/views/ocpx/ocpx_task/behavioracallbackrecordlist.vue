@@ -4,10 +4,20 @@ import type {VxeGridProps} from "#/adapter/vxe-table";
 import type {OcpxBehavioracallbackRecordItem} from "#/api/models";
 import {$t} from "@vben/locales";
 import {ocpxTaskApi, clickMonitorApi} from "#/api/core/ocpx";
-import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import {Tag, Button} from "ant-design-vue";
+import {Page, useVbenModal, type VbenFormProps, useVbenDrawer} from '@vben/common-ui';
+import {Tag, Button, message} from "ant-design-vue";
 import { trimObject } from "#/utils/trim";
+import viewDetailsModel from './viewDetailsModel.vue';
+import { nextTick, ref } from "vue";
 
+const [ViewDetailsModel, drawerApi] = useVbenDrawer({
+  // 连接抽离的组件
+  connectedComponent: viewDetailsModel,
+});
+
+function viewDetailsOpen() {
+  drawerApi.open();
+}
 
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
@@ -66,6 +76,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     zoom: true,
   },
   columns: [
+    { type: 'checkbox', width: 50 },
     {title: '序号', type: 'seq', width: 50},
     {
       field: 'behavioraPlatformName',
@@ -121,7 +132,38 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     },
   },
 }
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+
+const detailsId = ref<string>('')
+async function viewDetails(row:OcpxBehavioracallbackRecordItem){
+  detailsId.value = row.id
+  await nextTick();
+  viewDetailsOpen()
+}
+
+const selectedRows = ref<OcpxBehavioracallbackRecordItem[]>([])
+const gridEvents = {
+  checkboxChange:({records}:{records:OcpxBehavioracallbackRecordItem[]})=>{
+    selectedRows.value = records
+  },
+  //全选事件
+  checkboxAll:({records}:{records:OcpxBehavioracallbackRecordItem[]})=>{
+    selectedRows.value = records
+  },
+}
+
+async function batchRetry(){
+  const ids = selectedRows.value.map(item => item.id)
+  console.log(ids,'selectedRows.value.length');
+  try{
+    await clickMonitorApi.fetchRePushRetryBehaviorCallback(ids)
+    await gridApi.reload();
+    message.success("批量重试成功！")
+  }catch(err){
+    console.log(err);
+  }
+  
+}
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
 
 </script>
 
@@ -141,11 +183,19 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
             <Button type="link" v-if="!row.success" @click="rePushBehaviorCallback(row)">
               {{ $t('core.repush') }}
             </Button>
+            <Button type="link" @click="viewDetails(row)">
+              查看详情
+            </Button>
           </template>
-
+          <template #toolbar-tools>
+            <Button class="mr-2" type="primary" :disabled="selectedRows.length===0" @click="batchRetry">
+              批量重试
+            </Button>
+        </template>
         </Grid>
       </Page>
     </Modal>
+    <ViewDetailsModel :detailsId="detailsId"/>
   </div>
 </template>
 

@@ -122,6 +122,14 @@ class OcpxTaskApi extends BaseApi {
     return requestClient.get(this.getServiceUrl("behavior_record_list"), {params: params})
   }
 
+  /**回传记录详细信息*/
+  fetchOxpcTransmissionRecord(id: string) {
+    return requestClient.get(this.getServiceUrl("callback_record_detail"), {
+      params: {
+        id: id
+      }
+    })
+  }
 }
 
 export const ocpxTaskApi = new OcpxTaskApi("/platform/ocpxtask");
@@ -154,6 +162,11 @@ class ClickMonitorApi extends BaseApi {
         id: id
       }
     })
+  }
+
+  /**回传媒体批量重试*/
+  fetchRePushRetryBehaviorCallback(ids: string[]) {
+    return requestClient.post(this.getServiceUrl("batch_repush_behavior_callback"), ids)
   }
 }
 
