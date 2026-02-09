@@ -22,6 +22,7 @@ function viewDetailsOpen() {
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
   fullscreenButton: false,
+  // closeOnEsc: true, // 确保第一层是开启的
   onCancel() {
     modalApi.close();
   },

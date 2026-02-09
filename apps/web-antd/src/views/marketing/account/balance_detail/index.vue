@@ -275,7 +275,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   proxyConfig: undefined,
 };
 
-const fixedLeftKeys = ['APPID', 'day', '开发者ID', '账户ID'];
+const fixedLeftKeys = ['APPID', 'day', '开发者ID', '账户ID','公司名称','账户名字'];
 
 async function init(args?: any) {
   try {

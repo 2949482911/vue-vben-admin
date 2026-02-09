@@ -22,5 +22,6 @@ export enum Platform {
   QWEN = "qwen",
   CSJP = "csjp",
   NBY = "nubia",
-  GYXHW = "gyx_huawei"
+  GYXHW = "gyx_huawei",
+  TBSG = "tb_shangou",
 }

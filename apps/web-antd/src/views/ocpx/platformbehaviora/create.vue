@@ -696,6 +696,7 @@ platformConfigForm.set(Platform.REDNOTE, [
   },
 ])
 
+//千问
 platformConfigForm.set(Platform.QWEN, [
   {
     // 媒体配置表单
@@ -771,6 +772,64 @@ platformConfigForm.set(Platform.QWEN, [
     fieldName: 'type',
     // 界面显示的label
     label: `type`,
+    rules: 'required',
+  },
+])
+
+//淘宝闪购
+platformConfigForm.set(Platform.TBSG, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'medium_source',
+    label: 'medium_source',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'delivery_type',
+    label: 'delivery_type',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'ascribe_type',
+    label: `ascribe_type`,
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'demander_type',
+    label: `demander_type`,
+    rules: 'required',
+  }, 
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'biz_type',
+    label: `biz_type`,
+    rules: 'required',
+  }, 
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'restore_id',
+    label: `restore_id`,
     rules: 'required',
   },
 ])
@@ -904,7 +963,7 @@ const [Form, formApi] = useVbenForm({
             });
             matchModel.value = 'callback'
           }
-          if(value != "tb" && value != "jd" && value != "csjp" && value != "nubia"){
+          if(value != "tb" && value != "jd" && value != "csjp" && value != "nubia" && value != "tb_shangou"){
             filterModel(value)
           }
         },

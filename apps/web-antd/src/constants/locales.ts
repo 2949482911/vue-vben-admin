@@ -308,6 +308,10 @@ export const BEHAVIORA_PLATFORM = [
     label: '努比亚',
     value: 'nubia',
   },
+  {
+    label: '淘宝闪购',
+    value: 'tb_shangou',
+  },
 
 ];
 
