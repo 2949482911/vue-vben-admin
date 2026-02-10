@@ -242,7 +242,7 @@ const formOptions: VbenFormProps = {
       pagerConfig: {
         total: 0,
         currentPage: 1,
-        pageSize: pager.pageSize,
+        pageSize: 500,
       },
     });
     await init(defaultQueryParams);
@@ -263,7 +263,10 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   columns: [],
   height: 'auto',
   keepSource: true,
-  pagerConfig: {},
+  pagerConfig: {
+    pageSize:500,
+    pageSizes: [500, 800,1000],
+  },
   exportConfig: {
     filename: '',
     types: [
@@ -275,7 +278,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   proxyConfig: undefined,
 };
 
-const fixedLeftKeys = ['APPID', 'day', '开发者ID', '账户ID'];
+const fixedLeftKeys = ['APPID', 'day', '开发者ID', '账户ID','公司名称','账户名字'];
 
 async function init(args?: any) {
   try {
@@ -309,7 +312,8 @@ async function init(args?: any) {
       pagerConfig: {
         total: pager.total,
         currentPage: pager.currentPage,
-        pageSize: pager.pageSize,
+        pageSize: 500,
+        pageSizes: [500, 800,1000],
       },
     });
   } finally {
@@ -326,6 +330,7 @@ const gridEvents = {
         total: pager.total,
         currentPage: pager.currentPage,
         pageSize: pager.pageSize,
+        pageSizes: [500, 800,1000],
       },
     });
   },

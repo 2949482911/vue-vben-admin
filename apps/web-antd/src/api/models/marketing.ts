@@ -47,6 +47,7 @@ export interface UpdateAdvertiserRequest extends AdvertiserDeveloperBindRequest 
   putStatue: number;
   remark: string;
   projectId: string;
+  companyName: string;
 }
 
 
@@ -405,6 +406,7 @@ export interface AdvertiserDeveloperBindRequest {
   putStatus: number;
   projectId: string;
   remark: string;
+  companyName: string;
 }
 
 export interface PageResult {

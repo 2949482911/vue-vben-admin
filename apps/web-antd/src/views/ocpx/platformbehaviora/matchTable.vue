@@ -7,7 +7,7 @@ import {Button, Input, Select} from "ant-design-vue";
 import {PLATFORM} from "#/constants/locales";
 import { ref, watch } from "vue";
 import {behavioraPlatformApi} from '#/api/core/ocpx';
-
+import ExcelJS from 'exceljs';
 
 type OcpxPlatformMatchForm = Partial<OcpxPlatformMatch>;
 
@@ -109,8 +109,6 @@ function createRow(row?: OcpxPlatformMatchForm, isNew = true) {
 function addMatchCol() {
   list.value.push(createRow())
   gridApi.setGridOptions({data: list.value})
-  console.log(list.value,'新增');
-  
 }
 
 // 复制匹配列
@@ -118,12 +116,10 @@ function copyMatchData(row: OcpxPlatformMatchForm ) {
   const { fullData } = gridApi.grid.getTableData()
   list.value = [...fullData ,createRow(row, true)]
   gridApi.setGridOptions({data: list.value})
-  console.log(list.value,'删除');
 }
 
 // 删除方法
 async function delMatchData(row : OcpxPlatformMatchForm, rowIndex : number) {
-  console.log(row,'11111111111111');
   list.value.splice(rowIndex , 1)
   if(!row._isNew){
     const ids = row.id as string
@@ -135,25 +131,65 @@ async function delMatchData(row : OcpxPlatformMatchForm, rowIndex : number) {
   }
 }
 
-
-// function getSubmitData() {
-//   const { fullData } = gridApi.grid.getTableData();
-
-//   // 去掉 id，只保留后端需要的字段
-//   return fullData.map(({ id, ...rest }) => rest);
-// }
 function getSubmitData() {
   const { fullData } = gridApi.grid.getTableData();
-
   return fullData.map(({ id, _isNew, ...rest }) => {
     // 新增 / 复制的数据：不带 id
     if (_isNew) {
       return rest;
     }
-
     // 回显的数据：保留 id
     return { id, ...rest };
   });
+}
+
+/**导入excel*/
+async function importExcel() {
+  // 1. 创建一个隐藏的 input 用于选择文件
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.xlsx, .xls';
+  
+  input.onchange = async (e: any) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event: any) => {
+      const arrayBuffer = event.target.result;
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(arrayBuffer);
+      
+      const worksheet = workbook.getWorksheet(1); // 读取第一个工作表
+      const jsonData: any[] = [];
+
+      // 2. 解析 Excel 行 (从第 2 行开始，避开表头)
+      worksheet?.eachRow((row, rowNumber) => {
+        if (rowNumber > 1) {
+          const rowData: any = {
+            platform: row.getCell(1).value,     // 1 列是平台
+            advertiserId: row.getCell(2).value, // 2 列是广告主ID
+            campaignId: row.getCell(3).value,
+            adgroupId: row.getCell(4).value,
+            promotionId: row.getCell(5).value,
+            creativeId: row.getCell(6).value,
+            matchId: row.getCell(7).value,
+          };
+          jsonData.push(rowData);
+        }
+      });
+
+      // 3. 转换为业务格式并更新表格
+      const importedList = jsonData.map(item => createRow(item, true));
+      list.value = [...list.value, ...importedList];
+      gridApi.setGridOptions({ data: list.value });
+      
+      console.log('导入成功:', list.value);
+    };
+    reader.readAsArrayBuffer(file);
+  };
+  
+  input.click();
 }
 
 defineExpose({
@@ -164,6 +200,11 @@ defineExpose({
 
 <template>
   <Page>
+    <div class="imBtn">
+      <Button type="primary" @click="importExcel">
+        导入 Excel
+      </Button>
+    </div>
     <Grid>
 
       <template #platform="{ row }">
@@ -210,6 +251,10 @@ defineExpose({
   </Page>
 </template>
 
-<style scoped>
-
+<style scoped lang="scss">
+.imBtn{
+  display: flex;
+  justify-content: flex-end;
+  margin-right: 8px;
+}
 </style>

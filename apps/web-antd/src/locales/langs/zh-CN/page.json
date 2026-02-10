@@ -50,7 +50,12 @@
       "metric": "指标",
       "adreportdata": "广告效果数据"
     },
-    "material": "素材库"
+    "material": "素材库",
+    "creation": {
+      "title": "创编",
+      "vivo": "Vivo营销",
+      "creation_task": "创编任务"
+    }
   },
   "tools": {
     "title": "工具",

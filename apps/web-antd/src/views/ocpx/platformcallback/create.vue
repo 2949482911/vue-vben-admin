@@ -16,13 +16,13 @@ import {useVbenForm} from '#/adapter/form';
 import {advertiserApi} from '#/api';
 import {platformCallbackApi} from '#/api/core/ocpx';
 import {Platform} from '#/constants/enums';
-import {PLATFORM} from '#/constants/locales';
+import {BACKHAUL} from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
 const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest>({
   advertiserId: "", advertiserName: "",
-  onlyClick: false, config: new Map<string, any>(), id: "", name: "", platform: "", remark: ""
+  onlyClick: 0, config: new Map<string, any>(), id: "", name: "", platform: "", remark: ""
 });
 const isUpdate = ref<Boolean>(false);
 
@@ -253,6 +253,35 @@ platformConfigForm.set(Platform.HUAWEI, [
     rules: 'required',
   },
 ]);
+// 广义新华为配置表
+platformConfigForm.set(Platform.GYXHW, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'secretKey',
+    // 界面显示的label
+    label: 'secretKey',
+    rules: 'required',
+  },
+   {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'clickUrl',
+    // 界面显示的label
+    label: '监测链接',
+    rules: 'required',
+  },
+]);
 // 字节回传
 platformConfigForm.set(Platform.BYTEDANCE, []);
 // 荣耀
@@ -403,6 +432,7 @@ const [Form, formApi] = useVbenForm({
       formVal.advertiserId = formVal.config.advertiserId;
       formVal.advertiserName = formVal.config.advertiserName;
     }
+    formVal.onlyClick = Boolean(formVal.onlyClick);
     await (isUpdate.value
       ? platformCallbackApi.fetchPlatformcallbackUpdate(formVal as UpdatePlatformCallbackRequest)
       : platformCallbackApi.fetchPlatformcallbackCreate(formVal as CreatePlatformCallbackRequest));
@@ -429,7 +459,7 @@ const [Form, formApi] = useVbenForm({
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-        options: PLATFORM,
+        options: BACKHAUL,
         onSelect: async (value: string) => {
           configFormApi.setState((_) => {
             return {
@@ -514,17 +544,17 @@ const [Form, formApi] = useVbenForm({
         options: [
           {
             label: `${$t('common.yes')}`,
-            value: true,
+            value: 1,
           },
           {
             label: `${$t('common.no')}`,
-            value: false,
+            value: 0,
           }
         ]
       },
       // 字段名
       fieldName: 'onlyClick',
-      defaultValue: false,
+      defaultValue: 0,
       // 界面显示的label
       label: `${$t('ocpx.platformcallback.columns.onlyClick')}`,
       rules: 'required',
@@ -632,7 +662,7 @@ const [Modal, modalApi] = useVbenModal({
       config: new Map<string, any>(),
       id: '',
       name: '',
-      onlyClick: false,
+      onlyClick: 0,
       platform: 'vivo',
       remark: ''
     };
@@ -672,7 +702,10 @@ const [Modal, modalApi] = useVbenModal({
 });
 
 function handleSetFormValue(row: PlatformcallbackItem | CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest) {
-  formApi.setValues(row);
+  formApi.setValues({
+    ...row,
+    onlyClick: row.onlyClick ? 1 : 0, // 关键这一行
+  });
   configFormApi.setState((_) => {
     return {
       schema: platformConfigForm.get(row.platform),

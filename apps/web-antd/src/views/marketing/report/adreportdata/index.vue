@@ -97,7 +97,7 @@ async function handleTemplateSaved() {
 const allData = ref<any[]>([]); // 接口返回的全部数据
 const pager = reactive({
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 500,
   total: 0,
 });
 
@@ -139,6 +139,7 @@ function reloadGrid(columns: string[], pageData: any[],footData:any) {
       total: pager.total,
       currentPage: pager.currentPage,
       pageSize: pager.pageSize,
+      pageSizes: [500, 800,1000],
     },
     //表尾数据展示
     footerData:[{
@@ -168,6 +169,7 @@ async function updatePageData() {
       total: pager.total,
       currentPage: pager.currentPage,
       pageSize: pager.pageSize,
+      pageSizes: [500, 800,1000],
     },
   });
   gridApi.setLoading(false);
@@ -416,6 +418,7 @@ const formOptions: VbenFormProps = {
         total: 0,
         currentPage: 1,
         pageSize: pager.pageSize,
+        pageSizes: [500, 800,1000],
       },
     });
   },
@@ -498,6 +501,7 @@ const gridOptions: VxeGridProps = {
     total: pager.total,
     pageSize: pager.pageSize,
     currentPage: pager.currentPage,
+    pageSizes: [500, 800,1000],
   },
   proxyConfig: undefined, // 保持
   footerData: []

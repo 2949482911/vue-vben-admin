@@ -37,6 +37,7 @@ const objectRequest = ref<BehavioraPlatformItem>({
   remark: "",
   simulate: 0,
   filterBehavior:[],
+  simulateBehaviorType:"",
   status: 0,
   updateTime: "",
   updateUsername: "",
@@ -713,6 +714,7 @@ platformConfigForm.set(Platform.KARANG, [
   },
 ])
 
+//千问
 platformConfigForm.set(Platform.QWEN, [
   {
     // 媒体配置表单
@@ -792,6 +794,64 @@ platformConfigForm.set(Platform.QWEN, [
   },
 ])
 
+//淘宝闪购
+platformConfigForm.set(Platform.TBSG, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'medium_source',
+    label: 'medium_source',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'delivery_type',
+    label: 'delivery_type',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'ascribe_type',
+    label: `ascribe_type`,
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'demander_type',
+    label: `demander_type`,
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'biz_type',
+    label: `biz_type`,
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'restore_id',
+    label: `restore_id`,
+    rules: 'required',
+  },
+])
+
 // 俊波
 platformConfigForm.set(Platform.JUNBO, [
   {
@@ -847,6 +907,19 @@ async function filterModel(value:string){
 }
 
 const matchTableRef = ref<InstanceType<typeof MatchTable>>()
+
+/**回传事件的下拉 */
+const behaviorTypeList = ref<Array<PlatformCallbackBehaviorTypeItem>>([]);
+async function updateBehaviorTypeList(platform: string) {
+  if (!platform) return;
+  try {
+    const list = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(platform);
+    behaviorTypeList.value = list || [];
+  } catch (error) {
+    console.error('获取行为类型失败', error);
+    behaviorTypeList.value = [];
+  }
+}
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -935,14 +1008,10 @@ const [Form, formApi] = useVbenForm({
           if (Object.keys(defaultValues).length) {
             configFormApi.setValues(defaultValues);
           }
-          formApi.setValues({
-            filterBehavior: []
-          });
+          formApi.setValues({filterBehavior: []});
           // 平台切换成淘宝联盟时需要更新行为类型默认值
           if (value === "tb_union") {
-            configFormApi.setValues({
-              action: 2
-            });
+            configFormApi.setValues({action: 2});
           }
           if (value === "jd") {
             formApi.setValues({
@@ -955,7 +1024,7 @@ const [Form, formApi] = useVbenForm({
             });
             matchModel.value = 'callback'
           }
-          if(value != "tb" && value != "jd" && value != "csjp" && value != "nubia"){
+          if(value != "tb" && value != "jd" && value != "csjp"){
             filterModel(value)
           }
         },
@@ -1092,6 +1161,39 @@ const [Form, formApi] = useVbenForm({
       component: 'Select',
       // 对应组件的参数
       componentProps: {
+        placeholder: `${$t('common.select')}`,
+        options: behaviorTypeList,
+      },
+      // 字段名
+      fieldName: 'simulateBehaviorType',
+      // 界面显示的label
+      label: `${$t('ocpx.platformcallback.columns.behaviorType')}`,
+      rules: 'required',
+      dependencies: {show: (values) => {
+          const isSimulate = values.simulate === 1;
+          const isValidPlatform = !['tb', 'jd', 'csjp'].includes(values.platform);
+          return isSimulate && isValidPlatform;
+        },
+        triggerFields: ['simulate','platform'],
+        // 联动触发：当依赖项变化时，自动决定是否加载下拉列表
+        trigger: async (values) => {
+          const isValidPlatform = !['tb', 'jd', 'csjp'].includes(values.platform);
+          if (values.simulate === 1 && values.platform && isValidPlatform) {
+            await updateBehaviorTypeList(values.platform);
+            formApi.setFieldValue('simulateBehaviorType', undefined);
+          } else {
+            behaviorTypeList.value = [];
+            // 可选：隐藏时清空已选值，防止提交非法数据
+            formApi.setFieldValue('simulateBehaviorType', undefined);
+          }
+        },
+      },
+    },
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Select',
+      // 对应组件的参数
+      componentProps: {
         mode:"multiple",
         placeholder: `${$t('common.input')}`,
         options: filterModelSelect,
@@ -1155,18 +1257,22 @@ const [Modal, modalApi] = useVbenModal({
         ocpxPlatformMatchList.value = objectRequest.value.ocpxPlatformMatchList;
         matchModel.value = objectRequest.value.model;
       } else {
+        ocpxPlatformMatchList.value = [];
         isUpdate.value = false;
       }
     }
   },
 });
 
-function handleSetFormValue(row: BehavioraPlatformItem) {
+async function handleSetFormValue(row: BehavioraPlatformItem) {
   //因为后端定义的是bool值但是我这边前端掉换成0和1，select绑定bool值会有警告
   formApi.setValues({
     ...row,
     simulate: row.simulate ? 1 : 0, // 关键这一行
   });
+
+  await filterModel(row.platform);
+
   // 统一：Map -> 普通对象
   const configObj = row.config instanceof Map
     ? Object.fromEntries(row.config.entries())
@@ -1240,7 +1346,7 @@ const title: string = objectRequest.value.id
     <Card :bordered="false" v-if="matchModel === 'match'">
       <MatchTable
         ref="matchTableRef"
-        :match-data-list="ocpxPlatformMatchList"
+        :match-data-list="ocpxPlatformMatchList||[]"
       />
     </Card>
   </Modal>
