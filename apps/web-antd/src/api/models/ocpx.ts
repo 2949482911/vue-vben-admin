@@ -47,6 +47,7 @@ export interface BehavioraPlatformItem extends BaseItem {
   type: number,
   directLink: string,
   matchField?: number | string;
+  simulateBehaviorType?:string
 }
 
 // 转化匹配列表

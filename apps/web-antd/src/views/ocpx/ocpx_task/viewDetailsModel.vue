@@ -17,23 +17,22 @@ function colseEvent(){
 const callbackDetails = ref<CallbackInfo | null>()
 const clickDetails = ref<ClickInfo | null>()
 const [Drawer, drawerApi] = useVbenDrawer({
-  // zIndex: 2000, // 明确给第二层一个更高的 z-index，强制提升它的优先级
-  // closeOnPressEscape: true,
+  zIndex: 2000, 
+  // 2. 明确开启 ESC 监听
+  closeOnPressEscape: true,
+  destroyOnClose: true,
   async onOpenChange(isOpen) {
     if(isOpen){
       const res = await ocpxTaskApi.fetchOxpcTransmissionRecord(props.detailsId)
-      if(res.callbackInfo) callbackDetails.value = res.callbackInfo
-      else callbackDetails.value = null
-      if(res.clickInfo) clickDetails.value = res.clickInfo
-      else clickDetails.value = null
+      callbackDetails.value = res.callbackInfo
+      clickDetails.value = res.clickInfo
+    }else{
+      colseEvent()
     }
   },
   async onConfirm() {
     colseEvent()
   },
-  async onCancel() {
-    colseEvent()
-  }
 });
 </script>
 <template>

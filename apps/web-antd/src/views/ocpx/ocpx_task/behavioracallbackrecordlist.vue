@@ -8,11 +8,19 @@ import {Page, useVbenModal, type VbenFormProps, useVbenDrawer} from '@vben/commo
 import {Tag, Button, message} from "ant-design-vue";
 import { trimObject } from "#/utils/trim";
 import viewDetailsModel from './viewDetailsModel.vue';
-import { nextTick, ref } from "vue";
+import { ref } from "vue";
 
 const [ViewDetailsModel, drawerApi] = useVbenDrawer({
   // 连接抽离的组件
   connectedComponent: viewDetailsModel,
+  // 核心逻辑：监听第二层的打开与关闭
+  onOpenChange(isOpen: boolean) {
+    // 当第二层打开时，禁用第一层的 closeOnPressEscape
+    // 当第二层关闭时，恢复第一层的 closeOnPressEscape
+    modalApi.setState({
+      closeOnPressEscape: !isOpen,
+    });
+  },
 });
 
 function viewDetailsOpen() {
@@ -22,7 +30,9 @@ function viewDetailsOpen() {
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
   fullscreenButton: false,
-  // closeOnEsc: true, // 确保第一层是开启的
+  // 确保第一层有一个明确的 zIndex (可选)
+  zIndex: 1000,
+  closeOnPressEscape: true,
   onCancel() {
     modalApi.close();
   },
@@ -137,7 +147,6 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
 const detailsId = ref<string>('')
 async function viewDetails(row:OcpxBehavioracallbackRecordItem){
   detailsId.value = row.id
-  await nextTick();
   viewDetailsOpen()
 }
 
