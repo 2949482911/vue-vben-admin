@@ -19,6 +19,8 @@ const {
   gridApi.setLoading(loading);
 });
 
+pager.pageSize = 500;
+
 const defaultQueryParams = {
   platform: 'huawei_store',
   dateTime: [
@@ -273,7 +275,9 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       "csv",
       "xlsx",
       "xls"
-    ]
+    ],
+    modes: ['current'],
+    original: true,
   },
   proxyConfig: undefined,
 };
@@ -312,7 +316,7 @@ async function init(args?: any) {
       pagerConfig: {
         total: pager.total,
         currentPage: pager.currentPage,
-        pageSize: 500,
+        pageSize: pager.pageSize,
         pageSizes: [500, 800,1000],
       },
     });
