@@ -144,9 +144,9 @@ function handleBreadcrumbJump(item: FolderItem) {
         </Card>
       </Col>
     </Row>
+    <NewFolderModal @treeNode="requestTreeNode" :treeData="treeData" :idEdit="idEditStr"/>
+    <UploadMaterialsModal @treeNode="requestTreeNode" :treeData="treeData"/>
   </Page>
-  <NewFolderModal @treeNode="requestTreeNode" :treeData="treeData" :idEdit="idEditStr"/>
-  <UploadMaterialsModal @treeNode="requestTreeNode" :treeData="treeData"/>
 </template>
 
 <style scoped lang="scss">
