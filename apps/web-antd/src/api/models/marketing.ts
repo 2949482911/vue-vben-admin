@@ -314,8 +314,9 @@ export interface FolderItem {
   updatedBy: string;
 }
 
-/**创建文件夹 */
+/**创建文件夹和编辑文件夹的type */
 export interface CreateFolderParams {
+  id?:string;
   name: string;
   parentId?: string;
   remark?: string;
@@ -323,10 +324,10 @@ export interface CreateFolderParams {
 
 /**素材列表数据类型 */
 export interface MaterialListParams {
-  name: string;
+  name?: string;
   albumId: string;
   pageSize:number;
-  current:number;
+  page:number;
 }
 
 /**上传素材 */

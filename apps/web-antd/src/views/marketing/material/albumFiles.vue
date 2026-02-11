@@ -2,8 +2,9 @@
 <script setup lang="ts">
 import { Dropdown, Menu, MenuItem, Pagination } from "ant-design-vue";
 import { uploadEditApi } from '#/api/core';
-import { reactive, watch } from "vue";
+import { reactive, ref, watch } from "vue";
 import type { FolderItem } from '#/api/models';
+import type { MaterialLibraryFolderType } from "./materialType";
 
 const props = defineProps<{
   treeItem: FolderItem[]
@@ -26,76 +27,71 @@ const pages = reactive({
   current:1,
   total:0
 })
-const onShowSizeChange = (current: number, pageSize: number) => {
-  pages.current = current
-  pages.pageSize = pageSize
-  fileList();
+// 分页页码改变时的回调
+const handlePageChange = (page: number, pageSize: number) => {
+  pages.current = page;
+  pages.pageSize = pageSize;
+  fileList(); // 重新拉取数据
 };
 
-async function fileList(){
-  const firstFolder = props.treeItem[0];
-  if (!firstFolder) return;
-  try{
+const list = ref<any[]>()
+async function fileList() {
+  // 增加更严谨的判断：确保 treeItem 有值且最后一项不为空
+  if (!props.treeItem || props.treeItem.length === 0) return;
+  
+  const currentFolder = props.treeItem[props.treeItem.length - 1];
+  
+  // 关键：如果最后一项是 undefined，直接拦截
+  if (!currentFolder || !currentFolder.id) {
+    console.warn('当前路径节点无效:', currentFolder);
+    return;
+  }
+
+  try {
     const res = await uploadEditApi.fetchMaterialList({
-      name: firstFolder.name,
-      albumId: firstFolder.id,
+      albumId: currentFolder.id, // 现在这里不会报 undefined 错误了
       pageSize: pages.pageSize,
-      current: pages.current,
-    })
-    pages.total = res.total
-    console.log(res,'resresresres');
-  }catch(err){
-    console.log(err);
+      page: pages.current,
+    });
+    list.value = [];
+    pages.total = res.total;
+    list.value = res.items;
+  } catch (err) {
+    console.error(err);
   }
 }
 
-const emit = defineEmits(['openFile']);
-
-interface MaterialItem {
-  id: number;
-  type: 'folder' | 'file';
-  title: string;
-  count?: number;
-  cover?: string;
-  size?: string;
-  status?: string;
+// 当点击列表里的文件夹卡片时
+function handleFolderClick(item: any) {
+  if (item.type === 1) { // 假设 1 是文件夹
+    // 触发父组件的 breadcrumbClick 事件，让父组件去更新选中项和路径
+    emit('breadcrumbClick', item);
+  }
 }
 
-/**
- * 改这个数组即可验证三种情况
- * 1. 全 folder
- * 2. 全 file
- * 3. folder + file 混合（当前就是）
- */
-const list: MaterialItem[] = [
-  { id: 1, type: 'folder', title: '腾讯', count: 11 },
-  { id: 2, type: 'folder', title: '巨量', count: 40 },
-  { id: 3, type: 'folder', title: '巨量', count: 40 },
-  { id: 4, type: 'folder', title: '巨量', count: 40 },
-  { id: 5, type: 'folder', title: '巨量', count: 40 },
-  { id: 6, type: 'folder', title: '巨量', count: 40 },
-  { id: 7, type: 'folder', title: '巨量', count: 40 },
-  { id: 8, type: 'folder', title: '巨量', count: 40 },
-  {
-   id: 9,
-   type: 'file',
-   title: 'R-C (1)',
-    cover: 'https://picsum.photos/400/225?1',
-    size: '1920×1080',
-    status: '2026-01-12 10:35:58',
-  },
-  {
-    id: 10,
-    type: 'file',
-    title: 'R-C (2)',
-    cover: 'https://picsum.photos/400/225?2',
-    size: '1920×1080',
-    status: '2026-01-12 10:35:58',
-  },
-];
+const emit = defineEmits<{
+  (e: 'openFile', rowVal: MaterialLibraryFolderType): void;
+  (e: 'breadcrumbClick', item: FolderItem): void;
+}>();
 
-function editFile(rowVal:any){
+function editFile(rowVal:MaterialLibraryFolderType){
   emit('openFile', rowVal)
+}
+
+// 点击面包屑跳转
+function handleBreadcrumbClick(item: FolderItem) {
+  // --- 完善防御逻辑 ---
+  if (!props.treeItem || props.treeItem.length === 0) return;
+  
+  // 获取当前最后一项（即当前展示的目录）
+  const currentFolder = props.treeItem[props.treeItem.length - 1];
+  
+  // 如果点击的是当前已选中的目录，直接返回，不触发 emit
+  if (item.id === currentFolder?.id) {
+    return;
+  }
+  // 通常是触发一个事件，让父组件切换选中的文件夹 ID
+  emit('breadcrumbClick', item); 
 }
 
 </script>
@@ -103,7 +99,16 @@ function editFile(rowVal:any){
 <template>
   <div class="material-page">
     <div class="material">
-      全部专辑 / demo侧手i1111 / 金智
+      <template v-for="(item, index) in props.treeItem" :key="item?.id || index">
+        <span v-if="item"> <span 
+            class="breadcrumb-item" 
+            @click="handleBreadcrumbClick(item)"
+          >
+            {{ item.name }}
+          </span>
+          <span v-if="index < props.treeItem.length - 1" class="separator"> / </span>
+        </span>
+      </template>
     </div>
     <div class="material-list">
       <div
@@ -113,47 +118,49 @@ function editFile(rowVal:any){
         :class="item.type"
       >
         <!-- 文件夹 -->
-        <template v-if="item.type === 'folder'">
-          <div class="folder-cover">
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/716/716784.png"
-              alt="folder"
-            />
-          </div>
-          <div class="folder-info">
-            <div class="title">{{ item.title }}</div>
-            <div class="main-text">
-              <div class="count">素材 {{ item.count }}</div>
-              <!-- 三个点 -->
-              <div class="more-btn">
-              <Dropdown placement="bottom">
-                <a href="javascript:;">•••</a>
-                <template #overlay>
-                  <Menu>
-                    <MenuItem>
-                      <a href="javascript:;" @click="editFile(item)">编辑</a>
-                    </MenuItem>
-                    <!-- <MenuItem>
-                      <a href="javascript:;">删除</a>
-                    </MenuItem> -->
-                  </Menu>
-                </template>
-              </Dropdown>
+        <template v-if="item.type === 1">
+          <div class="folder-content" @click="handleFolderClick(item)">
+            <div class="folder-cover">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/716/716784.png"
+                alt="folder"
+              />
+            </div>
+            <div class="folder-info">
+              <div class="title" :title="item.name">{{ item.name }}</div>
+              <div class="main-text">
+                <div class="count">素材 {{ item.count }}</div>
+                <!-- 三个点 -->
+                <div class="more-btn">
+                <Dropdown placement="bottom">
+                  <a href="javascript:;">•••</a>
+                  <template #overlay>
+                    <Menu>
+                      <MenuItem>
+                        <a href="javascript:;" @click="editFile(item)">编辑</a>
+                      </MenuItem>
+                      <!-- <MenuItem>
+                        <a href="javascript:;">删除</a>
+                      </MenuItem> -->
+                    </Menu>
+                  </template>
+                </Dropdown>
 
+                </div>
               </div>
             </div>
-          </div>
+        </div>
         </template>
   
         <!-- 文件 -->
         <template v-else>
           <div class="file-cover">
-            <img :src="item.cover" alt="file" />
-            <span class="size">{{ item.size }}</span>
+            <img :src="item.fileUrl" alt="file" />
+            <!-- <span class="size">{{ item.size }}</span> -->
           </div>
           <div class="file-info">
-            <div class="title">{{ item.title }}</div>
-            <div class="status">上传时间：{{ item.status }}</div>
+            <div class="title" :title="item.name">{{ item.name }}</div>
+            <div class="status">上传时间：{{ item.updateTime }}</div>
           </div>
         </template>
       </div>
@@ -165,7 +172,7 @@ function editFile(rowVal:any){
       v-model:pageSize="pages.pageSize"
       :total="pages.total"
       :show-total="total => `共 ${total} 条`"
-      @showSizeChange="onShowSizeChange"
+      @change="handlePageChange"
     />
   </div>
 </template>
@@ -178,12 +185,40 @@ function editFile(rowVal:any){
   overflow: hidden;        /* 防止整体被撑破 */
 }
 
-.material{
+.material {
   flex-shrink: 0;
-  padding: 10px 0;
+  padding: 10px 15px; /* 稍微增加内边距 */
   margin-top: 10px;
+  font-size: 14px;
+  color: #666;
   border-top: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
+}
+
+.breadcrumb-item {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.breadcrumb-item:hover {
+  color: #1890ff; /* 悬浮时变蓝色，提示可点击 */
+}
+
+.separator {
+  margin: 0 8px;
+  color: #ccc;
+  cursor: default;
+}
+
+/* 最后一个面包屑高亮或不可点击（表示当前位置） */
+.material > span:last-child .breadcrumb-item {
+  font-weight: bold;
+  color: #333;
+  cursor: default;
+}
+
+.material > span:last-child .breadcrumb-item:hover {
+  text-decoration: none;
 }
 
 /* 容器：自动换行 */
@@ -200,6 +235,10 @@ function editFile(rowVal:any){
 
 /* 公共卡片样式 */
 .material-item {
+  flex-shrink: 0; /* 确保在空间不足时不会缩小 */
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
   cursor: pointer;
   background: #fff;
   border: 1px solid #e5e7eb;
@@ -213,7 +252,6 @@ function editFile(rowVal:any){
 
 /* ================= 文件夹 ================= */
 .material-item.folder {
-  width: 220px;
   padding: 12px;
 }
 
@@ -231,6 +269,7 @@ function editFile(rowVal:any){
 }
 
 .folder-info {
+  padding: 8px 12px;
   margin-top: 8px;
 }
 
@@ -251,9 +290,27 @@ function editFile(rowVal:any){
   color: #6b7280;
 }
 
+.title {              
+  display: block;  
+
+  /* 确保它占据父容器的宽度 */
+  width: 100%;      
+
+  /* 隐藏超出部分 */
+  overflow: hidden;         
+
+  /* 溢出部分用省略号代替 */
+  text-overflow: ellipsis;
+  font-size: 14px;
+  font-weight: 500;
+
+  /* 强制单行显示 */
+  white-space: nowrap;
+}
+
 /* ================= 文件 ================= */
 .material-item.file {
-  width: 220px;
+   /* padding: 12px; */
 }
 
 .file-cover {
@@ -277,6 +334,11 @@ function editFile(rowVal:any){
   color: #fff;
   background: rgb(0 0 0 / 60%);
   border-radius: 2px;
+}
+
+.folder-cover, .file-cover {
+  height: 140px; /* 统一封面高度 */
+  overflow: hidden;
 }
 
 .file-info {

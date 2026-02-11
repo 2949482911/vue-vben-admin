@@ -234,6 +234,10 @@ class MaterialLibraryApi extends BaseApi {
   fetchCreateFile(params: CreateFolderParams) {
     return requestClient.post(this.getServiceUrl("create"), params)
   }
+  /**编辑文件夹*/
+  fetchUpdateFile(params: CreateFolderParams) {
+    return requestClient.post(this.getServiceUrl("update"), params)
+  }
 }
 
 export const materialLibraryApi = new MaterialLibraryApi("/platform/album");
