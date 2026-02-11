@@ -34,6 +34,8 @@ export interface AdvertiserItem extends BaseItem {
   projectId: string;
   platformAuditState: string;
   config: Map<string, any>;
+  customer?: "",
+  saleId?: "",
 }
 
 
@@ -407,6 +409,8 @@ export interface AdvertiserDeveloperBindRequest {
   projectId: string;
   remark: string;
   companyName: string;
+  customer?: string,
+  saleId?: string,
 }
 
 export interface PageResult {
