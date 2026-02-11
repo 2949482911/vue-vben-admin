@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Row, Col, DirectoryTree, Button } from "ant-design-vue";
+import { Row, Col, DirectoryTree, Button, Card } from "ant-design-vue";
 import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { nextTick, onMounted, ref } from "vue";
 import NewFolder from "./newFolder.vue";
@@ -109,10 +109,10 @@ function handleBreadcrumbJump(item: FolderItem) {
 </script>
 
 <template>
-  <div class="material">
-    <Page auto-content-height>
-      <Row class="materialRow" :gutter="{ xs:8, sm:16, md:16}">
-        <Col class="leftCol" :span="6">
+  <Page auto-content-height>
+    <Row class="materialRow" :gutter="{ xs:8, sm:16, md:16}">
+      <Col class="leftCol" :span="6">
+        <Card style="width: 100%;">
           <div class="materialLeft">
             <div style="margin-bottom: 8px;font-size: 17px;text-align: center;">全部专辑</div>
             <div class="tree">
@@ -130,52 +130,68 @@ function handleBreadcrumbJump(item: FolderItem) {
               </DirectoryTree>
             </div>
           </div>
-        </Col>
-        <Col class="rightCol" :span="18">
-          <div class="materialRight">
+        </Card>
+      </Col>
+      <Col class="rightCol" :span="18">
+        <Card style="width: 100%;">
+          <div class="materialRight" style="height: 100%;">
             <div>
               <Button type="primary" @click="upMaterial">上传素材</Button>
               <Button style="margin: 0 0 0 5px;" @click="newBuilt()">新建文件夹</Button>
             </div>
             <AlbumFiles @open-file="newBuilt" @breadcrumb-click="handleBreadcrumbJump" :treeItem="treeItem ?? []"/>
           </div>
-        </Col>
-      </Row>
-    </Page>
-    <NewFolderModal @treeNode="requestTreeNode" :treeData="treeData" :idEdit="idEditStr"/>
-    <UploadMaterialsModal @treeNode="requestTreeNode" :treeData="treeData"/>
-  </div>
+        </Card>
+      </Col>
+    </Row>
+  </Page>
+  <NewFolderModal @treeNode="requestTreeNode" :treeData="treeData" :idEdit="idEditStr"/>
+  <UploadMaterialsModal @treeNode="requestTreeNode" :treeData="treeData"/>
 </template>
 
 <style scoped lang="scss">
 .materialRow {
   height: 100%;
+  overflow: hidden;
 }
 
 .leftCol,
-.rightCol {
+.rightCol { 
   display: flex;
+  flex-direction: column;
   height: 100%;
+}
+
+:deep(.ant-card) {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  
+  .ant-card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden; /* 内部溢出由子 div 处理 */
+  }
 }
 
 .materialLeft,
 .materialRight {
   flex: 1;
   padding: 10px;
-  background: white;
-  // background: pink;
   border-radius: calc(var(--radius) - 2px)
 }
 
 .materialLeft{
   display: flex;          
-  flex-direction: column; 
-  padding-bottom: 13px;
-  overflow: hidden;       
+  flex-direction: column;
+  min-height: 0; 
+  padding-bottom: 13px      
 }
 
 .tree{
-  overflow: hidden auto;       
+  flex: 1;
+  overflow: hidden auto; /* 超出时显示竖向滚动条 */      
 }
 
 :deep(.ant-tree){

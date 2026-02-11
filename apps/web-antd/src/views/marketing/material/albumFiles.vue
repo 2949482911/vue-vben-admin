@@ -181,8 +181,8 @@ function handleBreadcrumbClick(item: FolderItem) {
 .material-page {
   display: flex;
   flex-direction: column;
-  height: 97%;            /* 或 calc(100vh - xxx) */
-  overflow: hidden;        /* 防止整体被撑破 */
+  height: 98%;            
+  overflow: hidden;        
 }
 
 .material {
@@ -229,6 +229,7 @@ function handleBreadcrumbClick(item: FolderItem) {
   gap: 16px;
   align-content: flex-start;
   align-items: flex-start;
+  min-height: 0;
   margin: 10px 0;
   overflow-y: auto;
 }
@@ -356,6 +357,7 @@ function handleBreadcrumbClick(item: FolderItem) {
 }
 
 .pagination{
+  flex-shrink: 0;
   padding: 5px 0 0;
   border-top: 1px solid #ccc;
 }
