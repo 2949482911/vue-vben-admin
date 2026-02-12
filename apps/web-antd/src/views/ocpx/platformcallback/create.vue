@@ -282,6 +282,69 @@ platformConfigForm.set(Platform.GYXHW, [
     rules: 'required',
   },
 ]);
+
+// 广义新oppo 配置清单
+platformConfigForm.set(Platform.GYXOPPO, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'salt',
+    // 界面显示的label
+    label: `salt`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'base64Key',
+    // 界面显示的label
+    label: `base64Key`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'pkgName',
+    // 界面显示的label
+    label: `pkgName`,
+    rules: 'required',
+  },
+  {
+    defaultValue: '1',
+    // 媒体配置表单
+    component: 'Select',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+      options: [
+        {
+          label: 'oppo',
+          value: '1',
+        },
+      ],
+    },
+    // 字段名
+    fieldName: 'channel',
+    // 界面显示的label
+    label: `channel`,
+    rules: 'required',
+  },
+]);
 // 字节回传
 platformConfigForm.set(Platform.BYTEDANCE, []);
 // 荣耀
@@ -479,7 +542,6 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('ocpx.platformcallback.columns.platform')}`,
       rules: 'required',
     },
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
@@ -493,7 +555,6 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('ocpx.platformcallback.columns.name')}`,
       rules: 'required',
     },
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
@@ -513,7 +574,6 @@ const [Form, formApi] = useVbenForm({
         triggerFields: ['platform'],
       },
     },
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
@@ -533,8 +593,6 @@ const [Form, formApi] = useVbenForm({
         triggerFields: ['platform'],
       },
     },
-
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Select',
@@ -559,8 +617,6 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('ocpx.platformcallback.columns.onlyClick')}`,
       rules: 'required',
     },
-
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Select',
@@ -593,8 +649,6 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('ocpx.platformcallback.behaviorTypeMoel')}`,
       rules: 'required',
     },
-
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Select',
@@ -615,8 +669,6 @@ const [Form, formApi] = useVbenForm({
         triggerFields: ['behaviorTypeMoel'],
       },
     },
-
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'InputNumber',
@@ -635,7 +687,6 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('ocpx.platformcallback.columns.ratio')}`,
       rules: 'required',
     },
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Textarea',

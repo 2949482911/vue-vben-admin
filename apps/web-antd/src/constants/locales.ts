@@ -175,6 +175,10 @@ export const PLATFORM = [
   {
     label: '广义新华为',
     value: 'gyx_huawei',
+  },
+  {
+    label: '广义新oppo',
+    value: 'gyx_oppo',
   }
 ];
 
@@ -221,6 +225,10 @@ export const BACKHAUL = [
   {
     label: '广义新华为',
     value: 'gyx_huawei',
+  },
+  {
+    label: '广义新oppo',
+    value: 'gyx_oppo',
   }
 ];
 
