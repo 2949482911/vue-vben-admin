@@ -148,7 +148,7 @@ const [Form, formApi] = useVbenForm({
       label: '公司名称',
       dependencies: {
         show: value => {
-          return !value.id && value.platform === 'huawei_store'
+          return value.platform === 'huawei_store'
         },
         triggerFields: ['platform','id']
       }
