@@ -1,6 +1,6 @@
 {
   "name": "@vben/web-antd",
-  "version": "5.5.9",
+  "version": "5.6.0",
   "homepage": "https://vben.pro",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": {
@@ -26,9 +26,6 @@
     "#/*": "./src/*"
   },
   "dependencies": {
-    "@bpmn-io/properties-panel": "^3.25.1",
-    "@logicflow/core": "^2.0.10",
-    "@logicflow/extension": "^2.0.14",
     "@vben-core/menu-ui": "workspace:*",
     "@vben/access": "workspace:*",
     "@vben/common-ui": "workspace:*",
@@ -51,15 +48,8 @@
     "vxe-table": "catalog:",
     "ali-oss": "^6.23.0",
     "ant-design-vue": "catalog:",
-    "bpmn-js": "catalog:",
-    "bpmn-js-bpmnlint": "^0.22.3",
-    "bpmn-js-color-picker": "^0.7.1",
-    "bpmn-js-properties-panel": "^5.30.0",
-    "camunda-bpmn-moddle": "^7.0.1",
     "dayjs": "catalog:",
-    "epic-designer": "catalog:",
     "pinia": "catalog:",
-    "spark-md5": "^3.0.2",
     "vue": "catalog:",
     "vue-router": "catalog:"
   }
