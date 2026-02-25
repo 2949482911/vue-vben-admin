@@ -46,11 +46,12 @@
     "exceljs": "catalog:",
     "vxe-pc-ui": "catalog:",
     "vxe-table": "catalog:",
-    "ali-oss": "^6.23.0",
+    "ali-oss": "catalog:",
     "ant-design-vue": "catalog:",
     "dayjs": "catalog:",
     "pinia": "catalog:",
     "vue": "catalog:",
-    "vue-router": "catalog:"
+    "vue-router": "catalog:",
+    "spark-md5": "catalog:"
   }
 }
