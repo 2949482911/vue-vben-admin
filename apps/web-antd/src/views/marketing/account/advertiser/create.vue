@@ -3,8 +3,8 @@ import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import {ref} from 'vue';
 import {useVbenForm} from "#/adapter/form";
-import type {AdvertiserItem, DeveloperItem} from "#/api/models";
-import {advertiserApi, projectApi, developerApi} from "#/api";
+import type {AdvertiserItem, DeveloperItem, UserItem} from "#/api/models";
+import {advertiserApi, projectApi, developerApi,userApi} from "#/api";
 import {STATUS_SELECT, ADVERTISET_ADDED} from "#/constants/locales";
 import { trimObject } from '#/utils/trim';
 
@@ -15,6 +15,8 @@ const objectRequest = ref<AdvertiserItem>({
   advertiserId: "",
   advertiserName: "",
   advertiserRole: "",
+  customer: "",
+  saleId: "",
   balance: 0,
   companyName: "",
   createTime: "",
@@ -40,6 +42,7 @@ interface DeveloperOption {
   value: string;
 }
 const developerOption = ref<DeveloperOption[]>([])
+const salesOption = ref<DeveloperOption[]>([])
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -61,6 +64,8 @@ const [Form, formApi] = useVbenForm({
         advertiserId: params.advertiserId,
         companyName: params.companyName,
         advertiserName: params.advertiserName,
+        customer: params.customer,
+        saleId: params.saleId,
         developerId: params.developerId,
         config: {},
         advertiserRole: params.advertiserRole,
@@ -75,6 +80,8 @@ const [Form, formApi] = useVbenForm({
         companyName: params.companyName,
         config: {},
         advertiserRole: params.advertiserRole,
+        customer: params.customer,
+        saleId: params.saleId,
         putStatus: params.putStatue,
         projectId: params.projectId,
         remark: params.remark,
@@ -141,7 +148,7 @@ const [Form, formApi] = useVbenForm({
       label: '公司名称',
       dependencies: {
         show: value => {
-          return !value.id && value.platform === 'huawei_store'
+          return value.platform === 'huawei_store'
         },
         triggerFields: ['platform','id']
       }
@@ -204,6 +211,33 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'Select',
       componentProps: {
+        allowClear: true,
+        options: salesOption,
+        placeholder: `${$t('common.choice')}`,
+      },
+      // 字段名
+      fieldName: 'saleId',
+      label: '销售',
+      dependencies: {
+        show: (value) => !value.id,
+        triggerFields: ['id'],
+      },
+    },
+    {
+      component: "Input",
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      fieldName: 'customer',
+      label: '客户系',
+      dependencies: {
+        show: (value) => !value.id,
+        triggerFields: ['id'],
+      },
+    },
+    {
+      component: 'Select',
+      componentProps: {
         placeholder: `${$t('common.choice')}`,
         options: STATUS_SELECT,
       },
@@ -257,6 +291,8 @@ const [Modal, modalApi] = useVbenModal({
       putStatus: 0,
       advertiserId: "",
       advertiserName: "",
+      customer: "",
+      saleId: "",
       advertiserRole: "",
       balance: 0,
       companyName: "",
@@ -300,6 +336,11 @@ const [Modal, modalApi] = useVbenModal({
       const res = await developerApi.fetchDeveloperList({platform:'huawei_store', page:1, pageSize:200 })
       developerOption.value = res.items.map((item:DeveloperItem) => ({
         label: item.name,
+        value: item.id,
+      }));
+      const saleSRes:any = await userApi.fetchUserList({orgId:'2019713852836679680', page:1, pageSize:200 })
+      salesOption.value = saleSRes.items.map((item:UserItem) => ({
+        label: item.nickname,
         value: item.id,
       }));
     } else {

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import {Page} from '@vben/common-ui';
 import type {VbenFormProps} from '@vben/common-ui';
+import {Page} from '@vben/common-ui';
 import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
-import { $t } from '@vben/locales';
-import { ADVERTISET_ADDED, CONSUMPTION_DETAIL_DIMENSION } from '#/constants/locales';
+import {$t} from '@vben/locales';
+import {ADVERTISET_ADDED, CONSUMPTION_DETAIL_DIMENSION} from '#/constants/locales';
 import dayjs from 'dayjs';
-import { ref, onMounted } from 'vue';
-import {advertiserApi, developerApi } from '#/api';
-import type { AdvertiserItem } from '#/api/models';
-import { useClientPagination } from '#/utils/pagination';
+import {onMounted, ref} from 'vue';
+import {advertiserApi, developerApi} from '#/api';
+import type {AdvertiserItem} from '#/api/models';
+import {useClientPagination} from '#/utils/pagination';
 
 const {
   pager,
@@ -18,6 +18,8 @@ const {
 } = useClientPagination<any>((loading) => {
   gridApi.setLoading(loading);
 });
+
+pager.pageSize = 500;
 
 const defaultQueryParams = {
   platform: 'huawei_store',
@@ -273,7 +275,9 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       "csv",
       "xlsx",
       "xls"
-    ]
+    ],
+    modes: ['current'],
+    original: true,
   },
   proxyConfig: undefined,
 };
@@ -312,7 +316,7 @@ async function init(args?: any) {
       pagerConfig: {
         total: pager.total,
         currentPage: pager.currentPage,
-        pageSize: 500,
+        pageSize: pager.pageSize,
         pageSizes: [500, 800,1000],
       },
     });
@@ -343,7 +347,9 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents })
 <template>
 <div>
   <Page auto-content-height>
-    <Grid></Grid>
+    <Grid>
+      <template #toolbar-tools></template>
+    </Grid>
   </Page>
 </div>
 </template>

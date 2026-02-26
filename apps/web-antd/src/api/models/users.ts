@@ -38,7 +38,7 @@ export interface OrgUpdateRequest extends OrgCreateRequest {
  *
  */
 export interface UserSearchRequest extends PageRequestParams {
-  nickname: string;
+  nickname?: string;
   orgId: string;
 }
 

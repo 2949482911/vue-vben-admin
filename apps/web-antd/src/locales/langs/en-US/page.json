@@ -50,11 +50,16 @@
       "metric": "Metric",
       "adreportdata": "Ad Report Data"
     },
-    "material": "Material",
     "creation": {
       "title": "Creation and composition",
       "vivo": "Vivo Marketing",
       "creation_task": "Creation Task"
+    },
+    "asset": {
+      "title": "Asset",
+      "material": "Material",
+      "titlePackage": "Title Package",
+      "audiencePackage": "Audience Package"
     }
   },
   "tools": {

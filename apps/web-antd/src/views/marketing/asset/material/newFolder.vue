@@ -5,24 +5,29 @@ import { message, TreeSelect } from 'ant-design-vue';
 import { ref, watch } from 'vue';
 import type { FolderItem } from "#/api/models";
 import { materialLibraryApi } from '#/api/core';
+import type { MaterialLibraryFolderType } from './materialType';
 
 const props = defineProps<{
   treeData: FolderItem[];
-  idEdit: any
+  idEdit: MaterialLibraryFolderType | null
 }
 >()
 
-watch(() => props.idEdit, (newVal) => {
-  if(newVal.id) titleText.value = '编辑文件夹'
-  else titleText.value = '新建文件夹'
-  console.log(newVal,'新建文件夹收到了');
-})
+const titleText = ref<string>('新建文件夹')
+
+watch(() => props.idEdit, () => {
+  syncFormData();
+}, { deep: true });
+
+async function resetText(){
+  titleText.value = '新建文件夹';
+  selectedId.value = '';
+  await formApi.resetForm();
+}
 
 const emit = defineEmits<{
   (e: 'treeNode'): void
 }>();
-
-const titleText = ref<string>('新建文件夹')
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions:false,
@@ -64,62 +69,54 @@ const [Form, formApi] = useVbenForm({
   ]
 })
 
+// 将同步逻辑抽离，确保 watch 和 onOpenChange 都能用到
+function syncFormData() {
+  const data = props.idEdit;
+  console.log('同步数据状态:', data);
+  
+  if (data && data.id) {
+    titleText.value = '编辑文件夹';
+    selectedId.value = data.parentId ; // 确保 parentId 存在
+    formApi.setValues(data);
+  } else {
+    // 强制清空，解决第二次打开“新建”还留着旧数据的问题
+    resetText()
+  }
+}
+
 const [Modal, modalApi] = useVbenModal({
   fullscreenButton: false,
   async onCancel() {
-    await formApi.resetForm();
     await modalApi.close();
+    await resetText()
   },
 
   async onConfirm() {
     const isValidate = await formApi.validate()
     if(!isValidate.valid) return
     const formData = await formApi.getValues()
-    delete formData.parentIdS
-    const parentId = getRealParentId(props.treeData, selectedId.value);
-    console.log(parentId,'拿的父节点id');
     try{
-      await materialLibraryApi.fetchCreateFile({name:formData.name, remark:formData.remark, parentId})
-      await message.success('新建成功！')
-      await formApi.resetForm();
-      emit('treeNode');
+      if(titleText.value==='编辑文件夹'){
+        await materialLibraryApi.fetchUpdateFile({id:props.idEdit?.id,name:formData.name, remark:formData.remark, parentId:selectedId.value})
+        await message.success('编辑成功！')
+      }else{
+        await materialLibraryApi.fetchCreateFile({name:formData.name, remark:formData.remark, parentId:selectedId.value})
+        await message.success('新建成功！')
+      }
       await modalApi.close();
+      emit('treeNode');
     }catch(err){
       console.log(err);
     }
+    await resetText()
+  },
+  async onOpenChange(isOpen: boolean) {
+    if (isOpen) {
+      // 弹窗打开时，手动执行一次数据同步逻辑
+      syncFormData();
+    }
   },
 });
-
-//用来查找父组件id的，因为TreeSelect不能绑定parentId，存在相同的parentId
-function getRealParentId(
-  treeData: FolderItem[],
-  selectedId: string
-): string | undefined {
-  const currentNode = findNodeById(treeData, selectedId);
-
-  if (!currentNode) return undefined;
-
-  // 你的判断规则
-  return currentNode.parentId === '0'
-    ? currentNode.id
-    : currentNode.parentId;
-}
-
-function findNodeById(
-  nodes: FolderItem[],
-  id: string
-): FolderItem | undefined {
-  for (const node of nodes) {
-    if (node.id === id) return node;
-
-    if (node.children?.length) {
-      const found = findNodeById(node.children, id);
-      if (found) return found;
-    }
-  }
-  return undefined;
-}
-
 const selectedId = ref<string>('')
 
 </script>

@@ -28,5 +28,7 @@ export enum Platform {
   FOUR711 = "4711",
   NBY = "nubia",
   GYXHW = "gyx_huawei",
+  TBSG = "tb_shangou",
+  GYXOPPO = "gyx_oppo",
   TBSG = "tb_shangou"
 }

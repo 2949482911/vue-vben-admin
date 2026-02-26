@@ -136,7 +136,7 @@ onMounted(async () => {
     page: 1,
     pageSize: 1000,
   });
-  projectOptions.value = res.items;  
+  projectOptions.value = res.items;
   const resOption = await developerApi.fetchDeveloperList({ page:1, pageSize:200 })
   developerOption.value = resOption.items.map((item:DeveloperItem) => ({
     label: item.name,
@@ -301,14 +301,22 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       title: `${$t('marketing.advertiser.columns.projectId')}`,
       width: 'auto',
     },
-
+    {
+      field: 'saleName',
+      title: '销售',
+      width: 'auto',
+    },
     {
       field: 'advertiserRole',
       title: `${$t('marketing.advertiser.columns.advertiserRole')}`,
       width: 'auto',
       slots: {default: 'advertiserRole'},
     },
-
+    {
+      field: 'customer',
+      title: '客户系',
+      width: 'auto',
+    },
     {
       field: 'remark',
       title: `${$t('marketing.advertiser.columns.remark')}`,

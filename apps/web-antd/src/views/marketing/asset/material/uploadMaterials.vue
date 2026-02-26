@@ -20,12 +20,27 @@ const props = defineProps<{
 const nameId = ref<string>('');
 const fileList = ref<any[]>([]);
 
+const emit = defineEmits<{
+  (e: 'treeNode'): void
+}>();
 /** ================== Drawer ================== */
 const [Drawer, drawerApi] = useVbenDrawer({
+   // 当抽屉打开状态改变时触发
+  async onOpenChange(isOpen) {
+    if (!isOpen) {
+      await drawerApi.close();
+      await resetAll()
+    }else{}
+  },
+  async onConfirm() {
+    // 确认逻辑...
+    await drawerApi.close();
+    emit('treeNode');
+  },
 });
 
 /** ================== Form ================== */
-const [Form] = useVbenForm({
+const [Form,formApi] = useVbenForm({
   layout: 'vertical',
   showDefaultActions: false,
   commonConfig: {
@@ -80,8 +95,9 @@ const gridOptions: VxeGridProps = {
 /** ================== 自定义上传 ================== */
 async function customUpload({ file, onSuccess, onError }: any) {
   const rawFile: File = file.originFileObj ?? file;
+  const isVideo = rawFile.type.startsWith('video/');
 
-  // 1️⃣ 文件元信息
+  // 1️⃣ 获取元信息 (已兼容视频)
   const meta = await getFileMeta(rawFile);
 
   // 2️⃣ oss key
@@ -89,10 +105,11 @@ async function customUpload({ file, onSuccess, onError }: any) {
   const ossKey = `${meta.fileMd5}${ext}`;
 
   if(!nameId.value){
-      message.error("请选择上传文件")
-      return
+    message.error("请选择上传文件夹");
+    return;
   }
-  // 3️⃣ 表格状态
+
+  // 3️⃣ 表格状态记录
   const record = {
     category: rawFile.name,
     status: '上传中',
@@ -100,60 +117,52 @@ async function customUpload({ file, onSuccess, onError }: any) {
   const index = gridData.value.length;
   gridData.value.push(record);
 
-  // 4️⃣ 获取 OSS client（重点）
-  const client = await useOssClient();
-
-  const result = await uploadToOss(client, rawFile, ossKey);
-
-  // 上传完成后
-  // gridData.value[index] = {
-  //   ...record,
-  //   status: '已上传',
-  // };
-  // 5️⃣ 调后端接口
-  const payload = {
-    name: rawFile.name,
-    albumId: nameId.value,
-    fileMd5: meta.fileMd5,
-    fileSize: meta.fileSize,
-    width: meta.width,
-    height: meta.height,
-    fileUrl: result.url,
-    thumbnailUrl: result.url,
-  };
-
-  // 5️⃣ 调后端接口 + 更新状态
   try {
+    const client = await useOssClient();
+    // 如果视频很大，这里的 uploadToOss 内部最好使用了 client.multipartUpload
+    const result = await uploadToOss(client, rawFile, ossKey);
+
+    // 4️⃣ 组装 Payload
+    const payload = {
+      name: rawFile.name,
+      albumId: nameId.value,
+      fileMd5: meta.fileMd5,
+      fileSize: meta.fileSize,
+      width: meta.width,
+      height: meta.height,
+      fileUrl: result.url,
+      // 如果是视频，使用 OSS 智能截图作为缩略图
+      thumbnailUrl: isVideo 
+        ? `${result.url}?x-oss-process=video/snapshot,t_1000,f_jpg,w_200` 
+        : result.url,
+    };
+
     await uploadEditApi.fetchUploadMaterials(payload);
 
-    // 正常成功
-    gridData.value[index] = {
-      ...record,
-      status: '已上传',
-    };
+    gridData.value[index].status = '已上传';
+    onSuccess?.(result);
   } catch (err: any) {
-    // 关键：这里才是 code === -1 的情况
-    const code = err?.code ?? err?.response?.data?.code;
-    // const msg = err?.message ?? err?.response?.data?.message;
-
-    if (code === -1) {
-      gridData.value[index] = {
-        ...record,
-        status: '文件已存在',
-      };
-    } else {
-      gridData.value[index] = {
-        ...record,
-        status: '上传失败',
-      };
-    }
-    // message.warning(msg || '上传失败');
+    // ... 错误处理逻辑
+    gridData.value[index].status = '上传失败';
+    onError?.(err);
   }
-  onSuccess?.(result);
 }
-
 function delFile(index: number){
   gridData.value.splice(index, 1);
+}
+
+/** ================== 重置逻辑 ================== */
+function resetAll() {
+  // 1. 重置 form 表单 (包括 files 字段)
+  formApi.resetForm();
+  
+  // 2. 手动重置自定义的 ref 变量
+  nameId.value = '';
+  fileList.value = [];
+  gridData.value = [];
+  
+  // 3. 如果需要清空表格显示
+  gridApi.setGridOptions({ data: [] });
 }
 
 /** ================== Grid ================== */
