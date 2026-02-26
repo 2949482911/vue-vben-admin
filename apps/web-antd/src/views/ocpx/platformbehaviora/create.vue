@@ -886,6 +886,40 @@ platformConfigForm.set(Platform.FOUR711, [
   },
 ])
 
+
+// uu 互联
+platformConfigForm.set(Platform.UU, [
+  {
+    component: 'Select',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+      options: [
+        {
+          "value": 5,
+          "label": `${$t('core.expose')}`
+        },
+        {
+          "value": 6,
+          "label": `${$t('core.click')}`
+        }
+      ]
+    },
+    fieldName: 'reportType',
+    label: `reportType`,
+    rules: 'required',
+  },
+
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'dispatchCenterld',
+    label: `dispatchCenterld`,
+    rules: 'required',
+  },
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {

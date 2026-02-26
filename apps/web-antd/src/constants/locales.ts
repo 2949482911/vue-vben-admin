@@ -336,6 +336,11 @@ export const BEHAVIORA_PLATFORM = [
     value: '4711',
   },
 
+  {
+    label: `${$t('ocpx.platform.uu')}`,
+    value: 'uu_union',
+  },
+
 
 ];
 

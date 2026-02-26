@@ -43,5 +43,7 @@
   "checkAll": "Check All",
   "import": "Import",
   "exist": "Exist",
-  "repush": "Re Push"
+  "repush": "Re Push",
+  "click": "Click",
+  "expose": "Expose"
 }
