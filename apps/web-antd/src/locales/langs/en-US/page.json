@@ -34,7 +34,8 @@
     "ocpx_task": "Ocpx Task",
     "match": "Ocpx Match",
     "platformcallback": "Callback Platform",
-    "platformbehaviora": "Behaviora Platform"
+    "platformbehaviora": "Behaviora Platform",
+    "event_settlement": "Event Settlement"
   },
   "marketing": {
     "title": "Marketing",

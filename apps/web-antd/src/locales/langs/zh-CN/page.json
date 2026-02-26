@@ -34,7 +34,8 @@
     "ocpx_task": "Ocpx任务",
     "match": "Ocpx映射",
     "platformcallback": "回传媒体",
-    "platformbehaviora": "转化媒体"
+    "platformbehaviora": "转化媒体",
+    "event_settlement": "事件结算"
   },
   "marketing": {
     "title": "营销",
