@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import {Page} from '@vben/common-ui';
 import type {VbenFormProps} from '@vben/common-ui';
+import {Page} from '@vben/common-ui';
 import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
-import { $t } from '@vben/locales';
-import { ADVERTISET_ADDED, CONSUMPTION_DETAIL_DIMENSION } from '#/constants/locales';
+import {$t} from '@vben/locales';
+import {ADVERTISET_ADDED, CONSUMPTION_DETAIL_DIMENSION} from '#/constants/locales';
 import dayjs from 'dayjs';
-import { ref, onMounted } from 'vue';
-import {advertiserApi, developerApi } from '#/api';
-import type { AdvertiserItem } from '#/api/models';
-import { useClientPagination } from '#/utils/pagination';
+import {onMounted, ref} from 'vue';
+import {advertiserApi, developerApi} from '#/api';
+import type {AdvertiserItem} from '#/api/models';
+import {useClientPagination} from '#/utils/pagination';
 
 const {
   pager,
@@ -347,7 +347,9 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents })
 <template>
 <div>
   <Page auto-content-height>
-    <Grid></Grid>
+    <Grid>
+      <template #toolbar-tools></template>
+    </Grid>
   </Page>
 </div>
 </template>

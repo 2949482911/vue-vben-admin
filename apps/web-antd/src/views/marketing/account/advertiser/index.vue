@@ -136,7 +136,7 @@ onMounted(async () => {
     page: 1,
     pageSize: 1000,
   });
-  projectOptions.value = res.items;  
+  projectOptions.value = res.items;
   const resOption = await developerApi.fetchDeveloperList({ page:1, pageSize:200 })
   developerOption.value = resOption.items.map((item:DeveloperItem) => ({
     label: item.name,
