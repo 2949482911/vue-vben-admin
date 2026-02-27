@@ -11,7 +11,8 @@
       "ratio": "Ratio",
       "behaviorType": "Event Name",
       "onlyClick": "Only Receive Click",
-      "hadClick": "Has Click"
+      "hadClick": "Has Click",
+      "eventSettlementId": "Event Settlement"
     },
     "behaviorTypeMoel": "Event Model",
     "auto": "Auto",
@@ -108,6 +109,17 @@
       "callback": "Callback Url",
       "testCallback": "Test Callback",
       "directLink": "Direct Link"
+    }
+  },
+  "event_settlement": {
+    "columns": {
+      "name": "Name",
+      "platform": "Platform",
+      "remark": "Remark",
+      "settlement": "Settlements",
+      "event": "Event",
+      "price": "Price",
+      "eventName": "Event Name"
     }
   }
 }

@@ -11,7 +11,8 @@
       "ratio": "比例",
       "behaviorType": "回传事件",
       "onlyClick": "仅接受点击",
-      "hadClick": "点击"
+      "hadClick": "点击",
+      "eventSettlementId": "事件结算"
     },
     "behaviorTypeMoel": "事件模式",
     "auto": "自动匹配",
@@ -108,6 +109,17 @@
       "callback": "回调链接",
       "testCallback": "联调回传",
       "directLink": "直连监测"
+    }
+  },
+  "event_settlement": {
+    "columns": {
+      "name": "名字",
+      "platform": "平台",
+      "remark": "备注",
+      "settlement": "事件规则",
+      "event": "事件",
+      "price": "单价",
+      "eventName": "事件名字"
     }
   }
 }

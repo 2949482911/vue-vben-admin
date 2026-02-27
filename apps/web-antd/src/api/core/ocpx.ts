@@ -3,14 +3,15 @@ import {requestClient} from "#/api/request";
 import type {
   BehavioraPlatformPageRequest,
   ClickMonitorResponse,
-  CreateBehavioraPlatformRequest,
+  CreateBehavioraPlatformRequest, CreateEventSettlementRequest,
   CreateOcpxTaskRequest,
-  CreatePlatformCallbackRequest, OcpxBehavioracallbackRecordPageRequest,
+  CreatePlatformCallbackRequest, EventSettlementItem,
+  EventSettlementPageRequest, OcpxBehavioracallbackRecordPageRequest,
   OcpxTaskItem,
   OpcxTaskPageRequest, PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
   PlatformcallbackPageRequest, TestCallbackRequest,
-  UpdateBehavioraPlatformRequest,
+  UpdateBehavioraPlatformRequest, UpdateEventSettlementRequest,
   UpdateOcpxTaskRequest,
   UpdatePlatformCallbackRequest,
 } from "#/api/models";
@@ -172,3 +173,31 @@ class ClickMonitorApi extends BaseApi {
 
 
 export const clickMonitorApi = new ClickMonitorApi("/platform/clickmonitor");
+
+
+/**
+ * 事件结算配置
+ */
+
+
+class EventSettlementApi extends BaseApi {
+
+  fetchEventSettlementList(params: EventSettlementPageRequest) {
+    return requestClient.get<EventSettlementItem[]>(this.getServiceUrl("list"), {params})
+  }
+
+  fetchEventSettlementCreate(params: CreateEventSettlementRequest) {
+    return requestClient.post(this.getServiceUrl("create"), params)
+  }
+
+  fetchEventSettlementUpdate(params: UpdateEventSettlementRequest) {
+    return requestClient.post(this.getServiceUrl("update"), params)
+  }
+
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params)
+  }
+
+}
+
+export const eventSettlementApi = new EventSettlementApi("/platform/event_settlement");

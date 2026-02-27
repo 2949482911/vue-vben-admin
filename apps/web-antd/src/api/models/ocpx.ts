@@ -27,6 +27,7 @@ export interface CreatePlatformCallbackRequest {
   onlyClick: boolean | number;
   advertiserId?: string;
   advertiserName?: string;
+  eventSettlementId: string
 }
 
 export interface UpdatePlatformCallbackRequest
@@ -47,7 +48,7 @@ export interface BehavioraPlatformItem extends BaseItem {
   type: number,
   directLink: string,
   matchField?: number | string;
-  simulateBehaviorType?:string
+  simulateBehaviorType?: string
 }
 
 // 转化匹配列表
@@ -61,7 +62,7 @@ export interface OcpxPlatformMatch extends BaseItem {
   creativeId: string;
   behavioraPlatform: string;
   matchId: string;
-  _isNew?:boolean
+  _isNew?: boolean
 }
 
 export interface BehavioraPlatformPageRequest extends PageRequestParams {
@@ -190,4 +191,42 @@ export interface TestCallbackRequest {
   ocpxTaskId: string;
   platformCallbackId: string;
   behaviorType: string;
+}
+
+
+/**
+ * 事件结算
+ */
+
+export interface EventSettlementPageRequest extends PageRequestParams {
+  name?: string;
+  platform?: string;
+}
+
+export interface EventSettlementItem extends BaseItem {
+  name: string;
+  platform: string;
+  remark: string;
+  settlementsRule: Array<{
+    event: string;
+    price: number;
+    eventName: string;
+  }>
+}
+
+
+export interface CreateEventSettlementRequest {
+  name: string;
+  platform: string;
+  remark: string;
+  settlementsRule: Array<{
+    event: string;
+    price: number;
+    eventName: string;
+  }>
+}
+
+export interface UpdateEventSettlementRequest
+  extends CreateEventSettlementRequest {
+  id: string;
 }

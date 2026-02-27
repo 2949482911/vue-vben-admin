@@ -1,8 +1,10 @@
 <script lang="ts" setup name="CreateNotice">
 import type {
   CreatePlatformCallbackRequest,
+  EventSettlementItem,
   PlatformCallbackBehaviorTypeItem,
-  PlatformcallbackItem, UpdatePlatformCallbackRequest
+  PlatformcallbackItem,
+  UpdatePlatformCallbackRequest
 } from '#/api/models';
 
 import {ref} from 'vue';
@@ -13,7 +15,7 @@ import {$t} from '@vben/locales';
 import {Divider} from 'ant-design-vue';
 
 import {useVbenForm} from '#/adapter/form';
-import {advertiserApi} from '#/api';
+import {advertiserApi, eventSettlementApi} from '#/api';
 import {platformCallbackApi} from '#/api/core/ocpx';
 import {Platform} from '#/constants/enums';
 import {BACKHAUL} from '#/constants/locales';
@@ -107,10 +109,10 @@ platformConfigForm.set(Platform.VIVO, [
       api: async (params: any) => {
         return await advertiserApi.fetchAdvertiserList(params);
       },
-      filterOption: (inputValue: string, option: {label: string}) => {
+      filterOption: (inputValue: string, option: { label: string }) => {
         return option.label.toLowerCase().includes(inputValue.toLowerCase());
       },
-      onSelect: async (_:any, data: any) => {
+      onSelect: async (_: any, data: any) => {
         await formApi.setFieldValue('advertiserId', data.advertiserId);
         await configFormApi.setFieldValue('advertiserId', data.advertiserId);
       },
@@ -268,7 +270,7 @@ platformConfigForm.set(Platform.GYXHW, [
     label: 'secretKey',
     rules: 'required',
   },
-   {
+  {
     // 媒体配置表单
     component: 'Input',
     // 对应组件的参数
@@ -466,6 +468,19 @@ async function getPlatformCallbackBehaviorTypeItem(platform: string) {
 
 const behaviorTypeList = ref<Array<PlatformCallbackBehaviorTypeItem>>([]);
 
+// 事件结算
+const eventSettlementList = ref<Array<EventSettlementItem>>([]);
+
+async function getEventSettlementList() {
+  const {items} = await eventSettlementApi.fetchEventSettlementList(
+    {
+      page: 1,
+      pageSize: 10000,
+    }
+  );
+  eventSettlementList.value = items;
+}
+
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
@@ -534,6 +549,8 @@ const [Form, formApi] = useVbenForm({
           if (values["behaviorTypeMoel"] === 'custom') {
             await getPlatformCallbackBehaviorTypeItem(value)
           }
+          // 获取事件结算
+          await getEventSettlementList();
         },
       },
       // 字段名
@@ -541,6 +558,27 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: `${$t('ocpx.platformcallback.columns.platform')}`,
       rules: 'required',
+    },
+    {
+      // 计算规则
+      component: 'Select',
+      componentProps: {
+        showSearch: true,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        placeholder: `${$t('common.select')}`,
+        options: eventSettlementList,
+        fieldNames: {
+          label: 'name',
+          value: 'id'
+        }
+      },
+      fieldName: 'eventSettlementId',
+      label: `${$t('ocpx.platformcallback.columns.eventSettlementId')}`,
+      dependencies: {
+        triggerFields: ['platform']
+      }
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -718,6 +756,7 @@ const [Modal, modalApi] = useVbenModal({
       remark: ''
     };
     isUpdate.value = false;
+    eventSettlementList.value = [];
     await modalApi.close();
   },
   async onConfirm() {
@@ -728,6 +767,7 @@ const [Modal, modalApi] = useVbenModal({
     }
     await formApi.submitForm();
     await configFormApi.resetForm();
+    eventSettlementList.value = [];
     isUpdate.value = false;
     emit('pageReload');
     await modalApi.close();
@@ -737,6 +777,7 @@ const [Modal, modalApi] = useVbenModal({
       objectRequest.value = modalApi.getData<Record<string, any>>() as CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest;
       if ('id' in objectRequest.value) {
         isUpdate.value = true;
+        getEventSettlementList();
         handleSetFormValue(objectRequest.value);
         getPlatformCallbackBehaviorTypeItem(objectRequest.value.platform);
       } else {
