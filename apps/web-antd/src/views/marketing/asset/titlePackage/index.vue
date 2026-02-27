@@ -5,7 +5,9 @@ import { projectApi, titlePackApi } from '#/api';
 import { trimObject } from '#/utils/trim';
 import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from '#/constants/locales';
 import { Button, message, Tag } from 'ant-design-vue';
+<<<<<<< issue_prod
 import type { TitlePackItem } from './titlePackageType';
+import type { TitlePackItem } from './titlePackage';
 import CreatedTitlePackage from './createdTitlePackage.vue';
 import { $t } from '#/locales';
 

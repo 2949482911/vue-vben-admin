@@ -301,6 +301,7 @@ class TitlePackApi extends BaseApi {
 
 export const titlePackApi = new TitlePackApi("/platform/titlePackage");
 
+
 /**
  * 营销-资产-定向包
  */
@@ -327,3 +328,4 @@ class TargetedPackageApi extends BaseApi {
 }
 
 export const targetedPackageApi = new TargetedPackageApi("/platform/audience_package");
+
