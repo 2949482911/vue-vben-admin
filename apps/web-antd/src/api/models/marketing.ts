@@ -395,7 +395,7 @@ export interface DeveloperListResponse {
   total: number;
   page: number;
   pageSize: number;
-  pageCount: number; 
+  pageCount: number;
 }
 
 /**华为商店 */
@@ -426,11 +426,11 @@ export interface AdvertiserCostDetailType {
   // page: number;
   // pageSize: number;
   platform: string;
-  dateTime: [string, string];      
-  dims: string[];                 
+  dateTime: [string, string];
+  dims: string[];
   advertiserId: string[];
-  huwaweiAppIdList: string[];       
-  developerId: string[];       
+  huwaweiAppIdList: string[];
+  developerId: string[];
 }
 
 export interface PageResponse<T> {
@@ -443,7 +443,7 @@ export interface PageResponse<T> {
 /**账户消耗详情-appName下拉请求接口类型 */
 export interface AppNameOptionsType {
   platform: string;
-  developerId?: string;       
+  developerId?: string;
 }
 
 /**广告效果数据-广告联动下拉 */
@@ -458,21 +458,21 @@ export interface PlatformMatchRequest {
 
 /**账户消耗详情-账户名字下拉请求接口类型 */
 export interface AdCompanyOptionsType {
-  platform: string;    
+  platform: string;
 }
 
 /**营销-资产-标题包查询 */
 export interface GetTitlePackType {
-  platform?: string; 
-  title?:string;   
-  projectId?:string; 
+  platform?: string;
+  title?:string;
+  projectId?:string;
   page: number;
   pageSize: number;
 }
 
 /**营销-资产-标题包删除 */
 export interface DelTitlePackType {
-  targetIds: string[]; 
+  targetIds: string[];
   type:string;
 }
 
@@ -492,9 +492,9 @@ export interface TitlePackItem {
 
 /**营销-资产-定向包查询 */
 export interface GetTargetedPackageType {
-  platform?: string; 
-  name?:string;   
-  platformAdvertiserId?:string; 
+  platform?: string;
+  name?:string;
+  platformAdvertiserId?:string;
   page: number;
   pageSize: number;
 }
