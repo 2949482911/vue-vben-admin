@@ -1,10 +1,10 @@
 <script setup lang="ts" name="CreateAdvertiserModal">
 import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
-import {ref} from 'vue';
+import {ref,watch} from 'vue';
 import {useVbenForm} from "#/adapter/form";
 import type {AdvertiserItem, DeveloperItem, UserItem} from "#/api/models";
-import {advertiserApi, projectApi, developerApi,userApi} from "#/api";
+import {advertiserApi, projectApi, developerApi,userApi,orgApi} from "#/api";
 import {STATUS_SELECT, ADVERTISET_ADDED} from "#/constants/locales";
 import { trimObject } from '#/utils/trim';
 
@@ -17,6 +17,7 @@ const objectRequest = ref<AdvertiserItem>({
   advertiserRole: "",
   customer: "",
   saleId: "",
+  orgId: "",
   balance: 0,
   companyName: "",
   createTime: "",
@@ -43,6 +44,7 @@ interface DeveloperOption {
 }
 const developerOption = ref<DeveloperOption[]>([])
 const salesOption = ref<DeveloperOption[]>([])
+const menuData = ref([])
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -71,7 +73,7 @@ const [Form, formApi] = useVbenForm({
         advertiserRole: params.advertiserRole,
         putStatus: params.putStatue,
       })
-      : 
+      :
       advertiserApi.fetchCreateAdvertiser({
         platform: params.platform,
         advertiserId: params.advertiserId,
@@ -209,6 +211,23 @@ const [Form, formApi] = useVbenForm({
       },
     },
     {
+      component: 'TreeSelect',
+      componentProps: {
+        allowClear: true,
+        placeholder: `${$t('common.choice')}`,
+        showSearch: true,
+        filterTreeNode: true,
+        treeData: menuData,
+        fieldNames: {
+          label: 'name',
+          value: 'id',
+          children: 'children',
+        },
+      },
+      fieldName: 'orgId',
+      label: '部门',
+    },
+    {
       component: 'Select',
       componentProps: {
         allowClear: true,
@@ -219,8 +238,24 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'saleId',
       label: '销售',
       dependencies: {
-        show: (value) => !value.id,
-        triggerFields: ['id'],
+        show: true,
+        triggerFields: ['orgId'],
+        required: (value) => !!value.orgId,
+        rules: (value) => {
+          if (value.orgId) {
+            return 'required';
+          }
+          return '';
+        },
+        if: (value, formApi) => {
+          if (value.orgId) {
+            formApi.setFieldValue('saleId', null);
+            loadSalesByOrg(value.orgId);
+          } else {
+            salesOption.value = [];
+          }
+          return true;
+        },
       },
     },
     {
@@ -230,10 +265,6 @@ const [Form, formApi] = useVbenForm({
       },
       fieldName: 'customer',
       label: '客户系',
-      dependencies: {
-        show: (value) => !value.id,
-        triggerFields: ['id'],
-      },
     },
     {
       component: 'Select',
@@ -279,7 +310,15 @@ const [Form, formApi] = useVbenForm({
   ],
 });
 
-
+watch(
+  () => formApi.form?.values?.orgId,
+  async (newOrgId, oldOrgId) => {
+    if (newOrgId !== oldOrgId) {
+      formApi.setFieldValue('saleId', null);
+      await loadSalesByOrg(newOrgId);
+    }
+  }
+);
 const [Modal, modalApi] = useVbenModal({
   fullscreenButton: false,
   closeOnPressEscape: false,
@@ -293,6 +332,7 @@ const [Modal, modalApi] = useVbenModal({
       advertiserName: "",
       customer: "",
       saleId: "",
+      orgId: "",
       advertiserRole: "",
       balance: 0,
       companyName: "",
@@ -338,16 +378,28 @@ const [Modal, modalApi] = useVbenModal({
         label: item.name,
         value: item.id,
       }));
-      const saleSRes:any = await userApi.fetchUserList({orgId:'2019713852836679680', page:1, pageSize:200 })
-      salesOption.value = saleSRes.items.map((item:UserItem) => ({
-        label: item.nickname,
-        value: item.id,
-      }));
+      const orgRes = await orgApi.fetchOrgTree();
+      menuData.value = orgRes;
+      if (objectRequest.value.orgId) {
+        await loadSalesByOrg(objectRequest.value.orgId);
+      }
     } else {
       isUpdate.value = false;
     }
   },
 });
+
+async function loadSalesByOrg(orgId: string) {
+  if (!orgId) {
+    salesOption.value = [];
+    return;
+  }
+  const saleSRes: any = await userApi.fetchUserList({ orgId, page: 1, pageSize: 200 });
+  salesOption.value = saleSRes.items.map((item: UserItem) => ({
+    label: item.nickname,
+    value: item.id,
+  }));
+}
 
 function handleSetFormValue(row: AdvertiserItem) {
   formApi.setValues(row)

@@ -252,6 +252,10 @@ export const AUTH_ACCOUNT_PLATFORM = [
     label: '华为商店',
     value: 'huawei_store',
   },
+  {
+    label: '华为Ads',
+    value: 'huawei',
+  },
 ];
 
 /**
