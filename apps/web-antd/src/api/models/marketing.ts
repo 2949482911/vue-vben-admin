@@ -461,3 +461,72 @@ export interface AdCompanyOptionsType {
   platform: string;    
 }
 
+/**营销-资产-标题包查询 */
+export interface GetTitlePackType {
+  platform?: string; 
+  title?:string;   
+  projectId?:string; 
+  page: number;
+  pageSize: number;
+}
+
+/**营销-资产-标题包删除 */
+export interface DelTitlePackType {
+  targetIds: string[]; 
+  type:string;
+}
+
+/**营销-资产-标题包新建 */
+export interface TitlePackConfig {
+  subTitle: string[];
+  pushSubTitle: string[];
+}
+
+/** 标题包基础数据结构 */
+export interface TitlePackItem {
+  title: string;
+  platform: string;
+  projectId: string;
+  config: TitlePackConfig;
+}
+
+/**营销-资产-定向包查询 */
+export interface GetTargetedPackageType {
+  platform?: string; 
+  name?:string;   
+  platformAdvertiserId?:string; 
+  page: number;
+  pageSize: number;
+}
+
+/**营销-资产-定向包新建 */
+export interface NewTargetedPackageType {
+  localAdvertiserId?:string;
+  name:string;
+  platform?:string;
+  platformAdvertiserId?:string;
+  remark?:string;
+  config?:{
+    sexList?:string[];
+    ageList?:string[];
+    interestSet?:string[];
+    installedApp?:number;
+    androidVersionSet?:string;
+    phonePriceSet?:string;
+    network?:number;
+    phoneSeriesSet?:string;
+    networkOperatorSet?:string;
+    region?: {
+      regionCodeList?: string[];
+      stayType?: number;
+    },
+    installBehavior?: {
+      period?: number;
+      behavior?: number;
+    },
+    startBehavior?: {
+      period?: number;
+      behavior?: number;
+    },
+  }
+}

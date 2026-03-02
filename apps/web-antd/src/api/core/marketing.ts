@@ -25,6 +25,11 @@ import type {
   AppNameOptionsType,
   PlatformMatchRequest,
   AdCompanyOptionsType,
+  GetTitlePackType,
+  DelTitlePackType,
+  TitlePackItem,
+  GetTargetedPackageType,
+  NewTargetedPackageType,
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -273,3 +278,54 @@ class UploadCredentialsApi extends BaseApi {
 }
 
 export const uploadCredentialsApi = new UploadCredentialsApi("/platform/aliyun");
+
+/**
+ * 营销-资产-标题包
+ */
+class TitlePackApi extends BaseApi {
+  /**标题包查询*/
+  fetchGetTitlePack(params:GetTitlePackType) {
+    return requestClient.get(this.getServiceUrl("list"),{params})
+  }
+
+  /**标题包删除*/
+  fetchDelTitlePack(params:DelTitlePackType) {
+    return requestClient.post(this.getServiceUrl("batch_options"),params)
+  }
+
+  /**标题包新建*/
+  fetchNewTitlePack(params:TitlePackItem) {
+    return requestClient.post(this.getServiceUrl("create"),params)
+  }
+}
+
+export const titlePackApi = new TitlePackApi("/platform/titlePackage");
+
+
+/**
+ * 营销-资产-定向包
+ */
+class TargetedPackageApi extends BaseApi {
+  /**定向包查询*/
+  fetchGetTitleTargetedPackage(params:GetTargetedPackageType) {
+    return requestClient.get(this.getServiceUrl("list"),{params})
+  }
+
+  /**定向包删除*/
+  fetchDelTargetedPackage(params:DelTitlePackType) {
+    return requestClient.post(this.getServiceUrl("batch_options"),params)
+  }
+
+  /**定向包新建*/
+  fetchNewTargetedPackage(params:NewTargetedPackageType) {
+    return requestClient.post(this.getServiceUrl("create"),params)
+  }
+
+  /**定向包修改*/
+  fetchModifyTargetedPackage(params:NewTargetedPackageType) {
+    return requestClient.post(this.getServiceUrl("update"),params)
+  }
+}
+
+export const targetedPackageApi = new TargetedPackageApi("/platform/audience_package");
+
