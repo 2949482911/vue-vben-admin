@@ -8,7 +8,7 @@ import { Button, message, Tag } from 'ant-design-vue';
 import { advertiserApi, targetedPackageApi } from '#/api';
 import type { AdConfig } from './audiencePackageType';
 import CreatedAudiencePackage from './createdAudiencePackage.vue';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const [CreatedAudiencePackageModule, modalApi] = useVbenModal({
   // 连接抽离的组件
@@ -22,6 +22,30 @@ function openModal() {
   modalApi.open();
 }
 
+onMounted(() => {
+  loadAdvertiserOptions();
+});
+
+interface DeveloperOption {
+  label: string;
+  value: string;
+}
+const advertiserOption = ref<DeveloperOption[]>([])
+async function loadAdvertiserOptions(platform?: string) {
+  advertiserOption.value = [];
+  const res = await advertiserApi.fetchAdvertiserList({
+    platform,
+    putStatue: 1,
+    page: 1,
+    pageSize: 100000,
+  });
+
+  advertiserOption.value = res.items.map((item) => ({
+    label: item.advertiserName,
+    value: item.advertiserId,
+  }));
+}
+
 const formOptions: VbenFormProps = {
   schema: [
     {
@@ -30,6 +54,9 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         options:ACTIVE_PLATFORM,
         placeholder: '请选择',
+         onChange: async (val: string) => {
+          await loadAdvertiserOptions(val);
+        },
       },
       fieldName: 'platform',
       label: '平台',
@@ -44,27 +71,18 @@ const formOptions: VbenFormProps = {
       label: '定向包名称',
     },
     {
-      component: 'ApiSelect',
+      component: 'Select',
       componentProps: {
         allowClear: true,
         showSearch: true,
         placeholder: '请选择',
-        api: async (params:any) => {
-          return await advertiserApi.fetchAdvertiserList(params);
-        },
+        options: advertiserOption,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
-        params: {
-          page: 1,
-          pageSize: 10000,
-        },
-        valueField: 'advertiserId',
-        labelField: 'advertiserName',
-        resultField: 'items',
       },
       fieldName: 'platformAdvertiserId',
-      label: '平台开发者',
+      label: '广告主名称',
     },
   ],
   // 控制表单是否显示折叠按钮
