@@ -179,6 +179,10 @@ export const PLATFORM = [
   {
     label: '广义新oppo',
     value: 'gyx_oppo',
+  },
+  {
+    label: '趣头条',
+    value: 'qutoutiao',
   }
 ];
 
@@ -229,6 +233,10 @@ export const BACKHAUL = [
   {
     label: '广义新oppo',
     value: 'gyx_oppo',
+  },
+  {
+    label: '趣头条',
+    value: 'qutoutiao',
   }
 ];
 
