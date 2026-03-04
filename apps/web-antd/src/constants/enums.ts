@@ -29,5 +29,6 @@ export enum Platform {
   GYXHW = "gyx_huawei",
   TBSG = "tb_shangou",
   GYXOPPO = "gyx_oppo",
-  UU = "uu_union"
+  UU = "uu_union",
+  QUTOUTIAO = "qutoutiao"
 }

@@ -91,6 +91,7 @@ const [titlePackageModal, modalApi] = useVbenModal({
     }
   },
   async onOpened(){
+    await loadAdvertiserOptions();
     if(props.displayValue && props.displayValue.id){
       const data = props.displayValue;
       formApi.setValues({
@@ -255,6 +256,26 @@ const periodTypeVal = ref<number>(-1);
 //----------启动-应用行为------------
 const startBehaviorVal = ref<number>(2);
 
+interface DeveloperOption {
+  label: string;
+  value: string;
+}
+const advertiserOption = ref<DeveloperOption[]>([])
+async function loadAdvertiserOptions(platform?: string) {
+  advertiserOption.value = [];
+  const res = await advertiserApi.fetchAdvertiserList({
+    platform,
+    putStatue: 1,
+    page: 1,
+    pageSize: 100000,
+  });
+
+  advertiserOption.value = res.items.map((item) => ({
+    label: item.advertiserName,
+    value: item.advertiserId,
+  }));
+}
+
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -270,32 +291,27 @@ const [Form, formApi] = useVbenForm({
         allowClear: true,
         options:ACTIVE_PLATFORM,
         placeholder: '请选择',
+        onChange: async (val: string) => {
+          await loadAdvertiserOptions(val);
+        },
       },
       fieldName: 'platform',
       label: '平台',
       rules: 'required',
     },
     {
-      component: 'ApiSelect',
-      componentProps: () => {
-        return {
-          allowClear: true,
-          showSearch: true,
-          api: async (params: any) => await advertiserApi.fetchAdvertiserList(params),
-          labelField: 'advertiserName',
-          valueField: 'advertiserId',
-          resultField: 'items',
-          onChange(val: string, option: any) {
-            if (option) {
-              localAdId.value = option.id
-            }else{
-              localAdId.value = ''
-            }
-          },
-        };
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        placeholder: '请选择',
+        options: advertiserOption,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
       },
       fieldName: 'platformAdvertiserId',
-      label: '平台开发者',
+      label: '广告主名称',
     },
     {
       component: 'Input',

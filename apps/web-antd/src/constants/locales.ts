@@ -179,6 +179,10 @@ export const PLATFORM = [
   {
     label: '广义新oppo',
     value: 'gyx_oppo',
+  },
+  {
+    label: '趣头条',
+    value: 'qutoutiao',
   }
 ];
 
@@ -229,11 +233,12 @@ export const BACKHAUL = [
   {
     label: '广义新oppo',
     value: 'gyx_oppo',
+  },
+  {
+    label: '趣头条',
+    value: 'qutoutiao',
   }
 ];
-
-
-
 
 
 /**
@@ -462,8 +467,12 @@ export const DIMS = [
  */
 export const ADVERTISET_ADDED = [
   {
-    label:'华为商店',
+    label: `${$t('ocpx.platform.huawei_store')}`,
     value: 'huawei_store',
+  },
+  {
+    label: `${$t('ocpx.platform.huawei')}`,
+    value: 'huawei',
   }
 ]
 
@@ -472,19 +481,34 @@ export const ADVERTISET_ADDED = [
  */
 export const CONSUMPTION_DETAIL_DIMENSION = [
   {
-    label:'天',
+    label: '天',
     value: 'day',
   },
   {
-    label:'appId',
+    label: 'appId',
     value: 'appId',
   },
   {
-    label:'开发者Id',
+    label: '开发者Id',
     value: 'developerId',
   },
   {
-    label:'账户Id',
+    label: '账户Id',
+    value: 'platform_account_id',
+  }
+]
+
+/**
+ * 华为账户消耗明细维度
+ */
+export const CONSUMPTION_DETAIL_DIMENSION_HUAWEI = [
+  {
+    label: '天',
+    value: 'day',
+  },
+
+  {
+    label: '账户Id',
     value: 'platform_account_id',
   }
 ]

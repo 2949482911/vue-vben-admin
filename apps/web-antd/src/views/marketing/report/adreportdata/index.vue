@@ -192,9 +192,9 @@ const projectOptions = ref<ProjectItem[]>([]);
 onMounted(async () => {
   const res = await projectApi.fetchProjectList({
     page: 1,
-    size: 1000,
+    pageSize: 1000,
   });
-  projectOptions.value = res.items;  
+  projectOptions.value = res.items;
 });
 
 //computed是响应式的，如果直接赋值projectOptions已经晚了，schema已经初始化完成了异步数据没有触发表单更新
@@ -403,7 +403,7 @@ const formOptions: VbenFormProps = {
     advertisementOptions.value = []
     adGroupOptions.value = []
     creativityOptions.value = []
-    
+
     // 3️⃣ 重置分页
     allData.value = [];
     pager.currentPage = 1;
