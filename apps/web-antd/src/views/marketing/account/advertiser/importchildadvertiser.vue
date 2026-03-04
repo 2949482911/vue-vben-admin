@@ -28,7 +28,7 @@ const projectStr = ref()
 const pages = reactive({
   total:0,
   currentPage:1,
-  pageSize:10
+  pageSize: 100
 })
 //弹框导入列表的全部数据
 const importData = ref<AccountChildResponse | any>([])
@@ -77,7 +77,7 @@ const [Modal, modalApi] = useVbenModal({
       filterData.value = [...importData.value];
       pages.total = filterData.value.length
       pages.currentPage = 1
-      
+
 
       updatePageData(filterData.value)
       gridApi.setLoading(false);
@@ -122,7 +122,7 @@ const gridOptions: VxeGridProps<AccountChildResponse> = {
     total:pages.total,
     pageSize: pages.pageSize,
     currentPage: pages.currentPage,
-    pageSizes: [10, 20],
+    pageSizes: [50, 100, 300, 500],
   },
 };
 
