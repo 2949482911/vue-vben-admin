@@ -3,12 +3,17 @@ import type {VbenFormProps} from '@vben/common-ui';
 import {Page} from '@vben/common-ui';
 import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
 import {$t} from '@vben/locales';
-import {ADVERTISET_ADDED, CONSUMPTION_DETAIL_DIMENSION} from '#/constants/locales';
+import {
+  ADVERTISET_ADDED,
+  CONSUMPTION_DETAIL_DIMENSION,
+  CONSUMPTION_DETAIL_DIMENSION_HUAWEI
+} from '#/constants/locales';
 import dayjs from 'dayjs';
 import {onMounted, ref} from 'vue';
 import {advertiserApi, developerApi} from '#/api';
 import type {AdvertiserItem} from '#/api/models';
 import {useClientPagination} from '#/utils/pagination';
+import {Platform} from "#/constants/enums";
 
 const {
   pager,
@@ -85,7 +90,7 @@ async function loadAdCompanyOptions(platform: string) {
   const res = await advertiserApi.fetchAdCompanyOptions({
     platform,
   });
-  adCompanyOption.value = res.companyList.map((item:string) => ({
+  adCompanyOption.value = res.companyList.map((item: string) => ({
     label: item,
     value: item,
   }));
@@ -147,22 +152,25 @@ const formOptions: VbenFormProps = {
     },
     {
       component: 'Select',
-      defaultValue:'huawei_store',
+      defaultValue: Platform.HUAWEI_STORE,
       componentProps: {
         allowClear: true,
         options: ADVERTISET_ADDED,
         placeholder: `${$t('common.choice')}`,
         onChange: async (val: string) => {
-          await loadAdCompanyOptions(val);
+          if (val === Platform.HUAWEI_STORE) {
+            await loadAdCompanyOptions(val);
+            await appNameOptions(val);
+            await aGenerationOptions(val);
+          }
           await loadAdvertiserOptions(val);
-          await appNameOptions(val);
-          await aGenerationOptions(val);
         },
       },
       rules: 'required',
       fieldName: 'platform',
       label: `${$t('ocpx.platform.title')}`,
     },
+    // 华为商店
     {
       component: 'Select',
       componentProps: {
@@ -172,7 +180,13 @@ const formOptions: VbenFormProps = {
         placeholder: `${$t('common.choice')}`,
       },
       fieldName: 'developerId',
-      label:'一代主体',
+      label: '一代主体',
+      dependencies: {
+        show: (value) => {
+          return value.platform === Platform.HUAWEI_STORE;
+        },
+        triggerFields: ['platform']
+      }
     },
     {
       component: 'Select',
@@ -186,7 +200,13 @@ const formOptions: VbenFormProps = {
         },
       },
       fieldName: 'advertiserId',
-      label: '账户名字'
+      label: '账户名字',
+      dependencies: {
+        show: (value) => {
+          return value.platform === Platform.HUAWEI_STORE;
+        },
+        triggerFields: ['platform']
+      }
     },
     {
       component: 'Select',
@@ -200,11 +220,18 @@ const formOptions: VbenFormProps = {
         },
       },
       fieldName: 'companyNames',
-      label: '公司名字'
+      label: '公司名字',
+      dependencies: {
+        show: (value) => {
+          return value.platform === Platform.HUAWEI_STORE;
+        },
+        triggerFields: ['platform']
+      }
+
     },
     {
       component: 'Select',
-      defaultValue:['day'],
+      defaultValue: ['day'],
       componentProps: {
         allowClear: true,
         mode: 'multiple',
@@ -213,7 +240,13 @@ const formOptions: VbenFormProps = {
       },
       rules: 'required',
       fieldName: 'dims',
-      label:'维度',
+      label: '维度',
+      dependencies: {
+        show: (value) => {
+          return value.platform === Platform.HUAWEI_STORE;
+        },
+        triggerFields: ['platform']
+      }
     },
     {
       component: 'Select',
@@ -227,7 +260,35 @@ const formOptions: VbenFormProps = {
         },
       },
       fieldName: 'huwaweiAppIdList',
-      label:'appName',
+      label: 'appName',
+      dependencies: {
+        show: (value) => {
+          return value.platform === Platform.HUAWEI_STORE;
+        },
+        triggerFields: ['platform']
+      }
+    },
+
+    // 华为
+
+    {
+      component: 'Select',
+      defaultValue: ['day'],
+      componentProps: {
+        allowClear: true,
+        mode: 'multiple',
+        options: CONSUMPTION_DETAIL_DIMENSION_HUAWEI,
+        placeholder: `${$t('common.choice')}`,
+      },
+      rules: 'required',
+      fieldName: 'dims',
+      label: '维度',
+      dependencies: {
+        show: (value) => {
+          return value.platform === Platform.HUAWEI;
+        },
+        triggerFields: ['platform']
+      }
     },
   ],
   // 控制表单是否显示折叠按钮
@@ -266,8 +327,8 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   height: 'auto',
   keepSource: true,
   pagerConfig: {
-    pageSize:500,
-    pageSizes: [500, 800,1000],
+    pageSize: 500,
+    pageSizes: [500, 800, 1000],
   },
   exportConfig: {
     filename: '',
@@ -282,7 +343,8 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   proxyConfig: undefined,
 };
 
-const fixedLeftKeys = ['APPID', 'day', '开发者ID', '账户ID','公司名称','账户名字'];
+
+const fixedLeftKeys = ['APPID', 'day', '开发者ID', '账户ID', '公司名称', '账户名字'];
 
 async function init(args?: any) {
   try {
@@ -297,7 +359,7 @@ async function init(args?: any) {
     );
     // ② 生成列
     const newColumns = [
-      { title: '序号', field: 'seq', width: 'auto', fixed: 'left' },
+      {title: '序号', field: 'seq', width: 'auto', fixed: 'left'},
       ...res.columns.map((key: string) => {
         const isFixedLeft = fixedLeftKeys.includes(key);
         return {
@@ -305,7 +367,7 @@ async function init(args?: any) {
           title: key,
           width: 'auto',
           sortable: true,
-          ...(isFixedLeft ? { fixed: 'left' } : {}),
+          ...(isFixedLeft ? {fixed: 'left'} : {}),
         };
       }),
     ];
@@ -317,7 +379,7 @@ async function init(args?: any) {
         total: pager.total,
         currentPage: pager.currentPage,
         pageSize: pager.pageSize,
-        pageSizes: [500, 800,1000],
+        pageSizes: [500, 800, 1000],
       },
     });
   } finally {
@@ -326,7 +388,7 @@ async function init(args?: any) {
 }
 
 const gridEvents = {
-  pageChange({ currentPage, pageSize }: { currentPage: number; pageSize: number }) {
+  pageChange({currentPage, pageSize}: { currentPage: number; pageSize: number }) {
     onPageChange(currentPage, pageSize);
     gridApi.setGridOptions({
       data: getPageData(),
@@ -334,24 +396,23 @@ const gridEvents = {
         total: pager.total,
         currentPage: pager.currentPage,
         pageSize: pager.pageSize,
-        pageSizes: [500, 800,1000],
+        pageSizes: [500, 800, 1000],
       },
     });
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents });
-
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
 </script>
 
 <template>
-<div>
-  <Page auto-content-height>
-    <Grid>
-      <template #toolbar-tools></template>
-    </Grid>
-  </Page>
-</div>
+  <div>
+    <Page auto-content-height>
+      <Grid>
+        <template #toolbar-tools></template>
+      </Grid>
+    </Page>
+  </div>
 </template>
 
 <style scoped lang="scss">

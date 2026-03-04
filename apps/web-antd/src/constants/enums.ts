@@ -26,4 +26,5 @@ export enum Platform {
   TBSG = "tb_shangou",
   GYXOPPO = "gyx_oppo",
   QUTOUTIAO = "qutoutiao",
+  HUAWEI_STORE = "huawei_store"
 }
