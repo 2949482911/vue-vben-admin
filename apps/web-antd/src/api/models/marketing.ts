@@ -75,6 +75,7 @@ export interface ImportChildRequest{
  */
 export interface AuthAdvertiserRequest {
   platform: string;
+  developerId?: string
 }
 
 

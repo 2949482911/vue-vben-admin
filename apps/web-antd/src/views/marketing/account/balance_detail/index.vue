@@ -362,13 +362,18 @@ async function init(args?: any) {
       {title: '序号', field: 'seq', width: 'auto', fixed: 'left'},
       ...res.columns.map((key: string) => {
         const isFixedLeft = fixedLeftKeys.includes(key);
-        return {
+        const columnConfig = {
           field: key,
           title: key,
           width: 'auto',
           sortable: true,
           ...(isFixedLeft ? {fixed: 'left'} : {}),
         };
+
+        if (key === '推广产品') {
+          columnConfig.slots = {default: '推广产品'};
+        }
+        return columnConfig;
       }),
     ];
     // ③ 更新 Grid（只用当前页数据）
@@ -410,6 +415,13 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
     <Page auto-content-height>
       <Grid>
         <template #toolbar-tools></template>
+        <template #推广产品="{row}">
+          <div>
+            <div class="app-item" v-for="app in row['推广产品']" :key="app.appId">
+              <div class="app-name">{{ app.product_name }}</div>
+            </div>
+          </div>
+        </template>
       </Grid>
     </Page>
   </div>

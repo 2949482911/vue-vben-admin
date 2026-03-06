@@ -4,11 +4,37 @@ import {useVbenForm} from '#/adapter/form';
 import {$t} from "@vben/locales";
 import {AUTH_ACCOUNT_PLATFORM} from "#/constants/locales";
 import {Platform} from "#/constants/enums";
-import {advertiserApi} from "#/api/core";
-import {onMounted} from "vue";
+import {advertiserApi, developerApi} from "#/api/core";
+import {onMounted, ref} from "vue";
 
 import {Alert} from 'ant-design-vue';
 
+interface DeveloperOption {
+  label: string;
+  value: string;
+}
+
+
+const aGenerationOption = ref<DeveloperOption[]>([]);
+
+
+/**默认平台为华为商店，然后拿到一代主体的下拉事件 */
+async function aGenerationOptions(platform: string) {
+  aGenerationOption.value = [];
+
+  if (!platform) return;
+
+  const res = await developerApi.fetchDeveloperList({
+    platform,
+    page: 1,
+    pageSize: 200,
+  });
+
+  aGenerationOption.value = res.items.map((item) => ({
+    label: item.name,
+    value: item.id,
+  }));
+}
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -28,7 +54,8 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
         options: AUTH_ACCOUNT_PLATFORM,
         onSelect: async (value: string) => {
-          await handlerAuthUrl(value);
+          await handlerAuthUrl(value, '');
+          await aGenerationOptions(value);
         }
       },
       // 字段名
@@ -37,6 +64,25 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: `${$t('ocpx.platform.title')}`,
       rules: 'required',
+    },
+
+    {
+      component: 'Select',
+      componentProps: {
+        placeholder: `${$t('common.select')}`,
+        showSearch: true,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        options: aGenerationOption,
+        onSelect: async (developerId: string) => {
+          const formVal = await formApi.getValues();
+          await handlerAuthUrl(formVal["platform"], developerId);
+        }
+      },
+      fieldName: 'developerId',
+      // 界面显示的label
+      label: `${$t('marketing.developer.title')}`,
     },
 
     {
@@ -81,9 +127,10 @@ const [Form, formApi] = useVbenForm({
 /**
  * 获取授权url
  * @param platform
+ * @param developerId
  */
-async function handlerAuthUrl(platform: string) {
-  const url = await advertiserApi.fetchAuthUrl({platform: platform})
+async function handlerAuthUrl(platform: string, developerId?: string) {
+  const url = await advertiserApi.fetchAuthUrl({platform: platform, developerId: developerId})
   await formApi.setFieldValue("authUrl", url)
 }
 

@@ -489,5 +489,9 @@ export const CONSUMPTION_DETAIL_DIMENSION_HUAWEI = [
   {
     label: '账户Id',
     value: 'platform_account_id',
+  },
+  {
+    label: '账户类型',
+    value: 'account_type',
   }
 ]
