@@ -25,6 +25,7 @@
     }
   },
   "developer": {
+    "title": "开发者",
     "columns": {
       "platform": "平台",
       "name": "名字",

@@ -25,6 +25,7 @@
     }
   },
   "developer": {
+    "title": "Developer",
     "columns": {
       "platform": "Platform",
       "name": "Name",
