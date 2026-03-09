@@ -30,5 +30,6 @@ export enum Platform {
   TBSG = "tb_shangou",
   GYXOPPO = "gyx_oppo",
   UU = "uu_union",
-  QUTOUTIAO = "qutoutiao"
+  QUTOUTIAO = "qutoutiao",
+  BAIDU_PACK = "baidu_pack"
 }

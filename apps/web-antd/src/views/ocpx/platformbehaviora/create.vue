@@ -920,6 +920,29 @@ platformConfigForm.set(Platform.UU, [
   },
 ])
 
+// 百度网盘
+platformConfigForm.set(Platform.BAIDU_PACK, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'adId',
+    label: `adId`,
+    rules: 'required',
+  },
+
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'channelId',
+    label: `channelId`,
+    rules: 'required',
+  },
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {

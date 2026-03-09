@@ -350,6 +350,11 @@ export const BEHAVIORA_PLATFORM = [
     value: 'uu_union',
   },
 
+  {
+    label: `${$t('ocpx.platform.baidu_pack')}`,
+    value: 'baidu_pack',
+  },
+
 
 ];
 
