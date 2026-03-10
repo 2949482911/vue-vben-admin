@@ -39,6 +39,7 @@
   "marketing": {
     "title": "Marketing",
     "project": "Project",
+    "platformAdvertiserLabel": "Advertiser Label",
     "account": {
       "title": "Account",
       "advertiser": "Advertiser",
