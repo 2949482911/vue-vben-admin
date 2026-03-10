@@ -48,7 +48,24 @@ export const STATUS_SELECT = [
     value: 9,
   },
 ];
-
+export const TASK_STATUS_SELECT = [
+  {
+    label: '待处理',
+    value: 1,
+  },
+  {
+    label: '处理中',
+    value: 2,
+  },
+  {
+    label: '处理完成',
+    value: 3,
+  },
+  {
+    label: '处理失败',
+    value: 4,
+  },
+];
 export const SEX_SELECT = [
   {
     label: `${$t('common.boy')}`,

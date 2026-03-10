@@ -30,6 +30,7 @@ import type {
   TitlePackItem,
   GetTargetedPackageType,
   NewTargetedPackageType,
+  GetCreationTaskType,
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -329,3 +330,14 @@ class TargetedPackageApi extends BaseApi {
 
 export const targetedPackageApi = new TargetedPackageApi("/platform/audience_package");
 
+/**
+ * 创编任务
+ */
+class CreationTaskApi extends BaseApi {
+  /**任务列表查询*/
+  fetchGetCreationTaskList(params:GetCreationTaskType) {
+    return requestClient.get(this.getServiceUrl("list"),{params})
+  }
+}
+
+export const creationTaskApi = new CreationTaskApi("/platform/advertisement_batch_create");

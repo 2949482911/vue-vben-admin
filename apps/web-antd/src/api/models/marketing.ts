@@ -1,5 +1,5 @@
 import type {BaseItem, PageRequestParams} from "#/api/models/core";
-
+import type {RuleType} from "#/constants/enums";
 
 /**
  * 账户请求
@@ -531,3 +531,30 @@ export interface NewTargetedPackageType {
     },
   }
 }
+ /** 创编任务-查询任务列表 */
+export interface GetCreationTaskType {
+  platform?: string;
+  name?: string;
+  taskStatus?: Number;
+  projectId?: string;
+}
+/** 创编任务列表数据结构 */
+export interface CreationTaskItem {
+  platform?: string;
+  name?: string;
+  projectId?: string;
+  ruleType?: RuleType;
+  commitAdvertiserCount?: Number;
+  commitCampaignCount?: Number;
+  successCampaignCount?: Number;
+  commitAdGroupCount?: Number;
+  successAdGroupCount?: Number;
+  commitPromotionCount?: Number;
+  successPromotionCount?: Number;
+  commitCreativeCount?: Number;
+  successCreativeCount?: Number;
+  startTime?: string;
+  endTime?: string;
+  taskStatus?: Number;
+}
+

@@ -31,5 +31,9 @@
   "authorization": "授权",
   "select": "选择",
   "disable": "禁止",
-  "enable": "启用"
+  "enable": "启用",
+  "pending": "待处理",
+  "processing": "处理中",
+  "completed": "处理成功",
+  "failed": "处理失败"
 }
