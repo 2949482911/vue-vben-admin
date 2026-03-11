@@ -36,6 +36,7 @@ export interface AdvertiserItem extends BaseItem {
   config: Map<string, any>;
   customer?: "",
   saleId?: "",
+  tagId: string;
 }
 
 
@@ -557,4 +558,27 @@ export interface CreationTaskItem {
   endTime?: string;
   taskStatus?: Number;
 }
-
+// 账户标签
+export interface LabelItem extends BaseItem {
+  name?: string;
+  remark?: string;
+}
+ /** 账户标签-查询任务列表 */
+export interface GetLabelItemType {
+  name?: string;
+}
+ /** 账户标签-新增任务列表 */
+export interface NewLabelItemType {
+  name?: string;
+  remark?: string;
+}
+/**账户标签-编辑任务列表 */
+export interface EditLabelItemType extends NewLabelItemType {
+  id:string,
+ 
+}
+/**营销-资产-标题包删除 */
+export interface DelLabelItemType {
+  targetIds: string[];
+  type:string;
+}

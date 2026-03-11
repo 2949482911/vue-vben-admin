@@ -67,8 +67,11 @@ const [BatchOperationModal, BatchOperationApi] = useVbenModal({
   modal: true,
 });
 
-function openBatchOptions() {
-  BatchOperationApi.setData(selectedRows.value);
+function openBatchOptions(modalType: 'edit' | 'bind') {
+  BatchOperationApi.setData({
+    selectedRows: selectedRows.value, // 原有选中行数据
+    modalType: modalType, // 新增的弹窗类型
+  });
   BatchOperationApi.open();
 }
 
@@ -367,6 +370,11 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       width: 'auto',
       slots: {default: 'platformAuditState'}
     },
+    {
+      field: 'tagName',
+      title: `${$t('marketing.advertiser.columns.tagName')}`,
+      width: 'auto',
+    },
 
     ...TABLE_COMMON_COLUMNS as any,
   ],
@@ -477,8 +485,11 @@ function pageReload() {
             </Button>
             <template #overlay>
               <Menu>
-                <MenuItem  @click="openBatchOptions">
+                <MenuItem  @click="openBatchOptions('edit')">
                   批量修改项目
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('bind')">
+                  批量绑定标签
                 </MenuItem>
               </Menu>
             </template>

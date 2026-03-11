@@ -31,6 +31,10 @@ import type {
   GetTargetedPackageType,
   NewTargetedPackageType,
   GetCreationTaskType,
+  GetLabelItemType,
+  NewLabelItemType,
+  EditLabelItemType,
+  DelLabelItemType
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -338,6 +342,33 @@ class CreationTaskApi extends BaseApi {
   fetchGetCreationTaskList(params:GetCreationTaskType) {
     return requestClient.get(this.getServiceUrl("list"),{params})
   }
+  
 }
 
 export const creationTaskApi = new CreationTaskApi("/platform/advertisement_batch_create");
+
+/**
+ * 账户标签
+ */
+class AccountLabelApi extends BaseApi {
+  /**标签列表查询*/
+  fetchGetAccountLabelList(params:GetLabelItemType) {
+    return requestClient.get(this.getServiceUrl("list"),{params})
+  }
+  /**标签列表删除*/
+  fetchBatchOptions(params:DelLabelItemType) {
+    return requestClient.post(this.getServiceUrl("batch_options"),params)
+  }
+
+  /**标签列表新建*/
+  fetchNewAccountLabel(params:NewLabelItemType) {
+    return requestClient.post(this.getServiceUrl("create"),params)
+  }
+
+  /**标签列表修改*/
+  fetchModifyAccountLabel(params:EditLabelItemType) {
+    return requestClient.post(this.getServiceUrl("update"),params)
+  }
+}
+
+export const accountLabelApi = new AccountLabelApi("/platform/advertiser_tag");
