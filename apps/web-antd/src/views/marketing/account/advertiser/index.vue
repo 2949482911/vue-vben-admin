@@ -197,6 +197,10 @@ const formOptions: VbenFormProps = {
             label: `${$t('marketing.advertiser.advertiserRole.personal')}`,
             value: 'personal',
           },
+          {
+            label: `${$t('marketing.advertiser.advertiserRole.bm')}`,
+            value: 'bm',
+          },
         ],
         placeholder: `${$t('common.choice')}`,
       },
@@ -466,7 +470,7 @@ function pageReload() {
                 <MenuItem>
                   投放
                 </MenuItem>
-                <MenuItem v-if="row.advertiserRole === 'proxy'" @click="openImportChildModal(row)">
+                <MenuItem v-if="row.advertiserRole === 'proxy' || row.advertiserRole === 'bm'" @click="openImportChildModal(row)">
                   {{ $t('core.import')}}
                 </MenuItem>
               </Menu>

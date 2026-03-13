@@ -200,6 +200,10 @@ export const PLATFORM = [
   {
     label: '趣头条',
     value: 'qutoutiao',
+  },
+  {
+    label: '广点通',
+    value: 'tencent',
   }
 ];
 
@@ -254,6 +258,10 @@ export const BACKHAUL = [
   {
     label: '趣头条',
     value: 'qutoutiao',
+  },
+  {
+    label: '广点通',
+    value: 'tencent',
   }
 ];
 

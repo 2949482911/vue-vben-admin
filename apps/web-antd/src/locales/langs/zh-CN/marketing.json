@@ -22,7 +22,8 @@
     "advertiserRole": {
       "proxy": "代理",
       "advertiser": "广告主",
-      "personal": "个人"
+      "personal": "个人",
+      "bm":"BM"
     }
   },
   "developer": {

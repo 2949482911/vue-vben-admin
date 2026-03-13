@@ -2,8 +2,8 @@
 import type {LabelItem} from '#/api/models/marketing'
 import { Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
 import {$t} from '@vben/locales';
-import { Button, message, Tag } from 'ant-design-vue';
-import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS, STATUS_SELECT, } from '#/constants/locales';
+import { Button, message, Tag, Switch } from 'ant-design-vue';
+import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS, STATUS_SELECT, BatchOptionsType} from '#/constants/locales';
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import { accountLabelApi } from '#/api';
 import { trimObject } from '#/utils/trim';
@@ -129,19 +129,30 @@ function handlerDeleteAll() {
 function pageReload() {
   gridApi.reload();
 }
-
+async function handlerState(row: LabelItem) {
+  await (row.status === 1
+    ? accountLabelApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.DISABLE,
+      values: new Map<string, any>(),
+    })
+    : accountLabelApi.fetchBatchOptions({
+      targetIds: [row.id],
+      type: BatchOptionsType.Enable,
+      values: new Map<string, any>(),
+    }));
+  pageReload();
+}
 </script>
 
 <template>
   <div>
     <Page auto-content-height>
       <Grid>
-        <template #status="{row}">
-          <Tag color="green" v-if="row.status === 1">
-            启用
-          </Tag>
-          <Tag v-else color="red">不启用</Tag>
+        <template #status="{ row }">
+          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
         </template>
+
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
             {{ $t('common.edit') }}
