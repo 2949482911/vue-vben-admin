@@ -835,6 +835,55 @@ platformConfigForm.set(Platform.TBSG, [
   },
 ])
 
+//抖音
+platformConfigForm.set(Platform.DOUYIN, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'app',
+    label: 'app',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'access_key',
+    label: 'access_key',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'secret_key',
+    label: `secret_key`,
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'strategy_ids',
+    label: `strategy_ids`,
+    rules: 'required',
+  }, 
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'adLink',
+    label: `adLink`,
+    rules: 'required',
+  }
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -880,6 +929,7 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
+    console.log('formVal',formVal)
     // 1️⃣ trim 主表单
     const baseForm = trimObject(formVal);
 

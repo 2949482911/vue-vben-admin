@@ -354,7 +354,10 @@ export const BEHAVIORA_PLATFORM = [
     label: '淘宝闪购',
     value: 'tb_shangou',
   },
-
+  {
+    label: '抖音',
+    value: 'douyin',
+  },
 ];
 
 // 匹配下拉
@@ -520,3 +523,58 @@ export const CONSUMPTION_DETAIL_DIMENSION_HUAWEI = [
     value: 'account_type',
   }
 ]
+/**
+ * 广点通配置类型
+ */
+export const BM_COFIG_TYPE = [
+  {
+    label: 'ANDROID',
+    value: 'ANDROID',
+  }
+]
+/**
+ * 广点通-安卓应用ID
+ */
+export const ANDROID_APPLICATION_ID = [
+  {
+    label: '快手',
+    value: '100228415',
+  },
+
+  {
+    label: '快手极速版',
+    value: '1107805332',
+  }
+]
+/**
+ * 广点通-IOS应用ID
+ */
+export const IOS_APPLICATION_ID = [
+  {
+    label: '快手',
+    value: '440948110',
+  },
+
+  {
+    label: '快手极速版',
+    value: '1472502819',
+  }
+]
+/**
+ * 广点通-安卓用户行为设置ID
+ */
+export const ANDROID_USER_ACTION_SET_ID = [
+  {
+    label: '快手',
+    value: '1220349983',
+  },
+
+  {
+    label: '快手极速版',
+    value: '1220350070',
+  }
+]
+/**
+ * 广点通-IOS用户行为设置ID
+ */
+export const IOS_USER_ACTION_SET_ID = []
