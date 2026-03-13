@@ -333,7 +333,7 @@ export interface MaterialListParams {
 }
 
 /**上传素材 */
-export interface FileInfo {
+export interface FileInfo extends BaseItem {
   /** 名称 */
   name: string;
   /** 相册 ID */

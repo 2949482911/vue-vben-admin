@@ -268,6 +268,10 @@ class UploadEditApi extends BaseApi {
   fetchMaterialList(params: MaterialListParams) {
     return requestClient.get(this.getServiceUrl("list"), {params})
   }
+  /**删除素材*/
+  fetchDelMaterials(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params)
+  }
 }
 
 export const uploadEditApi = new UploadEditApi("/platform/material");
