@@ -259,7 +259,14 @@ const formOptions: VbenFormProps = {
         placeholder: `${$t('common.select')}`,
         mode: 'multiple',
         api: async (params: AdvertiserPageRequest) => {
-          return await advertiserApi.fetchAdvertiserList(params);
+          const res = await advertiserApi.fetchAdvertiserList(params);
+          if (res.items && Array.isArray(res.items)) {
+            res.items = res.items.map(item => ({
+              ...item,
+              comboLabel: `${item.advertiserName}-${item.advertiserId}`
+            }));
+          }
+          return res;
         },
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
@@ -271,7 +278,7 @@ const formOptions: VbenFormProps = {
           putStatue: 1,
         },
         valueField: 'advertiserId',
-        labelField: 'advertiserName',
+        labelField: 'comboLabel',
         resultField: 'items',
       },
       // 字段名

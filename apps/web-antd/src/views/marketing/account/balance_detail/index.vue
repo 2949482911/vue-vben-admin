@@ -76,7 +76,7 @@ async function loadAdvertiserOptions(platform: string) {
   });
 
   developerOption.value = res.items.map((item) => ({
-    label: item.advertiserName,
+    label: `${item.advertiserName}-${item.advertiserId}`,
     value: item.advertiserId,
   }));
 }
@@ -124,7 +124,7 @@ async function aGenerationOptions(platform: string) {
   });
 
   aGenerationOption.value = res.items.map((item) => ({
-    label: item.name,
+    label: `${item.name}-${item.id}`,
     value: item.id,
   }));
 }
