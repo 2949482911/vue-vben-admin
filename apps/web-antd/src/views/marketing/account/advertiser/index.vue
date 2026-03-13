@@ -309,6 +309,11 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       width: 'auto',
     },
     {
+      field: 'orgName',
+      title: `${$t('marketing.advertiser.columns.orgName')}`,
+      width: 'auto',
+    },
+    {
       field: 'saleName',
       title: '销售',
       width: 'auto',
@@ -378,6 +383,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       field: 'tagName',
       title: `${$t('marketing.advertiser.columns.tagName')}`,
       width: 'auto',
+      slots: {default: 'tagName'}
     },
 
     ...TABLE_COMMON_COLUMNS as any,
@@ -452,6 +458,9 @@ function pageReload() {
         <template #platformAuditState="{row}">
           <Tag color="orange">{{ row.platformAuditState }}</Tag>
         </template>
+        <template #tagName="{row}">
+          <Tag color="blue">{{ row.tagName }}</Tag>
+        </template>
 
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
@@ -490,10 +499,22 @@ function pageReload() {
             <template #overlay>
               <Menu>
                 <MenuItem  @click="openBatchOptions('edit')">
-                  批量修改项目
+                  修改项目
                 </MenuItem>
                 <MenuItem  @click="openBatchOptions('bind')">
-                  批量绑定标签
+                  绑定标签
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('org')">
+                  修改部门
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('sale')">
+                  修改销售
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('creator')">
+                  修改创建人
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('status')">
+                  修改投放状态
                 </MenuItem>
               </Menu>
             </template>

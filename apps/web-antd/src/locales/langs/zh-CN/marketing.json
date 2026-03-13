@@ -17,7 +17,8 @@
       "companyName": "公司名字",
       "platformAuditState": "媒体审核状态",
       "projectId": "项目",
-      "tagName":"标签"
+      "tagName": "标签",
+      "orgName": "部门"
     },
     "advertiserRole": {
       "proxy": "代理",
