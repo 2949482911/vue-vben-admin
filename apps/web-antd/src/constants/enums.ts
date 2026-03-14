@@ -5,7 +5,6 @@ export enum Platform {
   ALIPAY = 'alipay',
   BYTEDANCE = 'bytedance',
   HUAWEI = 'huawei',
-  HUAWEI_STORE = "huawei_store",
   JD = 'jd',
   JDKJ = 'jdkj', // 京东科技
   KUAKE = 'kuake',
@@ -31,5 +30,10 @@ export enum Platform {
   GYXOPPO = "gyx_oppo",
   UU = "uu_union",
   QUTOUTIAO = "qutoutiao",
-  BAIDU_PACK = "baidu_pack"
+  HUAWEI_STORE = "huawei_store",
+  TENCENT = "tencent",
+  DOUYIN = "douyin"
+}
+export enum RuleType {
+  IMMEDIATELY = 'immediately'
 }

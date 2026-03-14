@@ -233,6 +233,9 @@ const [Form, formApi] = useVbenForm({
         allowClear: true,
         options: salesOption,
         placeholder: `${$t('common.choice')}`,
+        valueField: 'id',
+        labelField: 'name',
+        resultField: "items",
       },
       // 字段名
       fieldName: 'saleId',

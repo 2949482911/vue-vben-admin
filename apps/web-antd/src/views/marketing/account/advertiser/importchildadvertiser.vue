@@ -5,9 +5,10 @@ import {Page} from '@vben/common-ui';
 import {reactive, ref, computed} from 'vue';
 import {advertiserApi} from "#/api/core";
 import {useVbenVxeGrid, type VxeGridProps} from "#/adapter/vxe-table";
+import { useVbenForm } from '#/adapter/form';
 import type {AccountChildResponse, AdvertiserItem} from "#/api/models";
 import {$t} from "@vben/locales";
-import {InputSearch, Checkbox, Select } from "ant-design-vue";
+import {InputSearch, Checkbox, Select, RadioGroup, RadioButton } from "ant-design-vue";
 import type { ProjectItem } from './advertiser';
 
 //父传子接受的项目下拉数据列表
@@ -30,6 +31,8 @@ const pages = reactive({
   currentPage:1,
   pageSize: 100
 })
+
+const handleType = ref('choose')
 //弹框导入列表的全部数据
 const importData = ref<AccountChildResponse | any>([])
   // 当前用于分页的数据（搜索后 or 原始）
@@ -54,9 +57,15 @@ const [Modal, modalApi] = useVbenModal({
 
   },
   async onConfirm() {
-    const checkedRecords = gridApi.grid.getCheckboxRecords();
-    const advertiserIds: string[] = checkedRecords.map((item) => item.advertiserId);
-    await advertiserApi.fetchImportChild({id: objectRequest.value.id, advertiserIds,projectId:projectStr.value})
+    let advertiserIds: string[];
+    if(handleType.value === 'import') {
+      const formVal = await formApi.getValues();
+      advertiserIds = strToArray(formVal.accountIds);
+    } else {
+      const checkedRecords = gridApi.grid.getCheckboxRecords();
+      advertiserIds = checkedRecords.map((item) => item.advertiserId);
+    }
+    await advertiserApi.fetchImportChild({id: objectRequest.value.id, advertiserIds,projectId:projectStr.value});
     gridApi.setGridOptions({data: []});
     objectRequest.value = {id: ''};
     emit('pageReload');
@@ -65,6 +74,7 @@ const [Modal, modalApi] = useVbenModal({
     checked.value = false
     projectStr.value = ''
     isSlect.value = true
+    handleType.value = 'choose'
 
   },
   async onOpenChange(isOpen: boolean) {
@@ -208,54 +218,89 @@ function filterExist(bool:boolean){
   updatePageData(filterData.value);
 }
 
+
 // 用来控制只展示可新增账户的字段
 const [Grid, gridApi] = useVbenVxeGrid({gridOptions,gridEvents});
+const [Form, formApi] = useVbenForm({
+  showDefaultActions: false,
+  commonConfig: {
+    // 所有表单项
+    componentProps: {
+      class: 'w-full',
+    },
+  },
+  layout: 'horizontal',
+  schema: [
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Textarea',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: '请输入以逗号分隔的账户ID',
+        rows: 6
+      },
+      // 字段名
+      fieldName: 'accountIds',
+      // 界面显示的label
+      label: '账户ID',
+    },
+  ],
+});
 
+function handlerOperate(e){
+}
+
+function strToArray(inputStr) {
+  if (!inputStr || inputStr.trim() === '') {
+    return [];
+  }
+  const arr = inputStr.split(/[, \n\t]+/);
+  const result = arr.filter(item => item.trim() !== '');
+  // 去重
+  // const result = [...new Set(arr.filter(item => item.trim() !== ''))];
+  return result;
+}
 </script>
 
 <template>
   <Page>
     <Modal class="w-[605px]">
-      <div class="filterClass">
-        <InputSearch
-          v-model:value="accountName"
-          placeholder="请输入账户名字搜索"
-          style="width: 200px"
-          @search="onSearch"
-        />
-        <Checkbox v-model:checked="checked" @change="changeBool">只展示可新增账户</Checkbox >
+      <div class="oprateBtns">
+            <RadioGroup v-model:value="handleType" button-style="solid" @change="handlerOperate">
+              <RadioButton value="choose">手动选择</RadioButton>
+              <RadioButton value="import">手动导入</RadioButton>
+            </RadioGroup>
       </div>
-      <div class="belongingClass">
-        <div style="font-size: 13px;">所属项目：</div>
-        <Select
-          :disabled="isSlect"
-          style="width: 133px"
-          v-model:value="projectStr"
-          show-search
-          allow-clear
-          :filter-option="(input, option) =>
-            option?.label?.toLowerCase().includes(input.toLowerCase())
-          "
-          :options="projectItemOptions"
-          placeholder="请选择项目">
-        </Select>
+      <div  v-if="handleType === 'choose'">
+        <div class="filterClass">
+          <InputSearch
+            v-model:value="accountName"
+            placeholder="请输入账户名字搜索"
+            style="width: 200px"
+            @search="onSearch"
+          />
+          <Checkbox v-model:checked="checked" @change="changeBool">只展示可新增账户</Checkbox >
+        </div>
+        <div class="belongingClass">
+          <div style="font-size: 13px;">所属项目：</div>
+          <Select
+            :disabled="isSlect"
+            style="width: 133px"
+            v-model:value="projectStr"
+            show-search
+            allow-clear
+            :filter-option="(input, option) =>
+              option?.label?.toLowerCase().includes(input.toLowerCase())
+            "
+            :options="projectItemOptions"
+            placeholder="请选择项目">
+          </Select>
+        </div>
+        <Grid></Grid>
       </div>
-      <!-- <div class="belongingClass">
-        <div style="font-size: 13px;">所属项目：</div>
-        <Select
-          :disabled="isSlect"
-          style="width: 133px"
-          v-model:value="projectStr"
-          show-search
-          allow-clear
-          :filter-option="(input, option) =>
-            option?.label?.toLowerCase().includes(input.toLowerCase())
-          "
-          :options="projectItemOptions"
-          placeholder="请选择项目">
-        </Select>
-      </div> -->
-      <Grid></Grid>
+     <div v-else>
+        <Form />
+     </div>
     </Modal>
   </Page>
 </template>
@@ -272,6 +317,11 @@ const [Grid, gridApi] = useVbenVxeGrid({gridOptions,gridEvents});
   display: flex;
   align-items: center;
   padding:0.5rem 0.5rem 0;
+
+}
+
+.oprateBtns {
+  margin: 10px 0;
 
 }
 

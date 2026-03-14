@@ -40,6 +40,7 @@
   "marketing": {
     "title": "营销",
     "project": "项目",
+    "platformAdvertiserLabel": "账户标签",
     "account": {
       "title": "账户",
       "advertiser": "广告主",

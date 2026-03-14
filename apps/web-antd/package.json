@@ -43,15 +43,16 @@
     "@vben/types": "workspace:*",
     "@vben/utils": "workspace:*",
     "@vueuse/core": "catalog:",
-    "exceljs": "catalog:",
-    "vxe-pc-ui": "catalog:",
-    "vxe-table": "catalog:",
     "ali-oss": "catalog:",
     "ant-design-vue": "catalog:",
     "dayjs": "catalog:",
+    "exceljs": "catalog:",
     "pinia": "catalog:",
+    "spark-md5": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:",
-    "spark-md5": "catalog:"
+    "vxe-pc-ui": "catalog:",
+    "vxe-table": "catalog:",
+    "vxe-table-plugin-export-xlsx": "^4.0.7"
   }
 }

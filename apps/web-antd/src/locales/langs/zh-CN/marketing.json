@@ -16,12 +16,15 @@
       "dailyBudget": "日预算",
       "companyName": "公司名字",
       "platformAuditState": "媒体审核状态",
-      "projectId": "项目"
+      "projectId": "项目",
+      "tagName": "标签",
+      "orgName": "部门"
     },
     "advertiserRole": {
       "proxy": "代理",
       "advertiser": "广告主",
-      "personal": "个人"
+      "personal": "个人",
+      "bm":"BM"
     }
   },
   "developer": {
@@ -80,6 +83,33 @@
       "packageName": "包名",
       "projectType": "类型",
       "icon": "图标"
+    }
+  },
+  "creation": {
+    "columns": {
+      "name": "任务名字",
+      "platform": "平台",
+      "ruleType": "提交类型",
+      "taskStatus": "任务状态",
+      "projectId": "项目id",
+      "commitAdvertiserCount": "账户数",
+      "commitCampaignCount": "提交计划数",
+      "successCampaignCount": "成功计划数",
+      "commitAdGroupCount": "提交广告组数",
+      "successAdGroupCount": "成功广告组数",
+      "commitPromotionCount": "提交广告数",
+      "successPromotionCount": "成功提交广告数",
+      "commitCreativeCount": "提交创意数",
+      "successCreativeCount": "成功提交创意数",
+      "startTime": "开始时间",
+      "endTime": "结束时间"
+    }
+  },
+  "accountLabel": {
+    "columns": {
+      "name": "标签名称",
+      "remark": "备注",
+      "status": "状态"
     }
   }
 }

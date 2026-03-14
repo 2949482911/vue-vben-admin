@@ -18,7 +18,14 @@ import {useVbenForm} from '#/adapter/form';
 import {advertiserApi, eventSettlementApi} from '#/api';
 import {platformCallbackApi} from '#/api/core/ocpx';
 import {Platform} from '#/constants/enums';
-import {BACKHAUL} from '#/constants/locales';
+import {
+  BACKHAUL, 
+  BM_COFIG_TYPE, 
+  ANDROID_APPLICATION_ID,
+  IOS_APPLICATION_ID, 
+  ANDROID_USER_ACTION_SET_ID, 
+  IOS_USER_ACTION_SET_ID
+} from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
@@ -27,7 +34,8 @@ const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallback
   onlyClick: 0, config: new Map<string, any>(), id: "", name: "", platform: "", remark: ""
 });
 const isUpdate = ref<Boolean>(false);
-
+const mobileAppIds = ref([])
+const userActionSetIds = ref([])
 // 媒体配置表单
 const platformConfigForm = new Map<string, Array<any>>();
 // vivo 配置清单
@@ -83,8 +91,6 @@ platformConfigForm.set(Platform.VIVO, [
     defaultValue: "select",
     rules: 'required',
   },
-
-
   {
     // 媒体配置表单
     component: 'Input',
@@ -98,7 +104,6 @@ platformConfigForm.set(Platform.VIVO, [
     label: `srcId`,
     rules: 'required',
   },
-
   {
     // 媒体配置表单
     component: 'ApiSelect',
@@ -467,8 +472,83 @@ platformConfigForm.set(Platform.QUTOUTIAO, [
     // 字段名
     fieldName: 'test',
     // 界面显示的label
-    label: `test`,
+    label: 'test',
     rules: 'required',
+  },
+])
+// 广点通
+platformConfigForm.set(Platform.TENCENT, [
+  {
+    component: 'Select',
+    componentProps: {
+      allowClear: true,
+      options: BM_COFIG_TYPE,
+      placeholder: `${$t('common.choice')}`,
+    },
+    rules: 'required',
+    fieldName: 'type',
+    label: 'type',
+  },
+  {
+    component: 'Select',
+    componentProps: {
+      allowClear: true,
+      options: mobileAppIds,
+      placeholder: `${$t('common.choice')}`,
+    },
+    dependencies: {
+      show: true,
+      triggerFields: ['type'],
+      required: (value) => !!value.type,
+      rules: (value) => {
+        if (value.type) {
+          return 'required';
+        }
+        return '';
+      },
+      if: (value) => {
+        if (value.type) {
+          if(value.type === 'ANDROID') {
+            mobileAppIds.value = ANDROID_APPLICATION_ID
+          }
+          else {
+            mobileAppIds.value = IOS_APPLICATION_ID
+          }
+        } else {
+          mobileAppIds.value = [];
+        }
+        return true;
+      },
+    },
+    fieldName: 'mobile_app_id',
+    label: 'mobile_app_id',
+  },
+  {
+    component: 'Select',
+    componentProps: {
+      allowClear: true,
+      options: userActionSetIds,
+      placeholder: `${$t('common.choice')}`,
+    },
+    dependencies: {
+      show: true,
+      triggerFields: ['type'],
+      if: (value, formApi) => {
+        if (value.type) {
+          if(value.type === 'ANDROID') {
+            userActionSetIds.value = ANDROID_USER_ACTION_SET_ID
+          }
+          else {
+            userActionSetIds.value = IOS_USER_ACTION_SET_ID
+          }
+        } else {
+          userActionSetIds.value = [];
+        }
+        return true;
+      },
+    },
+    fieldName: 'user_action_set_id',
+    label: 'user_action_set_id',
   },
 ])
 /**

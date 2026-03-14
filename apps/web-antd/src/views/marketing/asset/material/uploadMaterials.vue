@@ -1,12 +1,11 @@
 <script lang="ts" setup>
 import { useVbenDrawer } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
-import { UploadDragger, TreeSelect, Image, message, Button } from 'ant-design-vue';
+import { UploadDragger, TreeSelect, Image, message, Button, Upload, Radio } from 'ant-design-vue';
 import { ref } from 'vue';
 import { SvgUploadIcon } from '@vben/icons';
 import type { FolderItem } from '#/api/models';
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-// import { uploadCredentialsApi } from '#/api/core';
 import { useOssClient } from './useOssClient';
 import { getFileMeta } from '#/utils/fileMeta';
 import { uploadToOss } from '#/utils/uploadToOss';
@@ -20,20 +19,26 @@ const props = defineProps<{
 const nameId = ref<string>('');
 const fileList = ref<any[]>([]);
 
+// 新增：串行上传队列控制
+const pendingFiles = ref<File[]>([]);
+const isUploading = ref(false);
+// 新增：控制当前是“文件模式”还是“文件夹模式”，默认 false (文件模式)
+const isDirectoryMode = ref<boolean>(false);
+
 const emit = defineEmits<{
   (e: 'treeNode'): void
 }>();
+
 /** ================== Drawer ================== */
 const [Drawer, drawerApi] = useVbenDrawer({
-   // 当抽屉打开状态改变时触发
+  // 当抽屉打开状态改变时触发
   async onOpenChange(isOpen) {
     if (!isOpen) {
       await drawerApi.close();
       await resetAll()
-    }else{}
+    }
   },
   async onConfirm() {
-    // 确认逻辑...
     await drawerApi.close();
     emit('treeNode');
   },
@@ -75,54 +80,72 @@ const gridOptions: VxeGridProps = {
   data: gridData.value,
   checkboxConfig: { highlight: true },
   columns: [
-    { title: '序号', type: 'seq' },
+    { title: '序号', type: 'seq', width: 60 },
     { field: 'category', title: '素材名' },
-    // { field: 'imageUrl2', title: '素材文件', cellRender: { name: 'CellImage' } },
-    // { field: 'remark', title: '素材备注' },
-    { field: 'status', title: '上传状态' },
-    // {
-    //   field: 'action',
-    //   fixed: 'right',
-    //   slots: { default: 'action' },
-    //   title: '操作',
-    //   width: 120,
-    // },
+    { field: 'status', title: '上传状态', width: 100 },
   ],
   pagerConfig: { enabled: false },
 };
 
+/** ================== 批量串行上传逻辑 ================== */
 
-/** ================== 自定义上传 ================== */
-async function customUpload({ file, onSuccess, onError }: any) {
-  const rawFile: File = file.originFileObj ?? file;
-  const isVideo = rawFile.type.startsWith('video/');
-
-  // 1️⃣ 获取元信息 (已兼容视频)
-  const meta = await getFileMeta(rawFile);
-
-  // 2️⃣ oss key
-  const ext = rawFile.name.substring(rawFile.name.lastIndexOf('.'));
-  const ossKey = `${meta.fileMd5}${ext}`;
-
-  if(!nameId.value){
-    message.error("请选择上传文件夹");
-    return;
+// 1. 拦截文件加入队列
+function handleBeforeUpload(file: any) {
+  if (!nameId.value) {
+    if (pendingFiles.value.length === 0 && !isUploading.value) {
+      message.error("请先选择上传文件夹");
+    }
+    return Upload.LIST_IGNORE;
   }
 
-  // 3️⃣ 表格状态记录
-  const record = {
+  const rawFile: File = file.originFileObj ?? file;
+  // 过滤幽灵文件夹
+  if (rawFile.size === 0 && !rawFile.name.includes('.')) {
+    return Upload.LIST_IGNORE;
+  }
+
+  // 防止同一批次重复拖拽
+  const isExist = gridData.value.some(item => item.category === rawFile.name);
+  if (isExist) {
+    return Upload.LIST_IGNORE;
+  }
+
+  // 1：拖入瞬间立刻加入表格，状态标记为“排队中...”
+  gridData.value.push({
+    fileId: rawFile.uid || `${Date.now()}_${Math.random()}`, // 增加唯一标识
     category: rawFile.name,
-    status: '上传中',
-  };
-  const index = gridData.value.length;
-  gridData.value.push(record);
+    status: '排队中...',
+  });
+  
+  // 2：VxeGrid 刷新数据，解决可能存在的响应式丢失问题
+  gridApi.setGridOptions({ data: gridData.value });
+
+  // 加入执行队列并触发处理
+  pendingFiles.value.push(rawFile);
+  processQueue();
+  return Upload.LIST_IGNORE; 
+}
+
+// 3. 单个文件上传核心逻辑
+async function doUpload(rawFile: File) {
+  const isVideo = rawFile.type.startsWith('video/');
+
+  // 从表格中精准找到当前这个文件，更新状态为“上传中...”
+  const currentRecord = gridData.value.find(item => item.category === rawFile.name && item.status === '排队中...');
+  if (currentRecord) {
+    currentRecord.status = '上传中...';
+    // 每次状态改变都最好同步一下 Grid
+    gridApi.setGridOptions({ data: gridData.value }); 
+  }
 
   try {
+    const meta = await getFileMeta(rawFile);
+    const ext = rawFile.name.substring(rawFile.name.lastIndexOf('.'));
+    const ossKey = `${meta.fileMd5}${ext}`;
+
     const client = await useOssClient();
-    // 如果视频很大，这里的 uploadToOss 内部最好使用了 client.multipartUpload
     const result = await uploadToOss(client, rawFile, ossKey);
 
-    // 4️⃣ 组装 Payload
     const payload = {
       name: rawFile.name,
       albumId: nameId.value,
@@ -131,7 +154,6 @@ async function customUpload({ file, onSuccess, onError }: any) {
       width: meta.width,
       height: meta.height,
       fileUrl: result.url,
-      // 如果是视频，使用 OSS 智能截图作为缩略图
       thumbnailUrl: isVideo 
         ? `${result.url}?x-oss-process=video/snapshot,t_1000,f_jpg,w_200` 
         : result.url,
@@ -139,29 +161,49 @@ async function customUpload({ file, onSuccess, onError }: any) {
 
     await uploadEditApi.fetchUploadMaterials(payload);
 
-    gridData.value[index].status = '已上传';
-    onSuccess?.(result);
+    if (currentRecord) {
+      currentRecord.status = '已上传';
+      gridApi.setGridOptions({ data: gridData.value });
+    }
   } catch (err: any) {
-    // ... 错误处理逻辑
-    gridData.value[index].status = '上传失败';
-    onError?.(err);
+    console.error(`文件 ${rawFile.name} 上传失败:`, err);
+    if (currentRecord) {
+      console.log('currentRecord',currentRecord)
+      currentRecord.status = err?.message?.includes('已上传') ? '文件已存在' : '上传失败';
+      gridApi.setGridOptions({ data: gridData.value });
+    }
   }
 }
+
+// 2. 队列消费机 (严格挨个执行)
+async function processQueue() {
+  if (isUploading.value) return; // 如果正在处理，则不再重复开启循环
+  isUploading.value = true;
+
+  while (pendingFiles.value.length > 0) {
+    const currentFile = pendingFiles.value.shift();
+    if (currentFile) {
+      await doUpload(currentFile);
+    }
+  }
+  isUploading.value = false;
+}
+
 function delFile(index: number){
   gridData.value.splice(index, 1);
 }
 
 /** ================== 重置逻辑 ================== */
 function resetAll() {
-  // 1. 重置 form 表单 (包括 files 字段)
   formApi.resetForm();
-  
-  // 2. 手动重置自定义的 ref 变量
   nameId.value = '';
   fileList.value = [];
   gridData.value = [];
   
-  // 3. 如果需要清空表格显示
+  // 重置队列
+  pendingFiles.value = [];
+  isUploading.value = false;
+
   gridApi.setGridOptions({ data: [] });
 }
 
@@ -173,7 +215,6 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
   <div>
     <Drawer class="w-[50%]" title="上传素材">
       <Form>
-        <!-- 级联选择器 -->
         <template #name>
           <TreeSelect
             :treeData="props.treeData"
@@ -187,17 +228,26 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
           </TreeSelect>
         </template>
         <template #files="slotProps">
+          <div class="selectBtns">
+            <Radio.Group v-model:value="isDirectoryMode" button-style="solid" size="small">
+              <Radio.Button class="singleBtn" :value="false">上传单个/多个文件</Radio.Button>
+              <Radio.Button class="directoryBtn" :value="true">上传整个文件夹</Radio.Button>
+            </Radio.Group>
+          </div>
           <UploadDragger
             v-bind="slotProps"
             v-model:fileList="fileList"
-            :custom-request="customUpload"
+            multiple
+            :directory="isDirectoryMode"  
+            :before-upload="handleBeforeUpload"
             :showUploadList="false"
             >
-            <!-- @change="handleChange" -->
             <p class="pIcon">
               <SvgUploadIcon class="iconClass" />
             </p>
-            <p class="ant-upload-text">上传文件</p>
+            <p class="ant-upload-text">
+              {{ isDirectoryMode ? '点击选择文件夹，或拖拽文件夹到此处' : '点击选择文件（支持多选），或拖拽文件到此处' }}
+            </p>
           </UploadDragger>
         </template>
       </Form>
@@ -224,7 +274,12 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
 .iconClass{
   font-size: 60px;
 }
-
+.selectBtns {
+  text-align: center;
+  .singleBtn {
+    margin-bottom: 10px;
+  }
+}
 :deep(.vxe-cell--col-resizable){
   right: -3px !important;
 }

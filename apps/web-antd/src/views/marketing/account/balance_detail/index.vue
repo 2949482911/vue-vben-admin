@@ -76,7 +76,7 @@ async function loadAdvertiserOptions(platform: string) {
   });
 
   developerOption.value = res.items.map((item) => ({
-    label: item.advertiserName,
+    label: `${item.advertiserName}-${item.advertiserId}`,
     value: item.advertiserId,
   }));
 }
@@ -124,7 +124,7 @@ async function aGenerationOptions(platform: string) {
   });
 
   aGenerationOption.value = res.items.map((item) => ({
-    label: item.name,
+    label: `${item.name}-${item.id}`,
     value: item.id,
   }));
 }
@@ -334,16 +334,13 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     filename: '',
     types: [
       "csv",
-      "xlsx",
-      "xls"
+      "xlsx"
     ],
     modes: ['current'],
     original: true,
   },
   proxyConfig: undefined,
 };
-
-
 const fixedLeftKeys = ['APPID', 'day', '开发者ID', '账户ID', '公司名称', '账户名字'];
 
 async function init(args?: any) {
@@ -370,11 +367,24 @@ async function init(args?: any) {
           ...(isFixedLeft ? {fixed: 'left'} : {}),
         };
 
-        if (key === '推广产品') {
+      if (key === '推广产品') {
           columnConfig.slots = {default: '推广产品'};
+          columnConfig.exportMethod = ({ row }) => {
+            if (row === undefined || row === null || row === '') {
+              return '';
+            }
+            if (Array.isArray(row['推广产品']) && row['推广产品'].length === 0) {
+              return '';
+            }
+            if (Array.isArray(row['推广产品'])) {
+              const str = row['推广产品'].map(item => item?.product_name?.trim()).filter(name => name).join('、');
+              return str
+            }
+            return String(row['推广产品'] || '');
+          };
         }
         return columnConfig;
-      }),
+      })
     ];
     // ③ 更新 Grid（只用当前页数据）
     gridApi.setGridOptions({

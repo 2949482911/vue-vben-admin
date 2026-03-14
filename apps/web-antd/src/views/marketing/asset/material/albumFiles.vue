@@ -1,11 +1,11 @@
 
 <script setup lang="ts">
-import { Dropdown, Menu, MenuItem, Pagination } from "ant-design-vue";
+import { Dropdown, Menu, MenuItem, Pagination, message } from "ant-design-vue";
 import { uploadEditApi } from '#/api/core';
 import { reactive, ref, watch } from "vue";
-import type { FolderItem } from '#/api/models';
+import type { FolderItem , FileInfo} from '#/api/models';
 import type { MaterialLibraryFolderType } from "./materialType";
-
+import { BatchOptionsType } from '#/constants/locales';
 const props = defineProps<{
   treeItem: FolderItem[]
 }
@@ -93,7 +93,15 @@ function handleBreadcrumbClick(item: FolderItem) {
   // 通常是触发一个事件，让父组件切换选中的文件夹 ID
   emit('breadcrumbClick', item); 
 }
-
+async function delFile(item: FileInfo) {
+  await uploadEditApi.fetchDelMaterials({
+    targetIds: [item.id],
+    type: BatchOptionsType.Delete,
+    values: new Map<string, any>(),
+  })
+  fileList()
+  message.success('删除成功');
+}
 </script>
 
 <template>
@@ -132,20 +140,19 @@ function handleBreadcrumbClick(item: FolderItem) {
                 <div class="count">素材 {{ item.count }}</div>
                 <!-- 三个点 -->
                 <div class="more-btn">
-                <Dropdown placement="bottom">
-                  <a href="javascript:;">•••</a>
-                  <template #overlay>
-                    <Menu>
-                      <MenuItem>
-                        <a href="javascript:;" @click="editFile(item)">编辑</a>
-                      </MenuItem>
-                      <!-- <MenuItem>
-                        <a href="javascript:;">删除</a>
-                      </MenuItem> -->
-                    </Menu>
-                  </template>
-                </Dropdown>
-
+                  <Dropdown placement="bottom">
+                    <a href="javascript:;">•••</a>
+                    <template #overlay>
+                      <Menu>
+                        <MenuItem>
+                          <a href="javascript:;" @click="editFile(item)">编辑</a>
+                        </MenuItem>
+                        <!-- <MenuItem>
+                          <a href="javascript:;">删除</a>
+                        </MenuItem> -->
+                      </Menu>
+                    </template>
+                  </Dropdown>
                 </div>
               </div>
             </div>
@@ -161,6 +168,22 @@ function handleBreadcrumbClick(item: FolderItem) {
           <div class="file-info">
             <div class="title" :title="item.name">{{ item.name }}</div>
             <div class="status">上传时间：{{ item.updateTime }}</div>
+              <!-- 三个点 -->
+              <div class="more-btn">
+                <Dropdown placement="bottom">
+                  <a href="javascript:;">•••</a>
+                  <template #overlay>
+                    <Menu>
+                      <MenuItem>
+                        <a href="javascript:;" @click="delFile(item)">删除</a>
+                      </MenuItem>
+                      <!-- <MenuItem>
+                        <a href="javascript:;">删除</a>
+                      </MenuItem> -->
+                    </Menu>
+                  </template>
+                </Dropdown>
+              </div>
           </div>
         </template>
       </div>
@@ -355,7 +378,9 @@ function handleBreadcrumbClick(item: FolderItem) {
   margin-top: 4px;
   font-size: 12px;
 }
-
+.file-info  .more-btn {
+  text-align: right;
+}
 .pagination{
   flex-shrink: 0;
   padding: 5px 0 0;

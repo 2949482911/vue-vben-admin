@@ -18,7 +18,7 @@ import {
 } from '#/constants/locales';
 
 import MatchTable from './matchTable.vue';
-import {trimObject} from '#/utils/trim';
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
@@ -941,6 +941,55 @@ platformConfigForm.set(Platform.BAIDU_PACK, [
     label: `channelId`,
     rules: 'required',
   },
+])
+
+//抖音
+platformConfigForm.set(Platform.DOUYIN, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'app',
+    label: 'app',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'access_key',
+    label: 'access_key',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'secret_key',
+    label: `secret_key`,
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'strategy_ids',
+    label: `strategy_ids`,
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'adLink',
+    label: `adLink`,
+    rules: 'required',
+  }
 ])
 
 const [ConfigForm, configFormApi] = useVbenForm({

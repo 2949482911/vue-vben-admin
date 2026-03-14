@@ -7,9 +7,23 @@ import { setupVbenVxeTable, useVbenVxeGrid } from '@vben/plugins/vxe-table';
 import { Button, Image } from 'ant-design-vue';
 
 import { useVbenForm } from './form';
+import * as ExcelJS from 'exceljs';
+import VXETablePluginExportXLSX from 'vxe-table-plugin-export-xlsx';
 
 setupVbenVxeTable({
   configVxeTable: (vxeUI) => {
+   vxeUI.use(VXETablePluginExportXLSX, {
+      ExcelJS: ExcelJS,
+      export: {
+        filename: '导出数据',
+        sheetName: 'Sheet1',
+        progress: true,
+        mode: 'blob',
+        styles: {
+          header: { font: { bold: true } }
+        }
+      }
+    });
     vxeUI.setConfig({
       grid: {
         align: 'center',

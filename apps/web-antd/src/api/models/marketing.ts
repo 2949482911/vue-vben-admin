@@ -1,5 +1,5 @@
 import type {BaseItem, PageRequestParams} from "#/api/models/core";
-
+import type {RuleType} from "#/constants/enums";
 
 /**
  * 账户请求
@@ -36,6 +36,7 @@ export interface AdvertiserItem extends BaseItem {
   config: Map<string, any>;
   customer?: "",
   saleId?: "",
+  tagId: string;
 }
 
 
@@ -332,7 +333,7 @@ export interface MaterialListParams {
 }
 
 /**上传素材 */
-export interface FileInfo {
+export interface FileInfo extends BaseItem {
   /** 名称 */
   name: string;
   /** 相册 ID */
@@ -530,4 +531,54 @@ export interface NewTargetedPackageType {
       behavior?: number;
     },
   }
+}
+ /** 创编任务-查询任务列表 */
+export interface GetCreationTaskType {
+  platform?: string;
+  name?: string;
+  taskStatus?: Number;
+  projectId?: string;
+}
+/** 创编任务列表数据结构 */
+export interface CreationTaskItem {
+  platform?: string;
+  name?: string;
+  projectId?: string;
+  ruleType?: RuleType;
+  commitAdvertiserCount?: Number;
+  commitCampaignCount?: Number;
+  successCampaignCount?: Number;
+  commitAdGroupCount?: Number;
+  successAdGroupCount?: Number;
+  commitPromotionCount?: Number;
+  successPromotionCount?: Number;
+  commitCreativeCount?: Number;
+  successCreativeCount?: Number;
+  startTime?: string;
+  endTime?: string;
+  taskStatus?: Number;
+}
+// 账户标签
+export interface LabelItem extends BaseItem {
+  name?: string;
+  remark?: string;
+}
+ /** 账户标签-查询任务列表 */
+export interface GetLabelItemType {
+  name?: string;
+}
+ /** 账户标签-新增任务列表 */
+export interface NewLabelItemType {
+  name?: string;
+  remark?: string;
+}
+/**账户标签-编辑任务列表 */
+export interface EditLabelItemType extends NewLabelItemType {
+  id:string,
+ 
+}
+/**营销-资产-标题包删除 */
+export interface DelLabelItemType {
+  targetIds: string[];
+  type:string;
 }

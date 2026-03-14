@@ -67,8 +67,11 @@ const [BatchOperationModal, BatchOperationApi] = useVbenModal({
   modal: true,
 });
 
-function openBatchOptions() {
-  BatchOperationApi.setData(selectedRows.value);
+function openBatchOptions(modalType: 'edit' | 'bind') {
+  BatchOperationApi.setData({
+    selectedRows: selectedRows.value, // 原有选中行数据
+    modalType: modalType, // 新增的弹窗类型
+  });
   BatchOperationApi.open();
 }
 
@@ -139,7 +142,7 @@ onMounted(async () => {
   projectOptions.value = res.items;
   const resOption = await developerApi.fetchDeveloperList({ page:1, pageSize:200 })
   developerOption.value = resOption.items.map((item:DeveloperItem) => ({
-    label: item.name,
+    label: `${item.name}-${item.id}`,
     value: item.id,
   }));
 });
@@ -193,6 +196,10 @@ const formOptions: VbenFormProps = {
           {
             label: `${$t('marketing.advertiser.advertiserRole.personal')}`,
             value: 'personal',
+          },
+          {
+            label: `${$t('marketing.advertiser.advertiserRole.bm')}`,
+            value: 'bm',
           },
         ],
         placeholder: `${$t('common.choice')}`,
@@ -302,6 +309,11 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       width: 'auto',
     },
     {
+      field: 'orgName',
+      title: `${$t('marketing.advertiser.columns.orgName')}`,
+      width: 'auto',
+    },
+    {
       field: 'saleName',
       title: '销售',
       width: 'auto',
@@ -366,6 +378,12 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       title: `${$t('marketing.advertiser.columns.platformAuditState')}`,
       width: 'auto',
       slots: {default: 'platformAuditState'}
+    },
+    {
+      field: 'tagName',
+      title: `${$t('marketing.advertiser.columns.tagName')}`,
+      width: 'auto',
+      slots: {default: 'tagName'}
     },
 
     ...TABLE_COMMON_COLUMNS as any,
@@ -440,6 +458,9 @@ function pageReload() {
         <template #platformAuditState="{row}">
           <Tag color="orange">{{ row.platformAuditState }}</Tag>
         </template>
+        <template #tagName="{row}">
+          <Tag color="blue">{{ row.tagName }}</Tag>
+        </template>
 
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
@@ -458,7 +479,7 @@ function pageReload() {
                 <MenuItem>
                   投放
                 </MenuItem>
-                <MenuItem v-if="row.advertiserRole === 'proxy'" @click="openImportChildModal(row)">
+                <MenuItem v-if="row.advertiserRole === 'proxy' || row.advertiserRole === 'bm'" @click="openImportChildModal(row)">
                   {{ $t('core.import')}}
                 </MenuItem>
               </Menu>
@@ -477,8 +498,23 @@ function pageReload() {
             </Button>
             <template #overlay>
               <Menu>
-                <MenuItem  @click="openBatchOptions">
-                  批量修改项目
+                <MenuItem  @click="openBatchOptions('edit')">
+                  修改项目
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('bind')">
+                  绑定标签
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('org')">
+                  修改部门
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('sale')">
+                  修改销售
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('creator')">
+                  修改创建人
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('status')">
+                  修改投放状态
                 </MenuItem>
               </Menu>
             </template>
