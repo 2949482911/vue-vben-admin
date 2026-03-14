@@ -1,5 +1,11 @@
 <script lang="ts" setup name="CreateNotice">
-import type {BehavioraPlatformItem, CreateBehavioraPlatformRequest, OcpxPlatformMatch, PlatformCallbackBehaviorTypeItem, UpdateBehavioraPlatformRequest} from '#/api/models';
+import type {
+  BehavioraPlatformItem,
+  CreateBehavioraPlatformRequest,
+  OcpxPlatformMatch,
+  PlatformCallbackBehaviorTypeItem,
+  UpdateBehavioraPlatformRequest
+} from '#/api/models';
 
 import {ref, h} from 'vue';
 
@@ -18,7 +24,7 @@ import {
 } from '#/constants/locales';
 
 import MatchTable from './matchTable.vue';
-import { trimObject } from '#/utils/trim';
+import {trimObject} from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
@@ -36,8 +42,8 @@ const objectRequest = ref<BehavioraPlatformItem>({
   platform: "",
   remark: "",
   simulate: 0,
-  filterBehavior:[],
-  simulateBehaviorType:"",
+  filterBehavior: [],
+  simulateBehaviorType: "",
   status: 0,
   updateTime: "",
   updateUsername: "",
@@ -568,7 +574,7 @@ platformConfigForm.set(Platform.CSJP, [
         }
       ]
     },
-    defaultValue:2,
+    defaultValue: 2,
     // 字段名
     fieldName: 'order_type',
     // 界面显示的label
@@ -591,7 +597,7 @@ platformConfigForm.set(Platform.CSJP, [
         }
       ]
     },
-    defaultValue:'pay',
+    defaultValue: 'pay',
     // 字段名
     fieldName: 'time_type',
     // 界面显示的label
@@ -672,7 +678,7 @@ function batchDeleteSchema() {
 
     // 删除最后一个 tbkId
     const last = tbkIndexes.at(-1);
-    if (!last) return { schema };
+    if (!last) return {schema};
     const newSchema = [...schema];
     newSchema.splice(last.index, 1);
 
@@ -992,6 +998,50 @@ platformConfigForm.set(Platform.DOUYIN, [
   }
 ])
 
+//
+
+platformConfigForm.set(Platform.IZJIE, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'ckey',
+    label: `ckey`,
+    rules: 'required',
+  }
+])
+
+platformConfigForm.set(Platform.RUIZHANG, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'channel_id',
+    label: `channel_id`,
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'ch',
+    label: `ch`,
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'customer_id',
+    label: `customer_id`,
+    rules: 'required',
+  }
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -1008,7 +1058,7 @@ const [ConfigForm, configFormApi] = useVbenForm({
 //过滤事件的下拉
 const filterModelSelect = ref<PlatformCallbackBehaviorTypeItem[]>([])
 
-async function filterModel(value:string){
+async function filterModel(value: string) {
   filterModelSelect.value = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(value)
 }
 
@@ -1016,6 +1066,7 @@ const matchTableRef = ref<InstanceType<typeof MatchTable>>()
 
 /**回传事件的下拉 */
 const behaviorTypeList = ref<Array<PlatformCallbackBehaviorTypeItem>>([]);
+
 async function updateBehaviorTypeList(platform: string) {
   if (!platform) return;
   try {
@@ -1064,9 +1115,9 @@ const [Form, formApi] = useVbenForm({
 
     baseForm.simulate = Boolean(baseForm.simulate);
 
-    if(baseForm.platform === 'jd'){
+    if (baseForm.platform === 'jd') {
       const matchList = matchTableRef.value?.getSubmitData() ?? []
-      console.log(matchList,'matchListmatchList');
+      console.log(matchList, 'matchListmatchList');
 
       baseForm.ocpxPlatformMatches = matchList
     }
@@ -1101,7 +1152,7 @@ const [Form, formApi] = useVbenForm({
         onSelect: async (value: string) => {
           const schema = platformConfigForm.get(value) ?? [];
           // 1️⃣ 切 schema
-          configFormApi.setState({ schema });
+          configFormApi.setState({schema});
           // 2️⃣ 收集 schema 里的 defaultValue
           const defaultValues: Record<string, any> = {};
           schema.forEach((item) => {
@@ -1124,13 +1175,13 @@ const [Form, formApi] = useVbenForm({
               model: 'match'
             });
             matchModel.value = 'match'
-          }else{
+          } else {
             formApi.setValues({
               model: 'callback',
             });
             matchModel.value = 'callback'
           }
-          if(value != "tb" && value != "jd" && value != "csjp"){
+          if (value != "tb" && value != "jd" && value != "csjp") {
             filterModel(value)
           }
         },
@@ -1275,12 +1326,13 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: `${$t('ocpx.platformcallback.columns.behaviorType')}`,
       rules: 'required',
-      dependencies: {show: (values) => {
+      dependencies: {
+        show: (values) => {
           const isSimulate = values.simulate === 1;
           const isValidPlatform = !['tb', 'jd', 'csjp'].includes(values.platform);
           return isSimulate && isValidPlatform;
         },
-        triggerFields: ['simulate','platform'],
+        triggerFields: ['simulate', 'platform'],
         // 联动触发：当依赖项变化时，自动决定是否加载下拉列表
         trigger: async (values) => {
           const isValidPlatform = !['tb', 'jd', 'csjp'].includes(values.platform);
@@ -1300,7 +1352,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Select',
       // 对应组件的参数
       componentProps: {
-        mode:"multiple",
+        mode: "multiple",
         placeholder: `${$t('common.input')}`,
         options: filterModelSelect,
       },

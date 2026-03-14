@@ -385,6 +385,14 @@ export const BEHAVIORA_PLATFORM = [
     label: '抖音',
     value: 'douyin',
   },
+  {
+    label: `${$t('ocpx.platform.izjie')}`,
+    value: 'izjie',
+  },
+  {
+    label: `${$t('ocpx.platform.ruizhang')}`,
+    value: 'ruizhang',
+  },
 ];
 
 // 匹配下拉

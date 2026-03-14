@@ -31,8 +31,11 @@ export enum Platform {
   UU = "uu_union",
   QUTOUTIAO = "qutoutiao",
   HUAWEI_STORE = "huawei_store",
+  BAIDU_PACK = "baidu_pack",
   TENCENT = "tencent",
-  DOUYIN = "douyin"
+  DOUYIN = "douyin",
+  IZJIE = "izjie",
+  RUIZHANG = "ruizhang"
 }
 export enum RuleType {
   IMMEDIATELY = 'immediately'
