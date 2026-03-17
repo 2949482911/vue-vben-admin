@@ -1,3 +1,4 @@
+import type {BaseItem} from "#/api/models/core";
 /**穿山甲商品查询 */
 export interface CreateSystemMetric {
   page: number,
@@ -42,3 +43,16 @@ export interface ProductPangolinItem {
   title: string;
 }
 
+/**工具-下载中心列表 */
+export interface DownloadCenterItem extends BaseItem{
+  name: string;
+  type: string;
+  downloadUrl: string;
+}
+/**工具-下载中心列表-查询参数 */
+export interface GetDownloadCenterItem extends BaseItem{
+  name: string;
+  type: string;
+  taskState: string;
+  createUsername: string;
+}
