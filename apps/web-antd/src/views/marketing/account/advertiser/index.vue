@@ -459,7 +459,8 @@ function pageReload() {
           <Tag color="orange">{{ row.platformAuditState }}</Tag>
         </template>
         <template #tagName="{row}">
-          <Tag color="blue">{{ row.tagName }}</Tag>
+          <span v-if="!row.tagName">-</span>
+          <Tag v-else color="blue">{{ row.tagName}}</Tag>
         </template>
 
         <template #action="{ row }">
