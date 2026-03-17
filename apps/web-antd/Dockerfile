@@ -1,8 +1,6 @@
 # 生产阶段
 FROM docker.1ms.run/nginx:alpine
 
-RUN apk add --no-cache unzip
-
 COPY web.starfiread.com.pem /etc/nginx/ssl/web.starfiread.com.pem
 COPY web.starfiread.com.key /etc/nginx/ssl/web.starfiread.com.key
 # 复制构建产物到Nginx
