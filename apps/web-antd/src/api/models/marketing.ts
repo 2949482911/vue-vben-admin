@@ -540,7 +540,7 @@ export interface GetCreationTaskType {
   projectId?: string;
 }
 /** 创编任务列表数据结构 */
-export interface CreationTaskItem {
+export interface CreationTaskItem extends BaseItem{
   platform?: string;
   name?: string;
   projectId?: string;

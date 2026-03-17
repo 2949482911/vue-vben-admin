@@ -7,12 +7,14 @@ import type {CreationTaskItem} from '#/api/models/marketing';
 import { Page} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
-import { Tag } from 'ant-design-vue';
+import { Tag, Switch } from 'ant-design-vue';
 
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {creationTaskApi} from '#/api';
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { creationTaskApi } from '#/api';
 import {
-  TASK_STATUS_SELECT
+  TASK_STATUS_SELECT,
+  TABLE_COMMON_COLUMNS,
+  BatchOptionsType
 } from '#/constants/locales';
 import {RuleType} from "#/constants/enums";
 import { formatDateTime } from "@vben/utils";
@@ -143,7 +145,8 @@ const gridOptions: VxeGridProps<CreationTaskItem> = {
     },
       title: `${$t('marketing.creation.columns.endTime')}`,
       width: 'auto',
-    }
+    },
+    ...TABLE_COMMON_COLUMNS as any
   ],
   proxyConfig: {
     autoLoad: true,
@@ -173,18 +176,27 @@ const gridOptions: VxeGridProps<CreationTaskItem> = {
     zoom: true,
   },
 };
+function pageReload() {
+  gridApi.reload();
+}
+async function handlerState(row: CreationTaskItem) {
 
+}
 const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
 const ruleLabels: Record<RuleType, string> = {
   [RuleType.IMMEDIATELY]: '立即提交'
 }
+
 </script>
 
 <template>
   <div>
     <Page>
       <Grid>
+        <template #status="{ row }">
+          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+        </template>
         <template #taskStatus="{ row }">
           <Tag v-if="row.taskStatus === 1" color="orange">{{ $t('common.pending') }}</Tag>
           <Tag v-if="row.taskStatus === 2" color="blue">{{ $t('common.processing') }}</Tag>
