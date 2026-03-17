@@ -65,6 +65,7 @@ async function fileList() {
 function handleFolderClick(item: any) {
   if (item.type === 1) { // 假设 1 是文件夹
     // 触发父组件的 breadcrumbClick 事件，让父组件去更新选中项和路径
+    pages.current = 1;
     emit('breadcrumbClick', item);
   }
 }

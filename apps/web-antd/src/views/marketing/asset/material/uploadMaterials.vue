@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useVbenDrawer } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
-import { UploadDragger, TreeSelect, Image, message, Button, Upload, Radio } from 'ant-design-vue';
+import { UploadDragger, TreeSelect, Image, message, Button, Upload, Radio, Switch } from 'ant-design-vue';
 import { ref } from 'vue';
 import { SvgUploadIcon } from '@vben/icons';
 import type { FolderItem } from '#/api/models';
@@ -23,7 +23,7 @@ const fileList = ref<any[]>([]);
 const pendingFiles = ref<File[]>([]);
 const isUploading = ref(false);
 // 新增：控制当前是“文件模式”还是“文件夹模式”，默认 false (文件模式)
-const isDirectoryMode = ref<boolean>(false);
+const isDirectoryMode = ref<boolean>(true);
 
 const emit = defineEmits<{
   (e: 'treeNode'): void
@@ -58,11 +58,6 @@ const [Form,formApi] = useVbenForm({
       label: '名字',
       rules: 'required',
     },
-    // {
-    //   component: 'Textarea',
-    //   fieldName: 'remark',
-    //   label: '备注',
-    // },
     {
       fieldName: 'files',
       label: '附件上传',
@@ -206,8 +201,6 @@ function resetAll() {
 
   gridApi.setGridOptions({ data: [] });
 }
-
-/** ================== Grid ================== */
 const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
 </script>
 
@@ -224,41 +217,40 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
             :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
             placeholder="请选择文件夹"
             allow-clear
-          >
-          </TreeSelect>
+          />
         </template>
+
         <template #files="slotProps">
-          <div class="selectBtns">
-            <Radio.Group v-model:value="isDirectoryMode" button-style="solid" size="small">
-              <Radio.Button class="singleBtn" :value="false">上传单个/多个文件</Radio.Button>
-              <Radio.Button class="directoryBtn" :value="true">上传整个文件夹</Radio.Button>
-            </Radio.Group>
-          </div>
-          <UploadDragger
-            v-bind="slotProps"
-            v-model:fileList="fileList"
-            multiple
-            :directory="isDirectoryMode"  
-            :before-upload="handleBeforeUpload"
-            :showUploadList="false"
+          <div style="width: 100%;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px;">
+              <span :style="{ fontWeight: !isDirectoryMode ? 'bold' : 'normal', color: !isDirectoryMode ? '#1890ff' : 'inherit' }">
+                文件
+              </span>
+              <Switch v-model:checked="isDirectoryMode" />
+              <span :style="{ fontWeight: isDirectoryMode ? 'bold' : 'normal', color: isDirectoryMode ? '#1890ff' : 'inherit' }">
+                文件夹
+              </span>
+            </div>
+
+            <UploadDragger
+              v-bind="slotProps"
+              v-model:fileList="fileList"
+              multiple
+              :directory="isDirectoryMode"
+              :before-upload="handleBeforeUpload"
+              :showUploadList="false"
             >
-            <p class="pIcon">
-              <SvgUploadIcon class="iconClass" />
-            </p>
-            <p class="ant-upload-text">
-              {{ isDirectoryMode ? '点击选择文件夹，或拖拽文件夹到此处' : '点击选择文件（支持多选），或拖拽文件到此处' }}
-            </p>
-          </UploadDragger>
-        </template>
+              <p class="pIcon">
+                <SvgUploadIcon class="iconClass" />
+              </p>
+              <p class="ant-upload-text">
+                {{ isDirectoryMode ? '点击选择文件夹，或拖拽文件夹到此处' : '点击选择文件（支持多选），或拖拽文件到此处' }}
+              </p>
+            </UploadDragger>
+        </div>
+      </template>
       </Form>
       <Grid style="height:58%">
-        <!-- <template  #action="{ row, rowIndex }">
-          <Button type="link" danger @click="delFile(rowIndex)">删除</Button>
-        </template> -->
-        <!-- 缩略图 -->
-        <!-- <template #imageUrl2="{ row }">
-          <Image :src="row.imageUrl2" height="30" width="30" />
-        </template> -->
       </Grid>
     </Drawer>
   </div>
@@ -275,7 +267,10 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
   font-size: 60px;
 }
 .selectBtns {
-  text-align: center;
+  // text-align: center;
+  position: absolute;
+  left: 0;
+  top: 50px;
   .singleBtn {
     margin-bottom: 10px;
   }
