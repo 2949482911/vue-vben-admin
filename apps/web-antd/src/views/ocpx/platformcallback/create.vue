@@ -121,7 +121,8 @@ platformConfigForm.set(Platform.VIVO, [
       },
       params: {
         page: 1,
-        pageSize: 10000,
+        pageSize: 100000,
+        platform: Platform.VIVO
       },
       valueField: 'advertiserName',
       labelField: 'advertiserName',
@@ -772,12 +773,21 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
         min: 0,
         max: 100,
-        formatter: (value: number) => `${value}%`,
-        parser: (value: string) => value.replace('%', ''),
+        precision: 1, 
+        formatter: (value: number) => {
+          if (value === null || value === undefined) return '';
+          const fixedValue = Number(value).toFixed(1);
+          return `${fixedValue}%`;
+        },
+        parser: (value: string) => {
+          if (!value) return 0;
+          const num = Number(value.replace('%', ''));
+          return isNaN(num) ? 0 : Number(num.toFixed(1));
+        },
       },
       // 字段名
       fieldName: 'ratio',
-      defaultValue: 100,
+      defaultValue: 100.00, // 显式设置为2位小数的浮点型
       // 界面显示的label
       label: `${$t('ocpx.platformcallback.columns.ratio')}`,
       rules: 'required',
