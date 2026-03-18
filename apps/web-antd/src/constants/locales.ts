@@ -500,6 +500,17 @@ export const ADVERTISET_ADDED = [
   //   value: 'huawei',
   // }
 ]
+// 账户消耗明细平台下拉数据
+export const BALACE_DETAIL_PLATFORM = [
+  {
+    label: `${$t('ocpx.platform.huawei_store')}`,
+    value: 'huawei_store',
+  },
+  {
+    label: `${$t('ocpx.platform.huawei')}`,
+    value: 'huawei',
+  }
+]
 
 /**
  * 营销账户-账户消耗明细下拉

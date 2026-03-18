@@ -4,7 +4,7 @@ import {Page} from '@vben/common-ui';
 import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
 import {$t} from '@vben/locales';
 import {
-  ADVERTISET_ADDED,
+  BALACE_DETAIL_PLATFORM,
   CONSUMPTION_DETAIL_DIMENSION,
   CONSUMPTION_DETAIL_DIMENSION_HUAWEI
 } from '#/constants/locales';
@@ -155,7 +155,7 @@ const formOptions: VbenFormProps = {
       defaultValue: Platform.HUAWEI_STORE,
       componentProps: {
         allowClear: true,
-        options: ADVERTISET_ADDED,
+        options: BALACE_DETAIL_PLATFORM,
         placeholder: `${$t('common.choice')}`,
         onChange: async (val: string) => {
           if (val === Platform.HUAWEI_STORE) {
