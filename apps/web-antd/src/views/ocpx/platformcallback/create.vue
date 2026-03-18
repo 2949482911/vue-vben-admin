@@ -772,7 +772,7 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         placeholder: `${$t('common.input')}`,
         min: 0,
-        max: 100,
+        max: 1000,
         precision: 1, 
         formatter: (value: number) => {
           if (value === null || value === undefined) return '';
@@ -787,7 +787,7 @@ const [Form, formApi] = useVbenForm({
       },
       // 字段名
       fieldName: 'ratio',
-      defaultValue: 100.00, // 显式设置为2位小数的浮点型
+      defaultValue: 1000.00, // 显式设置为2位小数的浮点型
       // 界面显示的label
       label: `${$t('ocpx.platformcallback.columns.ratio')}`,
       rules: 'required',

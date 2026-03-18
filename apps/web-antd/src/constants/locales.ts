@@ -287,6 +287,24 @@ export const AUTH_ACCOUNT_PLATFORM = [
     value: 'huawei',
   },
 ];
+export const DEVELOPER_AUTH_ACCOUNT_PLATFORM = [
+  {
+    label: `${$t('ocpx.platform.vivo')}`,
+    value: 'vivo',
+  },
+  {
+    label: `${$t('ocpx.platform.tb')}`,
+    value: 'tb',
+  },
+  {
+    label: '华为商店',
+    value: 'huawei_store',
+  },
+  {
+    label: '华为Ads',
+    value: 'huawei',
+  },
+];
 
 /**
  * 转化媒体
