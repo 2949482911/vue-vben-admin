@@ -44,6 +44,7 @@
     "@vben/utils": "workspace:*",
     "@vueuse/core": "catalog:",
     "@ant-design/icons-vue": "catalog:",
+    "ant-design-vue": "catalog:",
     "ali-oss": "catalog:",
     "dayjs": "catalog:",
     "exceljs": "catalog:",
