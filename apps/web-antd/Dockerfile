@@ -1,6 +1,5 @@
 # 生产阶段
-FROM hub.rat.dev/nginx:alpine
-#FROM nginx:alpine
+FROM docker.1ms.run/nginx:alpine
 
 COPY web.starfiread.com.pem /etc/nginx/ssl/web.starfiread.com.pem
 COPY web.starfiread.com.key /etc/nginx/ssl/web.starfiread.com.key
