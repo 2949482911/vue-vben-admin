@@ -52,6 +52,7 @@
     "spark-md5": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:",
+    "axios": "catalog:",
     "vxe-pc-ui": "catalog:",
     "vxe-table": "catalog:",
     "vxe-table-plugin-export-xlsx": "^4.0.7"

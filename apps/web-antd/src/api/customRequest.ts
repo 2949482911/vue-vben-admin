@@ -1,12 +1,11 @@
 import axios from 'axios';
-import { message } from 'ant-design-vue';
 import { useAppConfig } from '@vben/hooks';
 import { useAccessStore } from '@vben/stores';
 import { preferences } from '@vben/preferences';
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 // 创建自定义 axios 实例
 export const customRequest = axios.create({
-  baseURL: apiURL,  
+  baseURL: apiURL,
   timeout: 30000,
 });
 
@@ -18,7 +17,7 @@ customRequest.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    config.headers['Accept-Language'] = preferences.app.locale; 
+    config.headers['Accept-Language'] = preferences.app.locale;
     return config;
   },
   (error: any) => Promise.reject(error)
