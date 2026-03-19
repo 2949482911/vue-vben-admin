@@ -8,6 +8,7 @@ import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
 import {Button, Switch, Tag, Dropdown, Menu, MenuItem} from 'ant-design-vue';
+import { UploadOutlined } from '@ant-design/icons-vue';
 
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {advertiserApi} from '#/api/core';
@@ -23,6 +24,7 @@ import AuthAccount from './authaccount.vue';//授权弹窗
 import CreateObjectRequestComp from './create.vue';//新增|修改弹窗
 import BatchOperationComp from './batchOperation.vue';//批量修改弹窗
 import ImportChildAdvertiser from './importchildadvertiser.vue';
+import BatchImportCom from './BatchImportCom.vue';
 import { computed, onMounted, ref } from 'vue';
 import type { ProjectItem } from "./advertiser";
 import { trimObject } from '#/utils/trim';
@@ -89,7 +91,16 @@ function openImportChildModal(row: AdvertiserItem) {
   improtChildApi.open();
 }
 
+// 导入
+const [ImportModal, importModalApi] = useVbenModal({
+  connectedComponent: BatchImportCom,
+  centered: true,
+  modal: true,
+});
 
+function openImportModal() {
+  importModalApi.open();
+}
 async function handlerState(row: AdvertiserItem) {
   await (row.status === 1
     ? advertiserApi.fetchBatchOptions({
@@ -532,6 +543,12 @@ function pageReload() {
           >
             {{ $t('marketing.advertiser.authAccount') }}
           </Button>
+          <Button
+            @click="openImportModal"
+            class="importBtn"
+          >
+          <template #icon><UploadOutlined /></template>
+          </Button>
 
         </template>
       </Grid>
@@ -539,10 +556,13 @@ function pageReload() {
     <CreateObjectModal @page-reload="pageReload"/>
     <AuthAccountModal/>
     <BatchOperationModal @page-reload="pageReload"/>
+    <ImportModal @page-reload="pageReload"/>
     <ImportChildAdvertiserModal @page-reload="pageReload" :projectOptions="projectOptions"/>
   </div>
 </template>
 
 <style scoped lang="scss">
-
+ :deep(.importBtn) {
+  border-radius: 50% !important;
+}
 </style>

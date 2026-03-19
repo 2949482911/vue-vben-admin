@@ -457,6 +457,10 @@ export interface PlatformMatchRequest {
   groupIds?: string[];
   promotionIds?: string[];
 }
+export interface ImportDataType {
+  platform: string;
+  files: FormData;
+}
 
 /**账户消耗详情-账户名字下拉请求接口类型 */
 export interface AdCompanyOptionsType {

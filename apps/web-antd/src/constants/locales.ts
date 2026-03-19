@@ -204,6 +204,10 @@ export const PLATFORM = [
   {
     label: '广点通',
     value: 'tencent',
+  },
+  {
+    label: 'oppo push',
+    value: 'oppo_push',
   }
 ];
 
@@ -262,6 +266,10 @@ export const BACKHAUL = [
   {
     label: '广点通',
     value: 'tencent',
+  },
+  {
+    label: 'oppo push',
+    value: 'oppo_push',
   }
 ];
 
