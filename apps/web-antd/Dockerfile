@@ -1,5 +1,5 @@
 # 生产阶段
-FROM docker.xuanyuan.me/nginx:alpine
+FROM hub.rat.dev/nginx:alpine
 #FROM nginx:alpine
 
 COPY web.starfiread.com.pem /etc/nginx/ssl/web.starfiread.com.pem
