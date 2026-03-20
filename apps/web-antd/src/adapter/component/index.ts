@@ -38,7 +38,9 @@ import { $t } from '@vben/locales';
 import { isEmpty } from '@vben/utils';
 
 import { message, Modal, notification } from 'ant-design-vue';
-
+const MetricFormulaEditor = defineAsyncComponent(
+  () => import('#/views/marketing/report/metric/components/MetricFormulaEditor.vue'),
+);
 const AutoComplete = defineAsyncComponent(
   () => import('ant-design-vue/es/auto-complete'),
 );
@@ -515,6 +517,7 @@ export type ComponentType =
   | 'TreeSelect'
   | 'Upload'
   | 'Slider'
+  | 'MetricFormulaEditor'
   | BaseFormComponentType;
 
 async function initComponentAdapter() {
@@ -549,6 +552,7 @@ async function initComponentAdapter() {
     Checkbox,
     CheckboxGroup,
     DatePicker,
+    MetricFormulaEditor,
     // 自定义默认按钮
     DefaultButton: (props, { attrs, slots }) => {
       return h(Button, { ...props, attrs, type: 'default' }, slots);

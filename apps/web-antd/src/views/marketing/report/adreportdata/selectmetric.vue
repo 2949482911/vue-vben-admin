@@ -2,9 +2,11 @@
 import { Page, useVbenModal } from '@vben/common-ui';
 import { onMounted, ref, reactive, watch, nextTick, computed } from 'vue';
 import { metricApi } from '#/api';
-import type { MetricItem } from '#/api/models';
-import { Checkbox, Divider, CheckboxGroup, Space, InputSearch } from 'ant-design-vue';
-
+import type { MetricItem,CreateSystemMetric, } from '#/api/models';
+import { Checkbox, Divider, CheckboxGroup, Space, InputSearch, Button, message } from 'ant-design-vue';
+import { $t } from '@vben/locales';
+import { useVbenForm } from '#/adapter/form';
+import { trimObject } from '#/utils/trim';
 const emit = defineEmits(['confirmMetric']);
 
 //接收父组件使用模板传回来的指标回显数组
@@ -21,7 +23,6 @@ const state = reactive({
   checkAll: false,
   checkedList: [] as string[],
 });
-
 // 原始指标列表（不动）
 const metricList = ref<MetricItem[]>([]);
 
@@ -40,6 +41,50 @@ const visibleMetricIds = computed(() => {
 const checkboxOptionTypeList = ref<{ label: string; value: string }[]>([]);
 
 // Modal
+function validateFormula(formula: string): boolean {
+  if (!formula) {
+    message.warning('公式不能为空');
+    return false;
+  }
+
+  // 1. 括号匹配检查
+  let stack = 0;
+  for (let i = 0; i < formula.length; i++) {
+    if (formula[i] === '(') stack++;
+    if (formula[i] === ')') stack--;
+    if (stack < 0) {
+      message.error('括号不匹配');
+      return false;
+    }
+  }
+  if (stack !== 0) {
+    message.error('括号不匹配');
+    return false;
+  }
+
+  // 2. 检查是否包含非法字符（只允许字母数字下划线、运算符、括号、小数点、空格）
+  const validCharsRegex = /^[a-zA-Z0-9_+\-*/()\s.]+$/;
+  if (!validCharsRegex.test(formula)) {
+    message.error('公式包含非法字符');
+    return false;
+  }
+
+  // 3. 检查连续运算符（如 ++、-- 等）
+  if (/[+\-*/]{2,}/.test(formula)) {
+    message.error('公式不能包含连续的运算符');
+    return false;
+  }
+
+  // 4. 检查运算符位置（不能开头结尾）
+  if (/^[+\-*/]/.test(formula) || /[+\-*/]$/.test(formula)) {
+    message.error('公式不能以运算符开头或结尾');
+    return false;
+  }
+
+  return true;
+}
+
+const formulaForSubmit = ref<string>(''); // 存储无花括号英文公式用于提交
 const [Modal, modalApi] = useVbenModal({
   fullscreen: false,
   fullscreenButton: false,
@@ -61,7 +106,99 @@ const [Modal, modalApi] = useVbenModal({
     }
   }
 });
-
+const [MetricModal, metricModalApi] = useVbenModal({
+  fullscreen: false,
+  fullscreenButton: false,
+  closeOnPressEscape: false,
+  async onCancel() {
+    await metricModalApi.close();
+  },
+  async onConfirm() {
+    const result = await formApi.validate();
+    if (!result.valid) return;
+    try {
+      await formApi.submitForm(); // 如果校验失败，这里会抛出错误
+      await metricModalApi.close();
+      getMetricList()
+    } catch (error) {
+      // 校验失败或提交失败，弹窗保持打开，错误已通过 message 提示
+      console.error('提交失败', error);
+    }
+  },
+  async onOpenChange(isOpen){
+    if (isOpen) {
+    }
+  }
+});
+const [Form, formApi] = useVbenForm({
+  showDefaultActions: false,
+  commonConfig: {
+    componentProps: { class: 'w-full' },
+  },
+  layout: 'horizontal',
+  handleSubmit: async (formVal: Record<string, any>) => {
+  const result = await formApi.validate();
+    if (!result.valid) throw new Error('表单验证失败');
+    const formValues = { ...formVal };
+    let finalFormula = '';
+    if (formulaForSubmit.value) {
+      finalFormula = formulaForSubmit.value;
+    } else if (formValues.formula) {
+      finalFormula = formValues.formula.replace(/[{}]/g, '');
+    }
+    if (!finalFormula) {
+      message.warning('请输入公式');
+      throw new Error('公式为空');
+    }
+    if (!validateFormula(finalFormula)) {
+      throw new Error('公式不合法');
+    }
+    formValues.formula = finalFormula;
+    const params = trimObject(formValues);
+    await metricApi.fetchCreateMetric(params as CreateSystemMetric)
+  },
+  schema: [
+    {
+      component: 'Input',
+      componentProps: { placeholder: $t('common.input') },
+      fieldName: 'id',
+      dependencies: { show: false, triggerFields: ['*'] },
+    },
+    {
+      component: 'Input',
+      componentProps: { placeholder: $t('common.input') },
+      fieldName: 'ename',
+      label: $t('marketing.metric.columns.ename'),
+      rules: 'required',
+    },
+    {
+      component: 'Input',
+      componentProps: { placeholder: $t('common.input') },
+      fieldName: 'cname',
+      label: $t('marketing.metric.columns.cname'),
+      rules: 'required',
+    },
+    {
+      component: 'Input',
+      componentProps: { placeholder: $t('common.input') },
+      defaultValue: 2,
+      fieldName: 'metricType',
+      dependencies: { show: false, triggerFields: ['*'] },
+    },
+    {
+      component: 'Textarea',
+      componentProps: { placeholder: $t('common.input') },
+      fieldName: 'description',
+      label: $t('marketing.metric.columns.description'),
+      rules: 'required',
+    },
+    {
+      component: 'MetricFormulaEditor', // 自定义组件
+      fieldName: 'formula', // 直接绑定到 formula 字段
+      label: $t('marketing.metric.columns.rule'),
+    },
+  ],
+});
 // 拉取指标
 async function getMetricList() {
   const dataList:any = await metricApi.fetchMetric();
@@ -129,7 +266,9 @@ const onCheckAllChange = (e: any) => {
 
   state.indeterminate = false;
 };
-
+const handleInsertMetric = () => {
+  metricModalApi.open()
+}
 
 onMounted(() => {
   getMetricList();
@@ -173,8 +312,18 @@ onMounted(() => {
             </div>
           </CheckboxGroup>
         </Space>
+        <Space>
+          <Button type="link" class="insertMetric flex items-center mt-1" @click="handleInsertMetric">
+            <template #icon><span class="icon-[mdi--plus] w-5 h-5"></span></template>
+            自定义指标
+          </Button>
+        </Space>
       </Page>
     </Modal>
+      <!-- 指标选择弹窗（含搜索功能） -->
+      <MetricModal title="新增自定义指标">
+        <Form/>
+      </MetricModal>
   </div>
 </template>
 
@@ -185,5 +334,14 @@ onMounted(() => {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px 16px;
+  }
+  .insertMetric {
+    color: hsl(var(--primary));
+    cursor: pointer;
+    transition: color 0.2s;
+    font-size: 14px;
+    &:hover {
+      color: hsl(var(--primary) / 0.8);
+    }
   }
 </style>

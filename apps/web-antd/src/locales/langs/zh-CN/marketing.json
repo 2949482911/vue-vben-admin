@@ -54,8 +54,8 @@
       "isCustom": "自建",
       "calculateSort": "计算顺序",
       "sort": "顺序",
-      "platform": "平台"
-
+      "platform": "平台",
+      "rule": "规则"
     },
     "metricType": {
       "atomic": "原子指标",
