@@ -8,12 +8,14 @@ import {useVbenVxeGrid, type VxeGridProps} from "#/adapter/vxe-table";
 import { useVbenForm } from '#/adapter/form';
 import type {AccountChildResponse, AdvertiserItem} from "#/api/models";
 import {$t} from "@vben/locales";
-import {InputSearch, Checkbox, Select, RadioGroup, RadioButton } from "ant-design-vue";
+import {InputSearch, Checkbox, Select, RadioGroup, RadioButton, message } from "ant-design-vue";
 import type { ProjectItem } from './advertiser';
-
+ // 新增响应式变量
+const selectedRowKeys = ref<(string)[]>([]);
 //父传子接受的项目下拉数据列表
 const props = defineProps<{
   projectOptions: ProjectItem[];
+  roleType: String;
 }>();
 //转换成响应式
 const projectItemOptions = computed(() =>
@@ -54,7 +56,6 @@ const [Modal, modalApi] = useVbenModal({
     checked.value = false
     projectStr.value = ''
     isSlect.value = true
-
   },
   async onConfirm() {
     let advertiserIds: string[];
@@ -62,8 +63,10 @@ const [Modal, modalApi] = useVbenModal({
       const formVal = await formApi.getValues();
       advertiserIds = strToArray(formVal.accountIds);
     } else {
-      const checkedRecords = gridApi.grid.getCheckboxRecords();
-      advertiserIds = checkedRecords.map((item) => item.advertiserId);
+      // const checkedRecords = gridApi.grid.getCheckboxRecords();
+      // console.log('checkedRecords',checkedRecords)
+      // advertiserIds = checkedRecords.map((item) => item.advertiserId);
+      advertiserIds = selectedRowKeys.value
     }
     await advertiserApi.fetchImportChild({id: objectRequest.value.id, advertiserIds,projectId:projectStr.value});
     gridApi.setGridOptions({data: []});
@@ -172,8 +175,17 @@ const gridEvents = {
     else isSlect.value = false
   },
   //全选事件
-  checkboxAll:({records}:{records:AdvertiserItem[]})=>{
-    if(!records.length) isSlect.value = true
+  checkboxAll: async({ checked, $event })=>{
+    if(checked) {
+    const isAddList = importData.value.filter((item:AccountChildResponse) =>
+      !item.exist
+    );
+      selectedRowKeys.value = isAddList.map((item:AdvertiserItem) => item.advertiserId);
+    } 
+    if(!selectedRowKeys.value.length) {
+      isSlect.value = true
+      message.warning("无可新增数据")
+    }
     else isSlect.value = false
     // selectedRows.value = records
   },
@@ -265,11 +277,11 @@ function strToArray(inputStr) {
 <template>
   <Page>
     <Modal class="w-[605px]">
-      <div class="oprateBtns">
-            <RadioGroup v-model:value="handleType" button-style="solid" @change="handlerOperate">
-              <RadioButton value="choose">手动选择</RadioButton>
-              <RadioButton value="import">手动导入</RadioButton>
-            </RadioGroup>
+      <div class="oprateBtns"  v-if="roleType === 'bm'">
+        <RadioGroup v-model:value="handleType" button-style="solid" @change="handlerOperate">
+          <RadioButton value="choose">手动选择</RadioButton>
+          <RadioButton value="import">手动导入</RadioButton>
+        </RadioGroup>
       </div>
       <div  v-if="handleType === 'choose'">
         <div class="filterClass">

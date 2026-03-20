@@ -69,7 +69,7 @@ const [BatchOperationModal, BatchOperationApi] = useVbenModal({
   modal: true,
 });
 
-function openBatchOptions(modalType: 'edit' | 'bind') {
+function openBatchOptions(modalType: string) {
   BatchOperationApi.setData({
     selectedRows: selectedRows.value, // 原有选中行数据
     modalType: modalType, // 新增的弹窗类型
@@ -84,11 +84,12 @@ const [ImportChildAdvertiserModal, improtChildApi] = useVbenModal({
   modal: true,
 });
 
-
+const roleType = ref<string>('')
 
 function openImportChildModal(row: AdvertiserItem) {
   improtChildApi.setData({id: row.id});
   improtChildApi.open();
+  roleType.value = row.roleType
 }
 
 // 导入
@@ -341,6 +342,11 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       width: 'auto',
     },
     {
+      field: 'hourlyState',
+      title: `${$t('marketing.advertiser.columns.hourlyState')}`,
+      width: 'auto',
+    },
+    {
       field: 'remark',
       title: `${$t('marketing.advertiser.columns.remark')}`,
       width: 'auto',
@@ -528,6 +534,9 @@ function pageReload() {
                 <MenuItem  @click="openBatchOptions('status')">
                   修改投放状态
                 </MenuItem>
+                <MenuItem  @click="openBatchOptions('hourlyState')">
+                  修改分时状态
+                </MenuItem>
               </Menu>
             </template>
           </Dropdown>
@@ -557,7 +566,7 @@ function pageReload() {
     <AuthAccountModal/>
     <BatchOperationModal @page-reload="pageReload"/>
     <ImportModal @page-reload="pageReload"/>
-    <ImportChildAdvertiserModal @page-reload="pageReload" :projectOptions="projectOptions"/>
+    <ImportChildAdvertiserModal @page-reload="pageReload" :projectOptions="projectOptions" :roleType="roleType"/>
   </div>
 </template>
 

@@ -37,6 +37,7 @@ export interface AdvertiserItem extends BaseItem {
   customer?: "",
   saleId?: "",
   tagId: string;
+  hourlyState: number;
 }
 
 

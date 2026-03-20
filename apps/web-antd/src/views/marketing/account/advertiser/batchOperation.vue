@@ -19,7 +19,7 @@ const title = ref<string>('')
 const menuData = ref<OrgItem[]>([])
 
 const salesOption = ref([])
-type TitleKey = 'edit' | 'org' | 'sale' | 'creator' | 'bind' | 'status';
+type TitleKey = 'edit' | 'org' | 'sale' | 'creator' | 'bind' | 'status' | 'hourlyState';
 
 const titleMap: Record<TitleKey, string> = reactive({
   edit: '批量修改项目',
@@ -27,7 +27,8 @@ const titleMap: Record<TitleKey, string> = reactive({
   sale: '批量修改销售',
   creator: '批量修改创建人',
   bind: '批量绑定标签',
-  status: '批量修改投放状态'
+  status: '批量修改投放状态',
+  hourlyState: '批量修改分时状态'
 })
 const creatorUerName = ref()
 const selectedOrgCode = ref()
@@ -150,6 +151,25 @@ const dynamicSchema = computed((): FormSchema[] =>{
         label: '投放状态',
       }
     ]
+  }  else if(modalType.value === 'hourlyState'){
+    operateSchema = [{
+        component: 'RadioGroup',
+        componentProps: {
+          options: [
+            {
+              label: '拉取',
+              value: 1,
+            },
+            {
+              label: '不拉取',
+              value: 9,
+            },
+          ],
+        },
+        fieldName: 'hourlyState',
+        label: '分时状态',
+      }
+    ]
   } else if(modalType.value === 'org') {
     operateSchema = [{
         component: 'TreeSelect',
@@ -227,6 +247,11 @@ const [Form, formApi] = useVbenForm({
       }
     } else if(modalType.value === 'status') {
       type = formVal.putStatue === 1 ? 'start_put_status' : 'stop_put_status'
+    }  else if(modalType.value === 'hourlyState') {
+        type = 'update_advertiser_hourly'
+        values = {
+          hourly_state: formVal.hourlyState // 1 或者9 ，1 为拉取，9为不拉取
+        }
     } else if(modalType.value === 'sale') {
       type = 'update_advertiser_sale'
       values = {
