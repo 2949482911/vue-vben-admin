@@ -277,12 +277,6 @@ function validateFormula(formula: string): boolean {
     return false;
   }
 
-function validateFormula(formula: string): boolean {
-  if (!formula) {
-    message.warning('公式不能为空');
-    return false;
-  }
-
   // 1. 括号匹配检查
   let stack = 0;
   for (let i = 0; i < formula.length; i++) {
@@ -349,9 +343,8 @@ function handleSetFormValue(row: UpdateMetric | CreateSystemMetric) {
 onMounted(async () => {
   // 加载指标列表，用于回显转换
   metricList.value = await metricApi.fetchMetric();
-  console.log('指标数据',metricList.value)
 })
-const title: string = isUpdate.value ? $t('common.edit') : $t('common.create');
+const title:string = isUpdate.value ? $t('common.edit') : $t('common.create');
 </script>
 
 <template>

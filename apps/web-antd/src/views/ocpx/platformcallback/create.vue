@@ -528,6 +528,23 @@ platformConfigForm.set(Platform.TENCENT, [
     label: 'user_action_set_id',
   },
 ])
+// oppo push
+platformConfigForm.set(Platform.OPPO_PUSH, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    defaultValue: 'test',
+    // 字段名
+    fieldName: 'test',
+    // 界面显示的label
+    label: 'test',
+    rules: 'required',
+  },
+]);
 /**
  *
  * @param platform 平台

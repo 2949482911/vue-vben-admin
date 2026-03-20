@@ -388,6 +388,10 @@ export const BEHAVIORA_PLATFORM = [
     label: '美团',
     value: 'meituan',
   },
+  {
+    label: '咸鱼',
+    value: 'xianyu',
+  }
 ];
 
 // 匹配下拉

@@ -907,6 +907,55 @@ platformConfigForm.set(Platform.MEITUAN, [
   },
   
 ])
+//咸鱼
+platformConfigForm.set(Platform.XIANYU, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'action',
+    label: 'action',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'campaignId',
+    label: 'campaignId',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'refer_code',
+    label: 'refer_code',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'channel',
+    label: 'channel',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'agent_channel',
+    label: 'agent_channel',
+    defaultValue: ''
+  },
+  
+])
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
