@@ -81,6 +81,12 @@ function validateFormula(formula: string): boolean {
     return false;
   }
 
+  // 5. 检查是否至少包含一个运算符（派生指标必须由多个指标运算组成）
+  if (!/[+\-*/]/.test(formula)) {
+    message.error('公式必须包含至少一个运算符');
+    return false;
+  }
+
   return true;
 }
 
@@ -196,9 +202,15 @@ const [Form, formApi] = useVbenForm({
       component: 'MetricFormulaEditor', // 自定义组件
       fieldName: 'formula', // 直接绑定到 formula 字段
       label: $t('marketing.metric.columns.rule'),
+      componentProps: {
+        onConfirm: handleFormulaConfirm,
+      }
     },
   ],
 });
+function handleFormulaConfirm(val) {
+  formulaForSubmit.value = val
+}
 // 拉取指标
 async function getMetricList() {
   const dataList:any = await metricApi.fetchMetric();

@@ -38,6 +38,9 @@ import { $t } from '@vben/locales';
 import { isEmpty } from '@vben/utils';
 
 import { message, Modal, notification } from 'ant-design-vue';
+const lazyLoadSelect = defineAsyncComponent(
+  () => import('#/views/ocpx/platformcallback/components/lazyLoadSelect.vue'),
+);
 const MetricFormulaEditor = defineAsyncComponent(
   () => import('#/views/marketing/report/metric/components/MetricFormulaEditor.vue'),
 );
@@ -518,6 +521,7 @@ export type ComponentType =
   | 'Upload'
   | 'Slider'
   | 'MetricFormulaEditor'
+  | 'lazyLoadSelect'
   | BaseFormComponentType;
 
 async function initComponentAdapter() {
@@ -553,6 +557,7 @@ async function initComponentAdapter() {
     CheckboxGroup,
     DatePicker,
     MetricFormulaEditor,
+    lazyLoadSelect,
     // 自定义默认按钮
     DefaultButton: (props, { attrs, slots }) => {
       return h(Button, { ...props, attrs, type: 'default' }, slots);

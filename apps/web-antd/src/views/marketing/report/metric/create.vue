@@ -277,6 +277,12 @@ function validateFormula(formula: string): boolean {
     return false;
   }
 
+function validateFormula(formula: string): boolean {
+  if (!formula) {
+    message.warning('公式不能为空');
+    return false;
+  }
+
   // 1. 括号匹配检查
   let stack = 0;
   for (let i = 0; i < formula.length; i++) {
@@ -308,6 +314,12 @@ function validateFormula(formula: string): boolean {
   // 4. 检查运算符位置（不能开头结尾）
   if (/^[+\-*/]/.test(formula) || /[+\-*/]$/.test(formula)) {
     message.error('公式不能以运算符开头或结尾');
+    return false;
+  }
+
+  // 5. 检查是否至少包含一个运算符（派生指标必须由多个指标运算组成）
+  if (!/[+\-*/]/.test(formula)) {
+    message.error('公式必须包含至少一个运算符');
     return false;
   }
 

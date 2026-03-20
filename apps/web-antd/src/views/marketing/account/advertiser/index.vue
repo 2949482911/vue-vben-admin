@@ -136,6 +136,16 @@ async function handlerPutState(row: AdvertiserItem) {
   });
   pageReload();
 }
+async function handlerHourlyState(row: AdvertiserItem) {
+  await advertiserApi.fetchBatchOptions({
+    targetIds: [row.id],
+    type: 'update_advertiser_hourly',
+    values: {
+      hourly_state: row.hourlyState
+    }
+  });
+  pageReload();
+}
 
 // 定义接受项目名称数组
 const projectOptions = ref<ProjectItem[]>([]);
@@ -345,6 +355,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       field: 'hourlyState',
       title: `${$t('marketing.advertiser.columns.hourlyState')}`,
       width: 'auto',
+      slots: {default: 'hourlyState'}
     },
     {
       field: 'remark',
@@ -463,6 +474,9 @@ function pageReload() {
       <Grid>
         <template #putStatue="{row}">
           <Switch :checked="row.putStatue === 1" @click="handlerPutState(row)"></Switch>
+        </template>
+        <template #hourlyState="{row}">
+          <Switch :checked="row.hourlyState === 1" @click="handlerHourlyState(row)"></Switch>
         </template>
         <template #advertiserRole="{ row }">
           <Tag color="red">{{ row.advertiserRoleName }}</Tag>
