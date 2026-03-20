@@ -8,7 +8,7 @@ import { Page} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
 import { Tag, Switch } from 'ant-design-vue';
-
+import { trimObject } from '#/utils/trim';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { creationTaskApi } from '#/api';
 import {
@@ -151,13 +151,12 @@ const gridOptions: VxeGridProps<CreationTaskItem> = {
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({filters}, args) => {
+      query: async ({page}, args) => {
+        const params = trimObject(args);
         return await creationTaskApi.fetchGetCreationTaskList({
-          platform: filters.platform,
-          name: filters.name,
-          taskStatus: filters.taskStatus,
-          projectId: filters.projectId,
-          ...args,
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          ...params,
         });
       },
     },

@@ -28,7 +28,8 @@ export enum Platform {
   QUTOUTIAO = "qutoutiao",
   HUAWEI_STORE = "huawei_store",
   TENCENT = "tencent",
-  DOUYIN = "douyin"
+  DOUYIN = "douyin",
+  MEITUAN = "meituan"
 }
 export enum RuleType {
   IMMEDIATELY = 'immediately'

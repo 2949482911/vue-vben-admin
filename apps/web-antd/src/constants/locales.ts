@@ -384,6 +384,10 @@ export const BEHAVIORA_PLATFORM = [
     label: '抖音',
     value: 'douyin',
   },
+  {
+    label: '美团',
+    value: 'meituan',
+  },
 ];
 
 // 匹配下拉

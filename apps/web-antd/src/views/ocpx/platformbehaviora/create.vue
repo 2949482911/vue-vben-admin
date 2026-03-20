@@ -894,6 +894,19 @@ platformConfigForm.set(Platform.DOUYIN, [
     rules: 'required',
   }
 ])
+//美团
+platformConfigForm.set(Platform.MEITUAN, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'source',
+    label: 'source',
+    rules: 'required',
+  },
+  
+])
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
