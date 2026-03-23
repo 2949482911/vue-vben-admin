@@ -38,7 +38,8 @@ export enum Platform {
   OPPO_PUSH = 'oppo_push',
   XIANYU = 'xianyu',
   IZJIE = "izjie",
-  RUIZHANG = "ruizhang"
+  RUIZHANG = "ruizhang",
+  THREE_WATER = "three_water"
 }
 export enum RuleType {
   IMMEDIATELY = 'immediately'

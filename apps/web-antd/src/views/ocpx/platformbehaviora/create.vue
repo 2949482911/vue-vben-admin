@@ -1019,7 +1019,7 @@ platformConfigForm.set(Platform.MEITUAN, [
     label: 'source',
     rules: 'required',
   },
-  
+
 ])
 //咸鱼
 platformConfigForm.set(Platform.XIANYU, [
@@ -1068,7 +1068,7 @@ platformConfigForm.set(Platform.XIANYU, [
     label: 'agent_channel',
     defaultValue: ''
   },
-  
+
 ])
 
 //
@@ -1111,6 +1111,20 @@ platformConfigForm.set(Platform.RUIZHANG, [
     },
     fieldName: 'customer_id',
     label: `customer_id`,
+    rules: 'required',
+  }
+])
+
+
+
+platformConfigForm.set(Platform.THREE_WATER, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'gateway',
+    label: `gateway`,
     rules: 'required',
   }
 ])
