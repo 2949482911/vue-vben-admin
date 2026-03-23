@@ -1,5 +1,5 @@
 <script setup lang="ts" name="AdvertisingGroupModule">
-import {Button, Card, Divider, Tooltip} from 'ant-design-vue';
+import {Button, Card, Divider, message, Tooltip} from 'ant-design-vue';
 import {useVbenDrawer} from '@vben/common-ui';
 import {
   BILLINGTYPE_SELECT,
@@ -244,8 +244,8 @@ const formatDisplayValue = (key: keyof VivoAdgroupData, value: any) => {
 };
 
 function newAdGroup() {
-  // const isConfigValid = !campaign.name;
-  // if (isConfigValid) return message.warning('请先完善并保存“项目”基本信息');
+  const isConfigValid = !campaign.name;
+  if (isConfigValid) return message.warning('请先完善并保存“项目”基本信息');
   drawerApi.setData(adGroupData.value);
   drawerApi.open()
 }

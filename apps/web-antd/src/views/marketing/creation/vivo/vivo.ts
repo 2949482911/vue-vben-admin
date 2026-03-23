@@ -28,7 +28,7 @@ export interface VivoConfigData {
   audience: VivoAudienceData
   material: MaterialData
   // 投放滋滋
-  advertiserQualification: Map<string, string>;
+  // advertiserQualification: Map<string, string>;
 }
 
 /**
@@ -382,7 +382,8 @@ export function getVivoTableData(
         appletPath: creationInfo.configData.adgroup.appletPath,
         industry1: creationInfo.configData.adgroup.industry1,
         industry2: creationInfo.configData.adgroup.industry2,
-        advertiseQualificationId: creationInfo.configData.advertiserQualification.get(account.localAdvertiserId) || '',
+        // advertiseQualificationId: creationInfo.configData.advertiserQualification.get(account.localAdvertiserId) || '',
+        advertiseQualificationId: creationInfo.configData.adgroup.advertiseQualificationId,
         wechatFollow: creationInfo.configData.adgroup.wechatFollow,
         startDate: creationInfo.configData.adgroup.startDate,
         endDate: creationInfo.configData.adgroup.endDate,

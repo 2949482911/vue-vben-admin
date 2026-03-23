@@ -48,7 +48,7 @@ const creationInfo = ref<VivoCreation>(
     accountInfo: [],
     configData: {
       // 投放资质
-      advertiserQualification: new Map<string, string>(),
+      // advertiserQualification: new Map<string, string>(),
       campaign: {
         name: "",
         adType: 0,
