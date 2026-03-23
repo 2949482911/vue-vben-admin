@@ -78,7 +78,7 @@ const requestData = async (pageNum: number, keywordVal: string) => {
     page: pageNum,
     pageSize,
     platform: Platform.VIVO,
-    keyword: keywordVal,
+    advertiserName: keywordVal,
   };
   const res = await advertiserApi.fetchAdvertiserList(params);
   return res.items || [];
