@@ -8,8 +8,8 @@ export interface AdvertiserPageRequest extends PageRequestParams {
   advertiserId?: string;
   advertiserName?: string;
   putStatus?: number;
-  platform?:string;
-  putStatue?:number
+  platform?: string;
+  putStatue?: number
 }
 
 
@@ -55,7 +55,6 @@ export interface UpdateAdvertiserRequest extends AdvertiserDeveloperBindRequest 
 }
 
 
-
 // 返回的子账户列表
 export interface AccountChildResponse {
   advertiserId: string;
@@ -65,10 +64,10 @@ export interface AccountChildResponse {
 
 
 // 导入子账户
-export interface ImportChildRequest{
+export interface ImportChildRequest {
   id: string;
   advertiserIds: Array<string>;
-  projectId:string;
+  projectId: string;
 }
 
 
@@ -118,7 +117,7 @@ export interface UpdateDeveloperRequest extends CreateDeveloperRequest {
 // 报表
 
 export interface CreateSystemMetric {
-  id?:string,
+  id?: string,
   ename: string;
   cname: string;
   description: string;
@@ -181,7 +180,7 @@ export interface ProjectPageRequest extends PageRequestParams {
   name?: string;
   projectType?: number;
   packageName?: string;
-  size?:number;
+  size?: number;
 }
 
 
@@ -239,13 +238,13 @@ export interface searchDataFilter {
   advertiserId: string[];
   dims: string[];
   platform: string[];
-  projectId:string;
-  queryMetric:string[];
-  dateTimeRange?:[string, string];
-  campaign_id?:string[];
-  adgroup_id?:string[];
-  promotion_id?:string[];
-  creative_id?:string[];
+  projectId: string;
+  queryMetric: string[];
+  dateTimeRange?: [string, string];
+  campaign_id?: string[];
+  adgroup_id?: string[];
+  promotion_id?: string[];
+  creative_id?: string[];
 }
 
 /**模板列表数据类型*/
@@ -253,13 +252,13 @@ export interface templateListType {
   page: number;
   pageSize: number;
   name?: string;
-  type?:string;
+  type?: string;
 }
 
 /**删除模板列表数据类型*/
 export interface delTemplate {
   targetIds: string[];
-  type:string;
+  type: string;
   values: Record<string, any>;
 }
 
@@ -319,7 +318,7 @@ export interface FolderItem {
 
 /**创建文件夹和编辑文件夹的type */
 export interface CreateFolderParams {
-  id?:string;
+  id?: string;
   name: string;
   parentId?: string;
   remark?: string;
@@ -328,9 +327,11 @@ export interface CreateFolderParams {
 /**素材列表数据类型 */
 export interface MaterialListParams {
   name?: string;
-  albumId: string;
-  pageSize:number;
-  page:number;
+  albumId?: string;
+  type?: number;
+  pageSize: number;
+  page: number;
+  needAlbum?: boolean;
 }
 
 /**上传素材 */
@@ -355,7 +356,7 @@ export interface FileInfo extends BaseItem {
 
 /**编辑素材 */
 export interface EditPaletteParams {
-  id:string,
+  id: string,
   name: string,
   albumId: string
 }
@@ -471,8 +472,8 @@ export interface AdCompanyOptionsType {
 /**营销-资产-标题包查询 */
 export interface GetTitlePackType {
   platform?: string;
-  title?:string;
-  projectId?:string;
+  title?: string;
+  projectId?: string;
   page: number;
   pageSize: number;
 }
@@ -480,7 +481,7 @@ export interface GetTitlePackType {
 /**营销-资产-标题包删除 */
 export interface DelTitlePackType {
   targetIds: string[];
-  type:string;
+  type: string;
 }
 
 /**营销-资产-标题包新建 */
@@ -500,29 +501,29 @@ export interface TitlePackItem {
 /**营销-资产-定向包查询 */
 export interface GetTargetedPackageType {
   platform?: string;
-  name?:string;
-  platformAdvertiserId?:string;
+  name?: string;
+  platformAdvertiserId?: string;
   page: number;
   pageSize: number;
 }
 
 /**营销-资产-定向包新建 */
 export interface NewTargetedPackageType {
-  localAdvertiserId?:string;
-  name:string;
-  platform?:string;
-  platformAdvertiserId?:string;
-  remark?:string;
-  config?:{
-    sexList?:string[];
-    ageList?:string[];
-    interestSet?:string[];
-    installedApp?:number;
-    androidVersionSet?:string;
-    phonePriceSet?:string;
-    network?:number;
-    phoneSeriesSet?:string;
-    networkOperatorSet?:string;
+  localAdvertiserId?: string;
+  name: string;
+  platform?: string;
+  platformAdvertiserId?: string;
+  remark?: string;
+  config?: {
+    sexList?: string[];
+    ageList?: string[];
+    interestSet?: string[];
+    installedApp?: number;
+    androidVersionSet?: string;
+    phonePriceSet?: string;
+    network?: number;
+    phoneSeriesSet?: string;
+    networkOperatorSet?: string;
     region?: {
       regionCodeList?: string[];
       stayType?: number;
@@ -537,13 +538,39 @@ export interface NewTargetedPackageType {
     },
   }
 }
- /** 创编任务-查询任务列表 */
+
+
+/**定向包类型 */
+export interface TargetedPackageTypeItem extends BaseItem {
+  id: string;
+  name: string;
+  platform: string;
+  platformAdvertiserId: string;
+  config: string;
+  remark: string;
+}
+
+/**标题包类型 */
+export interface TitlePackageItem extends BaseItem {
+  projectName: string;
+  title: string;
+  createdBy: string;
+  platform: string;
+  projectId: string;
+  updatedBy: string;
+  advertiserName: string;
+  config: any;
+}
+
+
+/** 创编任务-查询任务列表 */
 export interface GetCreationTaskType {
   platform?: string;
   name?: string;
   taskStatus?: Number;
   projectId?: string;
 }
+
 /** 创编任务列表数据结构 */
 export interface CreationTaskItem extends BaseItem{
   platform?: string;
@@ -580,10 +607,45 @@ export interface NewLabelItemType {
 /**账户标签-编辑任务列表 */
 export interface EditLabelItemType extends NewLabelItemType {
   id:string,
- 
+
 }
 /**营销-资产-标题包删除 */
 export interface DelLabelItemType {
   targetIds: string[];
   type:string;
+}
+
+/**营销-创编-Vivo营销-广告主-广告投放资质ID */
+export interface AdInvestmentType {
+  advertiserId: string[];
+}
+
+/**营销-创编-Vivo营销-广告创意素材组-广告创意类型 */
+export interface AdCreativeType {
+  advertiserId: string[],
+  displayType: number,
+  adType: number,
+  mediaType: number,
+  positionType: number,
+  genType: number
+}
+
+/**营销-创编-Vivo营销-广告创意素材组-投放虚拟位置 */
+export interface VirtualLocationType {
+  advertiserId: string[],
+  normId: number,
+  displayType: number,
+  adType: number,
+  mediaType: number,
+}
+
+/**营销-创编-Vivo营销-提交审核 */
+export interface VivoSubmitType {
+  name: string,
+  platform: string,
+  projectId: string,
+  ruleType: string,
+  version: string,
+  fullParamsData: string,
+  configArea: string,
 }

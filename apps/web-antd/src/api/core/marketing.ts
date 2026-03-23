@@ -6,7 +6,7 @@ import type {
   AdReportResponse,
   AdvertiserItem,
   AdvertiserPageRequest,
-  AuthAdvertiserRequest, 
+  AuthAdvertiserRequest,
   CreateDeveloperRequest, CreateProjectRequest, CreateSystemMetric,
   DeveloperPageRequest, ImportChildRequest, MetricItem, ProjectPageRequest,
   SystemMetricPageRequest, UpdateAdvertiserRequest, UpdateDeveloperRequest, UpdateMetric,
@@ -36,6 +36,10 @@ import type {
   NewLabelItemType,
   EditLabelItemType,
   DelLabelItemType,
+  AdInvestmentType,
+  AdCreativeType,
+  VirtualLocationType,
+  VivoSubmitType,
   ImportDataType
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
@@ -361,6 +365,16 @@ class CreationTaskApi extends BaseApi {
   fetchGetCreationTaskList(params:GetCreationTaskType) {
     return requestClient.get(this.getServiceUrl("list"),{params})
   }
+
+  /**批投提交审核*/
+  fetchVivoSubmitReview(params:VivoSubmitType) {
+    return requestClient.post(this.getServiceUrl("create"),params)
+  }
+
+  /**批投提交审核*/
+  fetchVivoSubmitResult(params:{id:string}) {
+    return requestClient.get(this.getServiceUrl("create_result"),{params})
+  }
   
 }
 
@@ -391,3 +405,23 @@ class AccountLabelApi extends BaseApi {
 }
 
 export const accountLabelApi = new AccountLabelApi("/platform/advertiser_tag");
+
+/**
+ * 营销-创编-Vivo营销-广告主-广告投放资质ID
+ */
+class AdInvestmentApi extends BaseApi {
+  /**广告投放资质ID下拉*/
+  fetchGetAdInvestment(params:AdInvestmentType) {
+    return requestClient.post(this.getServiceUrl("qualification"),params)
+  }
+  /**广告创意类型下拉*/
+  fetchCreativeType(params:AdCreativeType) {
+    return requestClient.post(this.getServiceUrl("position_creative_type"),params)
+  }
+  /**投放虚拟位置下拉*/
+  fetchVirtualLocation(params:VirtualLocationType) {
+    return requestClient.post(this.getServiceUrl("virtual_position"),params)
+  }
+}
+
+export const adInvestmentApi = new AdInvestmentApi("/platform/vivo_advertisement");

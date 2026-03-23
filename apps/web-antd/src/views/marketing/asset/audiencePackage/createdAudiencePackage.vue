@@ -500,7 +500,7 @@ const [Form, formApi] = useVbenForm({
 
 <template>
   <div>
-    <titlePackageModal class="w-[40%]" :title="props.displayValue?.id ? '修改定向包':'添加标题包'">
+    <titlePackageModal class="w-[40%]" :title="props.displayValue?.id ? '修改定向包':'添加定向包'">
       <Form>
         <template #regionCodeList>
           <div>

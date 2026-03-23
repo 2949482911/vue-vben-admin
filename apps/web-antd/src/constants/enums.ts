@@ -33,6 +33,30 @@ export enum Platform {
   OPPO_PUSH = 'oppo_push',
   XIANYU = 'xianyu'
 }
+
 export enum RuleType {
   IMMEDIATELY = 'immediately'
 }
+
+
+// 计划生成规则
+export enum CampaignRuleKey {
+  targeting = "targeting", // 定向包
+  creative = "creative", // 创意
+  title = "title", // 标题包
+  custom = "custom", // 自定义
+}
+
+
+// 广告生成规则
+export enum AdRuleKey {
+  creative = "creative", // 创意
+  title = "title", // 标题包
+  custom = "custom", //自定义
+}
+
+export enum DistributionMode{
+  all = "all", // 全部
+  account = "account" // 账户分配
+}
+

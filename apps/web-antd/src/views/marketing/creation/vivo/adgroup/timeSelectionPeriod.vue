@@ -1,7 +1,13 @@
-
-
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch } from 'vue';
+
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: '0'.repeat(336) // 默认 336 位 0
+  }
+});
+const emit = defineEmits(['update:modelValue']);
 
 const days = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
 
@@ -19,6 +25,46 @@ const startPos = reactive({ r: -1, c: -1 });
 const schedule_time = computed(() => {
   return schedule.map(row => row.map(cell => (cell ? '1' : '0')).join('')).join('');
 });
+
+// 1. 定义一个标志位
+const isInternalUpdating = ref(false);
+
+// 2. 修改向上传递的监听
+watch(schedule_time, (newVal) => {
+  // 如果当前正在解析回显数据，则不向上传递，防止覆盖父组件数据
+  if (isInternalUpdating.value) return;
+  emit('update:modelValue', newVal);
+});
+
+// 3. 修改接收回显的监听
+watch(() => props.modelValue, (newVal) => {
+  if (newVal && newVal.length === 336 && newVal !== schedule_time.value) {
+    try {
+      // 开启锁定
+      isInternalUpdating.value = true;
+      
+      for (let r = 0; r < 7; r++) {
+        const row = schedule[r];
+        if (row) {
+          const rowStr = newVal.substring(r * 48, (r + 1) * 48);
+          for (let c = 0; c < 48; c++) {
+            row[c] = rowStr[c] === '1';
+          }
+        }
+      }
+      
+      // 关键：使用 nextTick 等待 schedule_time 重新计算完成后，再解除锁定
+      import('vue').then(({ nextTick }) => {
+        nextTick(() => {
+          isInternalUpdating.value = false;
+        });
+      });
+    } catch (e) {
+      console.error('回显数据解析失败:', e);
+      isInternalUpdating.value = false;
+    }
+  }
+}, { immediate: true });
 
 const isEmpty = computed(() => schedule.every(row => row.every(cell => !cell)));
 
@@ -156,7 +202,8 @@ const formatPoint = (index: number) => {
 <style scoped>
 .schedule-container { 
   /* padding: 20px;  */
-  background-color: #fff; 
+
+  /* background-color: #fff;  */
 }
 
 .table-wrapper { 
@@ -184,7 +231,7 @@ const formatPoint = (index: number) => {
 }
 
 .dot.active { 
-  background-color: #2fb477; 
+  background-color: #035ec7; 
 }
 
 .dot.inactive { 
@@ -211,32 +258,36 @@ const formatPoint = (index: number) => {
 .period-header { 
   height: 28px; 
   font-size: 12px; 
-  background: #fafafa; 
+
+  /* background: #fafafa;  */
 }
 
 .hour-label { 
   width: 24px; 
   font-size: 11px; 
-  background: #fafafa; 
+
+  /* background: #fafafa;  */
 }
 
 .day-label { 
   width: 70px; 
   height: 32px; 
   font-size: 12px; 
-  background: #fafafa; 
+
+  /* background: #fafafa;  */
 }
 
 .time-cell {
   width: 12px;
   height: 30px;
   cursor: pointer;
-  background-color: #fff;
+
+  /* background-color: #fff; */
   transition: background-color 0.05s; /* 极短的过渡让视觉更柔和 */
 }
 
 .time-cell.active { 
-  background-color: #2fb477; 
+  background-color: #035ec7; 
 }
 
 .time-cell:hover { 
@@ -259,7 +310,7 @@ const formatPoint = (index: number) => {
 
 .clear-btn { 
   font-weight: normal; 
-  color: #2fb477; 
+  color: #035ec7; 
   cursor: pointer; 
 }
 
