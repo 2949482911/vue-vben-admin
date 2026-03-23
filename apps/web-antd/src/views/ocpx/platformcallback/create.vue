@@ -19,11 +19,11 @@ import {advertiserApi, eventSettlementApi} from '#/api';
 import {platformCallbackApi} from '#/api/core/ocpx';
 import {Platform} from '#/constants/enums';
 import {
-  BACKHAUL, 
-  BM_COFIG_TYPE, 
+  BACKHAUL,
+  BM_COFIG_TYPE,
   ANDROID_APPLICATION_ID,
-  IOS_APPLICATION_ID, 
-  ANDROID_USER_ACTION_SET_ID, 
+  IOS_APPLICATION_ID,
+  ANDROID_USER_ACTION_SET_ID,
   IOS_USER_ACTION_SET_ID
 } from '#/constants/locales';
 
@@ -105,43 +105,22 @@ platformConfigForm.set(Platform.VIVO, [
     rules: 'required',
   },
   {
-    // 媒体配置表单
-    component: 'ApiSelect',
-    // 对应组件的参数
+    component: 'lazyLoadSelect',        // 使用自定义组件
+    fieldName: 'advertiserName',
+    label: `advertiser`,
     componentProps: {
-      showSearch: true,
       placeholder: `${$t('common.select')}`,
-      api: async (params: any) => {
-        return await advertiserApi.fetchAdvertiserList(params);
-      },
-      filterOption: (inputValue: string, option: { label: string }) => {
-        return option.label.toLowerCase().includes(inputValue.toLowerCase());
-      },
       onSelect: async (_: any, data: any) => {
         await formApi.setFieldValue('advertiserId', data.advertiserId);
         await configFormApi.setFieldValue('advertiserId', data.advertiserId);
       },
-      params: {
-        page: 1,
-        pageSize: 10000,
-      },
-      valueField: 'advertiserName',
-      labelField: 'advertiserName',
-      resultField: 'items',
     },
-    // 字段名
-    fieldName: 'advertiserName',
-    // 界面显示的label
-    label: `advertiser`,
     rules: 'required',
     dependencies: {
-      show: (value: any) => {
-        return value.advertiserType == 'select';
-      },
+      show: (value: any) => value.advertiserType == 'select',
       triggerFields: ['advertiserType'],
-    }
+    },
   },
-
   {
     // 组件需要在 #/adapter.ts内注册，并加上类型
     component: 'Input',
@@ -551,6 +530,23 @@ platformConfigForm.set(Platform.TENCENT, [
     label: 'user_action_set_id',
   },
 ])
+// oppo push
+platformConfigForm.set(Platform.OPPO_PUSH, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    defaultValue: 'test',
+    // 字段名
+    fieldName: 'test',
+    // 界面显示的label
+    label: 'test',
+    rules: 'required',
+  },
+]);
 /**
  *
  * @param platform 平台
@@ -809,13 +805,22 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         placeholder: `${$t('common.input')}`,
         min: 0,
-        max: 100,
-        formatter: (value: number) => `${value}%`,
-        parser: (value: string) => value.replace('%', ''),
+        max: 1000,
+        precision: 1,
+        formatter: (value: number) => {
+          if (value === null || value === undefined) return '';
+          const fixedValue = Number(value).toFixed(1);
+          return `${fixedValue}%`;
+        },
+        parser: (value: string) => {
+          if (!value) return 0;
+          const num = Number(value.replace('%', ''));
+          return isNaN(num) ? 0 : Number(num.toFixed(1));
+        },
       },
       // 字段名
       fieldName: 'ratio',
-      defaultValue: 100,
+      defaultValue: 1000.00, // 显式设置为2位小数的浮点型
       // 界面显示的label
       label: `${$t('ocpx.platformcallback.columns.ratio')}`,
       rules: 'required',

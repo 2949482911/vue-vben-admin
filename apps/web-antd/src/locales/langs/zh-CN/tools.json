@@ -1,0 +1,10 @@
+{
+  "downcenter": {
+    "columns": {
+      "name": "名称",
+      "type": "类型",
+      "downloadUrl": "下载链接",
+      "taskState": "任务状态"
+    }
+  }
+}

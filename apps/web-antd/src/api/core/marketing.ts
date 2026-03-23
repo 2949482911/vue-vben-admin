@@ -1,4 +1,5 @@
 import {BaseApi} from "#/api/core/baseapi";
+import { customRequest } from '#/api/customRequest';
 import type {
   AccountChildResponse,
   AdReportRequest,
@@ -34,7 +35,8 @@ import type {
   GetLabelItemType,
   NewLabelItemType,
   EditLabelItemType,
-  DelLabelItemType
+  DelLabelItemType,
+  ImportDataType
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -124,6 +126,19 @@ class AdvertiserApi extends BaseApi {
   /**账户消耗详情-账户名字下拉 */
   fetchAdCompanyOptions(params: AdCompanyOptionsType) {
     return requestClient.get(this.getServiceUrl("advertiser_company"), {params})
+  }
+  /**广告主-获取下载模版 */
+  fetchDownloadTemplate(params: AdCompanyOptionsType) {
+    return requestClient.get(this.getServiceUrl("template"), {params})
+  }
+  /**广告主-导入Excel数据 */
+  fetchImportData(data: FormData, platform: string) {
+    // 拼接完整 URL
+    // 直接使用 customRequest 发送，它会自动拼接 baseURL
+    return customRequest.post(this.getServiceUrl("import"), data, {
+      params: { platform },
+      // 不需要手动设置 headers['Content-Type']，axios 会根据 data 类型自动设置
+    });
   }
 }
 

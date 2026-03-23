@@ -4,7 +4,7 @@ import {Page} from '@vben/common-ui';
 import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
 import {$t} from '@vben/locales';
 import {
-  ADVERTISET_ADDED,
+  BALACE_DETAIL_PLATFORM,
   CONSUMPTION_DETAIL_DIMENSION,
   CONSUMPTION_DETAIL_DIMENSION_HUAWEI
 } from '#/constants/locales';
@@ -25,7 +25,7 @@ const {
 });
 
 pager.pageSize = 500;
-
+const fullData = ref<any[]>([]);
 const defaultQueryParams = {
   platform: 'huawei_store',
   dateTime: [
@@ -155,7 +155,7 @@ const formOptions: VbenFormProps = {
       defaultValue: Platform.HUAWEI_STORE,
       componentProps: {
         allowClear: true,
-        options: ADVERTISET_ADDED,
+        options: BALACE_DETAIL_PLATFORM,
         placeholder: `${$t('common.choice')}`,
         onChange: async (val: string) => {
           if (val === Platform.HUAWEI_STORE) {
@@ -336,7 +336,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       "csv",
       "xlsx"
     ],
-    modes: ['current'],
+    modes: ['current','all'],
     original: true,
   },
   proxyConfig: undefined,
@@ -347,46 +347,48 @@ async function init(args?: any) {
   try {
     gridApi.setLoading(true);
     const res = await advertiserApi.fetchAdvertiserCostDetail(args);
-    // ① 设置全量数据（内部会自动 reset 到第一页 + loading）
-    await setData(
-      res.items.map((item: any, i: number) => ({
-        ...item,
-        seq: i + 1,
-      })),
-    );
-    // ② 生成列
+    const items = res.items.map((item: any, i: number) => ({
+      ...item,
+      seq: i + 1,
+    }));
+
+    // 保存全量数据
+    fullData.value = items;
+
+    // 更新分页数据（内部会重置到第一页）
+    await setData(items);
+
+    // 动态生成列
     const newColumns = [
-      {title: '序号', field: 'seq', width: 'auto', fixed: 'left'},
+      { title: '序号', field: 'seq', width: 'auto', fixed: 'left' },
       ...res.columns.map((key: string) => {
         const isFixedLeft = fixedLeftKeys.includes(key);
-        const columnConfig = {
+        const columnConfig: any = {
           field: key,
           title: key,
           width: 'auto',
           sortable: true,
-          ...(isFixedLeft ? {fixed: 'left'} : {}),
+          ...(isFixedLeft ? { fixed: 'left' } : {}),
         };
 
-      if (key === '推广产品') {
-          columnConfig.slots = {default: '推广产品'};
-          columnConfig.exportMethod = ({ row }) => {
-            if (row === undefined || row === null || row === '') {
-              return '';
-            }
-            if (Array.isArray(row['推广产品']) && row['推广产品'].length === 0) {
-              return '';
-            }
+        if (key === '推广产品') {
+          columnConfig.slots = { default: '推广产品' };
+          columnConfig.exportMethod = ({ row }: any) => {
+            if (!row || !row['推广产品']) return '';
             if (Array.isArray(row['推广产品'])) {
-              const str = row['推广产品'].map(item => item?.product_name?.trim()).filter(name => name).join('、');
-              return str
+              return row['推广产品']
+                .map((item: any) => item?.product_name?.trim())
+                .filter(Boolean)
+                .join('、');
             }
             return String(row['推广产品'] || '');
           };
         }
         return columnConfig;
-      })
+      }),
     ];
-    // ③ 更新 Grid（只用当前页数据）
+
+    // 更新表格：当前页数据 + 导出配置（全量数据）
     gridApi.setGridOptions({
       columns: newColumns,
       data: getPageData(),
@@ -396,12 +398,15 @@ async function init(args?: any) {
         pageSize: pager.pageSize,
         pageSizes: [500, 800, 1000],
       },
+      exportConfig: {
+        ...gridOptions.exportConfig, 
+        data: fullData.value,        
+      },
     });
   } finally {
     gridApi.setLoading(false);
   }
 }
-
 const gridEvents = {
   pageChange({currentPage, pageSize}: { currentPage: number; pageSize: number }) {
     onPageChange(currentPage, pageSize);

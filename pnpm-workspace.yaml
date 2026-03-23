@@ -70,6 +70,7 @@ catalog:
   '@vueuse/core': ^14.1.0
   '@vueuse/integrations': ^14.1.0
   '@vueuse/motion': ^3.0.3
+  '@ant-design/icons-vue': ^7.0.0
   exceljs: ^4.4.0
   ant-design-vue: ^4.2.6
   antdv-next: ^1.0.2

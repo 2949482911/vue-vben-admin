@@ -797,6 +797,17 @@ platformConfigForm.set(Platform.QWEN, [
     // 界面显示的label
     label: `type`,
     rules: 'required',
+  },{
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'product',
+    // 界面显示的label
+    label: `product`,
   },
 ])
 
@@ -996,6 +1007,68 @@ platformConfigForm.set(Platform.DOUYIN, [
     label: `adLink`,
     rules: 'required',
   }
+])
+//美团
+platformConfigForm.set(Platform.MEITUAN, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'source',
+    label: 'source',
+    rules: 'required',
+  },
+  
+])
+//咸鱼
+platformConfigForm.set(Platform.XIANYU, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'action',
+    label: 'action',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'campaignId',
+    label: 'campaignId',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'refer_code',
+    label: 'refer_code',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'channel',
+    label: 'channel',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'agent_channel',
+    label: 'agent_channel',
+    defaultValue: ''
+  },
+  
 ])
 
 //

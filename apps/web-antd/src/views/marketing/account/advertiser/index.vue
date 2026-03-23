@@ -8,6 +8,7 @@ import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
 import {Button, Switch, Tag, Dropdown, Menu, MenuItem} from 'ant-design-vue';
+import { UploadOutlined } from '@ant-design/icons-vue';
 
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {advertiserApi} from '#/api/core';
@@ -23,6 +24,7 @@ import AuthAccount from './authaccount.vue';//授权弹窗
 import CreateObjectRequestComp from './create.vue';//新增|修改弹窗
 import BatchOperationComp from './batchOperation.vue';//批量修改弹窗
 import ImportChildAdvertiser from './importchildadvertiser.vue';
+import BatchImportCom from './BatchImportCom.vue';
 import { computed, onMounted, ref } from 'vue';
 import type { ProjectItem } from "./advertiser";
 import { trimObject } from '#/utils/trim';
@@ -67,7 +69,7 @@ const [BatchOperationModal, BatchOperationApi] = useVbenModal({
   modal: true,
 });
 
-function openBatchOptions(modalType: 'edit' | 'bind') {
+function openBatchOptions(modalType: string) {
   BatchOperationApi.setData({
     selectedRows: selectedRows.value, // 原有选中行数据
     modalType: modalType, // 新增的弹窗类型
@@ -82,14 +84,24 @@ const [ImportChildAdvertiserModal, improtChildApi] = useVbenModal({
   modal: true,
 });
 
-
+const roleType = ref<string>('')
 
 function openImportChildModal(row: AdvertiserItem) {
   improtChildApi.setData({id: row.id});
   improtChildApi.open();
+  roleType.value = row.roleType
 }
 
+// 导入
+const [ImportModal, importModalApi] = useVbenModal({
+  connectedComponent: BatchImportCom,
+  centered: true,
+  modal: true,
+});
 
+function openImportModal() {
+  importModalApi.open();
+}
 async function handlerState(row: AdvertiserItem) {
   await (row.status === 1
     ? advertiserApi.fetchBatchOptions({
@@ -121,6 +133,16 @@ async function handlerPutState(row: AdvertiserItem) {
     targetIds: [row.id],
     type: putStatue,
     values: new Map<string, any>(),
+  });
+  pageReload();
+}
+async function handlerHourlyState(row: AdvertiserItem) {
+  await advertiserApi.fetchBatchOptions({
+    targetIds: [row.id],
+    type: 'update_advertiser_hourly',
+    values: {
+      hourly_state: row.hourlyState
+    }
   });
   pageReload();
 }
@@ -330,6 +352,12 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       width: 'auto',
     },
     {
+      field: 'hourlyState',
+      title: `${$t('marketing.advertiser.columns.hourlyState')}`,
+      width: 'auto',
+      slots: {default: 'hourlyState'}
+    },
+    {
       field: 'remark',
       title: `${$t('marketing.advertiser.columns.remark')}`,
       width: 'auto',
@@ -447,6 +475,9 @@ function pageReload() {
         <template #putStatue="{row}">
           <Switch :checked="row.putStatue === 1" @click="handlerPutState(row)"></Switch>
         </template>
+        <template #hourlyState="{row}">
+          <Switch :checked="row.hourlyState === 1" @click="handlerHourlyState(row)"></Switch>
+        </template>
         <template #advertiserRole="{ row }">
           <Tag color="red">{{ row.advertiserRoleName }}</Tag>
         </template>
@@ -459,7 +490,8 @@ function pageReload() {
           <Tag color="orange">{{ row.platformAuditState }}</Tag>
         </template>
         <template #tagName="{row}">
-          <Tag color="blue">{{ row.tagName }}</Tag>
+          <span v-if="!row.tagName">-</span>
+          <Tag v-else color="blue">{{ row.tagName}}</Tag>
         </template>
 
         <template #action="{ row }">
@@ -516,6 +548,9 @@ function pageReload() {
                 <MenuItem  @click="openBatchOptions('status')">
                   修改投放状态
                 </MenuItem>
+                <MenuItem  @click="openBatchOptions('hourlyState')">
+                  修改分时状态
+                </MenuItem>
               </Menu>
             </template>
           </Dropdown>
@@ -531,6 +566,12 @@ function pageReload() {
           >
             {{ $t('marketing.advertiser.authAccount') }}
           </Button>
+          <Button
+            @click="openImportModal"
+            class="importBtn"
+          >
+          <template #icon><UploadOutlined /></template>
+          </Button>
 
         </template>
       </Grid>
@@ -538,10 +579,13 @@ function pageReload() {
     <CreateObjectModal @page-reload="pageReload"/>
     <AuthAccountModal/>
     <BatchOperationModal @page-reload="pageReload"/>
-    <ImportChildAdvertiserModal @page-reload="pageReload" :projectOptions="projectOptions"/>
+    <ImportModal @page-reload="pageReload"/>
+    <ImportChildAdvertiserModal @page-reload="pageReload" :projectOptions="projectOptions" :roleType="roleType"/>
   </div>
 </template>
 
 <style scoped lang="scss">
-
+ :deep(.importBtn) {
+  border-radius: 50% !important;
+}
 </style>

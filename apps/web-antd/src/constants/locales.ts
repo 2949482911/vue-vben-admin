@@ -204,6 +204,10 @@ export const PLATFORM = [
   {
     label: '广点通',
     value: 'tencent',
+  },
+  {
+    label: 'oppo push',
+    value: 'oppo_push',
   }
 ];
 
@@ -262,6 +266,10 @@ export const BACKHAUL = [
   {
     label: '广点通',
     value: 'tencent',
+  },
+  {
+    label: 'oppo push',
+    value: 'oppo_push',
   }
 ];
 
@@ -270,6 +278,24 @@ export const BACKHAUL = [
  * 授权账户媒体
  */
 export const AUTH_ACCOUNT_PLATFORM = [
+  {
+    label: `${$t('ocpx.platform.vivo')}`,
+    value: 'vivo',
+  },
+  {
+    label: `${$t('ocpx.platform.tb')}`,
+    value: 'tb',
+  },
+  // {
+  //   label: '华为商店',
+  //   value: 'huawei_store',
+  // },
+  {
+    label: '华为Ads',
+    value: 'huawei',
+  },
+];
+export const DEVELOPER_AUTH_ACCOUNT_PLATFORM = [
   {
     label: `${$t('ocpx.platform.vivo')}`,
     value: 'vivo',
@@ -384,6 +410,14 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: '抖音',
     value: 'douyin',
+  },
+  {
+    label: '美团',
+    value: 'meituan',
+  },
+  {
+    label: '咸鱼',
+    value: 'xianyu',
   },
   {
     label: `${$t('ocpx.platform.izjie')}`,
@@ -508,6 +542,17 @@ export const DIMS = [
  * 广告主新增弹框的平台下拉
  */
 export const ADVERTISET_ADDED = [
+  {
+    label: `${$t('ocpx.platform.huawei_store')}`,
+    value: 'huawei_store',
+  },
+  // {
+  //   label: `${$t('ocpx.platform.huawei')}`,
+  //   value: 'huawei',
+  // }
+]
+// 账户消耗明细平台下拉数据
+export const BALACE_DETAIL_PLATFORM = [
   {
     label: `${$t('ocpx.platform.huawei_store')}`,
     value: 'huawei_store',

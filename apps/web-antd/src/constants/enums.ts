@@ -34,6 +34,9 @@ export enum Platform {
   BAIDU_PACK = "baidu_pack",
   TENCENT = "tencent",
   DOUYIN = "douyin",
+  MEITUAN = "meituan",
+  OPPO_PUSH = 'oppo_push',
+  XIANYU = 'xianyu',
   IZJIE = "izjie",
   RUIZHANG = "ruizhang"
 }

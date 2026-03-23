@@ -19,7 +19,7 @@ const title = ref<string>('')
 const menuData = ref<OrgItem[]>([])
 
 const salesOption = ref([])
-type TitleKey = 'edit' | 'org' | 'sale' | 'creator' | 'bind' | 'status';
+type TitleKey = 'edit' | 'org' | 'sale' | 'creator' | 'bind' | 'status' | 'hourlyState';
 
 const titleMap: Record<TitleKey, string> = reactive({
   edit: '批量修改项目',
@@ -27,14 +27,15 @@ const titleMap: Record<TitleKey, string> = reactive({
   sale: '批量修改销售',
   creator: '批量修改创建人',
   bind: '批量绑定标签',
-  status: '批量修改投放状态'
+  status: '批量修改投放状态',
+  hourlyState: '批量修改分时状态'
 })
 const creatorUerName = ref()
 const selectedOrgCode = ref()
   // 核心修改：用 computed 包裹 schema
 const dynamicSchema = computed((): FormSchema[] =>{
   let operateSchema: FormSchema[] = []
-  if(modalType.value === 'sale') {
+  if(modalType.value === 'sale' || modalType.value === 'creator') {
     operateSchema = [{
         component: 'TreeSelect',
         componentProps: {
@@ -59,10 +60,17 @@ const dynamicSchema = computed((): FormSchema[] =>{
           allowClear: true,
           options: salesOption,
           placeholder: `${$t('common.choice')}`,
+          onSelect: (selectedKeys, event, node) => {
+            if(modalType.value === 'creator') {
+              if (event && event.label) {
+                creatorUerName.value = event.label
+              }
+            }
+          }
         },
         // 字段名
-        fieldName: 'saleId',
-        label: '销售',
+        fieldName: modalType.value === 'creator'?'creatorId':'saleId',
+        label: modalType.value === 'creator'?'创建人':'销售',
         dependencies: {
           show: true,
           triggerFields: ['orgId'],
@@ -75,7 +83,7 @@ const dynamicSchema = computed((): FormSchema[] =>{
           },
           if: (value, formApi) => {
             if (value.orgId) {
-              formApi.setFieldValue('saleId', null);
+              modalType.value === 'creator'? formApi.setFieldValue('creatorId', null) : formApi.setFieldValue('saleId', null);
               loadSalesByOrg(value.orgId);
             } else {
               salesOption.value = [];
@@ -85,7 +93,7 @@ const dynamicSchema = computed((): FormSchema[] =>{
         },
       }
     ]
-  } else if(modalType.value === 'edit' || modalType.value === 'bind' || modalType.value === 'creator') {
+  } else if(modalType.value === 'edit' || modalType.value === 'bind') {
     operateSchema =  [{
         component: "ApiSelect",
         componentProps: {
@@ -114,21 +122,10 @@ const dynamicSchema = computed((): FormSchema[] =>{
               labelName.value = 'name'
               formLabel.value =  '标签'
               fieldName.value = 'tagId'
-            } else if(modalType.value === 'creator') {
-              res = await userApi.fetchUserList(params)
-              labelName.value = 'nickname'
-              formLabel.value =  '创建人'
-              fieldName.value = 'creatorId'
             } 
             return res
           },
-          onSelect: (selectedKeys, event, node) => {
-            if(modalType.value === 'creator') {
-              if (event && event.label) {
-                creatorUerName.value = event.label
-              }
-            }
-          }
+
         },
         // 每次 modalType 变化，这里会重新判断
         fieldName: fieldName.value,
@@ -152,6 +149,25 @@ const dynamicSchema = computed((): FormSchema[] =>{
         },
         fieldName: 'putStatue',
         label: '投放状态',
+      }
+    ]
+  }  else if(modalType.value === 'hourlyState'){
+    operateSchema = [{
+        component: 'RadioGroup',
+        componentProps: {
+          options: [
+            {
+              label: '拉取',
+              value: 1,
+            },
+            {
+              label: '不拉取',
+              value: 9,
+            },
+          ],
+        },
+        fieldName: 'hourlyState',
+        label: '分时状态',
       }
     ]
   } else if(modalType.value === 'org') {
@@ -231,6 +247,11 @@ const [Form, formApi] = useVbenForm({
       }
     } else if(modalType.value === 'status') {
       type = formVal.putStatue === 1 ? 'start_put_status' : 'stop_put_status'
+    }  else if(modalType.value === 'hourlyState') {
+        type = 'update_advertiser_hourly'
+        values = {
+          hourly_state: formVal.hourlyState // 1 或者9 ，1 为拉取，9为不拉取
+        }
     } else if(modalType.value === 'sale') {
       type = 'update_advertiser_sale'
       values = {
