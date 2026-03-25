@@ -1,5 +1,5 @@
 <script lang="ts" setup name="adGroupDrawer">
-import {useVbenDrawer} from '@vben/common-ui';
+import {useVbenDrawer, useVbenModal} from '@vben/common-ui';
 import {useVbenForm} from '#/adapter/form';
 import {
   BILLINGTYPE_SELECT,
@@ -11,14 +11,15 @@ import {
 } from '../projectEnum';
 import {h, ref} from 'vue';
 import TimeSelectionPeriod from './timeSelectionPeriod.vue';
-import {adInvestmentApi} from '#/api';
 import {Input, Tag} from 'ant-design-vue';
 import { useProjectPlaceholder } from "#/utils/customName";
 import type { AccountInfo } from '../../creation';
+import adPlacementQualification from '#/views/marketing/creation/adPlacementQualification.vue';
+import type { QualificationValue } from '../vivo';
 
 const { customizeName, handleTagClick, placeholders } = useProjectPlaceholder('', 100);
 
-const { campaign, accountInfo } = defineProps({
+const { campaign, accountInfo, advertiserQualification } = defineProps({
   campaign: {
     type: Object,
     default: () => {
@@ -40,9 +41,45 @@ const { campaign, accountInfo } = defineProps({
     type: Array<AccountInfo>,
     default: () => ([])
   },
+  advertiserQualification:{
+    type: Object,
+    default: new Map<string, QualificationValue>()
+  }
 })
 
 const scheduleTimeValue = ref('0'.repeat(336));
+const advertiseQualificationId = ref<string>('')
+//在抽屉关闭的时候再传过去广告资质
+const localAdvertiserQualification = ref<Map<string, QualificationValue>>(new Map());
+
+//--------------广告投放资质ID---------------
+const [AdPlacementQualification, modalApi] = useVbenModal({
+  // 连接抽离的组件
+  connectedComponent: adPlacementQualification,
+  async onOpenChange(isOpen) {
+    if(!isOpen){
+      localAdvertiserQualification.value = modalApi.getData()
+      const isEmpty = !localAdvertiserQualification.value || 
+        (localAdvertiserQualification.value instanceof Map
+        ? localAdvertiserQualification.value.size === 0
+        : Object.keys(localAdvertiserQualification.value).length === 0);
+
+      if (isEmpty) {
+          advertiseQualificationId.value = "";
+          return;
+      }
+      const dataArray = Array.from<QualificationValue>(localAdvertiserQualification.value.values());
+      advertiseQualificationId.value = dataArray
+        .map((item) => item.qualificationName)
+        .filter(Boolean) // 过滤空值
+        .join('，');
+    }
+  }
+});
+
+function openAdPlacementQualificationModal() {
+  modalApi.open();
+}
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
@@ -50,13 +87,15 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (isOpen) {
       const currentAdType = campaign.adType;
 
-      const data = drawerApi.getData();
+      const {adGroupData, localAdQualification} = drawerApi.getData();
+      
+      if(localAdQualification.size === 0) advertiseQualificationId.value = ""
 
-      if (data) {
-        customizeName.value = data.name;
-        scheduleTimeValue.value = data.scheduleTime || '0'.repeat(336);
+      if (adGroupData) {
+        customizeName.value = adGroupData.name;
+        scheduleTimeValue.value = adGroupData.scheduleTime || '0'.repeat(336);
         await formApi.setValues({
-          ...data,
+          ...adGroupData,
           adType_proxy: currentAdType
         });
       } else {
@@ -68,23 +107,20 @@ const [Drawer, drawerApi] = useVbenDrawer({
             adType_proxy: currentAdType
           });
         }
+      };
+      //回显广告资质
+      if(advertiserQualification.size>0){
+        const dataArray = Array.from<QualificationValue>(advertiserQualification.values());
+        advertiseQualificationId.value = dataArray
+          .map((item) => item.qualificationName)
+          .filter(Boolean) // 过滤空值
+          .join('，');
       }
-      // 1. 获取最新的接口参数（广告资质）
-      const advertiserIds = accountInfo.map(item => item.localAdvertiserId);
-      await adQualification(advertiserIds)
-      // 2. 强制更新该字段的组件属性，触发重新加载
-      formApi.updateSchema([
-        {
-          fieldName: 'advertiseQualificationId',
-          componentProps: {
-            // 通过覆盖 api 参数或直接触发更新
-            options: adQualificationOption.value,
-          },
-        },
-      ]);
     }
   },
   async onConfirm() {
+    //给广告资质加上校验
+    if(advertiseQualificationId.value) await formApi.setValues({advertiseQualificationId: advertiseQualificationId.value});
     if(customizeName.value) await formApi.setValues({name: customizeName.value});
     const isValidate = await formApi.validate()
     if (!isValidate.valid) return
@@ -96,7 +132,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
     };
     // 移除代理字段再存储（保持数据纯净）
     delete (finalParams as any).adType_proxy;
-    drawerApi.setData(finalParams)
+    drawerApi.setData({ 
+      finalParams:finalParams,
+      localAdvertiserQualification:localAdvertiserQualification.value
+    })
     await drawerApi.close();
   },
   async onCancel() {
@@ -108,23 +147,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
 async function reset() {
   scheduleTimeValue.value = '0'.repeat(336);
   await formApi.resetForm();
-}
-
-const loading = ref(false);
-//广告资质下拉
-const adQualificationOption = ref<{ label: string; value: string }[]>()
-async function adQualification(value:string[]) {
-  if (!value || value.length === 0 || loading.value) return;
-  loading.value = true;
-  try {
-    const res = await adInvestmentApi.fetchGetAdInvestment({ advertiserId: value });
-    adQualificationOption.value = res.map((item: any) => ({
-      label: item.appCnName,
-      value: item.advertiseQualificationId
-    }));
-  } finally {
-    loading.value = false;
-  }
 }
 
 const [Form, formApi] = useVbenForm({
@@ -243,13 +265,10 @@ const [Form, formApi] = useVbenForm({
       label: '二级行业分类id',
     },
     {
-      component: 'Select',
-      componentProps: {
-        showSearch: true,
-        options: adQualificationOption.value,
-      },
+      component: 'Default' as any,
       fieldName: 'advertiseQualificationId',
       label: '广告投放资质ID',
+      rules: 'required',
     },
     {
       component: 'Select',
@@ -371,12 +390,22 @@ const [Form, formApi] = useVbenForm({
             </div>
           </div>
         </template>
+        <template #advertiseQualificationId>
+          <Input
+            v-model:value="advertiseQualificationId"
+            placeholder="请选择广告投放资质ID"
+            class="w-[250px]"
+            readonly
+            @click="openAdPlacementQualificationModal"
+          />
+        </template>
       </Form>
       <div class="timePeriod">
         <div><span style="color: red;">*</span>广告投放时段</div>
         <TimeSelectionPeriod class="timeTab" v-model="scheduleTimeValue"/>
       </div>
     </Drawer>
+    <AdPlacementQualification :accountInfo="accountInfo" :advertiserQualification="advertiserQualification"/>
   </div>
 </template>
 

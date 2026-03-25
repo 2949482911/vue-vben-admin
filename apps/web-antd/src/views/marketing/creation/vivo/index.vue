@@ -14,7 +14,8 @@ import type {
   VivoCampaignData,
   VivoCreation,
   VivoPromotionData,
-  VivoTitlePackageData
+  VivoTitlePackageData,
+  QualificationValue
 } from "#/views/marketing/creation/vivo/vivo";
 import {Platform} from "#/constants/enums";
 import type {
@@ -48,7 +49,7 @@ const creationInfo = ref<VivoCreation>(
     accountInfo: [],
     configData: {
       // 投放资质
-      // advertiserQualification: new Map<string, string>(),
+      advertiserQualification: new Map<string, QualificationValue>(),
       campaign: {
         name: "",
         adType: 0,
@@ -61,7 +62,7 @@ const creationInfo = ref<VivoCreation>(
         conversionMonitorType: 0
       },
       adgroup: {
-        advertiseQualificationId: "",
+        // advertiseQualificationId: "",
         apkId: 0,
         appPackageName: "",
         appletOriginId: "",
@@ -312,10 +313,15 @@ function handleAdGroupUpdate(data: VivoAdgroupData) {
   creationInfo.value.configData.adgroup = data;
 }
 
+/**广告组投放资质 */
+function handleAdQualification(data: Map<string, QualificationValue>) {
+  creationInfo.value.configData.advertiserQualification = data;
+}
+
 /**如果项目里的推广目标改变，广告组的所有数据需要重新填写 */
 function handleAdTypeChangeWarning() {
   creationInfo.value.configData.adgroup = {
-    advertiseQualificationId: "",
+    // advertiseQualificationId: "",
     apkId: 0,
     appPackageName: "",
     appletOriginId: "",
@@ -349,7 +355,9 @@ function handleAdTypeChangeWarning() {
     webSiteUrl: "",
     wechatFollow: 0
   };
-  advertisingGroupRef.value.setLocalAdGroupData(creationInfo.value.configData.adgroup)
+  creationInfo.value.configData.advertiserQualification = new Map<string, QualificationValue>()
+  advertisingGroupRef.value.setLocalAdGroupData(creationInfo.value.configData.adgroup, creationInfo.value.configData.advertiserQualification)
+  message.warning('“推广目标”已变更，请重新完善“广告组”基本信息');
 }
 
 //----------监测链接组-----------
@@ -424,7 +432,9 @@ function generatePreview() {
                 :adgroup="creationInfo.configData.adgroup"
                 :accountInfo="creationInfo.accountInfo"
                 :orientation="creationInfo.configData.audience"
+                :advertiserQualification="creationInfo.configData.advertiserQualification"
                 @update:adGroupConfig="handleAdGroupUpdate"
+                @update:adQualification="handleAdQualification"
               />
               <Divider type="horizontal"/>
               <AdOrientationModule

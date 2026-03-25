@@ -28,7 +28,13 @@ export interface VivoConfigData {
   audience: VivoAudienceData
   material: MaterialData
   // 投放滋滋
-  // advertiserQualification: Map<string, string>;
+  advertiserQualification: Map<string, QualificationValue>;
+}
+
+// 定义存储的资质信息结构
+export interface QualificationValue {
+  qualificationId: string;
+  qualificationName: string;
 }
 
 /**
@@ -61,7 +67,7 @@ export interface VivoAdgroupData {
   appletPath: string;
   industry1: string;
   industry2: string;
-  advertiseQualificationId: string;
+  advertiseQualificationId?: string;
   wechatFollow: number;
   // audienceInfo: {
   //   region: {
@@ -382,8 +388,8 @@ export function getVivoTableData(
         appletPath: creationInfo.configData.adgroup.appletPath,
         industry1: creationInfo.configData.adgroup.industry1,
         industry2: creationInfo.configData.adgroup.industry2,
-        // advertiseQualificationId: creationInfo.configData.advertiserQualification.get(account.localAdvertiserId) || '',
-        advertiseQualificationId: creationInfo.configData.adgroup.advertiseQualificationId,
+        advertiseQualificationId: creationInfo.configData.advertiserQualification.get(account.localAdvertiserId)?.qualificationId || '',
+        // advertiseQualificationId: creationInfo.configData.adgroup.advertiseQualificationId,
         wechatFollow: creationInfo.configData.adgroup.wechatFollow,
         startDate: creationInfo.configData.adgroup.startDate,
         endDate: creationInfo.configData.adgroup.endDate,

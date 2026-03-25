@@ -7,16 +7,14 @@ import {
   PHASETWOGOAL_SELECT,
   PROMOTIONLINK_SELECT,
   VXFOLLOW_SELECT,
-  type AdvertisingQualificationType
 } from '../projectEnum';
-import {computed, ref, watch} from 'vue';
-import {adInvestmentApi} from '#/api';
-import type {VivoAdgroupData} from "#/views/marketing/creation/vivo/vivo";
+import {computed, ref} from 'vue';
+import type {QualificationValue, VivoAdgroupData} from "#/views/marketing/creation/vivo/vivo";
 import AdGroupDrawer from "./adGroupDrawer.vue";
 import type { TargetedPackageTypeItem } from '#/api/models';
 import type { AccountInfo } from '../../creation';
 
-const {campaign, orientation, accountInfo} = defineProps({
+const {campaign, orientation, accountInfo, advertiserQualification} = defineProps({
   // 接收来自 index 的项目基本信息
   campaign: {
     type: Object,
@@ -32,12 +30,16 @@ const {campaign, orientation, accountInfo} = defineProps({
     type: Array<AccountInfo>,
     default: () => ([])
   },
+  advertiserQualification:{
+    type: Object,
+    default: new Map<string, QualificationValue>()
+  }
 });
 
-const emit = defineEmits(['update:adGroupConfig']);
+const emit = defineEmits(['update:adGroupConfig','update:adQualification']);
 
 const adGroupData = ref<VivoAdgroupData>({
-  advertiseQualificationId: "",
+  // advertiseQualificationId: "",
   apkId: 0,
   appPackageName: "",
   appletOriginId: "",
@@ -72,24 +74,8 @@ const adGroupData = ref<VivoAdgroupData>({
   wechatFollow: 0
 
 });
-//广告资质的下拉
-const adInvestmentOption = ref()
-async function adInvestmentEvent() {
-  const res = await adInvestmentApi.fetchGetAdInvestment({
-    advertiserId: accountInfo.map(item => item.localAdvertiserId),
-  });
-  adInvestmentOption.value = res.map((item:AdvertisingQualificationType) => ({ label: item.appCnName, value: item.advertiseQualificationId }));
-}
+const localAdvertiserQualification = ref<Map<string, QualificationValue>>(new Map());
 
-// 监听广告组数据，当有数据时触发资质下拉接口
-watch(
-  () => adGroupData.value.name, // 或者监听整个 adGroupData
-  (newVal) => {
-    if (newVal) {
-      adInvestmentEvent();
-    }
-  }
-);
 
 // 按账户分配方式的回显
 const accountSelectionMap = computed(() => {
@@ -111,20 +97,18 @@ const accountSelectionMap = computed(() => {
   return result;
 });
 
-// onMounted(() => {
-//   adInvestmentEvent();
-// });
-
 //----------添加广告组信息-----------
 const [AdGroupDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: AdGroupDrawer,
   onOpenChange(isOpen) {
     if (!isOpen) {
-      const data = drawerApi.getData();
-      if (data && data._isConfirmed) {
-        if (data) {
-          adGroupData.value = data as VivoAdgroupData;
+      const {finalParams, localAdvertiserQualification} = drawerApi.getData();
+      
+      if (finalParams && finalParams._isConfirmed) {
+        if (finalParams) {
+          adGroupData.value = finalParams as VivoAdgroupData;
           emit('update:adGroupConfig', adGroupData.value);
+          emit('update:adQualification', localAdvertiserQualification);
           drawerApi.setData(null);
         }
       }
@@ -188,13 +172,12 @@ const isClearDisabled = computed(() => {
 });
 
 const labelMap: Partial<Record<keyof VivoAdgroupData, string>> = {
-  // appPackageName: '应用包名',
   name: '广告组名称',
   rpkDeepLink: '快应用deepLink地址',
   webSiteUrl: '推广链接',
   h5Code: '推广链接编码',
   h5Type: '推广链接类型',
-  advertiseQualificationId: '广告投放资质ID',
+  // advertiseQualificationId: '广告投放资质ID',
   productUrlType: '商品URL类型',
   appletOriginId: '小程序id',
   appletPath: '小程序页面路径',
@@ -219,7 +202,7 @@ const enumMap = computed<Partial<Record<keyof VivoAdgroupData, any[]>>>(() => ({
   wechatFollow: VXFOLLOW_SELECT,
   h5Type: PROMOTIONLINK_SELECT,
   // 确保这里返回的是数组
-  advertiseQualificationId: Array.isArray(adInvestmentOption.value) ? adInvestmentOption.value : [],
+  // advertiseQualificationId: [],
 }));
 
 const formatDisplayValue = (key: keyof VivoAdgroupData, value: any) => {
@@ -246,14 +229,21 @@ const formatDisplayValue = (key: keyof VivoAdgroupData, value: any) => {
 function newAdGroup() {
   const isConfigValid = !campaign.name;
   if (isConfigValid) return message.warning('请先完善并保存“项目”基本信息');
-  drawerApi.setData(adGroupData.value);
+  
+  drawerApi.setData({
+    adGroupData: adGroupData.value, // 如果 adGroupData 也是 ref
+    localAdQualification: localAdvertiserQualification.value 
+  });
+  // drawerApi.setData(adGroupData.value);
   drawerApi.open()
 }
 
 defineExpose({setLocalAdGroupData})
 
-function setLocalAdGroupData(localAdGroupData: VivoAdgroupData) {
+//如果项目的推广目标变更，那广告组的所有需要全部清空
+function setLocalAdGroupData(localAdGroupData: VivoAdgroupData, advertiserQualification:Map<string, QualificationValue>) {
   adGroupData.value = localAdGroupData;
+  localAdvertiserQualification.value = advertiserQualification;
 }
 </script>
 
@@ -336,7 +326,11 @@ function setLocalAdGroupData(localAdGroupData: VivoAdgroupData) {
         </div>
       </Card>
     </div>
-    <AdGroupDrawerModule :campaign="campaign" :accountInfo="accountInfo"/>
+    <AdGroupDrawerModule
+      :campaign="campaign"
+      :accountInfo="accountInfo"
+      :advertiserQualification="advertiserQualification"
+    />
   </div>
 </template>
 

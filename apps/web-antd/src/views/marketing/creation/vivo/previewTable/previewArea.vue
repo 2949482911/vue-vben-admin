@@ -389,9 +389,18 @@ async function submitReview(){
      * @param suffix 文件名后缀，用于区分文件类型
      */
 
-    // --- 内部辅助函数：负责执行 JSON 转换和上传 ---
+    // --- 把Map转化成普通的对象，不然上传json是空的，下次取回来的数据也是空的 ---
     const uploadJson = async (data: any, subName: string) => {
-      const jsonString = JSON.stringify(data, null, 2);
+      // 深拷贝一份数据，避免修改原始响应对象
+      const cloneData = JSON.parse(JSON.stringify(data, (key, value) => {
+        // 关键逻辑：如果遇到 Map 类型，将其转换为普通对象
+        if (value instanceof Map) {
+          return Object.fromEntries(value.entries());
+        }
+        return value;
+      }));
+
+      const jsonString = JSON.stringify(cloneData, null, 2);
       const fileName = `${timestamp}_${subName}.json`;
       const objectKey = `${mainId}/json/batchInvestment/${fileName}`;
       const file = new File([jsonString], fileName, { type: 'application/json' });
@@ -407,7 +416,7 @@ async function submitReview(){
       uploadJson(localCreationInfo.value, 'creation'),
       uploadJson(tableData.value, 'table')
     ]);
-    
+
     const res = await creationTaskApi.fetchVivoSubmitReview({
       name: `${Date.now()}-测试批量搭建`,
       platform: creationInfo?.platform || "",
