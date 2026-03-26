@@ -1,5 +1,5 @@
 # 生产阶段
-FROM docker.1ms.run/nginx:alpine
+FROM xinghuo-registry.cn-beijing.cr.aliyuncs.com/nginx:latest
 
 COPY web.starfiread.com.pem /etc/nginx/ssl/web.starfiread.com.pem
 COPY web.starfiread.com.key /etc/nginx/ssl/web.starfiread.com.key
