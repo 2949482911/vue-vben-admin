@@ -234,7 +234,6 @@ function newAdGroup() {
     adGroupData: adGroupData.value, // 如果 adGroupData 也是 ref
     localAdQualification: localAdvertiserQualification.value 
   });
-  // drawerApi.setData(adGroupData.value);
   drawerApi.open()
 }
 

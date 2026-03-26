@@ -1,22 +1,13 @@
 <script lang="ts" setup>
-import { useVbenForm } from '#/adapter/form';
 import { Switch, Button, message } from 'ant-design-vue';
-import {Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import { ref, reactive } from 'vue';
-import type { FolderItem } from '#/api/models';
+import { useVbenModal, type VbenFormProps } from '@vben/common-ui';
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { getFileMeta } from '#/utils/fileMeta';
-import { uploadToOss } from '#/utils/uploadToOss';
 import { strategyGropApi, projectApi } from '#/api/core';
-import type {StrategyGropType,UpdateStrategyGropType} from "#/api/models";
-import {$t} from "@vben/locales";
-import type {
-  VivoCreation
-} from "#/views/marketing/creation/vivo/vivo";
+import type { StrategyGropType } from "#/api/models";
+import { $t } from "@vben/locales";
 import {
   BatchOptionsType,
   PLATFORM,
-  STATUS_SELECT,
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
 import { trimObject } from '#/utils/trim';
@@ -29,9 +20,7 @@ interface Props {
 }
 const props = defineProps<Props>();
 // 定义要传递给父组件的事件
-const emit = defineEmits<{
-  (e: 'reuse', configData: {}): void
-}>()
+const emit = defineEmits(['update:reuse'])
 
 const formOptions: VbenFormProps = {
   // 默认展开
@@ -48,7 +37,7 @@ const formOptions: VbenFormProps = {
         valueField: 'id',
         labelField: 'name',
         resultField: "items",
-        api: async (params: any) => {
+        api: async () => {
           return await projectApi.fetchProjectList({page: 1, pageSize: 1000,})
         }
       },
@@ -93,11 +82,6 @@ const gridOptions: VxeGridProps<StrategyGropType> = {
       title: `项目`,
       width: 'auto',
     },
-    {
-      field: 'config',
-      title: `配置地址`,
-      width: 'auto',
-    },
     ...TABLE_COMMON_COLUMNS as any,
   ],
   keepSource: true,
@@ -120,18 +104,13 @@ function pageReload() {
   gridApi.reload();
 }
 
-function handlerState(row: StrategyGropType) {
-  // 这里可以添加状态切换的逻辑
-  console.log('切换状态:', row);
-}
-const [Modal, modalApi] = useVbenModal({
-  async onOpenChange(open: boolean) {
-  }
-});
+const [Modal, modalApi] = useVbenModal({});
+
 function reuseStrategyGroup(row:StrategyGropType) {
-    emit('reuse', row.configObj)
-    modalApi.close();
+  emit('update:reuse', row.configObj)
+  modalApi.close();
 }
+
 async function deleteStrategyGroup(row:StrategyGropType) {
   const params = {
     type: BatchOptionsType.Delete,
@@ -151,8 +130,8 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
   modal: true,
 });
 
-function openCreateModal(row?: StrategyGropType) {
-  if (row?.id) {
+function openCreateModal(row: StrategyGropType) {
+  if (row.id) {
     createObjectApi.setData(row);
   } else {
     createObjectApi.setData({projectId:props.projectId});
@@ -162,10 +141,10 @@ function openCreateModal(row?: StrategyGropType) {
 </script>
 <template>
   <div>
-    <Modal title="选择策略组" class="w-[85%]">
+    <Modal title="选择策略组" class="w-[75%]">
       <Grid>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1"/>
         </template>
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
@@ -178,11 +157,11 @@ function openCreateModal(row?: StrategyGropType) {
             {{ $t('common.delete') }}
           </Button>
         </template>
-        <template #toolbar-tools>
+        <!-- <template #toolbar-tools>
           <Button class="mr-2" type="primary" @click="() => openCreateModal()">
             {{ $t('common.create') }}
           </Button>
-        </template>
+        </template> -->
       </Grid>
     </Modal>
     <CreateObjectModal 

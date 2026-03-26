@@ -1,27 +1,26 @@
 <script setup lang="ts" name="CreateAdvertiserModal">
-import {Page, useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {ref,watch} from 'vue';
-import {useVbenForm} from "#/adapter/form";
-import type {StrategyGropType,UpdateStrategyGropType} from "#/api/models";
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+import { ref } from 'vue';
+import { useVbenForm } from "#/adapter/form";
+import type { StrategyGropType, UpdateStrategyGropType } from "#/api/models";
 import { strategyGropApi, projectApi } from '#/api/core';
-import {STATUS_SELECT, PLATFORM} from "#/constants/locales";
+import { PLATFORM } from "#/constants/locales";
 import { trimObject } from '#/utils/trim';
 import { useOssClient } from '#/views/marketing/asset/material/useOssClient';
 import { uploadToOss } from '#/utils/uploadToOss';
 import { useUserStore } from '@vben/stores';
+import { message } from 'ant-design-vue';
 
 const emit = defineEmits(['pageReload']);
 const configUrl = ref<string>('')
-const props = defineProps({
-  config:{}
-})
+
 const objectRequest = ref<StrategyGropType>(<StrategyGropType>{
   config: "", 
   projectId: "", 
   name: "",
   platform: "",
-  id: ""
+  id: "",
 });
 
 const isUpdate = ref<Boolean>(false);
@@ -37,21 +36,27 @@ const [Form, formApi] = useVbenForm({
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
     const params = trimObject(formVal);
-    await (isUpdate.value ? strategyGropApi.fetchUpdateStrategyGrop(<UpdateStrategyGropType>{
-        id: params.id,
-        name: params.name,
-        projectId: params.projectId,
-        platform: params.platform,
-        config: params.config
-      })
-      :
-      strategyGropApi.fetchNewStrategyGrop(<StrategyGropType>{
-        name: params.name,
-        projectId: params.projectId,
-        platform: params.platform,
-        config: params.config
-      })
-    )
+    try{
+      await (isUpdate.value ? strategyGropApi.fetchUpdateStrategyGrop(<UpdateStrategyGropType>{
+          id: params.id,
+          name: params.name,
+          projectId: params.projectId,
+          platform: params.platform,
+          config: params.config
+        })
+        :
+        strategyGropApi.fetchNewStrategyGrop(<StrategyGropType>{
+          name: params.name,
+          projectId: params.projectId,
+          platform: params.platform,
+          config: params.config
+        })
+      )
+      message.success('保存策略组成功')
+    }catch(err){
+      console.log(err);
+      message.error('保存策略组失败')
+    }
   },
   schema: [
     {
@@ -119,19 +124,6 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('marketing.advertiser.columns.projectId')}`,
       rules: 'required',
     },
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-        disabled: true
-      },
-      // 字段名
-      fieldName: 'config',
-      label: '配置地址',
-      rules: 'required'
-    },
   ],
 });
 
@@ -146,7 +138,7 @@ const [Modal, modalApi] = useVbenModal({
       name: "",
       id: "",
       platform: "",
-    };
+    } as StrategyGropType;
     isUpdate.value = false;
     await modalApi.close();
   },
@@ -163,7 +155,7 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       objectRequest.value = modalApi.getData();
-      configUrl.value = await uploadJson(props.config, 'strategyGroup')
+      configUrl.value = await uploadJson(objectRequest.value, 'strategyGroup')
       formApi.setFieldValue('config',configUrl.value)
       handleSetFormValue(objectRequest.value);
       if (objectRequest.value.id) {
@@ -179,7 +171,15 @@ const uploadJson = async (data: any, subName: string) => {
     const timestamp = Date.now();
     const userStore = useUserStore();
     const mainId = userStore.userInfo?.mainId;
-    const jsonString = JSON.stringify(data, null, 2);
+    // 深拷贝一份数据，避免修改原始响应对象
+    const cloneData = JSON.parse(JSON.stringify(data, (key, value) => {
+      // 关键逻辑：如果遇到 Map 类型，将其转换为普通对象
+      if (value instanceof Map) {
+        return Object.fromEntries(value.entries());
+      }
+      return value;
+    }));
+    const jsonString = JSON.stringify(cloneData, null, 2);
     const fileName = `${timestamp}_${subName}.json`;
     const objectKey = `${mainId}/json/batchInvestment/${fileName}`;
     const file = new File([jsonString], fileName, { type: 'application/json' });

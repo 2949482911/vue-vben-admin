@@ -33,9 +33,11 @@ import type {TargetedPackageTypeItem, TitlePackageItem} from "#/api/models";
 import {message} from 'ant-design-vue';
 import CreativeMaterialsDrawer from "./creativeMatGroup/creativeMaterialsDrawer.vue";
 import { watch } from 'vue';
+import Create from '../components/create.vue';
 
 const advertisingGroupRef = ref()
 const previewAreaRef = ref()
+const configurationAreaRef = ref()
 
 // 创建对象
 const creationInfo = ref<VivoCreation>(
@@ -160,6 +162,30 @@ watch(
   },
   { deep: true } // 必须开启深度监听，因为 creationInfo 是个复杂对象
 );
+
+//----------保存策略组-----------
+const [CreateModule, createModalApi] = useVbenModal({
+  connectedComponent: Create,
+});
+
+/**保存策略组 */
+async function savePolicyGroup() {
+  if (creationInfo.value.accountInfo.length &&
+    creationInfo.value.project.projectId &&
+    creationInfo.value.configData.campaign.name &&
+    creationInfo.value.configData.adgroup.name &&
+    creationInfo.value.configData.promotion.name &&
+    creationInfo.value.monitoringLink.clickLink &&
+    creationInfo.value.monitoringLink.exposureLink &&
+    creationInfo.value.configData.audience.data.size > 0 &&
+    creationInfo.value.configData.titlePackage.data.size > 0
+  ) {
+    createModalApi.setData(creationInfo.value)
+  } else {
+    return message.warning('请完善“配置区域”基本信息和“监测链接组”')
+  }
+  createModalApi.open()
+}
 
 //----------选择定向包-----------
 const [AdOrientationModule, adOrientationModuleModalApi] = useVbenModal({
@@ -298,6 +324,39 @@ function handleAccountUpdate(data: Array<AccountInfo>) {
   creationInfo.value.accountInfo = data;
 }
 
+/**复用策略组 */
+function handleReuseUpdate(data: VivoCreation) {
+  // 核心：在赋值前，恢复被丢失的 Map 类型
+  if (data.configData) {
+    const config = data.configData;
+
+    // 1. 恢复 advertiserQualification
+    if (!(config.advertiserQualification instanceof Map)) {
+      config.advertiserQualification = new Map(Object.entries(config.advertiserQualification || {}));
+    }
+
+    // 2. 恢复 audience.data
+    if (config.audience && !(config.audience.data instanceof Map)) {
+      config.audience.data = new Map(Object.entries(config.audience.data || {}));
+    }
+
+    // 3. 恢复 material.data
+    if (config.material && !(config.material.data instanceof Map)) {
+      config.material.data = new Map(Object.entries(config.material.data || {}));
+    }
+
+    // 4. 恢复 titlePackage.data
+    if (config.titlePackage && !(config.titlePackage.data instanceof Map)) {
+      config.titlePackage.data = new Map(Object.entries(config.titlePackage.data || {}));
+    }
+  }
+
+  creationInfo.value = data;
+  configurationAreaRef.value.reuseDisplay(creationInfo.value.project,creationInfo.value.accountInfo)
+  advertisingGroupRef.value.setLocalAdGroupData(creationInfo.value.configData.adgroup, creationInfo.value.configData.advertiserQualification)
+  console.log(creationInfo.value, '复用策略组');
+}
+
 /**配置规则 */
 function handleRuleUpdate(data: RuleInfo) {
   creationInfo.value.ruleInfo = data;
@@ -403,6 +462,7 @@ function generatePreview() {
         <div class="configTop">
           <div>
             <ConfigurationArea
+              ref="configurationAreaRef"
               :accountInfo="creationInfo.accountInfo"
               :projectInfo="creationInfo.project"
               @update:accountInfo="handleAccountUpdate"
@@ -412,7 +472,9 @@ function generatePreview() {
           <div>
             <RuleConfiguration
               :ruleInfo="creationInfo.ruleInfo"
-              @update:ruleInfo="handleRuleUpdate"/>
+              @update:ruleInfo="handleRuleUpdate"
+              @update:reuse="handleReuseUpdate"
+              />
           </div>
         </div>
         <Row :gutter="16">
@@ -492,7 +554,10 @@ function generatePreview() {
         </Row>
         <div class="generateButton">
           <Button type="primary" @click="openMonitoringLinkModal">监测链接组</Button>
-          <Button type="primary" @click="generatePreview">生成广告预览</Button>
+          <div>
+            <Button type="primary" @click="savePolicyGroup">保存策略组</Button>
+            <Button style="margin: 0 0 0 10px;" type="primary" @click="generatePreview">生成广告预览</Button>
+          </div>
         </div>
         <Card>
           <h2 class="text">预览区</h2>
@@ -505,6 +570,7 @@ function generatePreview() {
       :monitoringLink="creationInfo.monitoringLink"
       @update:monitoringLinkGroup="handlemonitoringLinkGroupUpdate"
     />
+    <CreateModule/>
   </Page>
 </template>
 

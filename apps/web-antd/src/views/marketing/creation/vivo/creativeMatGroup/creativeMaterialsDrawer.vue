@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {useVbenDrawer} from '@vben/common-ui';
 import {useVbenForm} from '#/adapter/form';
-import {ref} from 'vue';
+import {ref,nextTick} from 'vue';
 import {Input, InputNumber, message, RadioButton, RadioGroup, Tag} from 'ant-design-vue';
 import CreativeProductionModule from '../../creativeProduction.vue';
 import {DISPLAYFORM_SELECT} from '../projectEnum';
@@ -90,11 +90,11 @@ async function creativeTypeEvent(val: number) {
     await formApi.setFieldValue("materialNormId", null)
     return;
   }
-  // const ids = accountInfo.map((item: AccountInfo) => item.localAdvertiserId)
+  const ids = accountInfo.map((item: AccountInfo) => item.localAdvertiserId)
   try {
     const res = await adInvestmentApi.fetchCreativeType({
-      // advertiserId: selectedAccountsInfo.ids > 0 ? ids : ["2004432916973719554"],上线需要放开
-      advertiserId: ["2004432916973719554"],
+      advertiserId: ids.length > 0 ? ids : [],
+      // advertiserId: ["2004432916973719554"],
       displayType: val,
       adType: campaign.adType,
       mediaType: campaign.mediaType,
@@ -102,7 +102,7 @@ async function creativeTypeEvent(val: number) {
       genType: 2
     });
     creativeTypeOptions.value = (res || []).map((item: any) => ({
-      label: String(item.id),
+      label: item.displayMode1Name + '/' + item.dimensions + '/' + String(item.id),
       value: item.id,
       displayType: item.displayType
     }));
@@ -128,11 +128,11 @@ async function virtualLocation(val: number) {
     return;
   }
   const displayTypeObj = creativeTypeOptions.value.find(item => item.value === val)
-  // const ids = accountInfo.map((item: AccountInfo) => item.localAdvertiserId)
+  const ids = accountInfo.map((item: AccountInfo) => item.localAdvertiserId)
   try {
     const res = await adInvestmentApi.fetchVirtualLocation({
-      // advertiserId: selectedAccountsInfo.ids > 0 ? ids : ["2004432916973719554"],上线需要放开
-      advertiserId: ["2004432916973719554"],
+      advertiserId: ids.length > 0 ? ids : [],
+      // advertiserId: ["2004432916973719554"],
       displayType: displayTypeObj!.displayType,
       adType: campaign.adType,
       mediaType: campaign.mediaType,
@@ -235,38 +235,55 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const {promotion, material} = drawerApi.getData()
+      const { promotion, material } = drawerApi.getData();
+      
+      // 1. 基础同步数据赋值
       promotionObj.value = promotion;
-      customizeName.value = promotion.name
-      if (material && material.config) {
-      // 无论 material.data 有没有数据，都要先把模式同步过来
+      customizeName.value = promotion.name;
+      
+      // 2. 初始化素材模式
+      if (material?.config) {
         materialData.value.config.method = material.config.method || 'all';
       }
-      // 如果传入的数据有效，则赋值；否则保持默认
-      if (material && material.data && material.data.size > 0) {
+      
+      // 3. 处理级联接口回显 (核心改进)
+      const { placeType, materialNormId, virtualPositionId } = promotion.config;
+      const vIds = virtualPositionId?.trim() ? virtualPositionId.split(',') : [];
+
+      try {
+        // 第一步：先加载“创意类型”的 Options
+        if (placeType) {
+          await creativeTypeEvent(placeType);
+        }
+        
+        // 第二步：如果已经有创意类型 ID，接着加载“虚拟位置”的 Options
+        if (materialNormId) {
+          await virtualLocation(materialNormId);
+        }
+
+        // 第三步：当所有 Options 都准备好了，再统一给表单赋值
+        // 这样表单渲染时就能直接匹配到 Label，不会出现回显慢或跳变
+        await formApi.setValues({
+          name: customizeName.value,
+          generalSwitch: promotion.generalSwitch,
+          placeType: placeType,
+          materialNormId: materialNormId,
+          virtualPositionId: vIds,
+        });
+
+      } catch (error) {
+        console.error("回显接口加载失败", error);
+      }
+
+      // 4. 处理素材组件数据同步
+      if (material?.data && material.data.size > 0) {
         materialData.value = material;
       } else {
-        // 【解决消失的关键】如果发现没数据，主动初始化一次
-        await changeConfigMethodHandler(materialData.value.config.method || 'all');
+        await changeConfigMethodHandler(materialData.value.config.method);
       }
-      creativeProductionModuleRef.value?.setLocalMaterialData(materialData.value);
-      await Promise.all([
-        creativeTypeEvent(promotionObj.value.config.placeType || 0),
-        virtualLocation(promotionObj.value.config.materialNormId || 0)
-      ]);
-
-      // 获取位置 ID 数组，严谨处理空字符串情况
-      const vIds = promotionObj.value.config.virtualPositionId;
-      const virtualPositionIdArray = (vIds && vIds.trim() !== "") 
-        ? vIds.split(',') 
-        : [];
-
-      await formApi.setValues({
-        name: customizeName.value,
-        generalSwitch: promotionObj.value.generalSwitch,
-        placeType: promotionObj.value.config.placeType,
-        materialNormId: promotionObj.value.config.materialNormId,
-        virtualPositionId: virtualPositionIdArray,
+      
+      nextTick(() => {
+        creativeProductionModuleRef.value?.setLocalMaterialData(materialData.value);
       });
     }
   }

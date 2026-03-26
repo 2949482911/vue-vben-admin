@@ -6,8 +6,9 @@ import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
 import {advertiserApi, projectApi} from '#/api';
 import {trimObject} from '#/utils/trim';
 import type {SelectValue} from 'ant-design-vue/es/select';
-import type {AccountInfo} from "#/views/marketing/creation/creation";
+import type {AccountInfo, Project} from "#/views/marketing/creation/creation";
 import type {AdvertiserItem} from "#/api/models";
+import type { MediaAccount } from './vivo/vivo';
 
 const emit = defineEmits(['update:accountInfo', 'update:productInfo'])
 
@@ -35,7 +36,7 @@ const productList = ref()
 const mediaAccountLabel = ref<string>('');
 // 选中的ID数组方便回显
 const selectedAccountIds = ref<string[]>([]);
-// 定义一个变量存储完整的行对象，用于回显
+// 定义一个变量存储完整的行对象
 const selectedRowsData = ref<any[]>([]);
 
 onMounted(async () => {
@@ -173,6 +174,16 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
 
 const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
+/**复用组策略回显 */
+function reuseDisplay( projectObj:Project, mediaAccountArr:MediaAccount[] ){
+  handleProjectChange(projectObj.projectId)
+  selectedAccountIds.value = mediaAccountArr.map(item=>item.localAdvertiserId)
+  mediaAccountLabel.value = mediaAccountArr.map((row: any) => row.advertiserName).join('，');
+  console.log(projectObj,'projectObj');
+  console.log(mediaAccountArr,'mediaAccountArr');
+}
+
+defineExpose({ reuseDisplay })
 </script>
 
 <template>

@@ -31,10 +31,16 @@ export interface VivoConfigData {
   advertiserQualification: Map<string, QualificationValue>;
 }
 
-// 定义存储的资质信息结构
+/**定义存储的资质信息结构 */ 
 export interface QualificationValue {
   qualificationId: string;
   qualificationName: string;
+}
+
+/**媒体账户信息结构 */
+export interface MediaAccount {
+  advertiserName: string;
+  localAdvertiserId: string;
 }
 
 /**

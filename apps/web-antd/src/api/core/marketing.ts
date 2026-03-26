@@ -40,7 +40,6 @@ import type {
   AdCreativeType,
   VirtualLocationType,
   VivoSubmitType,
-  ImportDataType,
   GetStrategyGropType,
   StrategyGropType,
   UpdateStrategyGropType
