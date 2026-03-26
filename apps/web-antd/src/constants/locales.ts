@@ -1,4 +1,5 @@
 import {$t} from '@vben/locales';
+import {Platform} from "#/constants/enums";
 
 export const TABLE_COMMON_COLUMNS = [
   {title: '序号', type: 'checkbox', fixed: 'left', width: 'auto',},
@@ -402,6 +403,10 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: `${$t('ocpx.platform.baidu_pack')}`,
     value: 'baidu_pack',
+  },
+  {
+    label: `${$t('ocpx.platform.three_water')}`,
+    value: Platform.THREE_WATER,
   },
 
 
