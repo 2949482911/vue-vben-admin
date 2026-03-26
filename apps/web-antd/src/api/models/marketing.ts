@@ -39,6 +39,18 @@ export interface AdvertiserItem extends BaseItem {
   tagId: string;
   hourlyState: number;
 }
+// 拉取历史列表
+export interface HistoryItem extends BaseItem {
+  taskType: string;
+  source: string;
+  localAdvertiserId: string;
+  startTime: string;
+  endTime: string;
+  taskStatus: number;
+  retry: number;
+  taskStartTime: string;
+  taskEndTime: string;
+}
 
 
 export interface CreateAdvertiserRequest {

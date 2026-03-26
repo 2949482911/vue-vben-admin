@@ -26,6 +26,18 @@
       "advertiser": "广告主",
       "personal": "个人",
       "bm":"BM"
+    },
+    "history": {
+      "columns": {
+        "taskType": "任务类型",
+        "source": "数据来源",
+        "taskStatus": "任务状态",
+        "retry": "重试次数",
+        "taskStarTtime": "任务开始时间",
+        "taskEndTime": "任务结束时间",
+        "startTime":"开始时间",
+        "endTime":"结束时间"
+      }
     }
   },
   "developer": {

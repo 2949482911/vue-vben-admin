@@ -25,6 +25,7 @@ import CreateObjectRequestComp from './create.vue';//新增|修改弹窗
 import BatchOperationComp from './batchOperation.vue';//批量修改弹窗
 import ImportChildAdvertiser from './importchildadvertiser.vue';
 import BatchImportCom from './BatchImportCom.vue';
+import HistoryList from './historyList.vue';
 import { computed, onMounted, ref } from 'vue';
 import type { ProjectItem } from "./advertiser";
 import { trimObject } from '#/utils/trim';
@@ -95,6 +96,17 @@ function openImportChildModal(row: AdvertiserItem) {
 // 导入
 const [ImportModal, importModalApi] = useVbenModal({
   connectedComponent: BatchImportCom,
+  centered: true,
+  modal: true,
+});
+function openHistoryModal(row: AdvertiserItem) {
+  historyModalApi.setData(row)
+  historyModalApi.open()
+}
+
+// 导入
+const [HistoryModal, historyModalApi] = useVbenModal({
+  connectedComponent: HistoryList,
   centered: true,
   modal: true,
 });
@@ -282,6 +294,11 @@ const formOptions: VbenFormProps = {
       },
       fieldName: 'projectId',
       label: '项目',
+    },
+    {
+      component: 'Input',
+      fieldName: 'id',
+      label: `序号`,
     },
   ],
   // 控制表单是否显示折叠按钮
@@ -515,6 +532,9 @@ function pageReload() {
                 <MenuItem v-if="row.advertiserRole === 'proxy' || row.advertiserRole === 'bm'" @click="openImportChildModal(row)">
                   {{ $t('core.import')}}
                 </MenuItem>
+                <MenuItem @click="openHistoryModal(row)">
+                  同步历史
+                </MenuItem>
               </Menu>
             </template>
           </Dropdown>
@@ -582,6 +602,7 @@ function pageReload() {
     <BatchOperationModal @page-reload="pageReload"/>
     <ImportModal @page-reload="pageReload"/>
     <ImportChildAdvertiserModal @page-reload="pageReload" :projectOptions="projectOptions" :roleType="roleType"/>
+    <HistoryModal/>
   </div>
 </template>
 

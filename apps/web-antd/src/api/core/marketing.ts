@@ -150,6 +150,14 @@ class AdvertiserApi extends BaseApi {
 
 export const advertiserApi = new AdvertiserApi("/platform/advertiser");
 
+class AdvertiserReportApi extends BaseApi {
+    // 拉取历史数据
+  fetchHistoryList(params: AdvertiserPageRequest) {
+    return requestClient.get(this.getServiceUrl("list"), {params})
+  }
+}
+
+export const advertiserReportApi = new AdvertiserReportApi("/platform/advertiser_report_task")
 
 // 指标接口
 
