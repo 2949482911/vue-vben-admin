@@ -335,7 +335,6 @@ export function getVivoTableData(
   // const cloneInfo: VivoCreation = JSON.parse(JSON.stringify(creationInfo));
   // 先从账户开始
   const vivoTableData: Array<VivoTableData> = [];
-
   creationInfo.accountInfo.forEach(account => {
     // 当前用户广告数据
     const tableData: VivoTableData = {
@@ -374,7 +373,7 @@ export function getVivoTableData(
         adgroupId: "",
         appPackageName: creationInfo.project.packageName,
         audienceInfo: getAudience(
-          creationInfo.ruleInfo.projectRuleKey,
+          creationInfo.configData.audience.audienceConfig.method,
           creationInfo.configData.audience.data,
           account.localAdvertiserId,
           i,

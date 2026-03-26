@@ -25,17 +25,17 @@ import {
   PROJRCT_SELECT,
   type CampaignData
 } from '../projectEnum';
-import { useOssClient } from '#/views/marketing/asset/material/useOssClient';
-import { uploadToOss } from '#/utils/uploadToOss';
-import { useUserStore } from '@vben/stores';
-import { creationTaskApi } from '#/api';
+import {useOssClient} from '#/views/marketing/asset/material/useOssClient';
+import {uploadToOss} from '#/utils/uploadToOss';
+import {useUserStore} from '@vben/stores';
+import {creationTaskApi} from '#/api';
 
-const { accountInfo, creationInfo } = defineProps({
+const {accountInfo, creationInfo} = defineProps({
   accountInfo: {
     type: Array<AccountInfo>,
     default: () => ([])
   },
-  creationInfo:{
+  creationInfo: {
     type: Object as () => VivoCreation,
     default: () => (undefined)
   }
@@ -44,7 +44,7 @@ const { accountInfo, creationInfo } = defineProps({
 
 // 表格数据
 const tableData = ref<Array<VivoTableData>>([]);
-  // 记录当前选中的账户 ID
+// 记录当前选中的账户 ID
 const activeAccountId = ref<string>('');
 
 const localCreationInfo = ref<VivoCreation | undefined>(undefined);
@@ -61,10 +61,10 @@ const handleAccountClick = async (id: string) => {
 
       if (currentAccount) {
         // 调用拍平函数转换数据
-        const flattened = flattenVivoData(currentAccount.campaignList,currentAccount.advertiserId);
+        const flattened = flattenVivoData(currentAccount.campaignList, currentAccount.advertiserId);
 
         // 将新数据设置到表格中
-        gridApi.setGridOptions({ data: flattened });
+        gridApi.setGridOptions({data: flattened});
 
         // 如果需要，切换账户后默认清空之前的选中状态
         const $grid = gridApi.grid;
@@ -121,7 +121,7 @@ const adCount = computed({
     if (!localCreationInfo.value) {
       return 0;
     }
-    let count : number = 0;
+    let count: number = 0;
     tableData.value.forEach(item => {
       count += item.getAdCount();
     });
@@ -131,7 +131,7 @@ const adCount = computed({
   }
 });
 
-const handleSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
+const handleSpanMethod = ({row, _rowIndex, column, visibleData}: any) => {
   const field = column.field;
 
   // 1. 定义需要合并的层级
@@ -140,7 +140,7 @@ const handleSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
 
   // 2. 创意汇总列和广告名列，直接返回 1x1，不合并
   if (['promoName', 'displayCreativeTitle', 'displayCreativeSubTitle', 'displayCreativePushTitle'].includes(field)) {
-    return { rowspan: 1, colspan: 1 };
+    return {rowspan: 1, colspan: 1};
   }
 
   // 3. 获取当前列对应的合并基准 ID
@@ -150,7 +150,7 @@ const handleSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
   } else if (groupFields.includes(field)) {
     targetId = row.rowGroupId;
   } else {
-    return { rowspan: 1, colspan: 1 };
+    return {rowspan: 1, colspan: 1};
   }
 
   // 4. 向上逻辑：隐藏重复单元格
@@ -158,7 +158,7 @@ const handleSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
     const prevRow = visibleData[_rowIndex - 1];
     const prevTargetId = (campaignFields.includes(field) || column.type === 'checkbox') ? prevRow.rowCampaignId : prevRow.rowGroupId;
     if (targetId === prevTargetId) {
-      return { rowspan: 0, colspan: 0 };
+      return {rowspan: 0, colspan: 0};
     }
   }
 
@@ -173,7 +173,7 @@ const handleSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
       break;
     }
   }
-  return { rowspan: countRowspan, colspan: 1 };
+  return {rowspan: countRowspan, colspan: 1};
 };
 const gridOptions: VxeGridProps<any> = {
   border: true,
@@ -184,7 +184,7 @@ const gridOptions: VxeGridProps<any> = {
     trigger: 'row',
   },
   // 核心：通过类名实现“块状高亮”
-  rowClassName: ({ row }) => {
+  rowClassName: ({row}) => {
     const $grid = gridApi.grid;
     if (!$grid) return '';
     const selectRecords = $grid.getCheckboxRecords();
@@ -200,35 +200,35 @@ const gridOptions: VxeGridProps<any> = {
     {
       title: '计划',
       children: [
-        { field: 'campaignName', title: '计划' },
-        { field: 'campaignBudget', title: '项目预算' },
-        { field: 'campaignMediaType', title: '媒体类型', slots: { default: 'campaignMediaType' } },
-        { field: 'campaignAdType', title: '推广目标', slots: { default: 'campaignAdType' } },
+        {field: 'campaignName', title: '计划'},
+        {field: 'campaignBudget', title: '项目预算'},
+        {field: 'campaignMediaType', title: '媒体类型', slots: {default: 'campaignMediaType'}},
+        {field: 'campaignAdType', title: '推广目标', slots: {default: 'campaignAdType'}},
         {
           title: "广告组",
           children: [
-            { field: 'groupName', title: '名字' },
-            { field: 'groupPrice', title: '一阶出价' },
-            { field: 'groupOcpxPrice', title: '二阶出价' },
-            { field: 'groupDailyBudget', title: '日预算' },
+            {field: 'groupName', title: '名字'},
+            {field: 'groupPrice', title: '一阶出价'},
+            {field: 'groupOcpxPrice', title: '二阶出价'},
+            {field: 'groupDailyBudget', title: '日预算'},
             {
               title: '广告',
               children: [
-                { field: 'promoName', title: '名字' },
+                {field: 'promoName', title: '名字'},
                 {
                   title: '创意',
                   children: [
-                    { field: 'displayCreativeTitle', title: '标题' },
-                    { field: 'displayCreativeSubTitle', title: '副标题' }, // 修正 key
-                    { field: 'displayCreativePushTitle', title: '应用标题' },
+                    {field: 'displayCreativeTitle', title: '标题'},
+                    {field: 'displayCreativeSubTitle', title: '副标题'}, // 修正 key
+                    {field: 'displayCreativePushTitle', title: '应用标题'},
                   ]
                 },
               ]
             },
           ]
         },
-        { field: 'campaignState', title: '提交状态', slots: { default: 'stateSlot' } },
-        { field: 'errorMsg', title: '原因', width: 200 }
+        {field: 'campaignState', title: '提交状态', slots: {default: 'stateSlot'}},
+        {field: 'errorMsg', title: '原因', width: 200}
       ]
     }
   ],
@@ -238,7 +238,7 @@ const gridOptions: VxeGridProps<any> = {
 // 1. 定义事件对象
 const gridEvents = {
   // 复选框勾选事件
-  checkboxChange: ({ checked, row }: any) => {
+  checkboxChange: ({checked, row}: any) => {
     const $grid = gridApi.grid;
     if ($grid) {
       const allRows = $grid.getData();
@@ -249,7 +249,7 @@ const gridEvents = {
     }
   }
 };
-const [Grid, gridApi] = useVbenVxeGrid({ gridOptions, gridEvents });
+const [Grid, gridApi] = useVbenVxeGrid({gridOptions, gridEvents});
 
 onMounted(() => {
   gridApi.setGridOptions({data: []});
@@ -280,23 +280,23 @@ function clearTable() {
   tableData.value = [];
   activeAccountId.value = '';
   // 清空 grid 数据
-  gridApi.setGridOptions({ data: [] });
+  gridApi.setGridOptions({data: []});
 }
 
-defineExpose({ generateTable, clearTable })
+defineExpose({generateTable, clearTable})
 
 /**
  * 将嵌套的广告数据结构拍平成 Vxe-Table 可识别的行数据
  */
-function flattenVivoData(campaignList: VivoCampaign[], advertiserId:string) {
-  
+function flattenVivoData(campaignList: VivoCampaign[], advertiserId: string) {
+
   const rows: any[] = [];
   let globalIndex = 0; // index 是基于整个账号下的广告总计数
 
   campaignList?.forEach((campaign, cIdx) => {
     // 遍历广告组
     campaign.adgroupList.forEach((group: VivoAdgroup, gIdx: number) => {
-      
+
       // 遍历广告（Promotion）
       group.promotionList.forEach((promo: VivoPromotion, pIdx: number) => {
         // --- 核心：汇总创意信息 ---
@@ -346,20 +346,29 @@ function flattenVivoData(campaignList: VivoCampaign[], advertiserId:string) {
 }
 
 /**匹配账户名字 */
-function accountInfoName(id:string){
-  const advertiserName = accountInfo.find(item=>item.localAdvertiserId===id) || {localAdvertiserId:0,advertiserName:''}
+function accountInfoName(id: string) {
+  const advertiserName = accountInfo.find(item => item.localAdvertiserId === id) || {
+    localAdvertiserId: 0,
+    advertiserName: ''
+  }
   return advertiserName.advertiserName
 }
 
 /**匹配推广目标 */
-function adTypeName(value:number){
-  const currentAdTypeName = PROJRCT_SELECT.find(item=>item.value===value) || {value:0,label:''}
+function adTypeName(value: number) {
+  const currentAdTypeName = PROJRCT_SELECT.find(item => item.value === value) || {
+    value: 0,
+    label: ''
+  }
   return currentAdTypeName.label
 }
 
 /**匹配媒体类型 */
-function mediaTypeName(value:number){
-  const currentMediaTypeName = MEDIA_SELECT.find(item=>item.value===value) || {value:0,label:''}
+function mediaTypeName(value: number) {
+  const currentMediaTypeName = MEDIA_SELECT.find(item => item.value === value) || {
+    value: 0,
+    label: ''
+  }
   return currentMediaTypeName.label
 }
 
@@ -367,14 +376,14 @@ function mediaTypeName(value:number){
 const pollTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 
 /**提交审核 */
-async function submitReview(){
+async function submitReview() {
   try {
     // 1. 检查数据是否存在
     if (!tableData.value.length || !localCreationInfo.value) {
       console.warn('没有可提交的数据');
       return;
     }
-    
+
     const userStore = useUserStore();
     const mainId = userStore.userInfo?.mainId;
 
@@ -389,25 +398,25 @@ async function submitReview(){
      * @param suffix 文件名后缀，用于区分文件类型
      */
 
-    // --- 把Map转化成普通的对象，不然上传json是空的，下次取回来的数据也是空的 ---
+      // --- 把Map转化成普通的对象，不然上传json是空的，下次取回来的数据也是空的 ---
     const uploadJson = async (data: any, subName: string) => {
-      // 深拷贝一份数据，避免修改原始响应对象
-      const cloneData = JSON.parse(JSON.stringify(data, (key, value) => {
-        // 关键逻辑：如果遇到 Map 类型，将其转换为普通对象
-        if (value instanceof Map) {
-          return Object.fromEntries(value.entries());
-        }
-        return value;
-      }));
+        // 深拷贝一份数据，避免修改原始响应对象
+        const cloneData = JSON.parse(JSON.stringify(data, (key, value) => {
+          // 关键逻辑：如果遇到 Map 类型，将其转换为普通对象
+          if (value instanceof Map) {
+            return Object.fromEntries(value.entries());
+          }
+          return value;
+        }));
 
-      const jsonString = JSON.stringify(cloneData, null, 2);
-      const fileName = `${timestamp}_${subName}.json`;
-      const objectKey = `${mainId}/json/batchInvestment/${fileName}`;
-      const file = new File([jsonString], fileName, { type: 'application/json' });
-      
-      const result = await uploadToOss(client, file, objectKey);
-      return result.url; // 返回 OSS 路径
-    };
+        const jsonString = JSON.stringify(cloneData, null, 2);
+        const fileName = `${timestamp}_${subName}.json`;
+        const objectKey = `${mainId}/json/batchInvestment/${fileName}`;
+        const file = new File([jsonString], fileName, {type: 'application/json'});
+
+        const result = await uploadToOss(client, file, objectKey);
+        return result.url; // 返回 OSS 路径
+      };
 
     // 3. 并行上传两个文件（提高效率）
     // creationInfo -> configArea
@@ -416,6 +425,18 @@ async function submitReview(){
       uploadJson(localCreationInfo.value, 'creation'),
       uploadJson(tableData.value, 'table')
     ]);
+
+    // console.log(
+    //   {
+    //     name: `${Date.now()}-测试批量搭建`,
+    //     platform: creationInfo?.platform || "",
+    //     projectId: creationInfo?.project.projectId || "",
+    //     ruleType: "immediately",
+    //     version: "0.1",//版本
+    //     configArea: creationUrl,//本地数据
+    //     fullParamsData: tableUrl,//上传表格
+    //   }
+    // )
 
     const res = await creationTaskApi.fetchVivoSubmitReview({
       name: `${Date.now()}-测试批量搭建`,
@@ -426,10 +447,10 @@ async function submitReview(){
       configArea: creationUrl,//本地数据
       fullParamsData: tableUrl,//上传表格
     })
-    
+
     if(res.taskId){
       startPolling(res.taskId);
-      
+
       // const resData = await creationTaskApi.fetchVivoSubmitResult({id:res.taskId})
     }
   } catch (error) {
@@ -446,10 +467,10 @@ function startPolling(taskId: string) {
 
   const poll = async () => {
     try {
-      const res = await creationTaskApi.fetchVivoSubmitResult({ id: taskId });
+      const res = await creationTaskApi.fetchVivoSubmitResult({id: taskId});
       gridApi.setLoading(true);
-      
-      const { taskState, campaignResp, adGroupResp, promotionResp } = res;
+
+      const {taskState, campaignResp, adGroupResp, promotionResp} = res;
 
       // 终止条件：状态为 3 或 4 (成功标识)
       if (taskState === 3 || taskState === 4) {
@@ -475,40 +496,40 @@ function startPolling(taskId: string) {
 
 /**更新表格当前看到的账户状态 */
 function updateTableRowsStatus(
-    campaignResp: Record<string, VivoCampaignResp[]>, 
-    adGroupResp: Record<string, VivoAdGroupResp[]>, 
-    promotionResp: Record<string, VivoPromotionResp[]>
-  ) {
+  campaignResp: Record<string, VivoCampaignResp[]>,
+  adGroupResp: Record<string, VivoAdGroupResp[]>,
+  promotionResp: Record<string, VivoPromotionResp[]>
+) {
   const $grid = gridApi.grid;
   if (!$grid) return;
 
   const allRows = [...$grid.getData()];
-  const res = { campaignResp, adGroupResp, promotionResp };
+  const res = {campaignResp, adGroupResp, promotionResp};
 
   allRows.forEach((row: any) => {
     // 调用统一逻辑
-    const { state, msg } = getUnifiedStatus(row.advertiserId, row, res);
+    const {state, msg} = getUnifiedStatus(row.advertiserId, row, res);
     row.campaignState = state;
     row.errorMsg = msg;
   });
 
   // 刷新表格渲染
-  gridApi.setGridOptions({ data: allRows });
+  gridApi.setGridOptions({data: allRows});
 }
 
 /** 更新内存中所有账号的原始数据状态 */
 function updateAllTableDataStatus(
-    campaignResp: Record<string, VivoCampaignResp[]>, 
-    adGroupResp: Record<string, VivoAdGroupResp[]>, 
-    promotionResp: Record<string, VivoPromotionResp[]>
-  ) {
-  const res = { campaignResp, adGroupResp, promotionResp };
+  campaignResp: Record<string, VivoCampaignResp[]>,
+  adGroupResp: Record<string, VivoAdGroupResp[]>,
+  promotionResp: Record<string, VivoPromotionResp[]>
+) {
+  const res = {campaignResp, adGroupResp, promotionResp};
 
   tableData.value.forEach((accData) => {
     const accId = accData.advertiserId;
     // 关键：手动维护 globalIndex，确保逻辑与 flatten 保持一致
     let globalIndex = 0;
-    
+
     accData.campaignList.forEach((campaign: any, cIdx: number) => {
       campaign.adgroupList.forEach((group: any, gIdx: number) => {
         group.promotionList.forEach((promo: any) => {
@@ -520,8 +541,8 @@ function updateAllTableDataStatus(
             submitIndex: globalIndex
           };
           // 这里 pIdx 对应 flatten 时的 globalIndex 逻辑
-          const { state, msg } = getUnifiedStatus(accId, mockRow, res);
-          
+          const {state, msg} = getUnifiedStatus(accId, mockRow, res);
+
           // 更新原始嵌套对象的状态，确保切换账号后数据还在
           promo.state = state;
           promo.msg = msg;
@@ -535,43 +556,42 @@ function updateAllTableDataStatus(
  * 统一的状态判定逻辑
  * 优先级：计划错误 > 广告组错误 > 广告错误
  */
-function getUnifiedStatus(accId: string, 
-  row: CampaignData, // 传入整行数据，以便获取各种索引
-  // idx: number, 
-  res: { 
-    campaignResp: Record<string, VivoCampaignResp[]>, 
-    adGroupResp: Record<string, VivoAdGroupResp[]>, 
-    promotionResp: Record<string, VivoPromotionResp[]> 
-  })
- {
-  const { campaignIdx, adGroupIdx, submitIndex } = row;
+function getUnifiedStatus(accId: string,
+                          row: CampaignData, // 传入整行数据，以便获取各种索引
+                          // idx: number,
+                          res: {
+                            campaignResp: Record<string, VivoCampaignResp[]>,
+                            adGroupResp: Record<string, VivoAdGroupResp[]>,
+                            promotionResp: Record<string, VivoPromotionResp[]>
+                          }) {
+  const {campaignIdx, adGroupIdx, submitIndex} = row;
   // 每个账号下只有一个计划和一个广告组
-  const campResult = res.campaignResp?.[accId]?.[campaignIdx]; 
-  const groupResult = res.adGroupResp?.[accId]?.[adGroupIdx]; 
+  const campResult = res.campaignResp?.[accId]?.[campaignIdx];
+  const groupResult = res.adGroupResp?.[accId]?.[adGroupIdx];
   // 广告可以有多个，通过 idx 匹配
   const promoResult = res.promotionResp?.[accId]?.[submitIndex];
 
   // 1. 检查计划层级
   if (campResult && ![0, 9].includes(campResult.code)) {
-    return { state: '计划创建失败', msg: campResult.message || '计划报错' };
+    return {state: '计划创建失败', msg: campResult.message || '计划报错'};
   }
-  
+
   // 2. 检查广告组层级
   if (groupResult && ![0, 9].includes(groupResult.code)) {
-    return { state: '广告组失败', msg: groupResult.message || '广告组报错' };
-  } 
-  
+    return {state: '广告组失败', msg: groupResult.message || '广告组报错'};
+  }
+
   // 3. 检查广告层级
   if (promoResult && ![0, 9].includes(promoResult.code)) {
-    return { state: '广告创建失败', msg: promoResult.message || '广告报错' };
+    return {state: '广告创建失败', msg: promoResult.message || '广告报错'};
   }
 
   // 4. 如果都没有报错，且 promoResult 存在且 code 为 0 或 9
   if (promoResult && [0, 9].includes(promoResult.code)) {
-     return { state: '创建成功', msg: '-' };
+    return {state: '创建成功', msg: '-'};
   }
 
-  return { state: '待提交', msg: '-' };
+  return {state: '待提交', msg: '-'};
 }
 
 onUnmounted(() => {
@@ -585,11 +605,15 @@ onUnmounted(() => {
       请先完成计划配置，再预览生成的广告计划~
     </div>
     <div v-else>
-      <div style="display: flex;align-items: center;justify-content: space-between;margin: 0 0 20px;">
+      <div
+        style="display: flex;align-items: center;justify-content: space-between;margin: 0 0 20px;">
         <div class="sum">
-          <div style="margin: 0 20px 0 0;">项目总数：<span class="numColor">{{ campaignCount }}</span>
+          <div style="margin: 0 20px 0 0;">项目总数：<span class="numColor">{{
+              campaignCount
+            }}</span>
           </div>
-          <div style="margin: 0 20px 0 0;">广告总数：<span class="numColor">{{ adCount  }}</span></div>
+          <div style="margin: 0 20px 0 0;">广告总数：<span class="numColor">{{ adCount }}</span>
+          </div>
           <Button type="primary" @click="submitReview">提交审核</Button>
         </div>
         <!-- <Button type="primary" danger>批量删除</Button> -->
@@ -597,13 +621,13 @@ onUnmounted(() => {
       <Card>
         <div style="display: flex;align-items: center;">
           <div class="accountInfo" v-for="item in tableData"
-          :key="item.advertiserId"
-          :class="{ 'is-active': activeAccountId === item.advertiserId }"
-          @click="handleAccountClick(item.advertiserId)"
+               :key="item.advertiserId"
+               :class="{ 'is-active': activeAccountId === item.advertiserId }"
+               @click="handleAccountClick(item.advertiserId)"
           >
             <div class="title-link">
               <TypographyText :content="accountInfoName(item.advertiserId)"
-              :ellipsis="{ tooltip: true }"
+                              :ellipsis="{ tooltip: true }"
               />
             </div>
             <div class="id-wrapper">
@@ -614,7 +638,7 @@ onUnmounted(() => {
             <Divider dashed style="width: 100%; min-width: 100%; margin:10px auto;"></Divider>
             <div style="display: flex;align-items: center;justify-content: space-between;">
               <div>项目数：<span class="numColor">{{ item.getCampaignCount() }}</span></div>
-              <div>广告数：<span class="numColor">{{ item.getAdCount()  }}</span></div>
+              <div>广告数：<span class="numColor">{{ item.getAdCount() }}</span></div>
             </div>
           </div>
         </div>
@@ -629,7 +653,8 @@ onUnmounted(() => {
             {{ adTypeName(row.campaignAdType) }}
           </template>
           <template #stateSlot="{ row }">
-            <span :style="{ color: row.campaignState.includes('失败') ? 'red' : row.campaignState === '创建成功' ? 'green' : '#666' }">
+            <span
+              :style="{ color: row.campaignState.includes('失败') ? 'red' : row.campaignState === '创建成功' ? 'green' : '#666' }">
               {{ row.campaignState }}
             </span>
           </template>
@@ -712,7 +737,7 @@ onUnmounted(() => {
 
   // --- 【选中样式：点击后的蓝色】 ---
   &.is-active {
-    background-color: #fff;    // 白色背景
+    background-color: #fff; // 白色背景
     border: 1px solid #006be6; // 蓝色边框
 
     .title-link {
@@ -730,7 +755,7 @@ onUnmounted(() => {
       }
     }
 
-    .numColor{
+    .numColor {
       color: #006be6; // 数字恢复蓝色
     }
   }
