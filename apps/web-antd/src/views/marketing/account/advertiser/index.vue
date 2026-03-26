@@ -137,11 +137,12 @@ async function handlerPutState(row: AdvertiserItem) {
   pageReload();
 }
 async function handlerHourlyState(row: AdvertiserItem) {
+  const hourlyState = row.hourlyState === 1 ? 9 : 1
   await advertiserApi.fetchBatchOptions({
     targetIds: [row.id],
     type: 'update_advertiser_hourly',
     values: {
-      hourly_state: row.hourlyState
+      hourly_state: hourlyState
     }
   });
   pageReload();
