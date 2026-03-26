@@ -1,5 +1,5 @@
 # 生产阶段
-FROM nginx:alpine
+FROM xinghuo-registry.cn-beijing.cr.aliyuncs.com/rta/nginx:latest
 COPY web.starfiread.com.pem /etc/nginx/ssl/web.starfiread.com.pem
 COPY web.starfiread.com.key /etc/nginx/ssl/web.starfiread.com.key
 # 复制构建产物到Nginx
