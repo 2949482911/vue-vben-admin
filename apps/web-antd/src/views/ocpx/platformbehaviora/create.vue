@@ -1128,6 +1128,37 @@ platformConfigForm.set(Platform.THREE_WATER, [
     rules: 'required',
   }
 ])
+// 抖音独立端
+platformConfigForm.set(Platform.DY_DULIDUAN, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'reportType',
+    label: 'reportType',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'actionType',
+    label: 'actionType',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    defaultValue: 'qutoutiao',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'srcPlat',
+    label: 'srcPlat',
+    rules: 'required',
+  }
+])
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
@@ -1321,7 +1352,7 @@ const [Form, formApi] = useVbenForm({
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
-          return data["platform"] === Platform.KUAKE || data["platform"] === Platform.QWEN;
+          return data["platform"] === Platform.KUAKE || data["platform"] === Platform.QWEN || data["platform"] === Platform.DY_DULIDUAN;
         },
         triggerFields: ["platform"]
       }

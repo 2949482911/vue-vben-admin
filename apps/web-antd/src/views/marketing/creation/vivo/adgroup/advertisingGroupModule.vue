@@ -51,15 +51,15 @@ const adGroupData = ref<VivoAdgroupData>({
   chargeType: null,
   conversionFilterCycle: 0,
   cvType: "",
-  dailyBudget: "",
+  dailyBudget: -1,
   endDate: "",
   h5Code: "",
   h5Type: null,
   industry1: "",
   industry2: "",
   name: "",
-  ocpxPrice: "",
-  price: "",
+  ocpxPrice: 0,
+  price: 0,
   productUrlType: 0,
   retrieveType: 0,
   rpkDeepLink: "",
@@ -209,7 +209,7 @@ const formatDisplayValue = (key: keyof VivoAdgroupData, value: any) => {
   if (value === null || value === undefined || value === '') return '-';
 
   if (['price', 'ocpxPrice', 'dailyBudget'].includes(key)) {
-    return `${value} 毫分`;
+    return `${value} 元`;
   }
 
   const currentEnumMap = enumMap.value;
@@ -234,7 +234,6 @@ function newAdGroup() {
     adGroupData: adGroupData.value, // 如果 adGroupData 也是 ref
     localAdQualification: localAdvertiserQualification.value 
   });
-  // drawerApi.setData(adGroupData.value);
   drawerApi.open()
 }
 

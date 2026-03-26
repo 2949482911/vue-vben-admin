@@ -2,10 +2,12 @@
 import {computed, ref} from 'vue';
 import {Button, Input} from 'ant-design-vue';
 import {useVbenModal} from '@vben/common-ui';
+import StrategyGroup from './components/strategyGroup.vue';
+import type { VivoCreation } from './vivo/vivo';
 
-const emit = defineEmits(['update:ruleInfo']);
+const emit = defineEmits(['update:ruleInfo','update:reuse']);
 
-const {ruleInfo} = defineProps({
+const { ruleInfo } = defineProps({
   ruleInfo: {
     type: Object,
     default: () => {
@@ -81,7 +83,7 @@ const [Modal, modalApi] = useVbenModal({
 });
 
 /**
- * 打开弹窗
+ * 规则配置打开弹窗
  */
 function ruleConfigurationEvent() {
   // 4. 打开弹窗：将当前正式变量的值回显给临时变量
@@ -90,6 +92,22 @@ function ruleConfigurationEvent() {
   projectCount.value = ruleInfo.projectCount;
   adCount.value = ruleInfo.adCount;
   modalApi.open();
+}
+
+//----------复用策略组-----------
+const [StrategyGroupModule, strategyGroupModalApi] = useVbenModal({
+  connectedComponent: StrategyGroup,
+});
+
+/**
+ * 复用策略组打开弹窗
+ */
+function reuseStrategyGroup() {
+  strategyGroupModalApi.open()
+}
+
+async function reuseData(params:VivoCreation) {
+  emit('update:reuse',params)
 }
 </script>
 
@@ -103,6 +121,7 @@ function ruleConfigurationEvent() {
         <span class="value">{{ displayDisplayText.adText }}</span>
       </div>
       <Button type="primary" @click="ruleConfigurationEvent">规则配置</Button>
+      <Button type="primary" @click="reuseStrategyGroup">复用策略组</Button>
     </div>
 
     <Modal class="w-[900px]" title="规则配置">
@@ -150,6 +169,7 @@ function ruleConfigurationEvent() {
         </div>
       </div>
     </Modal>
+    <StrategyGroupModule @update:reuse="reuseData"/>
   </div>
 </template>
 

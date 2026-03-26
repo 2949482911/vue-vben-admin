@@ -117,8 +117,9 @@ const [Form, formApi] = useVbenForm({
         placeholder: '请输入',
       },
       fieldName: 'dailyBudget',
+      defaultValue:-1,
       label: '计划日限额',
-      suffix: () => h('span', {class: 'text-600'}, '毫分'),
+      suffix: () => h('span', {class: 'text-600'}, '元'),
       rules: 'required',
     },
     {

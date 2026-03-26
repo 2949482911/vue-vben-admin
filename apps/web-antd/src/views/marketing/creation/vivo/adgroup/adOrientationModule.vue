@@ -13,6 +13,25 @@ import type { RadioChangeEvent } from 'ant-design-vue';
 
 const emit = defineEmits(['update:orientation']);
 
+const { accountInfo } = defineProps({
+  // 账户列表
+  accountInfo: {
+    type: Array<AccountInfo>,
+    default: () => ([])
+  },
+})
+// 当前选中的账户 ID
+const currentAccountId = ref<string>('');
+// 定向包
+const localAudience = ref<VivoAudienceData>({
+  audienceConfig: {
+    method: 'all'
+  },
+  data: new Map<string, Array<TargetedPackageTypeItem>>()
+});
+// 内部维护一个临时变量，记录弹窗中所有的勾选对象
+const tempSelectedRows = ref<TargetedPackageTypeItem[]>([]);
+
 const formOptions: VbenFormProps = {
   schema: [
     {
@@ -63,6 +82,7 @@ const formOptions: VbenFormProps = {
   // 按下回车时是否提交表单
   submitOnEnter: false,
 }
+
 const gridOptions: VxeGridProps = {
   border: true,
   rowConfig: {
@@ -110,35 +130,54 @@ const gridOptions: VxeGridProps = {
           ? { platformAdvertiserId: currentAccountId.value } //测试功能中，后面正式放出来
           : {};
 
-        return await targetedPackageApi.fetchGetTitleTargetedPackage({
+        const res = await targetedPackageApi.fetchGetTitleTargetedPackage({
           page: page.currentPage,
           pageSize: page.pageSize,
           ...params,
           ...accountParams,
         });
+
+        // 【关键修复】搜索/翻页后，从临时变量中恢复勾选状态
+        setTimeout(() => {
+          const grid = gridApi.grid;
+          if (grid && tempSelectedRows.value.length > 0) {
+            const ids = tempSelectedRows.value.map(item => item.id);
+            grid.setCheckboxRowKey(ids, true);
+          }
+        }, 100);
+
+        return res;
       },
     },
   },
 };
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
-const { accountInfo } = defineProps({
-  // 账户列表
-  accountInfo: {
-    type: Array<AccountInfo>,
-    default: () => ([])
-  },
-})
+const gridEvents = {
+  checkboxChange: () => updateTempRecords(),
+  checkboxAll: () => updateTempRecords()
+}
 
-// 当前选中的账户 ID
-const currentAccountId = ref<string>('');
-// 定向包
-const localAudience = ref<VivoAudienceData>({
-  audienceConfig: {
-    method: 'all'
-  },
-  data: new Map<string, Array<TargetedPackageTypeItem>>()
-});
+// 抽取公共方法：获取当前 Grid 所有的勾选数据（含跨页和搜索结果）
+function updateTempRecords(){
+  const grid = gridApi.grid;
+  if(!grid) return;
+
+  const reserveRows = grid.getCheckboxReserveRecords();
+  const currentRows = grid.getCheckboxRecords();
+
+  const allSelect = [...reserveRows, ...currentRows];
+
+  const uniqueMap = new Map();
+  allSelect.forEach(item=>{
+    if(item && item.id){
+      uniqueMap.set(item.id ,item)
+    }
+  })
+
+  tempSelectedRows.value = Array.from(uniqueMap.values());
+}
+
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
 
 /**
  * 分配方式改变
@@ -146,12 +185,15 @@ const localAudience = ref<VivoAudienceData>({
  */
 async function changeMethod(e: RadioChangeEvent) {
   const value = e.target.value;
+  tempSelectedRows.value = [];
   if (value === 'all') {
     currentAccountId.value = "";
     localAudience.value.data.clear();
     // localAudience.value.data = new Map<string, Array<TargetedPackageTypeItem>>();
   } else {
     currentAccountId.value = accountInfo[0]?.localAdvertiserId ?? '';
+    const existing = localAudience.value.data.get(currentAccountId.value) || [];
+    tempSelectedRows.value = [...existing];
   }
   const grid = gridApi.grid;
   if (grid) {
@@ -159,20 +201,6 @@ async function changeMethod(e: RadioChangeEvent) {
     await gridApi.grid.clearCheckboxReserve();
   }
   await gridApi.query();
-}
-
-// 定向包组件中的回显方法
-async function syncGridCheckbox(records: Array<TargetedPackageTypeItem>) {
-  const grid = gridApi.grid;
-  if (!grid) return;
-
-  await grid.clearCheckboxRow();
-  await grid.clearCheckboxReserve();
-  // 提取 ID 数组
-  const ids = records.map(item => item.id);
-  if (ids.length > 0) {
-    await grid.setCheckboxRowKey(ids, true);
-  }
 }
 
 const [Modal, modalApi] = useVbenModal({
@@ -185,19 +213,19 @@ const [Modal, modalApi] = useVbenModal({
         // 通过 new Map(oldMap) 实现浅拷贝，Map 内部的键值对是新的，不会影响原 Map
         data: new Map(data.data) 
       };
-      // localAudience.value = data as VivoAudienceData;
-      if (localAudience.value.audienceConfig.method == "all") {
-        const dataList: Array<TargetedPackageTypeItem> = localAudience.value.data.get("0") || [];
-        setTimeout(async()=>{
-          await syncGridCheckbox(dataList);
-        },2000)
+      // 初始化当前账户和临时变量
+      if (localAudience.value.audienceConfig.method === "all") {
+        currentAccountId.value = "";
+        tempSelectedRows.value = localAudience.value.data.get("0") || [];
       } else {
         currentAccountId.value = accountInfo[0]?.localAdvertiserId ?? '';
-        const dataList: Array<TargetedPackageTypeItem> = localAudience.value.data.get(currentAccountId.value) || [];
-        setTimeout(async()=>{
-          await syncGridCheckbox(dataList);
-        },2000)
+        tempSelectedRows.value = localAudience.value.data.get(currentAccountId.value) || [];
       }
+
+      // 触发第一次查询和回显
+      setTimeout(() => {
+        gridApi.query();
+      }, 200)
     }
   },
   async onCancel() {
@@ -208,51 +236,26 @@ const [Modal, modalApi] = useVbenModal({
     const grid = gridApi.grid;
     if (!grid) return;
 
-    // 1. 获取当前时刻全量选中的行（合并当前页 + 保留区）
-    const reserveRows = grid.getCheckboxReserveRecords(); // 非当前页选中的数据
-    const currentRows = grid.getCheckboxRecords();        // 当前页选中的数据
-    const allSelected = [...reserveRows, ...currentRows];
-
-    // 2. 通过 Map 进行 ID 去重，确保数据唯一
-    const finalRows: Array<TargetedPackageTypeItem> = Array.from(
-      new Map(allSelected.map((item: TargetedPackageTypeItem) => [item.id, item])).values()
-    );
-
-    if (localAudience.value.audienceConfig.method === 'all') {
-      // --- 模式：全部相同 ---
-      // 清空整个 Map，确保只保留 key 为 "0" 的数据
-      localAudience.value.data.clear();
-      // 直接将全量选中的数据存入 key 为 "0" 的位置
-      localAudience.value.data.set("0", finalRows);
-    } else {
-      // --- 模式：按账户分配 ---
-      // A. 首先：必须同步“最后停留的那个账户”的勾选状态到 map 中
-      if (currentAccountId.value) {
-        if (finalRows.length > 0) {
-          // 更新 Map 中当前账户的数据
-          localAudience.value.data.set(currentAccountId.value, finalRows);
-        } else {
-          localAudience.value.data.delete(currentAccountId.value);
-        }
+    // 确定时，确保最后停留的账户数据已同步
+    const finalKey = localAudience.value.audienceConfig.method === 'all' ? "0" : currentAccountId.value;
+    if (finalKey) {
+      if (tempSelectedRows.value.length > 0) {
+        localAudience.value.data.set(finalKey, [...tempSelectedRows.value]);
+      } else {
+        localAudience.value.data.delete(finalKey);
       }
-      // 找出所有在 accountInfo 中存在，但在 localAudience.data 中没有数据的账户
-      const unselectedAccounts = accountInfo.filter(acc => {
-        const data = localAudience.value.data.get(acc.localAdvertiserId);
-        return !data || data.length === 0;
-      });
+    }
 
-      if (unselectedAccounts.length > 0) {
-        // 提示用户哪些账户没选
-        const names = unselectedAccounts.map(a => a.advertiserName).join('、');
-        message.warning(`请为账户 [${names}] 选择定向包`);
-        return;
+    // 校验逻辑
+    if (localAudience.value.audienceConfig.method === 'account') {
+      const unselected = accountInfo.filter(acc => !localAudience.value.data.get(acc.localAdvertiserId)?.length);
+      if (unselected.length > 0) {
+        return message.warning(`请为账户 [${unselected.map(a => a.advertiserName).join('、')}] 选择定向包`);
       }
-      //清理掉可能存在的 "0" 键（防止从全部相同切换过来后残留冗余数据）
       localAudience.value.data.delete("0");
     }
-    emit('update:orientation', {...localAudience.value});
-    await grid.clearCheckboxRow();
-    await grid.clearCheckboxReserve();
+
+    emit('update:orientation', { ...localAudience.value });
     await modalApi.close();
   }
 });
@@ -263,20 +266,21 @@ const handleAccountClick = async (account: AccountInfo) => {
   if (!grid) return;
   // 1. 切换前：保存上一个账户的数据 (同样使用合并逻辑)
   if (currentAccountId.value && localAudience.value.audienceConfig.method === 'account') {
-    const allSelected = [...grid.getCheckboxReserveRecords(), ...grid.getCheckboxRecords()];
-    const finalRows: Array<TargetedPackageTypeItem> = Array.from(new Map(allSelected.map(item => [item.id, item])).values());
-    if (finalRows.length > 0) {
-      localAudience.value.data.set(currentAccountId.value, finalRows);
+    if (tempSelectedRows.value.length > 0) {
+      localAudience.value.data.set(currentAccountId.value, [...tempSelectedRows.value]);
     } else {
       localAudience.value.data.delete(currentAccountId.value);
     }
   }
   // 2. 更新当前指向并查询回显
   currentAccountId.value = account.localAdvertiserId;
+
+  // 3. 【关键】获取新账户的“存档”数据，并同步给临时变量
+  const nextAccountData = localAudience.value.data.get(currentAccountId.value) || [];
+  tempSelectedRows.value = [...nextAccountData];
   await gridApi.grid.clearCheckboxRow();
   await gridApi.grid.clearCheckboxReserve();
-  const dataList: Array<TargetedPackageTypeItem> = localAudience.value.data.get(currentAccountId.value) || [];
-  await syncGridCheckbox(dataList)
+  await gridApi.query();
 };
 
 </script>

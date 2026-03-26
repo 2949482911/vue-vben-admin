@@ -27,7 +27,7 @@ const { campaign, accountInfo, advertiserQualification } = defineProps({
         name: "",
         adType: 0,
         mediaType: 0,
-        dailyBudget: 0,
+        dailyBudget: -1,
         campaignType: 0,
         pushForm: 0,
         pushType: 0,
@@ -320,7 +320,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Input',
       fieldName: 'price',
       label: '一阶段出价',
-      suffix: () => h('span', {class: 'text-600'}, '毫分'),
+      suffix: () => h('span', {class: 'text-600'}, '元'),
       dependencies: {
         triggerFields: ['chargeType'],
         show: true,
@@ -339,13 +339,13 @@ const [Form, formApi] = useVbenForm({
       component: 'Input',
       fieldName: 'ocpxPrice',
       label: '二阶段出价',
-      suffix: () => h('span', {class: 'text-600'}, '毫分'),
+      suffix: () => h('span', {class: 'text-600'}, '元'),
     },
     {
       component: 'Input',
       fieldName: 'dailyBudget',
       label: '日预算',
-      suffix: () => h('span', {class: 'text-600'}, '毫分'),
+      suffix: () => h('span', {class: 'text-600'}, '元'),
       rules: 'required',
     },
     {

@@ -10,7 +10,7 @@ import {
 import type {TargetedPackageTypeItem, TitlePackageItem} from "#/api/models";
 import type {BaseItem} from "#/api/models/core";
 import {Platform} from "#/constants/enums";
-import { renderProjectTitle } from "#/utils/customName";
+import {renderProjectTitle} from "#/utils/customName";
 
 
 /**
@@ -31,10 +31,16 @@ export interface VivoConfigData {
   advertiserQualification: Map<string, QualificationValue>;
 }
 
-// 定义存储的资质信息结构
+/**定义存储的资质信息结构 */ 
 export interface QualificationValue {
   qualificationId: string;
   qualificationName: string;
+}
+
+/**媒体账户信息结构 */
+export interface MediaAccount {
+  advertiserName: string;
+  localAdvertiserId: string;
 }
 
 /**
@@ -103,10 +109,10 @@ export interface VivoAdgroupData {
   scheduleTime: string;
   chargeType: number | null;
   cvType: string;
-  price: string;
-  ocpxPrice: string;
+  price: number;
+  ocpxPrice: number;
   name: string;
-  dailyBudget: string;
+  dailyBudget: number;
   spentType: number | null;
   retrieveType: number;
   ruleAudience: string;
@@ -235,10 +241,10 @@ export interface VivoAdgroup extends Adgroup {
   scheduleTime: string;
   chargeType: number | null;
   cvType: string;
-  price: string;
-  ocpxPrice: string;
+  price: number;
+  ocpxPrice: number;
   name: string;
-  dailyBudget: string;
+  dailyBudget: number;
   spentType: number | null;
   retrieveType: number;
   ruleAudience: string;
@@ -307,7 +313,7 @@ export interface VivoCampaignResp extends BatchReturnBasics {
  */
 export interface VivoAdGroupResp extends BatchReturnBasics {
   adgroupId: string;
-  campaignId:string;
+  campaignId: string;
 }
 
 /**
@@ -315,15 +321,15 @@ export interface VivoAdGroupResp extends BatchReturnBasics {
  */
 export interface VivoPromotionResp extends BatchReturnBasics {
   adgroupId: string;
-  campaignId:string;
-  promotionId:string;
+  campaignId: string;
+  promotionId: string;
 }
 
 export interface BatchReturnBasics {
   code: number;
   index: number;
   message: string;
-  requestId:string;
+  requestId: string;
 }
 
 /**
@@ -335,7 +341,6 @@ export function getVivoTableData(
   // const cloneInfo: VivoCreation = JSON.parse(JSON.stringify(creationInfo));
   // 先从账户开始
   const vivoTableData: Array<VivoTableData> = [];
-
   creationInfo.accountInfo.forEach(account => {
     // 当前用户广告数据
     const tableData: VivoTableData = {
@@ -374,7 +379,7 @@ export function getVivoTableData(
         adgroupId: "",
         appPackageName: creationInfo.project.packageName,
         audienceInfo: getAudience(
-          creationInfo.ruleInfo.projectRuleKey,
+          creationInfo.configData.audience.audienceConfig.method,
           creationInfo.configData.audience.data,
           account.localAdvertiserId,
           i,
@@ -396,11 +401,11 @@ export function getVivoTableData(
         scheduleTime: creationInfo.configData.adgroup.scheduleTime,
         chargeType: creationInfo.configData.adgroup.chargeType,
         cvType: creationInfo.configData.adgroup.cvType,
-        price: creationInfo.configData.adgroup.price,
-        ocpxPrice: creationInfo.configData.adgroup.ocpxPrice,
+        price: creationInfo.configData.adgroup.price * 100000,
+        ocpxPrice: creationInfo.configData.adgroup.ocpxPrice * 100000,
         // name: creationInfo.configData.adgroup.name,
         name: renderProjectTitle(creationInfo.configData.adgroup.name, i),
-        dailyBudget: creationInfo.configData.adgroup.dailyBudget,
+        dailyBudget: creationInfo.configData.adgroup.dailyBudget === -1 ? -1 : creationInfo.configData.adgroup.dailyBudget * 100000,
         spentType: creationInfo.configData.adgroup.spentType,
         retrieveType: creationInfo.configData.adgroup.retrieveType,
         ruleAudience: creationInfo.configData.adgroup.ruleAudience,
@@ -427,43 +432,47 @@ export function getVivoTableData(
           creationInfo.configData.material.data,
           account.localAdvertiserId,
         )
-
         // 本地素材ID
         const materialIdsList: Array<string> = [];
-
         const creativeList: Array<VivoCreative> = [];
-        materialList.forEach(material => {
-          // 获取标题
-          const title: TitlePackageItem = getTiltePackage(
-            creationInfo.configData.titlePackage.titlePackageConfig.method,
-            creationInfo.configData.titlePackage.data,
-            account.localAdvertiserId,
-            k
-          )
+        // 根据广告个数循环获取创意 超过广告个数的创意则舍弃
+        // todo 是否支持1条广告内多创意
+        const material: Material = materialList[k % materialList.length] || {
+          image: [],
+          video: [],
+          isExpanded: false,
+          active: ""
+        }
 
-          const newMaterialList: Array<LocalMaterialData> = [
-            ...material.video, ...material.image
-          ]
+        const title: TitlePackageItem = getTiltePackage(
+          creationInfo.configData.titlePackage.titlePackageConfig.method,
+          creationInfo.configData.titlePackage.data,
+          account.localAdvertiserId,
+          k
+        )
 
-          // 图片
-          newMaterialList.forEach(material => {
-            materialIdsList.push(material.localMaterialId);
-            // 添加创意
-            creativeList.push({
-              placeType: creationInfo.configData.promotion.config.placeType,
-              materialNormId: creationInfo.configData.promotion.config.materialNormId,
-              virtualPositionId: creationInfo.configData.promotion.config.virtualPositionId,
-              title: title.title,
-              subTitle: Array.isArray(title.config?.subTitle)
-                ? title.config.subTitle[0] || ""
-                : "",
-              pushSubTitle: Array.isArray(title.config?.pushSubTitle)
-                ? title.config.pushSubTitle[0] || ""
-                : "",
-              imgsCode: "",
-              videoCode: "",
-              strongReminder: creationInfo.configData.promotion.config.strongReminder
-            })
+        const newMaterialList: Array<LocalMaterialData> = [
+          ...material.video, ...material.image
+        ]
+
+        // 图片
+        newMaterialList.forEach(material => {
+          materialIdsList.push(material.localMaterialId);
+          // 添加创意
+          creativeList.push({
+            placeType: creationInfo.configData.promotion.config.placeType,
+            materialNormId: creationInfo.configData.promotion.config.materialNormId,
+            virtualPositionId: creationInfo.configData.promotion.config.virtualPositionId,
+            title: title.title,
+            subTitle: Array.isArray(title.config?.subTitle)
+              ? title.config.subTitle[0] || ""
+              : "",
+            pushSubTitle: Array.isArray(title.config?.pushSubTitle)
+              ? title.config.pushSubTitle[0] || ""
+              : "",
+            imgsCode: "",
+            videoCode: "",
+            strongReminder: creationInfo.configData.promotion.config.strongReminder
           })
         })
 
@@ -482,7 +491,7 @@ export function getVivoTableData(
           materialIds: materialIdsList,
           viewMonitorUrl: creationInfo.monitoringLink.exposureLink,
           clickMonitorUrl: creationInfo.monitoringLink.clickLink,
-          getName: function() {
+          getName: function () {
             return this.name;
           }
         })
@@ -500,7 +509,7 @@ export function getVivoTableData(
           adType: creationInfo.configData.campaign.adType,
           adgroupList: adgroupList,
           campaignId: "",
-          dailyBudget: creationInfo.configData.campaign.dailyBudget,
+          dailyBudget: creationInfo.configData.campaign.dailyBudget === -1 ? -1 : creationInfo.configData.campaign.dailyBudget * 100000,
           mediaType: creationInfo.configData.campaign.mediaType,
           // name: creationInfo.configData.campaign.name,
           name: renderProjectTitle(creationInfo.configData.campaign.name, i),

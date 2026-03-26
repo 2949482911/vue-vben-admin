@@ -358,8 +358,6 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.rednote')}`,
     value: 'rednote',
   },
-
-
   {
     label: "淘宝联盟",
     value: 'tb_union',
@@ -427,6 +425,10 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.ruizhang')}`,
     value: 'ruizhang',
   },
+  {
+    label: '抖音独立端',
+    value: 'dy_duliduan'
+  }
 ];
 
 // 匹配下拉

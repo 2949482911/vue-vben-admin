@@ -40,7 +40,9 @@ import type {
   AdCreativeType,
   VirtualLocationType,
   VivoSubmitType,
-  ImportDataType
+  GetStrategyGropType,
+  StrategyGropType,
+  UpdateStrategyGropType
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -148,6 +150,14 @@ class AdvertiserApi extends BaseApi {
 
 export const advertiserApi = new AdvertiserApi("/platform/advertiser");
 
+class AdvertiserReportApi extends BaseApi {
+    // 拉取历史数据
+  fetchHistoryList(params: AdvertiserPageRequest) {
+    return requestClient.get(this.getServiceUrl("list"), {params})
+  }
+}
+
+export const advertiserReportApi = new AdvertiserReportApi("/platform/advertiser_report_task")
 
 // 指标接口
 
@@ -425,3 +435,23 @@ class AdInvestmentApi extends BaseApi {
 }
 
 export const adInvestmentApi = new AdInvestmentApi("/platform/vivo_advertisement");
+/**
+ * 营销-创编-Vivo营销-策略组
+ */
+class StrategyGropApi extends BaseApi {
+  fetchNewStrategyGrop(params:StrategyGropType) {
+    return requestClient.post(this.getServiceUrl("create"),params)
+  }
+  fetchBatchStrategyGrop(params:delTemplate) {
+    return requestClient.post(this.getServiceUrl("batch_options"),params)
+  }
+  fetchUpdateStrategyGrop(params:UpdateStrategyGropType) {
+    return requestClient.post(this.getServiceUrl("update"),params)
+  }
+  fetchGetStrategyGrop(params:GetStrategyGropType) {
+    return requestClient.get(this.getServiceUrl("list"),{params})
+  }
+}
+
+export const strategyGropApi = new StrategyGropApi("/platform/advertisement_batch/strategy/group");
+

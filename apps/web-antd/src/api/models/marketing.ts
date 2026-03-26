@@ -1,6 +1,6 @@
 import type {BaseItem, PageRequestParams} from "#/api/models/core";
 import type {RuleType} from "#/constants/enums";
-
+import { type PlatformCreation } from "#/views/marketing/creation/creation";
 /**
  * 账户请求
  */
@@ -38,6 +38,18 @@ export interface AdvertiserItem extends BaseItem {
   saleId?: "",
   tagId: string;
   hourlyState: number;
+}
+// 拉取历史列表
+export interface HistoryItem extends BaseItem {
+  taskType: string;
+  source: string;
+  localAdvertiserId: string;
+  startTime: string;
+  endTime: string;
+  taskStatus: number;
+  retry: number;
+  taskStartTime: string;
+  taskEndTime: string;
 }
 
 
@@ -648,4 +660,20 @@ export interface VivoSubmitType {
   version: string,
   fullParamsData: string,
   configArea: string,
+}
+/**营销-创编-Vivo营销-策略组 */
+export interface StrategyGropType<T = any> extends BaseItem {
+  name: string;
+  platform: string;
+  projectId: string;
+  config: string;
+  configObj: PlatformCreation<T>;
+}
+export interface GetStrategyGropType extends PageRequestParams {
+  name: string,
+  platform: string,
+  projectId: string
+}
+export interface UpdateStrategyGropType extends StrategyGropType {
+  id: string,
 }
