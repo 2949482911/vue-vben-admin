@@ -23,7 +23,7 @@ let {hasAccount, hasProduct, campaign} = defineProps({
         name: "",
         adType: 0,
         mediaType: 0,
-        dailyBudget: 0,
+        dailyBudget: -1,
         campaignType: 0,
         pushForm: 0,
         pushType: 0,
@@ -88,7 +88,7 @@ const enumMap: Record<string, any[]> = {
 // 格式化展示内容的函数
 const formatDisplayValue = (key: string, value: any) => {
   if (key === 'dailyBudget') {
-    return `${value} 毫分`;
+    return `${value} 元`;
   }
   const options = enumMap[key];
   if (options) {

@@ -12,12 +12,7 @@ import type { MediaAccount } from './vivo/vivo';
 
 const emit = defineEmits(['update:accountInfo', 'update:productInfo'])
 
-
-const {accountInfo, project} = defineProps({
-  accountInfo: {
-    type: Array<AccountInfo>,
-    default: () => []
-  },
+const { project } = defineProps({
   project: {
     type: Object,
     default: () => {
@@ -30,7 +25,6 @@ const {accountInfo, project} = defineProps({
   }
 })
 
-
 const productList = ref()
 // 媒体账户显示文字 (String 格式方便绑定 Input)
 const mediaAccountLabel = ref<string>('');
@@ -38,13 +32,15 @@ const mediaAccountLabel = ref<string>('');
 const selectedAccountIds = ref<string[]>([]);
 // 定义一个变量存储完整的行对象
 const selectedRowsData = ref<any[]>([]);
+// 内部维护一个临时变量，记录弹窗中所有的勾选对象
+const tempSelectedRows = ref<AdvertiserItem[]>([]);
 
 onMounted(async () => {
   const res = await projectApi.fetchProjectList({page: 1, pageSize: 1000,})
   productList.value = res.items
 })
 
-// 2. 当项目 ID 改变时，查找完整对象并 emit
+// 当项目 ID 改变时，查找完整对象并 emit
 function handleProjectChange(val: SelectValue) {
   const selectedProject = productList.value?.find((item: any) => item.id === val);
   if (selectedProject) {
@@ -59,42 +55,21 @@ function handleProjectChange(val: SelectValue) {
 //媒体账户选择弹框
 const [Modal, modalApi] = useVbenModal({
   contentClass: 'modalStyle',
-  // 添加确认按钮回调
   onConfirm: async () => {
-    // 1. 获取全量选中的行数据（包括翻页保留的）
-    const grid = gridApi.grid;
-    if (!grid) return;
-
-    const reserveRows = grid.getCheckboxReserveRecords(); // 之前页选中的
-    const currentRows = grid.getCheckboxRecords();        // 当前页选中的
-    const allSelected = [...reserveRows, ...currentRows];
-
-    const finalRows: Array<AdvertiserItem> = Array.from(new Map(allSelected.map(item => [item.id, item])).values());
-
-    selectedRowsData.value = finalRows; // 存对象数组
-    // 选择ID
+    // 【关键】只有点击确定时，才把临时变量同步到页面显示的变量中
+    const finalRows = tempSelectedRows.value;
+    selectedRowsData.value = [...finalRows]; // 补充这一行
+    
+    // 更新外层显示文字
+    mediaAccountLabel.value = finalRows.map(r => r.advertiserName).join('，');
+    // 更新外层选中的 ID 数组
     selectedAccountIds.value = finalRows.map(r => r.id);
-    // 标签展示
-    mediaAccountLabel.value = finalRows.map((row: any) => row.advertiserName).join('，');
-
-    //以下是跨页面勾选可以保留，但是如果先在前面页面勾选了，又去搜索勾选，前面页面的数据进不去
+    
+    // 构造发送给后端或父组件的数据
     const uniqueAccountInfo = finalRows.map((row: AdvertiserItem) => ({
       localAdvertiserId: row.id,
       advertiserName: row.advertiserName,
     }));
-    //---------------------------------------------------------------
-
-    //以下是跨页面勾选可以保留，如果取消需要在当前面页面取消勾选后先点确定才能取消
-    // const newAccountInfo = finalRows.map((row: AdvertiserItem) => ({
-    //   localAdvertiserId: row.id,
-    //   advertiserName: row.advertiserName,
-    // }));
-
-    // const totalInfo = [...accountInfo, ...newAccountInfo];
-    // const uniqueAccountInfo = Array.from(
-    //     new Map(totalInfo.map(item => [item.localAdvertiserId, item])).values()
-    // );
-    //---------------------------------------------------------------
 
     emit('update:accountInfo', uniqueAccountInfo);
     await modalApi.close();
@@ -102,7 +77,24 @@ const [Modal, modalApi] = useVbenModal({
 });
 
 function mediaAccountClick() {
-  modalApi.open()
+  modalApi.open();
+  
+  // 首先同步临时变量，确保弹窗操作的基础数据是最新的
+  tempSelectedRows.value = [...selectedRowsData.value];
+
+  // 延迟操作 Grid，因为 modal 打开可能需要一点点渲染时间
+  setTimeout(() => {
+    const grid = gridApi.grid;
+    if (grid) {
+      grid.clearCheckboxRow();
+      grid.clearCheckboxReserve();
+      
+      // 如果之前已经有选中的 ID，强制回显
+      if (selectedAccountIds.value.length > 0) {
+        grid.setCheckboxRowKey(selectedAccountIds.value, true);
+      }
+    }
+  }, 50);
 }
 
 const formOptions: VbenFormProps = {
@@ -126,7 +118,6 @@ const formOptions: VbenFormProps = {
       label: '账户名称',
     }
   ],
-  // 按下回车时是否提交表单
   submitOnEnter: false,
 };
 
@@ -134,7 +125,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
-    labelField: 'name',
+    // labelField: 'id',
     reserve: true,
     checkRowKeys: selectedAccountIds.value,
     trigger: 'row',
@@ -158,12 +149,18 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
         const res = await advertiserApi.fetchAdvertiserList({
           page: page.currentPage,
           pageSize: page.pageSize,
+          platform:"vivo",
+          putStatue:1,
           ...params,
         });
         setTimeout(() => {
           const grid = gridApi.grid;
-          if (grid && selectedAccountIds.value.length > 0) {
-            grid.setCheckboxRowKey(selectedAccountIds.value, true);
+          if (grid) {
+            // 【重要】这里应该用 tempSelectedRows 的 ID，因为它是弹窗内操作的最实时状态
+            const idsToCheck = tempSelectedRows.value.map(item => item.id);
+            if (idsToCheck.length > 0) {
+              grid.setCheckboxRowKey(idsToCheck, true);
+            }
           }
         }, 50);
         return res;
@@ -172,7 +169,34 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const gridEvents = {
+  checkboxChange: () => updateTempRecords(),
+  checkboxAll: () => updateTempRecords()
+}
+
+// 抽取公共方法：获取当前 Grid 所有的勾选数据（含跨页和搜索结果）
+function updateTempRecords() {
+  const grid = gridApi.grid;
+  if (!grid) return;
+  
+  const reserveRows = grid.getCheckboxReserveRecords(); 
+  const currentRows = grid.getCheckboxRecords();
+  
+  // 合并
+  const allSelected = [...reserveRows, ...currentRows];
+  
+  // 去重
+  const uniqueMap = new Map();
+  allSelected.forEach(item => {
+    if (item && item.id) {
+      uniqueMap.set(item.id, item);
+    }
+  });
+  
+  tempSelectedRows.value = Array.from(uniqueMap.values());
+}
+
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
 
 /**复用组策略回显 */
 function reuseDisplay( projectObj:Project, mediaAccountArr:MediaAccount[] ){

@@ -109,10 +109,10 @@ export interface VivoAdgroupData {
   scheduleTime: string;
   chargeType: number | null;
   cvType: string;
-  price: string;
-  ocpxPrice: string;
+  price: number;
+  ocpxPrice: number;
   name: string;
-  dailyBudget: string;
+  dailyBudget: number;
   spentType: number | null;
   retrieveType: number;
   ruleAudience: string;
@@ -241,10 +241,10 @@ export interface VivoAdgroup extends Adgroup {
   scheduleTime: string;
   chargeType: number | null;
   cvType: string;
-  price: string;
-  ocpxPrice: string;
+  price: number;
+  ocpxPrice: number;
   name: string;
-  dailyBudget: string;
+  dailyBudget: number;
   spentType: number | null;
   retrieveType: number;
   ruleAudience: string;
@@ -401,11 +401,11 @@ export function getVivoTableData(
         scheduleTime: creationInfo.configData.adgroup.scheduleTime,
         chargeType: creationInfo.configData.adgroup.chargeType,
         cvType: creationInfo.configData.adgroup.cvType,
-        price: creationInfo.configData.adgroup.price,
-        ocpxPrice: creationInfo.configData.adgroup.ocpxPrice,
+        price: creationInfo.configData.adgroup.price * 100000,
+        ocpxPrice: creationInfo.configData.adgroup.ocpxPrice * 100000,
         // name: creationInfo.configData.adgroup.name,
         name: renderProjectTitle(creationInfo.configData.adgroup.name, i),
-        dailyBudget: creationInfo.configData.adgroup.dailyBudget,
+        dailyBudget: creationInfo.configData.adgroup.dailyBudget === -1 ? -1 : creationInfo.configData.adgroup.dailyBudget * 100000,
         spentType: creationInfo.configData.adgroup.spentType,
         retrieveType: creationInfo.configData.adgroup.retrieveType,
         ruleAudience: creationInfo.configData.adgroup.ruleAudience,
@@ -509,7 +509,7 @@ export function getVivoTableData(
           adType: creationInfo.configData.campaign.adType,
           adgroupList: adgroupList,
           campaignId: "",
-          dailyBudget: creationInfo.configData.campaign.dailyBudget,
+          dailyBudget: creationInfo.configData.campaign.dailyBudget === -1 ? -1 : creationInfo.configData.campaign.dailyBudget * 100000,
           mediaType: creationInfo.configData.campaign.mediaType,
           // name: creationInfo.configData.campaign.name,
           name: renderProjectTitle(creationInfo.configData.campaign.name, i),
