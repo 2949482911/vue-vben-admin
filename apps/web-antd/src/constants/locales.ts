@@ -492,10 +492,10 @@ export const ACTIVE_PLATFORM = [
  * 报表维度
  */
 export const DIMS = [
-  // {
-  //   label: `${$t('marketing.report.dims.hour')}`,
-  //   value: 'hour',
-  // },
+  {
+    label: `${$t('marketing.report.dims.hour')}`,
+    value: 'hour',
+  },
   {
     label: `${$t('marketing.report.dims.day')}`,
     value: 'day',

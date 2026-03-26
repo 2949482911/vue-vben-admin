@@ -113,7 +113,8 @@
       "url": "点击监测",
       "callback": "回调链接",
       "testCallback": "联调回传",
-      "directLink": "直连监测"
+      "directLink": "直连监测",
+      "exposureUrl": "曝光监测"
     }
   },
   "event_settlement": {

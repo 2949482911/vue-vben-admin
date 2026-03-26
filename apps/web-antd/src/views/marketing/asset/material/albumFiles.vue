@@ -1,11 +1,12 @@
 
 <script setup lang="ts">
-import { Dropdown, Menu, MenuItem, Pagination, message } from "ant-design-vue";
+import { Dropdown, Menu, MenuItem, Pagination, message, Spin } from "ant-design-vue";
 import { uploadEditApi } from '#/api/core';
 import { reactive, ref, watch } from "vue";
 import type { FolderItem , FileInfo} from '#/api/models';
 import type { MaterialLibraryFolderType } from "./materialType";
 import { BatchOptionsType } from '#/constants/locales';
+const isShowLoading = ref<Boolean>(true)
 const props = defineProps<{
   treeItem: FolderItem[]
 }
@@ -16,6 +17,7 @@ watch(
   (newVal) => {
     // 当 props.treeItem 有数据时才调用接口
     if (newVal && newVal.length) {
+      pages.current = 1
       fileList();
     }
   },
@@ -36,6 +38,7 @@ const handlePageChange = (page: number, pageSize: number) => {
 
 const list = ref<any[]>()
 async function fileList() {
+  isShowLoading.value = true
   // 增加更严谨的判断：确保 treeItem 有值且最后一项不为空
   if (!props.treeItem || props.treeItem.length === 0) return;
   
@@ -53,9 +56,9 @@ async function fileList() {
       pageSize: pages.pageSize,
       page: pages.current,
     });
-    list.value = [];
     pages.total = res.total;
     list.value = res.items;
+    isShowLoading.value = false
   } catch (err) {
     console.error(err);
   }
@@ -106,10 +109,11 @@ async function delFile(item: FileInfo) {
 </script>
 
 <template>
-  <div class="material-page">
+  <div class="material-page" v-loading="isShowLoading">
     <div class="material">
       <template v-for="(item, index) in props.treeItem" :key="item?.id || index">
-        <span v-if="item"> <span 
+        <span v-if="item"> 
+          <span 
             class="breadcrumb-item" 
             @click="handleBreadcrumbClick(item)"
           >
@@ -119,120 +123,132 @@ async function delFile(item: FileInfo) {
         </span>
       </template>
     </div>
-    <div class="material-list">
-      <div
-        v-for="item in list"
-        :key="item.id"
-        class="material-item"
-        :class="item.type"
-      >
-        <!-- 文件夹 -->
-        <template v-if="item.type === 1">
-          <div class="folder-content" @click="handleFolderClick(item)">
-            <div class="folder-cover">
-              <img
-                src="https://cdn-icons-png.flaticon.com/512/716/716784.png"
-                alt="folder"
-              />
-            </div>
-            <div class="folder-info">
-              <div class="title" :title="item.name">{{ item.name }}</div>
-              <div class="main-text">
-                <div class="count">素材 {{ item.count }}</div>
-                <!-- 三个点 -->
-                <div class="more-btn">
-                  <Dropdown placement="bottom">
-                    <a href="javascript:;">•••</a>
-                    <template #overlay>
-                      <Menu>
-                        <MenuItem>
-                          <a href="javascript:;" @click="editFile(item)">编辑</a>
-                        </MenuItem>
-                        <!-- <MenuItem>
-                          <a href="javascript:;">删除</a>
-                        </MenuItem> -->
-                      </Menu>
-                    </template>
-                  </Dropdown>
+        <div class="material-list">
+          <div
+            v-for="item in list"
+            :key="item.id"
+            class="material-item"
+            :class="item.type"
+          >
+            <!-- 文件夹 -->
+            <template v-if="item.type === 1">
+              <div class="folder-content" @click="handleFolderClick(item)">
+                <div class="folder-cover">
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/716/716784.png"
+                    alt="folder"
+                  />
                 </div>
-              </div>
+                <div class="folder-info">
+                  <div class="title" :title="item.name">{{ item.name }}</div>
+                  <div class="main-text">
+                    <div class="count">素材 {{ item.count }}</div>
+                    <!-- 三个点 -->
+                    <div class="more-btn">
+                      <Dropdown placement="bottom">
+                        <a href="javascript:;">•••</a>
+                        <template #overlay>
+                          <Menu>
+                            <MenuItem>
+                              <a href="javascript:;" @click="editFile(item)">编辑</a>
+                            </MenuItem>
+                            <!-- <MenuItem>
+                              <a href="javascript:;">删除</a>
+                            </MenuItem> -->
+                          </Menu>
+                        </template>
+                      </Dropdown>
+                    </div>
+                  </div>
+                </div>
             </div>
-        </div>
-        </template>
-  
-        <!-- 文件 -->
-        <template v-else>
-          <div class="file-cover">
-            <img :src="item.fileUrl" alt="file" />
-            <!-- <span class="size">{{ item.size }}</span> -->
-          </div>
-          <div class="file-info">
-            <div class="title" :title="item.name">{{ item.name }}</div>
-            <div class="status">上传时间：{{ item.updateTime }}</div>
-              <!-- 三个点 -->
-              <div class="more-btn">
-                <Dropdown placement="bottom">
-                  <a href="javascript:;">•••</a>
-                  <template #overlay>
-                    <Menu>
-                      <MenuItem>
-                        <a href="javascript:;" @click="delFile(item)">删除</a>
-                      </MenuItem>
-                      <!-- <MenuItem>
-                        <a href="javascript:;">删除</a>
-                      </MenuItem> -->
-                    </Menu>
-                  </template>
-                </Dropdown>
+            </template>
+      
+            <!-- 文件 -->
+            <template v-else>
+              <div class="file-cover">
+                <img :src="item.fileUrl" alt="file" />
+                <!-- <span class="size">{{ item.size }}</span> -->
               </div>
+              <div class="file-info">
+                <div class="title" :title="item.name">{{ item.name }}</div>
+                <div class="status">上传时间：{{ item.updateTime }}</div>
+                  <!-- 三个点 -->
+                  <div class="more-btn">
+                    <Dropdown placement="bottom">
+                      <a href="javascript:;">•••</a>
+                      <template #overlay>
+                        <Menu>
+                          <MenuItem>
+                            <a href="javascript:;" @click="delFile(item)">删除</a>
+                          </MenuItem>
+                          <!-- <MenuItem>
+                            <a href="javascript:;">删除</a>
+                          </MenuItem> -->
+                        </Menu>
+                      </template>
+                    </Dropdown>
+                  </div>
+              </div>
+            </template>
           </div>
-        </template>
-      </div>
+        </div>
+      <Pagination
+        class="pagination"
+        show-size-changer
+        v-model:current="pages.current"
+        v-model:pageSize="pages.pageSize"
+        :total="pages.total"
+        :show-total="total => `共 ${total} 条`"
+        @change="handlePageChange"
+      />
     </div>
-    <Pagination
-      class="pagination"
-      show-size-changer
-      v-model:current="pages.current"
-      v-model:pageSize="pages.pageSize"
-      :total="pages.total"
-      :show-total="total => `共 ${total} 条`"
-      @change="handlePageChange"
-    />
-  </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .material-page {
   display: flex;
   flex-direction: column;
   height: 98%;            
-  overflow: hidden;        
+  overflow: hidden;    
+  .material {
+    flex-shrink: 0;
+    padding: 10px 15px; /* 稍微增加内边距 */
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    
+    .breadcrumb-item {
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .breadcrumb-item:hover {
+      color: #1890ff; /* 悬浮时变蓝色，提示可点击 */
+    }
+    .separator {
+      margin: 0 8px;
+      color: #ccc;
+      cursor: default;
+    }
+  }
+  .example {
+    text-align: center;
+    background: #ffffff;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    padding: 30px 50px;
+    margin: 20px 0;
+    height: 100%;
+  }    
 }
 
-.material {
-  flex-shrink: 0;
-  padding: 10px 15px; /* 稍微增加内边距 */
-  margin-top: 10px;
-  font-size: 14px;
-  color: #666;
-  border-top: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-}
 
-.breadcrumb-item {
-  cursor: pointer;
-  transition: color 0.2s;
-}
 
-.breadcrumb-item:hover {
-  color: #1890ff; /* 悬浮时变蓝色，提示可点击 */
-}
 
-.separator {
-  margin: 0 8px;
-  color: #ccc;
-  cursor: default;
-}
+
 
 /* 最后一个面包屑高亮或不可点击（表示当前位置） */
 .material > span:last-child .breadcrumb-item {

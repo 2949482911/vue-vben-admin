@@ -56,6 +56,13 @@ const gridOptions: VxeGridProps<ClickMonitorResponse> = {
       }
     },
     {
+      title: `${$t('ocpx.ocpx_task.clickmonitor.exposureUrl')}`,
+      field: 'exposureUrl',
+      slots: {
+        default: "exposureUrl"
+      }
+    },
+    {
       field: 'options',
       title: `${$t('core.columns.options')}`,
       fixed: 'right',
@@ -158,6 +165,16 @@ function copyCallback(text: string) {
         <Button type="link" @click="openTestCallbackModal(row)">
           {{ $t('ocpx.ocpx_task.clickmonitor.testCallback') }}
         </Button>
+      </template>
+            <template #exposureUrl="{ row }">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <Button
+          type="link"
+          @click="copyCallback(row.exposureUrl)"
+          >
+            一键复制
+          </Button>
+        </div>
       </template>
     </Grid>
     <TestCallbackModal/>
