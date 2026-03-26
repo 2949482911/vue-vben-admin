@@ -1,6 +1,6 @@
 import type {BaseItem, PageRequestParams} from "#/api/models/core";
 import type {RuleType} from "#/constants/enums";
-
+import { type PlatformCreation } from "#/views/marketing/creation/creation";
 /**
  * 账户请求
  */
@@ -648,4 +648,20 @@ export interface VivoSubmitType {
   version: string,
   fullParamsData: string,
   configArea: string,
+}
+/**营销-创编-Vivo营销-策略组 */
+export interface StrategyGropType<T = any> extends BaseItem {
+  name: string;
+  platform: string;
+  projectId: string;
+  config: string;
+  configObj: PlatformCreation<T>;
+}
+export interface GetStrategyGropType extends PageRequestParams {
+  name: string,
+  platform: string,
+  projectId: string
+}
+export interface UpdateStrategyGropType extends StrategyGropType {
+  id: string,
 }
