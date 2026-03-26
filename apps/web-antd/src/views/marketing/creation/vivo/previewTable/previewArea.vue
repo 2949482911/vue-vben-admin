@@ -426,33 +426,33 @@ async function submitReview() {
       uploadJson(tableData.value, 'table')
     ]);
 
-    // console.log(
-    //   {
-    //     name: `${Date.now()}-测试批量搭建`,
-    //     platform: creationInfo?.platform || "",
-    //     projectId: creationInfo?.project.projectId || "",
-    //     ruleType: "immediately",
-    //     version: "0.1",//版本
-    //     configArea: creationUrl,//本地数据
-    //     fullParamsData: tableUrl,//上传表格
-    //   }
-    // )
+    console.log(
+      {
+        name: `${Date.now()}-测试批量搭建`,
+        platform: creationInfo?.platform || "",
+        projectId: creationInfo?.project.projectId || "",
+        ruleType: "immediately",
+        version: "0.1",//版本
+        configArea: creationUrl,//本地数据
+        fullParamsData: tableUrl,//上传表格
+      }
+    )
 
-    const res = await creationTaskApi.fetchVivoSubmitReview({
-      name: `${Date.now()}-测试批量搭建`,
-      platform: creationInfo?.platform || "",
-      projectId: creationInfo?.project.projectId || "",
-      ruleType: "immediately",
-      version: "0.1",//版本
-      configArea: creationUrl,//本地数据
-      fullParamsData: tableUrl,//上传表格
-    })
-
-    if(res.taskId){
-      startPolling(res.taskId);
-
-      // const resData = await creationTaskApi.fetchVivoSubmitResult({id:res.taskId})
-    }
+    // const res = await creationTaskApi.fetchVivoSubmitReview({
+    //   name: `${Date.now()}-测试批量搭建`,
+    //   platform: creationInfo?.platform || "",
+    //   projectId: creationInfo?.project.projectId || "",
+    //   ruleType: "immediately",
+    //   version: "0.1",//版本
+    //   configArea: creationUrl,//本地数据
+    //   fullParamsData: tableUrl,//上传表格
+    // })
+    //
+    // if(res.taskId){
+    //   startPolling(res.taskId);
+    //
+    //   // const resData = await creationTaskApi.fetchVivoSubmitResult({id:res.taskId})
+    // }
   } catch (error) {
     console.error('提交失败:', error);
   } finally {
