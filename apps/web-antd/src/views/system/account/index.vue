@@ -82,6 +82,11 @@ const formOptions: VbenFormProps = {
   schema: [
     {
       component: 'Input',
+      fieldName: 'id',
+      label: `id`,
+    },
+    {
+      component: 'Input',
       fieldName: 'nickname',
       label: `${$t('system.user.columns.nickname')}`,
     },
@@ -171,6 +176,7 @@ const gridOptions: VxeGridProps<UserItem> = {
     },
     ...TABLE_COMMON_COLUMNS as any,
   ],
+  height: 'auto',
   proxyConfig: {
     autoLoad: true,
     ajax: {
@@ -222,7 +228,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <ColPage auto-content-height v-bind="props">
+    <ColPage  v-bind="props">
       <template #left="{ isCollapsed, expand }">
         <div
           :style="{ minWidth: '200px' }"
@@ -235,8 +241,8 @@ onMounted(() => {
           />
         </div>
       </template>
-      <Card class="ml-2">
-        <Page>
+      <!-- <Card class="ml-2">s -->
+        <Page auto-content-height>
           <Grid>
             <template #roleIds="{ row }">
               <Tag
@@ -274,9 +280,8 @@ onMounted(() => {
             </template>
           </Grid>
         </Page>
-      </Card>
+      <!-- </Card> -->
+      <CreateModal @page-reload="pageReload"/>
     </ColPage>
-
-    <CreateModal @page-reload="pageReload"/>
   </div>
 </template>

@@ -393,6 +393,10 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: '抖音独立端',
     value: 'dy_duliduan'
+  },
+  {
+    label: '优酷',
+    value: 'youku'
   }
 ];
 

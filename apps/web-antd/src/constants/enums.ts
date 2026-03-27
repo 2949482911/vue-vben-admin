@@ -32,7 +32,8 @@ export enum Platform {
   MEITUAN = "meituan",
   OPPO_PUSH = 'oppo_push',
   XIANYU = 'xianyu',
-  DY_DULIDUAN = 'dy_duliduan'
+  DY_DULIDUAN = 'dy_duliduan',
+  YOUKU = 'youku'
 }
 
 export enum RuleType {

@@ -55,7 +55,7 @@ const [Form,formApi] = useVbenForm({
     {
       component: 'Select',
       fieldName: 'name',
-      label: '名字',
+      label: '文件夹',
       rules: 'required',
     },
     {

@@ -61,6 +61,11 @@ const formOptions: VbenFormProps = {
   schema: [
     {
       component: 'Input',
+      fieldName: 'id',
+      label: `id`,
+    },
+    {
+      component: 'Input',
       componentProps: {
         allowClear: true,
         placeholder: '请输入',

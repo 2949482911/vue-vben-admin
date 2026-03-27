@@ -66,6 +66,11 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
+      component: 'Input',
+      fieldName: 'id',
+      label: `id`,
+    },
+    {
       component: 'Select',
       componentProps: {
         allowClear: true,

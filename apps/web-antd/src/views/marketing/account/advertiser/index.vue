@@ -195,6 +195,11 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
+      component: 'Input',
+      fieldName: 'id',
+      label: `id`,
+    },
+    {
       component: 'Select',
       componentProps: {
         allowClear: true,
@@ -294,12 +299,7 @@ const formOptions: VbenFormProps = {
       },
       fieldName: 'projectId',
       label: '项目',
-    },
-    {
-      component: 'Input',
-      fieldName: 'id',
-      label: `序号`,
-    },
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
