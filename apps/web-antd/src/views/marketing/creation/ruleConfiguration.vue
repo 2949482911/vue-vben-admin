@@ -1,55 +1,55 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue';
-import {Button, Input} from 'ant-design-vue';
-import {useVbenModal} from '@vben/common-ui';
+import { computed, ref } from 'vue';
+import { Button, Input } from 'ant-design-vue';
+import { useVbenModal } from '@vben/common-ui';
 import StrategyGroup from './components/strategyGroup.vue';
 import type { VivoCreation } from './vivo/vivo';
 
-const emit = defineEmits(['update:ruleInfo','update:reuse']);
+const emit = defineEmits(['update:ruleInfo', 'update:reuse']);
 
 const { ruleInfo } = defineProps({
   ruleInfo: {
     type: Object,
     default: () => {
       return {
-        projectRuleKey: "",
+        projectRuleKey: '',
         projectCount: 1,
-        adRuleKey: "",
+        adRuleKey: '',
         adCount: 1,
-      }
-    }
-  }
+      };
+    },
+  },
 });
 
 // 1. 定义规则选项数据
 const projectRules = [
-  {title: '根据定向包生成', desc: '项目数量与定向包数量相等', key: 'targeting'},
+  { title: '根据定向包生成', desc: '项目数量与定向包数量相等', key: 'targeting' },
   {
     title: '根据创意组生成',
     desc: '项目数量与创意组数量相等，项目中的广告都使用相同的素材',
-    key: 'creative'
+    key: 'creative',
   },
   {
     title: '根据标题包生成',
     desc: '项目数量与标题包数量相等，项目中的广告都使用相同的标题包',
-    key: 'title'
+    key: 'title',
   },
-  {title: '指定数量', desc: '手动指定每个账户的项目数量', key: 'custom'},
+  { title: '指定数量', desc: '手动指定每个账户的项目数量', key: 'custom' },
 ];
 
 const adRules = [
   {
     title: '按创意组数',
     desc: '按创意组数生成广告，自动匹配标题包，标题包不足时循环使用',
-    key: 'creative'
+    key: 'creative',
   },
   {
     title: '按标题包数',
     desc: '按标题包数生成广告，自动匹配创意数，创意数不足时循环使用',
-    key: 'title'
+    key: 'title',
   },
   // {title: '按创意组*标题包', desc: '基于创意组*标题包自动生成广告', key: 'mix'},
-  {title: '指定数量', desc: '先指定广告数量，自动循环使用素材和标题，多退少补', key: 'custom'},
+  { title: '指定数量', desc: '先指定广告数量，自动循环使用素材和标题，多退少补', key: 'custom' },
 ];
 
 const selectedProjectRule = ref('targeting');
@@ -59,27 +59,27 @@ const adCount = ref(1);
 
 // 顶部展示文本：依然绑定正式变量
 const displayDisplayText = computed(() => {
-  let projectText = projectRules.find(r => r.key === ruleInfo.projectRuleKey)?.title || '';
+  let projectText = projectRules.find((r) => r.key === ruleInfo.projectRuleKey)?.title || '';
   if (ruleInfo.projectRuleKey === 'custom') projectText = `指定数量 ${ruleInfo.projectCount}`;
 
-  let adText = adRules.find(r => r.key === ruleInfo.adRuleKey)?.title || '';
+  let adText = adRules.find((r) => r.key === ruleInfo.adRuleKey)?.title || '';
   if (ruleInfo.adRuleKey === 'custom') adText = `指定数量 ${ruleInfo.adCount}`;
 
-  return {projectText, adText};
+  return { projectText, adText };
 });
 
 const [Modal, modalApi] = useVbenModal({
   contentClass: 'rule-modal-content',
   async onConfirm() {
-    ruleInfo.projectRuleKey = selectedProjectRule.value
-    ruleInfo.adRuleKey = selectedAdRule.value
-    ruleInfo.projectCount = projectCount.value
-    ruleInfo.adCount = adCount.value
+    ruleInfo.projectRuleKey = selectedProjectRule.value;
+    ruleInfo.adRuleKey = selectedAdRule.value;
+    ruleInfo.projectCount = projectCount.value;
+    ruleInfo.adCount = adCount.value;
 
     // 3. 点击确认：将临时变量同步给正式变量，此时顶部文字才会变化
     emit('update:ruleInfo', ruleInfo);
     await modalApi.close();
-  }
+  },
 });
 
 /**
@@ -103,16 +103,16 @@ const [StrategyGroupModule, strategyGroupModalApi] = useVbenModal({
  * 复用策略组打开弹窗
  */
 function reuseStrategyGroup() {
-  strategyGroupModalApi.open()
+  strategyGroupModalApi.open();
 }
 
-async function reuseData(params:VivoCreation) {
-  emit('update:reuse',params)
+async function reuseData(params: VivoCreation) {
+  emit('update:reuse', params);
 }
 </script>
 
 <template>
-  <div class="p-4">
+  <div>
     <div class="display-header">
       <div class="info-tag">
         <span class="label">项目：</span>
@@ -123,7 +123,6 @@ async function reuseData(params:VivoCreation) {
       <Button type="primary" @click="ruleConfigurationEvent">规则配置</Button>
       <Button type="primary" @click="reuseStrategyGroup">复用策略组</Button>
     </div>
-
     <Modal class="w-[900px]" title="规则配置">
       <div class="rule-container">
         <div class="rule-section">
@@ -144,7 +143,7 @@ async function reuseData(params:VivoCreation) {
 
         <div v-if="selectedProjectRule === 'custom'" class="input-row">
           <div class="label">每个账户指定项目数</div>
-          <Input v-model:value="projectCount" style="width: 200px" placeholder="请输入数量"/>
+          <Input v-model:value="projectCount" style="width: 200px" placeholder="请输入数量" />
         </div>
 
         <div class="rule-section">
@@ -165,11 +164,11 @@ async function reuseData(params:VivoCreation) {
 
         <div v-if="selectedAdRule === 'custom'" class="input-row">
           <div class="label">每个项目指定广告数</div>
-          <Input v-model:value="adCount" style="width: 200px" placeholder="请输入数量"/>
+          <Input v-model:value="adCount" style="width: 200px" placeholder="请输入数量" />
         </div>
       </div>
     </Modal>
-    <StrategyGroupModule @update:reuse="reuseData"/>
+    <StrategyGroupModule @update:reuse="reuseData" />
   </div>
 </template>
 
@@ -188,7 +187,7 @@ async function reuseData(params:VivoCreation) {
     border-radius: 4px;
 
     .label {
-      color: #666;
+      // color: #666;
     }
 
     .value {
@@ -214,7 +213,7 @@ async function reuseData(params:VivoCreation) {
       width: 100px;
       padding-top: 10px;
       font-size: 14px;
-      color: #666;
+      // color: #666;
     }
 
     .options-grid {
@@ -249,7 +248,7 @@ async function reuseData(params:VivoCreation) {
       margin-bottom: 4px;
       font-size: 15px;
       font-weight: 600;
-      color: #333;
+      // color: #333;
     }
 
     .option-desc {

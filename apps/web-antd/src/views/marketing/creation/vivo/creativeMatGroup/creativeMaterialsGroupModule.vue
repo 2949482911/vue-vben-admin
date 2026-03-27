@@ -161,7 +161,9 @@ function accountInfoName(id:string){
   .display-group {
     padding: 10px;
     margin-bottom: 20px;
-    background: #f8f9fa;
+    border: 1px solid #e4e4e4;
+    border-radius: 4px;
+    // background: #f8f9fa;
 
     .group-header {
       display: flex;
@@ -171,7 +173,7 @@ function accountInfoName(id:string){
 
       .name {
         font-weight: bold;
-        color: #666;
+        // color: #666;
       }
 
       .text-blue {

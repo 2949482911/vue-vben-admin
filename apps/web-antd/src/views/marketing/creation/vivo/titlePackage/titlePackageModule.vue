@@ -187,17 +187,18 @@ const isClearDisabled = computed(() => {
         align-items: center;
         justify-content: space-between;
         padding: 8px 12px;
-        background-color: #f8f9fa; // 浅灰色背景
+        border: 1px solid #e4e4e4;
+        // background-color: #f8f9fa; // 浅灰色背景
         border-radius: 4px;
         transition: all 0.3s;
   
         &:hover {
-          background-color: #f0f0f0;
+          // background-color: #f0f0f0;
         }
   
         .package-name {
           font-size: 14px;
-          color: #333;
+          // color: #333;
         }
   
         .remove-icon {

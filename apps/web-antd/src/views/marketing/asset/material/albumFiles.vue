@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import { Dropdown, Menu, MenuItem, Pagination, message, Spin } from "ant-design-vue";
+import { Dropdown, Menu, MenuItem, Pagination, message } from "ant-design-vue";
 import { uploadEditApi } from '#/api/core';
 import { reactive, ref, watch } from "vue";
 import type { FolderItem , FileInfo} from '#/api/models';
@@ -211,12 +211,12 @@ async function delFile(item: FileInfo) {
   flex-direction: column;
   height: 98%;            
   overflow: hidden;    
+
   .material {
     flex-shrink: 0;
     padding: 10px 15px; /* 稍微增加内边距 */
     margin-top: 10px;
     font-size: 14px;
-    color: #666;
     border-top: 1px solid #ccc;
     border-bottom: 1px solid #ccc;
     
@@ -228,27 +228,23 @@ async function delFile(item: FileInfo) {
     .breadcrumb-item:hover {
       color: #1890ff; /* 悬浮时变蓝色，提示可点击 */
     }
+
     .separator {
       margin: 0 8px;
       color: #ccc;
       cursor: default;
     }
   }
+
   .example {
-    text-align: center;
-    background: #ffffff;
-    border-radius: 4px;
-    margin-bottom: 20px;
+    height: 100%;
     padding: 30px 50px;
     margin: 20px 0;
-    height: 100%;
+    margin-bottom: 20px;
+    text-align: center;
+    border-radius: 4px;
   }    
 }
-
-
-
-
-
 
 /* 最后一个面包屑高亮或不可点击（表示当前位置） */
 .material > span:last-child .breadcrumb-item {
@@ -281,7 +277,6 @@ async function delFile(item: FileInfo) {
   min-width: 220px;
   max-width: 220px;
   cursor: pointer;
-  background: #fff;
   border: 1px solid #e5e7eb;
   border-radius: 4px;
   transition: all 0.2s;
@@ -395,9 +390,11 @@ async function delFile(item: FileInfo) {
   margin-top: 4px;
   font-size: 12px;
 }
+
 .file-info  .more-btn {
   text-align: right;
 }
+
 .pagination{
   flex-shrink: 0;
   padding: 5px 0 0;

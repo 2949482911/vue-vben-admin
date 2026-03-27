@@ -585,7 +585,6 @@ const checkAccountHasData = (accountId: string | number) => {
   font-size: 11px;
   line-height: 1.2;
   color: #666;
-  background: #fff;
 }
 
 .footer-action {

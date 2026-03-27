@@ -460,22 +460,18 @@ function generatePreview() {
       <Card>
         <h2 class="text">配置区</h2>
         <div class="configTop">
-          <div>
-            <ConfigurationArea
-              ref="configurationAreaRef"
-              :accountInfo="creationInfo.accountInfo"
-              :projectInfo="creationInfo.project"
-              @update:accountInfo="handleAccountUpdate"
-              @update:productInfo="handleProductUpdate"
-            />
-          </div>
-          <div>
-            <RuleConfiguration
-              :ruleInfo="creationInfo.ruleInfo"
-              @update:ruleInfo="handleRuleUpdate"
-              @update:reuse="handleReuseUpdate"
-              />
-          </div>
+          <ConfigurationArea
+            ref="configurationAreaRef"
+            :accountInfo="creationInfo.accountInfo"
+            :projectInfo="creationInfo.project"
+            @update:accountInfo="handleAccountUpdate"
+            @update:productInfo="handleProductUpdate"
+          />
+          <RuleConfiguration
+            :ruleInfo="creationInfo.ruleInfo"
+            @update:ruleInfo="handleRuleUpdate"
+            @update:reuse="handleReuseUpdate"
+          />
         </div>
         <Row :gutter="16">
           <Col :span="6">
@@ -585,9 +581,9 @@ function generatePreview() {
 
   .configTop {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: -10px;
   }
 
   .generateButton {

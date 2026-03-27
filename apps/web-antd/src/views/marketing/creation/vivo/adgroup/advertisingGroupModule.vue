@@ -373,19 +373,17 @@ function setLocalAdGroupData(localAdGroupData: VivoAdgroupData, advertiserQualif
 
         &:hover {
           cursor: pointer;
-          background-color: #f5f5f5;
+          // background-color: #f5f5f5;
         }
 
         .item-label {
           flex-shrink: 0;
-          color: #666;
         }
 
         .item-value {
           flex: 1;
           overflow: hidden;
           text-overflow: ellipsis;
-          color: #333;
           white-space: nowrap;
         }
       }
@@ -413,17 +411,17 @@ function setLocalAdGroupData(localAdGroupData: VivoAdgroupData, advertiserQualif
         align-items: center;
         justify-content: space-between;
         padding: 8px 12px;
-        background-color: #f8f9fa;
+        border: 1px solid #e4e4e4;
+        // background-color: #f8f9fa;
         border-radius: 4px;
         transition: all 0.3s;
 
         &:hover {
-          background-color: #f0f0f0;
+          // background-color: #f0f0f0;
         }
 
         .package-name {
           font-size: 14px;
-          color: #333;
         }
 
         .remove-icon {
