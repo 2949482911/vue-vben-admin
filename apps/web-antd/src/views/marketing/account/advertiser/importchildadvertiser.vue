@@ -35,6 +35,7 @@ const pages = reactive({
 })
 
 const handleType = ref('choose')
+const isSelectAll = ref<Boolean>(false)
 //弹框导入列表的全部数据
 const importData = ref<AccountChildResponse | any>([])
   // 当前用于分页的数据（搜索后 or 原始）
@@ -63,10 +64,15 @@ const [Modal, modalApi] = useVbenModal({
       const formVal = await formApi.getValues();
       advertiserIds = strToArray(formVal.accountIds);
     } else {
-      // const checkedRecords = gridApi.grid.getCheckboxRecords();
-      // console.log('checkedRecords',checkedRecords)
-      // advertiserIds = checkedRecords.map((item) => item.advertiserId);
-      advertiserIds = selectedRowKeys.value
+      if(isSelectAll.value) {
+        advertiserIds = selectedRowKeys.value
+      } else {
+        const checkedRecords = gridApi.grid.getCheckboxRecords();
+        console.log('checkedRecords',checkedRecords)
+        advertiserIds = checkedRecords.map((item) => item.advertiserId);
+      }
+
+      
     }
     await advertiserApi.fetchImportChild({id: objectRequest.value.id, advertiserIds,projectId:projectStr.value});
     gridApi.setGridOptions({data: []});
@@ -170,6 +176,7 @@ const gridEvents = {
     updatePageData(filterData.value);
   },
   checkboxChange:({records}:{records:AdvertiserItem[]})=>{
+    isSelectAll.value = false
     // selectedRows.value = records
     if(!records.length) isSlect.value = true
     else isSlect.value = false
@@ -177,7 +184,8 @@ const gridEvents = {
   //全选事件
   checkboxAll: async({ checked, $event })=>{
     if(checked) {
-    const isAddList = importData.value.filter((item:AccountChildResponse) =>
+      isSelectAll.value = true
+      const isAddList = importData.value.filter((item:AccountChildResponse) =>
       !item.exist
     );
       selectedRowKeys.value = isAddList.map((item:AdvertiserItem) => item.advertiserId);
