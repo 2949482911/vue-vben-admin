@@ -16,18 +16,18 @@ const { accountInfo } = defineProps({
   // 账户列表
   accountInfo: {
     type: Array<AccountInfo>,
-    default: () => ([])
+    default: () => [],
   },
-})
+});
 
 // 当前选中的账户 ID
-const currentAccountId = ref<string >('');
+const currentAccountId = ref<string>('');
 // 标题包
 const localTitlePackage = ref<VivoTitlePackageData>({
   titlePackageConfig: {
-    method: 'all'
+    method: 'all',
   },
-  data: new Map<string, Array<TitlePackageItem>>()
+  data: new Map<string, Array<TitlePackageItem>>(),
 });
 // 内部维护一个临时变量，记录弹窗中所有的勾选对象
 const tempSelectedRows = ref<TitlePackageItem[]>([]);
@@ -35,10 +35,10 @@ const tempSelectedRows = ref<TitlePackageItem[]>([]);
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: "Select",
+      component: 'Select',
       componentProps: {
         allowClear: true,
-        options:ACTIVE_PLATFORM,
+        options: ACTIVE_PLATFORM,
         placeholder: '请选择',
       },
       fieldName: 'platform',
@@ -59,7 +59,7 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         showSearch: true,
         placeholder: '请选择',
-        api: async (params:any) => {
+        api: async (params: any) => {
           return await projectApi.fetchProjectList(params);
         },
         filterOption: (inputValue: string, option: { label: string }) => {
@@ -81,7 +81,7 @@ const formOptions: VbenFormProps = {
   showCollapseButton: false,
   // 按下回车时是否提交表单
   submitOnEnter: false,
-}
+};
 
 const gridOptions: VxeGridProps = {
   border: true,
@@ -114,19 +114,20 @@ const gridOptions: VxeGridProps = {
       title: '平台',
       width: 'auto',
     },
-    ...(TABLE_COMMON_COLUMNS as any[]).filter(col => col.field !== 'options'),
+    ...(TABLE_COMMON_COLUMNS as any[]).filter((col) => col.field !== 'options'),
   ],
   height: '500px',
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         const params = trimObject(args);
         // 如果是按账户分配模式，注入当前账户 ID
-        const accountParams = (localTitlePackage.value.titlePackageConfig.method === 'account')
-        // ? {} 
-        ? { platformAdvertiserId: currentAccountId.value } //测试功能中，后面正式放出来
-        : {};
+        const accountParams =
+          localTitlePackage.value.titlePackageConfig.method === 'account'
+            ? // ? {}
+              { platformAdvertiserId: currentAccountId.value } //测试功能中，后面正式放出来
+            : {};
         const res = await titlePackApi.fetchGetTitlePack({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -138,7 +139,7 @@ const gridOptions: VxeGridProps = {
         setTimeout(() => {
           const grid = gridApi.grid;
           if (grid && tempSelectedRows.value.length > 0) {
-            const ids = tempSelectedRows.value.map(item => item.id);
+            const ids = tempSelectedRows.value.map((item) => item.id);
             grid.setCheckboxRowKey(ids, true);
           }
         }, 100);
@@ -151,13 +152,13 @@ const gridOptions: VxeGridProps = {
 
 const gridEvents = {
   checkboxChange: () => updateTempRecords(),
-  checkboxAll: () => updateTempRecords()
-}
+  checkboxAll: () => updateTempRecords(),
+};
 
 // 抽取公共方法：获取当前 Grid 所有的勾选数据（含跨页和搜索结果）
-function updateTempRecords(){
+function updateTempRecords() {
   const grid = gridApi.grid;
-  if(!grid) return;
+  if (!grid) return;
 
   const reserveRows = grid.getCheckboxReserveRecords();
   const currentRows = grid.getCheckboxRecords();
@@ -165,14 +166,13 @@ function updateTempRecords(){
   const allSelect = [...reserveRows, ...currentRows];
 
   const uniqueMap = new Map();
-  allSelect.forEach(item=>{
-    if(item && item.id){
-      uniqueMap.set(item.id ,item)
+  allSelect.forEach((item) => {
+    if (item && item.id) {
+      uniqueMap.set(item.id, item);
     }
-  })
+  });
 
   tempSelectedRows.value = Array.from(uniqueMap.values());
-  console.log(tempSelectedRows.value,'tempSelectedRows.value');
 }
 
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents });
@@ -181,7 +181,7 @@ async function changeMethod(e: RadioChangeEvent) {
   const value = e.target.value;
   tempSelectedRows.value = [];
   if (value === 'all') {
-    currentAccountId.value = "";
+    currentAccountId.value = '';
     localTitlePackage.value.data.clear();
   } else {
     currentAccountId.value = accountInfo[0]?.localAdvertiserId ?? '';
@@ -196,7 +196,7 @@ async function changeMethod(e: RadioChangeEvent) {
   await gridApi.query();
 }
 
-const [Modal,modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const data = modalApi.getData();
@@ -204,11 +204,11 @@ const [Modal,modalApi] = useVbenModal({
         ...data,
         titlePackageConfig: { ...data.titlePackageConfig },
         // 通过 new Map(oldMap) 实现浅拷贝，Map 内部的键值对是新的，不会影响原 Map
-        data: new Map(data.data) 
+        data: new Map(data.data),
       };
       if (localTitlePackage.value.titlePackageConfig.method === 'all') {
-        currentAccountId.value = "";
-        tempSelectedRows.value = localTitlePackage.value.data.get("0") || [];
+        currentAccountId.value = '';
+        tempSelectedRows.value = localTitlePackage.value.data.get('0') || [];
       } else {
         currentAccountId.value = accountInfo[0]?.localAdvertiserId ?? '';
         tempSelectedRows.value = localTitlePackage.value.data.get(currentAccountId.value) || [];
@@ -217,7 +217,7 @@ const [Modal,modalApi] = useVbenModal({
       // 触发第一次查询和回显
       setTimeout(() => {
         gridApi.query();
-      }, 200)
+      }, 200);
     }
   },
   async onCancel() {
@@ -229,7 +229,8 @@ const [Modal,modalApi] = useVbenModal({
     if (!grid) return;
 
     // 确定时，确保最后停留的账户数据已同步
-    const finalKey = localTitlePackage.value.titlePackageConfig.method === 'all' ? "0" : currentAccountId.value;
+    const finalKey =
+      localTitlePackage.value.titlePackageConfig.method === 'all' ? '0' : currentAccountId.value;
     if (finalKey) {
       if (tempSelectedRows.value.length > 0) {
         localTitlePackage.value.data.set(finalKey, [...tempSelectedRows.value]);
@@ -240,15 +241,19 @@ const [Modal,modalApi] = useVbenModal({
 
     // 校验逻辑
     if (localTitlePackage.value.titlePackageConfig.method === 'account') {
-      const unselected = accountInfo.filter(acc => !localTitlePackage.value.data.get(acc.localAdvertiserId)?.length);
+      const unselected = accountInfo.filter(
+        (acc) => !localTitlePackage.value.data.get(acc.localAdvertiserId)?.length,
+      );
       if (unselected.length > 0) {
-        return message.warning(`请为账户 [${unselected.map(a => a.advertiserName).join('、')}] 选择标题包`);
+        return message.warning(
+          `请为账户 [${unselected.map((a) => a.advertiserName).join('、')}] 选择标题包`,
+        );
       }
-      localTitlePackage.value.data.delete("0");
+      localTitlePackage.value.data.delete('0');
     }
-    emit('update:titlePackageConfig', { ...localTitlePackage.value }); 
+    emit('update:titlePackageConfig', { ...localTitlePackage.value });
     await modalApi.close();
-  }
+  },
 });
 
 /**账户点击/切换逻辑 */
@@ -273,29 +278,34 @@ const handleAccountClick = async (account: AccountInfo) => {
   await gridApi.grid.clearCheckboxReserve();
   await gridApi.query({});
 };
-
 </script>
 <template>
   <Modal title="添加标题包" class="w-[80%]">
-    <div class="mb-4">分配方式：
-      <RadioGroup v-model:value="localTitlePackage.titlePackageConfig.method" @change="changeMethod">
+    <div class="mb-4">
+      分配方式：
+      <RadioGroup
+        v-model:value="localTitlePackage.titlePackageConfig.method"
+        @change="changeMethod"
+      >
         <RadioButton value="all">全部相同</RadioButton>
         <RadioButton value="account">按账户分配</RadioButton>
       </RadioGroup>
     </div>
 
     <div :class="localTitlePackage.titlePackageConfig.method === 'account' ? 'flex' : ''">
-      <div v-if="localTitlePackage.titlePackageConfig.method === 'account'" 
-           class="w-[250px] flex-shrink-0 border-r pr-4 mr-4 overflow-y-auto max-h-[500px]">
-        <div 
-          v-for="(item) in accountInfo" 
+      <div
+        v-if="localTitlePackage.titlePackageConfig.method === 'account'"
+        class="w-[250px] flex-shrink-0 border-r pr-4 mr-4 overflow-y-auto max-h-[500px]"
+      >
+        <div
+          v-for="item in accountInfo"
           :key="item.localAdvertiserId"
           :class="[
             'p-2 mb-2 cursor-pointer border rounded transition-all',
             // 基础状态判断
             localTitlePackage.data.get(item.localAdvertiserId) ? 'has-packages' : 'no-packages',
             // 选中状态判断 (覆盖基础状态)
-            currentAccountId === item.localAdvertiserId ? 'is-active' : ''
+            currentAccountId === item.localAdvertiserId ? 'is-active' : '',
           ]"
           @click="handleAccountClick(item)"
         >
@@ -307,12 +317,10 @@ const handleAccountClick = async (account: AccountInfo) => {
       </div>
       <div class="flex-1 overflow-hidden min-w-0">
         <Grid>
-          <template #status="{row}">
-              <Tag color="green" v-if="row.status === 1">
-                启用
-              </Tag>
-              <Tag v-else color="red">不启用</Tag>
-            </template>
+          <template #status="{ row }">
+            <Tag color="green" v-if="row.status === 1"> 启用 </Tag>
+            <Tag v-else color="red">不启用</Tag>
+          </template>
         </Grid>
       </div>
     </div>
@@ -324,7 +332,7 @@ const handleAccountClick = async (account: AccountInfo) => {
 .has-packages {
   background-color: #e6f4ff; /* 极浅蓝背景 */
   border-color: #91caff !important; /* 浅蓝色边框 */
-  
+
   .text-sm {
     font-weight: bold;
     color: #1677ff; /* 蓝色文字 */
@@ -337,7 +345,7 @@ const handleAccountClick = async (account: AccountInfo) => {
   border-color: #a2a2a2;
   border-style: dashed; /* 虚线 */
   opacity: 0.6;
-  
+
   .text-sm {
     color: #272727;
   }
@@ -349,7 +357,7 @@ const handleAccountClick = async (account: AccountInfo) => {
   border-color: #0958d9 !important;
   border-style: solid !important;
   opacity: 1 !important;
-  
+
   .text-sm {
     color: #003eb3 !important;
   }

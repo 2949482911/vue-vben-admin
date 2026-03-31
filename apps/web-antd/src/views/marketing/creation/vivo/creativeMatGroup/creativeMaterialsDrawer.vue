@@ -1,30 +1,40 @@
 <script lang="ts" setup>
-import {useVbenDrawer} from '@vben/common-ui';
-import {useVbenForm} from '#/adapter/form';
-import {ref,nextTick} from 'vue';
-import {Input, InputNumber, message, RadioButton, RadioGroup, Tag} from 'ant-design-vue';
+import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenForm } from '#/adapter/form';
+import { ref, nextTick } from 'vue';
+import { Input, InputNumber, message, RadioButton, RadioGroup, Tag } from 'ant-design-vue';
 import CreativeProductionModule from '../../creativeProduction.vue';
-import {DISPLAYFORM_SELECT} from '../projectEnum';
-import {adInvestmentApi} from '#/api';
-import type {AccountInfo, Material, MaterialData} from "#/views/marketing/creation/creation";
-import type {VivoPromotionData} from "#/views/marketing/creation/vivo/vivo";
-import { useProjectPlaceholder } from "#/utils/customName";
+import { DISPLAYFORM_SELECT } from '../projectEnum';
+import { adInvestmentApi } from '#/api';
+import type { AccountInfo, Material, MaterialData } from '#/views/marketing/creation/creation';
+import type { VivoPromotionData } from '#/views/marketing/creation/vivo/vivo';
+import { useProjectPlaceholder } from '#/utils/customName';
 
-const { customizeName, handleTagClick, placeholders } = useProjectPlaceholder('', 100);
+const PROJECT_PLACEHOLDERS = [
+  { label: '时间', value: '<时间>' },
+  { label: '日期', value: '<日期>' },
+  { label: '时分秒', value: '<时分秒>' },
+  { label: '动态标号', value: '<动态标号>' },
+] as const; // 使用 as const 保证类型安全
 
-const emit = defineEmits(['update:creativeMaterialsDrawerConfig', 'update:creativeMaterialsGroupList'])
+const { customizeName, handleTagClick } = useProjectPlaceholder('', 100);
+
+const emit = defineEmits([
+  'update:creativeMaterialsDrawerConfig',
+  'update:creativeMaterialsGroupList',
+]);
 const creativeProductionModuleRef = ref();
-const {accountInfo, campaign} = defineProps({
+const { accountInfo, campaign } = defineProps({
   // 媒体账户
   accountInfo: {
     type: Array as () => AccountInfo[],
-    default: () => ([])
+    default: () => [],
   },
   campaign: {
     type: Object,
     default: () => {
       return {
-        name: "",
+        name: '',
         adType: 0,
         mediaType: 0,
         dailyBudget: 0,
@@ -32,23 +42,21 @@ const {accountInfo, campaign} = defineProps({
         pushForm: 0,
         pushType: 0,
         promotionType: 0,
-        conversionMonitorType: 0
-      }
-    }
+        conversionMonitorType: 0,
+      };
+    },
   },
   // 广告创意素材组信息
 });
 
 // 本地素材临时变量
-const materialData = ref<MaterialData>(
-  {
-    config: {
-      method: "all",
-    },
-    // 数据直接获取子组件方法
-    data: new Map<string, Material[]>
-  }
-);
+const materialData = ref<MaterialData>({
+  config: {
+    method: 'all',
+  },
+  // 数据直接获取子组件方法
+  data: new Map<string, Material[]>(),
+});
 
 /**
  * 初始化子组件本地临时变量
@@ -62,13 +70,13 @@ function changeConfigMethodHandler(method: string) {
  */
 
 const promotionObj = ref<VivoPromotionData>({
-  deepLink: "",
+  deepLink: '',
   generalSwitch: 0,
-  groupId: "",
-  h5Code: "",
+  groupId: '',
+  h5Code: '',
   h5Type: 0,
-  name: "",
-  pageUrl: "",
+  name: '',
+  pageUrl: '',
   videoAttribution: 0,
   config: {
     videoMaxCount: 5,
@@ -76,43 +84,43 @@ const promotionObj = ref<VivoPromotionData>({
     materialNormId: 0,
     placeType: 0,
     strongReminder: 0,
-    virtualPositionId: ""
-  }
+    virtualPositionId: '',
+  },
 });
 const moduleKey = ref(0);
 
 //创意类型的下拉
-const creativeTypeOptions = ref<{ label: string; value: number; displayType: number }[]>([])
+const creativeTypeOptions = ref<{ label: string; value: number; displayType: number }[]>([]);
 
 async function creativeTypeEvent(val: number) {
   if (!val) {
-    formApi.updateSchema([{fieldName: 'materialNormId', componentProps: {options: []}}]);
-    await formApi.setFieldValue("materialNormId", null)
+    formApi.updateSchema([{ fieldName: 'materialNormId', componentProps: { options: [] } }]);
+    await formApi.setFieldValue('materialNormId', null);
     return;
   }
-  const ids = accountInfo.map((item: AccountInfo) => item.localAdvertiserId)
+  const ids = accountInfo.map((item: AccountInfo) => item.localAdvertiserId);
   try {
     const res = await adInvestmentApi.fetchCreativeType({
       advertiserId: ids.length > 0 ? ids : [],
-      // advertiserId: ["2004432916973719554"],
+      // advertiserId: ['2004432916973719554'],
       displayType: val,
       adType: campaign.adType,
       mediaType: campaign.mediaType,
       positionType: 1,
-      genType: 2
+      genType: 2,
     });
     creativeTypeOptions.value = (res || []).map((item: any) => ({
       label: item.displayMode1Name + '/' + item.dimensions + '/' + String(item.id),
       value: item.id,
-      displayType: item.displayType
+      displayType: item.displayType,
     }));
     formApi.updateSchema([
       {
         fieldName: 'materialNormId',
         componentProps: {
-          options: creativeTypeOptions.value
-        }
-      }
+          options: creativeTypeOptions.value,
+        },
+      },
     ]);
     await formApi.setFieldValue('materialNormId', undefined);
   } catch (e) {
@@ -123,12 +131,12 @@ async function creativeTypeEvent(val: number) {
 //投放虚拟位置的下拉
 async function virtualLocation(val: number) {
   if (!val) {
-    formApi.updateSchema([{fieldName: 'virtualPositionId', componentProps: {options: []}}]);
-    await formApi.setFieldValue("virtualPositionId", [])
+    formApi.updateSchema([{ fieldName: 'virtualPositionId', componentProps: { options: [] } }]);
+    await formApi.setFieldValue('virtualPositionId', []);
     return;
   }
-  const displayTypeObj = creativeTypeOptions.value.find(item => item.value === val)
-  const ids = accountInfo.map((item: AccountInfo) => item.localAdvertiserId)
+  const displayTypeObj = creativeTypeOptions.value.find((item) => item.value === val);
+  const ids = accountInfo.map((item: AccountInfo) => item.localAdvertiserId);
   try {
     const res = await adInvestmentApi.fetchVirtualLocation({
       advertiserId: ids.length > 0 ? ids : [],
@@ -138,20 +146,19 @@ async function virtualLocation(val: number) {
       mediaType: campaign.mediaType,
       normId: displayTypeObj!.value,
     });
-    const formattedOptions = (res || []).map((item: {
-      virtualPositionName: string,
-      virtualPositionUuid: string
-    }) => ({
-      label: item.virtualPositionName,
-      value: item.virtualPositionUuid,
-    }));
+    const formattedOptions = (res || []).map(
+      (item: { virtualPositionName: string; virtualPositionUuid: string }) => ({
+        label: item.virtualPositionName,
+        value: item.virtualPositionUuid,
+      }),
+    );
     formApi.updateSchema([
       {
         fieldName: 'virtualPositionId',
         componentProps: {
-          options: formattedOptions
-        }
-      }
+          options: formattedOptions,
+        },
+      },
     ]);
     await formApi.setFieldValue('virtualPositionId', []);
   } catch (e) {
@@ -166,15 +173,15 @@ const [Drawer, drawerApi] = useVbenDrawer({
     await formApi.resetForm();
     // 先重置父组件的分配方式
     materialData.value.config.method = 'all';
-    // await changeConfigMethodHandler('all')
+    // await changeConfigMethodHandler('all');
     // 【关键】强制让子组件同步这个重置后的状态
     // 如果没有这一步，子组件内部的 localMaterialData 还是旧的
     creativeProductionModuleRef.value?.setLocalMaterialData(materialData.value);
     await drawerApi.close();
   },
   async onConfirm() {
-    if (customizeName.value) await formApi.setValues({name: customizeName.value});
-    await formApi.setValues({generalSwitch: promotionObj.value.generalSwitch});
+    if (customizeName.value) await formApi.setValues({ name: customizeName.value });
+    await formApi.setValues({ generalSwitch: promotionObj.value.generalSwitch });
     const isValidate = await formApi.validate();
     if (!isValidate.valid) return;
 
@@ -192,9 +199,12 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
     if (currentMethod === 'all') {
       // 【全部相同模式】：只需判断 key 为 "0" 的数据
-      const allData = materialMap.get("0") || [];
+      const allData = materialMap.get('0') || [];
       // 校验逻辑：是否有组，且第一组是否有图片或视频
-      if (allData.length === 0 || (allData[0].image.length === 0 && allData[0].video.length === 0)) {
+      if (
+        allData.length === 0 ||
+        (allData[0].image.length === 0 && allData[0].video.length === 0)
+      ) {
         isMaterialValid = false;
         errorMsg = '请在全部相同模式下选择素材！';
       }
@@ -203,10 +213,12 @@ const [Drawer, drawerApi] = useVbenDrawer({
       for (const account of accountInfo) {
         const accountKey = String(account.localAdvertiserId);
         const accountData = materialMap.get(accountKey) || [];
-        
+
         // 校验该账户下是否至少有一个组选择了素材
-        const hasSelected = accountData.some((group:Material) => group.image.length > 0 || group.video.length > 0);
-        
+        const hasSelected = accountData.some(
+          (group: Material) => group.image.length > 0 || group.video.length > 0,
+        );
+
         if (!hasSelected) {
           isMaterialValid = false;
           errorMsg = `账户 [${account.localAdvertiserId}] 尚未选择素材！`;
@@ -219,33 +231,31 @@ const [Drawer, drawerApi] = useVbenDrawer({
       return message.warning(errorMsg);
     }
 
-    const {
-      placeType, materialNormId, virtualPositionId
-    } = await formApi.getValues();
+    const { placeType, materialNormId, virtualPositionId } = await formApi.getValues();
 
     promotionObj.value.config.virtualPositionId = virtualPositionId.join(',');
     promotionObj.value.config.materialNormId = materialNormId;
     promotionObj.value.config.placeType = placeType;
     promotionObj.value.name = customizeName.value;
-    materialData.value = creativeProductionModuleRef.value.getLocalMaterialData()
-    emit('update:creativeMaterialsDrawerConfig', promotionObj.value)
-    emit('update:creativeMaterialsGroupList', materialData.value)
+    materialData.value = creativeProductionModuleRef.value.getLocalMaterialData();
+    emit('update:creativeMaterialsDrawerConfig', promotionObj.value);
+    emit('update:creativeMaterialsGroupList', materialData.value);
     await formApi.resetForm();
     await drawerApi.close();
   },
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const { promotion, material } = drawerApi.getData();
-      
+
       // 1. 基础同步数据赋值
       promotionObj.value = promotion;
       customizeName.value = promotion.name;
-      
+
       // 2. 初始化素材模式
       if (material?.config) {
         materialData.value.config.method = material.config.method || 'all';
       }
-      
+
       // 3. 处理级联接口回显 (核心改进)
       const { placeType, materialNormId, virtualPositionId } = promotion.config;
       const vIds = virtualPositionId?.trim() ? virtualPositionId.split(',') : [];
@@ -255,7 +265,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         if (placeType) {
           await creativeTypeEvent(placeType);
         }
-        
+
         // 第二步：如果已经有创意类型 ID，接着加载“虚拟位置”的 Options
         if (materialNormId) {
           await virtualLocation(materialNormId);
@@ -270,23 +280,27 @@ const [Drawer, drawerApi] = useVbenDrawer({
           materialNormId: materialNormId,
           virtualPositionId: vIds,
         });
-
       } catch (error) {
-        console.error("回显接口加载失败", error);
+        console.error('回显接口加载失败', error);
       }
 
       // 4. 处理素材组件数据同步
       if (material?.data && material.data.size > 0) {
         materialData.value = material;
+        nextTick(() => {
+          creativeProductionModuleRef.value?.setLocalMaterialData(materialData.value);
+        });
       } else {
         await changeConfigMethodHandler(materialData.value.config.method);
+        nextTick(() => {
+          const initializedData = creativeProductionModuleRef.value?.getLocalMaterialData();
+          if (initializedData) {
+            materialData.value = initializedData;
+          }
+        });
       }
-      
-      nextTick(() => {
-        creativeProductionModuleRef.value?.setLocalMaterialData(materialData.value);
-      });
     }
-  }
+  },
 });
 
 const [Form, formApi] = useVbenForm({
@@ -295,7 +309,7 @@ const [Form, formApi] = useVbenForm({
     // 所有表单项
     componentProps: {
       allowClear: true,
-      class: 'w-[300px]'
+      class: 'w-[300px]',
     },
     labelWidth: 120,
   },
@@ -321,7 +335,7 @@ const [Form, formApi] = useVbenForm({
         options: DISPLAYFORM_SELECT,
         onChange: async (val: number) => {
           await creativeTypeEvent(val);
-        }
+        },
       },
       fieldName: 'placeType',
       label: '展现形式',
@@ -335,9 +349,9 @@ const [Form, formApi] = useVbenForm({
         options: [],
         onChange: async (val: number) => {
           await virtualLocation(val);
-        }
+        },
       },
-      fieldName: 'materialNormId',//只选一个
+      fieldName: 'materialNormId', //只选一个
       label: '创意类型',
       rules: 'required',
     },
@@ -349,7 +363,7 @@ const [Form, formApi] = useVbenForm({
         options: [],
         mode: 'multiple',
       },
-      fieldName: 'virtualPositionId',//可以选择多个
+      fieldName: 'virtualPositionId', //可以选择多个
       label: '投放虚拟位置',
       rules: 'required',
     },
@@ -363,15 +377,19 @@ const [Form, formApi] = useVbenForm({
 });
 
 async function handleCreativeMaterialsGroupList(data: MaterialData) {
-  materialData.value = data
+  materialData.value = data;
 }
 </script>
 
 <template>
   <div>
     <Drawer class="w-[50%]" title="广告创意素材组">
-      <div class="mb-4">分配方式：
-        <RadioGroup v-model:value="materialData.config.method" @change="(val) => changeConfigMethodHandler(val.target.value)">
+      <div class="mb-4">
+        分配方式：
+        <RadioGroup
+          v-model:value="materialData.config.method"
+          @change="(val) => changeConfigMethodHandler(val.target.value)"
+        >
           <RadioButton value="all">全部相同</RadioButton>
           <RadioButton value="account">按账户分配</RadioButton>
         </RadioGroup>
@@ -389,7 +407,7 @@ async function handleCreativeMaterialsGroupList(data: MaterialData) {
 
             <div class="flex flex-wrap items-center gap-2 text-xs mt-1">
               <span class="text-gray-500 font-medium">通配符：</span>
-              <template v-for="item in placeholders" :key="item.value">
+              <template v-for="item in PROJECT_PLACEHOLDERS" :key="item.value">
                 <Tag
                   class="cursor-pointer select-none transition-all hover:border-blue-400"
                   :color="customizeName.includes(item.value) ? 'blue' : 'default'"
@@ -402,14 +420,22 @@ async function handleCreativeMaterialsGroupList(data: MaterialData) {
           </div>
         </template>
         <template #creativity>
-          <div style="margin: 0 30px 0 0;font-size: 14px;">
-            <InputNumber id="inputNumber" v-model:value="promotionObj.config.videoMaxCount" :min="1"
-                         :max="100"/>
+          <div style="margin: 0 30px 0 0; font-size: 14px">
+            <InputNumber
+              id="inputNumber"
+              v-model:value="promotionObj.config.videoMaxCount"
+              :min="1"
+              :max="100"
+            />
             个视频
           </div>
-          <div style="font-size: 14px;">
-            <InputNumber id="inputNumber" v-model:value="promotionObj.config.imageMaxCount" :min="1"
-                         :max="100"/>
+          <div style="font-size: 14px">
+            <InputNumber
+              id="inputNumber"
+              v-model:value="promotionObj.config.imageMaxCount"
+              :min="1"
+              :max="100"
+            />
             个图片
           </div>
         </template>
@@ -435,6 +461,4 @@ async function handleCreativeMaterialsGroupList(data: MaterialData) {
   </div>
 </template>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>
