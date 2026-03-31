@@ -1,0 +1,233 @@
+<script setup lang="ts">
+import {Page, useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
+import {ref,computed, reactive } from 'vue';
+import {useVbenForm} from "#/adapter/form";
+import type {ProjectItem} from "#/api/models";
+import { projectApi, userApi, orgApi} from "#/api";
+import type {UserItem, OrgItem} from "#/api/models";
+import type { FormSchema } from '@vben/components';
+const emit = defineEmits(['pageReload']);
+
+//父组件传过来的advertiserId
+const selectedRows = ref<ProjectItem[]>([]);
+const modalType = ref<TitleKey>('')
+const title = ref<string>('')
+const menuData = ref<OrgItem[]>([])
+
+const salesOption = ref([])
+type TitleKey = 'org' | 'creator' | 'status';
+
+const titleMap: Record<TitleKey, string> = reactive({
+  org: '批量修改部门',
+  creator: '批量修改创建人',
+  status: '批量修改状态',
+})
+const creatorUerName = ref()
+const selectedOrgCode = ref()
+  // 核心修改：用 computed 包裹 schema
+const dynamicSchema = computed((): FormSchema[] =>{
+  let operateSchema: FormSchema[] = []
+  if(modalType.value === 'creator') {
+    operateSchema = [{
+        component: 'TreeSelect',
+        componentProps: {
+          allowClear: true,
+          placeholder: `${$t('common.choice')}`,
+          showSearch: true,
+          filterTreeNode: true,
+          treeData: menuData,
+          fieldNames: {
+            label: 'name',
+            value: 'id',
+            children: 'children',
+          },
+        },
+        fieldName: 'orgId',
+        label: '部门',
+        
+      },
+      {
+        component: 'Select',
+        componentProps: {
+          allowClear: true,
+          options: salesOption,
+          placeholder: `${$t('common.choice')}`,
+          onSelect: (selectedKeys, event, node) => {
+            if(modalType.value === 'creator') {
+              if (event && event.label) {
+                creatorUerName.value = event.label
+              }
+            }
+          }
+        },
+        // 字段名
+        fieldName: modalType.value === 'creator'?'creatorId':'saleId',
+        label: modalType.value === 'creator'?'创建人':'销售',
+        dependencies: {
+          show: true,
+          triggerFields: ['orgId'],
+          required: (value) => !!value.orgId,
+          rules: (value) => {
+            if (value.orgId) {
+              return 'required';
+            }
+            return '';
+          },
+          if: (value, formApi) => {
+            if (value.orgId) {
+              modalType.value === 'creator'? formApi.setFieldValue('creatorId', null) : formApi.setFieldValue('saleId', null);
+              loadSalesByOrg(value.orgId);
+            } else {
+              salesOption.value = [];
+            }
+            return true;
+          },
+        },
+      }
+    ]
+  } else if(modalType.value === 'status'){
+    operateSchema = [{
+        component: 'RadioGroup',
+        componentProps: {
+          options: [
+            {
+              label: '启用',
+              value: 1,
+            },
+            {
+              label: '禁止',
+              value: 9,
+            },
+          ],
+        },
+        fieldName: 'status',
+        label: '状态',
+      }
+    ]
+  } else if(modalType.value === 'org') {
+    operateSchema = [{
+        component: 'TreeSelect',
+        componentProps: {
+          allowClear: true,
+          placeholder: `${$t('common.choice')}`,
+          showSearch: true,
+          filterTreeNode: true,
+          treeData: menuData,
+          fieldNames: {
+            label: 'name',
+            value: 'id',
+            children: 'children',
+          },
+          onSelect: (selectedKeys, event, node) => {
+            if (event && event.code) {
+              selectedOrgCode.value = event.code
+            }
+          }
+        },
+        fieldName: 'orgId',
+        label: '部门',
+      },
+    ]
+  }
+ return operateSchema
+});
+
+
+async function loadSalesByOrg(orgId: string) {
+  if (!orgId) {
+    salesOption.value = [];
+    return;
+  }
+  const saleSRes: any = await userApi.fetchUserList({ orgId, page: 1, pageSize: 200 });
+  salesOption.value = saleSRes.items.map((item: UserItem) => ({
+    label: item.nickname,
+    value: item.id,
+  }));
+}
+const [Form, formApi] = useVbenForm({
+  showDefaultActions: false,
+  commonConfig: {
+    // 所有表单项
+    componentProps: {
+      class: 'w-full',
+    },
+  },
+  layout: 'horizontal',
+  handleSubmit: async (formVal) => {
+    const targetIds = selectedRows.value.map(item => item.id);
+    let type = '';
+    let values = {};
+    if(modalType.value === 'org') {
+      type = "update_advertiser_organization",
+      values = {
+        org_id: formVal.orgId,
+        org_code: selectedOrgCode.value
+      }
+    } else if(modalType.value === 'creator') {
+      type = 'update_advertiser_create_user',
+      values = {
+        create_username: creatorUerName.value,
+        create_user_id: formVal.creatorId
+      }
+    } else if(modalType.value === 'status') {
+      type = formVal.status === 1 ? 'enable' : 'disable'
+    } 
+    await (projectApi.fetchBatchOptions({
+      targetIds: targetIds,
+      type: type,
+      values: values
+    }))
+  },
+  schema: dynamicSchema
+});
+
+const [Modal, modalApi] = useVbenModal({
+  centered: true,
+  fullscreenButton: false,
+  closeOnPressEscape: false,
+  contentClass:'modalStyle',
+  async onOpenChange(isOpen: boolean) {    
+    if (isOpen) {
+      const data = modalApi.getData();
+      selectedRows.value = data.selectedRows;
+      modalType.value = data.modalType;
+      const orgRes = await orgApi.fetchOrgTree();
+      menuData.value = orgRes;
+      title.value = titleMap[modalType.value]
+    }
+  },
+  async onCancel() {
+    await formApi.resetForm();
+    await modalApi.close();
+    title.value = '';
+  },
+  async onConfirm() {
+    const result = await formApi.validate();
+    if (!result.valid) {
+      return
+    }
+    await formApi.submitForm();
+    emit('pageReload');
+    await modalApi.close();
+  },
+});
+
+
+</script>
+
+<template>
+  <div>
+    <Page>
+      <Modal class="w-[400px]" :title="title">
+        <Form/>
+      </Modal>
+    </Page>
+  </div>
+</template>
+
+<style scoped lang="scss">
+:global(.z-popup .modalStyle) {
+  min-height: 50px !important;
+}
+</style>
