@@ -290,6 +290,16 @@ const formOptions: VbenFormProps = {
       component: 'Select',
       componentProps: {
         allowClear: true,
+        options: STATUS_SELECT,
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'hourlyState',
+      label: `${$t('marketing.advertiser.columns.hourlyState')}`,
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
         showSearch: true,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
