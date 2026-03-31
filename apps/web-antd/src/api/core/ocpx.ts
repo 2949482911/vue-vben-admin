@@ -13,6 +13,7 @@ import type {
   UpdateBehavioraPlatformRequest,
   UpdateOcpxTaskRequest,
   UpdatePlatformCallbackRequest,
+  RePushRetryBehaviorCallbackType
 } from "#/api/models";
 import type {BehavioraPlatformItem} from "#/api/models/ocpx";
 import type {BatchOptions} from "#/api/models/core";
@@ -165,8 +166,8 @@ class ClickMonitorApi extends BaseApi {
   }
 
   /**回传媒体批量重试*/
-  fetchRePushRetryBehaviorCallback(ids: string[]) {
-    return requestClient.post(this.getServiceUrl("batch_repush_behavior_callback"), ids)
+  fetchRePushRetryBehaviorCallback(params: RePushRetryBehaviorCallbackType) {
+    return requestClient.post(this.getServiceUrl("batch_repush_behavior_callback"), params)
   }
 }
 

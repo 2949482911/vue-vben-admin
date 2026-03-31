@@ -1,18 +1,32 @@
 <script setup lang="ts" name="BehaviorRecordList">
 import type { VbenFormProps } from '@vben/common-ui';
-
+import {ref} from 'vue';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { OcpxBehaviorRecordItem } from '#/api/models';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { useVbenVxeGrid } from '@vben/plugins/vxe-table';
-
 import { Tag } from 'ant-design-vue';
 
-import { ocpxTaskApi } from '#/api/core/ocpx';
+import { ocpxTaskApi, behavioraPlatformApi, platformCallbackApi } from '#/api/core/ocpx';
 import { trimObject } from '#/utils/trim';
 
+const defalutBehavioraPlatformId = ref<string>()
+const defalutPlatformCallbackId = ref<string>()
+const taskId = ref<string>()
+const queryBehaviora = ref({
+  page: 1,
+  pageSize: 1000,
+  ids:'',
+  name:''
+})
+const queryCallback = ref({
+  page: 1,
+  pageSize: 1000,
+  ids:'',
+  name:''
+})
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
   fullscreenButton: false,
@@ -24,6 +38,12 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
+      const modalData = modalApi.getData()
+      taskId.value = modalData.taskId
+      defalutBehavioraPlatformId.value = modalData.behavioraPlatformIds[0]
+      defalutPlatformCallbackId.value = modalData.platformCallbackIds[0]
+      queryCallback.value.ids = modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : []
+      queryBehaviora.value.ids = modalData.behavioraPlatformIds.length > 0? modalData.behavioraPlatformIds.join(',') : []
     }
   },
 });
@@ -33,9 +53,46 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
-      component: 'Input',
+      component: 'ApiSelect',
       fieldName: 'behavioraPlatformId',
       label: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorPlatformName')}`,
+      defaultValue: defalutBehavioraPlatformId,
+      componentProps: {
+        allowClear: true,
+        placeholder: `${$t('common.choice')}`,
+          api: async () => {
+          return await behavioraPlatformApi.fetchBehavioraPlatformList(queryBehaviora.value);
+        },
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        valueField: 'id',
+        labelField: 'name',
+        resultField: "items",
+      },
+    },
+    {
+      component: 'ApiSelect',
+      fieldName: 'platformCallbackId',
+      label: `${$t('ocpx.ocpx_task.behavior_record_columns.platformCallbackName')}`,
+      defaultValue: defalutPlatformCallbackId,
+      componentProps: {
+        allowClear: true,
+        placeholder: `${$t('common.choice')}`,
+        api: async () => {
+          return await platformCallbackApi.fetchPlatformcallbackList(queryCallback.value);
+        },
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        params: {
+          page: 1,
+          pageSize: 1000,
+        },
+        valueField: 'id',
+        labelField: 'name',
+        resultField: "items",
+      },
     },
   ],
   // 控制表单是否显示折叠按钮
@@ -93,12 +150,11 @@ const gridOptions: VxeGridProps<OcpxBehaviorRecordItem> = {
     ajax: {
       query: async ({ page }, args) => {
         const params = trimObject(args);
-
         return await ocpxTaskApi.fetchOxpcBehaviorRecordList({
           page: page.currentPage,
           pageSize: page.pageSize,
           ...params,
-          ocpxTaskId: modalApi.getData().taskId,
+          taskId: modalApi.getData().taskId,
         });
       },
     },
