@@ -670,10 +670,21 @@ export interface StrategyGropType<T = any> extends BaseItem {
   configObj: PlatformCreation<T>;
 }
 export interface GetStrategyGropType extends PageRequestParams {
-  name: string,
-  platform: string,
-  projectId: string
+  name: string;
+  platform: string;
+  projectId: string;
 }
 export interface UpdateStrategyGropType extends StrategyGropType {
-  id: string,
+  id: string;
+}
+
+export interface MetricGroupType extends BaseItem {
+  name: string;
+  description: string;
+}
+export interface MetricGroupPageRequest extends BaseItem {
+  name: string;
+}
+export interface UpdateMetricGroupType extends MetricGroupType {
+  id: string;
 }

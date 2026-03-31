@@ -77,6 +77,12 @@
 
     }
   },
+  "metricGroup": {
+    "columns": {
+      "name": "名字",
+      "description": "描述"
+    }
+  },
   "report": {
     "dims": {
       "title": "维度",
