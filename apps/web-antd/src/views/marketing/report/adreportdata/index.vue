@@ -13,7 +13,7 @@ import SaveTemplateModal from "./saveTemplate.vue";
 import TemplateListDrawer from './templateList.vue';
 import dayjs from 'dayjs';
 import { useAdLinkage } from './adDropdown'
-
+const selectPlatform = ref<string>(null)
 const {
   planOptions,
   advertisementOptions,
@@ -234,7 +234,11 @@ const formOptions: VbenFormProps = {
         options: ACTIVE_PLATFORM,
         mode: 'multiple',
         placeholder: `${$t('common.choice')}`,
-        onChange:resetLoadedMap
+        onChange:resetLoadedMap,
+        onSelect:async (val) => {
+          const platforms = await gridApi.formApi.getValues()
+          selectPlatform.value = platforms.platform.join(',')
+        }
       },
       fieldName: 'platform',
       label: `${$t('ocpx.platform.title')}`,
@@ -251,39 +255,79 @@ const formOptions: VbenFormProps = {
       fieldName: 'dims',
       label: `${$t('marketing.report.dims.title')}`,
     },
+    // 在表单配置中
     {
-      // 媒体配置表单
-      component: 'ApiSelect',
-      // 对应组件的参数
+      component: 'HybridSearchSelect',
       componentProps: {
-        placeholder: `${$t('common.select')}`,
         mode: 'multiple',
-        api: async (params: AdvertiserPageRequest) => {
-          const res = await advertiserApi.fetchAdvertiserList(params);
-          if (res.items && Array.isArray(res.items)) {
+        placeholder: `${$t('common.select')}`,
+        allowClear: true,
+        
+        // 初始数据 API（加载所有广告主）
+        initialApi: async () => {
+          const res = await advertiserApi.fetchAdvertiserList({
+            page: 1,
+            pageSize: 1000,
+            putStatue: 1,
+            platform: selectPlatform.value
+          });
+          // 👇 在 API 中直接格式化好
+          if (res.items) {
             res.items = res.items.map(item => ({
               ...item,
-              comboLabel: `${item.advertiserName}-${item.advertiserId}`
+              displayName: `${item.advertiserName}-${item.advertiserId}`
             }));
           }
           return res;
         },
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        
+        // 远程搜索 API（可选，如果不传则使用 initialApi）
+        remoteApi: async (params) => {
+          const res = await advertiserApi.fetchAdvertiserList({
+            page: 1,
+            pageSize: 1000,
+            putStatue: 1,
+            platform: selectPlatform.value,
+            advertiserId: params.keyword, // 使用 keyword 作为搜索字段
+          });
+          // 👇 在 API 中直接格式化好
+          if (res.items) {
+            res.items = res.items.map(item => ({
+              ...item,
+              displayName: `${item.advertiserName}-${item.advertiserId}`
+            }));
+          }
+          return res;
         },
-        onChange: resetLoadedMap,
-        params: {
-          page: 1,
-          pageSize: 1000,
-          putStatue: 1,
-        },
+        
+        // 字段映射
         valueField: 'advertiserId',
-        labelField: 'comboLabel',
-        resultField: 'items',
+        labelField: 'displayName',
+        resultField: 'items', // API 返回的数据在 items 字段中
+        // 搜索配置
+        remoteSearchField: 'keyword',  // 传给后端的搜索字段名
+        localSearchField: 'label',      // 本地搜索使用的字段
+        searchDebounce: 300,            // 防抖延迟
+        remoteSearchMinLength: 1,       // 远程搜索最小触发长度
+        localSearchMinLength: 0,        // 本地搜索最小触发长度
+        
+        // 行为配置
+        clearSearchOnSelect: true,      // 选中后清空搜索
+        clearSearchOnFocus: false,      // 获得焦点时不清空搜索
+        
+        // 事件处理
+        onChange: (value) => {
+          console.log('选中的值:', value);
+          resetLoadedMap();
+        },
+        onSearch: (keyword) => {
+          console.log('搜索关键词:', keyword);
+        },
+        onLoadSuccess: (data) => {
+          console.log('加载成功，数据量:', data.length);
+        },
       },
-      // 字段名
       fieldName: 'advertiserId',
-      // 界面显示的label
       label: `${$t('marketing.advertiser.columns.advertiserName')}`,
     },
     {

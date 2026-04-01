@@ -455,7 +455,7 @@ export const ACTIVE_PLATFORM = [
   {
     label: `${$t('ocpx.platform.vivo')}`,
     value: 'vivo',
-  },
+  }
 ];
 
 
