@@ -1,7 +1,7 @@
 <!-- HybridSearchSelect.vue -->
 <template>
   <Select
-    v-model:value="innerValue"
+    :value="innerValue"
     :mode="mode"
     :placeholder="placeholder"
     :allow-clear="allowClear"
@@ -27,7 +27,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { Select } from 'ant-design-vue'
+import { Select } from 'ant-design-vue';
+
 const props = defineProps({
   // v-model 值
   modelValue: {
@@ -159,69 +160,59 @@ const props = defineProps({
 });
 
 const emit = defineEmits([
-  'update:modelValue',
-  'change',
-  'search',
-  'focus',
-  'blur',
-  'clear',
-  'loadSuccess',
-  'loadError',
-  'remoteSearchSuccess',
-  'remoteSearchError',
+  'update:modelValue', 
+  'change', 
+  'search', 
+  'focus', 
+  'blur', 
+  'clear', 
+  'loadSuccess', 
+  'loadError', 
+  'remoteSearchSuccess', 
+  'remoteSearchError'
 ]);
 
 // ========== 数据状态 ==========
+// 关键修复：使用 ref 而不是 computed 来处理 v-model
 const innerValue = ref(props.modelValue);
-const localData = ref([]);           // 本地完整数据
-const searchResults = ref([]);       // 搜索结果（本地过滤或远程）
-const isSearching = ref(false);      // 是否正在搜索状态（有搜索关键词）
-const isRemoteMode = ref(false);     // 是否处于远程搜索模式
-const loading = ref(false);          // 加载状态
-const searchLoading = ref(false);    // 搜索加载状态
-const currentKeyword = ref('');      // 当前搜索关键词
+const localData = ref([]);
+const searchResults = ref([]);
+const isSearching = ref(false);
+const isRemoteMode = ref(false);
+const loading = ref(false);
+const searchLoading = ref(false);
+const currentKeyword = ref('');
 
 // 防抖定时器
 let searchTimer = null;
 
 // ========== 计算属性 ==========
-// 显示的选项
 const displayOptions = computed(() => {
-  // 如果没有搜索关键词，显示全部本地数据
   if (!isSearching.value || !currentKeyword.value) {
     return localData.value;
   }
   
-  // 有搜索关键词
-  // 如果是远程搜索模式或本地搜索结果，显示搜索结果
   if (searchResults.value.length > 0) {
     return searchResults.value;
   }
   
-  // 有搜索关键词但搜索结果为空，返回空数组（显示 notFoundContent）
   return [];
 });
 
-// 空状态提示
 const notFoundContent = computed(() => {
-  // 搜索加载中
   if (searchLoading.value) {
     return '搜索中...';
   }
   
-  // 有搜索关键词且正在搜索状态
   if (isSearching.value && currentKeyword.value) {
-    // 如果是远程搜索模式且结果为空
     if (isRemoteMode.value && searchResults.value.length === 0) {
       return '未找到相关数据';
     }
-    // 如果是本地搜索且结果为空
     if (!isRemoteMode.value && searchResults.value.length === 0) {
       return '未找到匹配数据';
     }
   }
   
-  // 无数据时的默认提示
   if (localData.value.length === 0 && !searchLoading.value) {
     return '暂无数据';
   }
@@ -230,7 +221,6 @@ const notFoundContent = computed(() => {
 });
 
 // ========== 工具函数 ==========
-// 简单的防抖函数
 const debounce = (fn, delay) => {
   let timer = null;
   return function(...args) {
@@ -241,7 +231,6 @@ const debounce = (fn, delay) => {
   };
 };
 
-// 格式化单个选项的 label
 const formatLabel = (item) => {
   if (props.labelFormat && typeof props.labelFormat === 'function') {
     return props.labelFormat(item);
@@ -249,7 +238,6 @@ const formatLabel = (item) => {
   return item[props.labelField] || '';
 };
 
-// 格式化选项数据
 const formatOptions = (data) => {
   let items = [];
   
@@ -267,7 +255,6 @@ const formatOptions = (data) => {
 };
 
 // ========== 数据加载 ==========
-// 加载初始本地数据
 const loadInitialData = async () => {
   if (!props.initialApi) return;
   
@@ -285,7 +272,6 @@ const loadInitialData = async () => {
   }
 };
 
-// 远程搜索
 const remoteSearch = async (keyword) => {
   if (!props.remoteApi && !props.initialApi) return;
   
@@ -293,7 +279,6 @@ const remoteSearch = async (keyword) => {
   const api = props.remoteApi || props.initialApi;
   
   try {
-    // 构建搜索参数
     const searchParams = {
       ...props.remoteSearchParams,
       [props.remoteSearchField]: keyword,
@@ -314,7 +299,6 @@ const remoteSearch = async (keyword) => {
   }
 };
 
-// 本地搜索（使用格式化后的 label）
 const localSearch = (keyword) => {
   if (!keyword) return [];
   
@@ -324,7 +308,6 @@ const localSearch = (keyword) => {
   });
 };
 
-// 重置搜索状态（清空搜索结果，退出搜索模式）
 const resetSearchState = () => {
   isSearching.value = false;
   isRemoteMode.value = false;
@@ -337,41 +320,28 @@ const resetSearchState = () => {
   }
 };
 
-// 处理搜索（核心逻辑）
 const doSearch = async (keyword) => {
-  console.log('[HybridSearch] 搜索:', keyword);
   currentKeyword.value = keyword;
   
-  // 如果关键词为空，重置搜索状态（显示全部数据）
   if (!keyword) {
     resetSearchState();
     return;
   }
   
-  // 进入搜索状态
   isSearching.value = true;
   
-  // 检查远程搜索最小触发长度
   if (keyword.length < props.remoteSearchMinLength) {
-    // 关键词太短，不进行搜索，但保持搜索状态
     searchResults.value = [];
     isRemoteMode.value = false;
     return;
   }
   
-  // 1. 先进行本地搜索
   const localResults = localSearch(keyword);
-  console.log('[HybridSearch] 本地搜索结果数量:', localResults.length);
   
   if (localResults.length > 0) {
-    // 本地有结果，使用本地搜索结果
     searchResults.value = localResults;
     isRemoteMode.value = false;
-    console.log('[HybridSearch] 使用本地搜索结果');
   } else {
-    // 本地无结果，触发远程搜索
-    console.log('[HybridSearch] 本地无结果，触发远程搜索');
-    // 清空本地搜索结果，准备远程搜索
     searchResults.value = [];
     await remoteSearch(keyword);
   }
@@ -379,44 +349,43 @@ const doSearch = async (keyword) => {
   emit('search', keyword);
 };
 
-// 使用防抖包装的搜索函数
 const handleSearch = debounce(doSearch, props.searchDebounce);
 
 // ========== 事件处理 ==========
-// 处理值变化
 const handleChange = (value) => {
-  console.log('[HybridSearch] 选中值:', value);
   innerValue.value = value;
   emit('update:modelValue', value);
   emit('change', value);
   
-  // 选中后清空搜索状态（显示全部数据）
   if (props.clearSearchOnSelect) {
     resetSearchState();
   }
 };
 
-// 处理获得焦点
 const handleFocus = (e) => {
   emit('focus', e);
   
-  // 获得焦点时清空搜索状态（显示全部数据）
   if (props.clearSearchOnFocus) {
     resetSearchState();
   }
 };
 
-// 处理失去焦点
 const handleBlur = (e) => {
   emit('blur', e);
 };
 
-// 处理清空
 const handleClear = () => {
-  console.log('[HybridSearch] 清空');
   resetSearchState();
   emit('clear');
 };
+
+// ========== 监听器 ==========
+// 监听外部值变化
+watch(() => props.modelValue, (newVal) => {
+  if (newVal !== innerValue.value) {
+    innerValue.value = newVal;
+  }
+});
 
 // ========== 暴露方法 ==========
 defineExpose({
@@ -428,16 +397,9 @@ defineExpose({
   },
   search: (keyword) => doSearch(keyword),
   clear: () => {
-    innerValue.value = props.mode === 'multiple' ? [] : undefined;
-    handleChange(innerValue.value);
+    const emptyValue = props.mode === 'multiple' || props.mode === 'tags' ? [] : undefined;
+    handleChange(emptyValue);
   },
-});
-
-// ========== 监听器 ==========
-watch(() => props.modelValue, (newVal) => {
-  if (newVal !== innerValue.value) {
-    innerValue.value = newVal;
-  }
 });
 
 // ========== 生命周期 ==========

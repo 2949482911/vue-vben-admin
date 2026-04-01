@@ -315,8 +315,12 @@ const formOptions: VbenFormProps = {
       component: 'Select',
       componentProps: {
         allowClear: true,
+        showSearch: true,
         placeholder: `${$t('common.choice')}`,
-        options: agentData
+        options: agentData,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
       },
       // 字段名
       fieldName: 'parentId',
@@ -325,7 +329,6 @@ const formOptions: VbenFormProps = {
         show: true,
         triggerFields: ['platform'],
         if: (value) => {
-          console.log('value',value)
           if(value.platform) {
             loadAgentData(value.platform)
           } else {
@@ -531,7 +534,7 @@ async function loadAgentData(platform: string) {
             advertiserRole: 'proxy'
           })
   agentData.value = res.items.map((item: AdvertiserItem) => ({
-    label: item.advertiserName,
+    label: `${item.advertiserName}-${item.advertiserId}`,
     value: item.id,
   }));
 }

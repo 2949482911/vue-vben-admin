@@ -229,6 +229,7 @@ const formOptions: VbenFormProps = {
     },
     {
       component: 'Select',
+      defaultValue: ['vivo'],
       componentProps: {
         allowClear: true,
         options: ACTIVE_PLATFORM,
@@ -262,16 +263,15 @@ const formOptions: VbenFormProps = {
         mode: 'multiple',
         placeholder: `${$t('common.select')}`,
         allowClear: true,
-        
-        // 初始数据 API（加载所有广告主）
         initialApi: async () => {
+          const formData = await gridApi.formApi.getValues();
+          selectPlatform.value = formData.platform.join(',')
           const res = await advertiserApi.fetchAdvertiserList({
             page: 1,
             pageSize: 1000,
             putStatue: 1,
             platform: selectPlatform.value
           });
-          // 👇 在 API 中直接格式化好
           if (res.items) {
             res.items = res.items.map(item => ({
               ...item,
@@ -280,17 +280,15 @@ const formOptions: VbenFormProps = {
           }
           return res;
         },
-        
-        // 远程搜索 API（可选，如果不传则使用 initialApi）
+        // 远程搜索 API
         remoteApi: async (params) => {
           const res = await advertiserApi.fetchAdvertiserList({
             page: 1,
             pageSize: 1000,
             putStatue: 1,
             platform: selectPlatform.value,
-            advertiserId: params.keyword, // 使用 keyword 作为搜索字段
+            advertiserId: params.keyword,
           });
-          // 👇 在 API 中直接格式化好
           if (res.items) {
             res.items = res.items.map(item => ({
               ...item,
@@ -300,32 +298,32 @@ const formOptions: VbenFormProps = {
           return res;
         },
         
-        // 字段映射
         valueField: 'advertiserId',
         labelField: 'displayName',
-        resultField: 'items', // API 返回的数据在 items 字段中
-        // 搜索配置
-        remoteSearchField: 'keyword',  // 传给后端的搜索字段名
-        localSearchField: 'label',      // 本地搜索使用的字段
-        searchDebounce: 300,            // 防抖延迟
-        remoteSearchMinLength: 1,       // 远程搜索最小触发长度
-        localSearchMinLength: 0,        // 本地搜索最小触发长度
+        resultField: 'items',
+        remoteSearchField: 'keyword',
+        searchDebounce: 300,
+        remoteSearchMinLength: 1,
+        clearSearchOnSelect: true,
         
-        // 行为配置
-        clearSearchOnSelect: true,      // 选中后清空搜索
-        clearSearchOnFocus: false,      // 获得焦点时不清空搜索
-        
-        // 事件处理
+        // 只需要绑定 change 事件
         onChange: (value) => {
           console.log('选中的值:', value);
           resetLoadedMap();
         },
-        onSearch: (keyword) => {
-          console.log('搜索关键词:', keyword);
-        },
-        onLoadSuccess: (data) => {
-          console.log('加载成功，数据量:', data.length);
-        },
+      },
+      dependencies: {
+        triggerFields: ['platform'],
+        if: (value) => {
+          console.log('value',value)
+          if(value.platform.length > 0) {
+            console.log
+            // loadAgentData(value.platform)
+          } else {
+            // agentData.value = []
+          }
+          return true;
+        }
       },
       fieldName: 'advertiserId',
       label: `${$t('marketing.advertiser.columns.advertiserName')}`,
