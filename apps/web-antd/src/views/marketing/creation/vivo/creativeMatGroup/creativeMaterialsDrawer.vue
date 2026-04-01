@@ -286,8 +286,18 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
       // 4. 处理素材组件数据同步
       if (material?.data && material.data.size > 0) {
-        materialData.value = material;
+        // 关键：克隆 Map 和内部数组，不直接使用material，否则还没点击确定，里面的增删改都传给了父组件
+        const clonedData = new Map();
+        material.data.forEach((value: any, key: string) => {
+          clonedData.set(key, JSON.parse(JSON.stringify(value)));
+        });
+
+        materialData.value = {
+          config: { ...material.config },
+          data: clonedData,
+        };
         nextTick(() => {
+          // 将这份独立的数据副本交给子组件
           creativeProductionModuleRef.value?.setLocalMaterialData(materialData.value);
         });
       } else {
