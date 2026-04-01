@@ -269,6 +269,7 @@ watch(
       state.checkAll = false;
       state.indeterminate = true;
     }
+    selectdMetricList.value = metricList.value.filter(item => val.includes(item.id)).map(item => item);
   },
   { deep: true }
 );
@@ -498,6 +499,8 @@ onMounted(() => {
       }
       .rightboxList {
         margin-top: 10px;
+        height: 570px;
+        overflow-y: auto;
         &-item {
           display: flex;
           align-items: center;
