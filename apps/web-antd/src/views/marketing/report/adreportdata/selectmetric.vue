@@ -2,13 +2,17 @@
 import { Page, useVbenModal } from '@vben/common-ui';
 import { onMounted, ref, reactive, watch, nextTick, computed } from 'vue';
 import { metricApi } from '#/api';
-import type { MetricItem,CreateSystemMetric, } from '#/api/models';
-import { Checkbox, Divider, CheckboxGroup, Space, InputSearch, Button, message } from 'ant-design-vue';
+import type { MetricItem,CreateSystemMetric, MetricGroupType} from '#/api/models';
+import { Checkbox, Divider, CheckboxGroup, Space, InputSearch, Button, message, Tabs, TabPane } from 'ant-design-vue';
+import { ReloadOutlined, ArrowDownOutlined, ArrowUpOutlined  } from '@ant-design/icons-vue';
 import { $t } from '@vben/locales';
 import { useVbenForm } from '#/adapter/form';
 import { trimObject } from '#/utils/trim';
+import { metricGroupApi } from '#/api/core'
 const emit = defineEmits(['confirmMetric']);
-
+const isDataLoading = ref<Boolean>(false)
+// 指标类目列表
+const metricGropList = ref<MetricGroupType[]>([])
 //接收父组件使用模板传回来的指标回显数组
 const props = defineProps<{
   selectedMetrics: string[]
@@ -104,6 +108,11 @@ const [Modal, modalApi] = useVbenModal({
   },
   async onOpenChange(isOpen){
     if (isOpen) {
+      const res = await metricGroupApi.fetchGetMetricGroupList({
+        page: 1,
+        pageSize: 1000
+      })
+      metricGropList.value = res.items
       nextTick(() => {
         state.checkedList = props.selectedMetrics
           ? [...props.selectedMetrics]
@@ -212,10 +221,12 @@ function handleFormulaConfirm(val) {
   formulaForSubmit.value = val
 }
 // 拉取指标
-async function getMetricList() {
-  const dataList:any = await metricApi.fetchMetric();
+async function getMetricList(metricGroupId: string) {
+  isDataLoading.value = true
+  const dataList:any = await metricApi.fetchMetric({metricGroupId:metricGroupId});
   metricList.value = dataList;
   updateCheckboxOptions(dataList);
+  isDataLoading.value = false
 }
 
 // 根据列表更新 checkbox options
@@ -225,7 +236,10 @@ function updateCheckboxOptions(list: MetricItem[]) {
     value: item.id,
   }));
 }
-
+function clearAll() {
+  selectdMetricList.value = []
+  state.checkedList = []
+}
 // 实时搜索（核心）
 watch(indicatorValue, (keyword) => {
   const searchText = keyword.trim().toLowerCase();
@@ -278,59 +292,118 @@ const onCheckAllChange = (e: any) => {
 
   state.indeterminate = false;
 };
+const selectdMetricList = ref<MetricItem[]>([])
+const handleChange = (e:any) => {
+  selectdMetricList.value = metricList.value.filter(item => e.includes(item.id)).map(item => item);
+}
 const handleInsertMetric = () => {
   metricModalApi.open()
 }
+const currentItem = ref<MetricItem>()
+const handleClick = (row: MetricGroupType) => {
+  const list = metricGropList.value;
+  const targetId = row.id;
+  currentItem.value = row
+  getMetricList(row.id)
+  metricGropList.value = list.map(item => ({
+    ...item,
+    isChecked: item.id === targetId
+  }));
+};
+const dragIndex = ref<number>()
+const handleDragStart = (index: number) => {
+  dragIndex.value = index
+}
 
+const handleDrop = (dropIndex: number) => {
+  const newList:MetricItem[] = [...selectdMetricList.value]
+  const temp = newList[dragIndex.value]
+  newList[dragIndex.value] = newList[dropIndex]
+  newList[dropIndex] = temp
+  selectdMetricList.value = newList
+}
 onMounted(() => {
   getMetricList();
 });
+
 </script>
 
 <template>
   <div>
-    <Modal class="w-[720px] max-w-[720px] mx-auto">
-      <div style="padding-left: 1rem;">
-        <InputSearch
-          v-model:value="indicatorValue"
-          placeholder="请输入指标名称搜索"
-          style="width: 200px"
-          allowClear
-        />
-      </div>
+    <Modal class="w-[70%] max-w-[70%] mx-auto">
+      <div class="metric-content">
+        <div class="metric-content-left">
+          <div>
+            <InputSearch
+              v-model:value="indicatorValue"
+              placeholder="请输入指标名称搜索"
+              allowClear
+              class="metric-search"
+            />
+          <div class="metric-list">
+            <div class="metric-list-item" :class="{itemActive:item.isChecked}"  v-for="item in metricGropList" :key="item.id" @click="handleClick(item)">{{item.name}}</div>
+          </div>
+          </div>
+        </div>
+        <div class="metric-content-center" v-loading="isDataLoading">
+          <Checkbox
+            v-model:checked="state.checkAll"
+            :indeterminate="state.indeterminate"
+            @change="onCheckAllChange"
+          >
+            {{ $t('core.checkAll') }}
+          </Checkbox>
 
-      <Page>
-        <Checkbox
-          v-model:checked="state.checkAll"
-          :indeterminate="state.indeterminate"
-          @change="onCheckAllChange"
-        >
-          {{ $t('core.checkAll') }}
-        </Checkbox>
+          <Divider />
 
-        <Divider />
-
-        <Space size="large">
-          <CheckboxGroup v-model:value="state.checkedList">
-            <div class="metric-checkbox-group">
-              <Checkbox
-                v-for="item in metricList"
-                :key="item.id"
-                :value="item.id"
-                v-show="visibleMetricIds.includes(item.id)"
-              >
-                {{ item.cname }}
-              </Checkbox>
+          <Space size="large">
+            <CheckboxGroup v-model:value="state.checkedList" @change="handleChange">
+              <div class="metric-checkbox-group">
+                <Checkbox
+                  v-for="item in metricList"
+                  :key="item.id"
+                  :value="item.id"
+                  v-show="visibleMetricIds.includes(item.id)"
+                  
+                >
+                  {{ item.cname }}
+                </Checkbox>
+              </div>
+            </CheckboxGroup>
+          </Space>
+          <Space>
+            <Button type="link" class="insertMetric flex items-center mt-1" @click="handleInsertMetric" v-if="currentItem?.name.includes('自定义')">
+              <template #icon><span class="icon-[mdi--plus] w-5 h-5"></span></template>
+              自定义指标
+            </Button>
+          </Space>
+        </div>
+        <div class="metric-content-right">
+          <div class="header">
+            <div class="header-left">已选{{selectdMetricList.length}}个指标</div>
+            <div class="header-right" @click="clearAll">
+              <ReloadOutlined :style="{fontSize: '12px',marginRight: '3px'}" />
+              <span>清空</span>
             </div>
-          </CheckboxGroup>
-        </Space>
-        <Space>
-          <Button type="link" class="insertMetric flex items-center mt-1" @click="handleInsertMetric">
-            <template #icon><span class="icon-[mdi--plus] w-5 h-5"></span></template>
-            自定义指标
-          </Button>
-        </Space>
-      </Page>
+          </div>
+          <div class="tips" v-if="selectdMetricList.length > 1">拖动可自定义指标顺序</div>
+          <div class="rightboxList">
+            <div 
+              class="rightboxList-item" 
+              v-for="(item,index) in selectdMetricList" 
+              :key="item.id"
+              draggable="true"  
+              @dragstart="handleDragStart(index)"  
+              @dragover.prevent 
+              @drop="handleDrop(index)" 
+              >
+              <ArrowUpOutlined v-if="index == 0"/>
+              <ArrowDownOutlined v-else/>
+              {{ item.cname }}
+            </div>
+          </div>
+        </div>
+      </div>
     </Modal>
       <!-- 指标选择弹窗（含搜索功能） -->
       <MetricModal title="新增自定义指标">
@@ -342,18 +415,108 @@ onMounted(() => {
 
 <style lang="scss" scoped>
   //指标全选按钮分列排序每行三个，一起三列
-  .metric-checkbox-group {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px 16px;
-  }
-  .insertMetric {
-    color: hsl(var(--primary));
-    cursor: pointer;
-    transition: color 0.2s;
-    font-size: 14px;
-    &:hover {
-      color: hsl(var(--primary) / 0.8);
+  .metric-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-around;
+    &-left {
+      width: 18%;
+      border: 1px solid rgb(233, 228, 228);
+      padding: 0 5px;
+      text-align: center;
+      .metric-search {
+        width: 200px;
+        margin-top:10px;
+      }
+      .metric-list {
+        margin-top: 15px;
+        &-item {
+          color: rgba(2, 8, 23, 0.88);
+          font-size: 14px;
+          line-height: 30px;
+          margin: 5px auto;
+          cursor: pointer;
+          list-style: none;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        }
+      }
+      .itemActive {
+        background: hsl(var(--primary)/15%);
+        color: hsl(var(--primary));
+        border-radius: 4px;
+      }
+    }
+    &-center {
+      width: 65%;
+      height: 650px;
+      overflow-y: auto;
+      border: 1px solid rgb(233, 228, 228);
+      padding: 5px;
+      .metric-checkbox-group {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px 16px;
+        }
+      .insertMetric {
+        color: hsl(var(--primary));
+        cursor: pointer;
+        transition: color 0.2s;
+        font-size: 14px;
+        &:hover {
+          color: hsl(var(--primary) / 0.8);
+        }
+      }
+    }
+    &-right {
+      width: 15%;
+      border: 1px solid rgb(233, 228, 228);
+      .header {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        height: 40px;
+        line-height: 40px;
+        background: hsl(var(--border));;
+        &-left {
+          font-size: 14px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+        }
+        &-right {
+          font-size: 14px;
+          color: hsl(var(--primary));
+          text-align: center;
+          cursor: pointer;
+        }
+      }
+      .tips {
+        font-size: 12px;
+        text-align: center;
+        color: #a8abb2;
+        margin: 10px 0;
+      }
+      .rightboxList {
+        margin-top: 10px;
+        &-item {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          transition: all .3s;
+          cursor: move;
+          margin-left: 8px;
+          border-radius: 2px;
+          margin-right: 8px;
+          line-height: 36px;
+          margin-bottom: 12px;
+          background: #f7f7f7;
+          padding: 2px 2px 2px 10px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+          font-size: 14px;
+          user-select: none;
+        }
+      }
     }
   }
+
 </style>

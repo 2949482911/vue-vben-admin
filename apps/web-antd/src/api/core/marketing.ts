@@ -45,7 +45,8 @@ import type {
   UpdateStrategyGropType,
   MetricGroupPageRequest,
   MetricGroupType,
-  UpdateMetricGroupType
+  UpdateMetricGroupType,
+  MetricPageRequest
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -190,8 +191,8 @@ class MetricApi extends BaseApi {
   /**
    * 获取查询指标列表
    */
-  fetchMetric() {
-    return requestClient.get<MetricItem>(this.getServiceUrl("query_metric"))
+  fetchMetric(params: MetricPageRequest) {
+    return requestClient.get<MetricItem>(this.getServiceUrl("query_metric"),{ params })
   }
 
   fetchBatchOptions(params: BatchOptions) {

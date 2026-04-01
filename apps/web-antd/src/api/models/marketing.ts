@@ -149,6 +149,9 @@ export interface SystemMetricPageRequest extends PageRequestParams {
   ename: string;
   cname: string;
 }
+export interface MetricPageRequest {
+  metricGroupId: string;
+}
 
 
 export interface MetricItem extends BaseItem {
