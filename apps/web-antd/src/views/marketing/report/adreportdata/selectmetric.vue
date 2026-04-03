@@ -300,16 +300,28 @@ const handleChange = (e:any) => {
 const handleInsertMetric = () => {
   metricModalApi.open()
 }
+const isClickAll = ref<Boolean>(false)
 const currentItem = ref<MetricItem>()
 const handleClick = (row: MetricGroupType) => {
   const list = metricGropList.value;
   const targetId = row.id;
-  currentItem.value = row
-  getMetricList(row.id)
-  metricGropList.value = list.map(item => ({
-    ...item,
-    isChecked: item.id === targetId
-  }));
+  if(targetId) {
+    isClickAll.value = false
+    currentItem.value = row
+    getMetricList(row.id)
+    metricGropList.value = list.map(item => ({
+      ...item,
+      isChecked: item.id === targetId
+    }));
+  } else {
+    getMetricList()
+    isClickAll.value = true
+    metricGropList.value = list.map(item => ({
+      ...item,
+      isChecked: false
+    }));
+  }
+
 };
 const dragIndex = ref<number>()
 const handleDragStart = (index: number) => {
@@ -342,7 +354,15 @@ onMounted(() => {
               class="metric-search"
             />
           <div class="metric-list">
-            <div class="metric-list-item" :class="{itemActive:item.isChecked}"  v-for="item in metricGropList" :key="item.id" @click="handleClick(item)">{{item.name}}</div>
+            <div class="metric-list-item" @click="handleClick" :class="{itemActive:isClickAll}">全部指标</div>
+            <div 
+              class="metric-list-item" 
+              :class="{itemActive:item.isChecked}"  
+              v-for="item in metricGropList" 
+              :key="item.id"  
+              @click="handleClick(item)">
+              {{item.name}}
+            </div>
           </div>
           </div>
         </div>
@@ -372,12 +392,10 @@ onMounted(() => {
               </div>
             </CheckboxGroup>
           </Space>
-          <Space>
-            <Button type="link" class="insertMetric flex items-center mt-1" @click="handleInsertMetric" v-if="currentItem?.name.includes('自定义')">
-              <template #icon><span class="icon-[mdi--plus] w-5 h-5"></span></template>
-              自定义指标
-            </Button>
-          </Space>
+          <Button type="link" class="insertMetric flex items-center mt-1" @click="handleInsertMetric" v-if="currentItem?.name.includes('自定义')">
+            <template #icon><span class="icon-[mdi--plus] w-5 h-5"></span></template>
+            自定义指标
+          </Button>
         </div>
         <div class="metric-content-right">
           <div class="header">
@@ -433,7 +451,6 @@ onMounted(() => {
       .metric-list {
         margin-top: 15px;
         &-item {
-          color: rgba(2, 8, 23, 0.88);
           font-size: 14px;
           line-height: 30px;
           margin: 5px auto;
@@ -512,7 +529,8 @@ onMounted(() => {
           margin-right: 8px;
           line-height: 36px;
           margin-bottom: 12px;
-          background: #f7f7f7;
+          // background: #f7f7f7;
+          border: 1px solid rgb(233, 228, 228);
           padding: 2px 2px 2px 10px;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
           font-size: 14px;

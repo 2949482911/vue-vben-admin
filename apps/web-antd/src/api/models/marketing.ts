@@ -431,6 +431,8 @@ export interface AdvertiserDeveloperBindRequest {
   companyName: string;
   customer?: string,
   saleId?: string,
+  apiId?: string,
+  apiKey?: string,
 }
 
 export interface PageResult {

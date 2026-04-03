@@ -312,6 +312,10 @@ export const DEVELOPER_AUTH_ACCOUNT_PLATFORM = [
     label: '华为Ads',
     value: 'huawei',
   },
+  {
+    label: 'OPPO',
+    value: 'oppo',
+  },
 ];
 
 /**
@@ -517,6 +521,10 @@ export const ADVERTISET_ADDED = [
     label: `${$t('ocpx.platform.huawei_store')}`,
     value: 'huawei_store',
   },
+  {
+    label: `${$t('ocpx.platform.oppo')}`,
+    value: 'oppo',
+  }
   // {
   //   label: `${$t('ocpx.platform.huawei')}`,
   //   value: 'huawei',

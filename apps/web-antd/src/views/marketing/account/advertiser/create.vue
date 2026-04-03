@@ -3,7 +3,7 @@ import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import {ref,watch} from 'vue';
 import {useVbenForm} from "#/adapter/form";
-import type {AdvertiserItem, DeveloperItem, UserItem} from "#/api/models";
+import type {AdvertiserItem, DeveloperItem, UserItem, AdvertiserDeveloperBindRequest, UpdateAdvertiserRequest} from "#/api/models";
 import {advertiserApi, projectApi, developerApi,userApi,orgApi} from "#/api";
 import {STATUS_SELECT, ADVERTISET_ADDED} from "#/constants/locales";
 import { trimObject } from '#/utils/trim';
@@ -57,37 +57,9 @@ const [Form, formApi] = useVbenForm({
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
     const params = trimObject(formVal);
-    await (isUpdate.value ? advertiserApi.fetchUpdateAdvertiser({
-        id: params.id,
-        putStatue: params.putStatue,
-        remark: params.remark,
-        projectId: params.projectId,
-        platform: params.platform,
-        advertiserId: params.advertiserId,
-        companyName: params.companyName,
-        advertiserName: params.advertiserName,
-        customer: params.customer,
-        saleId: params.saleId,
-        developerId: params.developerId,
-        config: {},
-        advertiserRole: params.advertiserRole,
-        putStatus: params.putStatue,
-      })
+    await (isUpdate.value ? advertiserApi.fetchUpdateAdvertiser(<UpdateAdvertiserRequest>{...params})
       :
-      advertiserApi.fetchCreateAdvertiser({
-        platform: params.platform,
-        advertiserId: params.advertiserId,
-        advertiserName: params.advertiserName,
-        developerId: params.developerId,
-        companyName: params.companyName,
-        config: {},
-        advertiserRole: params.advertiserRole,
-        customer: params.customer,
-        saleId: params.saleId,
-        putStatus: params.putStatue,
-        projectId: params.projectId,
-        remark: params.remark,
-      })
+      advertiserApi.fetchCreateAdvertiser(<AdvertiserDeveloperBindRequest>{...params})
     )
   },
   schema: [
@@ -151,6 +123,38 @@ const [Form, formApi] = useVbenForm({
       dependencies: {
         show: value => {
           return value.platform === 'huawei_store'
+        },
+        triggerFields: ['platform','id']
+      }
+    },
+    {
+      component: "Input",
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      rules: 'required',
+      // 字段名
+      fieldName: 'apiId',
+      label: 'api-id',
+      dependencies: {
+        show: value => {
+          return value.platform === 'oppo'
+        },
+        triggerFields: ['platform','id']
+      }
+    },
+    {
+      component: "Input",
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      rules: 'required',
+      // 字段名
+      fieldName: 'apiKey',
+      label: 'api-key',
+      dependencies: {
+        show: value => {
+          return value.platform === 'oppo'
         },
         triggerFields: ['platform','id']
       }
