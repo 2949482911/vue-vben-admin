@@ -23,7 +23,6 @@ const {
   resetLoadedMap,
   setGridApi,
 } = useAdLinkage()
-
 /* ---------------- 模板抽屉 ---------------- */
 // 模板列表抽屉弹框
 const [TemplateDrawer, drawerApi] = useVbenDrawer({
@@ -140,6 +139,10 @@ function reloadGrid(columns: string[], pageData: any[],footData:any) {
       currentPage: pager.currentPage,
       pageSize: pager.pageSize,
       pageSizes: [500, 800,1000],
+    },
+    exportConfig: {
+      ...gridOptions.exportConfig, 
+      data: allData.value,        
     },
     //表尾数据展示
     footerData:[{
@@ -546,13 +549,21 @@ const gridOptions: VxeGridProps = {
     },
     zoom: true,
   },
-  exportConfig: {},
+  exportConfig: {
+    filename: '',
+    types: [
+      "csv",
+      "xlsx"
+    ],
+    modes: ['current','all'],
+    original: true,
+  },
   pagerConfig: {
     enabled: true,
     total: pager.total,
     pageSize: pager.pageSize,
     currentPage: pager.currentPage,
-    pageSizes: [500, 800,1000],
+    pageSizes: [50,500, 800,1000],
   },
   proxyConfig: undefined, // 保持
   footerData: []
