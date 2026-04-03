@@ -234,6 +234,7 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         options: ACTIVE_PLATFORM,
         mode: 'multiple',
+        maxTagCount: 1,
         placeholder: `${$t('common.choice')}`,
         onChange:resetLoadedMap,
         onSelect:async (val) => {
@@ -251,6 +252,7 @@ const formOptions: VbenFormProps = {
         options: DIMS,
         mode: 'multiple',
         placeholder: `${$t('common.choice')}`,
+        maxTagCount: 1,
       },
       defaultValue: ['day'],
       fieldName: 'dims',

@@ -176,6 +176,7 @@ const formOptions: VbenFormProps = {
       componentProps: {
         allowClear: true,
         mode: 'multiple',
+        maxTagCount: 1,
         options: aGenerationOption,
         placeholder: `${$t('common.choice')}`,
       },
@@ -193,6 +194,7 @@ const formOptions: VbenFormProps = {
       componentProps: {
         allowClear: true,
         mode: 'multiple',
+        maxTagCount: 1,
         placeholder: `${$t('common.choice')}`,
         options: developerOption,
         filterOption: (inputValue: string, option: { label: string }) => {
@@ -235,6 +237,7 @@ const formOptions: VbenFormProps = {
       componentProps: {
         allowClear: true,
         mode: 'multiple',
+        maxTagCount: 1,
         options: CONSUMPTION_DETAIL_DIMENSION,
         placeholder: `${$t('common.choice')}`,
       },

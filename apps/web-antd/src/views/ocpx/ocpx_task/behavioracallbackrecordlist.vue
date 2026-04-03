@@ -83,7 +83,7 @@ const formOptions: VbenFormProps = {
   schema: [
     {
       component: 'ApiSelect',
-      fieldName: 'behavioraPlatformId',
+      fieldName: 'behaviorPlatformId',
       label: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorPlatformName')}`,
       defaultValue: defalutBehavioraPlatformId,
       componentProps: {
@@ -193,7 +193,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
           page: page.currentPage,
           pageSize: page.pageSize,
           ...params,
-          ocpxTaskId: modalApi.getData()["taskId"]
+          taskId: modalApi.getData()["taskId"]
         });
       },
     },
@@ -223,7 +223,7 @@ async function batchRetry(){
   const formData = await formApi.getValues()
   const params = {
     requestId,
-    behavioraPlatformId: formData.behavioraPlatformId,
+    behaviorPlatformId: formData.behaviorPlatformId,
     platformCallbackId: formData.platformCallbackId,
     taskId: taskId.value
   }

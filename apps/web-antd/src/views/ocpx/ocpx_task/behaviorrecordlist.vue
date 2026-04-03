@@ -54,7 +54,7 @@ const formOptions: VbenFormProps = {
   schema: [
     {
       component: 'ApiSelect',
-      fieldName: 'behavioraPlatformId',
+      fieldName: 'behaviorPlatformId',
       label: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorPlatformName')}`,
       defaultValue: defalutBehavioraPlatformId,
       componentProps: {

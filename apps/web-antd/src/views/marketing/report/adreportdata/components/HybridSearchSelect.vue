@@ -73,7 +73,7 @@ const props = defineProps({
   // 最多显示标签数量
   maxTagCount: {
     type: Number,
-    default: undefined,
+    default: 1,
   },
   // 超过最大标签时的占位符
   maxTagPlaceholder: {
