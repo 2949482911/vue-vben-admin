@@ -203,8 +203,6 @@ function reuseDisplay(projectObj: Project, mediaAccountArr: MediaAccount[]) {
   handleProjectChange(projectObj.projectId);
   selectedAccountIds.value = mediaAccountArr.map((item) => item.localAdvertiserId);
   mediaAccountLabel.value = mediaAccountArr.map((row: any) => row.advertiserName).join('，');
-  console.log(projectObj, 'projectObj');
-  console.log(mediaAccountArr, 'mediaAccountArr');
 }
 
 defineExpose({ reuseDisplay });

@@ -39,7 +39,7 @@ export const MEDIA_SELECT = [
   {
     label: '广告联盟',
     value: 2,
-  }
+  },
 ];
 
 /**批投项目-广告类型枚举 */
@@ -51,7 +51,7 @@ export const ADTYPE_SELECT = [
   {
     label: '通知广告',
     value: 2,
-  }
+  },
 ];
 
 /**批投项目-通知形式枚举 */
@@ -59,7 +59,7 @@ export const NOTIFORMAT_SELECT = [
   {
     label: '通知栏',
     value: 0,
-  }
+  },
 ];
 
 /**批投项目-通知类型枚举 */
@@ -71,7 +71,7 @@ export const NOTIFICATIONTYPE_SELECT = [
   {
     label: '拉活-屏蔽人群',
     value: 2,
-  }
+  },
 ];
 
 /**批投项目-推广模式枚举 */
@@ -83,7 +83,7 @@ export const PROMOTION_SELECT = [
   {
     label: '商品智投',
     value: 1,
-  }
+  },
 ];
 
 /**批投项目-转化监测枚举 */
@@ -95,7 +95,7 @@ export const CONVERSION_SELECT = [
   {
     label: '增效',
     value: 1,
-  }
+  },
 ];
 
 /**批投广告组-推广链接类型枚举 */
@@ -119,7 +119,7 @@ export const PROMOTIONLINK_SELECT = [
   {
     label: '商品URL（仅商品智投支持）',
     value: 12,
-  }
+  },
 ];
 
 /**批投广告组-推广链接-商品URL类型枚举 */
@@ -139,7 +139,7 @@ export const COMMODITYURL_SELECT = [
   {
     label: '自定义链接',
     value: 4,
-  }
+  },
 ];
 
 /**批投广告组-是否微信一键关注枚举 */
@@ -151,7 +151,7 @@ export const VXFOLLOW_SELECT = [
   {
     label: '是',
     value: 1,
-  }
+  },
 ];
 
 /**批投广告组-计费类型枚举 */
@@ -170,12 +170,12 @@ export const BILLINGTYPE_SELECT = [
   },
   {
     label: 'CPD',
-    value: 4
+    value: 4,
   },
   {
     label: 'oCPD',
     value: 5,
-  }
+  },
 ];
 
 /**批投广告组-二阶段转化目标枚举 */
@@ -246,7 +246,7 @@ export const DELIVER_SELECT = [
   {
     label: '匀速投放',
     value: 2,
-  }
+  },
 ];
 
 /**批投广告组-检索类型枚举 */
@@ -262,7 +262,7 @@ export const RETRIEVE_SELECT = [
   {
     label: '系统推荐定向广告',
     value: 2,
-  }
+  },
 ];
 
 /**批投广告组-检索类型枚举 */
@@ -286,7 +286,7 @@ export const ORIENTATION_SELECT = [
   {
     label: '兴趣行为',
     value: 55,
-  }
+  },
 ];
 
 /**批投广告组-检索类型枚举 */
@@ -298,7 +298,7 @@ export const BID_SELECT = [
   {
     label: '优先拿量',
     value: 1,
-  }
+  },
 ];
 
 /**批投广告创意素材组-展现形式枚举 */
@@ -346,7 +346,7 @@ export const DISPLAYFORM_SELECT = [
   {
     label: '通知广告',
     value: 12,
-  }
+  },
 ];
 
 /**批投广告创意素材组-综搜广告属性枚举 */
@@ -394,7 +394,7 @@ export const COMPREHENSIVESEARCH_SELECT = [
   {
     label: '通知广告',
     value: 12,
-  }
+  },
 ];
 
 /**批投广告组-通知广告提醒方式枚举 */
@@ -410,7 +410,7 @@ export const ADREMINDER_SELECT = [
   {
     label: '弱提醒',
     value: 2,
-  }
+  },
 ];
 
 /**批投广告组-视频类型拓展归因枚举 */
@@ -422,7 +422,7 @@ export const ATTRIBUTION_SELECT = [
   {
     label: '3秒播放归因',
     value: 3,
-  }
+  },
 ];
 
 /**批投广告组-详情页类型枚举 */
@@ -450,7 +450,7 @@ export const DETAILPAGE_SELECT = [
   {
     label: '商品URL',
     value: 12,
-  }
+  },
 ];
 
 /**批投广告组-流量优选开关枚举 */
@@ -462,23 +462,23 @@ export const FLOWSWITCH_SELECT = [
   {
     label: '开启',
     value: 1,
-  }
+  },
 ];
 
 /**广告资质类型 */
 export interface AdvertisingQualificationType {
   advertiseQualificationId: string; // 资质ID: "385831"
-  appCnName: string;               // 应用名称: "京东-又好又便宜"
-  productName: string;             // 包名: "com.jingdong.app.mall"
-  industry1: number;               // 一级行业分类ID
-  industry1Name: string;           // 一级行业名称: "电商"
-  industry2: number;               // 二级行业分类ID
-  industry2Name: string;           // 二级行业名称: "综合电商平台"
-  state: number;                   // 状态: 1
-  createTime: string;              // 创建时间
-  updateTime: string;              // 更新时间
-  qualificationValidDate: string;  // 有效期
-  productType: number;             // 产品类型
+  appCnName: string; // 应用名称: "京东-又好又便宜"
+  productName: string; // 包名: "com.jingdong.app.mall"
+  industry1: number; // 一级行业分类ID
+  industry1Name: string; // 一级行业名称: "电商"
+  industry2: number; // 二级行业分类ID
+  industry2Name: string; // 二级行业名称: "综合电商平台"
+  state: number; // 状态: 1
+  createTime: string; // 创建时间
+  updateTime: string; // 更新时间
+  qualificationValidDate: string; // 有效期
+  productType: number; // 产品类型
   // ... 其他可选字段
   icpCaseNumber?: string;
   icpDomainName?: string;
@@ -487,6 +487,7 @@ export interface AdvertisingQualificationType {
 
 /**提交审核批投当前账户扁平数组类型 */
 export interface CampaignData {
+  pIdx?: number;
   adGroupIdx: number;
   advertiserId?: string;
   campaignAdType?: number;

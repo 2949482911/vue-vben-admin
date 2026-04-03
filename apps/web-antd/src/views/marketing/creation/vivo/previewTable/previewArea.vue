@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Button, Card, Divider, TypographyText, Input, Tag } from 'ant-design-vue';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { Button, Card, Divider, TypographyText, Input, Tag, message } from 'ant-design-vue';
+import { computed, h, onMounted, onUnmounted, ref } from 'vue';
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import {
   getVivoTableData,
@@ -26,7 +26,6 @@ import { uploadToOss } from '#/utils/uploadToOss';
 import { useUserStore } from '@vben/stores';
 import { creationTaskApi } from '#/api';
 import { useVbenModal } from '@vben/common-ui';
-// import SubmitReview from '../../submitReview.vue';
 import { useProjectPlaceholder, renderProjectTitle } from '#/utils/customName';
 
 const { accountInfo, creationInfo } = defineProps({
@@ -58,7 +57,9 @@ const { customizeName, handleTagClick } = useProjectPlaceholder('', 100);
 
 const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
+    if (!customizeName.value) return message.warning('请填写提交任务名字');
     await submitReview();
+    customizeName.value = '';
     await modalApi.close();
   },
   async onCancel() {
@@ -69,6 +70,110 @@ const [Modal, modalApi] = useVbenModal({
 
 function openSubmitReviewModal() {
   modalApi.open();
+}
+
+//--------------自定义修改项目名称--------------
+const editingRow = ref<CampaignData>(); // 记录当前正在编辑哪一行
+const editingField = ref<string>(''); // 记录当前修改的字段名：campaignName | groupName | promoName
+const tempName = ref(''); // 弹窗输入框绑定的临时值
+
+const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
+  async onConfirm() {
+    if (!editingRow.value || !editingField.value) return;
+
+    const newName = tempName.value;
+    const field = editingField.value;
+    const { advertiserId, campaignIdx, adGroupIdx, submitIndex } = editingRow.value;
+
+    // --- 1. 同步更新原始嵌套数据 tableData (确保提交审核时数据正确) ---
+    const accountData = tableData.value.find((item) => item.advertiserId === advertiserId);
+
+    if (accountData) {
+      try {
+        const campaign = accountData.campaignList[campaignIdx];
+        if (!campaign) {
+          console.warn('未找到对应的计划数据');
+          return;
+        }
+        if (field === 'campaignName') {
+          // 修改计划层
+          campaign.name = newName;
+        } else if (field === 'groupName') {
+          // 修改组层
+          // 检查 adgroup 是否存在
+          const group = campaign.adgroupList[adGroupIdx];
+          if (group) {
+            group.name = newName;
+          }
+        } else if (field === 'promoName') {
+          // 修改广告层
+          // 注意：flatten 时 promo 层对应的索引其实是该组下的具体广告
+          // 但由于你 flatten 时用了 globalIndex(submitIndex)，最稳妥的是在 tableData 里再次定位
+          // 我们需要找到 promotionList 中对应的那个对象
+          // 逻辑：在该组的 promotionList 中寻找
+          const group = campaign.adgroupList[adGroupIdx];
+          // 查找该行对应的具体广告对象（可以通过 name 匹配，或者你在 flatten 时多传一个 pIdx）
+          // 优化建议：在 flatten 时加上 pIdx: pIdx
+          const pIdx = editingRow.value.pIdx;
+          if (pIdx !== undefined) {
+            const promo = group?.promotionList ? group?.promotionList[pIdx] : undefined;
+            if (promo) {
+              promo.name = newName;
+            }
+          } else {
+            // 如果没传 pIdx，暂时用 submitIndex 逻辑降级处理或通过名称匹配
+            const promo = group?.promotionList.find((p) => p.name === editingRow.value?.promoName);
+            if (promo) {
+              promo.name = newName;
+            }
+          }
+        }
+      } catch (e) {
+        console.error('更新原始数据失败', e);
+      }
+    }
+
+    // --- 2. 更新表格当前显示的数据 ---
+    const $grid = gridApi.grid;
+    if ($grid) {
+      const allRows = $grid.getData();
+
+      allRows.forEach((r: CampaignData) => {
+        if (r.advertiserId === advertiserId) {
+          // 如果改的是计划名：该计划下所有行都要改（因为合并单元格）
+          if (field === 'campaignName' && r.campaignIdx === campaignIdx) {
+            r.campaignName = newName;
+          }
+          // 如果改的是组名：该组下所有行都要改
+          if (
+            field === 'groupName' &&
+            r.campaignIdx === campaignIdx &&
+            r.adGroupIdx === adGroupIdx
+          ) {
+            r.groupName = newName;
+          }
+          // 如果改的是广告名：只改当前行
+          if (field === 'promoName' && r.submitIndex === submitIndex) {
+            r.promoName = newName;
+          }
+        }
+      });
+      $grid.loadData(allRows);
+    }
+
+    await customizeNamemodalApi.close();
+  },
+  async onCancel() {
+    customizeName.value = '';
+    await customizeNamemodalApi.close();
+  },
+});
+
+function handleEditName(row: CampaignData, field: 'campaignName' | 'groupName' | 'promoName') {
+  editingRow.value = row;
+  editingField.value = field;
+  tempName.value = row[field] || ''; // 根据字段获取初始值
+  customizeNamemodalApi.open();
 }
 
 // 点击切换选中的方法
@@ -98,26 +203,6 @@ const handleAccountClick = async (id: string) => {
     }
   }, 500);
 };
-
-// --- 计算全选状态 ---
-// 项目全选
-// const isAllProjectChecked = computed({
-//   get: () => mockData.length > 0 && mockData.every(i => i.projectChecked),
-//   set: (val) => mockData.forEach(i => i.projectChecked = val),
-// });
-
-// 广告全选
-// const isAllAdChecked = computed({
-//   get: () => {
-//     // 必须要让 computed 依赖 mockData 数组内部的变化
-//     return mockData.length > 0 && mockData.every(item => item.adChecked);
-//   },
-//   set: (val: boolean) => {
-//     mockData.forEach(item => {
-//       item.adChecked = val;
-//     });
-//   }
-// });
 
 // 计划数量
 const campaignCount = computed({
@@ -209,6 +294,23 @@ const handleSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
   }
   return { rowspan: countRowspan, colspan: 1 };
 };
+
+// 辅助渲染函数，减少冗余代码
+const renderEditCell = (row: any, field: 'campaignName' | 'groupName' | 'promoName') => {
+  return h('div', { class: 'flex items-center gap-1' }, [
+    h('span', row[field]),
+    h(
+      Button,
+      {
+        type: 'link',
+        size: 'small',
+        onClick: () => handleEditName(row, field),
+      },
+      { default: () => '📝' },
+    ),
+  ]);
+};
+
 const gridOptions: VxeGridProps<any> = {
   border: true,
   height: 'auto',
@@ -230,25 +332,37 @@ const gridOptions: VxeGridProps<any> = {
   showHeaderOverflow: false,
   spanMethod: handleSpanMethod,
   columns: [
-    { type: 'checkbox', width: 50 },
+    // { type: 'checkbox', width: 50 },
     {
       title: '计划',
       children: [
-        { field: 'campaignName', title: '计划' },
+        {
+          field: 'campaignName',
+          title: '项目',
+          slots: { default: ({ row }) => renderEditCell(row, 'campaignName') },
+        },
         { field: 'campaignBudget', title: '项目预算' },
         { field: 'campaignMediaType', title: '媒体类型', slots: { default: 'campaignMediaType' } },
         { field: 'campaignAdType', title: '推广目标', slots: { default: 'campaignAdType' } },
         {
           title: '广告组',
           children: [
-            { field: 'groupName', title: '名字' },
+            {
+              field: 'groupName',
+              title: '名字',
+              slots: { default: ({ row }) => renderEditCell(row, 'groupName') },
+            },
             { field: 'groupPrice', title: '一阶出价' },
             { field: 'groupOcpxPrice', title: '二阶出价' },
             { field: 'groupDailyBudget', title: '日预算' },
             {
               title: '广告',
               children: [
-                { field: 'promoName', title: '名字' },
+                {
+                  field: 'promoName',
+                  title: '名字',
+                  slots: { default: ({ row }) => renderEditCell(row, 'promoName') },
+                },
                 {
                   title: '创意',
                   children: [
@@ -352,6 +466,7 @@ function flattenVivoData(campaignList: VivoCampaign[], advertiserId: string) {
           submitIndex: globalIndex, // 记录该行对应的后端索引
           campaignIdx: cIdx, // 新增：记录它是第几个计划
           adGroupIdx: gIdx, // 新增：记录它是第几个组
+          pIdx: pIdx, // 新增：记录在 promotionList 中的索引
 
           // --- 广告组层级字段 ---
           groupName: group.name,
@@ -451,7 +566,6 @@ async function submitReview() {
       const result = await uploadToOss(client, file, objectKey);
       return result.url; // 返回 OSS 路径
     };
-
     // 3. 并行上传两个文件（提高效率）
     // creationInfo -> configArea
     // tableData    -> fullParamsData
@@ -487,6 +601,15 @@ async function submitReview() {
   } catch (error) {
     console.error('提交失败:', error);
   } finally {
+    // loading的时候会重新拿到我的旧数据展示，所以这里需要
+    // 强制手动重新“拍平”一次数据，覆盖掉 Grid 可能产生的自动回退
+    if (activeAccountId.value) {
+      const currentAccount = tableData.value.find((a) => a.advertiserId === activeAccountId.value);
+      if (currentAccount) {
+        const flattened = flattenVivoData(currentAccount.campaignList, currentAccount.advertiserId);
+        gridApi.setGridOptions({ data: flattened });
+      }
+    }
     gridApi.setLoading(false);
   }
 }
@@ -648,7 +771,6 @@ onUnmounted(() => {
           <div style="margin: 0 20px 0 0">
             广告总数：<span class="numColor">{{ adCount }}</span>
           </div>
-          <!-- <Button type="primary" @click="submitReview">提交审核</Button -->
           <Button type="primary" @click="openSubmitReviewModal">提交审核</Button>
         </div>
         <!-- <Button type="primary" danger>批量删除</Button> -->
@@ -718,7 +840,6 @@ onUnmounted(() => {
         </Grid>
       </div>
     </div>
-    <!-- <submitReviewModal /> -->
     <Modal title="提示">
       <div class="flex flex-col items-center gap-2 w-full">
         <div class="form">
@@ -746,6 +867,12 @@ onUnmounted(() => {
         </div>
       </div>
     </Modal>
+    <CustomizeNameModal title="修改项目名称">
+      <div class="py-4 flex items-center">
+        <div>项目名称：</div>
+        <Input class="w-[300px]" v-model:value="tempName" placeholder="请输入项目名称" />
+      </div>
+    </CustomizeNameModal>
   </div>
 </template>
 
@@ -760,10 +887,6 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-:deep(.vxe-header--column.adGroup) {
-  background-color: #fff !important;
 }
 
 .empty-status {
@@ -786,7 +909,6 @@ onUnmounted(() => {
   padding: 10px;
   margin: 0 20px 0 0;
   cursor: pointer;
-  background-color: #fafafa; // 浅灰背景（可选，增加区分度）
 
   // --- 【默认样式：未点击时的灰色】 ---
   border: 1px solid #d9d9d9; // 灰色边框
@@ -813,7 +935,6 @@ onUnmounted(() => {
 
   // --- 【选中样式：点击后的蓝色】 ---
   &.is-active {
-    background-color: #fff; // 白色背景
     border: 1px solid #006be6; // 蓝色边框
 
     .title-link {
