@@ -1,39 +1,46 @@
 <script setup lang="ts" name="CreateAdvertiserModal">
-import {Page, useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {ref,watch} from 'vue';
-import {useVbenForm} from "#/adapter/form";
-import type {AdvertiserItem, DeveloperItem, UserItem, AdvertiserDeveloperBindRequest, UpdateAdvertiserRequest} from "#/api/models";
-import {advertiserApi, projectApi, developerApi,userApi,orgApi} from "#/api";
-import {STATUS_SELECT, ADVERTISET_ADDED} from "#/constants/locales";
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+import { ref, watch } from 'vue';
+import { useVbenForm } from '#/adapter/form';
+import type {
+  AdvertiserItem,
+  DeveloperItem,
+  UserItem,
+  AdvertiserDeveloperBindRequest,
+  UpdateAdvertiserRequest,
+} from '#/api/models';
+import { advertiserApi, projectApi, developerApi, userApi, orgApi } from '#/api';
+import { STATUS_SELECT, ADVERTISET_ADDED } from '#/constants/locales';
 import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
 const objectRequest = ref<AdvertiserItem>({
-  config: new Map<string, any>(), projectId: "", putStatus: 0,
-  advertiserId: "",
-  advertiserName: "",
-  advertiserRole: "",
-  customer: "",
-  saleId: "",
-  orgId: "",
+  config: new Map<string, any>(),
+  projectId: '',
+  putStatus: 0,
+  advertiserId: '',
+  advertiserName: '',
+  advertiserRole: '',
+  customer: '',
+  saleId: '',
+  orgId: '',
   balance: 0,
-  companyName: "",
-  createTime: "",
-  createUsername: "",
+  companyName: '',
+  createTime: '',
+  createUsername: '',
   dailyBudget: 0,
-  id: "",
-  platform: "",
-  platformAuditState: "",
-  platformRemark: "",
-  platformStatus: "",
-  putStatue: 0,
-  remark: "",
-  roleType: "",
+  id: '',
+  platform: '',
+  platformAuditState: '',
+  platformRemark: '',
+  platformStatus: '',
+  remark: '',
+  roleType: '',
   status: 0,
-  updateTime: "",
-  updateUsername: ""
+  updateTime: '',
+  updateUsername: '',
 });
 
 const isUpdate = ref<Boolean>(false);
@@ -42,9 +49,9 @@ interface DeveloperOption {
   label: string;
   value: string;
 }
-const developerOption = ref<DeveloperOption[]>([])
-const salesOption = ref<DeveloperOption[]>([])
-const menuData = ref([])
+const developerOption = ref<DeveloperOption[]>([]);
+const salesOption = ref<DeveloperOption[]>([]);
+const menuData = ref([]);
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -57,10 +64,9 @@ const [Form, formApi] = useVbenForm({
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
     const params = trimObject(formVal);
-    await (isUpdate.value ? advertiserApi.fetchUpdateAdvertiser(<UpdateAdvertiserRequest>{...params})
-      :
-      advertiserApi.fetchCreateAdvertiser(<AdvertiserDeveloperBindRequest>{...params})
-    )
+    await (isUpdate.value
+      ? advertiserApi.fetchUpdateAdvertiser(<UpdateAdvertiserRequest>{ ...params })
+      : advertiserApi.fetchCreateAdvertiser(<AdvertiserDeveloperBindRequest>{ ...params }));
   },
   schema: [
     {
@@ -105,14 +111,14 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'developerId',
       label: '开发者',
       dependencies: {
-        show: value => {
-          return !value.id && value.platform === 'huawei_store'
+        show: (value) => {
+          return !value.id && value.platform === 'huawei_store';
         },
-        triggerFields: ['platform','id']
-      }
+        triggerFields: ['platform', 'id'],
+      },
     },
     {
-      component: "Input",
+      component: 'Input',
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
@@ -121,14 +127,14 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'companyName',
       label: '公司名称',
       dependencies: {
-        show: value => {
-          return value.platform === 'huawei_store'
+        show: (value) => {
+          return value.platform === 'huawei_store';
         },
-        triggerFields: ['platform','id']
-      }
+        triggerFields: ['platform', 'id'],
+      },
     },
     {
-      component: "Input",
+      component: 'Input',
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
@@ -137,14 +143,14 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'apiId',
       label: 'api-id',
       dependencies: {
-        show: value => {
-          return value.platform === 'oppo'
+        show: (value) => {
+          return value.platform === 'oppo';
         },
-        triggerFields: ['platform','id']
-      }
+        triggerFields: ['platform', 'id'],
+      },
     },
     {
-      component: "Input",
+      component: 'Input',
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
@@ -153,14 +159,14 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'apiKey',
       label: 'api-key',
       dependencies: {
-        show: value => {
-          return value.platform === 'oppo'
+        show: (value) => {
+          return value.platform === 'oppo';
         },
-        triggerFields: ['platform','id']
-      }
+        triggerFields: ['platform', 'id'],
+      },
     },
     {
-      component: "Input",
+      component: 'Input',
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
@@ -173,7 +179,7 @@ const [Form, formApi] = useVbenForm({
       },
     },
     {
-      component: "Input",
+      component: 'Input',
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
@@ -239,7 +245,7 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.choice')}`,
         valueField: 'id',
         labelField: 'name',
-        resultField: "items",
+        resultField: 'items',
       },
       // 字段名
       fieldName: 'saleId',
@@ -266,7 +272,7 @@ const [Form, formApi] = useVbenForm({
       },
     },
     {
-      component: "Input",
+      component: 'Input',
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
@@ -279,21 +285,21 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.choice')}`,
         options: STATUS_SELECT,
       },
-      defaultValue:9,
+      defaultValue: 9,
       // 字段名
-      fieldName: 'putStatue',
-      label: `${$t('marketing.advertiser.columns.putStatue')}`
+      fieldName: 'putStatus',
+      label: `${$t('marketing.advertiser.columns.putStatue')}`,
     },
     {
-      component: "Textarea",
+      component: 'Textarea',
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
       fieldName: 'remark',
-      label: `${$t('marketing.advertiser.columns.remark')}`
+      label: `${$t('marketing.advertiser.columns.remark')}`,
     },
     {
-      component: "ApiSelect",
+      component: 'ApiSelect',
       componentProps: {
         showSearch: true,
         placeholder: `${$t('common.input')}`,
@@ -306,14 +312,14 @@ const [Form, formApi] = useVbenForm({
         },
         valueField: 'id',
         labelField: 'name',
-        resultField: "items",
+        resultField: 'items',
         api: async (params: any) => {
           return await projectApi.fetchProjectList(params);
-        }
+        },
       },
       fieldName: 'projectId',
       label: `${$t('marketing.advertiser.columns.projectId')}`,
-    }
+    },
   ],
 });
 
@@ -324,7 +330,7 @@ watch(
       formApi.setFieldValue('saleId', null);
       await loadSalesByOrg(newOrgId);
     }
-  }
+  },
 );
 const [Modal, modalApi] = useVbenModal({
   fullscreenButton: false,
@@ -333,30 +339,29 @@ const [Modal, modalApi] = useVbenModal({
     await formApi.resetForm();
     objectRequest.value = {
       config: new Map<string, any>(),
-      projectId: "",
+      projectId: '',
       putStatus: 0,
-      advertiserId: "",
-      advertiserName: "",
-      customer: "",
-      saleId: "",
-      orgId: "",
-      advertiserRole: "",
+      advertiserId: '',
+      advertiserName: '',
+      customer: '',
+      saleId: '',
+      orgId: '',
+      advertiserRole: '',
       balance: 0,
-      companyName: "",
-      createTime: "",
-      createUsername: "",
+      companyName: '',
+      createTime: '',
+      createUsername: '',
       dailyBudget: 0,
-      id: "",
-      platform: "",
-      platformAuditState: "",
-      platformRemark: "",
-      platformStatus: "",
-      putStatue: 0,
-      remark: "",
-      roleType: "",
+      id: '',
+      platform: '',
+      platformAuditState: '',
+      platformRemark: '',
+      platformStatus: '',
+      remark: '',
+      roleType: '',
       status: 0,
-      updateTime: "",
-      updateUsername: ""
+      updateTime: '',
+      updateUsername: '',
     };
     isUpdate.value = false;
     await modalApi.close();
@@ -364,7 +369,7 @@ const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
     const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
 
     await formApi.submitForm();
@@ -380,8 +385,12 @@ const [Modal, modalApi] = useVbenModal({
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
       }
-      const res = await developerApi.fetchDeveloperList({platform:'huawei_store', page:1, pageSize:200 })
-      developerOption.value = res.items.map((item:DeveloperItem) => ({
+      const res = await developerApi.fetchDeveloperList({
+        platform: 'huawei_store',
+        page: 1,
+        pageSize: 200,
+      });
+      developerOption.value = res.items.map((item: DeveloperItem) => ({
         label: item.name,
         value: item.id,
       }));
@@ -409,21 +418,18 @@ async function loadSalesByOrg(orgId: string) {
 }
 
 function handleSetFormValue(row: AdvertiserItem) {
-  formApi.setValues(row)
+  formApi.setValues(row);
 }
-
 </script>
 
 <template>
   <div>
     <Page>
       <Modal>
-        <Form/>
+        <Form />
       </Modal>
     </Page>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
