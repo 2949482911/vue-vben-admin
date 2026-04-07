@@ -125,7 +125,7 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
       // 字段名
       fieldName: 'companyName',
-      label: '公司名称11111',
+      label: '公司名称',
       dependencies: {
         show: (value) => {
           return value.platform === 'huawei_store';
