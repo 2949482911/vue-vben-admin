@@ -250,7 +250,7 @@ const [Form, formApi] = useVbenForm({
           create_user_id: formVal.creatorId,
         }));
     } else if (modalType.value === 'status') {
-      type = formVal.putStatue === 1 ? 'start_put_status' : 'stop_put_status';
+      type = formVal.putStatus === 1 ? 'start_put_status' : 'stop_put_status';
     } else if (modalType.value === 'hourlyState') {
       type = 'update_advertiser_hourly';
       values = {
