@@ -218,7 +218,7 @@ const gridEvents = {
 }
 
 async function batchRetry(){
-  const requestId = selectedRows.value.map(item => item.id)
+  const requestId = selectedRows.value.map(item => item.requestId)
   const {formApi} = gridApi
   const formData = await formApi.getValues()
   const params = {
