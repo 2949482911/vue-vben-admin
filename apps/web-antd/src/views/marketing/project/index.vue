@@ -7,12 +7,15 @@ import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import type {ProjectItem} from '#/api/models';
 import {$t} from '@vben/locales';
 
-import {Button, Switch} from 'ant-design-vue';
+import {Button, Switch, Dropdown, Menu, MenuItem} from 'ant-design-vue';
 import {projectApi} from '#/api/core';
 import {BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS,} from '#/constants/locales';
 
 import CreateProject from "./create.vue";
 import { trimObject } from '#/utils/trim';
+
+import { ref } from 'vue';
+import BatchOperationComp from './batchOperation.vue';//批量修改弹窗
 
 const [CreateObjectModal, createObjectApi] = useVbenModal({
   connectedComponent: CreateProject,
@@ -143,12 +146,50 @@ const gridOptions: VxeGridProps<ProjectItem> = {
     },
   },
 };
+const selectedRows = ref<ProjectItem[]>([])
+const gridEvents = {
+  checkboxChange:({records}:{records:ProjectItem[]})=>{
+    selectedRows.value = records
+  },
+  //全选事件
+  checkboxAll:({records}:{records:ProjectItem[]})=>{
+    selectedRows.value = records
+  },
+  //当分页时也需要置灰批量操作按钮
+  proxyQuery:({})=>{
+    selectedRows.value = []
+  }
+}
+/**
+ * 批量修改弹窗
+ */
+const [BatchOperationModal, BatchOperationApi] = useVbenModal({
+  connectedComponent: BatchOperationComp,
+  centered: true,
+  modal: true,
+});
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+function openBatchOptions(modalType: string) {
+  BatchOperationApi.setData({
+    selectedRows: selectedRows.value, // 原有选中行数据
+    modalType: modalType, // 新增的弹窗类型
+  });
+  BatchOperationApi.open();
+}
+function batchDelete() {
+  const targetIds = selectedRows.value.map(item => item.id)
+  projectApi.fetchBatchOptions({
+      targetIds: targetIds,
+      type: 'delete',
+      values: {}
+    })
+}
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
 
 function pageReload() {
   gridApi.reload();
 }
+
 </script>
 
 <template>
@@ -170,6 +211,28 @@ function pageReload() {
         </template>
 
         <template #toolbar-tools>
+          <Dropdown trigger="click" placement="bottom">
+            <Button class="mr-2" type="primary" :disabled="selectedRows.length===0">
+              {{ $t('common.batch_options') }}
+            </Button>
+            <template #overlay>
+              <Menu>
+                <MenuItem  @click="openBatchOptions('org')">
+                  修改部门
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('creator')">
+                  修改创建人
+                </MenuItem>
+                <MenuItem  @click="openBatchOptions('status')">
+                  修改状态
+                </MenuItem>
+                <MenuItem  @click="batchDelete">
+                  批量删除
+                </MenuItem>
+              </Menu>
+            </template>
+          </Dropdown>
+
           <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
             {{ $t('common.create') }}
           </Button>
@@ -178,5 +241,6 @@ function pageReload() {
     </Page>
 
     <CreateObjectModal @page-reload="pageReload"/>
+    <BatchOperationModal @page-reload="pageReload"/>
   </div>
 </template>

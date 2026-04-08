@@ -1,23 +1,24 @@
 <script setup lang="ts">
-import {Page, useVbenDrawer, useVbenModal} from '@vben/common-ui';
-import {Card, Row, Col, Button, Divider} from "ant-design-vue";
-import ConfigurationArea from "../configurationArea.vue"
-import RuleConfiguration from "../ruleConfiguration.vue"
-import ProjectModule from "#/views/marketing/creation/vivo/campaign/projectModule.vue"
-import CreativeMaterialsGroupModule from "./creativeMatGroup/creativeMaterialsGroupModule.vue"
-import TitlePackageModule from "./titlePackage/titlePackageModule.vue"
-import PreviewArea from "./previewTable/previewArea.vue"
+import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
+import { Card, Row, Col, Button, Divider } from 'ant-design-vue';
+import ConfigurationArea from '../configurationArea.vue';
+import RuleConfiguration from '../ruleConfiguration.vue';
+import ProjectModule from '#/views/marketing/creation/vivo/campaign/projectModule.vue';
+import CreativeMaterialsGroupModule from './creativeMatGroup/creativeMaterialsGroupModule.vue';
+import TitlePackageModule from './titlePackage/titlePackageModule.vue';
+import PreviewArea from './previewTable/previewArea.vue';
 import MonitoringLinkGroup from './monitoringLinkGroup.vue';
-import {ref} from 'vue';
+import { ref } from 'vue';
 import type {
-  VivoAdgroupData, VivoAudienceData,
+  VivoAdgroupData,
+  VivoAudienceData,
   VivoCampaignData,
   VivoCreation,
   VivoPromotionData,
   VivoTitlePackageData,
-  QualificationValue
-} from "#/views/marketing/creation/vivo/vivo";
-import {Platform} from "#/constants/enums";
+  QualificationValue,
+} from '#/views/marketing/creation/vivo/vivo';
+import { Platform } from '#/constants/enums';
 import type {
   AccountInfo,
   Material,
@@ -25,132 +26,130 @@ import type {
   MonitoringLinkType,
   Project,
   RuleInfo,
-} from "#/views/marketing/creation/creation";
+} from '#/views/marketing/creation/creation';
 import AdOrientation from './adgroup/adOrientationModule.vue';
 import TitlePackagePopup from './titlePackage/titlePackagePopup.vue';
-import AdvertisingGroupModule from "./adgroup/advertisingGroupModule.vue";
-import type {TargetedPackageTypeItem, TitlePackageItem} from "#/api/models";
-import {message} from 'ant-design-vue';
-import CreativeMaterialsDrawer from "./creativeMatGroup/creativeMaterialsDrawer.vue";
+import AdvertisingGroupModule from './adgroup/advertisingGroupModule.vue';
+import type { TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
+import { message } from 'ant-design-vue';
+import CreativeMaterialsDrawer from './creativeMatGroup/creativeMaterialsDrawer.vue';
 import { watch } from 'vue';
 import Create from '../components/create.vue';
 
-const advertisingGroupRef = ref()
-const previewAreaRef = ref()
-const configurationAreaRef = ref()
+const advertisingGroupRef = ref();
+const previewAreaRef = ref();
+const configurationAreaRef = ref();
 
 // 创建对象
-const creationInfo = ref<VivoCreation>(
-  {
-    project: {
-      projectId: "",
-      projectName: "",
-      icon: "",
-      packageName: ""
+const creationInfo = ref<VivoCreation>({
+  project: {
+    projectId: '',
+    projectName: '',
+    icon: '',
+    packageName: '',
+  },
+  accountInfo: [],
+  configData: {
+    // 投放资质
+    advertiserQualification: new Map<string, QualificationValue>(),
+    campaign: {
+      name: '',
+      adType: 0,
+      mediaType: 0,
+      dailyBudget: -1,
+      campaignType: 0,
+      pushForm: 0,
+      pushType: 0,
+      promotionType: 0,
+      conversionMonitorType: 0,
     },
-    accountInfo: [],
-    configData: {
-      // 投放资质
-      advertiserQualification: new Map<string, QualificationValue>(),
-      campaign: {
-        name: "",
-        adType: 0,
-        mediaType: 0,
-        dailyBudget: -1,
-        campaignType: 0,
-        pushForm: 0,
-        pushType: 0,
-        promotionType: 0,
-        conversionMonitorType: 0
-      },
-      adgroup: {
-        // advertiseQualificationId: "",
-        apkId: 0,
-        appPackageName: "",
-        appletOriginId: "",
-        appletPath: "",
-        biddingStrategy: 0,
-        builtInRpkDeepLink: "",
-        campaignId: 0,
-        channelId: 0,
-        chargeType: null,
-        conversionFilterCycle: 0,
-        cvType: "",
-        dailyBudget: -1,
-        endDate: "",
-        h5Code: "",
-        h5Type: null,
-        industry1: "",
-        industry2: "",
-        name: "",
-        ocpxPrice: 0,
-        price: 0,
-        productUrlType: 0,
-        retrieveType: 0,
-        rpkDeepLink: "",
-        ruleAudience: "",
-        scheduleTime: "",
-        secondCvType: 0,
-        secondOcpxPrice: 0,
-        spentType: null,
-        startDate: "",
-        subpackageId: 0,
-        webSiteUrl: "",
-        wechatFollow: 0
-      },
-      promotion: {
-        groupId: '',
-        name: '',
-        deepLink: '',
-        videoAttribution: 0,
-        pageUrl: '',
-        h5Code: '',
-        h5Type: 0,
-        generalSwitch: 0,
-        config: {
-          videoMaxCount: 5,
-          imageMaxCount: 5,
-          materialNormId: 0,
-          placeType: 0,
-          strongReminder: 0,
-          virtualPositionId: ""
-        }
-      },
-      audience: {
-        audienceConfig: {
-          method: 'all'
-        },
-        data: new Map<string, Array<TargetedPackageTypeItem>>()
-      },
-      material: {
-        config: {
-          method: "all",
-        },
-        data: new Map<string, Material[]>
-      },
-      titlePackage: {
-        titlePackageConfig: {
-          method: 'all'
-        },
-        data: new Map<string, Array<TitlePackageItem>>()
-      }
+    adgroup: {
+      // advertiseQualificationId: "",
+      apkId: 0,
+      appPackageName: '',
+      appletOriginId: '',
+      appletPath: '',
+      biddingStrategy: 0,
+      builtInRpkDeepLink: '',
+      campaignId: 0,
+      channelId: 0,
+      chargeType: null,
+      conversionFilterCycle: 0,
+      cvType: '',
+      dailyBudget: -1,
+      endDate: '',
+      h5Code: '',
+      h5Type: null,
+      industry1: '',
+      industry2: '',
+      name: '',
+      ocpxPrice: 0,
+      price: 0,
+      productUrlType: 0,
+      retrieveType: 0,
+      rpkDeepLink: '',
+      ruleAudience: '',
+      scheduleTime: '',
+      secondCvType: 0,
+      secondOcpxPrice: 0,
+      spentType: null,
+      startDate: '',
+      subpackageId: 0,
+      webSiteUrl: '',
+      wechatFollow: 0,
     },
-    platform: Platform.VIVO,
-    ruleInfo: {
-      projectRuleKey: "targeting",
-      projectCount: 1,
-      adRuleKey: "creative",
-      adCount: 1
+    promotion: {
+      groupId: '',
+      name: '',
+      deepLink: '',
+      videoAttribution: 0,
+      pageUrl: '',
+      h5Code: '',
+      h5Type: 0,
+      generalSwitch: 0,
+      config: {
+        videoMaxCount: 5,
+        imageMaxCount: 5,
+        materialNormId: 0,
+        placeType: 0,
+        strongReminder: 0,
+        virtualPositionId: '',
+      },
     },
-    monitoringLink: {
-      clickLink: '',
-      exposureLink: '',
-      monitorLink: '',
-      linkModeType: 'manual',
-      allocateType: 'all',
-    }
-  }
-);
+    audience: {
+      audienceConfig: {
+        method: 'all',
+      },
+      data: new Map<string, Array<TargetedPackageTypeItem>>(),
+    },
+    material: {
+      config: {
+        method: 'all',
+      },
+      data: new Map<string, Material[]>(),
+    },
+    titlePackage: {
+      titlePackageConfig: {
+        method: 'all',
+      },
+      data: new Map<string, Array<TitlePackageItem>>(),
+    },
+  },
+  platform: Platform.VIVO,
+  ruleInfo: {
+    projectRuleKey: 'targeting',
+    projectCount: 1,
+    adRuleKey: 'creative',
+    adCount: 1,
+  },
+  monitoringLink: {
+    clickLink: '',
+    exposureLink: '',
+    monitorLink: '',
+    linkModeType: 'manual',
+    allocateType: 'all',
+  },
+});
 
 watch(
   () => creationInfo.value,
@@ -160,7 +159,7 @@ watch(
       previewAreaRef.value.clearTable();
     }
   },
-  { deep: true } // 必须开启深度监听，因为 creationInfo 是个复杂对象
+  { deep: true }, // 必须开启深度监听，因为 creationInfo 是个复杂对象
 );
 
 //----------保存策略组-----------
@@ -170,7 +169,8 @@ const [CreateModule, createModalApi] = useVbenModal({
 
 /**保存策略组 */
 async function savePolicyGroup() {
-  if (creationInfo.value.accountInfo.length &&
+  if (
+    creationInfo.value.accountInfo.length &&
     creationInfo.value.project.projectId &&
     creationInfo.value.configData.campaign.name &&
     creationInfo.value.configData.adgroup.name &&
@@ -180,11 +180,11 @@ async function savePolicyGroup() {
     creationInfo.value.configData.audience.data.size > 0 &&
     creationInfo.value.configData.titlePackage.data.size > 0
   ) {
-    createModalApi.setData(creationInfo.value)
+    createModalApi.setData(creationInfo.value);
   } else {
-    return message.warning('请完善“配置区域”基本信息和“监测链接组”')
+    return message.warning('请完善“配置区域”基本信息和“监测链接组”');
   }
-  createModalApi.open()
+  createModalApi.open();
 }
 
 //----------选择定向包-----------
@@ -193,8 +193,9 @@ const [AdOrientationModule, adOrientationModuleModalApi] = useVbenModal({
 });
 
 function openAdOrientationModule() {
-  if (!creationInfo.value.configData.campaign.name) return message.warning('请先完善并保存“项目”基本信息');
-  adOrientationModuleModalApi.setData(creationInfo.value.configData.audience)
+  if (!creationInfo.value.configData.campaign.name)
+    return message.warning('请先完善并保存“项目”基本信息');
+  adOrientationModuleModalApi.setData(creationInfo.value.configData.audience);
   adOrientationModuleModalApi.open();
 }
 
@@ -212,8 +213,9 @@ const [TitlePackagePopupModule, titlePackagePopupModuleModalApi] = useVbenModal(
 });
 
 function openTitlePackagePopupModule() {
-  if (!creationInfo.value.configData.promotion.name) return message.warning('请先完善并保存“素材组”基本信息');
-  titlePackagePopupModuleModalApi.setData(creationInfo.value.configData.titlePackage)
+  if (!creationInfo.value.configData.promotion.name)
+    return message.warning('请先完善并保存“素材组”基本信息');
+  titlePackagePopupModuleModalApi.setData(creationInfo.value.configData.titlePackage);
   titlePackagePopupModuleModalApi.open();
 }
 
@@ -228,12 +230,13 @@ const [CreativeMaterialsDrawerModule, creativeMaterialsDrawerApi] = useVbenDrawe
 });
 
 function openCreativeMaterialsDrawerModule() {
-  if (!creationInfo.value.configData.adgroup.name) return message.warning('请先完善并保存“广告组”基本信息');
+  if (!creationInfo.value.configData.adgroup.name)
+    return message.warning('请先完善并保存“广告组”基本信息');
   creativeMaterialsDrawerApi.setData({
     promotion: creationInfo.value.configData.promotion,
-    material: creationInfo.value.configData.material
-  })
-  creativeMaterialsDrawerApi.open()
+    material: creationInfo.value.configData.material,
+  });
+  creativeMaterialsDrawerApi.open();
 }
 
 /**广告创意素材上半部分组 */
@@ -264,8 +267,14 @@ function handleProductUpdate(data: Project) {
 /**媒体账户 */
 function handleAccountUpdate(data: Array<AccountInfo>) {
   // 1. 获取旧的 ID 集合用于对比
-  const oldIds = creationInfo.value.accountInfo.map(a => a.localAdvertiserId).sort().join(',');
-  const newIds = data.map(a => a.localAdvertiserId).sort().join(',');
+  const oldIds = creationInfo.value.accountInfo
+    .map((a) => a.localAdvertiserId)
+    .sort()
+    .join(',');
+  const newIds = data
+    .map((a) => a.localAdvertiserId)
+    .sort()
+    .join(',');
 
   // 2. 只有当 ID 列表真的变了，才执行清理逻辑
   if (oldIds !== newIds) {
@@ -275,7 +284,7 @@ function handleAccountUpdate(data: Array<AccountInfo>) {
     const cleanupTargets = [
       { obj: config.audience, methodKey: 'audienceConfig' },
       { obj: config.material, methodKey: 'config' },
-      { obj: config.titlePackage, methodKey: 'titlePackageConfig' }
+      { obj: config.titlePackage, methodKey: 'titlePackageConfig' },
     ];
 
     cleanupTargets.forEach(({ obj, methodKey }) => {
@@ -303,8 +312,8 @@ function handleAccountUpdate(data: Array<AccountInfo>) {
           materialNormId: 0,
           placeType: 0,
           strongReminder: 0,
-          virtualPositionId: ""
-        }
+          virtualPositionId: '',
+        },
       };
       // 如果有子组件引用，记得同步更新子组件内部状态
     }
@@ -315,7 +324,8 @@ function handleAccountUpdate(data: Array<AccountInfo>) {
     }
 
     // 可选：给用户一个明确的提示
-    if (oldIds !== "") { // 排除掉从无到有的初始赋值情况
+    if (oldIds !== '') {
+      // 排除掉从无到有的初始赋值情况
       message.info('媒体账户已变更，已重置分账户配置数据');
     }
   }
@@ -332,7 +342,9 @@ function handleReuseUpdate(data: VivoCreation) {
 
     // 1. 恢复 advertiserQualification
     if (!(config.advertiserQualification instanceof Map)) {
-      config.advertiserQualification = new Map(Object.entries(config.advertiserQualification || {}));
+      config.advertiserQualification = new Map(
+        Object.entries(config.advertiserQualification || {}),
+      );
     }
 
     // 2. 恢复 audience.data
@@ -352,8 +364,14 @@ function handleReuseUpdate(data: VivoCreation) {
   }
 
   creationInfo.value = data;
-  configurationAreaRef.value.reuseDisplay(creationInfo.value.project,creationInfo.value.accountInfo)
-  advertisingGroupRef.value.setLocalAdGroupData(creationInfo.value.configData.adgroup, creationInfo.value.configData.advertiserQualification)
+  configurationAreaRef.value.reuseDisplay(
+    creationInfo.value.project,
+    creationInfo.value.accountInfo,
+  );
+  advertisingGroupRef.value.setLocalAdGroupData(
+    creationInfo.value.configData.adgroup,
+    creationInfo.value.configData.advertiserQualification,
+  );
   console.log(creationInfo.value, '复用策略组');
 }
 
@@ -382,40 +400,43 @@ function handleAdTypeChangeWarning() {
   creationInfo.value.configData.adgroup = {
     // advertiseQualificationId: "",
     apkId: 0,
-    appPackageName: "",
-    appletOriginId: "",
-    appletPath: "",
+    appPackageName: '',
+    appletOriginId: '',
+    appletPath: '',
     biddingStrategy: 0,
-    builtInRpkDeepLink: "",
+    builtInRpkDeepLink: '',
     campaignId: 0,
     channelId: 0,
     chargeType: null,
     conversionFilterCycle: 0,
-    cvType: "",
+    cvType: '',
     dailyBudget: -1,
-    endDate: "",
-    h5Code: "",
+    endDate: '',
+    h5Code: '',
     h5Type: null,
-    industry1: "",
-    industry2: "",
-    name: "",
+    industry1: '',
+    industry2: '',
+    name: '',
     ocpxPrice: 0,
     price: 0,
     productUrlType: 0,
     retrieveType: 0,
-    rpkDeepLink: "",
-    ruleAudience: "",
-    scheduleTime: "",
+    rpkDeepLink: '',
+    ruleAudience: '',
+    scheduleTime: '',
     secondCvType: 0,
     secondOcpxPrice: 0,
     spentType: null,
-    startDate: "",
+    startDate: '',
     subpackageId: 0,
-    webSiteUrl: "",
-    wechatFollow: 0
+    webSiteUrl: '',
+    wechatFollow: 0,
   };
-  creationInfo.value.configData.advertiserQualification = new Map<string, QualificationValue>()
-  advertisingGroupRef.value.setLocalAdGroupData(creationInfo.value.configData.adgroup, creationInfo.value.configData.advertiserQualification)
+  creationInfo.value.configData.advertiserQualification = new Map<string, QualificationValue>();
+  advertisingGroupRef.value.setLocalAdGroupData(
+    creationInfo.value.configData.adgroup,
+    creationInfo.value.configData.advertiserQualification,
+  );
   message.warning('“推广目标”已变更，请重新完善“广告组”基本信息');
 }
 
@@ -427,17 +448,19 @@ const [monitoringLinkGroupModal, modalApi] = useVbenModal({
 /**打开监测链接组 */
 function openMonitoringLinkModal() {
   if (!creationInfo.value.accountInfo.length) return message.warning('请先在配置区选择“媒体账户”');
-  if (!creationInfo.value.configData.campaign.name) return message.warning('请先完善并保存“项目”基本信息');
+  if (!creationInfo.value.configData.campaign.name)
+    return message.warning('请先完善并保存“项目”基本信息');
   modalApi.open();
 }
 
 function handlemonitoringLinkGroupUpdate(data: MonitoringLinkType) {
-  creationInfo.value.monitoringLink = data
+  creationInfo.value.monitoringLink = data;
 }
 
 /**生成预览 */
 function generatePreview() {
-  if (creationInfo.value.accountInfo.length &&
+  if (
+    creationInfo.value.accountInfo.length &&
     creationInfo.value.project.projectId &&
     creationInfo.value.configData.campaign.name &&
     creationInfo.value.configData.adgroup.name &&
@@ -447,9 +470,9 @@ function generatePreview() {
     creationInfo.value.configData.audience.data.size > 0 &&
     creationInfo.value.configData.titlePackage.data.size > 0
   ) {
-    previewAreaRef.value?.generateTable(creationInfo.value)
+    previewAreaRef.value?.generateTable(creationInfo.value);
   } else {
-    return message.warning('请完善“配置区域”基本信息和“监测链接组”')
+    return message.warning('请完善“配置区域”基本信息和“监测链接组”');
   }
 }
 </script>
@@ -480,7 +503,8 @@ function generatePreview() {
               :has-product="!!creationInfo.project.projectId"
               :campaign="creationInfo.configData.campaign"
               @update:projectConfig="handleProjectConfigUpdate"
-              @adTypeChanged="handleAdTypeChangeWarning"/>
+              @adTypeChanged="handleAdTypeChangeWarning"
+            />
           </Col>
           <Col :span="6">
             <Card>
@@ -494,7 +518,7 @@ function generatePreview() {
                 @update:adGroupConfig="handleAdGroupUpdate"
                 @update:adQualification="handleAdQualification"
               />
-              <Divider type="horizontal"/>
+              <Divider type="horizontal" />
               <AdOrientationModule
                 :accountInfo="creationInfo.accountInfo"
                 :orientation="creationInfo.configData.audience"
@@ -511,7 +535,9 @@ function generatePreview() {
                 :accountInfo="creationInfo.accountInfo"
                 :promotion="creationInfo.configData.promotion"
                 :material="creationInfo.configData.material"
-                @update:clearCreativeMaterialsDrawerConfig="handleClearCreativeMaterialsDrawerUpdate"
+                @update:clearCreativeMaterialsDrawerConfig="
+                  handleClearCreativeMaterialsDrawerUpdate
+                "
                 @update:clearCreativeMaterialsGroupList="handleClearCreativeMaterialsGroupList"
               />
               <div class="btnCla">
@@ -552,12 +578,18 @@ function generatePreview() {
           <Button type="primary" @click="openMonitoringLinkModal">监测链接组</Button>
           <div>
             <Button type="primary" @click="savePolicyGroup">保存策略组</Button>
-            <Button style="margin: 0 0 0 10px;" type="primary" @click="generatePreview">生成广告预览</Button>
+            <Button style="margin: 0 0 0 10px" type="primary" @click="generatePreview"
+              >生成广告预览</Button
+            >
           </div>
         </div>
         <Card>
           <h2 class="text">预览区</h2>
-          <PreviewArea ref="previewAreaRef" :creationInfo="creationInfo" :accountInfo="creationInfo.accountInfo"/>
+          <PreviewArea
+            ref="previewAreaRef"
+            :creationInfo="creationInfo"
+            :accountInfo="creationInfo.accountInfo"
+          />
         </Card>
       </Card>
     </div>
@@ -566,7 +598,7 @@ function generatePreview() {
       :monitoringLink="creationInfo.monitoringLink"
       @update:monitoringLinkGroup="handlemonitoringLinkGroupUpdate"
     />
-    <CreateModule/>
+    <CreateModule />
   </Page>
 </template>
 

@@ -42,7 +42,11 @@ import type {
   VivoSubmitType,
   GetStrategyGropType,
   StrategyGropType,
-  UpdateStrategyGropType
+  UpdateStrategyGropType,
+  MetricGroupPageRequest,
+  MetricGroupType,
+  UpdateMetricGroupType,
+  MetricPageRequest
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -187,8 +191,8 @@ class MetricApi extends BaseApi {
   /**
    * 获取查询指标列表
    */
-  fetchMetric() {
-    return requestClient.get<MetricItem>(this.getServiceUrl("query_metric"))
+  fetchMetric(params: MetricPageRequest) {
+    return requestClient.get<MetricItem>(this.getServiceUrl("query_metric"),{ params })
   }
 
   fetchBatchOptions(params: BatchOptions) {
@@ -198,8 +202,23 @@ class MetricApi extends BaseApi {
 }
 
 export const metricApi = new MetricApi("/platform/metric");
+// 指标类目
+class MetricGroupApi extends BaseApi {
+  fetchGetMetricGroupList(params: MetricGroupPageRequest) {
+    return requestClient.get(this.getServiceUrl('list'),{ params })
+  }
+  fetchNewMetricGroupList(params: MetricGroupType) {
+    return requestClient.post(this.getServiceUrl('create'), params )
+  }
+  fetchUpdateMetricGroupList(params: UpdateMetricGroupType) {
+    return requestClient.post(this.getServiceUrl('update'), params )
+  }
+  fetchDelMetricGroupList(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl('batch_options'), params )
+  }
+}
 
-
+export const metricGroupApi = new MetricGroupApi("/platform/metric_group");
 /**
  * report data
  */

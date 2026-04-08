@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import {useVbenDrawer} from '@vben/common-ui';
-import {useVbenForm} from '#/adapter/form';
+import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenForm } from '#/adapter/form';
 import {
   ADTYPE_SELECT,
   CONVERSION_SELECT,
@@ -8,13 +8,20 @@ import {
   NOTIFICATIONTYPE_SELECT,
   NOTIFORMAT_SELECT,
   PROJRCT_SELECT,
-  PROMOTION_SELECT
+  PROMOTION_SELECT,
 } from '../projectEnum';
-import {h, ref} from 'vue';
-import {Input, Tag} from 'ant-design-vue';
-import { useProjectPlaceholder } from "#/utils/customName";
+import { h, ref } from 'vue';
+import { Input, Tag } from 'ant-design-vue';
+import { useProjectPlaceholder } from '#/utils/customName';
 
-const { customizeName, handleTagClick, placeholders } = useProjectPlaceholder('', 100);
+const PROJECT_PLACEHOLDERS = [
+  { label: '时间', value: '<时间>' },
+  { label: '日期', value: '<日期>' },
+  { label: '时分秒', value: '<时分秒>' },
+  { label: '动态标号', value: '<动态标号>' },
+] as const; // 使用 as const 保证类型安全
+
+const { customizeName, handleTagClick } = useProjectPlaceholder('', 100);
 
 // 增加一个变量记录打开时的初始 adType，如果改变，广告组就需要跟着清空重新填写
 const initialAdType = ref<any>(null);
@@ -37,7 +44,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   onConfirm: async () => {
     try {
-      if (customizeName.value) await formApi.setValues({name: customizeName.value});
+      if (customizeName.value) await formApi.setValues({ name: customizeName.value });
       const isValidate = await formApi.validate();
       if (!isValidate.valid) return;
 
@@ -52,7 +59,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       const formData = {
         ...(await formApi.getValues()),
         _isConfirmed: true,
-        _adTypeChanged: adTypeChanged
+        _adTypeChanged: adTypeChanged,
       };
       drawerApi.setData(formData);
       customizeName.value = '';
@@ -62,7 +69,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     }
   },
   onCancel() {
-    reset()
+    reset();
   },
 });
 
@@ -77,7 +84,7 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     // 所有表单项
     componentProps: {
-      class: 'w-[300px]'
+      class: 'w-[300px]',
     },
   },
   schema: [
@@ -117,9 +124,9 @@ const [Form, formApi] = useVbenForm({
         placeholder: '请输入',
       },
       fieldName: 'dailyBudget',
-      defaultValue:-1,
+      defaultValue: -1,
       label: '计划日限额',
-      suffix: () => h('span', {class: 'text-600'}, '元'),
+      suffix: () => h('span', { class: 'text-600' }, '元'),
       rules: 'required',
     },
     {
@@ -176,7 +183,6 @@ const [Form, formApi] = useVbenForm({
     },
   ],
 });
-
 </script>
 
 <template>
@@ -196,7 +202,7 @@ const [Form, formApi] = useVbenForm({
 
             <div class="flex flex-wrap items-center gap-2 text-xs mt-1">
               <span class="text-gray-500 font-medium">通配符：</span>
-              <template v-for="item in placeholders" :key="item.value">
+              <template v-for="item in PROJECT_PLACEHOLDERS" :key="item.value">
                 <Tag
                   class="cursor-pointer select-none transition-all hover:border-blue-400"
                   :color="customizeName.includes(item.value) ? 'blue' : 'default'"
@@ -213,6 +219,4 @@ const [Form, formApi] = useVbenForm({
   </div>
 </template>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

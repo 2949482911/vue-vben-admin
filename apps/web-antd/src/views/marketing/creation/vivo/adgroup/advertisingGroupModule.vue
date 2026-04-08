@@ -1,6 +1,6 @@
 <script setup lang="ts" name="AdvertisingGroupModule">
-import {Button, Card, Divider, message, Tooltip} from 'ant-design-vue';
-import {useVbenDrawer} from '@vben/common-ui';
+import { Button, Card, Divider, message, Tooltip } from 'ant-design-vue';
+import { useVbenDrawer } from '@vben/common-ui';
 import {
   BILLINGTYPE_SELECT,
   DELIVER_SELECT,
@@ -8,89 +8,90 @@ import {
   PROMOTIONLINK_SELECT,
   VXFOLLOW_SELECT,
 } from '../projectEnum';
-import {computed, ref} from 'vue';
-import type {QualificationValue, VivoAdgroupData} from "#/views/marketing/creation/vivo/vivo";
-import AdGroupDrawer from "./adGroupDrawer.vue";
+import { computed, ref } from 'vue';
+import type { QualificationValue, VivoAdgroupData } from '#/views/marketing/creation/vivo/vivo';
+import AdGroupDrawer from './adGroupDrawer.vue';
 import type { TargetedPackageTypeItem } from '#/api/models';
 import type { AccountInfo } from '../../creation';
 
-const {campaign, orientation, accountInfo, advertiserQualification} = defineProps({
+const { campaign, orientation, accountInfo, advertiserQualification } = defineProps({
   // 接收来自 index 的项目基本信息
   campaign: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   // 定向包
-  orientation:{
+  orientation: {
     type: Object,
-    default: new Map<string, Array<TargetedPackageTypeItem>>()
+    default: new Map<string, Array<TargetedPackageTypeItem>>(),
   },
   // 账户列表
   accountInfo: {
     type: Array<AccountInfo>,
-    default: () => ([])
+    default: () => [],
   },
-  advertiserQualification:{
+  advertiserQualification: {
     type: Object,
-    default: new Map<string, QualificationValue>()
-  }
+    default: new Map<string, QualificationValue>(),
+  },
 });
 
-const emit = defineEmits(['update:adGroupConfig','update:adQualification']);
+const emit = defineEmits(['update:adGroupConfig', 'update:adQualification']);
 
 const adGroupData = ref<VivoAdgroupData>({
   // advertiseQualificationId: "",
   apkId: 0,
-  appPackageName: "",
-  appletOriginId: "",
-  appletPath: "",
+  appPackageName: '',
+  appletOriginId: '',
+  appletPath: '',
   biddingStrategy: 0,
-  builtInRpkDeepLink: "",
+  builtInRpkDeepLink: '',
   campaignId: 0,
   channelId: 0,
   chargeType: null,
   conversionFilterCycle: 0,
-  cvType: "",
+  cvType: '',
   dailyBudget: -1,
-  endDate: "",
-  h5Code: "",
+  endDate: '',
+  h5Code: '',
   h5Type: null,
-  industry1: "",
-  industry2: "",
-  name: "",
+  industry1: '',
+  industry2: '',
+  name: '',
   ocpxPrice: 0,
   price: 0,
   productUrlType: 0,
   retrieveType: 0,
-  rpkDeepLink: "",
-  ruleAudience: "",
-  scheduleTime: "",
+  rpkDeepLink: '',
+  ruleAudience: '',
+  scheduleTime: '',
   secondCvType: 0,
   secondOcpxPrice: 0,
   spentType: null,
-  startDate: "",
+  startDate: '',
   subpackageId: 0,
-  webSiteUrl: "",
-  wechatFollow: 0
-
+  webSiteUrl: '',
+  wechatFollow: 0,
 });
 const localAdvertiserQualification = ref<Map<string, QualificationValue>>(new Map());
-
 
 // 按账户分配方式的回显
 const accountSelectionMap = computed(() => {
   const method = orientation.audienceConfig?.method;
   const dataMap = orientation.data as Map<string, TargetedPackageTypeItem[]>;
   if (method !== 'account' || !dataMap) return {};
-  const result: Record<string, { advertiserName: string; packages: TargetedPackageTypeItem[] }> = {};
+  const result: Record<string, { advertiserName: string; packages: TargetedPackageTypeItem[] }> =
+    {};
   dataMap.forEach((packages, accountId) => {
     if (packages && packages.length > 0) {
       // 寻找与当前 accountId 匹配的那一个账户信息
-      const currentAccount = accountInfo.find(item => String(item.localAdvertiserId) === String(accountId));
-      
+      const currentAccount = accountInfo.find(
+        (item) => String(item.localAdvertiserId) === String(accountId),
+      );
+
       result[accountId] = {
         advertiserName: currentAccount?.advertiserName ?? '未知账户',
-        packages: packages
+        packages: packages,
       };
     }
   });
@@ -102,8 +103,8 @@ const [AdGroupDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: AdGroupDrawer,
   onOpenChange(isOpen) {
     if (!isOpen) {
-      const {finalParams, localAdvertiserQualification} = drawerApi.getData();
-      
+      const { finalParams, localAdvertiserQualification } = drawerApi.getData();
+
       if (finalParams && finalParams._isConfirmed) {
         if (finalParams) {
           adGroupData.value = finalParams as VivoAdgroupData;
@@ -113,20 +114,20 @@ const [AdGroupDrawerModule, drawerApi] = useVbenDrawer({
         }
       }
     }
-  }
+  },
 });
 
 // 单个删除（全部相同）
 const removePackage = (index: number) => {
   // 1. 获取 Map 中的数组
-  const list = orientation.data.get("0") || [];
+  const list = orientation.data.get('0') || [];
   // 2. 执行删除
   list.splice(index, 1);
   // 3. 更新 Map（触发响应式）
   if (list.length === 0) {
-    orientation.data.delete("0");
+    orientation.data.delete('0');
   } else {
-    orientation.data.set("0", [...list]); 
+    orientation.data.set('0', [...list]);
   }
 };
 
@@ -148,14 +149,14 @@ const removePackageFromAccount = (accountId: string, index: number) => {
 
 // 清空全部
 const clearAllPackages = () => {
-  orientation.audienceConfig.method = 'all'
+  orientation.audienceConfig.method = 'all';
   orientation.data.clear();
 };
 
 // 计算已选总数（用于展示 2/100）
 const totalSelectedCount = computed(() => {
   if (orientation.audienceConfig.method === 'all') {
-    return orientation.data.get("0")?.length || 0;
+    return orientation.data.get('0')?.length || 0;
   }
 });
 
@@ -163,7 +164,7 @@ const totalSelectedCount = computed(() => {
 const isClearDisabled = computed(() => {
   if (orientation.audienceConfig.method === 'all') {
     // 全部相同时，判断数组长度
-    const allData = orientation.data.get("0");
+    const allData = orientation.data.get('0');
     return !allData || allData.length === 0;
   } else {
     // 按账户分配时，判断 Map 是否有键值对
@@ -182,22 +183,25 @@ const labelMap: Partial<Record<keyof VivoAdgroupData, string>> = {
   appletOriginId: '小程序id',
   appletPath: '小程序页面路径',
   chargeType: '计费类型',
-  cvType: '二阶段目标',
   price: '一阶段出价',
+  cvType: '二阶段目标',
   ocpxPrice: '二阶段出价',
+  secondCvType: '深度优化转化目标',
+  secondOcpxPrice: '深度优化出价',
   industry1: '一级行业分类id',
   industry2: '二级行业分类id',
   dailyBudget: '日预算',
   spentType: '投放状态',
   startDate: '开始日期',
   endDate: '结束日期',
-  wechatFollow: '微信关注'
+  wechatFollow: '微信关注',
 };
 
 // 将 enumMap 定义为计算属性
 const enumMap = computed<Partial<Record<keyof VivoAdgroupData, any[]>>>(() => ({
   chargeType: BILLINGTYPE_SELECT,
   cvType: PHASETWOGOAL_SELECT,
+  secondCvType: PHASETWOGOAL_SELECT,
   spentType: DELIVER_SELECT,
   wechatFollow: VXFOLLOW_SELECT,
   h5Type: PROMOTIONLINK_SELECT,
@@ -208,7 +212,7 @@ const enumMap = computed<Partial<Record<keyof VivoAdgroupData, any[]>>>(() => ({
 const formatDisplayValue = (key: keyof VivoAdgroupData, value: any) => {
   if (value === null || value === undefined || value === '') return '-';
 
-  if (['price', 'ocpxPrice', 'dailyBudget'].includes(key)) {
+  if (['price', 'ocpxPrice', 'dailyBudget', 'secondOcpxPrice'].includes(key)) {
     return `${value} 元`;
   }
 
@@ -229,18 +233,21 @@ const formatDisplayValue = (key: keyof VivoAdgroupData, value: any) => {
 function newAdGroup() {
   const isConfigValid = !campaign.name;
   if (isConfigValid) return message.warning('请先完善并保存“项目”基本信息');
-  
+
   drawerApi.setData({
     adGroupData: adGroupData.value, // 如果 adGroupData 也是 ref
-    localAdQualification: localAdvertiserQualification.value 
+    localAdQualification: localAdvertiserQualification.value,
   });
-  drawerApi.open()
+  drawerApi.open();
 }
 
-defineExpose({setLocalAdGroupData})
+defineExpose({ setLocalAdGroupData });
 
 //如果项目的推广目标变更，那广告组的所有需要全部清空
-function setLocalAdGroupData(localAdGroupData: VivoAdgroupData, advertiserQualification:Map<string, QualificationValue>) {
+function setLocalAdGroupData(
+  localAdGroupData: VivoAdgroupData,
+  advertiserQualification: Map<string, QualificationValue>,
+) {
   adGroupData.value = localAdGroupData;
   localAdvertiserQualification.value = advertiserQualification;
 }
@@ -250,10 +257,16 @@ function setLocalAdGroupData(localAdGroupData: VivoAdgroupData, advertiserQualif
   <div>
     <div class="projectCard">
       <div class="title">广告组</div>
-      <Divider type="horizontal"/>
+      <Divider type="horizontal" />
       <div class="infoTop">
         <div class="title">基本信息：</div>
-        <Button v-if="adGroupData.name" type="link" size="small" @click="newAdGroup" class="edit-btn">
+        <Button
+          v-if="adGroupData.name"
+          type="link"
+          size="small"
+          @click="newAdGroup"
+          class="edit-btn"
+        >
           <span class="edit-icon">✎</span> 编辑
         </Button>
         <Button v-else type="primary" size="small" @click="newAdGroup">新增</Button>
@@ -269,27 +282,28 @@ function setLocalAdGroupData(localAdGroupData: VivoAdgroupData, advertiserQualif
             </template>
           </div>
         </div>
-        <div v-else class="empty-status">
-          暂无数据，请点击新增按钮添加
-        </div>
+        <div v-else class="empty-status">暂无数据，请点击新增按钮添加</div>
       </Card>
-      <div class="infoTop" style="margin: 10px 0 0;">
-        <div class="title">定向包：
-          <span v-if="orientation.audienceConfig.method === 'all'" style="color: #006be6;">
+      <div class="infoTop" style="margin: 10px 0 0">
+        <div class="title">
+          定向包：
+          <span v-if="orientation.audienceConfig.method === 'all'" style="color: #006be6">
             {{ totalSelectedCount }}/100
           </span>
-          <span v-else style="color: #006be6;">
-            按账户分配
-          </span>
+          <span v-else style="color: #006be6"> 按账户分配 </span>
         </div>
-        <Button :disabled="isClearDisabled" type="primary" danger @click="clearAllPackages">清空
+        <Button :disabled="isClearDisabled" type="primary" danger @click="clearAllPackages"
+          >清空
         </Button>
       </div>
       <Card class="targetedInfoBody">
         <div v-if="orientation.audienceConfig.method === 'all'">
           <div v-if="orientation.data.get('0')?.length > 0" class="package-list">
-            <div v-for="(item, index) in orientation.data.get('0')" :key="item.id || index"
-                 class="package-item">
+            <div
+              v-for="(item, index) in orientation.data.get('0')"
+              :key="item.id || index"
+              class="package-item"
+            >
               <span class="package-name">{{ item.name }}</span>
               <span class="remove-icon" @click="removePackage(Number(index))">×</span>
             </div>
@@ -298,13 +312,14 @@ function setLocalAdGroupData(localAdGroupData: VivoAdgroupData, advertiserQualif
         </div>
         <div v-else>
           <div v-if="Object.keys(accountSelectionMap).length > 0" class="account-group-list">
-            <div v-for="(item, accountId) in accountSelectionMap" :key="accountId"
-                 class="account-section">
+            <div
+              v-for="(item, accountId) in accountSelectionMap"
+              :key="accountId"
+              class="account-section"
+            >
               <div v-if="item.packages && item.packages.length > 0" class="account-header">
                 <Tooltip placement="topLeft">
-                  <template #title>
-                    {{ item.advertiserName }} (ID: {{ accountId }})
-                  </template>
+                  <template #title> {{ item.advertiserName }} (ID: {{ accountId }}) </template>
 
                   <div class="header-content">
                     {{ item.advertiserName }}
@@ -315,8 +330,9 @@ function setLocalAdGroupData(localAdGroupData: VivoAdgroupData, advertiserQualif
               <div class="package-list">
                 <div v-for="(pkg, pIndex) in item.packages" :key="pkg.id" class="package-item">
                   <span class="package-name">{{ pkg.name }}</span>
-                  <span class="remove-icon"
-                    @click="removePackageFromAccount(accountId, pIndex)">×</span>
+                  <span class="remove-icon" @click="removePackageFromAccount(accountId, pIndex)"
+                    >×</span
+                  >
                 </div>
               </div>
             </div>

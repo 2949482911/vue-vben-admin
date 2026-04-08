@@ -427,7 +427,6 @@ onMounted(() => {
   .editor-toolbar {
     display: flex;
     justify-content: space-around;
-    background: white;
     border: 1px solid #d9d9d9;
     border-top: none;
     border-radius: 0 0 4px 4px;
@@ -448,7 +447,6 @@ onMounted(() => {
         justify-content: center;
         align-items: center;
         font-size: 14px;
-        background-color: #eee;
         cursor: pointer;
         border-radius: 2px;
         transition: background-color 0.2s;
@@ -506,14 +504,15 @@ onMounted(() => {
 .metric-item {
   padding: 8px 12px;
   cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: hsl(var(--primary)/15%);
+    border: 1px solid hsl(var(--primary)/15%);
   }
 
   &.active {
-    background-color: #e6f7ff;
+    background-color: hsl(var(--primary)/15%);
+    border: 1px solid hsl(var(--primary)/15%);
   }
 }
 </style>

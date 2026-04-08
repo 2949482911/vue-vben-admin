@@ -139,7 +139,9 @@ export interface ClickMonitorResponse {
 
 export interface OcpxBehavioracallbackRecordPageRequest
   extends PageRequestParams {
-  ocpxTaskId: string;
+  taskId: string;
+  platformCallbackId: string;
+  behaviorPlatformId: string;
 }
 
 // ocpx 执行 任务记录
@@ -190,4 +192,10 @@ export interface TestCallbackRequest {
   ocpxTaskId: string;
   platformCallbackId: string;
   behaviorType: string;
+}
+export interface RePushRetryBehaviorCallbackType {
+  taskId: string;
+  platformCallbackId: string;
+  behaviorPlatformId: string;
+  requestId: string[];
 }

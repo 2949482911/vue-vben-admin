@@ -1,18 +1,23 @@
 import dayjs from 'dayjs';
 import { ref } from 'vue';
 
-/**批头名字生成的方法 */
-export const renderProjectTitle = (template: string, currentIndex: number = 0): string => {
+/**批头名字生成的方法展示在输入框 */
+export const renderProjectTitle = (
+  template: string,
+  currentIndex: number = 0,
+  productName?: string,
+): string => {
   if (!template) return '';
 
   const now = dayjs();
-  
+
   // 严格匹配图片中的规则
   const mapping: Record<string, string> = {
-    '<时间>': now.format('MMDDHHmmss'), 
-    '<日期>': now.format('MMDD'),       
-    '<时分秒>': now.format('HHmmss'),     
+    '<时间>': now.format('MMDDHHmmss'),
+    '<日期>': now.format('MMDD'),
+    '<时分秒>': now.format('HHmmss'),
     '<动态标号>': String(currentIndex),
+    '<产品名称>': productName || '',
   };
 
   let result = template;
@@ -25,14 +30,7 @@ export const renderProjectTitle = (template: string, currentIndex: number = 0): 
   return result;
 };
 
-// 1. 抽离通配符配置（如果你想增加新的通配符，只需改这里）
-export const PROJECT_PLACEHOLDERS = [
-  { label: '时间', value: '<时间>' },
-  { label: '日期', value: '<日期>' },
-  { label: '时分秒', value: '<时分秒>' },
-  { label: '动态标号', value: '<动态标号>' },
-] as const; // 使用 as const 保证类型安全
-
+/**批头名字生成的方法按生成规则生成 */
 export function useProjectPlaceholder(initialValue: string = '', maxLength: number = 100) {
   // 响应式变量，接管输入框内容
   const customizeName = ref<string>(initialValue);
@@ -63,8 +61,7 @@ export function useProjectPlaceholder(initialValue: string = '', maxLength: numb
   };
 
   return {
-    customizeName,       // 对应 v-model
-    handleTagClick,    // 对应 @click
-    placeholders: PROJECT_PLACEHOLDERS, // 导出配置供 UI 渲染
+    customizeName, // 对应 v-model
+    handleTagClick, // 对应 @click
   };
 }

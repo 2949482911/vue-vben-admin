@@ -8,7 +8,7 @@ import {useVbenVxeGrid, type VxeGridProps} from "#/adapter/vxe-table";
 import { useVbenForm } from '#/adapter/form';
 import type {AccountChildResponse, AdvertiserItem} from "#/api/models";
 import {$t} from "@vben/locales";
-import {InputSearch, Checkbox, Select, RadioGroup, RadioButton, message } from "ant-design-vue";
+import {InputSearch, Checkbox, Select, RadioGroup, RadioButton, message, Button } from "ant-design-vue";
 import type { ProjectItem } from './advertiser';
  // 新增响应式变量
 const selectedRowKeys = ref<(string)[]>([]);
@@ -45,21 +45,40 @@ const emit = defineEmits(['pageReload']);
 const objectRequest = ref<{ id: string; }>({id: '',})
 
 const isSlect = ref(true)
-
+const isLoading = ref<Boolean>(false)
 const [Modal, modalApi] = useVbenModal({
   fullscreenButton: false,
   closeOnPressEscape: false,
-  async onCancel() {
-    gridApi.setGridOptions({data: []});
-    objectRequest.value = {id: ''};
-    await modalApi.close();
-    accountName.value = ''
-    checked.value = false
-    projectStr.value = ''
-    isSlect.value = true
+  async onOpenChange(isOpen: boolean) {
+    if (isOpen) {
+      objectRequest.value = modalApi.getData<{ id: string; }>();
+      gridApi.setLoading(true);
+
+      importData.value = await advertiserApi.fetchAccountChild(objectRequest.value.id)
+      // 初始化搜索数据 = 全量数据
+      filterData.value = [...importData.value];
+      pages.total = filterData.value.length
+      pages.currentPage = 1
+      updatePageData(filterData.value)
+      gridApi.setLoading(false);
+    }
   },
-  async onConfirm() {
-    let advertiserIds: string[];
+});
+
+async function handleCancel() {
+  gridApi.setGridOptions({data: []});
+  objectRequest.value = {id: ''};
+  await modalApi.close();
+  accountName.value = ''
+  checked.value = false
+  projectStr.value = ''
+  isSlect.value = true
+}
+
+async function handleConfirm() {
+  isLoading.value = true;
+  let advertiserIds: string[];
+  try {
     if(handleType.value === 'import') {
       const formVal = await formApi.getValues();
       advertiserIds = strToArray(formVal.accountIds);
@@ -71,8 +90,6 @@ const [Modal, modalApi] = useVbenModal({
         console.log('checkedRecords',checkedRecords)
         advertiserIds = checkedRecords.map((item) => item.advertiserId);
       }
-
-      
     }
     await advertiserApi.fetchImportChild({id: objectRequest.value.id, advertiserIds,projectId:projectStr.value});
     gridApi.setGridOptions({data: []});
@@ -84,27 +101,13 @@ const [Modal, modalApi] = useVbenModal({
     projectStr.value = ''
     isSlect.value = true
     handleType.value = 'choose'
-
-  },
-  async onOpenChange(isOpen: boolean) {
-    if (isOpen) {
-      objectRequest.value = modalApi.getData<{ id: string; }>();
-      gridApi.setLoading(true);
-
-      importData.value = await advertiserApi.fetchAccountChild(objectRequest.value.id)
-      // 初始化搜索数据 = 全量数据
-      filterData.value = [...importData.value];
-      pages.total = filterData.value.length
-      pages.currentPage = 1
-
-
-      updatePageData(filterData.value)
-      gridApi.setLoading(false);
-    }
-  },
-});
-
-
+    message.success('导入成功')
+  } catch(error) {
+    console.log(error)
+  } finally {
+      isLoading.value = false;
+  }
+}
 const gridOptions: VxeGridProps<AccountChildResponse> = {
   border: true,
   height: "491.5px",
@@ -291,7 +294,7 @@ function strToArray(inputStr) {
           <RadioButton value="import">手动导入</RadioButton>
         </RadioGroup>
       </div>
-      <div  v-if="handleType === 'choose'">
+      <div v-if="handleType === 'choose'"  v-loading="isLoading">
         <div class="filterClass">
           <InputSearch
             v-model:value="accountName"
@@ -321,6 +324,12 @@ function strToArray(inputStr) {
      <div v-else>
         <Form />
      </div>
+     <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button @click="handleCancel">{{ $t('common.cancel') }}</Button>
+          <Button type="primary" @click="handleConfirm" :loading="isLoading">{{ $t('common.confirm') }}</Button>
+        </div>
+      </template>
     </Modal>
   </Page>
 </template>

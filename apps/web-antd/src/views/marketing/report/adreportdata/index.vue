@@ -13,7 +13,7 @@ import SaveTemplateModal from "./saveTemplate.vue";
 import TemplateListDrawer from './templateList.vue';
 import dayjs from 'dayjs';
 import { useAdLinkage } from './adDropdown'
-
+const selectPlatform = ref<string>(null)
 const {
   planOptions,
   advertisementOptions,
@@ -23,7 +23,6 @@ const {
   resetLoadedMap,
   setGridApi,
 } = useAdLinkage()
-
 /* ---------------- 模板抽屉 ---------------- */
 // 模板列表抽屉弹框
 const [TemplateDrawer, drawerApi] = useVbenDrawer({
@@ -141,6 +140,10 @@ function reloadGrid(columns: string[], pageData: any[],footData:any) {
       pageSize: pager.pageSize,
       pageSizes: [500, 800,1000],
     },
+    exportConfig: {
+      ...gridOptions.exportConfig, 
+      data: allData.value,        
+    },
     //表尾数据展示
     footerData:[{
         seq:'合计：',
@@ -229,12 +232,18 @@ const formOptions: VbenFormProps = {
     },
     {
       component: 'Select',
+      defaultValue: ['vivo'],
       componentProps: {
         allowClear: true,
         options: ACTIVE_PLATFORM,
         mode: 'multiple',
+        maxTagCount: 1,
         placeholder: `${$t('common.choice')}`,
-        onChange:resetLoadedMap
+        onChange:resetLoadedMap,
+        onSelect:async (val) => {
+          const platforms = await gridApi.formApi.getValues()
+          selectPlatform.value = platforms.platform.join(',')
+        }
       },
       fieldName: 'platform',
       label: `${$t('ocpx.platform.title')}`,
@@ -246,44 +255,82 @@ const formOptions: VbenFormProps = {
         options: DIMS,
         mode: 'multiple',
         placeholder: `${$t('common.choice')}`,
+        maxTagCount: 1,
       },
       defaultValue: ['day'],
       fieldName: 'dims',
       label: `${$t('marketing.report.dims.title')}`,
     },
+    // 在表单配置中
     {
-      // 媒体配置表单
-      component: 'ApiSelect',
-      // 对应组件的参数
+      component: 'HybridSearchSelect',
       componentProps: {
-        placeholder: `${$t('common.select')}`,
         mode: 'multiple',
-        api: async (params: AdvertiserPageRequest) => {
-          const res = await advertiserApi.fetchAdvertiserList(params);
-          if (res.items && Array.isArray(res.items)) {
+        placeholder: `${$t('common.select')}`,
+        allowClear: true,
+        initialApi: async () => {
+          const formData = await gridApi.formApi.getValues();
+          selectPlatform.value = formData.platform.join(',')
+          const res = await advertiserApi.fetchAdvertiserList({
+            page: 1,
+            pageSize: 1000,
+            putStatue: 1,
+            platform: selectPlatform.value
+          });
+          if (res.items) {
             res.items = res.items.map(item => ({
               ...item,
-              comboLabel: `${item.advertiserName}-${item.advertiserId}`
+              displayName: `${item.advertiserName}-${item.advertiserId}`
             }));
           }
           return res;
         },
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        // 远程搜索 API
+        remoteApi: async (params) => {
+          const res = await advertiserApi.fetchAdvertiserList({
+            page: 1,
+            pageSize: 1000,
+            putStatue: 1,
+            platform: selectPlatform.value,
+            advertiserId: params.keyword,
+          });
+          if (res.items) {
+            res.items = res.items.map(item => ({
+              ...item,
+              displayName: `${item.advertiserName}-${item.advertiserId}`
+            }));
+          }
+          return res;
         },
-        onChange: resetLoadedMap,
-        params: {
-          page: 1,
-          pageSize: 1000,
-          putStatue: 1,
-        },
+        
         valueField: 'advertiserId',
-        labelField: 'comboLabel',
+        labelField: 'displayName',
         resultField: 'items',
+        remoteSearchField: 'keyword',
+        searchDebounce: 300,
+        remoteSearchMinLength: 1,
+        clearSearchOnSelect: true,
+        
+        // 只需要绑定 change 事件
+        onChange: (value) => {
+          console.log('选中的值:', value);
+          resetLoadedMap();
+        },
       },
-      // 字段名
+      dependencies: {
+        triggerFields: ['platform'],
+        if: (value) => {
+          console.log('value',value)
+          if(value.platform.length > 0) {
+            console.log
+            // loadAgentData(value.platform)
+          } else {
+            // agentData.value = []
+          }
+          return true;
+        }
+      },
       fieldName: 'advertiserId',
-      // 界面显示的label
       label: `${$t('marketing.advertiser.columns.advertiserName')}`,
     },
     {
@@ -502,13 +549,21 @@ const gridOptions: VxeGridProps = {
     },
     zoom: true,
   },
-  exportConfig: {},
+  exportConfig: {
+    filename: '',
+    types: [
+      "csv",
+      "xlsx"
+    ],
+    modes: ['current','all'],
+    original: true,
+  },
   pagerConfig: {
     enabled: true,
     total: pager.total,
     pageSize: pager.pageSize,
     currentPage: pager.currentPage,
-    pageSizes: [500, 800,1000],
+    pageSizes: [50,500, 800,1000],
   },
   proxyConfig: undefined, // 保持
   footerData: []
