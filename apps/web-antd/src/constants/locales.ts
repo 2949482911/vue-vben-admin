@@ -401,7 +401,12 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: '优酷',
     value: 'youku'
+  },
+  {
+    label: '快赚客',
+    value: 'kuaizuanke'
   }
+
 ];
 
 // 匹配下拉

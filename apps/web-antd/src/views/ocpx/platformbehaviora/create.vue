@@ -1045,6 +1045,44 @@ platformConfigForm.set(Platform.YOUKU, [
     label: 'specialType',
   }
 ])
+platformConfigForm.set(Platform.KUAIZUANKE, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'appKey',
+    label: 'appKey',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'signSecret',
+    label: 'signSecret',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'accessToken',
+    label: 'accessToken',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'pid',
+    label: 'pid',
+    rules: 'required',
+  },
+])
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,

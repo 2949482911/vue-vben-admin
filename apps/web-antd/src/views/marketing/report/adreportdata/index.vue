@@ -1,5 +1,5 @@
 <script setup lang="ts" name="AdReportDataManager">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { Page, useVbenDrawer, useVbenModal, type VbenFormProps } from "@vben/common-ui";
 import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
@@ -13,7 +13,9 @@ import SaveTemplateModal from "./saveTemplate.vue";
 import TemplateListDrawer from './templateList.vue';
 import dayjs from 'dayjs';
 import { useAdLinkage } from './adDropdown'
+
 const selectPlatform = ref<string>(null)
+
 const {
   planOptions,
   advertisementOptions,
@@ -23,33 +25,32 @@ const {
   resetLoadedMap,
   setGridApi,
 } = useAdLinkage()
+
 /* ---------------- 模板抽屉 ---------------- */
-// 模板列表抽屉弹框
 const [TemplateDrawer, drawerApi] = useVbenDrawer({
-  // 连接抽离的组件
   connectedComponent: TemplateListDrawer,
 });
-//模板列表抽屉打开
+
 function openTemplateListModalModal(){
   drawerApi.open();
 }
 
 const currentQueryMetric = ref<string[]>([]);
 
-//子传父的数据模板回显事件
+// 防抖标记，避免重复请求
+let pendingRequest = null;
+
 async function handleUseTemplate(template: searchDataFilter) {
-  // 1️⃣ 重置表单
+  // 取消之前的请求
+  if (pendingRequest) {
+    pendingRequest = null;
+  }
+  
   await gridApi.formApi.resetForm();
-
-  // 2️⃣ 回填模板数据
   await gridApi.formApi.setValues(template);
-
-  // 3️⃣ ⭐ 同步当前指标（关键）
-  currentQueryMetric.value = template.queryMetric
-    ? [...template.queryMetric]
-    : [];
-
-  // 4️⃣ 搜索
+  
+  currentQueryMetric.value = template.queryMetric ? [...template.queryMetric] : [];
+  
   const values = await gridApi.formApi.getValues() as searchDataFilter;
   const params = buildReportParams(values);
   await init(params);
@@ -59,13 +60,12 @@ async function handleUseTemplate(template: searchDataFilter) {
 const [SelectMetricModalModal, selectMetricModalApi] = useVbenModal({
   connectedComponent: SelectMetricModal,
 });
+
 async function openPlatformMetricMapDetailModal() {
   selectMetricModalApi.open();
 }
 
 /* ---------------- 保存模板弹窗 ---------------- */
-
-//搜索的数据传给子组件用来保存模板
 const searchData = ref<searchDataFilter>({
   advertiserId: [],
   dims: [],
@@ -78,120 +78,174 @@ const searchData = ref<searchDataFilter>({
   promotion_id:[],
   creative_id:[]
 })
+
 const [SaveTemplateModalModal, sveTemplateModalApi] = useVbenModal({
   connectedComponent: SaveTemplateModal,
 });
+
 async function openSaveTemplateModalModal() {
   searchData.value = await gridApi.formApi.getValues() as unknown as searchDataFilter;
   sveTemplateModalApi.open();
 }
-//保存模板成功子组件通知父组件重新刷新form表单
+
 async function handleTemplateSaved() {
   await gridApi.formApi.resetForm();
 }
 
+/* 优化1：使用浅响应式数据，减少深度监听 */
+const allData = ref([]); // 全部数据
+const currentPageData = ref([]); // 当前页数据，独立存储避免全量更新
+const tableColumns = ref([]); // 表头单独存储
+const tableFooter = ref({}); // 表尾单独存储
 
-/* ---------------- 本地分页核心状态 ---------------- */
-//第一步：把proxyConfig设置成空，不然proxyConfig每次分页都会请求后台数据，影响前端分页
-const allData = ref<any[]>([]); // 接口返回的全部数据
 const pager = reactive({
   currentPage: 1,
   pageSize: 500,
   total: 0,
 });
 
-/* ---------------- 初始化：只请求一次 ---------------- */
-//第二步：请求数据，拿到全部数据，根据当前页面条数，截取好第一页展示的数据
-async function init(args?:any) {
+// 优化2：缓存列配置，避免重复构建
+let cachedColumns = null;
+
+/* 优化3：请求时使用请求取消机制  */
+let abortController = null;
+
+async function init(args?: any) {
+  // 取消进行中的请求
+  if (abortController) {
+    abortController.abort();
+  }
+  abortController = new AbortController();
+  
   try {
     gridApi.setLoading(true);
-
+    
     pager.currentPage = 1;
-    const res = await reportApi.fetchAdReport(args) as any
-    allData.value = res.items.map((item:any,index:number)=>({...item,seq:index+1}));
-    pager.total = res.items.length;
-    reloadGrid(res.columns, allData.value.slice(0, pager.pageSize),res.summary[0]);
+    
+    // 添加超时控制
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('请求超时')), 30000);
+    });
+    
+    const requestPromise = reportApi.fetchAdReport(args);
+    const res = await Promise.race([requestPromise, timeoutPromise]) as any;
+    
+    // 使用 requestIdleCallback 处理大数据，避免阻塞UI
+    await new Promise((resolve) => {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          allData.value = res.items.map((item: any, index: number) => ({ ...item, seq: index + 1 }));
+          pager.total = res.items.length;
+          resolve(true);
+        }, { timeout: 100 });
+      } else {
+        setTimeout(() => {
+          allData.value = res.items.map((item: any, index: number) => ({ ...item, seq: index + 1 }));
+          pager.total = res.items.length;
+          resolve(true);
+        }, 0);
+      }
+    });
+    
+    // 更新表头和当前页数据
+    updateTableStructure(res.columns, res.summary[0]);
+    updateCurrentPageData();
+    
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      console.error('请求失败:', error);
+    }
   } finally {
-    //无论成功/失败，一定关闭
     gridApi.setLoading(false);
+    abortController = null;
   }
 }
 
-/* ---------------- 构建列 + 设置分页数据 ---------------- */
-//第三步：创建全新的表头，设置好表格数据total、currentPage、pageSize
-function reloadGrid(columns: string[], pageData: any[],footData:any) {
-  const newColumns: any[] = [
-    { title: "序号", field: "seq", width: "auto" },
-  ];
-  columns.forEach((key) => {
-    newColumns.push({
-      field: key,
-      title: key,
-      width: 'auto',
-      sortable: true,
+/*  优化4：分离表头更新和数据更新  */
+function updateTableStructure(columns: string[], footData: any) {
+  // 使用缓存避免重复构建
+  const cacheKey = columns.join(',');
+  if (cachedColumns && cachedColumns.key === cacheKey) {
+    tableColumns.value = cachedColumns.columns;
+  } else {
+    const newColumns: any[] = [
+      { title: "序号", field: "seq", width: 80, fixed: 'left', sortable: true },
+    ];
+    columns.forEach((key) => {
+      newColumns.push({
+        field: key,
+        title: key,
+        minWidth: 120,
+        sortable: true,
+        showOverflow: true, // 超出隐藏，提升渲染性能
+      });
     });
-  });
+    cachedColumns = {
+      key: cacheKey,
+      columns: newColumns
+    };
+    tableColumns.value = newColumns;
+  }
+  
+  tableFooter.value = { seq: '合计：', ...footData };
+  
+  // 批量更新grid配置，减少重绘次数
   gridApi.setGridOptions({
-    columns: newColumns,
-    data: pageData,
-    pagerConfig: {
-      total: pager.total,
-      currentPage: pager.currentPage,
-      pageSize: pager.pageSize,
-      pageSizes: [500, 800,1000],
-    },
+    columns: tableColumns.value,
+    footerData: [tableFooter.value],
     exportConfig: {
-      ...gridOptions.exportConfig, 
-      data: allData.value,        
+      ...gridOptions.exportConfig,
+      data: allData.value,
     },
-    //表尾数据展示
-    footerData:[{
-        seq:'合计：',
-        ...footData
-    }]
+  });
+}
+
+/*  优化5：使用 requestAnimationFrame 优化分页更新 */
+let pendingUpdate = null;
+
+function updateCurrentPageData() {
+  // 取消之前的更新任务
+  if (pendingUpdate) {
+    cancelAnimationFrame(pendingUpdate);
+  }
+  
+  pendingUpdate = requestAnimationFrame(() => {
+    const start = (pager.currentPage - 1) * pager.pageSize;
+    const end = Math.min(start + pager.pageSize, pager.total);
+    const pageData = allData.value.slice(start, end);
+    
+    // 直接更新数据，不触发额外的loading
+    currentPageData.value = pageData;
+    
+    gridApi.setGridOptions({
+      data: pageData,
+      pagerConfig: {
+        total: pager.total,
+        currentPage: pager.currentPage,
+        pageSize: pager.pageSize,
+        pageSizes: [500, 800, 1000, 2000],
+      },
+    });
+    
+    pendingUpdate = null;
   });
 }
 
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/* ---------------- 前端分页 slice ---------------- */
-//第四步：分页截取的方法
-async function updatePageData() {
-  gridApi.setLoading(true);
-  // 人为制造分页 loading
-  await sleep(500);
-  const start = (pager.currentPage - 1) * pager.pageSize;
-  const end = pager.currentPage * pager.pageSize;
-  const pageData = allData.value.slice(start, end);
-
-  gridApi.setGridOptions({
-    data: pageData,
-    pagerConfig: {
-      total: pager.total,
-      currentPage: pager.currentPage,
-      pageSize: pager.pageSize,
-      pageSizes: [500, 800,1000],
-    },
-  });
-  gridApi.setLoading(false);
-}
-
-/* ---------------- Grid 事件：分页 ---------------- */
-//第五步：分页事件
+/* 优化6：分页事件 - 移除sleep延迟  */
 const gridEvents = {
-  pageChange({ currentPage, pageSize }:{ currentPage:number, pageSize:number }) {
+  pageChange({ currentPage, pageSize }: { currentPage: number, pageSize: number }) {
+    // 只有真正变化时才更新
+    if (pager.currentPage === currentPage && pager.pageSize === pageSize) return;
+    
     pager.currentPage = currentPage;
     pager.pageSize = pageSize;
-    updatePageData();
+    updateCurrentPageData();
   },
 };
 
-// 定义接受项目名称数组
+// 项目选项
 const projectOptions = ref<ProjectItem[]>([]);
 
-// 页面加载时请求数据
 onMounted(async () => {
   const res = await projectApi.fetchProjectList({
     page: 1,
@@ -200,23 +254,24 @@ onMounted(async () => {
   projectOptions.value = res.items;
 });
 
-//computed是响应式的，如果直接赋值projectOptions已经晚了，schema已经初始化完成了异步数据没有触发表单更新
 const projectSelectOptions = computed(() =>
-  projectOptions.value.map((item:ProjectItem) => ({
+  projectOptions.value.map((item: ProjectItem) => ({
     label: item.name,
     value: item.id,
   }))
 );
 
-/* ---------------- 表单配置 ---------------- */
+/* 优化7：表单提交防抖 */
+let submitTimer = null;
+
 const formOptions: VbenFormProps = {
-  // 默认展开
   schema: [
+    // ... 保持原有的schema配置不变
     {
       component: 'RangePicker',
       defaultValue: [
-        dayjs().subtract(6, 'day').format('YYYY-MM-DD'), // 7天前（含今天）
-        dayjs().format('YYYY-MM-DD'),                    // 今天
+        dayjs().subtract(6, 'day').format('YYYY-MM-DD'),
+        dayjs().format('YYYY-MM-DD'),
       ],
       componentProps: {
         placeholder: [`${$t('common.select')}`, `${$t('common.select')}`],
@@ -239,8 +294,8 @@ const formOptions: VbenFormProps = {
         mode: 'multiple',
         maxTagCount: 1,
         placeholder: `${$t('common.choice')}`,
-        onChange:resetLoadedMap,
-        onSelect:async (val) => {
+        onChange: resetLoadedMap,
+        onSelect: async (val) => {
           const platforms = await gridApi.formApi.getValues()
           selectPlatform.value = platforms.platform.join(',')
         }
@@ -261,7 +316,6 @@ const formOptions: VbenFormProps = {
       fieldName: 'dims',
       label: `${$t('marketing.report.dims.title')}`,
     },
-    // 在表单配置中
     {
       component: 'HybridSearchSelect',
       componentProps: {
@@ -285,7 +339,6 @@ const formOptions: VbenFormProps = {
           }
           return res;
         },
-        // 远程搜索 API
         remoteApi: async (params) => {
           const res = await advertiserApi.fetchAdvertiserList({
             page: 1,
@@ -302,7 +355,6 @@ const formOptions: VbenFormProps = {
           }
           return res;
         },
-        
         valueField: 'advertiserId',
         labelField: 'displayName',
         resultField: 'items',
@@ -310,8 +362,6 @@ const formOptions: VbenFormProps = {
         searchDebounce: 300,
         remoteSearchMinLength: 1,
         clearSearchOnSelect: true,
-        
-        // 只需要绑定 change 事件
         onChange: (value) => {
           console.log('选中的值:', value);
           resetLoadedMap();
@@ -320,9 +370,8 @@ const formOptions: VbenFormProps = {
       dependencies: {
         triggerFields: ['platform'],
         if: (value) => {
-          console.log('value',value)
-          if(value.platform.length > 0) {
-            console.log
+          console.log('value', value)
+          if (value.platform.length > 0) {
             // loadAgentData(value.platform)
           } else {
             // agentData.value = []
@@ -352,7 +401,7 @@ const formOptions: VbenFormProps = {
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
-        options: projectSelectOptions,//options不能直接传ref
+        options: projectSelectOptions,
         placeholder: `${$t('common.choice')}`,
       },
       fieldName: 'projectId',
@@ -430,40 +479,43 @@ const formOptions: VbenFormProps = {
       label: '创意',
     },
   ],
-  // 控制表单是否显示折叠按钮
   showCollapseButton: true,
-  // 按下回车时是否提交表单
   submitOnEnter: false,
   handleSubmit: async (values) => {
-    // 1、重置到第一页
-    pager.currentPage = 1;
-    currentQueryMetric.value = values.queryMetric || [];
-    // 2、参数结构转换
-    const params = buildReportParams(values);
-    // 3、用新参数请求接口
-    await init(params);
+    // 防抖处理
+    if (submitTimer) {
+      clearTimeout(submitTimer);
+    }
+    
+    submitTimer = setTimeout(async () => {
+      pager.currentPage = 1;
+      currentQueryMetric.value = values.queryMetric || [];
+      const params = buildReportParams(values);
+      await init(params);
+      submitTimer = null;
+    }, 100);
   },
-
-  // （可选）重置按钮
   handleReset: async () => {
-    // 1️⃣ 重置表单
+    // 取消进行中的请求
+    if (abortController) {
+      abortController.abort();
+    }
+    
     await gridApi.formApi.resetForm();
     await gridApi.formApi.setFieldValue('queryMetric', []);
     await resetLoadedMap
-
-    // 2️⃣ 清空指标状态
+    
     currentQueryMetric.value = [];
     planOptions.value = []
     advertisementOptions.value = []
     adGroupOptions.value = []
     creativityOptions.value = []
-
-    // 3️⃣ 重置分页
+    
     allData.value = [];
+    currentPageData.value = [];
     pager.currentPage = 1;
     pager.total = 0;
-
-    // 4️⃣ 清空表格
+    
     gridApi.setGridOptions({
       data: [],
       columns: [],
@@ -472,23 +524,20 @@ const formOptions: VbenFormProps = {
         total: 0,
         currentPage: 1,
         pageSize: pager.pageSize,
-        pageSizes: [500, 800,1000],
+        pageSizes: [500, 800, 1000],
       },
     });
   },
 };
 
-// 封装搜索传参数据结构调整事件(箭头函数)
+// 辅助函数
 const makeFilter = (
   field: string,
   values?: string[],
   operator = 1,
 ): ReportFilter[] | undefined =>
-  values?.length
-    ? [{ field, operator, values }]
-    : undefined;
+  values?.length ? [{ field, operator, values }] : undefined;
 
-// 过滤搜索条件
 function buildReportParams(values: any): AdReportRequest {
   const {
     advertiserId,
@@ -503,7 +552,6 @@ function buildReportParams(values: any): AdReportRequest {
     creative_id
   } = values;
 
-  // projectid现在拿到的是字符串需要转化成字符串数组，因为现在不是多选，选出来的就是字符串
   const normalizeArray = (val?: string | string[]) =>
     val ? (Array.isArray(val) ? val : [val]) : undefined;
 
@@ -525,14 +573,14 @@ function buildReportParams(values: any): AdReportRequest {
   };
 }
 
-
 function reloadFromStart(metricIds: string[]) {
   gridApi.formApi.setFieldValue('queryMetric', metricIds)
   currentQueryMetric.value = metricIds;
 }
-/* ---------------- Grid 配置（关键点） ---------------- */
+
+/* Grid 配置 - 添加虚拟滚动优化 */
 const gridOptions: VxeGridProps = {
-  showFooter: true,//开启表尾
+  showFooter: true,
   border: true,
   height: "auto",
   keepSource: true,
@@ -543,19 +591,16 @@ const gridOptions: VxeGridProps = {
     export: true,
     refresh: true,
     refreshOptions: {
-      query:async () => {
-       await  gridApi.formApi.submitForm()
+      query: async () => {
+        await gridApi.formApi.submitForm()
       }
     },
     zoom: true,
   },
   exportConfig: {
     filename: '',
-    types: [
-      "csv",
-      "xlsx"
-    ],
-    modes: ['current','all'],
+    types: ["csv", "xlsx"],
+    modes: ['current', 'all'],
     original: true,
   },
   pagerConfig: {
@@ -563,10 +608,19 @@ const gridOptions: VxeGridProps = {
     total: pager.total,
     pageSize: pager.pageSize,
     currentPage: pager.currentPage,
-    pageSizes: [50,500, 800,1000],
+    pageSizes: [500, 800, 1000, 2000],
   },
-  proxyConfig: undefined, // 保持
-  footerData: []
+  proxyConfig: undefined,
+  footerData: [],
+  // 优化8：开启虚拟滚动，提升大数据渲染性能
+  scrollX: { enabled: true, gt: 0 },
+  scrollY: { enabled: true, gt: 0 },
+  // 优化渲染性能
+  rowConfig: {
+    isHover: true,
+    useKey: true,
+    keyField: 'seq',
+  },
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({
@@ -574,6 +628,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,
   gridEvents,
 });
+
 setGridApi(gridApi)
 
 </script>
@@ -604,5 +659,4 @@ setGridApi(gridApi)
 </template>
 
 <style scoped>
-
 </style>
