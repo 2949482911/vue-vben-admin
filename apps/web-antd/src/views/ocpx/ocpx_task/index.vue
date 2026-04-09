@@ -45,7 +45,12 @@ function openClickMonitor(row: OcpxTaskItem) {
 }
 
 function openBehavioracallbackrecord(row: OcpxTaskItem) {
-  behavioracallbackrecordApi.setData({taskId: row.id});
+  behavioracallbackrecordApi.setData({
+    taskId: row.id,
+    behavioraPlatformIds: row.behavioraPlatformIds,
+    platformCallbackIds: row.platformCallbackIds
+  });
+  
   behavioracallbackrecordApi.open();
 }
 
@@ -59,7 +64,11 @@ const [BehaviorRecordModel, behaviorRecordApi] = useVbenModal({
 });
 
 function openBehaviorRecord(row: OcpxTaskItem) {
-  behaviorRecordApi.setData({taskId: row.id});
+  behaviorRecordApi.setData({
+    taskId: row.id,
+    behavioraPlatformIds: row.behavioraPlatformIds,
+    platformCallbackIds: row.platformCallbackIds
+  });
   behaviorRecordApi.open();
 }
 

@@ -38,6 +38,9 @@ import { $t } from '@vben/locales';
 import { isEmpty } from '@vben/utils';
 
 import { message, Modal, notification } from 'ant-design-vue';
+const HybridSearchSelect = defineAsyncComponent(
+  () => import('#/views/marketing/report/adreportdata/components/HybridSearchSelect.vue'),
+);
 const lazyLoadSelect = defineAsyncComponent(
   () => import('#/views/ocpx/platformcallback/components/lazyLoadSelect.vue'),
 );
@@ -522,6 +525,7 @@ export type ComponentType =
   | 'Slider'
   | 'MetricFormulaEditor'
   | 'lazyLoadSelect'
+  | 'HybridSearchSelect'
   | BaseFormComponentType;
 
 async function initComponentAdapter() {
@@ -558,6 +562,7 @@ async function initComponentAdapter() {
     DatePicker,
     MetricFormulaEditor,
     lazyLoadSelect,
+    HybridSearchSelect,
     // 自定义默认按钮
     DefaultButton: (props, { attrs, slots }) => {
       return h(Button, { ...props, attrs, type: 'default' }, slots);

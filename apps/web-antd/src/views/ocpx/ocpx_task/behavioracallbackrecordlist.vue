@@ -3,13 +3,28 @@ import {useVbenVxeGrid} from "@vben/plugins/vxe-table";
 import type {VxeGridProps} from "#/adapter/vxe-table";
 import type {OcpxBehavioracallbackRecordItem} from "#/api/models";
 import {$t} from "@vben/locales";
-import {ocpxTaskApi, clickMonitorApi} from "#/api/core/ocpx";
+import {ocpxTaskApi, clickMonitorApi,behavioraPlatformApi, platformCallbackApi} from "#/api/core/ocpx";
 import {Page, useVbenModal, type VbenFormProps, useVbenDrawer} from '@vben/common-ui';
 import {Tag, Button, message} from "ant-design-vue";
 import { trimObject } from "#/utils/trim";
 import viewDetailsModel from './viewDetailsModel.vue';
 import { ref } from "vue";
 
+const defalutBehavioraPlatformId = ref<string>()
+const defalutPlatformCallbackId = ref<string>()
+const taskId = ref<string>()
+const queryBehaviora = ref({
+  page: 1,
+  pageSize: 1000,
+  ids:'',
+  name:''
+})
+const queryCallback = ref({
+  page: 1,
+  pageSize: 1000,
+  ids:'',
+  name:''
+})
 const [ViewDetailsModel, drawerApi] = useVbenDrawer({
   // 连接抽离的组件
   connectedComponent: viewDetailsModel,
@@ -41,9 +56,14 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-
+      const modalData = modalApi.getData()
+      taskId.value = modalData.taskId
+      defalutBehavioraPlatformId.value = modalData.behavioraPlatformIds[0]
+      defalutPlatformCallbackId.value = modalData.platformCallbackIds[0]
+      queryCallback.value.ids = modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : []
+      queryBehaviora.value.ids = modalData.behavioraPlatformIds.length > 0? modalData.behavioraPlatformIds.join(',') : []
     }
-  }
+  },
 });
 
 
@@ -62,9 +82,46 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
-      component: 'Input',
-      fieldName: 'behavioraPlatformId',
-      label: `${$t('ocpx.ocpx_task.callback_record_columns.platformCallbackName')}`,
+      component: 'ApiSelect',
+      fieldName: 'behaviorPlatformId',
+      label: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorPlatformName')}`,
+      defaultValue: defalutBehavioraPlatformId,
+      componentProps: {
+        allowClear: true,
+        placeholder: `${$t('common.choice')}`,
+          api: async () => {
+          return await behavioraPlatformApi.fetchBehavioraPlatformList(queryBehaviora.value);
+        },
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        valueField: 'id',
+        labelField: 'name',
+        resultField: "items",
+      },
+    },
+    {
+      component: 'ApiSelect',
+      fieldName: 'platformCallbackId',
+      label: `${$t('ocpx.ocpx_task.behavior_record_columns.platformCallbackName')}`,
+      defaultValue: defalutPlatformCallbackId,
+      componentProps: {
+        allowClear: true,
+        placeholder: `${$t('common.choice')}`,
+        api: async () => {
+          return await platformCallbackApi.fetchPlatformcallbackList(queryCallback.value);
+        },
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        params: {
+          page: 1,
+          pageSize: 1000,
+        },
+        valueField: 'id',
+        labelField: 'name',
+        resultField: "items",
+      },
     },
   ],
   // 控制表单是否显示折叠按钮
@@ -132,12 +189,11 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     ajax: {
       query: async ({page}, args) => {
         const params = trimObject(args);
-
         return await ocpxTaskApi.fetchOcpxBehavioracallbackRecordList({
           page: page.currentPage,
           pageSize: page.pageSize,
           ...params,
-          ocpxTaskId: modalApi.getData()["taskId"]
+          taskId: modalApi.getData()["taskId"]
         });
       },
     },
@@ -162,10 +218,17 @@ const gridEvents = {
 }
 
 async function batchRetry(){
-  const ids = selectedRows.value.map(item => item.id)
-  console.log(ids,'selectedRows.value.length');
+  const requestId = selectedRows.value.map(item => item.requestId)
+  const {formApi} = gridApi
+  const formData = await formApi.getValues()
+  const params = {
+    requestId,
+    behaviorPlatformId: formData.behaviorPlatformId,
+    platformCallbackId: formData.platformCallbackId,
+    taskId: taskId.value
+  }
   try{
-    await clickMonitorApi.fetchRePushRetryBehaviorCallback(ids)
+    await clickMonitorApi.fetchRePushRetryBehaviorCallback(params)
     await gridApi.reload();
     message.success("批量重试成功！")
   }catch(err){

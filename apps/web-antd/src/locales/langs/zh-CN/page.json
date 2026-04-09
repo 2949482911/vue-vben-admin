@@ -50,7 +50,9 @@
     "report": {
       "title": "报表",
       "metric": "指标",
-      "adreportdata": "广告效果数据"
+      "adreportdata": "广告效果数据",
+      "metricGroup": "指标组",
+      "subscribe": "报表订阅"
     },
     "creation": {
       "title": "创编",

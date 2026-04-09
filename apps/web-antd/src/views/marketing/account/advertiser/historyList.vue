@@ -70,8 +70,8 @@ const gridOptions: VxeGridProps<HistoryItem> = {
       }
     },
     {
-      field: 'taskStarTtime',
-      title: `${$t('marketing.advertiser.history.columns.taskStarTtime')}`,
+      field: 'taskStartTime',
+      title: `${$t('marketing.advertiser.history.columns.taskStartTime')}`,
       formatter: 'formatDateTime',
       width: 'auto',
     },
@@ -113,7 +113,7 @@ const [Grid, gridApi] = useVbenVxeGrid({gridOptions});
 
 <template>
   <div>
-    <Modal class="w-[60%]">
+    <Modal class="w-[70%]">
       <Grid>
         <template #status="{ row }">
           <Switch :checked="row.status === 1"/>

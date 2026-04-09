@@ -55,35 +55,30 @@ const [Form, formApi] = useVbenForm({
   handleSubmit: async (formVal: Record<string, any>) => {
     const result = await formApi.validate();
     if (!result.valid) throw new Error('表单验证失败');
-
     const formValues = { ...formVal };
-    console.log('handlesubmit',formValues)
     let finalFormula = '';
-    if (formulaForSubmit.value) {
-      finalFormula = formulaForSubmit.value;
-    } else if (formValues.formula) {
-      finalFormula = formValues.formula.replace(/[{}]/g, '');
+    if(formValues.metricType === 2) {
+      if (formulaForSubmit.value) {
+        finalFormula = formulaForSubmit.value;
+      } else if (formValues.formula) {
+        finalFormula = formValues.formula.replace(/[{}]/g, '');
+      }
+
+      if (!finalFormula) {
+        message.warning('请输入公式');
+        throw new Error('公式为空');
+      }
+
+      if (!validateFormula(finalFormula)) {
+        // validateFormula 内部已显示错误消息，这里直接抛出
+        throw new Error('公式不合法');
+      }
+      formValues.formula = finalFormula;
     }
-
-    if (!finalFormula) {
-      message.warning('请输入公式');
-      throw new Error('公式为空');
-    }
-
-    if (!validateFormula(finalFormula)) {
-      // validateFormula 内部已显示错误消息，这里直接抛出
-      throw new Error('公式不合法');
-    }
-
-    formValues.formula = finalFormula;
-
     const params = trimObject(formValues);
-    console.log('params', params);
     await (isUpdate.value
       ? metricApi.fetchUpdateMetric(params as UpdateMetric)
       : metricApi.fetchCreateSystemMetric(params as CreateSystemMetric));
-
-    // 提交成功后正常结束，不抛出错误
   },
   schema: [
     {

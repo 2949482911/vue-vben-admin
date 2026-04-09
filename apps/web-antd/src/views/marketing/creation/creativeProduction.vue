@@ -1,36 +1,62 @@
 <script setup lang="ts">
-import {useVbenModal} from '@vben/common-ui';
-import {onMounted, ref,} from 'vue'
-import {Button, TabPane, Tabs} from 'ant-design-vue';
-import {CloseCircleFilled, CloseOutlined, DownOutlined, UpOutlined} from '@ant-design/icons-vue';
+import { useVbenModal } from '@vben/common-ui';
+import { onMounted, ref } from 'vue';
+import { Button, TabPane, Tabs } from 'ant-design-vue';
+import { CloseCircleFilled, CloseOutlined, DownOutlined, UpOutlined } from '@ant-design/icons-vue';
 import selMaterial from './selMaterial.vue';
 import type {
   AccountInfo,
   LocalMaterialData,
   Material,
-  MaterialData
-} from "#/views/marketing/creation/creation";
+  MaterialData,
+} from '#/views/marketing/creation/creation';
 
-const {accountInfo, imageMaxCount, videoMaxCount, distributionMode, material} = defineProps({
-  imageMaxCount: {type: Number, default: 5},
-  videoMaxCount: {type: Number, default: 5},
-  distributionMode: {type: String, default: 'all'},
+const { accountInfo, imageMaxCount, videoMaxCount, distributionMode, material } = defineProps({
+  imageMaxCount: { type: Number, default: 5 },
+  videoMaxCount: { type: Number, default: 5 },
+  distributionMode: { type: String, default: 'all' },
   accountInfo: {
     type: Array as () => AccountInfo[],
-    default: () => ([])
+    default: () => [],
   },
   material: {
     type: Object,
     default: () => {
       return {
         config: {
-          method: "all",
+          method: 'all',
         },
-        data: new Map<string, Material>
-      }
-    }
+        data: new Map<string, Material>(),
+      };
+    },
   },
 });
+
+//临时变量
+const cacheAllData = ref<Map<string, Material[]>>(new Map());
+const cacheAccountData = ref<Map<string, Material[]>>(new Map());
+// 本地变量
+const localMaterialData = ref<MaterialData>({
+  // 这个配置用不上
+  config: {
+    method: material.config.method,
+  },
+  data: new Map<string, Material[]>([
+    [
+      '0',
+      [
+        {
+          image: [],
+          video: [],
+          active: 'video',
+          isExpanded: true,
+        },
+      ],
+    ],
+  ]),
+});
+//---------按账户分配---------
+const currentCreativeAccountId = ref<string>('0'); // 当前选中的账户ID
 
 onMounted(() => {
   initAccounts();
@@ -39,73 +65,66 @@ onMounted(() => {
 defineExpose({
   initLocalMaterialData,
   getLocalMaterialData,
-  setLocalMaterialData
-})
-
+  setLocalMaterialData,
+});
 
 /**
  * 获取素材
  */
 function getLocalMaterialData(): MaterialData {
-  return localMaterialData.value
+  return localMaterialData.value;
 }
 
 /**
  * 设置素材
  */
 function setLocalMaterialData(materialData: MaterialData) {
-  localMaterialData.value = materialData;
+  const mode = materialData.config.method || 'all';
+  const newMap = new Map();
+  // 深拷贝数据
+  materialData.data.forEach((v, k) => {
+    newMap.set(k, JSON.parse(JSON.stringify(v)));
+  });
+
+  // 根据传入的模式，填充对应的缓存
+  if (mode === 'all') {
+    cacheAllData.value = newMap;
+    // 同时也初始化一下另一个模式，防止切过去是空的
+    cacheAccountData.value.clear();
+  } else {
+    cacheAccountData.value = newMap;
+    cacheAllData.value.clear();
+  }
+  // 执行一次切换逻辑
+  initLocalMaterialData(mode);
 }
 
 /**
  * 初始化素材变量
  */
-function initLocalMaterialData(val:string) {
-  localMaterialData.value.data.clear();
-  if (val === 'all') {
+function initLocalMaterialData(mode: string) {
+  // 如果缓存里已经有数据了，就不要 clear，直接复用
+  if (mode === 'all') {
+    if (cacheAllData.value.size === 0) {
+      // 只有第一次进入或真正需要重置时才初始化
+      cacheAllData.value.set('0', [{ image: [], video: [], active: 'video', isExpanded: true }]);
+    }
+    // 切换当前显示引用
+    localMaterialData.value.data = cacheAllData.value;
     currentCreativeAccountId.value = '0';
-    localMaterialData.value.data.set('0', [
-      {
-        image: [],
-        video: [],
-        active: 'video',
-        isExpanded: true
-      }
-    ])
   } else {
+    if (cacheAccountData.value.size === 0) {
+      accountInfo.forEach((x) => {
+        cacheAccountData.value.set(x.localAdvertiserId, [
+          { image: [], video: [], active: 'video', isExpanded: true },
+        ]);
+      });
+    }
+    localMaterialData.value.data = cacheAccountData.value;
     currentCreativeAccountId.value = accountInfo[0]?.localAdvertiserId || '0';
-    accountInfo.forEach(x => {
-      localMaterialData.value.data.set(x.localAdvertiserId, [
-        {
-          image: [],
-          video: [],
-          active: 'video',
-          isExpanded: true
-        }
-      ])
-    })
   }
+  localMaterialData.value.config.method = mode;
 }
-
-// 本地变量
-const localMaterialData = ref<MaterialData>({
-  // 这个配置用不上
-  config: {
-    method: material.config.method,
-  },
-  data: new Map<string, Material[]>([
-    ["0", [
-      {
-        image: [],
-        video: [],
-        active: 'video',
-        isExpanded: true
-      }
-    ]]
-  ]),
-});
-//---------按账户分配---------
-const currentCreativeAccountId = ref<string>('0'); // 当前选中的账户ID
 
 /**
  * 添加素材到本地素材对象内
@@ -113,10 +132,14 @@ const currentCreativeAccountId = ref<string>('0'); // 当前选中的账户ID
  * @param currentGroupIndex 当前创意组下标
  * @param materialList 素材列表
  */
-async function addMaterial2LocalMaterialData(materialType: string, currentGroupIndex: number, materialList: Array<LocalMaterialData>) {
-  let localMaterial: Array<Material> = []
+async function addMaterial2LocalMaterialData(
+  materialType: string,
+  currentGroupIndex: number,
+  materialList: Array<LocalMaterialData>,
+) {
+  let localMaterial: Array<Material> = [];
   if (distributionMode === 'all') {
-    localMaterial = localMaterialData.value.data.get("0") || [];
+    localMaterial = localMaterialData.value.data.get('0') || [];
   } else {
     localMaterial = localMaterialData.value.data.get(currentCreativeAccountId.value) || [];
   }
@@ -124,12 +147,12 @@ async function addMaterial2LocalMaterialData(materialType: string, currentGroupI
     image: [],
     video: [],
     active: materialType,
-    isExpanded: true
-  }
+    isExpanded: true,
+  };
   if (materialType === 'image') {
-    tempMaterial.image.push(...materialList)
+    tempMaterial.image.push(...materialList);
   } else {
-    tempMaterial.video.push(...materialList)
+    tempMaterial.video.push(...materialList);
   }
 }
 
@@ -138,10 +161,10 @@ const [SelMaterialModule, modalApi] = useVbenModal({
   connectedComponent: selMaterial,
   async onOpenChange(isOpen) {
     if (!isOpen) {
-      const {materialList, materialType, currentGroupIndex} = modalApi.getData();
+      const { materialList, materialType, currentGroupIndex } = modalApi.getData();
       if (materialList) {
-        localMaterialData.value.config.method = distributionMode
-        await addMaterial2LocalMaterialData(materialType, currentGroupIndex, materialList)
+        localMaterialData.value.config.method = distributionMode;
+        await addMaterial2LocalMaterialData(materialType, currentGroupIndex, materialList);
       }
     }
   },
@@ -150,54 +173,55 @@ const [SelMaterialModule, modalApi] = useVbenModal({
 /** 打开素材弹框 */
 async function openModal(type: 'image' | 'video', groupIndex: number) {
   // 1. 确定账户 Key
-  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : "0";
-  
+  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : '0';
+
   // 2. 获取当前账户下的所有创意组
   const groups = localMaterialData.value.data.get(key) || [];
-  
+
   // 3. 找到当前正在操作的那一个创意组
   const targetGroup = groups[groupIndex];
-  
+
   if (!targetGroup) return;
 
   // 4. 计算该组内已有的素材数量
   const currentCount = type === 'image' ? targetGroup.image.length : targetGroup.video.length;
-  
+
   // 5. 计算剩余配额 (例如：5 - 4 = 1)
   const maxLimit = type === 'image' ? imageMaxCount : videoMaxCount;
   const remainingQuota = maxLimit - currentCount;
-  
+
   modalApi.setData({
     type: type,
     groupIndex: groupIndex,
-    remainingQuota: remainingQuota // 关键：传给子组件的是还能选几个
+    remainingQuota: remainingQuota, // 关键：传给子组件的是还能选几个
   });
-  
+
   modalApi.open();
 }
 
 /**添加创意组 */
 const addGroup = () => {
   if (distributionMode === 'all') {
-    const materialList: Material[] = localMaterialData.value.data.get('0') || []
+    const materialList: Material[] = localMaterialData.value.data.get('0') || [];
     materialList.push({
       image: [],
       video: [],
       active: 'video',
-      isExpanded: true
-    })
-    localMaterialData.value.data.set('0', materialList)
+      isExpanded: true,
+    });
+    localMaterialData.value.data.set('0', materialList);
   } else {
-    const materialList: Material[] = localMaterialData.value.data.get(currentCreativeAccountId.value) || []
+    const materialList: Material[] =
+      localMaterialData.value.data.get(currentCreativeAccountId.value) || [];
     materialList.push({
       image: [],
       video: [],
       active: 'video',
-      isExpanded: true
-    })
-    localMaterialData.value.data.set(currentCreativeAccountId.value, materialList)
+      isExpanded: true,
+    });
+    localMaterialData.value.data.set(currentCreativeAccountId.value, materialList);
   }
-}
+};
 
 // 初始化账户数据
 const initAccounts = () => {
@@ -209,7 +233,7 @@ const initAccounts = () => {
 /** 分配方式公用的单个清除组的方法 */
 const removeGroup = (index: number) => {
   // 1. 获取当前正在编辑的账户 Key（全部相同模式为 "0"，按账户分配模式为具体的 ID）
-  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : "0";
+  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : '0';
 
   // 2. 获取当前数组引用
   const currentList = localMaterialData.value.data.get(key);
@@ -221,22 +245,22 @@ const removeGroup = (index: number) => {
     // 4. 【关键】重新赋值 Map 以触发 Vue 响应式更新
     // 如果不重新 set，Vue 可能检测不到 Map 内部数组长度的变化
     localMaterialData.value.data.set(key, [...currentList]);
-  } 
+  }
 };
 
 /**
- * 分配方式公用的单个素材删除方法 
+ * 分配方式公用的单个素材删除方法
  * @param groupIndex 创意组在列表中的索引 (gIdx)
  * @param type 素材类型 'image' | 'video'
  * @param assetIndex 素材在对应数组中的索引 (imgIdx / vIdx)
  */
 const removeAsset = (groupIndex: number, type: 'image' | 'video', assetIndex: number) => {
   // 1. 获取当前操作的账户 Key
-  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : "0";
+  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : '0';
 
   // 2. 获取该账户下的所有创意组数据
   const currentList = localMaterialData.value.data.get(key);
-  
+
   if (!currentList || !currentList[groupIndex]) return;
 
   // 3. 定位到目标创意组 (即你打印出来的那个对象)
@@ -255,13 +279,15 @@ const removeAsset = (groupIndex: number, type: 'image' | 'video', assetIndex: nu
 
 /**分配方式公用的清空方法 */
 const clearAllAssets = () => {
-  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : "0";
-  const initialGroup = [{
-    image: [],
-    video: [],
-    active: 'video',
-    isExpanded: true
-  }];
+  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : '0';
+  const initialGroup = [
+    {
+      image: [],
+      video: [],
+      active: 'video',
+      isExpanded: true,
+    },
+  ];
 
   // 4. 更新 Map 数据（使用解构确保响应式）
   localMaterialData.value.data.set(key, initialGroup);
@@ -271,9 +297,8 @@ const checkAccountHasData = (accountId: string | number) => {
   const data = localMaterialData.value.data.get(String(accountId));
   if (!data) return false;
   // 只要有一个组里有图片或视频，就显示“有数据”状态
-  return data.some(group => group.image.length > 0 || group.video.length > 0);
+  return data.some((group) => group.image.length > 0 || group.video.length > 0);
 };
-
 </script>
 
 <template>
@@ -286,7 +311,7 @@ const checkAccountHasData = (accountId: string | number) => {
             class="account-item"
             :class="{
               'is-active': currentCreativeAccountId === acc.localAdvertiserId,
-              'has-data': checkAccountHasData(acc.localAdvertiserId), 
+              'has-data': checkAccountHasData(acc.localAdvertiserId),
             }"
             @click="currentCreativeAccountId = acc.localAdvertiserId"
           >
@@ -299,23 +324,32 @@ const checkAccountHasData = (accountId: string | number) => {
 
     <div class="creative-container">
       <div class="header-toolbar">
-        <div>创意组数量：<span class="count-text">{{
-            localMaterialData.data.get(currentCreativeAccountId)?.length || 0
-          }}/200</span></div>
+        <div>
+          创意组数量：<span class="count-text"
+            >{{ localMaterialData.data.get(currentCreativeAccountId)?.length || 0 }}/200</span
+          >
+        </div>
         <Button type="primary" danger @click="clearAllAssets">清空</Button>
       </div>
 
-      <div v-for="(group, index) in localMaterialData.data.get(currentCreativeAccountId) || []"  class="group-card">
+      <div
+        v-for="(group, index) in localMaterialData.data.get(currentCreativeAccountId) || []"
+        class="group-card"
+      >
         <div class="group-header">
           <div class="header-left">
             <span class="group-title">{{ '创意组' + (index + 1) }}</span>
-            <DownOutlined v-if="group.isExpanded" @click="group.isExpanded = !group.isExpanded"/>
-            <UpOutlined v-else @click="group.isExpanded = !group.isExpanded"/>
+            <DownOutlined v-if="group.isExpanded" @click="group.isExpanded = !group.isExpanded" />
+            <UpOutlined v-else @click="group.isExpanded = !group.isExpanded" />
           </div>
           <div class="header-right">
-            <Button type="text" size="small" @click.stop="removeGroup(index)"
-                    v-if="(localMaterialData.data.get(currentCreativeAccountId)?.length || 0) > 1">
-              <CloseOutlined/>
+            <Button
+              type="text"
+              size="small"
+              @click.stop="removeGroup(index)"
+              v-if="(localMaterialData.data.get(currentCreativeAccountId)?.length || 0) > 1"
+            >
+              <CloseOutlined />
             </Button>
           </div>
         </div>
@@ -328,13 +362,18 @@ const checkAccountHasData = (accountId: string | number) => {
               </template>
 
               <div class="asset-grid">
-                <div v-for="(v, vIdx) in group.video" :key="v.localMaterialId"
-                     class="asset-item uploaded">
+                <div
+                  v-for="(v, vIdx) in group.video"
+                  :key="v.localMaterialId"
+                  class="asset-item uploaded"
+                >
                   <div class="img-box">
-                    <img :src="v.url"/>
+                    <img :src="v.url" />
                     <div class="play-icon">▶</div>
-                    <CloseCircleFilled class="remove-btn"
-                                       @click="removeAsset(index, 'video', vIdx)"/>
+                    <CloseCircleFilled
+                      class="remove-btn"
+                      @click="removeAsset(index, 'video', vIdx)"
+                    />
                   </div>
                   <div class="item-footer">
                     <div class="truncate" :title="v.name">{{ v.name }}</div>
@@ -360,12 +399,17 @@ const checkAccountHasData = (accountId: string | number) => {
               </template>
 
               <div class="asset-grid">
-                <div v-for="(img, iIdx) in group.image" :key="img.localMaterialId"
-                     class="asset-item uploaded">
+                <div
+                  v-for="(img, iIdx) in group.image"
+                  :key="img.localMaterialId"
+                  class="asset-item uploaded"
+                >
                   <div class="img-box">
-                    <img :src="img.url"/>
-                    <CloseCircleFilled class="remove-btn"
-                                       @click="removeAsset(index, 'image', iIdx)"/>
+                    <img :src="img.url" />
+                    <CloseCircleFilled
+                      class="remove-btn"
+                      @click="removeAsset(index, 'image', iIdx)"
+                    />
                   </div>
                   <div class="item-footer">
                     <div class="truncate" :title="img.name">{{ img.name }}</div>
@@ -392,7 +436,7 @@ const checkAccountHasData = (accountId: string | number) => {
         <Button type="primary" @click="addGroup">添加创意组</Button>
       </div>
     </div>
-    <SelMaterialModule/>
+    <SelMaterialModule />
   </div>
 </template>
 
@@ -585,7 +629,6 @@ const checkAccountHasData = (accountId: string | number) => {
   font-size: 11px;
   line-height: 1.2;
   color: #666;
-  background: #fff;
 }
 
 .footer-action {

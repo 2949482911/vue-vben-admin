@@ -30,6 +30,7 @@ import { computed, onMounted, ref } from 'vue';
 import type { ProjectItem } from "./advertiser";
 import { trimObject } from '#/utils/trim';
 
+const agentData = ref<AdvertiserItem[]>([])
 /**
  * 授权弹窗
  */
@@ -195,6 +196,11 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
+      component: 'Input',
+      fieldName: 'id',
+      label: `id`,
+    },
+    {
       component: 'Select',
       componentProps: {
         allowClear: true,
@@ -285,6 +291,16 @@ const formOptions: VbenFormProps = {
       component: 'Select',
       componentProps: {
         allowClear: true,
+        options: STATUS_SELECT,
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'hourlyState',
+      label: `${$t('marketing.advertiser.columns.hourlyState')}`,
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
         showSearch: true,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
@@ -296,9 +312,31 @@ const formOptions: VbenFormProps = {
       label: '项目',
     },
     {
-      component: 'Input',
-      fieldName: 'id',
-      label: `序号`,
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        placeholder: `${$t('common.choice')}`,
+        options: agentData,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+      },
+      // 字段名
+      fieldName: 'parentId',
+      label: '代理商',
+      dependencies: {
+        show: true,
+        triggerFields: ['platform'],
+        if: (value) => {
+          if(value.platform) {
+            loadAgentData(value.platform)
+          } else {
+            agentData.value = []
+          }
+          return true;
+        }
+      },
     },
   ],
   // 控制表单是否显示折叠按钮
@@ -483,6 +521,22 @@ function pageReload() {
   gridApi.reload();
   // 在批量操作修改项目后，把数组设置为空，控制按钮置灰
   selectedRows.value = []
+}
+async function loadAgentData(platform: string) {
+  if (!platform) {
+    agentData.value = [];
+    return;
+  }
+  const res = await advertiserApi.fetchAdvertiserList({
+            page:1,
+            pageSize:1000,
+            platform: platform,
+            advertiserRole: 'proxy'
+          })
+  agentData.value = res.items.map((item: AdvertiserItem) => ({
+    label: `${item.advertiserName}-${item.advertiserId}`,
+    value: item.id,
+  }));
 }
 </script>
 

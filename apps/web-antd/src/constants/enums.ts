@@ -37,6 +37,9 @@ export enum Platform {
   MEITUAN = "meituan",
   OPPO_PUSH = 'oppo_push',
   XIANYU = 'xianyu',
+  DY_DULIDUAN = 'dy_duliduan',
+  YOUKU = 'youku',
+  KUAIZUANKE = 'kuaizuanke',
   IZJIE = "izjie",
   RUIZHANG = "ruizhang",
   THREE_WATER = "three_water",
@@ -64,7 +67,7 @@ export enum AdRuleKey {
   custom = "custom", //自定义
 }
 
-export enum DistributionMode {
+export enum DistributionMode{
   all = "all", // 全部
   account = "account" // 账户分配
 }

@@ -201,13 +201,11 @@ const handleAction = () => {
 
         &:hover {
           cursor: pointer; // 鼠标移上去显示手型，暗示可交互
-          background-color: #f5f5f5; // 浅灰色背景，你也可以换成 #e6f7ff (antd风格蓝)
+          // background-color: #f5f5f5; // 浅灰色背景，你也可以换成 #e6f7ff (antd风格蓝)
         }
 
         .item-label {
           flex-shrink: 0;
-          // width: 90px; // 固定标签宽度，使冒号对齐
-          color: #666;
         }
 
         .item-value {
@@ -215,7 +213,6 @@ const handleAction = () => {
           padding-right: 10px; // 留点右边距
           overflow: hidden; // 超出部分隐藏
           text-overflow: ellipsis; // 显示省略号
-          color: #333;
           white-space: nowrap; // 强制不换行
         }
       }

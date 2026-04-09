@@ -313,6 +313,10 @@ export const DEVELOPER_AUTH_ACCOUNT_PLATFORM = [
     label: '华为Ads',
     value: 'huawei',
   },
+  {
+    label: 'OPPO',
+    value: 'oppo',
+  },
 ];
 
 /**
@@ -433,7 +437,16 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: '抖音独立端',
     value: 'dy_duliduan'
+  },
+  {
+    label: '优酷',
+    value: 'youku'
+  },
+  {
+    label: '快赚客',
+    value: 'kuaizuanke'
   }
+
 ];
 
 // 匹配下拉
@@ -491,7 +504,7 @@ export const ACTIVE_PLATFORM = [
   {
     label: `${$t('ocpx.platform.vivo')}`,
     value: 'vivo',
-  },
+  }
 ];
 
 
@@ -553,6 +566,10 @@ export const ADVERTISET_ADDED = [
     label: `${$t('ocpx.platform.huawei_store')}`,
     value: 'huawei_store',
   },
+  {
+    label: `${$t('ocpx.platform.oppo')}`,
+    value: 'oppo',
+  }
   // {
   //   label: `${$t('ocpx.platform.huawei')}`,
   //   value: 'huawei',

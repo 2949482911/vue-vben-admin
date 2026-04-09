@@ -50,7 +50,9 @@
     "report": {
       "title": "Report",
       "metric": "Metric",
-      "adreportdata": "Ad Report Data"
+      "adreportdata": "Ad Report Data",
+      "metricGroup": "Metric Group",
+      "subscribe": "Report Subscribe"
     },
     "creation": {
       "title": "Creation and composition",

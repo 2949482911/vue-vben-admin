@@ -149,6 +149,9 @@ export interface SystemMetricPageRequest extends PageRequestParams {
   ename: string;
   cname: string;
 }
+export interface MetricPageRequest {
+  metricGroupId: string;
+}
 
 
 export interface MetricItem extends BaseItem {
@@ -428,6 +431,8 @@ export interface AdvertiserDeveloperBindRequest {
   companyName: string;
   customer?: string,
   saleId?: string,
+  apiId?: string,
+  apiKey?: string,
 }
 
 export interface PageResult {
@@ -670,10 +675,21 @@ export interface StrategyGropType<T = any> extends BaseItem {
   configObj: PlatformCreation<T>;
 }
 export interface GetStrategyGropType extends PageRequestParams {
-  name: string,
-  platform: string,
-  projectId: string
+  name: string;
+  platform: string;
+  projectId: string;
 }
 export interface UpdateStrategyGropType extends StrategyGropType {
-  id: string,
+  id: string;
+}
+
+export interface MetricGroupType extends BaseItem {
+  name: string;
+  description: string;
+}
+export interface MetricGroupPageRequest extends BaseItem {
+  name: string;
+}
+export interface UpdateMetricGroupType extends MetricGroupType {
+  id: string;
 }

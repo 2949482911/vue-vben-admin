@@ -23,6 +23,11 @@ const formOptions: VbenFormProps = {
   schema: [
     {
       component: 'Input',
+      fieldName: 'id',
+      label: `id`,
+    },
+    {
+      component: 'Input',
       fieldName: 'platform',
       label: `${$t('marketing.creation.columns.platform')}`,
     },

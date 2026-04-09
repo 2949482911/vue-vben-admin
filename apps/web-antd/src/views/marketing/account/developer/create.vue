@@ -8,7 +8,7 @@ import {$t} from '@vben/locales';
 
 import {useVbenForm} from '#/adapter/form';
 import {developerApi} from '#/api/core';
-import {AUTH_ACCOUNT_PLATFORM} from '#/constants/locales';
+import {DEVELOPER_AUTH_ACCOUNT_PLATFORM} from '#/constants/locales';
 import {Platform} from "#/constants/enums";
 
 const emit = defineEmits(['pageReload']);
@@ -67,7 +67,7 @@ const [Form, formApi] = useVbenForm({
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-        options: AUTH_ACCOUNT_PLATFORM
+        options: DEVELOPER_AUTH_ACCOUNT_PLATFORM
       },
       // 字段名
       fieldName: 'platform',

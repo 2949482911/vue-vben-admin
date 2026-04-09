@@ -1157,7 +1157,103 @@ platformConfigForm.set(Platform.DY_DULIDUAN, [
     fieldName: 'srcPlat',
     label: 'srcPlat',
     rules: 'required',
+  },
+  {
+    component: 'Input',
+    defaultValue: 'chengfeng',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'ad_platform',
+    label: 'ad_platform',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    defaultValue: 'ios',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'app_platform',
+    label: 'app_platform',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'surl_token',
+    label: 'surl_token',
+    rules: 'required',
   }
+])
+// 优酷
+platformConfigForm.set(Platform.YOUKU, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'advertiserId',
+    label: 'advertiserId',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'mediaId',
+    label: 'mediaId',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'specialType',
+    label: 'specialType',
+  }
+])
+platformConfigForm.set(Platform.KUAIZUANKE, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'appKey',
+    label: 'appKey',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'signSecret',
+    label: 'signSecret',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'accessToken',
+    label: 'accessToken',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'pid',
+    label: 'pid',
+    rules: 'required',
+  },
 ])
 
 const [ConfigForm, configFormApi] = useVbenForm({
@@ -1352,7 +1448,7 @@ const [Form, formApi] = useVbenForm({
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
-          return data["platform"] === Platform.KUAKE || data["platform"] === Platform.QWEN || data["platform"] === Platform.DY_DULIDUAN;
+          return data["platform"] === Platform.KUAKE || data["platform"] === Platform.QWEN || data["platform"] === Platform.DY_DULIDUAN || data["platform"] === Platform.YOUKU;
         },
         triggerFields: ["platform"]
       }

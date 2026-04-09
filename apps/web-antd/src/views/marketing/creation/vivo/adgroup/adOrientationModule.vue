@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
-import {advertiserApi, targetedPackageApi} from '#/api';
-import {ACTIVE_PLATFORM} from '#/constants/locales';
-import {trimObject} from '#/utils/trim';
-import {useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import {RadioButton, RadioGroup, Tag, message} from 'ant-design-vue';
-import {ref} from 'vue';
-import type {VivoAudienceData} from "#/views/marketing/creation/vivo/vivo";
-import type {TargetedPackageTypeItem} from "#/api/models";
-import type {AccountInfo} from "#/views/marketing/creation/creation";
+import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
+import { advertiserApi, targetedPackageApi } from '#/api';
+import { ACTIVE_PLATFORM } from '#/constants/locales';
+import { trimObject } from '#/utils/trim';
+import { useVbenModal, type VbenFormProps } from '@vben/common-ui';
+import { RadioButton, RadioGroup, Tag, message } from 'ant-design-vue';
+import { ref } from 'vue';
+import type { VivoAudienceData } from '#/views/marketing/creation/vivo/vivo';
+import type { TargetedPackageTypeItem } from '#/api/models';
+import type { AccountInfo } from '#/views/marketing/creation/creation';
 import type { RadioChangeEvent } from 'ant-design-vue';
 
 const emit = defineEmits(['update:orientation']);
@@ -17,17 +17,17 @@ const { accountInfo } = defineProps({
   // 账户列表
   accountInfo: {
     type: Array<AccountInfo>,
-    default: () => ([])
+    default: () => [],
   },
-})
+});
 // 当前选中的账户 ID
 const currentAccountId = ref<string>('');
 // 定向包
 const localAudience = ref<VivoAudienceData>({
   audienceConfig: {
-    method: 'all'
+    method: 'all',
   },
-  data: new Map<string, Array<TargetedPackageTypeItem>>()
+  data: new Map<string, Array<TargetedPackageTypeItem>>(),
 });
 // 内部维护一个临时变量，记录弹窗中所有的勾选对象
 const tempSelectedRows = ref<TargetedPackageTypeItem[]>([]);
@@ -35,7 +35,7 @@ const tempSelectedRows = ref<TargetedPackageTypeItem[]>([]);
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: "Select",
+      component: 'Select',
       componentProps: {
         allowClear: true,
         options: ACTIVE_PLATFORM,
@@ -81,7 +81,7 @@ const formOptions: VbenFormProps = {
   showCollapseButton: false,
   // 按下回车时是否提交表单
   submitOnEnter: false,
-}
+};
 
 const gridOptions: VxeGridProps = {
   border: true,
@@ -99,8 +99,8 @@ const gridOptions: VxeGridProps = {
     zoom: true,
   },
   columns: [
-    {type: 'checkbox', width: 50},
-    {field: 'id', title: '账户ID'},
+    { type: 'checkbox', width: 50 },
+    { field: 'id', title: '账户ID' },
     {
       field: 'name',
       title: '定向包名称',
@@ -116,19 +116,20 @@ const gridOptions: VxeGridProps = {
     {
       field: 'remark',
       title: '备注',
-    }
+    },
   ],
   height: '500px',
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         const params = trimObject(args);
         // 如果是按账户分配模式，注入当前账户 ID
-        const accountParams = (localAudience.value.audienceConfig.method === 'account')
-          // ? {}
-          ? { platformAdvertiserId: currentAccountId.value } //测试功能中，后面正式放出来
-          : {};
+        const accountParams =
+          localAudience.value.audienceConfig.method === 'account'
+            ? // ? {}
+              { platformAdvertiserId: currentAccountId.value } //测试功能中，后面正式放出来
+            : {};
 
         const res = await targetedPackageApi.fetchGetTitleTargetedPackage({
           page: page.currentPage,
@@ -141,7 +142,7 @@ const gridOptions: VxeGridProps = {
         setTimeout(() => {
           const grid = gridApi.grid;
           if (grid && tempSelectedRows.value.length > 0) {
-            const ids = tempSelectedRows.value.map(item => item.id);
+            const ids = tempSelectedRows.value.map((item) => item.id);
             grid.setCheckboxRowKey(ids, true);
           }
         }, 100);
@@ -154,13 +155,13 @@ const gridOptions: VxeGridProps = {
 
 const gridEvents = {
   checkboxChange: () => updateTempRecords(),
-  checkboxAll: () => updateTempRecords()
-}
+  checkboxAll: () => updateTempRecords(),
+};
 
 // 抽取公共方法：获取当前 Grid 所有的勾选数据（含跨页和搜索结果）
-function updateTempRecords(){
+function updateTempRecords() {
   const grid = gridApi.grid;
-  if(!grid) return;
+  if (!grid) return;
 
   const reserveRows = grid.getCheckboxReserveRecords();
   const currentRows = grid.getCheckboxRecords();
@@ -168,16 +169,16 @@ function updateTempRecords(){
   const allSelect = [...reserveRows, ...currentRows];
 
   const uniqueMap = new Map();
-  allSelect.forEach(item=>{
-    if(item && item.id){
-      uniqueMap.set(item.id ,item)
+  allSelect.forEach((item) => {
+    if (item && item.id) {
+      uniqueMap.set(item.id, item);
     }
-  })
+  });
 
   tempSelectedRows.value = Array.from(uniqueMap.values());
 }
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents });
 
 /**
  * 分配方式改变
@@ -187,7 +188,7 @@ async function changeMethod(e: RadioChangeEvent) {
   const value = e.target.value;
   tempSelectedRows.value = [];
   if (value === 'all') {
-    currentAccountId.value = "";
+    currentAccountId.value = '';
     localAudience.value.data.clear();
     // localAudience.value.data = new Map<string, Array<TargetedPackageTypeItem>>();
   } else {
@@ -211,12 +212,12 @@ const [Modal, modalApi] = useVbenModal({
         ...data,
         audienceConfig: { ...data.audienceConfig },
         // 通过 new Map(oldMap) 实现浅拷贝，Map 内部的键值对是新的，不会影响原 Map
-        data: new Map(data.data) 
+        data: new Map(data.data),
       };
       // 初始化当前账户和临时变量
-      if (localAudience.value.audienceConfig.method === "all") {
-        currentAccountId.value = "";
-        tempSelectedRows.value = localAudience.value.data.get("0") || [];
+      if (localAudience.value.audienceConfig.method === 'all') {
+        currentAccountId.value = '';
+        tempSelectedRows.value = localAudience.value.data.get('0') || [];
       } else {
         currentAccountId.value = accountInfo[0]?.localAdvertiserId ?? '';
         tempSelectedRows.value = localAudience.value.data.get(currentAccountId.value) || [];
@@ -225,7 +226,7 @@ const [Modal, modalApi] = useVbenModal({
       // 触发第一次查询和回显
       setTimeout(() => {
         gridApi.query();
-      }, 200)
+      }, 200);
     }
   },
   async onCancel() {
@@ -237,7 +238,8 @@ const [Modal, modalApi] = useVbenModal({
     if (!grid) return;
 
     // 确定时，确保最后停留的账户数据已同步
-    const finalKey = localAudience.value.audienceConfig.method === 'all' ? "0" : currentAccountId.value;
+    const finalKey =
+      localAudience.value.audienceConfig.method === 'all' ? '0' : currentAccountId.value;
     if (finalKey) {
       if (tempSelectedRows.value.length > 0) {
         localAudience.value.data.set(finalKey, [...tempSelectedRows.value]);
@@ -248,16 +250,20 @@ const [Modal, modalApi] = useVbenModal({
 
     // 校验逻辑
     if (localAudience.value.audienceConfig.method === 'account') {
-      const unselected = accountInfo.filter(acc => !localAudience.value.data.get(acc.localAdvertiserId)?.length);
+      const unselected = accountInfo.filter(
+        (acc) => !localAudience.value.data.get(acc.localAdvertiserId)?.length,
+      );
       if (unselected.length > 0) {
-        return message.warning(`请为账户 [${unselected.map(a => a.advertiserName).join('、')}] 选择定向包`);
+        return message.warning(
+          `请为账户 [${unselected.map((a) => a.advertiserName).join('、')}] 选择定向包`,
+        );
       }
-      localAudience.value.data.delete("0");
+      localAudience.value.data.delete('0');
     }
 
     emit('update:orientation', { ...localAudience.value });
     await modalApi.close();
-  }
+  },
 });
 
 /**账户点击/切换逻辑 */
@@ -282,12 +288,12 @@ const handleAccountClick = async (account: AccountInfo) => {
   await gridApi.grid.clearCheckboxReserve();
   await gridApi.query();
 };
-
 </script>
 <template>
   <div>
-    <Modal title="选择定向包" class="w-[80%]">
-      <div class="mb-4">分配方式：
+    <Modal title="添加定向包" class="w-[80%]">
+      <div class="mb-4">
+        分配方式：
         <RadioGroup v-model:value="localAudience.audienceConfig.method" @change="changeMethod">
           <RadioButton value="all">全部相同</RadioButton>
           <RadioButton value="account">按账户分配</RadioButton>
@@ -295,17 +301,19 @@ const handleAccountClick = async (account: AccountInfo) => {
       </div>
 
       <div :class="localAudience.audienceConfig.method === 'account' ? 'flex' : ''">
-        <div v-if="localAudience.audienceConfig.method === 'account'"
-             class="w-[250px] flex-shrink-0 border-r pr-4 mr-4 overflow-y-auto max-h-[500px]">
+        <div
+          v-if="localAudience.audienceConfig.method === 'account'"
+          class="w-[250px] flex-shrink-0 border-r pr-4 mr-4 overflow-y-auto max-h-[500px]"
+        >
           <div
-            v-for="(item) in accountInfo"
+            v-for="item in accountInfo"
             :key="item.localAdvertiserId"
             :class="[
               'p-2 mb-2 cursor-pointer border rounded transition-all',
               // 基础状态判断
               localAudience.data.get(item.localAdvertiserId) ? 'has-packages' : 'no-packages',
               // 选中状态判断 (覆盖基础状态)
-              currentAccountId === item.localAdvertiserId ? 'is-active' : ''
+              currentAccountId === item.localAdvertiserId ? 'is-active' : '',
             ]"
             @click="handleAccountClick(item)"
           >
@@ -317,10 +325,8 @@ const handleAccountClick = async (account: AccountInfo) => {
         </div>
         <div class="flex-1 overflow-hidden min-w-0">
           <Grid>
-            <template #status="{row}">
-              <Tag color="green" v-if="row.status === 1">
-                启用
-              </Tag>
+            <template #status="{ row }">
+              <Tag color="green" v-if="row.status === 1"> 启用 </Tag>
               <Tag v-else color="red">不启用</Tag>
             </template>
           </Grid>

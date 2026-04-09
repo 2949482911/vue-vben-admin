@@ -1,24 +1,24 @@
 <script setup lang="ts" name="CreateAdvertiserModal">
-import {Page, useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {ref,computed, reactive } from 'vue';
-import {useVbenForm} from "#/adapter/form";
-import type {AdvertiserItem} from "#/api/models";
-import {advertiserApi, projectApi,accountLabelApi, userApi, orgApi} from "#/api";
-import type {UserItem, OrgItem} from "#/api/models";
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+import { ref, computed, reactive } from 'vue';
+import { useVbenForm } from '#/adapter/form';
+import type { AdvertiserItem } from '#/api/models';
+import { advertiserApi, projectApi, accountLabelApi, userApi, orgApi } from '#/api';
+import type { UserItem, OrgItem } from '#/api/models';
 import type { FormSchema } from '@vben/components';
 const emit = defineEmits(['pageReload']);
 
 //父组件传过来的advertiserId
 const selectedRows = ref<AdvertiserItem[]>([]);
-const modalType = ref<TitleKey>('edit')
-const labelName = ref<string>('name')
-const formLabel = ref<string>('')
-const fieldName = ref<string>('')
-const title = ref<string>('')
-const menuData = ref<OrgItem[]>([])
+const modalType = ref<TitleKey>('edit');
+const labelName = ref<string>('name');
+const formLabel = ref<string>('');
+const fieldName = ref<string>('');
+const title = ref<string>('');
+const menuData = ref<OrgItem[]>([]);
 
-const salesOption = ref([])
+const salesOption = ref([]);
 type TitleKey = 'edit' | 'org' | 'sale' | 'creator' | 'bind' | 'status' | 'hourlyState';
 
 const titleMap: Record<TitleKey, string> = reactive({
@@ -28,15 +28,16 @@ const titleMap: Record<TitleKey, string> = reactive({
   creator: '批量修改创建人',
   bind: '批量绑定标签',
   status: '批量修改投放状态',
-  hourlyState: '批量修改分时状态'
-})
-const creatorUerName = ref()
-const selectedOrgCode = ref()
-  // 核心修改：用 computed 包裹 schema
-const dynamicSchema = computed((): FormSchema[] =>{
-  let operateSchema: FormSchema[] = []
-  if(modalType.value === 'sale' || modalType.value === 'creator') {
-    operateSchema = [{
+  hourlyState: '批量修改分时状态',
+});
+const creatorUerName = ref();
+const selectedOrgCode = ref();
+// 核心修改：用 computed 包裹 schema
+const dynamicSchema = computed((): FormSchema[] => {
+  let operateSchema: FormSchema[] = [];
+  if (modalType.value === 'sale' || modalType.value === 'creator') {
+    operateSchema = [
+      {
         component: 'TreeSelect',
         componentProps: {
           allowClear: true,
@@ -52,7 +53,6 @@ const dynamicSchema = computed((): FormSchema[] =>{
         },
         fieldName: 'orgId',
         label: '部门',
-        
       },
       {
         component: 'Select',
@@ -61,16 +61,16 @@ const dynamicSchema = computed((): FormSchema[] =>{
           options: salesOption,
           placeholder: `${$t('common.choice')}`,
           onSelect: (selectedKeys, event, node) => {
-            if(modalType.value === 'creator') {
+            if (modalType.value === 'creator') {
               if (event && event.label) {
-                creatorUerName.value = event.label
+                creatorUerName.value = event.label;
               }
             }
-          }
+          },
         },
         // 字段名
-        fieldName: modalType.value === 'creator'?'creatorId':'saleId',
-        label: modalType.value === 'creator'?'创建人':'销售',
+        fieldName: modalType.value === 'creator' ? 'creatorId' : 'saleId',
+        label: modalType.value === 'creator' ? '创建人' : '销售',
         dependencies: {
           show: true,
           triggerFields: ['orgId'],
@@ -83,7 +83,9 @@ const dynamicSchema = computed((): FormSchema[] =>{
           },
           if: (value, formApi) => {
             if (value.orgId) {
-              modalType.value === 'creator'? formApi.setFieldValue('creatorId', null) : formApi.setFieldValue('saleId', null);
+              modalType.value === 'creator'
+                ? formApi.setFieldValue('creatorId', null)
+                : formApi.setFieldValue('saleId', null);
               loadSalesByOrg(value.orgId);
             } else {
               salesOption.value = [];
@@ -91,11 +93,12 @@ const dynamicSchema = computed((): FormSchema[] =>{
             return true;
           },
         },
-      }
-    ]
-  } else if(modalType.value === 'edit' || modalType.value === 'bind') {
-    operateSchema =  [{
-        component: "ApiSelect",
+      },
+    ];
+  } else if (modalType.value === 'edit' || modalType.value === 'bind') {
+    operateSchema = [
+      {
+        component: 'ApiSelect',
         componentProps: {
           showSearch: true,
           placeholder: `${$t('common.input')}`,
@@ -108,32 +111,32 @@ const dynamicSchema = computed((): FormSchema[] =>{
           },
           valueField: 'id',
           labelField: labelName.value,
-          resultField: "items",
+          resultField: 'items',
           // 注意：api 里的 modalType 是在调用时才执行，本身就是响应式的，无需改
           api: async (params: any) => {
             let res;
-            if(modalType.value === 'edit') {
-              res = await projectApi.fetchProjectList(params)
-              labelName.value = 'name'
-              formLabel.value =  '项目'
-              fieldName.value = 'projectId'
-            } else if(modalType.value === 'bind') {
-              res = await accountLabelApi.fetchGetAccountLabelList(params)
-              labelName.value = 'name'
-              formLabel.value =  '标签'
-              fieldName.value = 'tagId'
-            } 
-            return res
+            if (modalType.value === 'edit') {
+              res = await projectApi.fetchProjectList(params);
+              labelName.value = 'name';
+              formLabel.value = '项目';
+              fieldName.value = 'projectId';
+            } else if (modalType.value === 'bind') {
+              res = await accountLabelApi.fetchGetAccountLabelList(params);
+              labelName.value = 'name';
+              formLabel.value = '标签';
+              fieldName.value = 'tagId';
+            }
+            return res;
           },
-
         },
         // 每次 modalType 变化，这里会重新判断
         fieldName: fieldName.value,
         label: formLabel.value,
-      }    
-    ]
-  } else if(modalType.value === 'status'){
-    operateSchema = [{
+      },
+    ];
+  } else if (modalType.value === 'status') {
+    operateSchema = [
+      {
         component: 'RadioGroup',
         componentProps: {
           options: [
@@ -149,10 +152,11 @@ const dynamicSchema = computed((): FormSchema[] =>{
         },
         fieldName: 'putStatue',
         label: '投放状态',
-      }
-    ]
-  }  else if(modalType.value === 'hourlyState'){
-    operateSchema = [{
+      },
+    ];
+  } else if (modalType.value === 'hourlyState') {
+    operateSchema = [
+      {
         component: 'RadioGroup',
         componentProps: {
           options: [
@@ -168,10 +172,11 @@ const dynamicSchema = computed((): FormSchema[] =>{
         },
         fieldName: 'hourlyState',
         label: '分时状态',
-      }
-    ]
-  } else if(modalType.value === 'org') {
-    operateSchema = [{
+      },
+    ];
+  } else if (modalType.value === 'org') {
+    operateSchema = [
+      {
         component: 'TreeSelect',
         componentProps: {
           allowClear: true,
@@ -186,18 +191,17 @@ const dynamicSchema = computed((): FormSchema[] =>{
           },
           onSelect: (selectedKeys, event, node) => {
             if (event && event.code) {
-              selectedOrgCode.value = event.code
+              selectedOrgCode.value = event.code;
             }
-          }
+          },
         },
         fieldName: 'orgId',
         label: '部门',
       },
-    ]
+    ];
   }
- return operateSchema
+  return operateSchema;
 });
-
 
 async function loadSalesByOrg(orgId: string) {
   if (!orgId) {
@@ -220,66 +224,66 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal) => {
-    const targetIds = selectedRows.value.map(item => item.id);
+    const targetIds = selectedRows.value.map((item) => item.id);
     let type = '';
     let values = {};
-    if(modalType.value === 'edit') {
-      type =  "update_advertiser_project",
+    if (modalType.value === 'edit') {
+      ((type = 'update_advertiser_project'),
+        (values = {
+          projectId: formVal.projectId,
+        }));
+    } else if (modalType.value === 'bind') {
+      ((type = 'update_advertiser_tag'),
+        (values = {
+          tag_id: formVal.tagId,
+        }));
+    } else if (modalType.value === 'org') {
+      ((type = 'update_advertiser_organization'),
+        (values = {
+          org_id: formVal.orgId,
+          org_code: selectedOrgCode.value,
+        }));
+    } else if (modalType.value === 'creator') {
+      ((type = 'update_advertiser_create_user'),
+        (values = {
+          create_username: creatorUerName.value,
+          create_user_id: formVal.creatorId,
+        }));
+    } else if (modalType.value === 'status') {
+      type = formVal.putStatue === 1 ? 'start_put_status' : 'stop_put_status';
+    } else if (modalType.value === 'hourlyState') {
+      type = 'update_advertiser_hourly';
       values = {
-        projectId: formVal.projectId,
-      }
-    } else if(modalType.value === 'bind') {
-      type = "update_advertiser_tag",
+        hourly_state: formVal.hourlyState, // 1 或者9 ，1 为拉取，9为不拉取
+      };
+    } else if (modalType.value === 'sale') {
+      type = 'update_advertiser_sale';
       values = {
-        tag_id: formVal.tagId,
-      }
-    } else if(modalType.value === 'org') {
-      type = "update_advertiser_organization",
-      values = {
-        org_id: formVal.orgId,
-        org_code: selectedOrgCode.value
-      }
-    } else if(modalType.value === 'creator') {
-      type = 'update_advertiser_create_user',
-      values = {
-        create_username: creatorUerName.value,
-        create_user_id: formVal.creatorId
-      }
-    } else if(modalType.value === 'status') {
-      type = formVal.putStatue === 1 ? 'start_put_status' : 'stop_put_status'
-    }  else if(modalType.value === 'hourlyState') {
-        type = 'update_advertiser_hourly'
-        values = {
-          hourly_state: formVal.hourlyState // 1 或者9 ，1 为拉取，9为不拉取
-        }
-    } else if(modalType.value === 'sale') {
-      type = 'update_advertiser_sale'
-      values = {
-        sale_id: formVal.saleId
-      }
+        sale_id: formVal.saleId,
+      };
     }
-    await (advertiserApi.fetchBatchOptions({
+    await advertiserApi.fetchBatchOptions({
       targetIds: targetIds,
       type: type,
-      values: values
-    }))
+      values: values,
+    });
   },
-  schema: dynamicSchema
+  schema: dynamicSchema,
 });
 
 const [Modal, modalApi] = useVbenModal({
   centered: true,
   fullscreenButton: false,
   closeOnPressEscape: false,
-  contentClass:'modalStyle',
-  async onOpenChange(isOpen: boolean) {    
+  contentClass: 'modalStyle',
+  async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const data = modalApi.getData();
       selectedRows.value = data.selectedRows;
       modalType.value = data.modalType;
       const orgRes = await orgApi.fetchOrgTree();
       menuData.value = orgRes;
-      title.value = titleMap[modalType.value]
+      title.value = titleMap[modalType.value];
     }
   },
   async onCancel() {
@@ -291,22 +295,20 @@ const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
     const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
     await formApi.submitForm();
     emit('pageReload');
     await modalApi.close();
   },
 });
-
-
 </script>
 
 <template>
   <div>
     <Page>
       <Modal class="w-[400px]" :title="title">
-        <Form/>
+        <Form />
       </Modal>
     </Page>
   </div>
