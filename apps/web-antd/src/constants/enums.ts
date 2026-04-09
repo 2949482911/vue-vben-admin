@@ -29,6 +29,7 @@ export enum Platform {
   TBSG = "tb_shangou",
   GYXOPPO = "gyx_oppo",
   UU = "uu_union",
+  INTEYUN = "inteyun",
   QUTOUTIAO = "qutoutiao",
   HUAWEI_STORE = "huawei_store",
   BAIDU_PACK = "baidu_pack",
@@ -42,8 +43,7 @@ export enum Platform {
   KUAIZUANKE = 'kuaizuanke',
   IZJIE = "izjie",
   RUIZHANG = "ruizhang",
-  THREE_WATER = "three_water",
-  DY_DULIDUAN = 'dy_duliduan'
+  THREE_WATER = "three_water"
 }
 
 export enum RuleType {
@@ -67,7 +67,7 @@ export enum AdRuleKey {
   custom = "custom", //自定义
 }
 
-export enum DistributionMode{
+export enum DistributionMode {
   all = "all", // 全部
   account = "account" // 账户分配
 }

@@ -937,6 +937,50 @@ platformConfigForm.set(Platform.UU, [
   },
 ])
 
+
+// 因特yun
+platformConfigForm.set(Platform.INTEYUN, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'adId',
+    label: `adId`,
+    rules: 'required',
+  },
+
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'channelId',
+    label: `channelId`,
+    rules: 'required',
+  },
+
+  {
+    component: 'Select',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+      options: [
+        {
+          "value": 'async',
+          "label": 'async'
+        },
+        {
+          "value": 'sync',
+          "label": 'sync'
+        }
+      ]
+    },
+    fieldName: 'type',
+    label: `type`,
+    rules: 'required',
+  },
+])
+
 // 百度网盘
 platformConfigForm.set(Platform.BAIDU_PACK, [
   {

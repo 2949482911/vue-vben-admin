@@ -412,8 +412,10 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.three_water')}`,
     value: Platform.THREE_WATER,
   },
-
-
+  {
+    label: `${$t('ocpx.platform.inteyun')}`,
+    value: Platform.INTEYUN,
+  },
   {
     label: '抖音',
     value: 'douyin',
