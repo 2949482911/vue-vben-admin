@@ -175,7 +175,7 @@ function updateTableStructure(columns: string[], footData: any) {
       newColumns.push({
         field: key,
         title: key,
-        minWidth: 120,
+        width: 'auto',
         sortable: true,
         showOverflow: true, // 超出隐藏，提升渲染性能
       });
@@ -600,7 +600,7 @@ const gridOptions: VxeGridProps = {
   exportConfig: {
     filename: '',
     types: ["csv", "xlsx"],
-    modes: ['current', 'all'],
+    modes: ['all'],
     original: true,
   },
   pagerConfig: {
@@ -617,7 +617,7 @@ const gridOptions: VxeGridProps = {
   scrollY: { enabled: true, gt: 0 },
   // 优化渲染性能
   rowConfig: {
-    isHover: true,
+    isHover: false,
     useKey: true,
     keyField: 'seq',
   },

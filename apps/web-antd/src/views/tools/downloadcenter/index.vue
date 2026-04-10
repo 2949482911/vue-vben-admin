@@ -119,7 +119,7 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
           <Switch :checked="row.status === 1" />
         </template>
         <template #downloadUrl="{ row }">
-           <a class="downloadLink" :href="row.downloadUrl" :download="row.name">{{row.downloadUrl}}</a>
+           <a class="downloadLink" :href="row.downloadUrl" :download="row.name">点击下载</a>
         </template>
         <template #taskState="{ row }">
           <Tag v-if="row.taskState === 0" color="orange">{{ $t('common.pending') }}</Tag>
