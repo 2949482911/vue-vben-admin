@@ -693,3 +693,23 @@ export interface MetricGroupPageRequest extends BaseItem {
 export interface UpdateMetricGroupType extends MetricGroupType {
   id: string;
 }
+export interface pushConfigType {
+  pushMethod: number;
+  emailAddress: string;
+}
+export interface ReportSubscriptionItem {
+  name: string;
+  type: string;
+  queryMetric: string[];
+  status: number;
+  config: searchDataFilter;
+  subscribeDateTimeRange: [string, string];
+  pushConfig: Record<string, string[]>[];
+}
+export interface UpdateSubscribeType extends ReportSubscriptionItem {
+  id: string;
+}
+export interface GetSubscribeType extends PageRequestParams{
+  name: string;
+  type: string;
+}

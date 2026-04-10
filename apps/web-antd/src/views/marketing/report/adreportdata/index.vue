@@ -13,18 +13,12 @@ import SaveTemplateModal from "./saveTemplate.vue";
 import TemplateListDrawer from './templateList.vue';
 import dayjs from 'dayjs';
 import { useAdLinkage } from './adDropdown'
+import AdReportFilterForm from '../components/AdReportFilterForm.vue';
 
+// 表单 ref
+const filterFormRef = ref();
 const selectPlatform = ref<string>(null)
 
-const {
-  planOptions,
-  advertisementOptions,
-  adGroupOptions,
-  creativityOptions,
-  loadAdLinkage,
-  resetLoadedMap,
-  setGridApi,
-} = useAdLinkage()
 
 /* ---------------- 模板抽屉 ---------------- */
 const [TemplateDrawer, drawerApi] = useVbenDrawer({
@@ -40,21 +34,6 @@ const currentQueryMetric = ref<string[]>([]);
 // 防抖标记，避免重复请求
 let pendingRequest = null;
 
-async function handleUseTemplate(template: searchDataFilter) {
-  // 取消之前的请求
-  if (pendingRequest) {
-    pendingRequest = null;
-  }
-  
-  await gridApi.formApi.resetForm();
-  await gridApi.formApi.setValues(template);
-  
-  currentQueryMetric.value = template.queryMetric ? [...template.queryMetric] : [];
-  
-  const values = await gridApi.formApi.getValues() as searchDataFilter;
-  const params = buildReportParams(values);
-  await init(params);
-}
 
 /* ---------------- 指标弹窗 ---------------- */
 const [SelectMetricModalModal, selectMetricModalApi] = useVbenModal({
@@ -83,10 +62,6 @@ const [SaveTemplateModalModal, sveTemplateModalApi] = useVbenModal({
   connectedComponent: SaveTemplateModal,
 });
 
-async function openSaveTemplateModalModal() {
-  searchData.value = await gridApi.formApi.getValues() as unknown as searchDataFilter;
-  sveTemplateModalApi.open();
-}
 
 async function handleTemplateSaved() {
   await gridApi.formApi.resetForm();
@@ -264,272 +239,6 @@ const projectSelectOptions = computed(() =>
 /* 优化7：表单提交防抖 */
 let submitTimer = null;
 
-const formOptions: VbenFormProps = {
-  schema: [
-    // ... 保持原有的schema配置不变
-    {
-      component: 'RangePicker',
-      defaultValue: [
-        dayjs().subtract(6, 'day').format('YYYY-MM-DD'),
-        dayjs().format('YYYY-MM-DD'),
-      ],
-      componentProps: {
-        placeholder: [`${$t('common.select')}`, `${$t('common.select')}`],
-        format: ['YYYY-MM-DD', 'YYYY-MM-DD'],
-        valueFormat: 'YYYY-MM-DD',
-        disabledDate: (current: any) => {
-          return current && current > dayjs().endOf('day');
-        },
-      },
-      fieldName: 'dateTimeRange',
-      label: 'Time',
-      rules: 'required',
-    },
-    {
-      component: 'Select',
-      defaultValue: ['vivo'],
-      componentProps: {
-        allowClear: true,
-        options: ACTIVE_PLATFORM,
-        mode: 'multiple',
-        maxTagCount: 1,
-        placeholder: `${$t('common.choice')}`,
-        onChange: resetLoadedMap,
-        onSelect: async (val) => {
-          const platforms = await gridApi.formApi.getValues()
-          selectPlatform.value = platforms.platform.join(',')
-        }
-      },
-      fieldName: 'platform',
-      label: `${$t('ocpx.platform.title')}`,
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: DIMS,
-        mode: 'multiple',
-        placeholder: `${$t('common.choice')}`,
-        maxTagCount: 1,
-      },
-      defaultValue: ['day'],
-      fieldName: 'dims',
-      label: `${$t('marketing.report.dims.title')}`,
-    },
-    {
-      component: 'HybridSearchSelect',
-      componentProps: {
-        mode: 'multiple',
-        placeholder: `${$t('common.select')}`,
-        allowClear: true,
-        initialApi: async () => {
-          const formData = await gridApi.formApi.getValues();
-          selectPlatform.value = formData.platform.join(',')
-          const res = await advertiserApi.fetchAdvertiserList({
-            page: 1,
-            pageSize: 1000,
-            putStatue: 1,
-            platform: selectPlatform.value
-          });
-          if (res.items) {
-            res.items = res.items.map(item => ({
-              ...item,
-              displayName: `${item.advertiserName}-${item.advertiserId}`
-            }));
-          }
-          return res;
-        },
-        remoteApi: async (params) => {
-          const res = await advertiserApi.fetchAdvertiserList({
-            page: 1,
-            pageSize: 1000,
-            putStatue: 1,
-            platform: selectPlatform.value,
-            advertiserId: params.keyword,
-          });
-          if (res.items) {
-            res.items = res.items.map(item => ({
-              ...item,
-              displayName: `${item.advertiserName}-${item.advertiserId}`
-            }));
-          }
-          return res;
-        },
-        valueField: 'advertiserId',
-        labelField: 'displayName',
-        resultField: 'items',
-        remoteSearchField: 'keyword',
-        searchDebounce: 300,
-        remoteSearchMinLength: 1,
-        clearSearchOnSelect: true,
-        onChange: (value) => {
-          console.log('选中的值:', value);
-          resetLoadedMap();
-        },
-      },
-      dependencies: {
-        triggerFields: ['platform'],
-        if: (value) => {
-          console.log('value', value)
-          if (value.platform.length > 0) {
-            // loadAgentData(value.platform)
-          } else {
-            // agentData.value = []
-          }
-          return true;
-        }
-      },
-      fieldName: 'advertiserId',
-      label: `${$t('marketing.advertiser.columns.advertiserName')}`,
-    },
-    {
-      defaultValue: [],
-      fieldName: 'queryMetric',
-      label: '指标',
-      rules: 'required',
-      component: 'ApiSelect',
-      dependencies: {
-        show: false,
-        triggerFields: ["*"]
-      }
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        options: projectSelectOptions,
-        placeholder: `${$t('common.choice')}`,
-      },
-      fieldName: 'projectId',
-      label: '项目',
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        mode: 'multiple',
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        options: planOptions,
-        onFocus: async () => {
-          await loadAdLinkage('campaign')
-        },
-        placeholder: `${$t('common.choice')}`,
-      },
-      fieldName: 'campaign_id',
-      label: '计划',
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        mode: 'multiple',
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        options: advertisementOptions,
-        onFocus: async () => {
-          await loadAdLinkage('promotion')
-        },
-        placeholder: `${$t('common.choice')}`,
-      },
-      fieldName: 'promotion_id',
-      label: '广告',
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        mode: 'multiple',
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        options: adGroupOptions,
-        onFocus: async () => {
-          await loadAdLinkage('adgroup')
-        },
-        placeholder: `${$t('common.choice')}`,
-      },
-      fieldName: 'adgroup_id',
-      label: '广告组',
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        mode: 'multiple',
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        options: creativityOptions,
-        onFocus: async () => {
-          await loadAdLinkage('creative')
-        },
-      },
-      fieldName: 'creative_id',
-      label: '创意',
-    },
-  ],
-  showCollapseButton: true,
-  submitOnEnter: false,
-  handleSubmit: async (values) => {
-    // 防抖处理
-    if (submitTimer) {
-      clearTimeout(submitTimer);
-    }
-    
-    submitTimer = setTimeout(async () => {
-      pager.currentPage = 1;
-      currentQueryMetric.value = values.queryMetric || [];
-      const params = buildReportParams(values);
-      await init(params);
-      submitTimer = null;
-    }, 100);
-  },
-  handleReset: async () => {
-    // 取消进行中的请求
-    if (abortController) {
-      abortController.abort();
-    }
-    
-    await gridApi.formApi.resetForm();
-    await gridApi.formApi.setFieldValue('queryMetric', []);
-    await resetLoadedMap
-    
-    currentQueryMetric.value = [];
-    planOptions.value = []
-    advertisementOptions.value = []
-    adGroupOptions.value = []
-    creativityOptions.value = []
-    
-    allData.value = [];
-    currentPageData.value = [];
-    pager.currentPage = 1;
-    pager.total = 0;
-    
-    gridApi.setGridOptions({
-      data: [],
-      columns: [],
-      footerData: [],
-      pagerConfig: {
-        total: 0,
-        currentPage: 1,
-        pageSize: pager.pageSize,
-        pageSizes: [500, 800, 1000],
-      },
-    });
-  },
-};
-
 // 辅助函数
 const makeFilter = (
   field: string,
@@ -573,11 +282,62 @@ function buildReportParams(values: any): AdReportRequest {
   };
 }
 
+// 表单提交处理
+async function handleFormSubmit(values: any) {
+  pager.currentPage = 1;
+  currentQueryMetric.value = values.queryMetric || [];
+  const params = buildReportParams(values);
+  await init(params);
+}
+
+async function handleFormReset() {
+  if (abortController) {
+    abortController.abort();
+  }
+  
+  currentQueryMetric.value = [];
+  allData.value = [];
+  currentPageData.value = [];
+  pager.currentPage = 1;
+  pager.total = 0;
+  
+  gridApi.setGridOptions({
+    data: [],
+    columns: [],
+    footerData: [],
+    pagerConfig: {
+      total: 0,
+      currentPage: 1,
+      pageSize: pager.pageSize,
+      pageSizes: [500, 800, 1000],
+    },
+  });
+}
+
+async function handleUseTemplate(template: searchDataFilter) {
+  if (pendingRequest) {
+    pendingRequest = null;
+  }
+  
+  // 使用表单实例设置值
+  await filterFormRef.value?.setValues(template);
+  
+  currentQueryMetric.value = template.queryMetric ? [...template.queryMetric] : [];
+  
+  const values = await filterFormRef.value?.getValues();
+  const params = buildReportParams(values);
+  await init(params);
+}
+
 function reloadFromStart(metricIds: string[]) {
-  gridApi.formApi.setFieldValue('queryMetric', metricIds)
+  filterFormRef.value?.setFieldValue('queryMetric', metricIds);
   currentQueryMetric.value = metricIds;
 }
 
+async function openSaveTemplateModalModal() {
+  searchData.value = await filterFormRef.value?.getValues();
+  sveTemplateModalApi.open();
+}
 /* Grid 配置 - 添加虚拟滚动优化 */
 const gridOptions: VxeGridProps = {
   showFooter: true,
@@ -592,7 +352,7 @@ const gridOptions: VxeGridProps = {
     refresh: true,
     refreshOptions: {
       query: async () => {
-        await gridApi.formApi.submitForm()
+        await filterFormRef.value?.submitForm();
       }
     },
     zoom: true,
@@ -610,7 +370,9 @@ const gridOptions: VxeGridProps = {
     currentPage: pager.currentPage,
     pageSizes: [500, 800, 1000, 2000],
   },
-  proxyConfig: undefined,
+  proxyConfig: {
+    enabled: false, // 确保关闭代理配置，使用手动控制
+  },
   footerData: [],
   // 优化8：开启虚拟滚动，提升大数据渲染性能
   scrollX: { enabled: true, gt: 0 },
@@ -624,18 +386,42 @@ const gridOptions: VxeGridProps = {
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({
-  formOptions,
   gridOptions,
   gridEvents,
 });
-
-setGridApi(gridApi)
-
+// 在 onMounted 中初始化数据
+onMounted(async () => {
+  const res = await projectApi.fetchProjectList({
+    page: 1,
+    pageSize: 1000,
+  });
+  projectOptions.value = res.items;
+  
+  // 初始化时自动提交一次表单
+  // setTimeout(() => {
+  //   filterFormRef.value?.submitForm();
+  // }, 100);
+  handleFormReset()
+});
+const wrapperClass = ref('grid-cols-1 md:grid-cols-2 lg:grid-cols-3')
+const content = ref('搜索')
+const isShowActions = ref(true)
 </script>
 
 <template>
   <div>
     <Page auto-content-height>
+      <div class="search-content">
+        <AdReportFilterForm 
+          ref="filterFormRef"
+          :wrapperClass="wrapperClass"
+          :isShowActions="isShowActions"
+          :content="content"
+          @submit="handleFormSubmit"
+          @reset="handleFormReset"
+        />
+      </div>
+
       <Grid>
         <template #reset-before>
           <Button type="primary" @click="openSaveTemplateModalModal">
@@ -658,5 +444,12 @@ setGridApi(gridApi)
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+.search-content {
+  background: #fff;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 10px;
+  padding: 20px 10px 0 0;
+}
+
 </style>

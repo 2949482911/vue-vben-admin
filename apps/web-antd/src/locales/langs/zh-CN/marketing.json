@@ -94,6 +94,19 @@
       "quarter": "季度",
       "year": "年",
       "advertiser": "账户"
+    },
+    "subscribe": {
+      "id":"报表ID",
+      "name": "报表名称",
+      "platform":"平台",
+      "reportType": "报表类型",
+      "subscribeDateTimeRange": "订阅有效期",
+      "pushMethod": "推送方式",
+      "metricList": "自定义列",
+      "filterCriteria": "筛选条件",
+      "subscribeStatus": "订阅状态",
+      "emailAddress": "邮箱地址"
+
     }
   },
   "project": {
