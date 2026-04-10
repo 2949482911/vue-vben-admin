@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {Button, Card, Divider, message} from 'ant-design-vue';
-import {useVbenDrawer} from '@vben/common-ui';
+import { Button, Card, Divider, message } from 'ant-design-vue';
+import { useVbenDrawer } from '@vben/common-ui';
 import ProjectDrawer from './projectDrawer.vue';
 import {
   ADTYPE_SELECT,
@@ -9,18 +9,17 @@ import {
   NOTIFICATIONTYPE_SELECT,
   NOTIFORMAT_SELECT,
   PROJRCT_SELECT,
-  PROMOTION_SELECT
+  PROMOTION_SELECT,
 } from '../projectEnum';
 
-
-let {hasAccount, hasProduct, campaign} = defineProps({
+let { hasAccount, hasProduct, campaign } = defineProps({
   hasAccount: Boolean,
   hasProduct: Boolean,
   campaign: {
     type: Object,
     default: () => {
       return {
-        name: "",
+        name: '',
         adType: 0,
         mediaType: 0,
         dailyBudget: -1,
@@ -28,11 +27,11 @@ let {hasAccount, hasProduct, campaign} = defineProps({
         pushForm: 0,
         pushType: 0,
         promotionType: 0,
-        conversionMonitorType: 0
-      }
-    }
-  }
-})
+        conversionMonitorType: 0,
+      };
+    },
+  },
+});
 
 const emit = defineEmits(['update:projectConfig', 'adTypeChanged']);
 
@@ -42,15 +41,15 @@ const [ProjectDrawerModule, drawerApi] = useVbenDrawer({
     if (!isOpen) {
       let data = drawerApi.getData();
       if (data.name) {
-        campaign.name= data.name;
-        campaign.adType= data.adType;
-        campaign.mediaType= data.mediaType;
-        campaign.dailyBudget= data.dailyBudget;
-        campaign.campaignType= data.campaignType;
-        campaign.pushForm= data.pushForm;
-        campaign.pushType= data.pushType;
-        campaign.promotionType= data.promotionType;
-        campaign.conversionMonitorType= data.conversionMonitorType;
+        campaign.name = data.name;
+        campaign.adType = data.adType;
+        campaign.mediaType = data.mediaType;
+        campaign.dailyBudget = data.dailyBudget;
+        campaign.campaignType = data.campaignType;
+        campaign.pushForm = data.pushForm;
+        campaign.pushType = data.pushType;
+        campaign.promotionType = data.promotionType;
+        campaign.conversionMonitorType = data.conversionMonitorType;
         emit('update:projectConfig', campaign);
         if (data._adTypeChanged) {
           emit('adTypeChanged');
@@ -58,7 +57,7 @@ const [ProjectDrawerModule, drawerApi] = useVbenDrawer({
         drawerApi.setData(null);
       }
     }
-  }
+  },
 });
 
 // 辅助函数：由于你的字段是 key，这里定义中文 Label 映射
@@ -71,7 +70,7 @@ const labelMap: Record<string, string> = {
   pushForm: '通知形式',
   pushType: '通知类型',
   promotionType: '推广模式',
-  conversionMonitorType: '转化监测'
+  conversionMonitorType: '转化监测',
 };
 
 // 建立字段与枚举数组的映射关系
@@ -92,7 +91,7 @@ const formatDisplayValue = (key: string, value: any) => {
   }
   const options = enumMap[key];
   if (options) {
-    const target = options.find(item => item.value === value);
+    const target = options.find((item) => item.value === value);
     return target ? target.label : value;
   }
   return value;
@@ -132,7 +131,7 @@ const handleAction = () => {
   <div>
     <Card class="projectCard">
       <div class="title">项目</div>
-      <Divider type="horizontal"/>
+      <Divider type="horizontal" />
       <div class="infoTop">
         <div class="title">基本信息：</div>
       </div>
@@ -145,18 +144,16 @@ const handleAction = () => {
             </div>
           </div>
         </div>
-        <div v-else class="empty-status">
-          暂无数据，请点击下方按钮添加项目
-        </div>
+        <div v-else class="empty-status">暂无数据，请点击下方按钮添加项目</div>
       </Card>
-      <Divider type="horizontal"/>
+      <Divider type="horizontal" />
       <div class="btnCla">
         <Button type="text" @click="handleAction">
           {{ campaign.name ? '编辑项目' : '添加项目' }}
         </Button>
       </div>
     </Card>
-    <ProjectDrawerModule/>
+    <ProjectDrawerModule />
   </div>
 </template>
 
@@ -201,7 +198,6 @@ const handleAction = () => {
 
         &:hover {
           cursor: pointer; // 鼠标移上去显示手型，暗示可交互
-          // background-color: #f5f5f5; // 浅灰色背景，你也可以换成 #e6f7ff (antd风格蓝)
         }
 
         .item-label {
@@ -210,7 +206,7 @@ const handleAction = () => {
 
         .item-value {
           flex: 1; // 占据剩余全部空间
-          padding-right: 10px; // 留点右边距
+          width: 290px;
           overflow: hidden; // 超出部分隐藏
           text-overflow: ellipsis; // 显示省略号
           white-space: nowrap; // 强制不换行

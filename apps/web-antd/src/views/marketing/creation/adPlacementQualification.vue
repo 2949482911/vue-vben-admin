@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
-import {adInvestmentApi} from '#/api';
-import {useVbenModal} from '@vben/common-ui';
-import {ref,nextTick} from 'vue';
-import type {AccountInfo} from "#/views/marketing/creation/creation";
-import type { AdvertisingQualificationType } from './vivo/projectEnum';
-import type { QualificationValue } from './vivo/vivo';
+import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
+import { adInvestmentApi } from '#/api';
+import { useVbenModal } from '@vben/common-ui';
+import { ref, nextTick } from 'vue';
+import type { AccountInfo } from '#/views/marketing/creation/creation';
+import type { QualificationValue, AdvertisingQualificationType } from './vivo/vivo';
 import { message } from 'ant-design-vue';
 
 // 当前选中的账户 ID
@@ -15,37 +14,37 @@ const { accountInfo, advertiserQualification } = defineProps({
   // 账户列表
   accountInfo: {
     type: Array<AccountInfo>,
-    default: () => ([])
+    default: () => [],
   },
-  advertiserQualification:{
+  advertiserQualification: {
     type: Object,
-    default: new Map<string, QualificationValue>()
-  }
-})
+    default: new Map<string, QualificationValue>(),
+  },
+});
 
 const gridOptions: VxeGridProps = {
   border: true,
   radioConfig: {
     highlight: true,
-    trigger: 'row'
+    trigger: 'row',
   },
   columns: [
-    {type: 'radio', width: 50},
-    {field: 'advertiseQualificationId', title: '投放资质ID'},
+    { type: 'radio', width: 50 },
+    { field: 'advertiseQualificationId', title: '投放资质ID' },
     {
       field: 'appCnName',
       title: '投放资质名称',
-    }
+    },
   ],
   height: '500px',
   pagerConfig: {
-    enabled: false
+    enabled: false,
   },
   proxyConfig: {
     ajax: {
       query: async () => {
         return await adInvestmentApi.fetchGetAdInvestment({
-          advertiserId:[currentAccountId.value]
+          advertiserId: [currentAccountId.value],
         });
       },
     },
@@ -53,22 +52,22 @@ const gridOptions: VxeGridProps = {
 };
 
 const gridEvents = {
-  radioChange(newValue:any){
+  radioChange(newValue: any) {
     if (currentAccountId.value) {
       // 更新 Map
       localAdvertiserQualification.value.set(currentAccountId.value, {
         qualificationId: newValue.row.advertiseQualificationId,
-        qualificationName: newValue.row.appCnName
+        qualificationName: newValue.row.appCnName,
       });
     }
-  }
-}
+  },
+};
 const [Grid, gridApi] = useVbenVxeGrid({ gridOptions, gridEvents });
 
 const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      if(accountInfo.length>0){
+      if (accountInfo.length > 0) {
         await initSelection(advertiserQualification);
         await nextTick();
         await handleAccountClick(accountInfo[0]!);
@@ -76,12 +75,13 @@ const [Modal, modalApi] = useVbenModal({
     }
   },
   async onCancel() {
-    localAdvertiserQualification.value = new Map()
+    await modalApi.setData(localAdvertiserQualification.value);
+    localAdvertiserQualification.value = new Map();
     await modalApi.close();
   },
   async onConfirm() {
     // 检查 Map 中是否每个 ID 都有对应的记录
-    const unselectedAccounts = accountInfo.filter(acc => {
+    const unselectedAccounts = accountInfo.filter((acc) => {
       const data = localAdvertiserQualification.value.get(acc.localAdvertiserId);
       // 判断逻辑：如果没有数据，或者数据里没有选中的资质 ID
       return !data || !data.qualificationId;
@@ -89,18 +89,20 @@ const [Modal, modalApi] = useVbenModal({
 
     //如果存在未选择的账户，进行拦截
     if (unselectedAccounts.length > 0) {
-      const names = unselectedAccounts.map(acc => acc.advertiserName).join('、');
+      const names = unselectedAccounts.map((acc) => acc.advertiserName).join('、');
       message.warning(`请为账户 [${names}] 选择广告投放资质`);
-      return; 
+      return;
     }
     //校验通过，提交数据并关闭
     await modalApi.setData(localAdvertiserQualification.value);
     await modalApi.close();
-  }
+  },
 });
 
 /** 初始回显逻辑 - 直接接收对象结构 */
-async function initSelection(existingData: Record<string, QualificationValue> | Map<string, QualificationValue>) {
+async function initSelection(
+  existingData: Record<string, QualificationValue> | Map<string, QualificationValue>,
+) {
   // 1. 创建新的 Map 实例
   const newMap = new Map<string, QualificationValue>();
   // 2. 传进来的是 Map (父组件传的是 Proxy 包装后的 Map)
@@ -108,52 +110,54 @@ async function initSelection(existingData: Record<string, QualificationValue> | 
     existingData.forEach((value, key) => {
       newMap.set(key, value);
     });
-  } 
+  }
   // 4. 赋值给响应式变量
   localAdvertiserQualification.value = newMap;
 }
 
 /**账户点击/切换逻辑 */
 const handleAccountClick = async (account: AccountInfo) => {
-  
   currentAccountId.value = account.localAdvertiserId;
   const $grid = gridApi.grid;
   if (!$grid) return;
   // 1. 刷新数据
   await gridApi.reload();
-  
+
   // 获取已选的对象
   const savedData = localAdvertiserQualification.value.get(account.localAdvertiserId);
 
   await nextTick();
   if (savedData) {
     const tableData = $grid.getData();
-    
-    const targetRow = tableData?.find((row: AdvertisingQualificationType) => row.advertiseQualificationId === savedData.qualificationId);
+
+    const targetRow = tableData?.find(
+      (row: AdvertisingQualificationType) =>
+        row.advertiseQualificationId === savedData.qualificationId,
+    );
     if (targetRow) {
       $grid.setRadioRow(targetRow);
     }
   } else {
     await gridApi.grid?.clearRadioRow();
   }
-  
 };
-
 </script>
 <template>
   <div>
     <Modal title="选择广告投放资质ID" class="w-[50%]">
-      <div class='flex'>
+      <div class="flex">
         <div class="w-[250px] flex-shrink-0 border-r pr-4 mr-4 overflow-y-auto max-h-[500px]">
           <div
-            v-for="(item) in accountInfo"
+            v-for="item in accountInfo"
             :key="item.localAdvertiserId"
             :class="[
               'p-2 mb-2 cursor-pointer border rounded transition-all',
               // 逻辑：如果 Map 里有这个账户的 Key，说明已选，走高亮/普通样式；否则置灰
-              localAdvertiserQualification.has(item.localAdvertiserId) ? 'has-packages' : 'no-packages',
+              localAdvertiserQualification.has(item.localAdvertiserId)
+                ? 'has-packages'
+                : 'no-packages',
               // 当前选中操作的账户
-              currentAccountId === item.localAdvertiserId ? 'is-active' : ''
+              currentAccountId === item.localAdvertiserId ? 'is-active' : '',
             ]"
             @click="handleAccountClick(item)"
           >

@@ -17,6 +17,7 @@ import type {
   VivoPromotionData,
   VivoTitlePackageData,
   QualificationValue,
+  VivoDeepLinkData,
 } from '#/views/marketing/creation/vivo/vivo';
 import { Platform } from '#/constants/enums';
 import type {
@@ -50,6 +51,12 @@ const creationInfo = ref<VivoCreation>({
   },
   accountInfo: [],
   configData: {
+    deepLinkList: {
+      deepLinkConfig: {
+        method: 'all',
+      },
+      data: new Map<string, Array<string>>(),
+    },
     // 投放资质
     advertiserQualification: new Map<string, QualificationValue>(),
     campaign: {
@@ -64,7 +71,6 @@ const creationInfo = ref<VivoCreation>({
       conversionMonitorType: 0,
     },
     adgroup: {
-      // advertiseQualificationId: "",
       apkId: 0,
       appPackageName: '',
       appletOriginId: '',
@@ -90,7 +96,7 @@ const creationInfo = ref<VivoCreation>({
       rpkDeepLink: '',
       ruleAudience: '',
       scheduleTime: '',
-      secondCvType: 0,
+      secondCvType: null,
       secondOcpxPrice: 0,
       spentType: null,
       startDate: '',
@@ -175,14 +181,12 @@ async function savePolicyGroup() {
     creationInfo.value.configData.campaign.name &&
     creationInfo.value.configData.adgroup.name &&
     creationInfo.value.configData.promotion.name &&
-    creationInfo.value.monitoringLink.clickLink &&
-    creationInfo.value.monitoringLink.exposureLink &&
     creationInfo.value.configData.audience.data.size > 0 &&
     creationInfo.value.configData.titlePackage.data.size > 0
   ) {
     createModalApi.setData(creationInfo.value);
   } else {
-    return message.warning('请完善“配置区域”基本信息和“监测链接组”');
+    return message.warning('请完善“配置区域”基本信息');
   }
   createModalApi.open();
 }
@@ -247,6 +251,11 @@ function handleCreativeMaterialsDrawerUpdate(data: VivoPromotionData) {
 /**广告创意素材组（视频+图片） */
 function handleCreativeMaterialsGroupList(data: MaterialData) {
   creationInfo.value.configData.material = data;
+}
+
+/**广告创意素材组（deepLink链接） */
+function handleDeepLink(data: VivoDeepLinkData) {
+  creationInfo.value.configData.deepLinkList = data;
 }
 
 /**清空广告创意素材上半部分组 */
@@ -398,7 +407,6 @@ function handleAdQualification(data: Map<string, QualificationValue>) {
 /**如果项目里的推广目标改变，广告组的所有数据需要重新填写 */
 function handleAdTypeChangeWarning() {
   creationInfo.value.configData.adgroup = {
-    // advertiseQualificationId: "",
     apkId: 0,
     appPackageName: '',
     appletOriginId: '',
@@ -424,7 +432,7 @@ function handleAdTypeChangeWarning() {
     rpkDeepLink: '',
     ruleAudience: '',
     scheduleTime: '',
-    secondCvType: 0,
+    secondCvType: null,
     secondOcpxPrice: 0,
     spentType: null,
     startDate: '',
@@ -447,9 +455,6 @@ const [monitoringLinkGroupModal, modalApi] = useVbenModal({
 
 /**打开监测链接组 */
 function openMonitoringLinkModal() {
-  if (!creationInfo.value.accountInfo.length) return message.warning('请先在配置区选择“媒体账户”');
-  if (!creationInfo.value.configData.campaign.name)
-    return message.warning('请先完善并保存“项目”基本信息');
   modalApi.open();
 }
 
@@ -465,14 +470,14 @@ function generatePreview() {
     creationInfo.value.configData.campaign.name &&
     creationInfo.value.configData.adgroup.name &&
     creationInfo.value.configData.promotion.name &&
-    creationInfo.value.monitoringLink.clickLink &&
-    creationInfo.value.monitoringLink.exposureLink &&
+    // creationInfo.value.monitoringLink.clickLink &&
+    // creationInfo.value.monitoringLink.exposureLink &&
     creationInfo.value.configData.audience.data.size > 0 &&
     creationInfo.value.configData.titlePackage.data.size > 0
   ) {
     previewAreaRef.value?.generateTable(creationInfo.value);
   } else {
-    return message.warning('请完善“配置区域”基本信息和“监测链接组”');
+    return message.warning('请完善“配置区域”基本信息');
   }
 }
 </script>
@@ -552,8 +557,10 @@ function generatePreview() {
                 :campaign="creationInfo.configData.campaign"
                 :material="creationInfo.configData.material"
                 :promotion="creationInfo.configData.promotion"
+                :deepLinkList="creationInfo.configData.deepLinkList"
                 @update:creativeMaterialsDrawerConfig="handleCreativeMaterialsDrawerUpdate"
                 @update:creativeMaterialsGroupList="handleCreativeMaterialsGroupList"
+                @update:deepLink="handleDeepLink"
               />
             </Card>
           </Col>

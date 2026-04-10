@@ -1,32 +1,35 @@
 <script setup lang="ts">
-import {Card, Divider, Button} from 'ant-design-vue';
-import {computed} from 'vue';
-import type {AccountInfo, Material, MaterialData} from "#/views/marketing/creation/creation";
+import { Card, Divider, Button } from 'ant-design-vue';
+import { computed } from 'vue';
+import type { AccountInfo, Material, MaterialData } from '#/views/marketing/creation/creation';
 
-const emit = defineEmits(['update:clearCreativeMaterialsDrawerConfig','update:clearCreativeMaterialsGroupList'])
+const emit = defineEmits([
+  'update:clearCreativeMaterialsDrawerConfig',
+  'update:clearCreativeMaterialsGroupList',
+]);
 
-const { accountInfo, material} = defineProps({
+const { accountInfo, material } = defineProps({
   // 媒体账户
   accountInfo: {
     type: Array<AccountInfo>,
-    default: () => ([])
+    default: () => [],
   },
   // 创意组（视频和图片）
   material: {
     type: Object as () => MaterialData, // 使用定义的接口
     default: () => ({
       config: { method: 'all' },
-      data: new Map<string, Material[]>()
-    })
+      data: new Map<string, Material[]>(),
+    }),
   },
 });
 
 async function allClear() {
   const resetMaterial: MaterialData = {
     config: {
-      method: "all",
+      method: 'all',
     },
-    data: new Map<string, Material[]>
+    data: new Map<string, Material[]>(),
   };
   const resetPromotion = {
     groupId: '',
@@ -43,11 +46,11 @@ async function allClear() {
       materialNormId: 0,
       placeType: 0,
       strongReminder: 0,
-      virtualPositionId: ""
-    }
+      virtualPositionId: '',
+    },
   };
-  emit('update:clearCreativeMaterialsDrawerConfig',resetPromotion)
-  emit('update:clearCreativeMaterialsGroupList',resetMaterial)
+  emit('update:clearCreativeMaterialsDrawerConfig', resetPromotion);
+  emit('update:clearCreativeMaterialsGroupList', resetMaterial);
 }
 
 // 判断当前是否有创意组数据可以清空
@@ -55,19 +58,23 @@ const isClearDisabled = computed(() => {
   return material.data.size === 0;
 });
 
-function accountInfoName(id:string){
-  const advertiserName = accountInfo.find(item=>item.localAdvertiserId===id) || {localAdvertiserId:0,advertiserName:''}
-  return advertiserName.advertiserName
+function accountInfoName(id: string) {
+  const advertiserName = accountInfo.find((item) => item.localAdvertiserId === id) || {
+    localAdvertiserId: 0,
+    advertiserName: '',
+  };
+  return advertiserName.advertiserName;
 }
 </script>
 
 <template>
   <div class="projectCard">
     <div class="title">广告创意素材组</div>
-    <Divider type="horizontal"/>
+    <Divider type="horizontal" />
     <div class="infoTop">
-      <div class="title">分配方式：
-        <span style="color: #006be6;">
+      <div class="title">
+        分配方式：
+        <span style="color: #006be6">
           {{ material.config.method === 'all' ? '全部相同' : '按账户分配' }}
         </span>
       </div>
@@ -78,30 +85,31 @@ function accountInfoName(id:string){
         <div class="empty-text">暂无数据，请点击下方按钮添加</div>
       </div>
       <template v-if="material.config.method === 'all'">
-        <div v-for="(group,index) in material.data.get('0')" :key="index" class="display-group">
+        <div v-for="(group, index) in material.data.get('0')" :key="index" class="display-group">
           <div class="group-header">
             <span class="name">{{ `创意组 ${index + 1}` }}</span>
-            <span class="stats">已选：
+            <span class="stats"
+              >已选：
               <span class="text-blue">{{ group.video.length }}个视频</span>
               <span class="text-blue ml-2">{{ group.image.length }}个图片</span>
             </span>
           </div>
           <div class="asset-preview-grid">
             <div v-for="v in group.video" :key="v.localMaterialId" class="preview-item">
-              <img :src="v.url"/>
+              <img :src="v.url" />
               <div class="play-mask">▶</div>
             </div>
             <div v-for="img in group.image" :key="img.localMaterialId" class="preview-item">
-              <img :src="img.url"/>
+              <img :src="img.url" />
             </div>
           </div>
         </div>
       </template>
 
       <template v-else>
-        <div v-for="[acc,materialData] in material.data" :key="acc" class="account-block">
+        <div v-for="[acc, materialData] in material.data" :key="acc" class="account-block">
           <div class="account-title">{{ accountInfoName(acc) }}</div>
-          <div v-for="(group,index) in materialData" :key="index" class="display-group inner">
+          <div v-for="(group, index) in materialData" :key="index" class="display-group inner">
             <div class="group-header">
               <span class="name">{{ `创意组 ${index + 1}` }}</span>
               <span class="stats">
@@ -112,18 +120,18 @@ function accountInfoName(id:string){
             </div>
             <div class="asset-preview-grid">
               <div v-for="v in group.video" :key="v.localMaterialId" class="preview-item small">
-                <img :src="v.url"/>
+                <img :src="v.url" />
                 <div class="play-mask">▶</div>
               </div>
               <div v-for="img in group.image" :key="img.localMaterialId" class="preview-item small">
-                <img :src="img.url"/>
+                <img :src="img.url" />
               </div>
             </div>
           </div>
         </div>
       </template>
     </Card>
-    <Divider type="horizontal"/>
+    <Divider type="horizontal" />
   </div>
 </template>
 
@@ -163,7 +171,6 @@ function accountInfoName(id:string){
     margin-bottom: 20px;
     border: 1px solid #e4e4e4;
     border-radius: 4px;
-    // background: #f8f9fa;
 
     .group-header {
       display: flex;
@@ -173,7 +180,6 @@ function accountInfoName(id:string){
 
       .name {
         font-weight: bold;
-        // color: #666;
       }
 
       .text-blue {
@@ -185,7 +191,8 @@ function accountInfoName(id:string){
   .account-block {
     padding: 10px;
     margin-bottom: 10px;
-    background: #f8f9fa;
+    border: 1px solid #eee;
+    border-radius: 4px;
 
     .account-title {
       padding-bottom: 8px;

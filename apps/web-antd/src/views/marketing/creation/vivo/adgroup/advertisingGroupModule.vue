@@ -65,7 +65,7 @@ const adGroupData = ref<VivoAdgroupData>({
   rpkDeepLink: '',
   ruleAudience: '',
   scheduleTime: '',
-  secondCvType: 0,
+  secondCvType: null,
   secondOcpxPrice: 0,
   spentType: null,
   startDate: '',
@@ -178,14 +178,12 @@ const labelMap: Partial<Record<keyof VivoAdgroupData, string>> = {
   webSiteUrl: '推广链接',
   h5Code: '推广链接编码',
   h5Type: '推广链接类型',
-  // advertiseQualificationId: '广告投放资质ID',
   productUrlType: '商品URL类型',
   appletOriginId: '小程序id',
   appletPath: '小程序页面路径',
   chargeType: '计费类型',
-  price: '一阶段出价',
-  cvType: '二阶段目标',
-  ocpxPrice: '二阶段出价',
+  cvType: '转化目标',
+  ocpxPrice: '转化出价',
   secondCvType: '深度优化转化目标',
   secondOcpxPrice: '深度优化出价',
   industry1: '一级行业分类id',
@@ -212,7 +210,7 @@ const enumMap = computed<Partial<Record<keyof VivoAdgroupData, any[]>>>(() => ({
 const formatDisplayValue = (key: keyof VivoAdgroupData, value: any) => {
   if (value === null || value === undefined || value === '') return '-';
 
-  if (['price', 'ocpxPrice', 'dailyBudget', 'secondOcpxPrice'].includes(key)) {
+  if (['ocpxPrice', 'dailyBudget', 'secondOcpxPrice'].includes(key)) {
     return `${value} 元`;
   }
 
