@@ -199,3 +199,9 @@ export interface RePushRetryBehaviorCallbackType {
   behaviorPlatformId: string;
   requestId: string[];
 }
+export interface OcpxExportEventClickRequest {
+  taskId: string;
+  startDate: string;
+  endDate: string;
+  reportName: string;
+}

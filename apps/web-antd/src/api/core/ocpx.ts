@@ -5,7 +5,9 @@ import type {
   ClickMonitorResponse,
   CreateBehavioraPlatformRequest,
   CreateOcpxTaskRequest,
-  CreatePlatformCallbackRequest, OcpxBehavioracallbackRecordPageRequest,
+  CreatePlatformCallbackRequest, 
+  OcpxBehavioracallbackRecordPageRequest,
+  OcpxExportEventClickRequest,
   OcpxTaskItem,
   OpcxTaskPageRequest, PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
@@ -130,6 +132,10 @@ class OcpxTaskApi extends BaseApi {
         id: id
       }
     })
+  }
+
+  fetchOpcxExportEventClick(params: OcpxExportEventClickRequest) {
+    return requestClient.get(this.getServiceUrl("export_event_click"),{ params })
   }
 }
 

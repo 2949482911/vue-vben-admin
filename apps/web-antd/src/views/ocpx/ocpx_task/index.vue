@@ -22,6 +22,7 @@ import Behavioracallbackrecordlist from './behavioracallbackrecordlist.vue';
 import BehaviorRecordList from './behaviorrecordlist.vue';
 import ClickMonitor from './clickmonitor.vue';
 import CreateObjectRequestComp from './create.vue';
+import DataExportModal from './dataExport.vue'
 import { trimObject } from '#/utils/trim';
 
 const [ClickMonitorModal, clickMonitorApi] = useVbenModal({
@@ -87,6 +88,24 @@ function openCreateModal(row?: OcpxTaskItem) {
   createObjectApi.open();
 }
 
+const [ExportModal, exportModalApi] = useVbenModal({
+  centered: true,
+  fullscreenButton: false,
+  closeOnPressEscape: false,
+  contentClass:'modalStyle',
+  modal: true,
+  connectedComponent: DataExportModal
+});
+
+function openExportModal(row?:OcpxTaskItem) {
+  
+  if(row?.id) {
+    exportModalApi.setData(row)
+  } else {
+    exportModalApi.setData({})
+  }
+  exportModalApi.open()
+}
 async function handlerState(row: OcpxTaskItem) {
   await (row.status === 1
     ? ocpxTaskApi.fetchBatchOptions({
@@ -279,6 +298,9 @@ function pageReload() {
                 <MenuItem @click="openBehaviorRecord(row)">
                   {{ $t('core.behaviorRecord') }}
                 </MenuItem>
+                <MenuItem @click="openExportModal(row)">
+                  {{ $t('core.data_export') }}
+                </MenuItem>
               </Menu>
             </template>
           </Dropdown>
@@ -295,5 +317,6 @@ function pageReload() {
     <ClickMonitorModal/>
     <BehavioracallbackrecordModel/>
     <BehaviorRecordModel/>
+    <ExportModal/>
   </div>
 </template>
