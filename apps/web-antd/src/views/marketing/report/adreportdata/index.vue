@@ -423,12 +423,10 @@ const isShowActions = ref(true)
       </div>
 
       <Grid>
-        <template #reset-before>
-          <Button type="primary" @click="openSaveTemplateModalModal">
+        <template #toolbar-tools>
+          <Button  class="mr-2" type="primary" @click="openSaveTemplateModalModal">
             保存模板
           </Button>
-        </template>
-        <template #toolbar-tools>
           <Button class="mr-2" type="primary" @click="openTemplateListModalModal">
             报表模板
           </Button>

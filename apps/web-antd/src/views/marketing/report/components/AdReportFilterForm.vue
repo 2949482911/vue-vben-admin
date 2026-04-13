@@ -163,6 +163,7 @@ const formOptions: VbenFormProps = {
       component: 'HybridSearchSelect',
       componentProps: {
         mode: 'multiple',
+        maxTagCount: 1,
         placeholder: `${$t('common.select')}`,
         allowClear: true,
         initialApi: async () => {
@@ -249,6 +250,7 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         showSearch: true,
         mode: 'multiple',
+        maxTagCount: 1,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
@@ -267,6 +269,7 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         showSearch: true,
         mode: 'multiple',
+        maxTagCount: 1,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
@@ -285,6 +288,7 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         showSearch: true,
         mode: 'multiple',
+        maxTagCount: 1,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
@@ -303,6 +307,7 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         showSearch: true,
         mode: 'multiple',
+        maxTagCount: 1,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
