@@ -475,33 +475,15 @@ platformConfigForm.set(Platform.TENCENT, [
     fieldName: 'mobile_app_id',
     label: 'mobile_app_id',
   },
-  // {
-  //   component: 'Select',
-  //   componentProps: {
-  //     allowClear: true,
-  //     options: userActionSetIds,
-  //     placeholder: `${$t('common.choice')}`,
-  //   },
-  //   dependencies: {
-  //     show: true,
-  //     triggerFields: ['type'],
-  //     if: (value, formApi) => {
-  //       if (value.type) {
-  //         if(value.type === 'ANDROID') {
-  //           userActionSetIds.value = ANDROID_USER_ACTION_SET_ID
-  //         }
-  //         else {
-  //           userActionSetIds.value = IOS_USER_ACTION_SET_ID
-  //         }
-  //       } else {
-  //         userActionSetIds.value = [];
-  //       }
-  //       return true;
-  //     },
-  //   },
-  //   fieldName: 'user_action_set_id',
-  //   label: 'user_action_set_id',
-  // },
+  {
+    component: 'Input',
+    componentProps: {
+      allowClear: true,
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'user_action_set_id',
+    label: 'user_action_set_id',
+  },
 ])
 // oppo push
 platformConfigForm.set(Platform.OPPO_PUSH, [
