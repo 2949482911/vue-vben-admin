@@ -405,6 +405,10 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: '快赚客',
     value: 'kuaizuanke'
+  },
+  {
+    label: '咸鱼大航海',
+    value: 'xianyu_dhh'
   }
 
 ];
