@@ -205,3 +205,16 @@ export interface OcpxExportEventClickRequest {
   endDate: string;
   reportName: string;
 }
+export interface OcpxDataStatisticsRequest {
+  timeList: string[];
+  taskId: string;
+  behaviorPlatformId: string;
+  platformCallbackId: string;
+  dims: string[];
+}
+export interface dayDataItem {
+  callback_count: string;
+  click_count: string;
+  conversion_rate:number;
+  day:string;
+}

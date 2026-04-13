@@ -8,6 +8,7 @@ import type {
   CreatePlatformCallbackRequest, 
   OcpxBehavioracallbackRecordPageRequest,
   OcpxExportEventClickRequest,
+  OcpxDataStatisticsRequest,
   OcpxTaskItem,
   OpcxTaskPageRequest, PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
@@ -136,6 +137,10 @@ class OcpxTaskApi extends BaseApi {
 
   fetchOpcxExportEventClick(params: OcpxExportEventClickRequest) {
     return requestClient.get(this.getServiceUrl("export_event_click"),{ params })
+  }
+  // 获取统计数据
+  fetchOcpxDataStatistics(params: OcpxDataStatisticsRequest) {
+    return requestClient.post(this.getServiceUrl("report_ocpx_task"), params)
   }
 }
 
