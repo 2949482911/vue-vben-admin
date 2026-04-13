@@ -19,7 +19,8 @@
       "projectId": "项目",
       "tagName": "标签",
       "orgName": "部门",
-      "hourlyState": "分时状态"
+      "hourlyState": "分时状态",
+      "accessToken": "账户TOKEN"
     },
     "advertiserRole": {
       "proxy": "代理",

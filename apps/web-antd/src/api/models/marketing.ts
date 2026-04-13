@@ -37,6 +37,7 @@ export interface AdvertiserItem extends BaseItem {
   customer?: "",
   saleId?: "",
   tagId: string;
+  accessToken: string;
   hourlyState: number;
 }
 // 拉取历史列表

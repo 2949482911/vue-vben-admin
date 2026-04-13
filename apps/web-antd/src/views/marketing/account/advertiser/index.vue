@@ -7,7 +7,7 @@ import type {AdvertiserItem, DeveloperItem} from '#/api/models';
 import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
-import {Button, Switch, Tag, Dropdown, Menu, MenuItem} from 'ant-design-vue';
+import {Button, Switch, Tag, Dropdown, Menu, MenuItem, message} from 'ant-design-vue';
 import { UploadOutlined } from '@ant-design/icons-vue';
 
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
@@ -114,6 +114,13 @@ const [HistoryModal, historyModalApi] = useVbenModal({
 
 function openImportModal() {
   importModalApi.open();
+}
+// 复制token
+async function copyToken(text: string) {
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    message.success('已复制');
+  });
 }
 async function handlerState(row: AdvertiserItem) {
   await (row.status === 1
@@ -380,6 +387,12 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       title: `${$t('marketing.advertiser.columns.advertiserName')}`,
       width: 'auto',
     },
+    {
+      field: 'accessToken',
+      title: `${$t('marketing.advertiser.columns.accessToken')}`,
+      width: 'auto',
+      slots: {default:'accessToken'}
+    },
 
     {
       field: 'projectName',
@@ -552,6 +565,16 @@ async function loadAgentData(platform: string) {
         </template>
         <template #advertiserRole="{ row }">
           <Tag color="red">{{ row.advertiserRoleName }}</Tag>
+        </template>
+        <template #accessToken="{ row }">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <Button
+          type="link"
+          @click="copyToken(row.accessToken)"
+          >
+            一键复制
+          </Button>
+        </div>
         </template>
 
         <template #platformStatus="{row}">
