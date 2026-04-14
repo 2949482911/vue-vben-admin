@@ -69,6 +69,7 @@ async function handleTemplateSaved() {
 
 /* 优化1：使用浅响应式数据，减少深度监听 */
 const allData = ref([]); // 全部数据
+const allDataOrigin = ref([]); // 原始数据备份（用于取消排序时恢复）
 const currentPageData = ref([]); // 当前页数据，独立存储避免全量更新
 const tableColumns = ref([]); // 表头单独存储
 const tableFooter = ref({}); // 表尾单独存储
@@ -109,14 +110,18 @@ async function init(args?: any) {
     await new Promise((resolve) => {
       if ('requestIdleCallback' in window) {
         requestIdleCallback(() => {
-          allData.value = res.items.map((item: any, index: number) => ({ ...item, seq: index + 1 }));
-          pager.total = res.items.length;
+          const items = res.items.map((item: any, index: number) => ({ ...item, seq: index + 1 }));
+          allData.value = items;
+          allDataOrigin.value = [...items]; // 备份原始数据
+          pager.total = items.length;
           resolve(true);
         }, { timeout: 100 });
       } else {
         setTimeout(() => {
-          allData.value = res.items.map((item: any, index: number) => ({ ...item, seq: index + 1 }));
-          pager.total = res.items.length;
+          const items = res.items.map((item: any, index: number) => ({ ...item, seq: index + 1 }));
+          allData.value = items;
+          allDataOrigin.value = [...items];
+          pager.total = items.length;
           resolve(true);
         }, 0);
       }
@@ -125,6 +130,10 @@ async function init(args?: any) {
     // 更新表头和当前页数据
     updateTableStructure(res.columns, res.summary[0]);
     updateCurrentPageData();
+    // 更新导出数据源
+    updateExportData();
+    // 重置排序状态
+    await resetSortState();
     
   } catch (error) {
     if (error.name !== 'AbortError') {
@@ -134,6 +143,17 @@ async function init(args?: any) {
     gridApi.setLoading(false);
     abortController = null;
   }
+}
+
+// 重置排序状态
+async function resetSortState() {
+  // 仅通过 setGridOptions 清除 sortConfig 状态
+  await gridApi.setGridOptions({
+    sortConfig: {
+      remote: true,
+      sortState: []
+    }
+  });
 }
 
 /*  优化4：分离表头更新和数据更新  */
@@ -168,10 +188,10 @@ function updateTableStructure(columns: string[], footData: any) {
   gridApi.setGridOptions({
     columns: tableColumns.value,
     footerData: [tableFooter.value],
-    exportConfig: {
-      ...gridOptions.exportConfig,
-      data: allData.value,
-    },
+    // exportConfig: {
+    //   ...gridOptions.exportConfig,
+    //   data: allData.value,
+    // },
   });
 }
 
@@ -208,15 +228,87 @@ function updateCurrentPageData() {
 
 /* 优化6：分页事件 - 移除sleep延迟  */
 const gridEvents = {
-  pageChange({ currentPage, pageSize }: { currentPage: number, pageSize: number }) {
-    // 只有真正变化时才更新
+  pageChange({ currentPage, pageSize }) {
     if (pager.currentPage === currentPage && pager.pageSize === pageSize) return;
-    
     pager.currentPage = currentPage;
     pager.pageSize = pageSize;
     updateCurrentPageData();
   },
+  
+async sortChange({ column, property, order }) {
+  if (!property) return;
+  
+  gridApi.setLoading(true);
+  
+  try {
+    if (!order) {
+      allData.value = [...allDataOrigin.value];
+    } else {
+      const dataToSort = [...allDataOrigin.value];
+      const sortedData = sortDataByField(dataToSort, property, order);
+      allData.value = sortedData;
+    }
+    
+    allData.value.forEach((item, idx) => {
+      item.seq = idx + 1;
+    });
+    
+    pager.currentPage = 1;
+    updateCurrentPageData();
+    
+    await gridApi.setGridOptions({
+      sortConfig: {
+        remote: true,
+        sortState: order ? [{ field: property, order }] : []
+      }
+    });
+    // 更新导出数据
+    updateExportData();
+  } catch (error) {
+    console.error('排序失败:', error);
+  } finally {
+    gridApi.setLoading(false);
+  }
+}
 };
+// 更新导出配置的数据源为当前全量数据（已排序）
+function updateExportData() {
+  gridApi.setGridOptions({
+    exportConfig: {
+      ...gridOptions.exportConfig,
+      data: allData.value,
+    }
+  });
+}
+// 通用排序函数
+function sortDataByField(data: any[], field: string, order: 'asc' | 'desc'): any[] {
+  return [...data].sort((a, b) => {
+    let aVal = a[field];
+    let bVal = b[field];
+    
+    // 处理 null/undefined 值
+    if (aVal == null) aVal = '';
+    if (bVal == null) bVal = '';
+    
+    // 判断是否为数字（包括字符串形式的数字）
+    const isNumber = !isNaN(Number(aVal)) && !isNaN(Number(bVal));
+    
+    let result = 0;
+    if (isNumber) {
+      // 数字比较
+      const aNum = Number(aVal);
+      const bNum = Number(bVal);
+      result = aNum - bNum;
+    } else {
+      // 字符串比较
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      result = aStr.localeCompare(bStr, 'zh-CN');
+    }
+    
+    return order === 'asc' ? result : -result;
+  });
+}
 
 // 项目选项
 const projectOptions = ref<ProjectItem[]>([]);
@@ -297,6 +389,7 @@ async function handleFormReset() {
   
   currentQueryMetric.value = [];
   allData.value = [];
+  allDataOrigin.value = [];
   currentPageData.value = [];
   pager.currentPage = 1;
   pager.total = 0;
@@ -312,6 +405,7 @@ async function handleFormReset() {
       pageSizes: [500, 800, 1000],
     },
   });
+  updateExportData()
 }
 
 async function handleUseTemplate(template: searchDataFilter) {
@@ -338,11 +432,12 @@ async function openSaveTemplateModalModal() {
   searchData.value = await filterFormRef.value?.getValues();
   sveTemplateModalApi.open();
 }
-/* Grid 配置 - 添加虚拟滚动优化 */
+
+/* Grid 配置 - 添加远程排序支持 */
 const gridOptions: VxeGridProps = {
   showFooter: true,
   border: true,
-  height: "auto",
+  height: "100%",
   keepSource: true,
   columns: [],
   data: [],
@@ -374,21 +469,27 @@ const gridOptions: VxeGridProps = {
     enabled: false, // 确保关闭代理配置，使用手动控制
   },
   footerData: [],
-  // 优化8：开启虚拟滚动，提升大数据渲染性能
-  scrollX: { enabled: true, gt: 0 },
-  scrollY: { enabled: true, gt: 0 },
+  // 开启虚拟滚动，提升大数据渲染性能
+  scrollX: { enabled: true, gt: 10 },
+  scrollY: { enabled: true, gt: 10 },
   // 优化渲染性能
   rowConfig: {
     isHover: false,
     useKey: true,
     keyField: 'seq',
   },
+  // 启用远程排序模式（手动控制排序）
+  sortConfig: {
+    remote: true,
+    multiple: false, // 单列排序
+  }
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,
   gridEvents,
 });
+
 // 在 onMounted 中初始化数据
 onMounted(async () => {
   const res = await projectApi.fetchProjectList({
@@ -397,12 +498,9 @@ onMounted(async () => {
   });
   projectOptions.value = res.items;
   
-  // 初始化时自动提交一次表单
-  // setTimeout(() => {
-  //   filterFormRef.value?.submitForm();
-  // }, 100);
   handleFormReset()
 });
+
 const wrapperClass = ref('grid-cols-1 md:grid-cols-2 lg:grid-cols-3')
 const content = ref('搜索')
 const isShowActions = ref(true)
@@ -421,20 +519,21 @@ const isShowActions = ref(true)
           @reset="handleFormReset"
         />
       </div>
-
-      <Grid>
-        <template #toolbar-tools>
-          <Button  class="mr-2" type="primary" @click="openSaveTemplateModalModal">
-            保存模板
-          </Button>
-          <Button class="mr-2" type="primary" @click="openTemplateListModalModal">
-            报表模板
-          </Button>
-          <Button type="primary" @click="openPlatformMetricMapDetailModal" danger>
-            {{ $t('core.metric') }}
-          </Button>
-        </template>
-      </Grid>
+      <div style="height: calc(100% - 202px);">
+        <Grid>
+          <template #toolbar-tools>
+            <Button  class="mr-2" type="primary" @click="openSaveTemplateModalModal">
+              保存模板
+            </Button>
+            <Button class="mr-2" type="primary" @click="openTemplateListModalModal">
+              报表模板
+            </Button>
+            <Button type="primary" @click="openPlatformMetricMapDetailModal" danger>
+              {{ $t('core.metric') }}
+            </Button>
+          </template>
+        </Grid>
+      </div>
     </Page>
     <SelectMetricModalModal @confirmMetric="reloadFromStart" :selectedMetrics="currentQueryMetric"/>
     <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData"/>
@@ -449,5 +548,4 @@ const isShowActions = ref(true)
   margin-bottom: 10px;
   padding: 20px 10px 0 0;
 }
-
 </style>

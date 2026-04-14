@@ -502,6 +502,21 @@ platformConfigForm.set(Platform.OPPO_PUSH, [
     rules: 'required',
   },
 ]);
+// 汇川
+platformConfigForm.set(Platform.HUICHUAN, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'source',
+    // 界面显示的label
+    label: 'source',
+    rules: 'required',
+  },
+]);
 /**
  *
  * @param platform 平台

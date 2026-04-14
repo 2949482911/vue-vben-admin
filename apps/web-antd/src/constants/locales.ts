@@ -270,6 +270,10 @@ export const BACKHAUL = [
   {
     label: 'oppo push',
     value: 'oppo_push',
+  },
+  {
+    label: '超级汇川',
+    value: 'huichuan',
   }
 ];
 
