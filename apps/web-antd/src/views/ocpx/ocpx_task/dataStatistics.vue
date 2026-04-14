@@ -78,6 +78,10 @@ const dayOptions = ref<EChartsOption>(
 )
 const [Drawer, drawerApi] = useVbenDrawer({
  async onOpenChange(isOpen: Boolean) {
+    if(timeList.value) {
+      timeList.value = null
+      renderEchartsDay({},true)
+    }
     if(isOpen) {
       const data = await drawerApi.getData<OcpxTaskItem>()
       requestParams.value = {
@@ -86,11 +90,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
         platformCallbackId: data.platformCallbackIds.join(','),
         dims:[activeKey.value],
         timeList: []
-      }
-    } else {
-      if(timeList.value) {
-        timeList.value = null
-        renderEchartsDay({},true)
       }
     }
   }
@@ -144,9 +143,9 @@ async function handleDayChange(day:RangeValue) {
 </script>
 <template>
   <Drawer class="w-[40%]" title="数据统计">
-    <Tabs v-model="activeKey" @change="handleChange">
+    <Tabs v-model:value="activeKey" @change="handleChange">
       <TabPane key="day" tab="按日统计">
-        <RangePicker v-model="timeList" @change="handleDayChange" :format="dateFormat"></RangePicker>
+        <RangePicker v-model:value="timeList" @change="handleDayChange" :format="dateFormat"></RangePicker>
         <EchartsUI ref="chartRefDay" />
       </TabPane>
       <!-- <TabPane key="week" tab="按周统计">
