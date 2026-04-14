@@ -38,7 +38,12 @@ const [ViewDetailsModel, drawerApi] = useVbenDrawer({
   },
 });
 
-function viewDetailsOpen() {
+function viewDetailsOpen(row: OcpxBehavioracallbackRecordItem) {
+    if(row) {
+    drawerApi.setData(row)
+  } else {
+    drawerApi.setData({})
+  }
   drawerApi.open();
 }
 
@@ -72,7 +77,13 @@ const [Modal, modalApi] = useVbenModal({
  * @param row
  */
 async function rePushBehaviorCallback(row: OcpxBehavioracallbackRecordItem) {
-  await clickMonitorApi.fetchRePushBehaviorCallback(row.id)
+  const { taskId, platformCallbackId, behaviorPlatformId, requestId} = row
+  await clickMonitorApi.fetchRePushBehaviorCallback({
+    taskId,
+    platformCallbackId,
+    behaviorPlatformId,
+    requestId
+  })
   await gridApi.reload();
 }
 
@@ -147,7 +158,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     { type: 'checkbox', width: 50 },
     {title: '序号', type: 'seq', width: 50},
     {
-      field: 'behavioraPlatformName',
+      field: 'behaviorPlatformName',
       title: `${$t('ocpx.ocpx_task.callback_record_columns.behaviorPlatformName')}`,
     },
     {
@@ -203,7 +214,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
 const detailsId = ref<string>('')
 async function viewDetails(row:OcpxBehavioracallbackRecordItem){
   detailsId.value = row.id
-  viewDetailsOpen()
+  viewDetailsOpen(row)
 }
 
 const selectedRows = ref<OcpxBehavioracallbackRecordItem[]>([])

@@ -16,7 +16,8 @@ import type {
   UpdateBehavioraPlatformRequest,
   UpdateOcpxTaskRequest,
   UpdatePlatformCallbackRequest,
-  RePushRetryBehaviorCallbackType
+  RePushRetryBehaviorCallbackType,
+  SingleRePushRetryBehaviorCallbackType
 } from "#/api/models";
 import type {BehavioraPlatformItem} from "#/api/models/ocpx";
 import type {BatchOptions} from "#/api/models/core";
@@ -127,12 +128,8 @@ class OcpxTaskApi extends BaseApi {
   }
 
   /**回传记录详细信息*/
-  fetchOxpcTransmissionRecord(id: string) {
-    return requestClient.get(this.getServiceUrl("callback_record_detail"), {
-      params: {
-        id: id
-      }
-    })
+  fetchOxpcTransmissionRecord(params: SingleRePushRetryBehaviorCallbackType) {
+    return requestClient.get(this.getServiceUrl("callback_record_detail"), {params})
   }
 
   fetchOpcxExportEventClick(params: OcpxExportEventClickRequest) {
@@ -168,12 +165,8 @@ class ClickMonitorApi extends BaseApi {
    * 重推转化回传
    * @param id
    */
-  fetchRePushBehaviorCallback(id: string) {
-    return requestClient.get(this.getServiceUrl("repush_behavior_callback"), {
-      params: {
-        id: id
-      }
-    })
+  fetchRePushBehaviorCallback(params: SingleRePushRetryBehaviorCallbackType) {
+    return requestClient.get(this.getServiceUrl("repush_behavior_callback"), {params})
   }
 
   /**回传媒体批量重试*/
