@@ -1,18 +1,15 @@
 <script setup lang="ts" name="AdReportDataManager">
-import { ref, reactive, computed, onMounted, nextTick } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { Page, useVbenDrawer, useVbenModal, type VbenFormProps } from "@vben/common-ui";
-import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
+import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 import { Button } from "ant-design-vue";
 import SelectMetricModal from "./selectmetric.vue";
-import type { AdReportRequest, AdvertiserPageRequest, ReportFilter, searchDataFilter } from "#/api/models";
-import {advertiserApi, reportApi,projectApi} from "#/api";
+import type { AdReportRequest, ReportFilter, searchDataFilter } from "#/api/models";
+import { reportApi, projectApi } from "#/api";
 import type { ProjectItem } from "../../account/advertiser/advertiser";
 import SaveTemplateModal from "./saveTemplate.vue";
 import TemplateListDrawer from './templateList.vue';
-import dayjs from 'dayjs';
-import { useAdLinkage } from './adDropdown'
 import AdReportFilterForm from '../components/AdReportFilterForm.vue';
 
 // 表单 ref

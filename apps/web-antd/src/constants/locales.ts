@@ -472,6 +472,10 @@ export const ACTIVE_PLATFORM = [
   {
     label: `${$t('ocpx.platform.vivo')}`,
     value: 'vivo',
+  },
+  {
+    label: `${$t('ocpx.platform.oppo')}`,
+    value: 'oppo',
   }
 ];
 
@@ -523,6 +527,18 @@ export const DIMS = [
   {
     label: '广告维度',
     value: 'promotion_id',
+  },
+  {
+    label: '优化师维度',
+    value: 'createdBy',
+  },
+  {
+    label: '平台维度',
+    value: 'platform',
+  },
+  {
+    label: '标签维度',
+    value: 'tagId',
   }
 ]
 

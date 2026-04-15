@@ -23,11 +23,12 @@ const metricList = ref<MetricItem[]>([]);
 // 媒体字段映射
 const platformMetricMap = ref<PlatformMetricMap[]>([
   { platform: 'vivo', metricName: '' },
+  { platform: 'oppo', metricName: '' },
 ]);
 const showPlatformMetricMap = ref<Boolean>(true);
 
 function defaultPlatformMetricMap() {
-  platformMetricMap.value = [{ platform: 'vivo', metricName: '' }];
+  platformMetricMap.value = [{ platform: 'vivo', metricName: '' },{ platform: 'oppo', metricName: '' }];
   gridApi.setGridOptions({ data: platformMetricMap.value });
   gridApi.reload();
 }
@@ -76,6 +77,7 @@ const [Form, formApi] = useVbenForm({
       formValues.formula = finalFormula;
     }
     const params = trimObject(formValues);
+    params.platformMetricMap = platformMetricMap.value;
     await (isUpdate.value
       ? metricApi.fetchUpdateMetric(params as UpdateMetric)
       : metricApi.fetchCreateSystemMetric(params as CreateSystemMetric));
@@ -352,19 +354,19 @@ const title:string = isUpdate.value ? $t('common.edit') : $t('common.create');
           <Select
             :options="ACTIVE_PLATFORM"
             v-model:value="platformMetricMap[seq - 1].platform"
-            width="100%"
+            style="width:100%"
           />
         </template>
         <template #metricName="{ seq }">
           <Input v-model:value="platformMetricMap[seq - 1].metricName" />
         </template>
         <template #action="{ seq }">
-          <Button type="link" @click="deletePlatformMetricMap(seq as number)">
+          <Button type="link" @click="deletePlatformMetricMap(seq - 1)">
             {{ $t('common.delete') }}
           </Button>
         </template>
         <template #toolbar-tools>
-          <Button block class="mt-5" type="dashed" @click="addPlatformMetric">
+          <Button block class="mt-5" type="primary" @click="addPlatformMetric">
             {{ $t('common.create') }}
           </Button>
         </template>

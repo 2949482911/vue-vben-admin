@@ -95,7 +95,7 @@ async function resetFormToDefault() {
   
   // 2. 显式清空所有自定义字段（防止组件内部状态残留）
   await formApi.setFieldValue('advertiserId', []);   // HybridSearchSelect 清空
-  await formApi.setFieldValue('projectId', null);   // HybridSearchSelect 清空
+  await formApi.setFieldValue('projectId', []);   // HybridSearchSelect 清空
   await formApi.setFieldValue('campaign_id', []);      // 计划
   await formApi.setFieldValue('promotion_id', []);     // 广告
   await formApi.setFieldValue('adgroup_id', []);       // 广告组
@@ -112,9 +112,6 @@ async function resetFormToDefault() {
     dayjs().format('YYYY-MM-DD'),
   ]);
   await formApi.setFieldValue('dims', ['day']);
-  
-  // 5. 可选：强制刷新 platform 字段（如果需要恢复默认平台）
-  // await formApi.setFieldValue('platform', ['vivo']);
 }
 
 // 表单配置
@@ -140,17 +137,20 @@ const formOptions: VbenFormProps = {
     },
     {
       component: 'Select',
-      defaultValue:['vivo'],
       componentProps: {
         allowClear: true,
         options: ACTIVE_PLATFORM,
         mode: 'multiple',
         maxTagCount: 1,
         placeholder: `${$t('common.choice')}`,
-        onChange: () => resetLoadedMap(),
-        onSelect: async () => {
+        onChange: async () => {
+          resetLoadedMap();
           const values = await formApi.getValues();
           selectPlatform.value = values.platform?.join(',');
+        },
+        onSelect: async () => {
+          // const values = await formApi.getValues();
+          // selectPlatform.value = values.platform?.join(',');
         },
         onFocus: () => {
           isEdit.value = true
@@ -185,6 +185,7 @@ const formOptions: VbenFormProps = {
         initialApi: async () => {
           const formData = await formApi.getValues();
           selectPlatform.value = formData.platform?.join(',');
+          console.log('initialApi', selectPlatform.value);
           const res = await advertiserApi.fetchAdvertiserList({
             page: 1,
             pageSize: 1000,
@@ -222,6 +223,7 @@ const formOptions: VbenFormProps = {
         searchDebounce: 300,
         remoteSearchMinLength: 1,
         clearSearchOnSelect: true,
+        selectPlatform:selectPlatform,
         onChange: () => {
           resetLoadedMap();
         },
@@ -254,6 +256,8 @@ const formOptions: VbenFormProps = {
       componentProps: {
         allowClear: true,
         showSearch: true,
+        mode: 'multiple',
+        maxTagCount: 1,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
