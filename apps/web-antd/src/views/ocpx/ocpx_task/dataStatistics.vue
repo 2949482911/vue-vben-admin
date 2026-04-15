@@ -20,7 +20,7 @@ const chartRefDay = ref<EchartsUIType>();
 // const chartRefWeek = ref<EchartsUIType>();
 // const chartRefMonth = ref<EchartsUIType>(); 
 // const chartRefYear = ref<EchartsUIType>();
-  const { renderEcharts: renderEchartsDay } = useEcharts(chartRefDay);
+  const { renderEcharts: renderEchartsDay, updateData: updateDataDay} = useEcharts(chartRefDay);
 // const { renderEcharts: renderEchartsWeek } = useEcharts(chartRefWeek);
 // const { renderEcharts: renderEchartsMonth } = useEcharts(chartRefMonth);
 // const { renderEcharts: renderEchartsYear } = useEcharts(chartRefYear);
@@ -78,18 +78,28 @@ const dayOptions = ref<EChartsOption>(
 )
 const [Drawer, drawerApi] = useVbenDrawer({
  async onOpenChange(isOpen: Boolean) {
-    if(timeList.value) {
-      timeList.value = null
-      renderEchartsDay({},true)
-    }
     if(isOpen) {
+      timeList.value = [
+        dayjs().subtract(6, 'day'),
+        dayjs()
+      ];
+      const timeVal = [
+        dayjs(timeList.value[0]).format(dateFormat),
+        dayjs(timeList.value[1]).format(dateFormat)
+      ];
       const data = await drawerApi.getData<OcpxTaskItem>()
       requestParams.value = {
         taskId: data.id,
         behaviorPlatformId: data.behavioraPlatformIds.join(','),
         platformCallbackId: data.platformCallbackIds.join(','),
         dims:[activeKey.value],
-        timeList: []
+        timeList: timeVal
+      }
+      const res =  await ocpxTaskApi.fetchOcpxDataStatistics(requestParams.value as OcpxDataStatisticsRequest);
+      if(res.items && res.items.length > 0) {
+        renderCharts('init',res.items)
+      } else {
+        renderEchartsDay({},true)
       }
     }
   }
@@ -109,7 +119,14 @@ async function handleDayChange(day:RangeValue) {
     timeList: timeVal
   }
   const res =  await ocpxTaskApi.fetchOcpxDataStatistics(params as OcpxDataStatisticsRequest);
-  const dataList = res.items;
+  if(res.items && res.items.length > 0) {
+    renderCharts('change', res.items)
+  } else {
+    renderEchartsDay({},true)
+  }
+}
+function renderCharts(type: string, items:dayDataItem[]) {
+  const dataList = items;
   const xData = dataList.map((item: dayDataItem) => item.day);
   const clickData = dataList.map((item: dayDataItem) => Number(item.click_count));
   const callbackData = dataList.map((item: dayDataItem) => Number(item.callback_count));
@@ -138,7 +155,11 @@ async function handleDayChange(day:RangeValue) {
     }
   );
   dayOptions.value.xAxis.data = xData;
-  renderEchartsDay(dayOptions.value)
+  if(type === 'init') {
+    renderEchartsDay(dayOptions.value)
+  } else if(type === 'change') {
+    updateDataDay(dayOptions.value)
+  }
 }
 </script>
 <template>
