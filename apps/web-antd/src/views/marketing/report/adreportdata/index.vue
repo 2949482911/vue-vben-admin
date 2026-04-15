@@ -350,7 +350,8 @@ function buildReportParams(values: any): AdReportRequest {
     campaign_id,
     adgroup_id,
     promotion_id,
-    creative_id
+    creative_id,
+    advertiserTagId
   } = values;
 
   const normalizeArray = (val?: string | string[]) =>
@@ -364,6 +365,7 @@ function buildReportParams(values: any): AdReportRequest {
     ...(makeFilter('adgroup_id', normalizeArray(adgroup_id)) ?? []),
     ...(makeFilter('promotion_id', normalizeArray(promotion_id)) ?? []),
     ...(makeFilter('creative_id', normalizeArray(creative_id)) ?? []),
+    ...(makeFilter('advertiserTagId', normalizeArray(advertiserTagId)) ?? []),
   ];
 
   return {

@@ -14,7 +14,6 @@ import dayjs from 'dayjs';
 import { message } from 'ant-design-vue';
 const emit = defineEmits(['pageReload']);
 const drawerKey = ref(0);
-const isClickConfirm = ref<Boolean>(false)
 const objectRequest = ref<ReportSubscriptionItem>({});
 const isUpdate = ref<Boolean>(false);
 const metricList = ref<string[]>([]);
@@ -178,7 +177,6 @@ function handleMetricConfirm(val: string[]) {
 function handleConfirm(val: searchDataFilter) {
   filterCriteria.value = val;
   formApi.setFieldValue('config', filterCriteria.value);
-  isClickConfirm.value = true;
 }
 
 function handleCancel() {}
@@ -249,22 +247,16 @@ const [Drawer, drawerApi] = useVbenDrawer({
     await formApi.setFieldValue('queryMetric', null);
     await formApi.resetForm();
     isUpdate.value = false;
-    isClickConfirm.value = false;
     metricList.value = [];
     await drawerApi.close();
   },
   async onConfirm() {
     const result = await formApi.validate();
-    if(!isClickConfirm.value) {
-      message.warn('筛选条件选择完毕请点击确认按钮！')
-      return
-    }
     if (!result.valid) {
       return;
     }
     await formApi.submitForm();
     isUpdate.value = false;
-    isClickConfirm.value = false;
     emit('pageReload');
     await drawerApi.close();
   },

@@ -4,11 +4,11 @@ import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { useVbenForm, type VbenFormProps } from "@vben/common-ui";
 import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
 import { $t } from "@vben/locales";
-import { advertiserApi, projectApi } from "#/api";
+import { advertiserApi, projectApi, accountLabelApi } from "#/api";
 import type { ProjectItem } from "../../account/advertiser/advertiser";
 import dayjs from 'dayjs';
 import { useAdLinkage } from '../adreportdata/adDropdown';
-
+const isEdit = ref<Boolean>(false)
 // Props 定义
 interface Props {
   initialValues?: Record<string, any>;
@@ -19,7 +19,7 @@ interface Props {
   content?: string;
   onConfirm?: (values: any) => void;
   onCancel?: () => void;
-  resetKey?: number; // ✅ 新增
+  resetKey?: number; // 
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -37,6 +37,15 @@ watch(
   async (newKey, oldKey) => {
     if (newKey !== oldKey && newKey !== undefined) {
       await resetFormToDefault();
+    }
+  },
+  {immediate: true,deep: true}
+);
+watch(
+  () => props.content,
+  async (newKey) => {
+    if (newKey === '确认') {
+      isEdit.value = true
     }
   },
   {immediate: true,deep: true}
@@ -92,6 +101,7 @@ async function resetFormToDefault() {
   await formApi.setFieldValue('adgroup_id', []);       // 广告组
   await formApi.setFieldValue('creative_id', []);      // 创意
   await formApi.setFieldValue('queryMetric', []);
+  await formApi.setFieldValue('advertiserTagId', []);
   
   // 3. 重置联动选项的加载状态（清空已缓存的选项列表）
   await resetLoadedMap(); // 确保此函数内部将 planOptions.value 等置为 []
@@ -141,6 +151,9 @@ const formOptions: VbenFormProps = {
         onSelect: async () => {
           const values = await formApi.getValues();
           selectPlatform.value = values.platform?.join(',');
+        },
+        onFocus: () => {
+          isEdit.value = true
         }
       },
       fieldName: 'platform',
@@ -154,6 +167,9 @@ const formOptions: VbenFormProps = {
         mode: 'multiple',
         placeholder: `${$t('common.choice')}`,
         maxTagCount: 1,
+        onFocus: () => {
+          isEdit.value = true
+        }
       },
       defaultValue: ['day'],
       fieldName: 'dims',
@@ -209,6 +225,9 @@ const formOptions: VbenFormProps = {
         onChange: () => {
           resetLoadedMap();
         },
+        onFocus: () => {
+          isEdit.value = true
+        }
       },
       dependencies: {
         triggerFields: ['platform'],
@@ -240,6 +259,9 @@ const formOptions: VbenFormProps = {
         },
         options: projectSelectOptions,
         placeholder: `${$t('common.choice')}`,
+        onFocus: () => {
+          isEdit.value = true
+        }
       },
       fieldName: 'projectId',
       label: '项目',
@@ -257,6 +279,7 @@ const formOptions: VbenFormProps = {
         options: planOptions,
         onFocus: async () => {
           await loadAdLinkage('campaign');
+        isEdit.value = true
         },
         placeholder: `${$t('common.choice')}`,
       },
@@ -276,6 +299,7 @@ const formOptions: VbenFormProps = {
         options: advertisementOptions,
         onFocus: async () => {
           await loadAdLinkage('promotion');
+          isEdit.value = true
         },
         placeholder: `${$t('common.choice')}`,
       },
@@ -295,6 +319,7 @@ const formOptions: VbenFormProps = {
         options: adGroupOptions,
         onFocus: async () => {
           await loadAdLinkage('adgroup');
+          isEdit.value = true
         },
         placeholder: `${$t('common.choice')}`,
       },
@@ -314,10 +339,39 @@ const formOptions: VbenFormProps = {
         options: creativityOptions,
         onFocus: async () => {
           await loadAdLinkage('creative');
+          isEdit.value = true
         },
       },
       fieldName: 'creative_id',
       label: '创意',
+    },
+    {
+      component: 'ApiSelect',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        mode: 'multiple',
+        maxTagCount: 1,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        api: async (params:any) => {
+          return await accountLabelApi.fetchGetAccountLabelList(params);
+        },
+        onFocus: () => {
+          isEdit.value = true
+        },
+        params: {
+          page: 1,
+          pageSize: 1000,
+        },
+        valueField: 'id',
+        labelField: 'name',
+        resultField: 'items',
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'advertiserTagId',
+      label: '账户标签',
     },
   ],
   showCollapseButton: props.isShowActions,
@@ -333,6 +387,7 @@ const formOptions: VbenFormProps = {
   },
   layout: 'horizontal',
   handleSubmit: props.customSubmit ? undefined : async (values) => {
+    isEdit.value = false;
     emits('submit', values);
     filterCriteria.value = values
     if (props.onConfirm) {
@@ -391,5 +446,18 @@ defineExpose({
 </script>
 
 <template>
-  <FormComponent />
+  <div class="confirmForm" :class="{editForm: isEdit && props.content === '确认'}"> 
+    <FormComponent />
+  </div>
+  
 </template>
+<style lang="scss" scoped>
+.confirmForm {
+  background: #fff;
+}
+.editForm {
+  background: #f1f3f6;
+  padding: 5px;
+  border-radius: 6px;
+}
+</style>
