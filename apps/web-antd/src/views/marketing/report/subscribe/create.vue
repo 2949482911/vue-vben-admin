@@ -46,7 +46,6 @@ const [Form, formApi] = useVbenForm({
       id: params.id,
       ...addSubmitParams
     }
-    console.log('submitParams',addSubmitParams)
     if(isUpdate.value) {
       // 调用修改接口
       await subscribeApi.fetchUpdateSubscribe(updateSubmitParams);
@@ -273,7 +272,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (isOpen) {
       drawerKey.value++;
       objectRequest.value = drawerApi.getData<ReportSubscriptionItem>();
-        console.log('obj',objectRequest.value)
       if (objectRequest.value?.id) {
         isUpdate.value = true;
         setTimeout(() => {
@@ -283,7 +281,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
         isUpdate.value = false;
         metricList.value = [];
         formApi.resetForm();
-        console.log('新增时-values',await formApi.getValues())
         showForm.value = false;
         await nextTick();
         showForm.value = true;  

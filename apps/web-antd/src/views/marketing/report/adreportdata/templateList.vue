@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { useVbenVxeGrid, type VxeGridProps } from '@vben/plugins/vxe-table';
 import { Button, message, InputSearch } from 'ant-design-vue';
 import { reportTemplateApi } from '#/api';
 import { nextTick, ref } from 'vue';
 import type { TemplateDto } from "#/api/models";
-
+import SubscribeModal from './subscribeModal.vue'
 
 const [Drawer, drawerApi] = useVbenDrawer({
   onCancel() {
@@ -73,7 +73,19 @@ function openCreateModal(row:TemplateDto){
 
 }
 const emit = defineEmits<{(e:'useTemplate', template: Record<string, any>): void}>();
-
+const [Modal, modalApi] = useVbenModal({
+  title: '报表订阅',
+  connectedComponent: SubscribeModal,
+  centered: true
+})
+function openSubscribeModal(row: TemplateDto) {
+  if(row) {
+    modalApi.setData(row)
+  } else {
+    modalApi.setData({})
+  }
+  modalApi.open()
+}
 //模板删除事件
 async function del(){
   const checkedRecords = gridApi.grid.getCheckboxRecords();
@@ -98,7 +110,7 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridEvents, gridOptions});
 
 </script>
 <template>
-  <Drawer>
+  <Drawer class="w-[40%]">
     <div class="drawer flex-col-center">
       <Grid class="w-[100%]">
         <template #toolbar-actions>
@@ -119,10 +131,14 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridEvents, gridOptions});
           <Button type="link" @click="openCreateModal(row)">
             使用模板
           </Button>
+          <Button type="link" @click="openSubscribeModal(row)">
+            报表订阅
+          </Button>
         </template>
       </Grid>
     </div>
   </Drawer>
+  <Modal/>
 </template>
 
 <style scoped lang="scss">
