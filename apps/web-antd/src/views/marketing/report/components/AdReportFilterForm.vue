@@ -8,6 +8,11 @@ import { advertiserApi, projectApi, accountLabelApi } from "#/api";
 import type { ProjectItem } from "../../account/advertiser/advertiser";
 import dayjs from 'dayjs';
 import { useAdLinkage } from '../adreportdata/adDropdown';
+import { usePreferences } from '@vben/preferences';
+const { isDark } = usePreferences();
+const isLight = computed(() => {
+  return !isDark.value
+}) 
 const isEdit = ref<Boolean>(false)
 // Props 定义
 interface Props {
@@ -46,6 +51,17 @@ watch(
   async (newKey) => {
     if (newKey === '确认') {
       isEdit.value = true
+    }
+  },
+  {immediate: true,deep: true}
+);
+watch(
+  () => isDark,
+  async (isDark) => {
+    if(isDark.value) {
+      console.log('dark', isDark.value);
+    } else {
+      console.log('light', isDark.value);
     }
   },
   {immediate: true,deep: true}
@@ -89,7 +105,6 @@ const filterCriteria = ref();
 
 // 重置表单的方法
 async function resetFormToDefault() {
-  
   // 1. 重置标准表单字段
   await formApi.resetForm();
   
@@ -450,17 +465,22 @@ defineExpose({
 </script>
 
 <template>
-  <div class="confirmForm" :class="{editForm: isEdit && props.content === '确认'}"> 
+  <div class="confirmForm" 
+    :class="{editLightForm: isEdit && props.content === '确认' && isLight,
+    editDarkForm: isEdit && props.content === '确认' && !isLight
+    }"> 
     <FormComponent />
   </div>
   
 </template>
 <style lang="scss" scoped>
-.confirmForm {
-  background: #fff;
-}
-.editForm {
+.editLightForm {
   background: #f1f3f6;
+  padding: 5px;
+  border-radius: 6px;
+}
+.editDarkForm {
+  background: #22272e;
   padding: 5px;
   border-radius: 6px;
 }

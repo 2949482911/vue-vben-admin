@@ -11,7 +11,11 @@ import type { ProjectItem } from "../../account/advertiser/advertiser";
 import SaveTemplateModal from "./saveTemplate.vue";
 import TemplateListDrawer from './templateList.vue';
 import AdReportFilterForm from '../components/AdReportFilterForm.vue';
-
+import { usePreferences } from '@vben/preferences';
+const { isDark } = usePreferences();
+const isLight = computed(() => {
+  return !isDark.value
+}) 
 // 表单 ref
 const filterFormRef = ref();
 const selectPlatform = ref<string>(null)
@@ -508,7 +512,7 @@ const isShowActions = ref(true)
 <template>
   <div>
     <Page auto-content-height>
-      <div class="search-content">
+      <div class="search-content" :class="{isLight:isLight}">
         <AdReportFilterForm 
           ref="filterFormRef"
           :wrapperClass="wrapperClass"
@@ -542,9 +546,11 @@ const isShowActions = ref(true)
 
 <style scoped lang="scss">
 .search-content {
-  background: #fff;
   border-radius: 8px 8px 0 0;
   margin-bottom: 10px;
   padding: 20px 10px 0 0;
+}
+.isLight {
+  background: #fff;
 }
 </style>
