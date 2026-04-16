@@ -417,6 +417,10 @@ export const BEHAVIORA_PLATFORM = [
     value: Platform.THREE_WATER,
   },
   {
+    label: `${$t('ocpx.platform.longyu')}`,
+    value: 'long_yu'
+  },
+  {
     label: `${$t('ocpx.platform.inteyun')}`,
     value: Platform.INTEYUN,
   },

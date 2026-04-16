@@ -45,7 +45,8 @@ export enum Platform {
   THREE_WATER = "three_water",
   KUAIZUANKE = 'kuaizuanke',
   XIANYU_DHH = 'xianyu_dhh',
-  HUICHUAN = 'huichuan'
+  HUICHUAN = 'huichuan',
+  LONGYU = "long_yu",
 }
 
 export enum RuleType {

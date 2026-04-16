@@ -1368,6 +1368,37 @@ platformConfigForm.set(Platform.KUAIZUANKE, [
   },
 ])
 
+// 龙鱼
+platformConfigForm.set(Platform.LONGYU, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'hhChannel',
+    label: 'hhChannel',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'hhPkg',
+    label: 'hhPkg',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'chainCode',
+    label: 'chainCode',
+    rules: 'required',
+  }
+])
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
