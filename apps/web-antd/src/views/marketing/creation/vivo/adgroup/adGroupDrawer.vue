@@ -54,7 +54,7 @@ const { campaign, accountInfo, advertiserQualification } = defineProps({
   },
 });
 
-const scheduleTimeValue = ref('0'.repeat(336));
+const scheduleTimeValue = ref('1'.repeat(336));
 const advertiseQualificationId = ref<string>('');
 //在抽屉关闭的时候再传过去广告资质
 const localAdvertiserQualification = ref<Map<string, QualificationValue>>(new Map());
@@ -101,14 +101,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
       if (adGroupData) {
         customizeName.value = adGroupData.name;
-        scheduleTimeValue.value = adGroupData.scheduleTime || '0'.repeat(336);
+        scheduleTimeValue.value = adGroupData.scheduleTime || '1'.repeat(336);
         await formApi.setValues({
           ...adGroupData,
           adType_proxy: currentAdType,
         });
       } else {
         customizeName.value = '';
-        scheduleTimeValue.value = '0'.repeat(336);
+        scheduleTimeValue.value = '1'.repeat(336);
         await reset();
         if (currentAdType) {
           await formApi.setValues({
@@ -154,7 +154,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
 });
 
 async function reset() {
-  scheduleTimeValue.value = '0'.repeat(336);
+  scheduleTimeValue.value = '1'.repeat(336);
   await formApi.resetForm();
 }
 
@@ -317,37 +317,17 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
     },
     {
-      component: 'Input',
-      fieldName: 'price',
-      label: '一阶段出价',
-      suffix: () => h('span', { class: 'text-600' }, '元'),
-      dependencies: {
-        triggerFields: ['chargeType'],
-        show: true,
-        required: (values) => {
-          return !!(values.chargeType && values.chargeType !== 3);
-        },
-        rules: (values) => {
-          if (values.chargeType && values.chargeType !== 3) {
-            return 'required';
-          }
-          return '';
-        },
-      },
-    },
-    {
       component: 'Select',
       componentProps: {
         options: PHASETWOGOAL_SELECT,
       },
       fieldName: 'cvType',
-      label: '二阶段转化目标',
-      rules: 'required',
+      label: '转化目标',
     },
     {
       component: 'Input',
       fieldName: 'ocpxPrice',
-      label: '二阶段出价',
+      label: '转化出价',
       suffix: () => h('span', { class: 'text-600' }, '元'),
     },
     {

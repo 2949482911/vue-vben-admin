@@ -40,7 +40,9 @@
   "checkAll": "全选",
   "import": "导入",
   "exist": "存在",
-  "repush": "重试",
   "click": "点击",
-  "expose": "曝光"
+  "expose": "曝光",
+  "repush": "重试",
+  "data_statistics": "数据统计",
+  "data_export": "数据导出"
 }

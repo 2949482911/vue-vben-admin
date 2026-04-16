@@ -1,14 +1,19 @@
 <script lang="ts" setup>
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, type PropType } from 'vue';
 import { Input, InputNumber, message, RadioButton, RadioGroup, Tag } from 'ant-design-vue';
 import CreativeProductionModule from '../../creativeProduction.vue';
-import { DISPLAYFORM_SELECT } from '../projectEnum';
+import {
+  STORE_DISPLAY_FORMATS,
+  NO_STORE_DISPLAY_FORMATS,
+  ALLQIANCE_PRESENTATION_FORMAT,
+} from '../projectEnum';
 import { adInvestmentApi } from '#/api';
 import type { AccountInfo, Material, MaterialData } from '#/views/marketing/creation/creation';
-import type { VivoPromotionData } from '#/views/marketing/creation/vivo/vivo';
+import type { VivoDeepLinkData, VivoPromotionData } from '#/views/marketing/creation/vivo/vivo';
 import { useProjectPlaceholder } from '#/utils/customName';
+import CreativeDeepLink from './creativeDeepLinkModule.vue';
 
 const PROJECT_PLACEHOLDERS = [
   { label: '时间', value: '<时间>' },
@@ -22,9 +27,10 @@ const { customizeName, handleTagClick } = useProjectPlaceholder('', 100);
 const emit = defineEmits([
   'update:creativeMaterialsDrawerConfig',
   'update:creativeMaterialsGroupList',
+  'update:deepLink',
 ]);
 const creativeProductionModuleRef = ref();
-const { accountInfo, campaign } = defineProps({
+const { accountInfo, campaign, deepLinkList } = defineProps({
   // 媒体账户
   accountInfo: {
     type: Array as () => AccountInfo[],
@@ -46,7 +52,23 @@ const { accountInfo, campaign } = defineProps({
       };
     },
   },
-  // 广告创意素材组信息
+  deepLinkList: {
+    type: Object as PropType<VivoDeepLinkData>,
+    default: () => ({
+      deepLinkConfig: { method: 'all' },
+      data: new Map<string, string[]>(),
+    }),
+  },
+});
+
+// 用来做展示deepLink链接
+const deepLinkText = ref<string>('');
+// deepLink链接本地数据
+const localdeepLinkList = ref<VivoDeepLinkData>({
+  deepLinkConfig: {
+    method: 'all',
+  },
+  data: new Map<string, Array<string>>(),
 });
 
 // 本地素材临时变量
@@ -62,6 +84,14 @@ const materialData = ref<MaterialData>({
  * 初始化子组件本地临时变量
  */
 function changeConfigMethodHandler(method: string) {
+  // 1. 清空界面上的 Input 展示文字
+  deepLinkText.value = '';
+  // 2. 清空存储 deepLink 的数据结构
+  // 注意：params 结构中的 data 是 Map，需要清空
+  localdeepLinkList.value = {
+    deepLinkConfig: { method },
+    data: new Map(), // 直接赋予一个新的空 Map
+  };
   creativeProductionModuleRef.value?.initLocalMaterialData(method);
 }
 
@@ -95,14 +125,15 @@ const creativeTypeOptions = ref<{ label: string; value: number; displayType: num
 async function creativeTypeEvent(val: number) {
   if (!val) {
     formApi.updateSchema([{ fieldName: 'materialNormId', componentProps: { options: [] } }]);
+    formApi.updateSchema([{ fieldName: 'virtualPositionId', componentProps: { options: [] } }]);
     await formApi.setFieldValue('materialNormId', null);
+    await formApi.setFieldValue('virtualPositionId', []);
     return;
   }
   const ids = accountInfo.map((item: AccountInfo) => item.localAdvertiserId);
   try {
     const res = await adInvestmentApi.fetchCreativeType({
       advertiserId: ids.length > 0 ? ids : [],
-      // advertiserId: ['2004432916973719554'],
       displayType: val,
       adType: campaign.adType,
       mediaType: campaign.mediaType,
@@ -123,6 +154,7 @@ async function creativeTypeEvent(val: number) {
       },
     ]);
     await formApi.setFieldValue('materialNormId', undefined);
+    await formApi.setFieldValue('virtualPositionId', []);
   } catch (e) {
     message.error('获取创意类型失败');
   }
@@ -140,7 +172,6 @@ async function virtualLocation(val: number) {
   try {
     const res = await adInvestmentApi.fetchVirtualLocation({
       advertiserId: ids.length > 0 ? ids : [],
-      // advertiserId: ["2004432916973719554"],
       displayType: displayTypeObj!.displayType,
       adType: campaign.adType,
       mediaType: campaign.mediaType,
@@ -170,10 +201,10 @@ async function virtualLocation(val: number) {
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
   async onCancel() {
+    deepLinkText.value = '';
     await formApi.resetForm();
     // 先重置父组件的分配方式
     materialData.value.config.method = 'all';
-    // await changeConfigMethodHandler('all');
     // 【关键】强制让子组件同步这个重置后的状态
     // 如果没有这一步，子组件内部的 localMaterialData 还是旧的
     creativeProductionModuleRef.value?.setLocalMaterialData(materialData.value);
@@ -240,6 +271,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     materialData.value = creativeProductionModuleRef.value.getLocalMaterialData();
     emit('update:creativeMaterialsDrawerConfig', promotionObj.value);
     emit('update:creativeMaterialsGroupList', materialData.value);
+    emit('update:deepLink', localdeepLinkList.value);
     await formApi.resetForm();
     await drawerApi.close();
   },
@@ -250,6 +282,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       // 1. 基础同步数据赋值
       promotionObj.value = promotion;
       customizeName.value = promotion.name;
+      await updateDeepLink(deepLinkList);
 
       // 2. 初始化素材模式
       if (material?.config) {
@@ -259,6 +292,21 @@ const [Drawer, drawerApi] = useVbenDrawer({
       // 3. 处理级联接口回显 (核心改进)
       const { placeType, materialNormId, virtualPositionId } = promotion.config;
       const vIds = virtualPositionId?.trim() ? virtualPositionId.split(',') : [];
+
+      // 展现形式根据项目的媒体类型来决定
+      const targetOptions =
+        campaign.mediaType === 0
+          ? STORE_DISPLAY_FORMATS
+          : campaign.mediaType === 1
+            ? NO_STORE_DISPLAY_FORMATS
+            : ALLQIANCE_PRESENTATION_FORMAT;
+
+      formApi.updateSchema([
+        {
+          fieldName: 'placeType',
+          componentProps: { options: targetOptions },
+        },
+      ]);
 
       try {
         // 第一步：先加载“创意类型”的 Options
@@ -342,7 +390,7 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         allowClear: true,
         placeholder: '请选择',
-        options: DISPLAYFORM_SELECT,
+        options: [],
         onChange: async (val: number) => {
           await creativeTypeEvent(val);
         },
@@ -379,6 +427,11 @@ const [Form, formApi] = useVbenForm({
     },
     {
       component: 'Default' as any,
+      fieldName: 'deepLink',
+      label: 'deepLink链接',
+    },
+    {
+      component: 'Default' as any,
       fieldName: 'generalSwitch',
       label: '流量优选开关',
       formItemClass: 'items-baseline',
@@ -388,6 +441,53 @@ const [Form, formApi] = useVbenForm({
 
 async function handleCreativeMaterialsGroupList(data: MaterialData) {
   materialData.value = data;
+}
+
+// deepLink链接弹框
+const [CreativeDeepLinkModule, modalApi] = useVbenModal({
+  // 连接抽离的组件
+  connectedComponent: CreativeDeepLink,
+});
+function openDeepLinkPopUp() {
+  modalApi.setData(materialData.value.config.method);
+  modalApi.open();
+}
+
+async function updateDeepLink(params: VivoDeepLinkData) {
+  if (!params || !params.data) return;
+  // 辅助工具：统一从 Map 或 Object 中取值
+  const getValue = (key: string): string[] | undefined => {
+    const data = params.data as any;
+    if (typeof data.get === 'function') {
+      return data.get(key);
+    }
+    return data[key];
+  };
+
+  if (params.deepLinkConfig.method === 'all') {
+    const data = getValue('0');
+    if (data) {
+      deepLinkText.value = String(data[0]) || '';
+    }
+  } else {
+    // 遍历账号信息，找到第一个有值的账号链接
+    const firstValidAccount = accountInfo.find((account) => {
+      const accountId = String(account.localAdvertiserId);
+      const val = getValue(accountId);
+      // 判断该账户对应的数组是否存在，且第一个元素不为空字符串
+      return val && val.length > 0 && val[0] !== '';
+    });
+
+    if (firstValidAccount) {
+      const accountId = String(firstValidAccount.localAdvertiserId);
+      const data = getValue(accountId);
+      deepLinkText.value = data ? String(data[0]) : '';
+    } else {
+      // 如果所有账户都没填，则清空显示
+      deepLinkText.value = '';
+    }
+  }
+  localdeepLinkList.value = params;
 }
 </script>
 
@@ -434,7 +534,7 @@ async function handleCreativeMaterialsGroupList(data: MaterialData) {
             <InputNumber
               id="inputNumber"
               v-model:value="promotionObj.config.videoMaxCount"
-              :min="1"
+              :min="0"
               :max="100"
             />
             个视频
@@ -443,7 +543,7 @@ async function handleCreativeMaterialsGroupList(data: MaterialData) {
             <InputNumber
               id="inputNumber"
               v-model:value="promotionObj.config.imageMaxCount"
-              :min="1"
+              :min="0"
               :max="100"
             />
             个图片
@@ -454,6 +554,15 @@ async function handleCreativeMaterialsGroupList(data: MaterialData) {
             <RadioButton :value="0">关闭</RadioButton>
             <RadioButton :value="1">开启</RadioButton>
           </RadioGroup>
+        </template>
+        <template #deepLink>
+          <Input
+            class="w-[300px]"
+            placeholder="请输入"
+            v-model:value="deepLinkText"
+            readonly
+            @click="openDeepLinkPopUp"
+          />
         </template>
       </Form>
 
@@ -468,6 +577,11 @@ async function handleCreativeMaterialsGroupList(data: MaterialData) {
         @update:creativeMaterialsGroupList="handleCreativeMaterialsGroupList"
       />
     </Drawer>
+    <CreativeDeepLinkModule
+      :accountInfo="accountInfo"
+      :deepLinkList="deepLinkList"
+      @update:deepLink="updateDeepLink"
+    />
   </div>
 </template>
 

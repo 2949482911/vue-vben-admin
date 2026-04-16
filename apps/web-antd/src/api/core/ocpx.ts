@@ -3,18 +3,27 @@ import {requestClient} from "#/api/request";
 import type {
   BehavioraPlatformPageRequest,
   ClickMonitorResponse,
-  CreateBehavioraPlatformRequest, CreateEventSettlementRequest,
+  CreateBehavioraPlatformRequest,
+  CreateEventSettlementRequest,
   CreateOcpxTaskRequest,
-  CreatePlatformCallbackRequest, EventSettlementItem,
-  EventSettlementPageRequest, OcpxBehavioracallbackRecordPageRequest,
+  CreatePlatformCallbackRequest,
+  EventSettlementItem,
+  EventSettlementPageRequest,
+  OcpxBehavioracallbackRecordPageRequest,
+  OcpxDataStatisticsRequest,
+  OcpxExportEventClickRequest,
   OcpxTaskItem,
-  OpcxTaskPageRequest, PlatformCallbackBehaviorTypeItem,
+  OpcxTaskPageRequest,
+  PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
-  PlatformcallbackPageRequest, TestCallbackRequest,
-  UpdateBehavioraPlatformRequest, UpdateEventSettlementRequest,
+  PlatformcallbackPageRequest,
+  RePushRetryBehaviorCallbackType,
+  SingleRePushRetryBehaviorCallbackType,
+  TestCallbackRequest,
+  UpdateBehavioraPlatformRequest,
+  UpdateEventSettlementRequest,
   UpdateOcpxTaskRequest,
-  UpdatePlatformCallbackRequest,
-  RePushRetryBehaviorCallbackType
+  UpdatePlatformCallbackRequest
 } from "#/api/models";
 import type {BehavioraPlatformItem} from "#/api/models/ocpx";
 import type {BatchOptions} from "#/api/models/core";
@@ -125,12 +134,16 @@ class OcpxTaskApi extends BaseApi {
   }
 
   /**回传记录详细信息*/
-  fetchOxpcTransmissionRecord(id: string) {
-    return requestClient.get(this.getServiceUrl("callback_record_detail"), {
-      params: {
-        id: id
-      }
-    })
+  fetchOxpcTransmissionRecord(params: SingleRePushRetryBehaviorCallbackType) {
+    return requestClient.get(this.getServiceUrl("callback_record_detail"), {params})
+  }
+
+  fetchOpcxExportEventClick(params: OcpxExportEventClickRequest) {
+    return requestClient.get(this.getServiceUrl("export_event_click"),{ params })
+  }
+  // 获取统计数据
+  fetchOcpxDataStatistics(params: OcpxDataStatisticsRequest) {
+    return requestClient.post(this.getServiceUrl("report_ocpx_task"), params)
   }
 }
 
@@ -158,12 +171,8 @@ class ClickMonitorApi extends BaseApi {
    * 重推转化回传
    * @param id
    */
-  fetchRePushBehaviorCallback(id: string) {
-    return requestClient.get(this.getServiceUrl("repush_behavior_callback"), {
-      params: {
-        id: id
-      }
-    })
+  fetchRePushBehaviorCallback(params: SingleRePushRetryBehaviorCallbackType) {
+    return requestClient.get(this.getServiceUrl("repush_behavior_callback"), {params})
   }
 
   /**回传媒体批量重试*/

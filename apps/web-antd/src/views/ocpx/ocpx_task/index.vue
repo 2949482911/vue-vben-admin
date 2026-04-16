@@ -22,8 +22,10 @@ import Behavioracallbackrecordlist from './behavioracallbackrecordlist.vue';
 import BehaviorRecordList from './behaviorrecordlist.vue';
 import ClickMonitor from './clickmonitor.vue';
 import CreateObjectRequestComp from './create.vue';
+import DataStatistics from './dataStatistics.vue';
+import DataExportModal from './dataExport.vue';
 import { trimObject } from '#/utils/trim';
-
+import { useVbenDrawer } from '@vben/common-ui';
 const [ClickMonitorModal, clickMonitorApi] = useVbenModal({
   connectedComponent: ClickMonitor,
   centered: true,
@@ -86,7 +88,36 @@ function openCreateModal(row?: OcpxTaskItem) {
   }
   createObjectApi.open();
 }
+const [Drawer, drawerApi] = useVbenDrawer({
+  // 连接抽离的组件
+  connectedComponent: DataStatistics,
+});
+function openDataStatistics(row?: OcpxTaskItem) {
+  if(row) {
+    drawerApi.setData(row)
+  } else {
+    drawerApi.setData({})
+  }
+  drawerApi.open()
+}
+const [ExportModal, exportModalApi] = useVbenModal({
+  centered: true,
+  fullscreenButton: false,
+  closeOnPressEscape: false,
+  contentClass:'modalStyle',
+  modal: true,
+  connectedComponent: DataExportModal
+});
 
+function openExportModal(row?:OcpxTaskItem) {
+  
+  if(row?.id) {
+    exportModalApi.setData(row)
+  } else {
+    exportModalApi.setData({})
+  }
+  exportModalApi.open()
+}
 async function handlerState(row: OcpxTaskItem) {
   await (row.status === 1
     ? ocpxTaskApi.fetchBatchOptions({
@@ -279,6 +310,12 @@ function pageReload() {
                 <MenuItem @click="openBehaviorRecord(row)">
                   {{ $t('core.behaviorRecord') }}
                 </MenuItem>
+                <MenuItem @click="openDataStatistics(row)">
+                  {{ $t('core.data_statistics') }}
+                </MenuItem>
+                <MenuItem @click="openExportModal(row)">
+                  {{ $t('core.data_export') }}
+                </MenuItem>
               </Menu>
             </template>
           </Dropdown>
@@ -295,5 +332,7 @@ function pageReload() {
     <ClickMonitorModal/>
     <BehavioracallbackrecordModel/>
     <BehaviorRecordModel/>
+    <Drawer />
+    <ExportModal/>
   </div>
 </template>

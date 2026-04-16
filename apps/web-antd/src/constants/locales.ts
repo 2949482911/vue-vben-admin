@@ -271,6 +271,10 @@ export const BACKHAUL = [
   {
     label: 'oppo push',
     value: 'oppo_push',
+  },
+  {
+    label: '超级汇川',
+    value: 'huichuan',
   }
 ];
 
@@ -447,6 +451,10 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: '快赚客',
     value: 'kuaizuanke'
+  },
+  {
+    label: '咸鱼大航海',
+    value: 'xianyu_dhh'
   }
 
 ];
@@ -506,6 +514,10 @@ export const ACTIVE_PLATFORM = [
   {
     label: `${$t('ocpx.platform.vivo')}`,
     value: 'vivo',
+  },
+  {
+    label: `${$t('ocpx.platform.oppo')}`,
+    value: 'oppo',
   }
 ];
 
@@ -557,6 +569,18 @@ export const DIMS = [
   {
     label: '广告维度',
     value: 'promotion_id',
+  },
+  {
+    label: '优化师维度',
+    value: 'createdBy',
+  },
+  {
+    label: '平台维度',
+    value: 'platform',
+  },
+  {
+    label: '标签维度',
+    value: 'tagId',
   }
 ]
 

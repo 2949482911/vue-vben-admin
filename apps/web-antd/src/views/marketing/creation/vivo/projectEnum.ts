@@ -316,6 +316,38 @@ export const DISPLAYFORM_SELECT = [
     value: 1,
   },
   {
+    label: '锁屏广告',
+    value: 6,
+  },
+  {
+    label: '搜索sug页（非商店搜索）',
+    value: 10,
+  },
+  {
+    label: '通知广告',
+    value: 12,
+  },
+];
+
+/**批投广告创意素材组-展现形式枚举（应用商店） */
+export const STORE_DISPLAY_FORMATS = [
+  {
+    label: '信息流',
+    value: 1,
+  },
+];
+
+/**批投广告创意素材组-展现形式枚举（非应用商店） */
+export const NO_STORE_DISPLAY_FORMATS = [
+  {
+    label: '通知广告',
+    value: 12,
+  },
+];
+
+/**批投广告创意素材组-展现形式枚举（广告联盟） */
+export const ALLQIANCE_PRESENTATION_FORMAT = [
+  {
     label: '开屏',
     value: 2,
   },
@@ -332,20 +364,8 @@ export const DISPLAYFORM_SELECT = [
     value: 5,
   },
   {
-    label: '锁屏广告',
-    value: 6,
-  },
-  {
     label: '激励视频',
     value: 9,
-  },
-  {
-    label: '搜索sug页（非商店搜索）',
-    value: 10,
-  },
-  {
-    label: '通知广告',
-    value: 12,
   },
 ];
 
@@ -464,51 +484,3 @@ export const FLOWSWITCH_SELECT = [
     value: 1,
   },
 ];
-
-/**广告资质类型 */
-export interface AdvertisingQualificationType {
-  advertiseQualificationId: string; // 资质ID: "385831"
-  appCnName: string; // 应用名称: "京东-又好又便宜"
-  productName: string; // 包名: "com.jingdong.app.mall"
-  industry1: number; // 一级行业分类ID
-  industry1Name: string; // 一级行业名称: "电商"
-  industry2: number; // 二级行业分类ID
-  industry2Name: string; // 二级行业名称: "综合电商平台"
-  state: number; // 状态: 1
-  createTime: string; // 创建时间
-  updateTime: string; // 更新时间
-  qualificationValidDate: string; // 有效期
-  productType: number; // 产品类型
-  // ... 其他可选字段
-  icpCaseNumber?: string;
-  icpDomainName?: string;
-  productDescription?: string;
-}
-
-/**提交审核批投当前账户扁平数组类型 */
-export interface CampaignData {
-  pIdx?: number;
-  adGroupIdx: number;
-  advertiserId?: string;
-  campaignAdType?: number;
-  campaignBudget?: string;
-  campaignIdx: number;
-  campaignMediaType?: number;
-  campaignName?: string;
-  campaignState?: string;
-  creativeCount?: number;
-  displayCreativePushTitle?: string;
-  displayCreativeSubTitle?: string;
-  displayCreativeTitle?: string;
-  errorMsg?: string;
-  groupDailyBudget?: string;
-  groupName?: string;
-  groupOcpxPrice?: string;
-  groupPrice?: string;
-  promoName?: string;
-  rowCampaignId?: string;
-  rowGroupId?: string;
-  rowPromoId?: string;
-  submitIndex: number;
-  _X_ROW_KEY?: string;
-}

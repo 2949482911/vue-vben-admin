@@ -3,6 +3,7 @@ import { useVbenDrawer, JsonViewer } from '@vben/common-ui';
 import {ocpxTaskApi} from "#/api/core/ocpx";
 import { ref } from 'vue';
 import type {CallbackInfo, ClickInfo } from './ocpxTask'
+import type {OcpxBehavioracallbackRecordItem} from "#/api/models";
 
 const props = defineProps<{
   detailsId: string;
@@ -23,7 +24,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
   destroyOnClose: true,
   async onOpenChange(isOpen) {
     if(isOpen){
-      const res = await ocpxTaskApi.fetchOxpcTransmissionRecord(props.detailsId)
+      const data = await drawerApi.getData<OcpxBehavioracallbackRecordItem>()
+      const { taskId, platformCallbackId, behaviorPlatformId, requestId } = data
+      const res = await ocpxTaskApi.fetchOxpcTransmissionRecord({
+        taskId,
+        platformCallbackId,
+        behaviorPlatformId,
+        requestId
+      })
       callbackDetails.value = res.callbackInfo
       clickDetails.value = res.clickInfo
     }else{

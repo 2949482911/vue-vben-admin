@@ -1,6 +1,6 @@
-import {AdRuleKey, CampaignRuleKey, DistributionMode, Platform} from "#/constants/enums";
-import type {VivoConfigData, VivoCreation} from "#/views/marketing/creation/vivo/vivo";
-import type {TargetedPackageTypeItem, TitlePackageItem} from "#/api/models";
+import { AdRuleKey, CampaignRuleKey, DistributionMode, Platform } from '#/constants/enums';
+import type { VivoConfigData, VivoCreation } from '#/views/marketing/creation/vivo/vivo';
+import type { TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
 
 /**
  * 媒体基类
@@ -10,16 +10,16 @@ export interface PlatformCreation<C> {
   accountInfo: Array<AccountInfo>;
   ruleInfo: RuleInfo;
   configData: C;
-  project: Project
-  monitoringLink: MonitoringLinkType
+  project: Project;
+  monitoringLink: MonitoringLinkType;
 }
 
 export interface MonitoringLinkType {
-  clickLink: string,
-  exposureLink: string,
-  monitorLink: string,
-  linkModeType: string,
-  allocateType: string,
+  clickLink: string;
+  exposureLink: string;
+  monitorLink: string;
+  linkModeType: string;
+  allocateType: string;
 }
 
 /**
@@ -29,7 +29,7 @@ export interface Project {
   projectId: string;
   projectName: string;
   packageName: string;
-  icon: string
+  icon: string;
 }
 
 export interface AccountInfo {
@@ -62,8 +62,8 @@ export interface MaterialDataConfig {
 export interface Material {
   image: Array<LocalMaterialData>;
   video: Array<LocalMaterialData>;
-  isExpanded: boolean
-  active: string
+  isExpanded: boolean;
+  active: string;
 }
 
 // 本地素材data
@@ -72,7 +72,6 @@ export interface LocalMaterialData {
   url: string;
   localMaterialId: string;
 }
-
 
 // 广告搭建通用基础类
 export interface Campaign {
@@ -94,7 +93,9 @@ export interface Promotion {
  * @param localMaterialIds
  */
 export function getRuleInfoCampaignCount(
-  platform: string, creation: PlatformCreation<VivoConfigData | any>, localMaterialIds: Array<string>
+  platform: string,
+  creation: PlatformCreation<VivoConfigData | any>,
+  localMaterialIds: Array<string>,
 ): number {
   if (platform === Platform.VIVO) {
     creation = creation as VivoCreation;
@@ -109,39 +110,40 @@ export function getRuleInfoCampaignCount(
     campaignCount = getCampaignCount(
       creation.configData.audience?.audienceConfig.method,
       creation.configData.audience?.data,
-      localMaterialIds
-    )
+      localMaterialIds,
+    );
   } else if (projectRuleKey === CampaignRuleKey.creative) {
     method = creation.configData.material?.config.method;
     campaignCount = getCampaignCount(
       creation.configData.material?.config.method,
       creation.configData.material?.data,
-      localMaterialIds
-    )
+      localMaterialIds,
+    );
   } else if (projectRuleKey === CampaignRuleKey.title) {
     method = creation.configData.titlePackage?.titlePackageConfig.method;
     campaignCount = getCampaignCount(
       creation.configData.titlePackage?.titlePackageConfig.method,
       creation.configData.titlePackage?.data,
-      localMaterialIds
-    )
+      localMaterialIds,
+    );
   } else {
-    campaignCount = creation.ruleInfo.projectCount || 0
+    campaignCount = creation.ruleInfo.projectCount || 0;
   }
 
   if (method == DistributionMode.all) {
-    return campaignCount * localMaterialIds.length
+    return campaignCount * localMaterialIds.length;
   } else {
     return campaignCount;
   }
 }
 
-
 /**
  * 根据广告配置获取广告个数
  */
 export function getRuleInfoAdCount(
-  platform: string, creation: PlatformCreation<VivoConfigData | any>, localMaterialIds: Array<string>
+  platform: string,
+  creation: PlatformCreation<VivoConfigData | any>,
+  localMaterialIds: Array<string>,
 ): number {
   if (platform === Platform.VIVO) {
     creation = creation as VivoCreation;
@@ -151,19 +153,18 @@ export function getRuleInfoAdCount(
     return getCampaignCount(
       creation.configData.material?.config.method,
       creation.configData.material?.data,
-      localMaterialIds
-    )
+      localMaterialIds,
+    );
   } else if (adRuleKey === AdRuleKey.title) {
     return getCampaignCount(
       creation.configData.titlePackage?.titlePackageConfig.method,
       creation.configData.titlePackage?.data,
-      localMaterialIds
-    )
+      localMaterialIds,
+    );
   } else {
-    return creation.ruleInfo.adCount || 0
+    return creation.ruleInfo.adCount || 0;
   }
 }
-
 
 /**
  * 获取计划数量
@@ -171,20 +172,21 @@ export function getRuleInfoAdCount(
  * @param data
  * @param advertiserIds
  */
-export function getCampaignCount(method: string, data: Map<string, any[]>, advertiserIds: string[]): number {
+export function getCampaignCount(
+  method: string,
+  data: Map<string, any[]>,
+  advertiserIds: string[],
+): number {
   if (method === DistributionMode.all) {
-    return data.get("0")?.length || 0
+    return data.get('0')?.length || 0;
   } else {
     let count: number = 0;
-    advertiserIds.forEach(
-      x => {
-        count += data.get(x)?.length || 0
-      }
-    )
-    return count
+    advertiserIds.forEach((x) => {
+      count += data.get(x)?.length || 0;
+    });
+    return count;
   }
 }
-
 
 /**
  * 获取定向包
@@ -194,17 +196,19 @@ export function getCampaignCount(method: string, data: Map<string, any[]>, adver
  * @param index
  */
 export function getAudience(
-  method: string, data: Map<string, Array<TargetedPackageTypeItem>>, advertiserId: string, index: number
+  method: string,
+  data: Map<string, Array<TargetedPackageTypeItem>>,
+  advertiserId: string,
+  index: number,
 ): TargetedPackageTypeItem {
   let dataList: Array<TargetedPackageTypeItem> = [];
   if (method === DistributionMode.all) {
-    dataList = data.get("0") || [];
+    dataList = data.get('0') || [];
   } else {
     dataList = data.get(advertiserId) || [];
   }
-  return <TargetedPackageTypeItem>dataList[index % dataList.length] || {}
+  return <TargetedPackageTypeItem>dataList[index % dataList.length] || {};
 }
-
 
 /**
  * 获取素材
@@ -213,16 +217,19 @@ export function getAudience(
  * @param advertiserId
  * @param index
  */
-export function getMaterial(method: string, data: Map<string, Array<Material>>, advertiserId: string): Array<Material> {
+export function getMaterial(
+  method: string,
+  data: Map<string, Array<Material>>,
+  advertiserId: string,
+): Array<Material> {
   let dataList: Array<Material> = [];
   if (method === DistributionMode.all) {
-    dataList = data.get("0") || [];
+    dataList = data.get('0') || [];
   } else {
-    dataList = data.get(advertiserId) || []
+    dataList = data.get(advertiserId) || [];
   }
-  return dataList
+  return dataList;
 }
-
 
 /**
  * 获取标题包
@@ -231,12 +238,47 @@ export function getMaterial(method: string, data: Map<string, Array<Material>>, 
  * @param advertiserId
  * @param index
  */
-export function getTiltePackage(method: string, data: Map<string, Array<TitlePackageItem>>, advertiserId: string, index: number): TitlePackageItem {
+export function getTiltePackage(
+  method: string,
+  data: Map<string, Array<TitlePackageItem>>,
+  advertiserId: string,
+  index: number,
+): TitlePackageItem {
   let dataList: Array<TitlePackageItem> = [];
   if (method === DistributionMode.all) {
-    dataList = data.get("0") || [];
+    dataList = data.get('0') || [];
   } else {
-    dataList = data.get(advertiserId) || []
+    dataList = data.get(advertiserId) || [];
   }
-  return <TitlePackageItem>dataList[index % dataList.length] || {}
+  return <TitlePackageItem>dataList[index % dataList.length] || {};
+}
+
+/**
+ * 获取deepLink链接
+ * @param method
+ * @param data
+ * @param advertiserId
+ */
+export function getDeepLink(
+  method: string,
+  data: Map<string, Array<string>>,
+  advertiserId: string,
+): string {
+  // 1. 确定查找的 Key
+  // 如果是全部相同模式，固定查找 '0'；否则查找传入的广告主 ID
+  const key = method === DistributionMode.all ? '0' : String(advertiserId);
+
+  // 2. 兼容性取值
+  let dataList: string[] | undefined;
+
+  // 检查 data 是否为 Map（是否有 get 方法）
+  if (data instanceof Map || typeof (data as any).get === 'function') {
+    dataList = (data as Map<string, string[]>).get(key);
+  } else {
+    // 如果是普通对象，直接用 key 取值
+    dataList = (data as Record<string, string[]>)[key];
+  }
+
+  // 3. 安全返回第一个值
+  return Array.isArray(dataList) && dataList.length > 0 ? String(dataList[0]) : '';
 }

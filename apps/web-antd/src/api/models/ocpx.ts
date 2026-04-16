@@ -148,8 +148,8 @@ export interface OcpxBehavioracallbackRecordPageRequest
 // ocpx 执行 任务记录
 export interface OcpxBehavioracallbackRecordItem extends BaseItem {
   taskId: string;
-  behavioraPlatformId: string;
-  behavioraPlatformName: string;
+  behaviorPlatformId: string;
+  behaviorPlatformName: string;
   platformCallbackId: string;
   platformCallbackName: string;
   requestPrams: Map<string, any>;
@@ -194,11 +194,37 @@ export interface TestCallbackRequest {
   platformCallbackId: string;
   behaviorType: string;
 }
-export interface RePushRetryBehaviorCallbackType {
+export interface RePushRePushRetryBehaviorCallbackItem {
   taskId: string;
   platformCallbackId: string;
   behaviorPlatformId: string;
+}
+// 单个重试
+export interface SingleRePushRetryBehaviorCallbackType extends RePushRePushRetryBehaviorCallbackItem{
+  requestId: string;
+}
+// 批量重试
+export interface RePushRetryBehaviorCallbackType extends RePushRePushRetryBehaviorCallbackItem{
   requestId: string[];
+}
+export interface OcpxExportEventClickRequest {
+  taskId: string;
+  startDate: string;
+  endDate: string;
+  reportName: string;
+}
+export interface OcpxDataStatisticsRequest {
+  timeList: string[];
+  taskId: string;
+  behaviorPlatformId: string;
+  platformCallbackId: string;
+  dims: string[];
+}
+export interface dayDataItem {
+  callback_count: string;
+  click_count: string;
+  conversion_rate:number;
+  day:string;
 }
 
 

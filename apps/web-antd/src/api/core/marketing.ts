@@ -46,7 +46,10 @@ import type {
   MetricGroupPageRequest,
   MetricGroupType,
   UpdateMetricGroupType,
-  MetricPageRequest
+  MetricPageRequest,
+  ReportSubscriptionItem,
+  GetSubscribeType,
+  UpdateSubscribeType
 } from "#/api/models/marketing";
 import {requestClient} from "#/api/request";
 import type {BatchOptions} from "#/api/models/core";
@@ -474,3 +477,20 @@ class StrategyGropApi extends BaseApi {
 
 export const strategyGropApi = new StrategyGropApi("/platform/advertisement_batch/strategy/group");
 
+// 报表订阅
+class SubscribeApi extends BaseApi {
+  fetchNewSubscribe(params:ReportSubscriptionItem) {
+    return requestClient.post(this.getServiceUrl("create"),params)
+  }
+  fetchBatchSubscribe(params:delTemplate) {
+    return requestClient.post(this.getServiceUrl("batch_options"),params)
+  }
+  fetchUpdateSubscribe(params:UpdateSubscribeType) {
+    return requestClient.post(this.getServiceUrl("update"),params)
+  }
+  fetchGetSubscribe(params:GetSubscribeType) {
+    return requestClient.get(this.getServiceUrl("list"),{params})
+  }
+}
+
+export const subscribeApi = new SubscribeApi("/platform/report_subscribe");

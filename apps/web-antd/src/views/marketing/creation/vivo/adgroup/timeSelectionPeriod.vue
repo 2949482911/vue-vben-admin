@@ -4,7 +4,7 @@ import { ref, reactive, computed, watch } from 'vue';
 const props = defineProps({
   modelValue: {
     type: String,
-    default: '0'.repeat(336) // 默认 336 位 0
+    default: '1'.repeat(336) // 默认 336 位 1
   }
 });
 const emit = defineEmits(['update:modelValue']);

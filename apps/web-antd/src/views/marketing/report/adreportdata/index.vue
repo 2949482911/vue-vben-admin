@@ -1,30 +1,21 @@
 <script setup lang="ts" name="AdReportDataManager">
-import { ref, reactive, computed, onMounted, nextTick } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { Page, useVbenDrawer, useVbenModal, type VbenFormProps } from "@vben/common-ui";
-import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
+import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 import { Button } from "ant-design-vue";
 import SelectMetricModal from "./selectmetric.vue";
-import type { AdReportRequest, AdvertiserPageRequest, ReportFilter, searchDataFilter } from "#/api/models";
-import {advertiserApi, reportApi,projectApi} from "#/api";
+import type { AdReportRequest, ReportFilter, searchDataFilter } from "#/api/models";
+import { reportApi, projectApi } from "#/api";
 import type { ProjectItem } from "../../account/advertiser/advertiser";
 import SaveTemplateModal from "./saveTemplate.vue";
 import TemplateListDrawer from './templateList.vue';
-import dayjs from 'dayjs';
-import { useAdLinkage } from './adDropdown'
+import AdReportFilterForm from '../components/AdReportFilterForm.vue';
 
+// 表单 ref
+const filterFormRef = ref();
 const selectPlatform = ref<string>(null)
 
-const {
-  planOptions,
-  advertisementOptions,
-  adGroupOptions,
-  creativityOptions,
-  loadAdLinkage,
-  resetLoadedMap,
-  setGridApi,
-} = useAdLinkage()
 
 /* ---------------- 模板抽屉 ---------------- */
 const [TemplateDrawer, drawerApi] = useVbenDrawer({
@@ -40,21 +31,6 @@ const currentQueryMetric = ref<string[]>([]);
 // 防抖标记，避免重复请求
 let pendingRequest = null;
 
-async function handleUseTemplate(template: searchDataFilter) {
-  // 取消之前的请求
-  if (pendingRequest) {
-    pendingRequest = null;
-  }
-  
-  await gridApi.formApi.resetForm();
-  await gridApi.formApi.setValues(template);
-  
-  currentQueryMetric.value = template.queryMetric ? [...template.queryMetric] : [];
-  
-  const values = await gridApi.formApi.getValues() as searchDataFilter;
-  const params = buildReportParams(values);
-  await init(params);
-}
 
 /* ---------------- 指标弹窗 ---------------- */
 const [SelectMetricModalModal, selectMetricModalApi] = useVbenModal({
@@ -83,10 +59,6 @@ const [SaveTemplateModalModal, sveTemplateModalApi] = useVbenModal({
   connectedComponent: SaveTemplateModal,
 });
 
-async function openSaveTemplateModalModal() {
-  searchData.value = await gridApi.formApi.getValues() as unknown as searchDataFilter;
-  sveTemplateModalApi.open();
-}
 
 async function handleTemplateSaved() {
   await gridApi.formApi.resetForm();
@@ -94,6 +66,7 @@ async function handleTemplateSaved() {
 
 /* 优化1：使用浅响应式数据，减少深度监听 */
 const allData = ref([]); // 全部数据
+const allDataOrigin = ref([]); // 原始数据备份（用于取消排序时恢复）
 const currentPageData = ref([]); // 当前页数据，独立存储避免全量更新
 const tableColumns = ref([]); // 表头单独存储
 const tableFooter = ref({}); // 表尾单独存储
@@ -134,14 +107,18 @@ async function init(args?: any) {
     await new Promise((resolve) => {
       if ('requestIdleCallback' in window) {
         requestIdleCallback(() => {
-          allData.value = res.items.map((item: any, index: number) => ({ ...item, seq: index + 1 }));
-          pager.total = res.items.length;
+          const items = res.items.map((item: any, index: number) => ({ ...item, seq: index + 1 }));
+          allData.value = items;
+          allDataOrigin.value = [...items]; // 备份原始数据
+          pager.total = items.length;
           resolve(true);
         }, { timeout: 100 });
       } else {
         setTimeout(() => {
-          allData.value = res.items.map((item: any, index: number) => ({ ...item, seq: index + 1 }));
-          pager.total = res.items.length;
+          const items = res.items.map((item: any, index: number) => ({ ...item, seq: index + 1 }));
+          allData.value = items;
+          allDataOrigin.value = [...items];
+          pager.total = items.length;
           resolve(true);
         }, 0);
       }
@@ -150,6 +127,10 @@ async function init(args?: any) {
     // 更新表头和当前页数据
     updateTableStructure(res.columns, res.summary[0]);
     updateCurrentPageData();
+    // 更新导出数据源
+    updateExportData();
+    // 重置排序状态
+    await resetSortState();
     
   } catch (error) {
     if (error.name !== 'AbortError') {
@@ -159,6 +140,17 @@ async function init(args?: any) {
     gridApi.setLoading(false);
     abortController = null;
   }
+}
+
+// 重置排序状态
+async function resetSortState() {
+  // 仅通过 setGridOptions 清除 sortConfig 状态
+  await gridApi.setGridOptions({
+    sortConfig: {
+      remote: true,
+      sortState: []
+    }
+  });
 }
 
 /*  优化4：分离表头更新和数据更新  */
@@ -175,7 +167,7 @@ function updateTableStructure(columns: string[], footData: any) {
       newColumns.push({
         field: key,
         title: key,
-        minWidth: 120,
+        width: 'auto',
         sortable: true,
         showOverflow: true, // 超出隐藏，提升渲染性能
       });
@@ -193,10 +185,10 @@ function updateTableStructure(columns: string[], footData: any) {
   gridApi.setGridOptions({
     columns: tableColumns.value,
     footerData: [tableFooter.value],
-    exportConfig: {
-      ...gridOptions.exportConfig,
-      data: allData.value,
-    },
+    // exportConfig: {
+    //   ...gridOptions.exportConfig,
+    //   data: allData.value,
+    // },
   });
 }
 
@@ -233,15 +225,87 @@ function updateCurrentPageData() {
 
 /* 优化6：分页事件 - 移除sleep延迟  */
 const gridEvents = {
-  pageChange({ currentPage, pageSize }: { currentPage: number, pageSize: number }) {
-    // 只有真正变化时才更新
+  pageChange({ currentPage, pageSize }) {
     if (pager.currentPage === currentPage && pager.pageSize === pageSize) return;
-    
     pager.currentPage = currentPage;
     pager.pageSize = pageSize;
     updateCurrentPageData();
   },
+  
+async sortChange({ column, property, order }) {
+  if (!property) return;
+  
+  gridApi.setLoading(true);
+  
+  try {
+    if (!order) {
+      allData.value = [...allDataOrigin.value];
+    } else {
+      const dataToSort = [...allDataOrigin.value];
+      const sortedData = sortDataByField(dataToSort, property, order);
+      allData.value = sortedData;
+    }
+    
+    allData.value.forEach((item, idx) => {
+      item.seq = idx + 1;
+    });
+    
+    pager.currentPage = 1;
+    updateCurrentPageData();
+    
+    await gridApi.setGridOptions({
+      sortConfig: {
+        remote: true,
+        sortState: order ? [{ field: property, order }] : []
+      }
+    });
+    // 更新导出数据
+    updateExportData();
+  } catch (error) {
+    console.error('排序失败:', error);
+  } finally {
+    gridApi.setLoading(false);
+  }
+}
 };
+// 更新导出配置的数据源为当前全量数据（已排序）
+function updateExportData() {
+  gridApi.setGridOptions({
+    exportConfig: {
+      ...gridOptions.exportConfig,
+      data: allData.value,
+    }
+  });
+}
+// 通用排序函数
+function sortDataByField(data: any[], field: string, order: 'asc' | 'desc'): any[] {
+  return [...data].sort((a, b) => {
+    let aVal = a[field];
+    let bVal = b[field];
+    
+    // 处理 null/undefined 值
+    if (aVal == null) aVal = '';
+    if (bVal == null) bVal = '';
+    
+    // 判断是否为数字（包括字符串形式的数字）
+    const isNumber = !isNaN(Number(aVal)) && !isNaN(Number(bVal));
+    
+    let result = 0;
+    if (isNumber) {
+      // 数字比较
+      const aNum = Number(aVal);
+      const bNum = Number(bVal);
+      result = aNum - bNum;
+    } else {
+      // 字符串比较
+      const aStr = String(aVal).toLowerCase();
+      const bStr = String(bVal).toLowerCase();
+      result = aStr.localeCompare(bStr, 'zh-CN');
+    }
+    
+    return order === 'asc' ? result : -result;
+  });
+}
 
 // 项目选项
 const projectOptions = ref<ProjectItem[]>([]);
@@ -264,272 +328,6 @@ const projectSelectOptions = computed(() =>
 /* 优化7：表单提交防抖 */
 let submitTimer = null;
 
-const formOptions: VbenFormProps = {
-  schema: [
-    // ... 保持原有的schema配置不变
-    {
-      component: 'RangePicker',
-      defaultValue: [
-        dayjs().subtract(6, 'day').format('YYYY-MM-DD'),
-        dayjs().format('YYYY-MM-DD'),
-      ],
-      componentProps: {
-        placeholder: [`${$t('common.select')}`, `${$t('common.select')}`],
-        format: ['YYYY-MM-DD', 'YYYY-MM-DD'],
-        valueFormat: 'YYYY-MM-DD',
-        disabledDate: (current: any) => {
-          return current && current > dayjs().endOf('day');
-        },
-      },
-      fieldName: 'dateTimeRange',
-      label: 'Time',
-      rules: 'required',
-    },
-    {
-      component: 'Select',
-      defaultValue: ['vivo'],
-      componentProps: {
-        allowClear: true,
-        options: ACTIVE_PLATFORM,
-        mode: 'multiple',
-        maxTagCount: 1,
-        placeholder: `${$t('common.choice')}`,
-        onChange: resetLoadedMap,
-        onSelect: async (val) => {
-          const platforms = await gridApi.formApi.getValues()
-          selectPlatform.value = platforms.platform.join(',')
-        }
-      },
-      fieldName: 'platform',
-      label: `${$t('ocpx.platform.title')}`,
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: DIMS,
-        mode: 'multiple',
-        placeholder: `${$t('common.choice')}`,
-        maxTagCount: 1,
-      },
-      defaultValue: ['day'],
-      fieldName: 'dims',
-      label: `${$t('marketing.report.dims.title')}`,
-    },
-    {
-      component: 'HybridSearchSelect',
-      componentProps: {
-        mode: 'multiple',
-        placeholder: `${$t('common.select')}`,
-        allowClear: true,
-        initialApi: async () => {
-          const formData = await gridApi.formApi.getValues();
-          selectPlatform.value = formData.platform.join(',')
-          const res = await advertiserApi.fetchAdvertiserList({
-            page: 1,
-            pageSize: 1000,
-            putStatue: 1,
-            platform: selectPlatform.value
-          });
-          if (res.items) {
-            res.items = res.items.map(item => ({
-              ...item,
-              displayName: `${item.advertiserName}-${item.advertiserId}`
-            }));
-          }
-          return res;
-        },
-        remoteApi: async (params) => {
-          const res = await advertiserApi.fetchAdvertiserList({
-            page: 1,
-            pageSize: 1000,
-            putStatue: 1,
-            platform: selectPlatform.value,
-            advertiserId: params.keyword,
-          });
-          if (res.items) {
-            res.items = res.items.map(item => ({
-              ...item,
-              displayName: `${item.advertiserName}-${item.advertiserId}`
-            }));
-          }
-          return res;
-        },
-        valueField: 'advertiserId',
-        labelField: 'displayName',
-        resultField: 'items',
-        remoteSearchField: 'keyword',
-        searchDebounce: 300,
-        remoteSearchMinLength: 1,
-        clearSearchOnSelect: true,
-        onChange: (value) => {
-          console.log('选中的值:', value);
-          resetLoadedMap();
-        },
-      },
-      dependencies: {
-        triggerFields: ['platform'],
-        if: (value) => {
-          console.log('value', value)
-          if (value.platform.length > 0) {
-            // loadAgentData(value.platform)
-          } else {
-            // agentData.value = []
-          }
-          return true;
-        }
-      },
-      fieldName: 'advertiserId',
-      label: `${$t('marketing.advertiser.columns.advertiserName')}`,
-    },
-    {
-      defaultValue: [],
-      fieldName: 'queryMetric',
-      label: '指标',
-      rules: 'required',
-      component: 'ApiSelect',
-      dependencies: {
-        show: false,
-        triggerFields: ["*"]
-      }
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        options: projectSelectOptions,
-        placeholder: `${$t('common.choice')}`,
-      },
-      fieldName: 'projectId',
-      label: '项目',
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        mode: 'multiple',
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        options: planOptions,
-        onFocus: async () => {
-          await loadAdLinkage('campaign')
-        },
-        placeholder: `${$t('common.choice')}`,
-      },
-      fieldName: 'campaign_id',
-      label: '计划',
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        mode: 'multiple',
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        options: advertisementOptions,
-        onFocus: async () => {
-          await loadAdLinkage('promotion')
-        },
-        placeholder: `${$t('common.choice')}`,
-      },
-      fieldName: 'promotion_id',
-      label: '广告',
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        mode: 'multiple',
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        options: adGroupOptions,
-        onFocus: async () => {
-          await loadAdLinkage('adgroup')
-        },
-        placeholder: `${$t('common.choice')}`,
-      },
-      fieldName: 'adgroup_id',
-      label: '广告组',
-    },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        mode: 'multiple',
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        options: creativityOptions,
-        onFocus: async () => {
-          await loadAdLinkage('creative')
-        },
-      },
-      fieldName: 'creative_id',
-      label: '创意',
-    },
-  ],
-  showCollapseButton: true,
-  submitOnEnter: false,
-  handleSubmit: async (values) => {
-    // 防抖处理
-    if (submitTimer) {
-      clearTimeout(submitTimer);
-    }
-    
-    submitTimer = setTimeout(async () => {
-      pager.currentPage = 1;
-      currentQueryMetric.value = values.queryMetric || [];
-      const params = buildReportParams(values);
-      await init(params);
-      submitTimer = null;
-    }, 100);
-  },
-  handleReset: async () => {
-    // 取消进行中的请求
-    if (abortController) {
-      abortController.abort();
-    }
-    
-    await gridApi.formApi.resetForm();
-    await gridApi.formApi.setFieldValue('queryMetric', []);
-    await resetLoadedMap
-    
-    currentQueryMetric.value = [];
-    planOptions.value = []
-    advertisementOptions.value = []
-    adGroupOptions.value = []
-    creativityOptions.value = []
-    
-    allData.value = [];
-    currentPageData.value = [];
-    pager.currentPage = 1;
-    pager.total = 0;
-    
-    gridApi.setGridOptions({
-      data: [],
-      columns: [],
-      footerData: [],
-      pagerConfig: {
-        total: 0,
-        currentPage: 1,
-        pageSize: pager.pageSize,
-        pageSizes: [500, 800, 1000],
-      },
-    });
-  },
-};
-
 // 辅助函数
 const makeFilter = (
   field: string,
@@ -549,7 +347,8 @@ function buildReportParams(values: any): AdReportRequest {
     campaign_id,
     adgroup_id,
     promotion_id,
-    creative_id
+    creative_id,
+    advertiserTagId
   } = values;
 
   const normalizeArray = (val?: string | string[]) =>
@@ -563,6 +362,7 @@ function buildReportParams(values: any): AdReportRequest {
     ...(makeFilter('adgroup_id', normalizeArray(adgroup_id)) ?? []),
     ...(makeFilter('promotion_id', normalizeArray(promotion_id)) ?? []),
     ...(makeFilter('creative_id', normalizeArray(creative_id)) ?? []),
+    ...(makeFilter('advertiserTagId', normalizeArray(advertiserTagId)) ?? []),
   ];
 
   return {
@@ -573,16 +373,70 @@ function buildReportParams(values: any): AdReportRequest {
   };
 }
 
+// 表单提交处理
+async function handleFormSubmit(values: any) {
+  pager.currentPage = 1;
+  currentQueryMetric.value = values.queryMetric || [];
+  const params = buildReportParams(values);
+  await init(params);
+}
+
+async function handleFormReset() {
+  if (abortController) {
+    abortController.abort();
+  }
+  
+  currentQueryMetric.value = [];
+  allData.value = [];
+  allDataOrigin.value = [];
+  currentPageData.value = [];
+  pager.currentPage = 1;
+  pager.total = 0;
+  
+  gridApi.setGridOptions({
+    data: [],
+    columns: [],
+    footerData: [],
+    pagerConfig: {
+      total: 0,
+      currentPage: 1,
+      pageSize: pager.pageSize,
+      pageSizes: [500, 800, 1000],
+    },
+  });
+  updateExportData()
+}
+
+async function handleUseTemplate(template: searchDataFilter) {
+  if (pendingRequest) {
+    pendingRequest = null;
+  }
+  
+  // 使用表单实例设置值
+  await filterFormRef.value?.setValues(template);
+  
+  currentQueryMetric.value = template.queryMetric ? [...template.queryMetric] : [];
+  
+  const values = await filterFormRef.value?.getValues();
+  const params = buildReportParams(values);
+  await init(params);
+}
+
 function reloadFromStart(metricIds: string[]) {
-  gridApi.formApi.setFieldValue('queryMetric', metricIds)
+  filterFormRef.value?.setFieldValue('queryMetric', metricIds);
   currentQueryMetric.value = metricIds;
 }
 
-/* Grid 配置 - 添加虚拟滚动优化 */
+async function openSaveTemplateModalModal() {
+  searchData.value = await filterFormRef.value?.getValues();
+  sveTemplateModalApi.open();
+}
+
+/* Grid 配置 - 添加远程排序支持 */
 const gridOptions: VxeGridProps = {
   showFooter: true,
   border: true,
-  height: "auto",
+  height: "100%",
   keepSource: true,
   columns: [],
   data: [],
@@ -592,7 +446,7 @@ const gridOptions: VxeGridProps = {
     refresh: true,
     refreshOptions: {
       query: async () => {
-        await gridApi.formApi.submitForm()
+        await filterFormRef.value?.submitForm();
       }
     },
     zoom: true,
@@ -600,7 +454,7 @@ const gridOptions: VxeGridProps = {
   exportConfig: {
     filename: '',
     types: ["csv", "xlsx"],
-    modes: ['current', 'all'],
+    modes: ['all'],
     original: true,
   },
   pagerConfig: {
@@ -610,47 +464,75 @@ const gridOptions: VxeGridProps = {
     currentPage: pager.currentPage,
     pageSizes: [500, 800, 1000, 2000],
   },
-  proxyConfig: undefined,
+  proxyConfig: {
+    enabled: false, // 确保关闭代理配置，使用手动控制
+  },
   footerData: [],
-  // 优化8：开启虚拟滚动，提升大数据渲染性能
-  scrollX: { enabled: true, gt: 0 },
-  scrollY: { enabled: true, gt: 0 },
+  // 开启虚拟滚动，提升大数据渲染性能
+  scrollX: { enabled: true, gt: 10 },
+  scrollY: { enabled: true, gt: 10 },
   // 优化渲染性能
   rowConfig: {
-    isHover: true,
+    isHover: false,
     useKey: true,
     keyField: 'seq',
   },
+  // 启用远程排序模式（手动控制排序）
+  sortConfig: {
+    remote: true,
+    multiple: false, // 单列排序
+  }
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({
-  formOptions,
   gridOptions,
   gridEvents,
 });
 
-setGridApi(gridApi)
+// 在 onMounted 中初始化数据
+onMounted(async () => {
+  const res = await projectApi.fetchProjectList({
+    page: 1,
+    pageSize: 1000,
+  });
+  projectOptions.value = res.items;
+  
+  handleFormReset()
+});
 
+const wrapperClass = ref('grid-cols-1 md:grid-cols-2 lg:grid-cols-3')
+const content = ref('搜索')
+const isShowActions = ref(true)
 </script>
 
 <template>
   <div>
     <Page auto-content-height>
-      <Grid>
-        <template #reset-before>
-          <Button type="primary" @click="openSaveTemplateModalModal">
-            保存模板
-          </Button>
-        </template>
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openTemplateListModalModal">
-            报表模板
-          </Button>
-          <Button type="primary" @click="openPlatformMetricMapDetailModal" danger>
-            {{ $t('core.metric') }}
-          </Button>
-        </template>
-      </Grid>
+      <div class="search-content">
+        <AdReportFilterForm 
+          ref="filterFormRef"
+          :wrapperClass="wrapperClass"
+          :isShowActions="isShowActions"
+          :content="content"
+          @submit="handleFormSubmit"
+          @reset="handleFormReset"
+        />
+      </div>
+      <div style="height: calc(100% - 202px);">
+        <Grid>
+          <template #toolbar-tools>
+            <Button  class="mr-2" type="primary" @click="openSaveTemplateModalModal">
+              保存模板
+            </Button>
+            <Button class="mr-2" type="primary" @click="openTemplateListModalModal">
+              报表模板
+            </Button>
+            <Button type="primary" @click="openPlatformMetricMapDetailModal" danger>
+              {{ $t('core.metric') }}
+            </Button>
+          </template>
+        </Grid>
+      </div>
     </Page>
     <SelectMetricModalModal @confirmMetric="reloadFromStart" :selectedMetrics="currentQueryMetric"/>
     <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData"/>
@@ -658,5 +540,11 @@ setGridApi(gridApi)
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+.search-content {
+  background: #fff;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 10px;
+  padding: 20px 10px 0 0;
+}
 </style>

@@ -2,6 +2,7 @@ import {
   type Adgroup,
   type Campaign,
   getAudience,
+  getDeepLink,
   getMaterial,
   getRuleInfoAdCount,
   getRuleInfoCampaignCount,
@@ -16,6 +17,7 @@ import type { TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
 import type { BaseItem } from '#/api/models/core';
 import { Platform } from '#/constants/enums';
 import { renderProjectTitle } from '#/utils/customName';
+import type { Ref } from 'vue';
 
 /**
  * vivo 初始化对象
@@ -31,6 +33,17 @@ export interface VivoConfigData {
   material: MaterialData;
   // 投放资质
   advertiserQualification: Map<string, QualificationValue>;
+  deepLinkList: VivoDeepLinkData;
+}
+
+// 广告创意素材组deepLink链接
+export interface VivoDeepLinkData {
+  deepLinkConfig: VivoDeepLinkDataConfig;
+  data: Map<string, Array<string>>;
+}
+
+export interface VivoDeepLinkDataConfig {
+  method: string;
 }
 
 /**定义存储的资质信息结构 */
@@ -120,7 +133,7 @@ export interface VivoAdgroupData {
   ruleAudience: string;
   channelId: number;
   apkId: number;
-  secondCvType: number;
+  secondCvType: number | null;
   secondOcpxPrice: number;
   conversionFilterCycle: number;
   biddingStrategy: number;
@@ -246,7 +259,7 @@ export interface VivoAdgroup extends Adgroup {
   ruleAudience: string;
   channelId: number;
   apkId: number;
-  secondCvType: number;
+  secondCvType: number | null;
   secondOcpxPrice: number;
   conversionFilterCycle: number;
   biddingStrategy: number;
@@ -324,6 +337,55 @@ export interface BatchReturnBasics {
   index: number;
   message: string;
   requestId: string;
+}
+
+/**广告资质类型 */
+export interface AdvertisingQualificationType {
+  advertiseQualificationId: string; // 资质ID: "385831"
+  appCnName: string; // 应用名称: "京东-又好又便宜"
+  productName: string; // 包名: "com.jingdong.app.mall"
+  industry1: number; // 一级行业分类ID
+  industry1Name: string; // 一级行业名称: "电商"
+  industry2: number; // 二级行业分类ID
+  industry2Name: string; // 二级行业名称: "综合电商平台"
+  state: number; // 状态: 1
+  createTime: string; // 创建时间
+  updateTime: string; // 更新时间
+  qualificationValidDate: string; // 有效期
+  productType: number; // 产品类型
+  // ... 其他可选字段
+  icpCaseNumber?: string;
+  icpDomainName?: string;
+  productDescription?: string;
+}
+
+/**提交审核批投当前账户扁平数组类型 */
+export interface CampaignData {
+  deepLink?: string;
+  pIdx?: number;
+  adGroupIdx: number;
+  advertiserId?: string;
+  campaignAdType?: number;
+  campaignBudget?: number;
+  campaignIdx: number;
+  campaignMediaType?: number;
+  campaignName?: string;
+  campaignState?: string;
+  creativeCount?: number;
+  displayCreativePushTitle?: string;
+  displayCreativeSubTitle?: string;
+  displayCreativeTitle?: string;
+  errorMsg?: string;
+  groupDailyBudget?: number;
+  groupName?: string;
+  groupOcpxPrice?: number | string;
+  groupPrice?: number;
+  promoName?: string;
+  rowCampaignId?: string;
+  rowGroupId?: string;
+  rowPromoId?: string;
+  submitIndex: number;
+  _X_ROW_KEY?: string;
 }
 
 /**
@@ -440,6 +502,12 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           k,
         );
 
+        const deepLink: string = getDeepLink(
+          creationInfo.configData.deepLinkList.deepLinkConfig.method,
+          creationInfo.configData.deepLinkList.data,
+          account.localAdvertiserId,
+        );
+
         const newMaterialList: Array<LocalMaterialData> = [...material.video, ...material.image];
 
         // 图片
@@ -465,7 +533,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
         adgroup.promotionList.push({
           adgroupId: '',
           name: renderProjectTitle(creationInfo.configData.promotion.name, k),
-          deepLink: creationInfo.configData.promotion.deepLink,
+          deepLink: deepLink,
           videoAttribution: creationInfo.configData.promotion.videoAttribution,
           pageUrl: creationInfo.configData.promotion.pageUrl,
           h5Code: creationInfo.configData.promotion.h5Code,
@@ -505,4 +573,47 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
   });
 
   return vivoTableData;
+}
+
+/**批量修改操作 */
+interface UseVivoTableUpdateOptions {
+  tableData: Ref<VivoTableData[]>;
+  activeAccountId: Ref<string>;
+  gridApi: any;
+  flattenFn: (campaignList: VivoCampaign[], advertiserId: string) => any[];
+}
+
+/**批量修改操作 */
+export function useVivoTableUpdate(options: UseVivoTableUpdateOptions) {
+  const { tableData, activeAccountId, gridApi, flattenFn } = options;
+
+  /**
+   * 核心更新方法：修改原始嵌套数据并同步刷新 UI
+   * @param callback 具体的业务修改逻辑
+   */
+  function handleUpdateOriginalData(callback: (accountData: VivoTableData) => void) {
+    // 1. 找到当前操作的账户原始数据
+    const currentAccountData = tableData.value.find(
+      (item) => item.advertiserId === activeAccountId.value,
+    );
+
+    if (!currentAccountData) {
+      console.warn('未找到当前账户数据');
+      return;
+    }
+
+    // 2. 执行传入的业务逻辑
+    callback(currentAccountData);
+
+    // 3. 刷新 UI
+    const $grid = gridApi.grid;
+    if ($grid) {
+      const flattened = flattenFn(currentAccountData.campaignList, currentAccountData.advertiserId);
+      $grid.loadData(flattened);
+    }
+  }
+
+  return {
+    handleUpdateOriginalData,
+  };
 }

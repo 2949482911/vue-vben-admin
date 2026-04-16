@@ -622,6 +622,74 @@ platformConfigForm.set(Platform.NBY, [
     rules: 'required',
   },
 ])
+// 咸鱼大航海
+platformConfigForm.set(Platform.XIANYU_DHH, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'taskId',
+    // 界面显示的label
+    label: `taskId`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'app',
+    // 界面显示的label
+    label: `app`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'channel',
+    // 界面显示的label
+    label: `channel`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'advertisingSpaceId',
+    // 界面显示的label
+    label: `advertisingSpaceId`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'adAgent',
+    // 界面显示的label
+    label: `adAgent`,
+    rules: 'required',
+  },
+])
 
 //增加tbkId输入框
 function batchAddSchema() {

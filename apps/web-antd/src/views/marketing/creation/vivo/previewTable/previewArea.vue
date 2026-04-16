@@ -1,9 +1,22 @@
 <script setup lang="ts">
-import { Button, Card, Divider, TypographyText, Input, Tag, message } from 'ant-design-vue';
+import {
+  Button,
+  Card,
+  Divider,
+  TypographyText,
+  Input,
+  Menu,
+  MenuItem,
+  Tag,
+  message,
+  Dropdown,
+  Textarea,
+} from 'ant-design-vue';
 import { computed, h, onMounted, onUnmounted, ref } from 'vue';
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import {
   getVivoTableData,
+  useVivoTableUpdate,
   type VivoConfigData,
   type VivoCreation,
   type VivoTableData,
@@ -13,6 +26,7 @@ import {
   type VivoAdgroup,
   type VivoPromotion,
   type VivoCampaign,
+  type CampaignData,
 } from '../vivo';
 import {
   getRuleInfoCampaignCount,
@@ -20,7 +34,7 @@ import {
   type PlatformCreation,
 } from '#/views/marketing/creation/creation';
 import { Platform } from '#/constants/enums';
-import { MEDIA_SELECT, PROJRCT_SELECT, type CampaignData } from '../projectEnum';
+import { MEDIA_SELECT, PROJRCT_SELECT } from '../projectEnum';
 import { useOssClient } from '#/views/marketing/asset/material/useOssClient';
 import { uploadToOss } from '#/utils/uploadToOss';
 import { useUserStore } from '@vben/stores';
@@ -75,6 +89,10 @@ function openSubmitReviewModal() {
 //--------------自定义修改项目名称--------------
 const editingRow = ref<CampaignData>(); // 记录当前正在编辑哪一行
 const editingField = ref<string>(''); // 记录当前修改的字段名：campaignName | groupName | promoName
+const editingText = ref<string>('项目名称');
+const editingTitle = ref<string>('修改项目名称');
+const batchModifyText = ref<string>('项目名称');
+const batchModifyTitle = ref<string>('批量修改项目名称');
 const tempName = ref(''); // 弹窗输入框绑定的临时值
 
 const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
@@ -105,26 +123,24 @@ const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
           if (group) {
             group.name = newName;
           }
-        } else if (field === 'promoName') {
-          // 修改广告层
-          // 注意：flatten 时 promo 层对应的索引其实是该组下的具体广告
-          // 但由于你 flatten 时用了 globalIndex(submitIndex)，最稳妥的是在 tableData 里再次定位
-          // 我们需要找到 promotionList 中对应的那个对象
-          // 逻辑：在该组的 promotionList 中寻找
+        } else if (field === 'promoName' || field === 'deepLink') {
           const group = campaign.adgroupList[adGroupIdx];
-          // 查找该行对应的具体广告对象（可以通过 name 匹配，或者你在 flatten 时多传一个 pIdx）
-          // 优化建议：在 flatten 时加上 pIdx: pIdx
+          let targetPromo: VivoPromotion | undefined = undefined;
           const pIdx = editingRow.value.pIdx;
-          if (pIdx !== undefined) {
-            const promo = group?.promotionList ? group?.promotionList[pIdx] : undefined;
-            if (promo) {
-              promo.name = newName;
-            }
-          } else {
-            // 如果没传 pIdx，暂时用 submitIndex 逻辑降级处理或通过名称匹配
-            const promo = group?.promotionList.find((p) => p.name === editingRow.value?.promoName);
-            if (promo) {
-              promo.name = newName;
+
+          if (pIdx !== undefined && group?.promotionList) {
+            targetPromo = group.promotionList[pIdx];
+          } else if (group?.promotionList) {
+            targetPromo = group.promotionList.find(
+              (p: VivoPromotion) => p.name === editingRow.value?.promoName,
+            );
+          }
+
+          if (targetPromo) {
+            if (field === 'promoName') {
+              targetPromo.name = newName;
+            } else if (field === 'deepLink') {
+              targetPromo.deepLink = newName; // 现在能进来了
             }
           }
         }
@@ -152,9 +168,13 @@ const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
           ) {
             r.groupName = newName;
           }
-          // 如果改的是广告名：只改当前行
-          if (field === 'promoName' && r.submitIndex === submitIndex) {
-            r.promoName = newName;
+          if (r.advertiserId === advertiserId && r.submitIndex === submitIndex) {
+            // 只要是广告层级的修改，都只针对 submitIndex 匹配的这一行
+            if (field === 'promoName') {
+              r.promoName = newName;
+            } else if (field === 'deepLink') {
+              r.deepLink = newName;
+            }
           }
         }
       });
@@ -169,7 +189,17 @@ const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
   },
 });
 
-function handleEditName(row: CampaignData, field: 'campaignName' | 'groupName' | 'promoName') {
+function handleEditName(
+  row: CampaignData,
+  field: 'campaignName' | 'groupName' | 'promoName' | 'deepLink',
+) {
+  if (field === 'deepLink') {
+    editingTitle.value = '修改deepLink链接';
+    editingText.value = 'deepLink链接';
+  } else {
+    editingTitle.value = '修改项目名称';
+    editingText.value = '项目名称';
+  }
   editingRow.value = row;
   editingField.value = field;
   tempName.value = row[field] || ''; // 根据字段获取初始值
@@ -237,7 +267,17 @@ const adCount = computed({
   set: () => {},
 });
 
-const handleSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
+const handleSpanMethod = ({
+  row,
+  _rowIndex,
+  column,
+  visibleData,
+}: {
+  row: any;
+  _rowIndex: number;
+  column: any;
+  visibleData: CampaignData[];
+}) => {
   const field = column.field;
 
   // 1. 定义需要合并的层级
@@ -271,8 +311,8 @@ const handleSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
     const prevRow = visibleData[_rowIndex - 1];
     const prevTargetId =
       campaignFields.includes(field) || column.type === 'checkbox'
-        ? prevRow.rowCampaignId
-        : prevRow.rowGroupId;
+        ? prevRow?.rowCampaignId
+        : prevRow?.rowGroupId;
     if (targetId === prevTargetId) {
       return { rowspan: 0, colspan: 0 };
     }
@@ -284,8 +324,8 @@ const handleSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
     const nextRow = visibleData[i];
     const nextTargetId =
       campaignFields.includes(field) || column.type === 'checkbox'
-        ? nextRow.rowCampaignId
-        : nextRow.rowGroupId;
+        ? nextRow?.rowCampaignId
+        : nextRow?.rowGroupId;
     if (targetId === nextTargetId) {
       countRowspan++;
     } else {
@@ -296,8 +336,11 @@ const handleSpanMethod = ({ row, _rowIndex, column, visibleData }: any) => {
 };
 
 // 辅助渲染函数，减少冗余代码
-const renderEditCell = (row: any, field: 'campaignName' | 'groupName' | 'promoName') => {
-  return h('div', { class: 'flex items-center gap-1' }, [
+const renderEditCell = (
+  row: CampaignData,
+  field: 'campaignName' | 'groupName' | 'promoName' | 'deepLink',
+) => {
+  return h('div', [
     h('span', row[field]),
     h(
       Button,
@@ -311,7 +354,7 @@ const renderEditCell = (row: any, field: 'campaignName' | 'groupName' | 'promoNa
   ]);
 };
 
-const gridOptions: VxeGridProps<any> = {
+const gridOptions: VxeGridProps = {
   border: true,
   height: 'auto',
   columnConfig: { resizable: true },
@@ -325,7 +368,9 @@ const gridOptions: VxeGridProps<any> = {
     if (!$grid) return '';
     const selectRecords = $grid.getCheckboxRecords();
     // 只要已选记录里有该计划的行，整块变色
-    const isBlockActive = selectRecords.some((r: any) => r.rowCampaignId === row.rowCampaignId);
+    const isBlockActive = selectRecords.some(
+      (r: CampaignData) => r.rowCampaignId === row.rowCampaignId,
+    );
     return isBlockActive ? 'is--campaign-block-active' : '';
   },
   showOverflow: false,
@@ -352,8 +397,8 @@ const gridOptions: VxeGridProps<any> = {
               title: '名字',
               slots: { default: ({ row }) => renderEditCell(row, 'groupName') },
             },
-            { field: 'groupPrice', title: '一阶出价' },
-            { field: 'groupOcpxPrice', title: '二阶出价' },
+            // { field: 'groupPrice', title: '一阶出价' },
+            { field: 'groupOcpxPrice', title: '转化出价' },
             { field: 'groupDailyBudget', title: '日预算' },
             {
               title: '广告',
@@ -362,6 +407,12 @@ const gridOptions: VxeGridProps<any> = {
                   field: 'promoName',
                   title: '名字',
                   slots: { default: ({ row }) => renderEditCell(row, 'promoName') },
+                },
+                {
+                  field: 'deepLink',
+                  title: 'deepLink链接',
+                  width: '98px',
+                  slots: { default: ({ row }) => renderEditCell(row, 'deepLink') },
                 },
                 {
                   title: '创意',
@@ -386,12 +437,12 @@ const gridOptions: VxeGridProps<any> = {
 // 1. 定义事件对象
 const gridEvents = {
   // 复选框勾选事件
-  checkboxChange: ({ checked, row }: any) => {
+  checkboxChange: ({ checked, row }: { checked: boolean; row: CampaignData }) => {
     const $grid = gridApi.grid;
     if ($grid) {
       const allRows = $grid.getData();
       // 依然保持逻辑上的联动：选中计划，该计划下所有创意行在数据层面被勾选
-      const blockRows = allRows.filter((r: any) => r.rowCampaignId === row.rowCampaignId);
+      const blockRows = allRows.filter((r: CampaignData) => r.rowCampaignId === row.rowCampaignId);
       $grid.setCheckboxRow(blockRows, checked);
       // 注意：这里不需要 $grid.updateData() 了，因为不需要触发自定义 class 刷新
     }
@@ -436,7 +487,7 @@ defineExpose({ generateTable, clearTable });
  * 将嵌套的广告数据结构拍平成 Vxe-Table 可识别的行数据
  */
 function flattenVivoData(campaignList: VivoCampaign[], advertiserId: string) {
-  const rows: any[] = [];
+  const rows: CampaignData[] = [];
   let globalIndex = 0; // index 是基于整个账号下的广告总计数
 
   campaignList?.forEach((campaign, cIdx) => {
@@ -456,7 +507,7 @@ function flattenVivoData(campaignList: VivoCampaign[], advertiserId: string) {
 
           // --- 计划层级字段 ---
           campaignName: campaign.name,
-          campaignBudget: campaign.dailyBudget,
+          campaignBudget: campaign.dailyBudget != -1 ? campaign.dailyBudget / 100000 : -1,
           campaignMediaType: campaign.mediaType,
           campaignAdType: campaign.adType,
 
@@ -470,12 +521,13 @@ function flattenVivoData(campaignList: VivoCampaign[], advertiserId: string) {
 
           // --- 广告组层级字段 ---
           groupName: group.name,
-          groupPrice: group.price ? group.price : '-',
-          groupOcpxPrice: group.ocpxPrice ? group.ocpxPrice : '-',
-          groupDailyBudget: group.dailyBudget,
+          // groupPrice: group.price / 100000 || '-',
+          groupOcpxPrice: group.ocpxPrice / 100000 || '-',
+          groupDailyBudget: group.dailyBudget != -1 ? group.dailyBudget / 100000 : -1,
 
           // --- 广告层级字段 ---
           promoName: promo.name,
+          deepLink: promo.deepLink || '-',
 
           // --- 汇总后的展示字段 ---
           displayCreativeTitle: count > 0 ? `${creatives[0]?.title}（${count}个素材）` : '-',
@@ -659,9 +711,9 @@ function updateTableRowsStatus(
   const allRows = [...$grid.getData()];
   const res = { campaignResp, adGroupResp, promotionResp };
 
-  allRows.forEach((row: any) => {
+  allRows.forEach((row: CampaignData) => {
     // 调用统一逻辑
-    const { state, msg } = getUnifiedStatus(row.advertiserId, row, res);
+    const { state, msg } = getUnifiedStatus(row.advertiserId ?? '', row, res);
     row.campaignState = state;
     row.errorMsg = msg;
   });
@@ -683,9 +735,9 @@ function updateAllTableDataStatus(
     // 关键：手动维护 globalIndex，确保逻辑与 flatten 保持一致
     let globalIndex = 0;
 
-    accData.campaignList.forEach((campaign: any, cIdx: number) => {
-      campaign.adgroupList.forEach((group: any, gIdx: number) => {
-        group.promotionList.forEach((promo: any) => {
+    accData.campaignList.forEach((campaign: VivoCampaign, cIdx: number) => {
+      campaign.adgroupList.forEach((group: VivoAdgroup, gIdx: number) => {
+        group.promotionList.forEach((promo: VivoPromotion) => {
           // --- 核心修改处 ---
           // 构造一个模拟的 row 对象传给 getUnifiedStatus
           const mockRow = {
@@ -749,6 +801,66 @@ function getUnifiedStatus(
   return { state: '待提交', msg: '-' };
 }
 
+//--------------批量修改操作--------------
+const nameCollection = ref<string>('');
+//批量修改
+const batchModifyType = ref<'project' | 'ad'>('project');
+
+const { handleUpdateOriginalData } = useVivoTableUpdate({
+  tableData,
+  activeAccountId,
+  gridApi,
+  flattenFn: flattenVivoData, // 传入你组件内的拍平函数
+});
+const [BatchModifyNameModal, batchModifyNamemodalApi] = useVbenModal({
+  onConfirm() {
+    if (!nameCollection.value.trim()) return batchModifyNamemodalApi.close();
+    const newNames = nameCollection.value
+      .split('\n')
+      .map((n) => n.trim())
+      .filter(Boolean);
+
+    // 调用抽离出来的公共更新逻辑
+    handleUpdateOriginalData((accountData) => {
+      if (batchModifyType.value === 'project') {
+        newNames.forEach((name, index) => {
+          if (accountData.campaignList[index]) {
+            accountData.campaignList[index].name = name;
+          }
+        });
+      } else {
+        const allPromos = accountData.campaignList.flatMap((c) =>
+          c.adgroupList.flatMap((g) => g.promotionList),
+        );
+        newNames.forEach((name, index) => {
+          if (allPromos[index]) {
+            allPromos[index].name = name;
+          }
+        });
+      }
+    });
+    message.success('批量修改成功');
+    nameCollection.value = '';
+    batchModifyNamemodalApi.close();
+  },
+  onCancel() {
+    nameCollection.value = '';
+    batchModifyNamemodalApi.close();
+  },
+});
+
+function batchModifyName(val: 'project' | 'ad') {
+  batchModifyType.value = val; // 记录当前修改的是哪个层级
+  if (val === 'project') {
+    batchModifyTitle.value = '批量修改项目名称';
+    batchModifyText.value = '项目名称';
+  } else {
+    batchModifyTitle.value = '批量修改广告名称';
+    batchModifyText.value = '广告名称';
+  }
+  batchModifyNamemodalApi.open();
+}
+
 onUnmounted(() => {
   if (pollTimer.value) clearTimeout(pollTimer.value);
 });
@@ -762,7 +874,7 @@ onUnmounted(() => {
     <div v-else>
       <!-- <div> -->
       <div
-        style="display: flex; align-items: center; justify-content: space-between; margin: 0 0 20px"
+        style="display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px"
       >
         <div class="sum">
           <div style="margin: 0 20px 0 0">
@@ -773,7 +885,15 @@ onUnmounted(() => {
           </div>
           <Button type="primary" @click="openSubmitReviewModal">提交审核</Button>
         </div>
-        <!-- <Button type="primary" danger>批量删除</Button> -->
+        <Dropdown trigger="click" placement="bottom">
+          <Button type="primary">批量操作</Button>
+          <template #overlay>
+            <Menu>
+              <MenuItem @click="batchModifyName('project')"> 修改项目名称 </MenuItem>
+              <MenuItem @click="batchModifyName('ad')"> 修改广告名称 </MenuItem>
+            </Menu>
+          </template>
+        </Dropdown>
       </div>
       <Card>
         <div style="display: flex; align-items: center">
@@ -867,12 +987,18 @@ onUnmounted(() => {
         </div>
       </div>
     </Modal>
-    <CustomizeNameModal title="修改项目名称">
+    <CustomizeNameModal :title="editingTitle">
       <div class="py-4 flex items-center">
-        <div>项目名称：</div>
-        <Input class="w-[300px]" v-model:value="tempName" placeholder="请输入项目名称" />
+        <div>{{ editingText }}：</div>
+        <Input class="w-[300px]" v-model:value="tempName" placeholder="请输入" />
       </div>
     </CustomizeNameModal>
+    <BatchModifyNameModal :title="batchModifyTitle">
+      <div class="py-4 flex items-center">
+        <div>{{ batchModifyText }}：</div>
+        <Textarea class="w-[400px]" v-model:value="nameCollection" placeholder="请输入" :rows="6" />
+      </div>
+    </BatchModifyNameModal>
   </div>
 </template>
 

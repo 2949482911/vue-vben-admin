@@ -6,7 +6,6 @@
     :placeholder="placeholder"
     :allow-clear="allowClear"
     :disabled="disabled"
-    :loading="loading"
     :show-search="true"
     :filter-option="false"
     :not-found-content="notFoundContent"
@@ -17,6 +16,7 @@
     :max-tag-count="maxTagCount"
     :max-tag-placeholder="maxTagPlaceholder"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
+    :selectPlatform="selectPlatform"
     @search="handleSearch"
     @change="handleChange"
     @focus="handleFocus"
@@ -37,6 +37,10 @@ const props = defineProps({
   },
   // 选择模式：'multiple' | 'tags' | undefined
   mode: {
+    type: String,
+    default: undefined,
+  },
+  selectPlatform: {
     type: String,
     default: undefined,
   },
@@ -283,7 +287,6 @@ const remoteSearch = async (keyword) => {
       ...props.remoteSearchParams,
       [props.remoteSearchField]: keyword,
     };
-    
     const res = await api(searchParams);
     const formattedData = formatOptions(res);
     searchResults.value = formattedData;
@@ -364,7 +367,7 @@ const handleChange = (value) => {
 
 const handleFocus = (e) => {
   emit('focus', e);
-  
+  // loadInitialData()
   if (props.clearSearchOnFocus) {
     resetSearchState();
   }
@@ -385,6 +388,10 @@ watch(() => props.modelValue, (newVal) => {
   if (newVal !== innerValue.value) {
     innerValue.value = newVal;
   }
+});
+
+watch(() => props.selectPlatform, (newVal) => {
+  loadInitialData();
 });
 
 // ========== 暴露方法 ==========
