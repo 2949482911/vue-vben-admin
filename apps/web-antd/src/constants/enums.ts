@@ -40,7 +40,6 @@ export enum Platform {
   XIANYU = 'xianyu',
   DY_DULIDUAN = 'dy_duliduan',
   YOUKU = 'youku',
-  KUAIZUANKE = 'kuaizuanke',
   IZJIE = "izjie",
   RUIZHANG = "ruizhang",
   THREE_WATER = "three_water",
