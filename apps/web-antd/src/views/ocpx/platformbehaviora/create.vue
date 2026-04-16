@@ -683,6 +683,28 @@ platformConfigForm.set(Platform.XIANYU_DHH, [
     label: `adAgent`,
     rules: 'required',
   },
+  {
+    // 媒体配置表单
+    component: 'Select',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: '请选择',
+      options: [
+        {
+          value: 1,
+          label: '启用',
+        },
+        {
+          value: 9,
+          label: '禁止',
+        }
+      ]
+    },
+    // 字段名
+    fieldName: 'specialCallback',
+    // 界面显示的label
+    label: '特殊回传',
+  },
 ])
 
 //增加tbkId输入框
