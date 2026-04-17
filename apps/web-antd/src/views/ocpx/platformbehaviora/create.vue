@@ -1418,6 +1418,15 @@ platformConfigForm.set(Platform.LONGYU, [
     fieldName: 'chainCode',
     label: 'chainCode',
     rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'adid',
+    label: 'adid',
+    rules: 'required',
   }
 ])
 
