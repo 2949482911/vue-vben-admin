@@ -519,6 +519,45 @@ platformConfigForm.set(Platform.HUICHUAN, [
     rules: 'required',
   },
 ]);
+// 小米
+platformConfigForm.set(Platform.XIAOMI, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'carrier_id',
+    // 界面显示的label
+    label: 'carrier_id',
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'capital_id',
+    // 界面显示的label
+    label: 'capital_id',
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'secret_key',
+    // 界面显示的label
+    label: 'secret_key',
+    rules: 'required',
+  },
+]);
 /**
  *
  * @param platform 平台

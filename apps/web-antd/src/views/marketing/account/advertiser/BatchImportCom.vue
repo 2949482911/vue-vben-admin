@@ -26,6 +26,10 @@ const [Form, formApi] = useVbenForm({
           {
             label: '华为商店',
             value: 'huawei_store'
+          },
+          {
+            label: 'OPPO',
+            value: 'oppo'
           }
         ],
       },
@@ -97,6 +101,7 @@ const [Modal, modalApi] = useVbenModal({
 
 // 取消按钮：重置表单并关闭对话框
 const handleCancel = async () => {
+  submitting.value = false;
   await formApi.resetForm();
   await modalApi.close();
 };
@@ -108,6 +113,7 @@ const handleConfirm = async () => {
   } catch {
     return; 
   }
+  submitting.value = true;
   const values = await formApi.getValues();
   const platform = values.platform;
   const file = selectedFile.value;
@@ -118,9 +124,7 @@ const handleConfirm = async () => {
   const formData = new FormData();
   formData.append('file', file); 
   try {
-    console.log(formData instanceof FormData)
    const res = await advertiserApi.fetchImportData(formData, platform );
-   console.log('res',res)
    if(res.errors.length === 0) {
     const successCount = res.successCount
     const failCount = res.failCount
@@ -136,7 +140,6 @@ const handleConfirm = async () => {
     submitting.value = false;
   }
 };
-  console.log(formApi)
 const downloadTemplate = async () => {
   const formValue = await formApi.getValues();
   console.log(formApi)
@@ -165,7 +168,7 @@ const downloadTemplate = async () => {
       <template #footer>
         <div class="flex justify-end gap-2">
           <Button @click="handleCancel">{{ $t('common.cancel') }}</Button>
-          <Button type="primary" ghost @click="downloadTemplate">下载模板</Button>
+          <Button type="primary" ghost @click="downloadTemplate" :disabled="submitting">下载模板</Button>
           <Button type="primary" @click="handleConfirm" :loading="submitting">{{ $t('common.confirm') }}</Button>
         </div>
       </template>

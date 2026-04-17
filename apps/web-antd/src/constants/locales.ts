@@ -275,6 +275,10 @@ export const BACKHAUL = [
   {
     label: '超级汇川',
     value: 'huichuan',
+  },
+  {
+    label: '小米',
+    value: 'xiaomi',
   }
 ];
 
