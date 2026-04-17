@@ -361,6 +361,8 @@ export interface AdvertisingQualificationType {
 
 /**提交审核批投当前账户扁平数组类型 */
 export interface CampaignData {
+  exposureLink?: string;
+  clickLink?: string;
   deepLink?: string;
   pIdx?: number;
   adGroupIdx: number;

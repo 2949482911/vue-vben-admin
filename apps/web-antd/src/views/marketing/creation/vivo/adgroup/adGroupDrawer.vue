@@ -165,7 +165,7 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     componentProps: {
       allowClear: true,
-      class: 'w-[250px]',
+      class: '!w-[250px]',
     },
     labelWidth: 150,
     formItemClass: 'col-span-1',
@@ -376,7 +376,7 @@ const [Form, formApi] = useVbenForm({
               :maxlength="100"
               allow-clear
               show-count
-              class="w-[250px]"
+              class="!w-[250px]"
             />
 
             <div class="flex flex-wrap items-center gap-2 text-xs mt-1">
@@ -397,7 +397,7 @@ const [Form, formApi] = useVbenForm({
           <Input
             v-model:value="advertiseQualificationId"
             placeholder="请选择广告投放资质ID"
-            class="w-[250px]"
+            class="!w-[250px]"
             readonly
             @click="openAdPlacementQualificationModal"
           />

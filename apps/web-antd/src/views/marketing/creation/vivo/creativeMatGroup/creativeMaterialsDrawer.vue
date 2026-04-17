@@ -512,7 +512,7 @@ async function updateDeepLink(params: VivoDeepLinkData) {
               :maxlength="100"
               allow-clear
               show-count
-              class="w-[300px]"
+              class="!w-[300px]"
             />
 
             <div class="flex flex-wrap items-center gap-2 text-xs mt-1">
@@ -557,7 +557,7 @@ async function updateDeepLink(params: VivoDeepLinkData) {
         </template>
         <template #deepLink>
           <Input
-            class="w-[300px]"
+            class="!w-[300px]"
             placeholder="请输入"
             v-model:value="deepLinkText"
             readonly
