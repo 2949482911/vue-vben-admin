@@ -12,9 +12,6 @@ const emit = defineEmits(['pageReload']);
 //父组件传过来的advertiserId
 const selectedRows = ref<AdvertiserItem[]>([]);
 const modalType = ref<TitleKey>('edit');
-const labelName = ref<string>('name');
-const formLabel = ref<string>('');
-const fieldName = ref<string>('');
 const title = ref<string>('');
 const menuData = ref<OrgItem[]>([]);
 
@@ -32,177 +29,6 @@ const titleMap: Record<TitleKey, string> = reactive({
 });
 const creatorUerName = ref();
 const selectedOrgCode = ref();
-// 核心修改：用 computed 包裹 schema
-const dynamicSchema = computed((): FormSchema[] => {
-  let operateSchema: FormSchema[] = [];
-  if (modalType.value === 'sale' || modalType.value === 'creator') {
-    operateSchema = [
-      {
-        component: 'TreeSelect',
-        componentProps: {
-          allowClear: true,
-          placeholder: `${$t('common.choice')}`,
-          showSearch: true,
-          filterTreeNode: true,
-          treeData: menuData,
-          fieldNames: {
-            label: 'name',
-            value: 'id',
-            children: 'children',
-          },
-        },
-        fieldName: 'orgId',
-        label: '部门',
-      },
-      {
-        component: 'Select',
-        componentProps: {
-          allowClear: true,
-          options: salesOption,
-          placeholder: `${$t('common.choice')}`,
-          onSelect: (selectedKeys, event, node) => {
-            if (modalType.value === 'creator') {
-              if (event && event.label) {
-                creatorUerName.value = event.label;
-              }
-            }
-          },
-        },
-        // 字段名
-        fieldName: modalType.value === 'creator' ? 'creatorId' : 'saleId',
-        label: modalType.value === 'creator' ? '创建人' : '销售',
-        dependencies: {
-          show: true,
-          triggerFields: ['orgId'],
-          required: (value) => !!value.orgId,
-          rules: (value) => {
-            if (value.orgId) {
-              return 'required';
-            }
-            return '';
-          },
-          if: (value, formApi) => {
-            if (value.orgId) {
-              modalType.value === 'creator'
-                ? formApi.setFieldValue('creatorId', null)
-                : formApi.setFieldValue('saleId', null);
-              loadSalesByOrg(value.orgId);
-            } else {
-              salesOption.value = [];
-            }
-            return true;
-          },
-        },
-      },
-    ];
-  } else if (modalType.value === 'edit' || modalType.value === 'bind') {
-    operateSchema = [
-      {
-        component: 'ApiSelect',
-        componentProps: {
-          showSearch: true,
-          placeholder: `${$t('common.input')}`,
-          filterOption: (inputValue: string, option: { label: string }) => {
-            return option.label.toLowerCase().includes(inputValue.toLowerCase());
-          },
-          params: {
-            page: 1,
-            size: 1000,
-          },
-          valueField: 'id',
-          labelField: labelName.value,
-          resultField: 'items',
-          // 注意：api 里的 modalType 是在调用时才执行，本身就是响应式的，无需改
-          api: async (params: any) => {
-            let res;
-            if (modalType.value === 'edit') {
-              res = await projectApi.fetchProjectList(params);
-              labelName.value = 'name';
-              formLabel.value = '项目';
-              fieldName.value = 'projectId';
-            } else if (modalType.value === 'bind') {
-              res = await accountLabelApi.fetchGetAccountLabelList(params);
-              labelName.value = 'name';
-              formLabel.value = '标签';
-              fieldName.value = 'tagId';
-            }
-            return res;
-          },
-        },
-        // 每次 modalType 变化，这里会重新判断
-        fieldName: fieldName.value,
-        label: formLabel.value,
-      },
-    ];
-  } else if (modalType.value === 'status') {
-    operateSchema = [
-      {
-        component: 'RadioGroup',
-        componentProps: {
-          options: [
-            {
-              label: '启用',
-              value: 1,
-            },
-            {
-              label: '禁止',
-              value: 9,
-            },
-          ],
-        },
-        fieldName: 'putStatue',
-        label: '投放状态',
-      },
-    ];
-  } else if (modalType.value === 'hourlyState') {
-    operateSchema = [
-      {
-        component: 'RadioGroup',
-        componentProps: {
-          options: [
-            {
-              label: '拉取',
-              value: 1,
-            },
-            {
-              label: '不拉取',
-              value: 9,
-            },
-          ],
-        },
-        fieldName: 'hourlyState',
-        label: '分时状态',
-      },
-    ];
-  } else if (modalType.value === 'org') {
-    operateSchema = [
-      {
-        component: 'TreeSelect',
-        componentProps: {
-          allowClear: true,
-          placeholder: `${$t('common.choice')}`,
-          showSearch: true,
-          filterTreeNode: true,
-          treeData: menuData,
-          fieldNames: {
-            label: 'name',
-            value: 'id',
-            children: 'children',
-          },
-          onSelect: (selectedKeys, event, node) => {
-            if (event && event.code) {
-              selectedOrgCode.value = event.code;
-            }
-          },
-        },
-        fieldName: 'orgId',
-        label: '部门',
-      },
-    ];
-  }
-  return operateSchema;
-});
-
 async function loadSalesByOrg(orgId: string) {
   if (!orgId) {
     salesOption.value = [];
@@ -268,7 +94,224 @@ const [Form, formApi] = useVbenForm({
       values: values,
     });
   },
-  schema: dynamicSchema,
+  schema: [     
+    {
+      component: 'Input',
+      fieldName: 'modalType',
+      label: '操作类型',
+      dependencies: {
+        show: false,
+        triggerFields: ['*']
+      }
+    },
+    {
+      component: 'ApiSelect',
+      componentProps: {
+        showSearch: true,
+        placeholder: `${$t('common.input')}`,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        params: {
+          page: 1,
+          size: 1000,
+        },
+        valueField: 'id',
+        labelField: 'name',        // 两个接口返回的数据都有 name 字段，直接固定
+        resultField: 'items',
+        api: async (params: any) => {
+          return await projectApi.fetchProjectList(params);
+        },
+      },
+      dependencies: {
+        show: () => {
+          return modalType.value === 'edit';
+        },
+        triggerFields: ['modalType']
+      },
+      fieldName: 'projectId',
+      label: '项目',
+    },
+    {
+      component: 'ApiSelect',
+      componentProps: {
+        showSearch: true,
+        placeholder: `${$t('common.input')}`,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        params: {
+          page: 1,
+          size: 1000,
+        },
+        valueField: 'id',
+        labelField: 'name',        // 两个接口返回的数据都有 name 字段，直接固定
+        resultField: 'items',
+        api: async (params: any) => {
+          return await accountLabelApi.fetchGetAccountLabelList(params);
+          
+        },
+      },
+      dependencies: {
+        show: () => {
+          return modalType.value === 'bind';
+        },
+        triggerFields: ['modalType']
+      },
+      fieldName: 'tagId',
+      label: '标签',
+    },
+    {
+      component: 'RadioGroup',
+      componentProps: {
+        options: [
+          {
+            label: '启用',
+            value: 1,
+          },
+          {
+            label: '禁止',
+            value: 9,
+          },
+        ],
+      },
+      dependencies: {
+        show: () => {
+          return modalType.value === 'status';
+        },
+        triggerFields: ['modalType']
+      },
+      fieldName: 'putStatue',
+      label: '投放状态',
+    },
+    {
+      component: 'RadioGroup',
+      componentProps: {
+        options: [
+          {
+            label: '拉取',
+            value: 1,
+          },
+          {
+            label: '不拉取',
+            value: 9,
+          },
+        ],
+      },
+      dependencies: {
+        show: () => {
+          return modalType.value === 'hourlyState';
+        },
+        triggerFields: ['modalType']
+      },
+      fieldName: 'hourlyState',
+      label: '分时状态',
+    },
+    {
+      component: 'TreeSelect',
+      componentProps: {
+        allowClear: true,
+        placeholder: `${$t('common.choice')}`,
+        showSearch: true,
+        filterTreeNode: true,
+        treeData: menuData,
+        fieldNames: {
+          label: 'name',
+          value: 'id',
+          children: 'children',
+        },
+        onSelect: (selectedKeys, event, node) => {
+          if (event && event.code) {
+            selectedOrgCode.value = event.code;
+          }
+        },
+      },
+      dependencies: {
+        show: () => {
+          return modalType.value === 'org' || modalType.value === 'creator' || modalType.value === 'sale';
+        },
+        triggerFields: ['modalType']
+      },
+      fieldName: 'orgId',
+      label: '部门',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: salesOption,
+        placeholder: `${$t('common.choice')}`,
+        onSelect: (selectedKeys, event, node) => {
+          if (modalType.value === 'creator') {
+            if (event && event.label) {
+              creatorUerName.value = event.label;
+            }
+          }
+        },
+      },
+      // 字段名
+      fieldName: 'creatorId',
+      label: '创建人' ,
+      dependencies: {
+        show: () => { return modalType.value === 'creator' },
+        triggerFields: ['orgId'],
+        required: (value) => !!value.orgId,
+        rules: (value) => {
+          if (value.orgId) {
+            return 'required';
+          }
+          return '';
+        },
+        if: (value, formApi) => {
+          if (value.orgId) {
+            formApi.setFieldValue('creatorId', null)
+            loadSalesByOrg(value.orgId);
+          } else {
+            salesOption.value = [];
+          }
+          return true;
+        },
+      },
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: salesOption,
+        placeholder: `${$t('common.choice')}`,
+        onSelect: (selectedKeys, event, node) => {
+          if (modalType.value === 'creator') {
+            if (event && event.label) {
+              creatorUerName.value = event.label;
+            }
+          }
+        },
+      },
+      // 字段名
+      fieldName: 'saleId',
+      label: '销售',
+      dependencies: {
+        show: () => { return modalType.value === 'sale' },
+        triggerFields: ['orgId'],
+        required: (value) => !!value.orgId,
+        rules: (value) => {
+          if (value.orgId) {
+            return 'required';
+          }
+          return '';
+        },
+        if: (value, formApi) => {
+          if (value.orgId) {
+              formApi.setFieldValue('saleId', null);
+            loadSalesByOrg(value.orgId);
+          } else {
+            salesOption.value = [];
+          }
+          return true;
+        },
+      },
+    },
+  ],
 });
 
 const [Modal, modalApi] = useVbenModal({
@@ -284,6 +327,9 @@ const [Modal, modalApi] = useVbenModal({
       const orgRes = await orgApi.fetchOrgTree();
       menuData.value = orgRes;
       title.value = titleMap[modalType.value];
+    } else {
+      await formApi.resetForm();
+
     }
   },
   async onCancel() {
@@ -308,7 +354,7 @@ const [Modal, modalApi] = useVbenModal({
   <div>
     <Page>
       <Modal class="w-[400px]" :title="title">
-        <Form />
+        <Form :key="modalType"/>
       </Modal>
     </Page>
   </div>

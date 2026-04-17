@@ -8,12 +8,6 @@ import { advertiserApi, projectApi, accountLabelApi } from "#/api";
 import type { ProjectItem } from "../../account/advertiser/advertiser";
 import dayjs from 'dayjs';
 import { useAdLinkage } from '../adreportdata/adDropdown';
-import { usePreferences } from '@vben/preferences';
-const { isDark } = usePreferences();
-const isLight = computed(() => {
-  return !isDark.value
-}) 
-const isEdit = ref<Boolean>(false)
 // Props 定义
 interface Props {
   initialValues?: Record<string, any>;
@@ -42,26 +36,6 @@ watch(
   async (newKey, oldKey) => {
     if (newKey !== oldKey && newKey !== undefined) {
       await resetFormToDefault();
-    }
-  },
-  {immediate: true,deep: true}
-);
-watch(
-  () => props.content,
-  async (newKey) => {
-    if (newKey === '确认') {
-      isEdit.value = true
-    }
-  },
-  {immediate: true,deep: true}
-);
-watch(
-  () => isDark,
-  async (isDark) => {
-    if(isDark.value) {
-      console.log('dark', isDark.value);
-    } else {
-      console.log('light', isDark.value);
     }
   },
   {immediate: true,deep: true}
@@ -161,14 +135,8 @@ const formOptions: VbenFormProps = {
         onChange: async () => {
           resetLoadedMap();
           const values = await formApi.getValues();
+          console.log('values', values);
           selectPlatform.value = values.platform?.join(',');
-        },
-        onSelect: async () => {
-          // const values = await formApi.getValues();
-          // selectPlatform.value = values.platform?.join(',');
-        },
-        onFocus: () => {
-          isEdit.value = true
         }
       },
       fieldName: 'platform',
@@ -181,10 +149,7 @@ const formOptions: VbenFormProps = {
         options: DIMS,
         mode: 'multiple',
         placeholder: `${$t('common.choice')}`,
-        maxTagCount: 1,
-        onFocus: () => {
-          isEdit.value = true
-        }
+        maxTagCount: 1
       },
       defaultValue: ['day'],
       fieldName: 'dims',
@@ -200,7 +165,6 @@ const formOptions: VbenFormProps = {
         initialApi: async () => {
           const formData = await formApi.getValues();
           selectPlatform.value = formData.platform?.join(',');
-          console.log('initialApi', selectPlatform.value);
           const res = await advertiserApi.fetchAdvertiserList({
             page: 1,
             pageSize: 1000,
@@ -241,9 +205,6 @@ const formOptions: VbenFormProps = {
         selectPlatform:selectPlatform,
         onChange: () => {
           resetLoadedMap();
-        },
-        onFocus: () => {
-          isEdit.value = true
         }
       },
       dependencies: {
@@ -277,10 +238,7 @@ const formOptions: VbenFormProps = {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
         options: projectSelectOptions,
-        placeholder: `${$t('common.choice')}`,
-        onFocus: () => {
-          isEdit.value = true
-        }
+        placeholder: `${$t('common.choice')}`
       },
       fieldName: 'projectId',
       label: '项目',
@@ -298,7 +256,6 @@ const formOptions: VbenFormProps = {
         options: planOptions,
         onFocus: async () => {
           await loadAdLinkage('campaign');
-        isEdit.value = true
         },
         placeholder: `${$t('common.choice')}`,
       },
@@ -318,7 +275,6 @@ const formOptions: VbenFormProps = {
         options: advertisementOptions,
         onFocus: async () => {
           await loadAdLinkage('promotion');
-          isEdit.value = true
         },
         placeholder: `${$t('common.choice')}`,
       },
@@ -338,7 +294,6 @@ const formOptions: VbenFormProps = {
         options: adGroupOptions,
         onFocus: async () => {
           await loadAdLinkage('adgroup');
-          isEdit.value = true
         },
         placeholder: `${$t('common.choice')}`,
       },
@@ -358,7 +313,6 @@ const formOptions: VbenFormProps = {
         options: creativityOptions,
         onFocus: async () => {
           await loadAdLinkage('creative');
-          isEdit.value = true
         },
       },
       fieldName: 'creative_id',
@@ -377,9 +331,6 @@ const formOptions: VbenFormProps = {
         api: async (params:any) => {
           return await accountLabelApi.fetchGetAccountLabelList(params);
         },
-        onFocus: () => {
-          isEdit.value = true
-        },
         params: {
           page: 1,
           pageSize: 1000,
@@ -393,7 +344,7 @@ const formOptions: VbenFormProps = {
       label: '账户标签',
     },
   ],
-  showCollapseButton: props.isShowActions,
+  showDefaultActions: props.isShowActions,
   submitOnEnter: false,
   commonConfig: {
     componentProps: {
@@ -406,7 +357,6 @@ const formOptions: VbenFormProps = {
   },
   layout: 'horizontal',
   handleSubmit: props.customSubmit ? undefined : async (values) => {
-    isEdit.value = false;
     emits('submit', values);
     filterCriteria.value = values
     if (props.onConfirm) {
@@ -465,23 +415,5 @@ defineExpose({
 </script>
 
 <template>
-  <div class="confirmForm" 
-    :class="{editLightForm: isEdit && props.content === '确认' && isLight,
-    editDarkForm: isEdit && props.content === '确认' && !isLight
-    }"> 
-    <FormComponent />
-  </div>
-  
+  <FormComponent />
 </template>
-<style lang="scss" scoped>
-.editLightForm {
-  background: #f1f3f6;
-  padding: 5px;
-  border-radius: 6px;
-}
-.editDarkForm {
-  background: #22272e;
-  padding: 5px;
-  border-radius: 6px;
-}
-</style>
