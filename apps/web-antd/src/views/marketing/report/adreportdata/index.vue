@@ -5,7 +5,7 @@ import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 import { Button } from "ant-design-vue";
 import SelectMetricModal from "./selectmetric.vue";
-import type { AdReportRequest, ReportFilter, searchDataFilter } from "#/api/models";
+import type { AdReportRequest, ReportFilter, searchDataFilter, TemplateDto } from "#/api/models";
 import { reportApi, projectApi } from "#/api";
 import type { ProjectItem } from "../../account/advertiser/advertiser";
 import SaveTemplateModal from "./saveTemplate.vue";
@@ -16,6 +16,7 @@ const { isDark } = usePreferences();
 const isLight = computed(() => {
   return !isDark.value
 }) 
+const tmplateData = ref()
 // 表单 ref
 const filterFormRef = ref();
 const selectPlatform = ref<string>(null)
@@ -386,6 +387,12 @@ async function handleFormSubmit(values: any) {
 }
 
 async function handleFormReset() {
+  btnText.value = '新增模板';
+  tmplateData.value = {
+    id: '',
+    name: '',
+    remark: ''
+  }
   if (abortController) {
     abortController.abort();
   }
@@ -410,16 +417,24 @@ async function handleFormReset() {
   });
   updateExportData()
 }
-
-async function handleUseTemplate(template: searchDataFilter) {
+const btnText = ref('新增模板');
+async function handleUseTemplate(row: TemplateDto) {
   if (pendingRequest) {
     pendingRequest = null;
   }
-  
+  btnText.value = '编辑模板';
+  if(row.id) {
+    tmplateData.value = {
+      id: row.id,
+      name: row.name,
+      remark: row.remark
+    }
+  }
+
   // 使用表单实例设置值
-  await filterFormRef.value?.setValues(template);
+  await filterFormRef.value?.setValues(row.template);
   
-  currentQueryMetric.value = template.queryMetric ? [...template.queryMetric] : [];
+  currentQueryMetric.value = row.template.queryMetric ? [...row.template.queryMetric] : [];
   
   const values = await filterFormRef.value?.getValues();
   const params = buildReportParams(values);
@@ -433,6 +448,11 @@ function reloadFromStart(metricIds: string[]) {
 
 async function openSaveTemplateModalModal() {
   searchData.value = await filterFormRef.value?.getValues();
+  if(tmplateData.value.id) {
+    sveTemplateModalApi.setData(tmplateData.value)
+  } else {
+    sveTemplateModalApi.setData({})
+  }
   sveTemplateModalApi.open();
 }
 
@@ -526,7 +546,7 @@ const isShowActions = ref(true)
         <Grid>
           <template #toolbar-tools>
             <Button  class="mr-2" type="primary" @click="openSaveTemplateModalModal">
-              保存模板
+              {{ btnText }}
             </Button>
             <Button class="mr-2" type="primary" @click="openTemplateListModalModal">
               报表模板

@@ -12,6 +12,7 @@ import type {
   SystemMetricPageRequest, UpdateAdvertiserRequest, UpdateDeveloperRequest, UpdateMetric,
   UpdateProjectRequest,
   ReportTemplate,
+  UpdateReportTemplate,
   templateListType,
   delTemplate,
   CreateFolderParams,
@@ -272,7 +273,9 @@ class ReportTemplateApi extends BaseApi {
   fetchReportTemplate(params: ReportTemplate) {
     return requestClient.post(this.getServiceUrl("template_create"), params)
   }
-
+  fetchUpdateTemplate(params: UpdateReportTemplate) {
+    return requestClient.post(this.getServiceUrl("template_update"), params)
+  }
   fetchGetTemplateList(params: templateListType) {
     return requestClient.get(this.getServiceUrl("template_list"), {params: params})
   }
