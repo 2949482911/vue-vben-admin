@@ -286,6 +286,10 @@ export const BACKHAUL = [
   {
     label: '小米',
     value: 'xiaomi',
+  },
+  {
+    label: 'UBI',
+    value: 'ubi',
   }
 ];
 

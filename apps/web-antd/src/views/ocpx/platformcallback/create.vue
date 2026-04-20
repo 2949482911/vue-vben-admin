@@ -556,6 +556,23 @@ platformConfigForm.set(Platform.XIAOMI, [
     rules: 'required',
   },
 ]);
+// UBI
+platformConfigForm.set(Platform.UBI, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'test',
+    // 界面显示的label
+    label: 'test',
+    rules: 'required',
+    defaultValue: 1,
+  },
+]);
 /**
  *
  * @param platform 平台
@@ -632,6 +649,9 @@ const [Form, formApi] = useVbenForm({
               schema: platformConfigForm.get(value),
             };
           });
+          if(value === Platform.UBI) {
+            await configFormApi.setFieldValue('test',1)
+          }
           // 更新字段
           const values = await formApi.getValues();
           if (values["behaviorTypeMoel"] === 'custom') {
