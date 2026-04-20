@@ -62,7 +62,8 @@
       "title": "Asset",
       "material": "Material",
       "titlePackage": "Title Package",
-      "audiencePackage": "Audience Package"
+      "audiencePackage": "Audience Package",
+      "pageview": "Page View"
     }
   },
   "tools": {

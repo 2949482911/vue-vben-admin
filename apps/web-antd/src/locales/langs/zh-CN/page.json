@@ -62,7 +62,8 @@
       "title": "资产",
       "material": "素材库",
       "titlePackage": "标题包",
-      "audiencePackage": "定向包"
+      "audiencePackage": "定向包",
+      "pageview": "落地页"
     }
   },
   "tools": {
