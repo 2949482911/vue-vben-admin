@@ -208,6 +208,14 @@ export const PLATFORM = [
   {
     label: 'oppo push',
     value: 'oppo_push',
+  },
+  {
+    label: '小米',
+    value: 'xiaomi',
+  },
+  {
+    label: 'UBI',
+    value: 'ubi',
   }
 ];
 
