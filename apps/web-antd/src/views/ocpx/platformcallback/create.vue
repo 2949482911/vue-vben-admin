@@ -24,7 +24,7 @@ import {
   ANDROID_USER_ACTION_SET_ID, 
   IOS_USER_ACTION_SET_ID
 } from '#/constants/locales';
-
+import { trimObject } from '#/utils/trim';
 const emit = defineEmits(['pageReload']);
 
 const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest>({
@@ -598,9 +598,10 @@ const [Form, formApi] = useVbenForm({
       formVal.advertiserName = formVal.config.advertiserName;
     }
     formVal.onlyClick = Boolean(formVal.onlyClick);
+    const params = trimObject(formVal);
     await (isUpdate.value
-      ? platformCallbackApi.fetchPlatformcallbackUpdate(formVal as UpdatePlatformCallbackRequest)
-      : platformCallbackApi.fetchPlatformcallbackCreate(formVal as CreatePlatformCallbackRequest));
+      ? platformCallbackApi.fetchPlatformcallbackUpdate(params as UpdatePlatformCallbackRequest)
+      : platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest));
   },
   schema: [
     {

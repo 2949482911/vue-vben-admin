@@ -1247,7 +1247,6 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
-    console.log('formVal',formVal)
     // 1️⃣ trim 主表单
     const baseForm = trimObject(formVal);
 

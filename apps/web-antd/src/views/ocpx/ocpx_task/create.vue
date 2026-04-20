@@ -78,8 +78,6 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('ocpx.ocpx_task.columns.name')}`,
       rules: 'required',
     },
-
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Select',
@@ -95,8 +93,6 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
       defaultValue: 1,
     },
-
-
     {
       component: 'ApiSelect',
       fieldName: 'behavioraPlatformIds',
@@ -121,7 +117,6 @@ const [Form, formApi] = useVbenForm({
       },
       rules: 'required',
     },
-
     {
       component: 'ApiSelect',
       fieldName: 'platformCallbackIds',
@@ -159,7 +154,6 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: `${$t('ocpx.ocpx_task.columns.description')}`,
     },
-
     {
       component: 'Slider',
       fieldName: 'clickRangeDay',

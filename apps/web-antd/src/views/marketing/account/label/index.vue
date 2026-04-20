@@ -167,7 +167,7 @@ async function handlerState(row: LabelItem) {
           </Button>
         </template>
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="() => openCreateModal()">新建</Button>
+          <Button class="mr-2" type="primary" @click="() => openCreateModal()">新增</Button>
           <Button type="primary" danger @click="handlerDeleteAll">删除</Button>
         </template>
       </Grid>

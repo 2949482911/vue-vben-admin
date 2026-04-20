@@ -19,7 +19,7 @@ import {useVbenForm} from '#/adapter/form';
 import {dataRangeApi, orgApi, userApi} from '#/api';
 import {DATA_SCOPE} from '#/constants/locales';
 import type {MenuItem} from "#/api/models";
-
+import { trimObject } from '#/utils/trim';
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<CreateDataRangeRequest | UpdateDataRangeRequest>({
@@ -214,9 +214,10 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
+    const params = trimObject(values);
     await (isUpdate.value
-      ? dataRangeApi.fetchUpdateDataRange(values as UpdateDataRangeRequest)
-      : dataRangeApi.fetchCreateDataRange(values as CreateDataRangeRequest));
+      ? dataRangeApi.fetchUpdateDataRange(params as UpdateDataRangeRequest)
+      : dataRangeApi.fetchCreateDataRange(params as CreateDataRangeRequest));
     await modalApi.close();
   },
 });

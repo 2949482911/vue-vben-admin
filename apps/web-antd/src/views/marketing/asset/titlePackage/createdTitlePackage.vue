@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { projectApi, titlePackApi } from '#/api';
 import { ACTIVE_PLATFORM } from '#/constants/locales';
+import { trimObject } from '#/utils/trim';
 import { useVbenForm, useVbenModal } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 
@@ -28,7 +29,8 @@ const [titlePackageModal, modalApi] = useVbenModal({
       }
     };
     try{
-      await titlePackApi.fetchNewTitlePack(formattedData)
+      const params = trimObject(formattedData);
+      await titlePackApi.fetchNewTitlePack(params);
       await formApi.resetForm();
       await modalApi.close();
       emit('pageReload');

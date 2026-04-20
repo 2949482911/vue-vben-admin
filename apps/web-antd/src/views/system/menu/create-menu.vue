@@ -10,6 +10,7 @@ import {Card} from 'ant-design-vue';
 
 import {useVbenForm} from '#/adapter/form';
 import {menuApi} from '#/api';
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
@@ -569,9 +570,10 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-2 gap-x-4',
   handleSubmit: async (values: Record<string, any>) => {
+    const params = trimObject(values);
     await (isUpdate.value
-      ? menuApi.fetchUpdateMenu(JSON.stringify(values))
-      : menuApi.fetchCreateMenu(JSON.stringify(values)));
+      ? menuApi.fetchUpdateMenu(JSON.stringify(params))
+      : menuApi.fetchCreateMenu(JSON.stringify(params)));
     await modalApi.close();
   },
 });

@@ -1,5 +1,5 @@
 <script lang="ts" setup name="CreateNotice">
-import type {DeveloperItem, PlatformcallbackItem,} from '#/api/models';
+import type {DeveloperItem, PlatformcallbackItem, CreateDeveloperRequest, UpdateDeveloperRequest} from '#/api/models';
 
 import {ref} from 'vue';
 
@@ -10,6 +10,7 @@ import {useVbenForm} from '#/adapter/form';
 import {developerApi} from '#/api/core';
 import {DEVELOPER_AUTH_ACCOUNT_PLATFORM} from '#/constants/locales';
 import {Platform} from "#/constants/enums";
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
@@ -27,10 +28,11 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
+    const params = trimObject(formVal);
     await (isUpdate.value
-      ? developerApi.fetchUpdateDeveloper(formVal)
-      : developerApi.fetchCreateDeveloper(formVal,
-      ));
+      ? developerApi.fetchUpdateDeveloper(params as UpdateDeveloperRequest)
+      : developerApi.fetchCreateDeveloper(params as CreateDeveloperRequest)
+    );
   },
   schema: [
     {
@@ -63,7 +65,6 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('marketing.developer.columns.platform')}`,
       rules: 'required',
     },
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
@@ -78,7 +79,6 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
 
     },
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
@@ -93,8 +93,6 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
 
     },
-
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
@@ -108,7 +106,6 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('marketing.developer.columns.apiSecret')}`,
       rules: 'required',
     },
-
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Textarea',

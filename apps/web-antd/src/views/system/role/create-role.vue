@@ -15,7 +15,7 @@ import {useVbenForm} from '#/adapter/form';
 import {menuApi, roleApi} from '#/api';
 import {ROLE_TYPE_OPTIONS} from '#/constants/locales';
 import {useUserStore} from "@vben/stores";
-
+import { trimObject } from '#/utils/trim';
 const emit = defineEmits(['pageReload']);
 const userStore = useUserStore();
 
@@ -124,9 +124,10 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
+    const params = trimObject(values);
     await (isUpdate.value
-      ? roleApi.fetchUpdateRole(values as UpdateRoleRequest)
-      : roleApi.fetchCreateRole(values as CreateRoleRequest));
+      ? roleApi.fetchUpdateRole(params as UpdateRoleRequest)
+      : roleApi.fetchCreateRole(params as CreateRoleRequest));
     await modalApi.close();
   },
 });
