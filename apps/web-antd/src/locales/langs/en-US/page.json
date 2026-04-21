@@ -73,5 +73,11 @@
       "product": "Product"
     },
     "downloadCenter": "Download Center"
+  },
+  "adx": {
+    "title": "Adx",
+    "dsp": "Dsp Channel",
+    "rtb": "Rtb Channel",
+    "campaign": "Campaign Strategy"
   }
 }
