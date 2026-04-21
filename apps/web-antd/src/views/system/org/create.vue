@@ -10,6 +10,7 @@ import { Card } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
 import { orgApi } from '#/api';
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
@@ -81,9 +82,10 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
   handleSubmit: async (values: Record<string, any>) => {
+    const params = trimObject(values);
     await (isUpdate.value
-      ? orgApi.fetchOrgUpdate(JSON.stringify(values))
-      : orgApi.fetchOrgCreate(JSON.stringify(values)));
+      ? orgApi.fetchOrgUpdate(JSON.stringify(params))
+      : orgApi.fetchOrgCreate(JSON.stringify(params)));
     await modalApi.close();
   },
 });

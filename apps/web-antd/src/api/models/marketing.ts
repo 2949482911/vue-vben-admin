@@ -248,6 +248,9 @@ export interface ReportTemplate {
   remark: string;
   template: Record<string, any>;
 }
+export interface UpdateReportTemplate extends ReportTemplate {
+  id: string;
+}
 
 /**搜索的数据传给子组件用来保存模板*/
 export interface searchDataFilter {

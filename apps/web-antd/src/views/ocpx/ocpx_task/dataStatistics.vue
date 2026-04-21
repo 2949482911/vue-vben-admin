@@ -130,6 +130,7 @@ function renderCharts(type: string, items:dayDataItem[]) {
   const xData = dataList.map((item: dayDataItem) => item.day);
   const clickData = dataList.map((item: dayDataItem) => Number(item.click_count));
   const callbackData = dataList.map((item: dayDataItem) => Number(item.callback_count));
+  dayOptions.value.series = [];
   dayOptions.value.series.push(
     {
       areaStyle: {},

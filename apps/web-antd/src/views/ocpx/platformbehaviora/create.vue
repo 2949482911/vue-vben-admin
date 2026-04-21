@@ -1351,6 +1351,7 @@ platformConfigForm.set(Platform.YOUKU, [
     label: 'specialType',
   }
 ])
+// 快赚客
 platformConfigForm.set(Platform.KUAIZUANKE, [
   {
     component: 'Input',
@@ -1386,6 +1387,33 @@ platformConfigForm.set(Platform.KUAIZUANKE, [
     },
     fieldName: 'pid',
     label: 'pid',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'appId',
+    label: 'appId',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'appSecret',
+    label: 'appSecret',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'refreshToken',
+    label: 'refreshToken',
     rules: 'required',
   },
 ])

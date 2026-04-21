@@ -123,7 +123,12 @@ const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
           if (group) {
             group.name = newName;
           }
-        } else if (field === 'promoName' || field === 'deepLink') {
+        } else if (
+          field === 'promoName' ||
+          field === 'deepLink' ||
+          field === 'clickLink' ||
+          field === 'exposureLink'
+        ) {
           const group = campaign.adgroupList[adGroupIdx];
           let targetPromo: VivoPromotion | undefined = undefined;
           const pIdx = editingRow.value.pIdx;
@@ -140,7 +145,11 @@ const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
             if (field === 'promoName') {
               targetPromo.name = newName;
             } else if (field === 'deepLink') {
-              targetPromo.deepLink = newName; // 现在能进来了
+              targetPromo.deepLink = newName;
+            } else if (field === 'clickLink') {
+              targetPromo.clickMonitorUrl = newName;
+            } else if (field === 'exposureLink') {
+              targetPromo.viewMonitorUrl = newName;
             }
           }
         }
@@ -174,6 +183,10 @@ const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
               r.promoName = newName;
             } else if (field === 'deepLink') {
               r.deepLink = newName;
+            } else if (field === 'clickLink') {
+              r.clickLink = newName;
+            } else if (field === 'exposureLink') {
+              r.exposureLink = newName;
             }
           }
         }
@@ -191,14 +204,20 @@ const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
 
 function handleEditName(
   row: CampaignData,
-  field: 'campaignName' | 'groupName' | 'promoName' | 'deepLink',
+  field: 'campaignName' | 'groupName' | 'promoName' | 'deepLink' | 'clickLink' | 'exposureLink',
 ) {
   if (field === 'deepLink') {
     editingTitle.value = '修改deepLink链接';
     editingText.value = 'deepLink链接';
-  } else {
+  } else if (field === 'campaignName') {
     editingTitle.value = '修改项目名称';
     editingText.value = '项目名称';
+  } else if (field === 'clickLink') {
+    editingTitle.value = '修改点击链接';
+    editingText.value = '点击链接';
+  } else if (field === 'exposureLink') {
+    editingTitle.value = '修改曝光链接';
+    editingText.value = '曝光链接';
   }
   editingRow.value = row;
   editingField.value = field;
@@ -338,7 +357,7 @@ const handleSpanMethod = ({
 // 辅助渲染函数，减少冗余代码
 const renderEditCell = (
   row: CampaignData,
-  field: 'campaignName' | 'groupName' | 'promoName' | 'deepLink',
+  field: 'campaignName' | 'groupName' | 'promoName' | 'deepLink' | 'clickLink' | 'exposureLink',
 ) => {
   return h('div', [
     h('span', row[field]),
@@ -397,7 +416,6 @@ const gridOptions: VxeGridProps = {
               title: '名字',
               slots: { default: ({ row }) => renderEditCell(row, 'groupName') },
             },
-            // { field: 'groupPrice', title: '一阶出价' },
             { field: 'groupOcpxPrice', title: '转化出价' },
             { field: 'groupDailyBudget', title: '日预算' },
             {
@@ -413,6 +431,16 @@ const gridOptions: VxeGridProps = {
                   title: 'deepLink链接',
                   width: '98px',
                   slots: { default: ({ row }) => renderEditCell(row, 'deepLink') },
+                },
+                {
+                  field: 'clickLink',
+                  title: '点击链接',
+                  slots: { default: ({ row }) => renderEditCell(row, 'clickLink') },
+                },
+                {
+                  field: 'exposureLink',
+                  title: '曝光链接',
+                  slots: { default: ({ row }) => renderEditCell(row, 'exposureLink') },
                 },
                 {
                   title: '创意',
@@ -528,6 +556,8 @@ function flattenVivoData(campaignList: VivoCampaign[], advertiserId: string) {
           // --- 广告层级字段 ---
           promoName: promo.name,
           deepLink: promo.deepLink || '-',
+          exposureLink: promo.viewMonitorUrl || '-',
+          clickLink: promo.clickMonitorUrl || '-',
 
           // --- 汇总后的展示字段 ---
           displayCreativeTitle: count > 0 ? `${creatives[0]?.title}（${count}个素材）` : '-',
@@ -601,7 +631,7 @@ async function submitReview() {
     const uploadJson = async (data: any, subName: string) => {
       // 深拷贝一份数据，避免修改原始响应对象
       const cloneData = JSON.parse(
-        JSON.stringify(data, (key, value) => {
+        JSON.stringify(data, (_, value) => {
           // 关键逻辑：如果遇到 Map 类型，将其转换为普通对象
           if (value instanceof Map) {
             return Object.fromEntries(value.entries());
@@ -804,7 +834,7 @@ function getUnifiedStatus(
 //--------------批量修改操作--------------
 const nameCollection = ref<string>('');
 //批量修改
-const batchModifyType = ref<'project' | 'ad'>('project');
+const batchModifyType = ref<'project' | 'ad' | 'clickLink' | 'exposureLink'>('project');
 
 const { handleUpdateOriginalData } = useVivoTableUpdate({
   tableData,
@@ -828,13 +858,31 @@ const [BatchModifyNameModal, batchModifyNamemodalApi] = useVbenModal({
             accountData.campaignList[index].name = name;
           }
         });
-      } else {
+      } else if (batchModifyType.value === 'ad') {
         const allPromos = accountData.campaignList.flatMap((c) =>
           c.adgroupList.flatMap((g) => g.promotionList),
         );
         newNames.forEach((name, index) => {
           if (allPromos[index]) {
             allPromos[index].name = name;
+          }
+        });
+      } else if (batchModifyType.value === 'exposureLink') {
+        const allPromos = accountData.campaignList.flatMap((c) =>
+          c.adgroupList.flatMap((g) => g.promotionList),
+        );
+        newNames.forEach((name, index) => {
+          if (allPromos[index]) {
+            allPromos[index].viewMonitorUrl = name;
+          }
+        });
+      } else if (batchModifyType.value === 'clickLink') {
+        const allPromos = accountData.campaignList.flatMap((c) =>
+          c.adgroupList.flatMap((g) => g.promotionList),
+        );
+        newNames.forEach((name, index) => {
+          if (allPromos[index]) {
+            allPromos[index].clickMonitorUrl = name;
           }
         });
       }
@@ -849,14 +897,20 @@ const [BatchModifyNameModal, batchModifyNamemodalApi] = useVbenModal({
   },
 });
 
-function batchModifyName(val: 'project' | 'ad') {
+function batchModifyName(val: 'project' | 'ad' | 'clickLink' | 'exposureLink') {
   batchModifyType.value = val; // 记录当前修改的是哪个层级
   if (val === 'project') {
     batchModifyTitle.value = '批量修改项目名称';
     batchModifyText.value = '项目名称';
-  } else {
+  } else if (val === 'ad') {
     batchModifyTitle.value = '批量修改广告名称';
     batchModifyText.value = '广告名称';
+  } else if (val === 'clickLink') {
+    batchModifyTitle.value = '批量修点击链接';
+    batchModifyText.value = '点击链接';
+  } else if (val === 'exposureLink') {
+    batchModifyTitle.value = '批量修改曝光链接';
+    batchModifyText.value = '曝光链接';
   }
   batchModifyNamemodalApi.open();
 }
@@ -891,6 +945,8 @@ onUnmounted(() => {
             <Menu>
               <MenuItem @click="batchModifyName('project')"> 修改项目名称 </MenuItem>
               <MenuItem @click="batchModifyName('ad')"> 修改广告名称 </MenuItem>
+              <MenuItem @click="batchModifyName('clickLink')"> 修改点击链接 </MenuItem>
+              <MenuItem @click="batchModifyName('exposureLink')"> 修改曝光链接 </MenuItem>
             </Menu>
           </template>
         </Dropdown>
@@ -990,13 +1046,13 @@ onUnmounted(() => {
     <CustomizeNameModal :title="editingTitle">
       <div class="py-4 flex items-center">
         <div>{{ editingText }}：</div>
-        <Input class="w-[300px]" v-model:value="tempName" placeholder="请输入" />
+        <Input class="!w-[300px]" v-model:value="tempName" placeholder="请输入" />
       </div>
     </CustomizeNameModal>
     <BatchModifyNameModal :title="batchModifyTitle">
       <div class="py-4 flex items-center">
         <div>{{ batchModifyText }}：</div>
-        <Textarea class="w-[400px]" v-model:value="nameCollection" placeholder="请输入" :rows="6" />
+        <Textarea class="!w-[300px]" v-model:value="nameCollection" placeholder="请输入" :rows="6" />
       </div>
     </BatchModifyNameModal>
   </div>

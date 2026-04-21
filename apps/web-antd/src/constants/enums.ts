@@ -46,8 +46,9 @@ export enum Platform {
   KUAIZUANKE = 'kuaizuanke',
   XIANYU_DHH = 'xianyu_dhh',
   HUICHUAN = 'huichuan',
-  LONGYU = "long_yu",
-  XIAOMI = 'xiaomi'
+  XIAOMI = 'xiaomi',
+  UBI = 'ubi',
+  LONGYU = "long_yu"
 }
 
 export enum RuleType {

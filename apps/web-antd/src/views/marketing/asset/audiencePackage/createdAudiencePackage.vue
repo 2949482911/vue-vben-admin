@@ -7,6 +7,7 @@ import TreeSelector from './TreeSelector.vue'
 import { tagData } from './tagData';
 import { ACTIVE_PLATFORM } from '#/constants/locales';
 import type { AdConfig } from './audiencePackageType';
+import { trimObject } from '#/utils/trim';
 
 const props = defineProps<{
   displayValue?: AdConfig
@@ -77,10 +78,12 @@ const [titlePackageModal, modalApi] = useVbenModal({
     try {
       if (props.displayValue && props.displayValue.id) {
         formValueAll.id = props.displayValue.id; 
-        await targetedPackageApi.fetchModifyTargetedPackage(formValueAll);
+        const params = trimObject(formValueAll);
+        await targetedPackageApi.fetchModifyTargetedPackage(params);
         message.success("修改成功！");
       } else {
-        await targetedPackageApi.fetchNewTargetedPackage(formValueAll);
+         const params = trimObject(formValueAll);
+        await targetedPackageApi.fetchNewTargetedPackage(params);
         message.success("添加成功！");
       }
       await popUpCancel();

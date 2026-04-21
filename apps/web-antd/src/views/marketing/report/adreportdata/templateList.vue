@@ -68,7 +68,7 @@ const gridEvents = {
 };
 function openCreateModal(row:TemplateDto){
   // 向父组件发送 template
-  emit('useTemplate', row.template);
+  emit('useTemplate', row);
   drawerApi.close();
 
 }

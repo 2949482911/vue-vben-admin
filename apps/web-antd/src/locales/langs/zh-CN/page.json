@@ -63,7 +63,8 @@
       "title": "资产",
       "material": "素材库",
       "titlePackage": "标题包",
-      "audiencePackage": "定向包"
+      "audiencePackage": "定向包",
+      "pageview": "落地页"
     }
   },
   "tools": {
@@ -73,5 +74,11 @@
       "product": "商品"
     },
     "downloadCenter": "下载中心"
+  },
+  "adx": {
+    "title": "竞价交易",
+    "dsp": "Dsp渠道",
+    "rtb": "Rtb渠道",
+    "campaign": "投放计划"
   }
 }

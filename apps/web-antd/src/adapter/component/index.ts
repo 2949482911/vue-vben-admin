@@ -78,12 +78,6 @@ type AdapterUploadProps = UploadProps & {
   onHandleChange?: (event: UploadChangeParam) => void;
 };
 
-const MetricTemplate = defineAsyncComponent(
-  () => import('#/views/marketing/report/subscribe/components/metricTemplate.vue'),
-);
-const AdReportFilterForm = defineAsyncComponent(
-  () => import('#/views/marketing/report/components/AdReportFilterForm.vue'),
-);
 const HybridSearchSelect = defineAsyncComponent(
   () => import('#/views/marketing/report/adreportdata/components/HybridSearchSelect.vue'),
 );
@@ -646,8 +640,6 @@ export type ComponentType =
   | 'MetricFormulaEditor'
   | 'lazyLoadSelect'
   | 'HybridSearchSelect'
-  | 'AdReportFilterForm'
-  | 'MetricTemplate'
   | BaseFormComponentType;
 
 /**
@@ -718,8 +710,6 @@ async function initComponentAdapter() {
     MetricFormulaEditor,
     lazyLoadSelect,
     HybridSearchSelect,
-    AdReportFilterForm,
-    MetricTemplate,
     // 自定义默认按钮
     DefaultButton: (props, { attrs, slots }) => {
       return h(Button, { ...props, attrs, type: 'default' }, slots);

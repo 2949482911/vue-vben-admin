@@ -63,7 +63,8 @@
       "title": "Asset",
       "material": "Material",
       "titlePackage": "Title Package",
-      "audiencePackage": "Audience Package"
+      "audiencePackage": "Audience Package",
+      "pageview": "Page View"
     }
   },
   "tools": {
@@ -73,5 +74,11 @@
       "product": "Product"
     },
     "downloadCenter": "Download Center"
+  },
+  "adx": {
+    "title": "Adx",
+    "dsp": "Dsp Channel",
+    "rtb": "Rtb Channel",
+    "campaign": "Campaign Strategy"
   }
 }

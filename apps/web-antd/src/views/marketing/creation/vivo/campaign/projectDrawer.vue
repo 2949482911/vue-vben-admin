@@ -122,6 +122,7 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         allowClear: true,
         placeholder: '请输入',
+        class:"!w-[300px]"
       },
       fieldName: 'dailyBudget',
       defaultValue: -1,
@@ -197,7 +198,7 @@ const [Form, formApi] = useVbenForm({
               :maxlength="100"
               allow-clear
               show-count
-              class="w-[300px]"
+              class="!w-[300px]"
             />
 
             <div class="flex flex-wrap items-center gap-2 text-xs mt-1">
