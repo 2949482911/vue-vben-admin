@@ -8,3 +8,4 @@ export * from "./bpm"
 export * from "./dashboard";
 export * from "./ocpx"
 export * from "./marketing";
+export * from "./adx";

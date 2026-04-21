@@ -11,7 +11,7 @@ import {Button, Switch, Tag, Dropdown, Menu, MenuItem, message} from 'ant-design
 import { UploadOutlined } from '@ant-design/icons-vue';
 
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {advertiserApi} from '#/api/core';
+import {advertiserApi, userApi} from '#/api/core';
 import {projectApi, developerApi} from "#/api";
 import {
   BatchOptionsType,
@@ -345,6 +345,28 @@ const formOptions: VbenFormProps = {
         }
       },
     },
+        {
+      component: 'ApiSelect',
+      componentProps: {
+        showSearch: true,
+        placeholder: `${$t('common.input')}`,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        params: {
+          page: 1,
+          pageSize: 1000,
+        },
+        valueField: 'nickname',
+        labelField: 'nickname',        // 两个接口返回的数据都有 name 字段，直接固定
+        resultField: 'items',
+        api: async (params: any) => {
+          return await userApi.fetchUserList(params);
+        },
+      },
+      fieldName: 'createUsername',
+      label: '创建人',
+    },
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
@@ -541,12 +563,12 @@ async function loadAgentData(platform: string) {
     return;
   }
   const res = await advertiserApi.fetchAdvertiserList({
-            page:1,
-            pageSize:1000,
-            platform: platform,
-            advertiserRole: 'proxy'
-          })
-  agentData.value = res.items.map((item: AdvertiserItem) => ({
+      page:1,
+      pageSize:1000,
+      platform: platform,
+      advertiserRole: 'proxy'
+    });
+    agentData.value = res.items.map((item: AdvertiserItem) => ({
     label: `${item.advertiserName}-${item.advertiserId}`,
     value: item.id,
   }));
