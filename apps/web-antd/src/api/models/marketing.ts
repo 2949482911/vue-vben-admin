@@ -11,8 +11,6 @@ export interface AdvertiserPageRequest extends PageRequestParams {
   platform?: string;
   putStatue?: number
 }
-
-
 /**
  * 账户列表
  */
@@ -489,7 +487,17 @@ export interface ImportDataType {
 export interface AdCompanyOptionsType {
   platform: string;
 }
-
+export interface ExportAllDataType {
+  platform: string;
+  advertiserId: string;
+  advertiserName: string;
+  advertiserRole: string;
+  putStatue: number;
+  projectId: string;
+  parentId: string;
+  ids: string;
+  hourlyState: number;
+}
 /**营销-资产-标题包查询 */
 export interface GetTitlePackType {
   platform?: string;

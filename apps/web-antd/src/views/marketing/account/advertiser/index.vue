@@ -86,6 +86,11 @@ const [ImportChildAdvertiserModal, improtChildApi] = useVbenModal({
   modal: true,
 });
 
+async function exportAllData() {
+  const params = trimObject(await gridApi.formApi.getValues());
+  await advertiserApi.fetchExportAllData(params);
+  message.success('导出成功，请前往下载中心查看');
+}
 async function cancelBatchOptions(opType: string) {
   const targetIds = selectedRows.value.map((item) => item.id);
   let values = {};
@@ -730,7 +735,13 @@ async function loadAgentData(platform: string) {
           <Button class="mr-2" type="primary" @click="() => openCreateModal()">
             {{ $t('common.create') }}
           </Button>
-
+          <Button
+            class="mr-2"
+            type="primary"
+            @click="exportAllData"
+          >
+            {{ $t('marketing.advertiser.exportAll') }}
+          </Button>
           <Button
             class="mr-2"
             type="primary"

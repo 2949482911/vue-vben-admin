@@ -154,6 +154,11 @@ class AdvertiserApi extends BaseApi {
       // 不需要手动设置 headers['Content-Type']，axios 会根据 data 类型自动设置
     });
   }
+
+  /**广告主-导出数据 */
+  fetchExportAllData(params: ExportAllDataType) {
+    return requestClient.get(this.getServiceUrl("export"), { params });
+  }
 }
 
 export const advertiserApi = new AdvertiserApi("/platform/advertiser");
