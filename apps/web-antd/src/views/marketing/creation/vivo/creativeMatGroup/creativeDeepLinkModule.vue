@@ -105,7 +105,7 @@ function handleAccountClick(account: AccountInfo) {
 </script>
 
 <template>
-  <Modal title="请填写deepLink链接" class="w-[40%]">
+  <Modal title="请填写deepLink链接" class="w-[25%]">
     <div :class="localdeepLinkList.deepLinkConfig.method === 'account' ? 'flex' : ''">
       <div
         v-if="localdeepLinkList.deepLinkConfig.method === 'account'"
@@ -133,7 +133,7 @@ function handleAccountClick(account: AccountInfo) {
       </div>
       <div class="flex items-center">
         <div>deepLink链接：</div>
-        <Input v-model:value="deepLinkStr" class="w-[300px]" />
+        <Input v-model:value="deepLinkStr" class="!w-[300px]" />
       </div>
     </div>
   </Modal>
