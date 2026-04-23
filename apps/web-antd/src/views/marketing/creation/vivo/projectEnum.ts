@@ -332,8 +332,12 @@ export const DISPLAYFORM_SELECT = [
 /**批投广告创意素材组-展现形式枚举（应用商店） */
 export const STORE_DISPLAY_FORMATS = [
   {
-    label: '信息流',
-    value: 1,
+    label: '推荐列表',
+    value: 20,
+  },
+  {
+    label: '搜索提词',
+    value: 21,
   },
 ];
 
@@ -342,6 +346,10 @@ export const NO_STORE_DISPLAY_FORMATS = [
   {
     label: '通知广告',
     value: 12,
+  },
+  {
+    label: '信息流',
+    value: 1,
   },
 ];
 

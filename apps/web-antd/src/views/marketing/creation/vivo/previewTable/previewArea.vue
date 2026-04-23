@@ -359,8 +359,30 @@ const renderEditCell = (
   row: CampaignData,
   field: 'campaignName' | 'groupName' | 'promoName' | 'deepLink' | 'clickLink' | 'exposureLink',
 ) => {
-  return h('div', [
-    h('span', row[field]),
+  return h('div', { class: 'edit-cell-wrapper' }, [
+    // 文本容器
+    h(
+      'span',
+      {
+        class:
+          field === 'deepLink' || field === 'clickLink' || field === 'exposureLink'
+            ? 'link-text-container'
+            : '',
+        // 如果 CSS 文件不生效，尝试直接写内联样式
+        style:
+          field === 'deepLink' || field === 'clickLink' || field === 'exposureLink'
+            ? {
+                display: '-webkit-box',
+                '-webkit-box-orient': 'vertical',
+                '-webkit-line-clamp': '3',
+                overflow: 'hidden',
+                'word-break': 'break-all',
+              }
+            : {},
+      },
+      row[field],
+    ),
+    // 修改图标
     h(
       Button,
       {
@@ -1052,7 +1074,12 @@ onUnmounted(() => {
     <BatchModifyNameModal :title="batchModifyTitle">
       <div class="py-4 flex items-center">
         <div>{{ batchModifyText }}：</div>
-        <Textarea class="!w-[300px]" v-model:value="nameCollection" placeholder="请输入" :rows="6" />
+        <Textarea
+          class="!w-[300px]"
+          v-model:value="nameCollection"
+          placeholder="请输入"
+          :rows="6"
+        />
       </div>
     </BatchModifyNameModal>
   </div>
