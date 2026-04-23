@@ -433,6 +433,10 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: '咸鱼大航海',
     value: 'xianyu_dhh'
+  },
+  {
+    label: '淘宝闪购ET',
+    value: 'tb_shangou_et'
   }
 
 ];

@@ -1113,8 +1113,8 @@ platformConfigForm.set(Platform.YOUKU, [
     componentProps: {
       placeholder: `${$t('common.input')}`,
     },
-    fieldName: 'advertiserId',
-    label: 'advertiserId',
+    fieldName: 'appKey',
+    label: 'appKey',
     rules: 'required',
   },
   {
@@ -1131,8 +1131,8 @@ platformConfigForm.set(Platform.YOUKU, [
     componentProps: {
       placeholder: `${$t('common.input')}`,
     },
-    fieldName: 'specialType',
-    label: 'specialType',
+    fieldName: 'youkuBizType',
+    label: 'youkuBizType',
   }
 ])
 // 快赚客
@@ -1200,6 +1200,54 @@ platformConfigForm.set(Platform.KUAIZUANKE, [
     label: 'refreshToken',
     rules: 'required',
   },
+])
+// 淘宝闪购
+platformConfigForm.set(Platform.TB_SHANGOU_ET, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'medium_source',
+    label: 'medium_source',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'delivery_type',
+    label: 'delivery_type',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'ascribe_type',
+    label: 'ascribe_type',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'demander_type',
+    label: 'demander_type',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'biz_type',
+    label: 'biz_type',
+    rules: 'required',
+  }
 ])
 
 const [ConfigForm, configFormApi] = useVbenForm({

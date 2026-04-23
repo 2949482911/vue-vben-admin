@@ -119,7 +119,7 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
           <Switch :checked="row.status === 1" />
         </template>
         <template #downloadUrl="{ row }">
-           <a class="downloadLink" :href="row.downloadUrl" :download="row.name">点击下载</a>
+           <a class="downloadLink" :class="{'disabled-link': !row.downloadUrl}" :href="row.downloadUrl" :download="row.name">点击下载</a>
         </template>
         <template #taskState="{ row }">
           <Tag v-if="row.taskState === 0" color="orange">{{ $t('common.pending') }}</Tag>
@@ -136,4 +136,10 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
   color: hsl(var(--primary));
   cursor:pointer;
 }
+.disabled-link {
+  color: gray;     /* 可选：灰色表示禁用状态 */
+  text-decoration: none; /* 可选：去除下划线 */
+  pointer-events: none;
+}
+
 </style>
