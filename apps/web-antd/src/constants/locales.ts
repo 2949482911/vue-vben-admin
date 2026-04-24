@@ -436,8 +436,13 @@ export const BEHAVIORA_PLATFORM = [
   },
   {
     label: '淘宝闪购ET',
-    value: 'tb_shangou_et',
+    value: 'tb_shangou_et'
   },
+  {
+    label: 'soul',
+    value: 'soul'
+  }
+
 ];
 
 // 匹配下拉

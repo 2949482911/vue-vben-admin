@@ -706,6 +706,35 @@ platformConfigForm.set(Platform.XIANYU_DHH, [
     label: '特殊回传',
   },
 ])
+// soul
+platformConfigForm.set(Platform.SOUL, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'ver',
+    // 界面显示的label
+    label: `ver`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'code',
+    // 界面显示的label
+    label: `code`,
+    rules: 'required',
+  }
+])
 
 //增加tbkId输入框
 function batchAddSchema() {

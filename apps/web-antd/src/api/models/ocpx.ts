@@ -17,8 +17,14 @@ export interface PlatformcallbackItem extends BaseItem {
   behaviorTypeName: string;
   onlyClick: boolean;
   hadClick: boolean;
+  eventMappingRules?: Array<eventMappingType>;
 }
-
+export interface eventMappingType {
+  behaviorPlatformId: string;
+  behaviorPlatform: string;
+  behaviorEventTypes: string[];
+  callbackEventType: string;
+}
 export interface CreatePlatformCallbackRequest {
   name: string;
   platform: string;
@@ -27,6 +33,7 @@ export interface CreatePlatformCallbackRequest {
   onlyClick: boolean | number;
   advertiserId?: string;
   advertiserName?: string;
+  eventMappingRules?: Array<eventMappingType>;
 }
 
 export interface UpdatePlatformCallbackRequest
