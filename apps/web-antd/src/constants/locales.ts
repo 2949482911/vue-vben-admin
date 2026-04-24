@@ -1,39 +1,40 @@
-import {$t} from '@vben/locales';
+import { $t } from '@vben/locales';
 
 export const TABLE_COMMON_COLUMNS = [
-  {title: '序号', type: 'checkbox', fixed: 'left', width: 'auto',},
+  { title: '序号', type: 'checkbox', fixed: 'left', width: 'auto' },
   {
-    field: 'createUsername', title: `${$t('core.columns.createUsername')}`, width: 'auto',
+    field: 'createUsername',
+    title: `${$t('core.columns.createUsername')}`,
+    width: 'auto',
   },
   {
-    field: 'updateUsername', title: `${$t('core.columns.updateUsername')}`, width: 'auto',
+    field: 'updateUsername',
+    title: `${$t('core.columns.updateUsername')}`,
+    width: 'auto',
   },
   {
     field: 'createTime',
     formatter: 'formatDateTime',
     title: `${$t('core.columns.createTime')}`,
     width: 'auto',
-
   },
   {
     field: 'updateTime',
     formatter: 'formatDateTime',
     title: `${$t('core.columns.updateTime')}`,
     width: 'auto',
-
   },
   {
     field: 'status',
     title: `${$t('core.columns.status')}`,
-    slots: {default: 'status'},
+    slots: { default: 'status' },
     width: 'auto',
-
   },
   {
     field: 'options',
     title: `${$t('core.columns.options')}`,
     fixed: 'right',
-    slots: {default: 'action'},
+    slots: { default: 'action' },
     width: 'auto',
   },
 ];
@@ -220,7 +221,7 @@ export const PLATFORM = [
   {
     label: 'UBI',
     value: 'ubi',
-  }
+  },
 ];
 
 /**
@@ -294,9 +295,8 @@ export const BACKHAUL = [
   {
     label: 'UBI',
     value: 'ubi',
-  }
+  },
 ];
-
 
 /**
  * 授权账户媒体
@@ -387,7 +387,7 @@ export const BEHAVIORA_PLATFORM = [
     value: 'rednote',
   },
   {
-    label: "淘宝联盟",
+    label: '淘宝联盟',
     value: 'tb_union',
   },
   {
@@ -420,25 +420,24 @@ export const BEHAVIORA_PLATFORM = [
   },
   {
     label: '抖音独立端',
-    value: 'dy_duliduan'
+    value: 'dy_duliduan',
   },
   {
     label: '优酷',
-    value: 'youku'
+    value: 'youku',
   },
   {
     label: '快赚客',
-    value: 'kuaizuanke'
+    value: 'kuaizuanke',
   },
   {
     label: '咸鱼大航海',
-    value: 'xianyu_dhh'
+    value: 'xianyu_dhh',
   },
   {
     label: '淘宝闪购ET',
-    value: 'tb_shangou_et'
-  }
-
+    value: 'tb_shangou_et',
+  },
 ];
 
 // 匹配下拉
@@ -488,7 +487,6 @@ export const MatchFieldSelect = [
   },
 ];
 
-
 /**
  * 激活报表媒体
  */
@@ -500,9 +498,8 @@ export const ACTIVE_PLATFORM = [
   {
     label: `${$t('ocpx.platform.oppo')}`,
     value: 'oppo',
-  }
+  },
 ];
-
 
 /**
  * 报表维度
@@ -563,8 +560,8 @@ export const DIMS = [
   {
     label: '标签维度',
     value: 'tagId',
-  }
-]
+  },
+];
 
 /**
  * 广告主新增弹框的平台下拉
@@ -577,12 +574,12 @@ export const ADVERTISET_ADDED = [
   {
     label: `${$t('ocpx.platform.oppo')}`,
     value: 'oppo',
-  }
+  },
   // {
   //   label: `${$t('ocpx.platform.huawei')}`,
   //   value: 'huawei',
   // }
-]
+];
 // 账户消耗明细平台下拉数据
 export const BALACE_DETAIL_PLATFORM = [
   {
@@ -592,8 +589,8 @@ export const BALACE_DETAIL_PLATFORM = [
   {
     label: `${$t('ocpx.platform.huawei')}`,
     value: 'huawei',
-  }
-]
+  },
+];
 
 /**
  * 营销账户-账户消耗明细下拉
@@ -614,8 +611,8 @@ export const CONSUMPTION_DETAIL_DIMENSION = [
   {
     label: '账户Id',
     value: 'platform_account_id',
-  }
-]
+  },
+];
 
 /**
  * 华为账户消耗明细维度
@@ -633,8 +630,8 @@ export const CONSUMPTION_DETAIL_DIMENSION_HUAWEI = [
   {
     label: '账户类型',
     value: 'account_type',
-  }
-]
+  },
+];
 /**
  * 广点通配置类型
  */
@@ -642,8 +639,8 @@ export const BM_COFIG_TYPE = [
   {
     label: 'ANDROID',
     value: 'ANDROID',
-  }
-]
+  },
+];
 /**
  * 广点通-安卓应用ID
  */
@@ -656,8 +653,8 @@ export const ANDROID_APPLICATION_ID = [
   {
     label: '快手极速版',
     value: '1107805332',
-  }
-]
+  },
+];
 /**
  * 广点通-IOS应用ID
  */
@@ -670,8 +667,8 @@ export const IOS_APPLICATION_ID = [
   {
     label: '快手极速版',
     value: '1472502819',
-  }
-]
+  },
+];
 /**
  * 广点通-安卓用户行为设置ID
  */
@@ -684,9 +681,9 @@ export const ANDROID_USER_ACTION_SET_ID = [
   {
     label: '快手极速版',
     value: '1220350070',
-  }
-]
+  },
+];
 /**
  * 广点通-IOS用户行为设置ID
  */
-export const IOS_USER_ACTION_SET_ID = []
+export const IOS_USER_ACTION_SET_ID = [];

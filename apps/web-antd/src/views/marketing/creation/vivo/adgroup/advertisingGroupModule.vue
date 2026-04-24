@@ -291,7 +291,12 @@ function setLocalAdGroupData(
           </span>
           <span v-else style="color: #006be6"> 按账户分配 </span>
         </div>
-        <Button :disabled="isClearDisabled" type="primary" danger @click="clearAllPackages"
+        <Button
+          :disabled="isClearDisabled"
+          type="primary"
+          size="small"
+          danger
+          @click="clearAllPackages"
           >清空
         </Button>
       </div>

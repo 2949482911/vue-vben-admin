@@ -1,26 +1,24 @@
 <script lang="ts" setup>
-import { Switch, Button, message } from 'ant-design-vue';
+import { Button, message } from 'ant-design-vue';
 import { useVbenModal, type VbenFormProps } from '@vben/common-ui';
-import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import { strategyGropApi, projectApi } from '#/api/core';
-import type { StrategyGropType } from "#/api/models";
-import { $t } from "@vben/locales";
-import {
-  BatchOptionsType,
-  PLATFORM,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
+import type { StrategyGropType } from '#/api/models';
+import { $t } from '@vben/locales';
+import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from '#/constants/locales';
 import { trimObject } from '#/utils/trim';
-import CreateObjectRequestComp from './create.vue';//新增|修改弹窗
+import CreateObjectRequestComp from './create.vue'; //新增|修改弹窗
+import { VIVO_VERSION } from '../vivo/vivo';
+
 // 组件 Props 类型定义
 interface Props {
-  projectId?: string
-  platform?: string 
-  config?: Object
+  projectId?: string;
+  platform?: string;
+  config?: Object;
 }
 const props = defineProps<Props>();
 // 定义要传递给父组件的事件
-const emit = defineEmits(['update:reuse'])
+const emit = defineEmits(['update:reuse']);
 
 const formOptions: VbenFormProps = {
   // 默认展开
@@ -36,17 +34,17 @@ const formOptions: VbenFormProps = {
       componentProps: {
         valueField: 'id',
         labelField: 'name',
-        resultField: "items",
+        resultField: 'items',
         api: async () => {
-          return await projectApi.fetchProjectList({page: 1, pageSize: 1000,})
-        }
+          return await projectApi.fetchProjectList({ page: 1, pageSize: 1000 });
+        },
       },
       fieldName: 'projectId',
       label: '项目',
     },
     {
       component: 'Select',
-      defaultValue: props.platform??'vivo',
+      defaultValue: props.platform ?? 'vivo',
       componentProps: {
         allowClear: true,
         options: PLATFORM,
@@ -62,10 +60,18 @@ const formOptions: VbenFormProps = {
   // 按下回车时是否提交表单
   submitOnEnter: false,
 };
+const modifiedColumns = (TABLE_COMMON_COLUMNS as any[]).map((col) => {
+  if (col.field === 'status') {
+    return { ...col, width: 180 };
+  }
+  return col;
+});
+
 const gridOptions: VxeGridProps<StrategyGropType> = {
   border: true,
+  height: '500px',
   toolbarConfig: {},
-  data:[],
+  data: [],
   columns: [
     {
       field: 'name',
@@ -82,12 +88,12 @@ const gridOptions: VxeGridProps<StrategyGropType> = {
       title: `项目`,
       width: 'auto',
     },
-    ...TABLE_COMMON_COLUMNS as any,
+    ...modifiedColumns,
   ],
   keepSource: true,
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         const params = trimObject(args);
         return await strategyGropApi.fetchGetStrategyGrop({
           page: page.currentPage,
@@ -96,9 +102,9 @@ const gridOptions: VxeGridProps<StrategyGropType> = {
         });
       },
     },
-  }
+  },
 };
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 function pageReload() {
   gridApi.reload();
@@ -106,20 +112,20 @@ function pageReload() {
 
 const [Modal, modalApi] = useVbenModal({});
 
-function reuseStrategyGroup(row:StrategyGropType) {
-  emit('update:reuse', row.configObj)
+function reuseStrategyGroup(row: StrategyGropType) {
+  emit('update:reuse', row.configObj);
   modalApi.close();
 }
 
-async function deleteStrategyGroup(row:StrategyGropType) {
+async function deleteStrategyGroup(row: StrategyGropType) {
   const params = {
     type: BatchOptionsType.Delete,
     targetIds: [row.id],
-    values: {}
-  }
-  await strategyGropApi.fetchBatchStrategyGrop(params)
-  message.success("删除成功")
-  pageReload()
+    values: {},
+  };
+  await strategyGropApi.fetchBatchStrategyGrop(params);
+  message.success('删除成功');
+  pageReload();
 }
 /**
  * 创建弹窗
@@ -134,26 +140,34 @@ function openCreateModal(row: StrategyGropType) {
   if (row.id) {
     createObjectApi.setData(row);
   } else {
-    createObjectApi.setData({projectId:props.projectId});
+    createObjectApi.setData({ projectId: props.projectId });
   }
   createObjectApi.open();
 }
 </script>
 <template>
   <div>
-    <Modal title="选择策略组" class="w-[75%]">
+    <Modal title="选择策略组" class="w-[73.2%]">
       <Grid>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1"/>
+          {{ row.version !== VIVO_VERSION ? '版本已迭代，旧版本不可用' : '最新版本' }}
         </template>
         <template #action="{ row }">
-          <Button type="link" @click="openCreateModal(row)">
+          <Button
+            type="link"
+            @click="openCreateModal(row)"
+            :disabled="row.version !== VIVO_VERSION"
+          >
             {{ $t('common.edit') }}
           </Button>
-          <Button type="link" @click="reuseStrategyGroup(row)">
+          <Button
+            type="link"
+            @click="reuseStrategyGroup(row)"
+            :disabled="row.version !== VIVO_VERSION"
+          >
             复用
           </Button>
-          <Button type="link" @click="deleteStrategyGroup(row)">
+          <Button type="link" danger @click="deleteStrategyGroup(row)">
             {{ $t('common.delete') }}
           </Button>
         </template>
@@ -164,15 +178,13 @@ function openCreateModal(row: StrategyGropType) {
         </template> -->
       </Grid>
     </Modal>
-    <CreateObjectModal 
-      @page-reload="pageReload" 
-      :config="props.config" 
-      :projectId="props.projectId" 
-      :plaform="props.platform"/>
+    <CreateObjectModal
+      @page-reload="pageReload"
+      :config="props.config"
+      :projectId="props.projectId"
+      :plaform="props.platform"
+    />
   </div>
-
 </template>
 
-<style>
-
-</style>
+<style></style>

@@ -27,6 +27,7 @@ import {
   type VivoPromotion,
   type VivoCampaign,
   type CampaignData,
+  VIVO_VERSION,
 } from '../vivo';
 import {
   getRuleInfoCampaignCount,
@@ -364,11 +365,6 @@ const renderEditCell = (
     h(
       'span',
       {
-        class:
-          field === 'deepLink' || field === 'clickLink' || field === 'exposureLink'
-            ? 'link-text-container'
-            : '',
-        // 如果 CSS 文件不生效，尝试直接写内联样式
         style:
           field === 'deepLink' || field === 'clickLink' || field === 'exposureLink'
             ? {
@@ -463,6 +459,10 @@ const gridOptions: VxeGridProps = {
                   field: 'exposureLink',
                   title: '曝光链接',
                   slots: { default: ({ row }) => renderEditCell(row, 'exposureLink') },
+                },
+                {
+                  field: 'pageUrlName',
+                  title: '落地页',
                 },
                 {
                   title: '创意',
@@ -580,6 +580,7 @@ function flattenVivoData(campaignList: VivoCampaign[], advertiserId: string) {
           deepLink: promo.deepLink || '-',
           exposureLink: promo.viewMonitorUrl || '-',
           clickLink: promo.clickMonitorUrl || '-',
+          pageUrlName: promo.pageUrlName || '-',
 
           // --- 汇总后的展示字段 ---
           displayCreativeTitle: count > 0 ? `${creatives[0]?.title}（${count}个素材）` : '-',
@@ -683,7 +684,7 @@ async function submitReview() {
     //   platform: creationInfo?.platform || '',
     //   projectId: creationInfo?.project.projectId || '',
     //   ruleType: 'immediately',
-    //   version: '0.1', //版本
+    //   version: VIVO_VERSION, //版本
     //   configArea: creationUrl, //本地数据
     //   fullParamsData: tableUrl, //上传表格
     // });
@@ -694,7 +695,7 @@ async function submitReview() {
       platform: creationInfo?.platform || '',
       projectId: creationInfo?.project.projectId || '',
       ruleType: 'immediately',
-      version: '0.1', //版本
+      version: VIVO_VERSION, //版本
       configArea: creationUrl, //本地数据
       fullParamsData: tableUrl, //上传表格
     });

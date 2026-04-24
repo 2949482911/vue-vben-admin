@@ -2,8 +2,8 @@ export interface PageRequestParams {
   page: number;
   pageSize?: number;
   status?: number;
-  platform?:string;
-  putStatue?:number
+  platform?: string;
+  putStatue?: number;
 }
 
 export interface BaseItem {
@@ -13,13 +13,14 @@ export interface BaseItem {
   createUsername: string;
   updateUsername: string;
   status: number;
+  createdBy: string;
+  updatedBy: string;
+  _X_ROW_KEY: string;
 }
-
 
 export interface DeleteItem {
   ids: string[];
 }
-
 
 export interface BatchOptions {
   targetIds: string[];

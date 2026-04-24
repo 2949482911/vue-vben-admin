@@ -1,6 +1,6 @@
 import { AdRuleKey, CampaignRuleKey, DistributionMode, Platform } from '#/constants/enums';
 import type { VivoConfigData, VivoCreation } from '#/views/marketing/creation/vivo/vivo';
-import type { TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
+import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
 
 /**
  * 媒体基类
@@ -281,4 +281,24 @@ export function getDeepLink(
 
   // 3. 安全返回第一个值
   return Array.isArray(dataList) && dataList.length > 0 ? String(dataList[0]) : '';
+}
+
+/**
+ * 获取落地页
+ * @param method
+ * @param data
+ * @param advertiserId
+ */
+export function getLandingPage(
+  method: string,
+  data: Map<string, Array<LandingPageData>>,
+  advertiserId: string,
+): LandingPageData | undefined {
+  let dataList: Array<LandingPageData> = [];
+  if (method === DistributionMode.all) {
+    dataList = data.get('0') || [];
+  } else {
+    dataList = data.get(advertiserId) || [];
+  }
+  return dataList[0];
 }

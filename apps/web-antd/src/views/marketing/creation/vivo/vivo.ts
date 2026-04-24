@@ -3,6 +3,7 @@ import {
   type Campaign,
   getAudience,
   getDeepLink,
+  getLandingPage,
   getMaterial,
   getRuleInfoAdCount,
   getRuleInfoCampaignCount,
@@ -13,11 +14,16 @@ import {
   type PlatformCreation,
   type Promotion,
 } from '#/views/marketing/creation/creation';
-import type { TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
+import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
 import type { BaseItem } from '#/api/models/core';
 import { Platform } from '#/constants/enums';
 import { renderProjectTitle } from '#/utils/customName';
 import type { Ref } from 'vue';
+
+/**
+ * vivo 版本常量
+ */
+export const VIVO_VERSION = '0.1';
 
 /**
  * vivo 初始化对象
@@ -34,6 +40,7 @@ export interface VivoConfigData {
   // 投放资质
   advertiserQualification: Map<string, QualificationValue>;
   deepLinkList: VivoDeepLinkData;
+  landingPage: VivoLandingPageData;
 }
 
 // 广告创意素材组deepLink链接
@@ -192,6 +199,14 @@ export interface VivoAudienceData {
   data: Map<string, Array<TargetedPackageTypeItem>>;
 }
 
+/**
+ * 落地页
+ */
+export interface VivoLandingPageData {
+  landingPageConfig: VivoAudienceDataConfig;
+  data: Map<string, Array<LandingPageData>>;
+}
+
 export interface VivoAudienceDataConfig {
   method: string;
 }
@@ -279,6 +294,7 @@ export interface VivoPromotion extends Promotion {
   deepLink: string;
   videoAttribution: number;
   pageUrl: string;
+  pageUrlName?: string;
   h5Code: string;
   h5Type: number;
   generalSwitch: number;
@@ -362,6 +378,7 @@ export interface AdvertisingQualificationType {
 /**提交审核批投当前账户扁平数组类型 */
 export interface CampaignData {
   exposureLink?: string;
+  pageUrlName?: string;
   clickLink?: string;
   deepLink?: string;
   pIdx?: number;
@@ -510,6 +527,12 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           account.localAdvertiserId,
         );
 
+        const landingPage: LandingPageData | undefined = getLandingPage(
+          creationInfo.configData.landingPage.landingPageConfig.method,
+          creationInfo.configData.landingPage.data,
+          account.localAdvertiserId,
+        );
+
         const newMaterialList: Array<LocalMaterialData> = [...material.video, ...material.image];
 
         // 图片
@@ -537,7 +560,8 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           name: renderProjectTitle(creationInfo.configData.promotion.name, k),
           deepLink: deepLink,
           videoAttribution: creationInfo.configData.promotion.videoAttribution,
-          pageUrl: creationInfo.configData.promotion.pageUrl,
+          pageUrl: landingPage?.config.pageUrl || '',
+          pageUrlName: landingPage?.name || '',
           h5Code: creationInfo.configData.promotion.h5Code,
           h5Type: creationInfo.configData.promotion.h5Type,
           generalSwitch: creationInfo.configData.promotion.generalSwitch,
