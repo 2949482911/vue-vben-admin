@@ -712,6 +712,35 @@ platformConfigForm.set(Platform.XIANYU_DHH, [
     label: '特殊回传',
   },
 ])
+// soul
+platformConfigForm.set(Platform.SOUL, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'ver',
+    // 界面显示的label
+    label: `ver`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'code',
+    // 界面显示的label
+    label: `code`,
+    rules: 'required',
+  }
+])
 
 //增加tbkId输入框
 function batchAddSchema() {
@@ -1329,8 +1358,8 @@ platformConfigForm.set(Platform.YOUKU, [
     componentProps: {
       placeholder: `${$t('common.input')}`,
     },
-    fieldName: 'advertiserId',
-    label: 'advertiserId',
+    fieldName: 'appKey',
+    label: 'appKey',
     rules: 'required',
   },
   {
@@ -1347,8 +1376,8 @@ platformConfigForm.set(Platform.YOUKU, [
     componentProps: {
       placeholder: `${$t('common.input')}`,
     },
-    fieldName: 'specialType',
-    label: 'specialType',
+    fieldName: 'youkuBizType',
+    label: 'youkuBizType',
   }
 ])
 // 快赚客
@@ -1416,6 +1445,54 @@ platformConfigForm.set(Platform.KUAIZUANKE, [
     label: 'refreshToken',
     rules: 'required',
   },
+])
+// 淘宝闪购
+platformConfigForm.set(Platform.TB_SHANGOU_ET, [
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'medium_source',
+    label: 'medium_source',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'delivery_type',
+    label: 'delivery_type',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'ascribe_type',
+    label: 'ascribe_type',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'demander_type',
+    label: 'demander_type',
+    rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'biz_type',
+    label: 'biz_type',
+    rules: 'required',
+  }
 ])
 
 // 龙鱼

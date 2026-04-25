@@ -2,25 +2,26 @@
 import { Page, useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { ref } from 'vue';
-import { useVbenForm } from "#/adapter/form";
-import type { StrategyGropType, UpdateStrategyGropType } from "#/api/models";
+import { useVbenForm } from '#/adapter/form';
+import type { StrategyGropType, UpdateStrategyGropType } from '#/api/models';
 import { strategyGropApi, projectApi } from '#/api/core';
-import { PLATFORM } from "#/constants/locales";
+import { PLATFORM } from '#/constants/locales';
 import { trimObject } from '#/utils/trim';
 import { useOssClient } from '#/views/marketing/asset/material/useOssClient';
 import { uploadToOss } from '#/utils/uploadToOss';
 import { useUserStore } from '@vben/stores';
 import { message } from 'ant-design-vue';
+import { VIVO_VERSION } from '../vivo/vivo';
 
 const emit = defineEmits(['pageReload']);
-const configUrl = ref<string>('')
+const configUrl = ref<string>('');
 
 const objectRequest = ref<StrategyGropType>(<StrategyGropType>{
-  config: "", 
-  projectId: "", 
-  name: "",
-  platform: "",
-  id: "",
+  config: '',
+  projectId: '',
+  name: '',
+  platform: '',
+  id: '',
 });
 
 const isUpdate = ref<Boolean>(false);
@@ -36,26 +37,26 @@ const [Form, formApi] = useVbenForm({
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
     const params = trimObject(formVal);
-    try{
-      await (isUpdate.value ? strategyGropApi.fetchUpdateStrategyGrop(<UpdateStrategyGropType>{
-          id: params.id,
-          name: params.name,
-          projectId: params.projectId,
-          platform: params.platform,
-          config: params.config
-        })
-        :
-        strategyGropApi.fetchNewStrategyGrop(<StrategyGropType>{
-          name: params.name,
-          projectId: params.projectId,
-          platform: params.platform,
-          config: params.config
-        })
-      )
-      message.success('保存策略组成功')
-    }catch(err){
+    try {
+      await (isUpdate.value
+        ? strategyGropApi.fetchUpdateStrategyGrop(<UpdateStrategyGropType>{
+            id: params.id,
+            name: params.name,
+            projectId: params.projectId,
+            platform: params.platform,
+            config: params.config,
+          })
+        : strategyGropApi.fetchNewStrategyGrop(<StrategyGropType>{
+            name: params.name,
+            projectId: params.projectId,
+            platform: params.platform,
+            config: params.config,
+            version: VIVO_VERSION,
+          }));
+      message.success('保存策略组成功');
+    } catch (err) {
       console.log(err);
-      message.error('保存策略组失败')
+      message.error('保存策略组失败');
     }
   },
   schema: [
@@ -85,7 +86,6 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'name',
       label: '名称',
       rules: 'required',
-      
     },
     {
       component: 'Select',
@@ -94,7 +94,7 @@ const [Form, formApi] = useVbenForm({
         allowClear: true,
         placeholder: `${$t('common.choice')}`,
         options: PLATFORM,
-        disabled: true
+        disabled: true,
       },
       rules: 'required',
       // 字段名
@@ -102,7 +102,7 @@ const [Form, formApi] = useVbenForm({
       label: '平台',
     },
     {
-      component: "ApiSelect",
+      component: 'ApiSelect',
       componentProps: {
         showSearch: true,
         placeholder: `${$t('common.input')}`,
@@ -115,10 +115,10 @@ const [Form, formApi] = useVbenForm({
         },
         valueField: 'id',
         labelField: 'name',
-        resultField: "items",
+        resultField: 'items',
         api: async (params: any) => {
           return await projectApi.fetchProjectList(params);
-        }
+        },
       },
       fieldName: 'projectId',
       label: `${$t('marketing.advertiser.columns.projectId')}`,
@@ -133,11 +133,11 @@ const [Modal, modalApi] = useVbenModal({
   async onCancel() {
     await formApi.resetForm();
     objectRequest.value = {
-      config: "", 
-      projectId: "", 
-      name: "",
-      id: "",
-      platform: "",
+      config: '',
+      projectId: '',
+      name: '',
+      id: '',
+      platform: '',
     } as StrategyGropType;
     isUpdate.value = false;
     await modalApi.close();
@@ -145,7 +145,7 @@ const [Modal, modalApi] = useVbenModal({
   async onConfirm() {
     const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
     await formApi.submitForm();
     isUpdate.value = false;
@@ -155,8 +155,8 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       objectRequest.value = modalApi.getData();
-      configUrl.value = await uploadJson(objectRequest.value, 'strategyGroup')
-      formApi.setFieldValue('config',configUrl.value)
+      configUrl.value = await uploadJson(objectRequest.value, 'strategyGroup');
+      formApi.setFieldValue('config', configUrl.value);
       handleSetFormValue(objectRequest.value);
       if (objectRequest.value.id) {
         isUpdate.value = true;
@@ -167,27 +167,29 @@ const [Modal, modalApi] = useVbenModal({
   },
 });
 const uploadJson = async (data: any, subName: string) => {
-    const client = await useOssClient();
-    const timestamp = Date.now();
-    const userStore = useUserStore();
-    const mainId = userStore.userInfo?.mainId;
-    // 深拷贝一份数据，避免修改原始响应对象
-    const cloneData = JSON.parse(JSON.stringify(data, (key, value) => {
+  const client = await useOssClient();
+  const timestamp = Date.now();
+  const userStore = useUserStore();
+  const mainId = userStore.userInfo?.mainId;
+  // 深拷贝一份数据，避免修改原始响应对象
+  const cloneData = JSON.parse(
+    JSON.stringify(data, (_, value) => {
       // 关键逻辑：如果遇到 Map 类型，将其转换为普通对象
       if (value instanceof Map) {
         return Object.fromEntries(value.entries());
       }
       return value;
-    }));
-    const jsonString = JSON.stringify(cloneData, null, 2);
-    const fileName = `${timestamp}_${subName}.json`;
-    const objectKey = `${mainId}/json/batchInvestment/${fileName}`;
-    const file = new File([jsonString], fileName, { type: 'application/json' });
-    const result = await uploadToOss(client, file, objectKey);
-    return result.url; // 返回 OSS 路径
+    }),
+  );
+  const jsonString = JSON.stringify(cloneData, null, 2);
+  const fileName = `${timestamp}_${subName}.json`;
+  const objectKey = `${mainId}/json/batchInvestment/${fileName}`;
+  const file = new File([jsonString], fileName, { type: 'application/json' });
+  const result = await uploadToOss(client, file, objectKey);
+  return result.url; // 返回 OSS 路径
 };
 function handleSetFormValue(row: UpdateStrategyGropType) {
-  formApi.setValues(row)
+  formApi.setValues(row);
 }
 </script>
 
@@ -195,12 +197,10 @@ function handleSetFormValue(row: UpdateStrategyGropType) {
   <div>
     <Page>
       <Modal title="保存策略组">
-        <Form/>
+        <Form />
       </Modal>
     </Page>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

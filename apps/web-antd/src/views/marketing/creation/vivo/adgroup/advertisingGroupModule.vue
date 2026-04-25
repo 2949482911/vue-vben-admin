@@ -182,6 +182,7 @@ const labelMap: Partial<Record<keyof VivoAdgroupData, string>> = {
   appletOriginId: '小程序id',
   appletPath: '小程序页面路径',
   chargeType: '计费类型',
+  price: '一阶段出价',
   cvType: '转化目标',
   ocpxPrice: '转化出价',
   secondCvType: '深度优化转化目标',
@@ -210,7 +211,7 @@ const enumMap = computed<Partial<Record<keyof VivoAdgroupData, any[]>>>(() => ({
 const formatDisplayValue = (key: keyof VivoAdgroupData, value: any) => {
   if (value === null || value === undefined || value === '') return '-';
 
-  if (['ocpxPrice', 'dailyBudget', 'secondOcpxPrice'].includes(key)) {
+  if (['price', 'ocpxPrice', 'dailyBudget', 'secondOcpxPrice'].includes(key)) {
     return `${value} 元`;
   }
 
@@ -290,7 +291,12 @@ function setLocalAdGroupData(
           </span>
           <span v-else style="color: #006be6"> 按账户分配 </span>
         </div>
-        <Button :disabled="isClearDisabled" type="primary" danger @click="clearAllPackages"
+        <Button
+          :disabled="isClearDisabled"
+          type="primary"
+          size="small"
+          danger
+          @click="clearAllPackages"
           >清空
         </Button>
       </div>

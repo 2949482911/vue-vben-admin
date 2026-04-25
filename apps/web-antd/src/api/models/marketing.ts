@@ -1,6 +1,6 @@
-import type {BaseItem, PageRequestParams} from "#/api/models/core";
-import type {RuleType} from "#/constants/enums";
-import { type PlatformCreation } from "#/views/marketing/creation/creation";
+import type { BaseItem, PageRequestParams } from '#/api/models/core';
+import type { RuleType } from '#/constants/enums';
+import { type PlatformCreation } from '#/views/marketing/creation/creation';
 /**
  * 账户请求
  */
@@ -9,9 +9,8 @@ export interface AdvertiserPageRequest extends PageRequestParams {
   advertiserName?: string;
   putStatus?: number;
   platform?: string;
-  putStatue?: number
+  putStatue?: number;
 }
-
 
 /**
  * 账户列表
@@ -34,8 +33,8 @@ export interface AdvertiserItem extends BaseItem {
   projectId: string;
   platformAuditState: string;
   config: Map<string, any>;
-  customer?: "",
-  saleId?: "",
+  customer?: '';
+  saleId?: '';
   tagId: string;
   accessToken: string;
   hourlyState: number;
@@ -53,11 +52,7 @@ export interface HistoryItem extends BaseItem {
   taskEndTime: string;
 }
 
-
-export interface CreateAdvertiserRequest {
-
-}
-
+export interface CreateAdvertiserRequest {}
 
 export interface UpdateAdvertiserRequest extends AdvertiserDeveloperBindRequest {
   id: string;
@@ -67,14 +62,12 @@ export interface UpdateAdvertiserRequest extends AdvertiserDeveloperBindRequest 
   companyName: string;
 }
 
-
 // 返回的子账户列表
 export interface AccountChildResponse {
   advertiserId: string;
   advertiserName: string;
   exist: boolean;
 }
-
 
 // 导入子账户
 export interface ImportChildRequest {
@@ -83,25 +76,22 @@ export interface ImportChildRequest {
   projectId: string;
 }
 
-
 /**
  * 账户授权请求iD
  */
 export interface AuthAdvertiserRequest {
   platform: string;
-  developerId?: string
+  developerId?: string;
 }
-
 
 /**
  * 开发者
  */
 
-
 export interface DeveloperPageRequest extends PageRequestParams {
   platform?: string;
   name?: string;
-  status?: number
+  status?: number;
 }
 
 export interface DeveloperItem extends BaseItem {
@@ -109,28 +99,26 @@ export interface DeveloperItem extends BaseItem {
   name: string;
   apiKey: string;
   apiSecret: string;
-  remark: string,
-  authCount: string
+  remark: string;
+  authCount: string;
 }
-
 
 export interface CreateDeveloperRequest {
   platform: string;
   name: string;
   apiKey: string;
   apiSecret: string;
-  remark: string,
+  remark: string;
 }
 
 export interface UpdateDeveloperRequest extends CreateDeveloperRequest {
   id: string;
 }
 
-
 // 报表
 
 export interface CreateSystemMetric {
-  id?: string,
+  id?: string;
   ename: string;
   cname: string;
   description: string;
@@ -140,7 +128,6 @@ export interface CreateSystemMetric {
   platformMetricMap: Array<PlatformMetricMap>;
   implMethod: string;
 }
-
 
 export interface UpdateMetric extends CreateSystemMetric {
   id: string;
@@ -153,7 +140,6 @@ export interface SystemMetricPageRequest extends PageRequestParams {
 export interface MetricPageRequest {
   metricGroupId: string;
 }
-
 
 export interface MetricItem extends BaseItem {
   ename: string;
@@ -172,12 +158,10 @@ export interface MetricItem extends BaseItem {
   platform: string;
 }
 
-
 export interface PlatformMetricMap {
   platform: string;
   metricName: string;
 }
-
 
 // 报表数据响应
 export interface AdReportResponse {
@@ -199,25 +183,22 @@ export interface ProjectPageRequest extends PageRequestParams {
   size?: number;
 }
 
-
 export interface ProjectItem extends BaseItem {
   name: string;
   projectType: number;
-  packageName: string
+  packageName: string;
   description: string;
   icon: string;
 }
-
 
 export interface CreateProjectRequest {
   id?: string;
   name: string;
   projectType: number;
-  packageName: string
+  packageName: string;
   description: string;
   icon: string;
 }
-
 
 export interface UpdateProjectRequest extends CreateProjectRequest {
   id: string;
@@ -375,23 +356,23 @@ export interface FileInfo extends BaseItem {
 
 /**编辑素材 */
 export interface EditPaletteParams {
-  id: string,
-  name: string,
-  albumId: string
+  id: string;
+  name: string;
+  albumId: string;
 }
 
 /**全部文件 */
 export interface AllFilesParams {
-  name?: string,
-  albumId?: string,
+  name?: string;
+  albumId?: string;
 }
 
 /**临时凭证 */
 export interface voucherParams {
-  accessKeyId: string,
-  accessKeySecret: string,
-  expiration: string,
-  securityToken: string
+  accessKeyId: string;
+  accessKeySecret: string;
+  expiration: string;
+  securityToken: string;
 }
 
 /**广告主新增开发者下拉 */
@@ -433,10 +414,10 @@ export interface AdvertiserDeveloperBindRequest {
   projectId: string;
   remark: string;
   companyName: string;
-  customer?: string,
-  saleId?: string,
-  apiId?: string,
-  apiKey?: string,
+  customer?: string;
+  saleId?: string;
+  apiId?: string;
+  apiKey?: string;
 }
 
 export interface PageResult {
@@ -489,7 +470,17 @@ export interface ImportDataType {
 export interface AdCompanyOptionsType {
   platform: string;
 }
-
+export interface ExportAllDataType {
+  platform: string;
+  advertiserId: string;
+  advertiserName: string;
+  advertiserRole: string;
+  putStatue: number;
+  projectId: string;
+  parentId: string;
+  ids: string;
+  hourlyState: number;
+}
 /**营销-资产-标题包查询 */
 export interface GetTitlePackType {
   platform?: string;
@@ -548,18 +539,17 @@ export interface NewTargetedPackageType {
     region?: {
       regionCodeList?: string[];
       stayType?: number;
-    },
+    };
     installBehavior?: {
       period?: number;
       behavior?: number;
-    },
+    };
     startBehavior?: {
       period?: number;
       behavior?: number;
-    },
-  }
+    };
+  };
 }
-
 
 /**定向包类型 */
 export interface TargetedPackageTypeItem extends BaseItem {
@@ -583,7 +573,6 @@ export interface TitlePackageItem extends BaseItem {
   config: any;
 }
 
-
 /** 创编任务-查询任务列表 */
 export interface GetCreationTaskType {
   platform?: string;
@@ -593,7 +582,7 @@ export interface GetCreationTaskType {
 }
 
 /** 创编任务列表数据结构 */
-export interface CreationTaskItem extends BaseItem{
+export interface CreationTaskItem extends BaseItem {
   platform?: string;
   name?: string;
   projectId?: string;
@@ -616,24 +605,23 @@ export interface LabelItem extends BaseItem {
   name?: string;
   remark?: string;
 }
- /** 账户标签-查询任务列表 */
+/** 账户标签-查询任务列表 */
 export interface GetLabelItemType {
   name?: string;
 }
- /** 账户标签-新增任务列表 */
+/** 账户标签-新增任务列表 */
 export interface NewLabelItemType {
   name?: string;
   remark?: string;
 }
 /**账户标签-编辑任务列表 */
 export interface EditLabelItemType extends NewLabelItemType {
-  id:string,
-
+  id: string;
 }
 /**营销-资产-标题包删除 */
 export interface DelLabelItemType {
   targetIds: string[];
-  type:string;
+  type: string;
 }
 
 /**营销-创编-Vivo营销-广告主-广告投放资质ID */
@@ -643,32 +631,32 @@ export interface AdInvestmentType {
 
 /**营销-创编-Vivo营销-广告创意素材组-广告创意类型 */
 export interface AdCreativeType {
-  advertiserId: string[],
-  displayType: number,
-  adType: number,
-  mediaType: number,
-  positionType: number,
-  genType: number
+  advertiserId: string[];
+  displayType: number;
+  adType: number;
+  mediaType: number;
+  positionType: number;
+  genType: number;
 }
 
 /**营销-创编-Vivo营销-广告创意素材组-投放虚拟位置 */
 export interface VirtualLocationType {
-  advertiserId: string[],
-  normId: number,
-  displayType: number,
-  adType: number,
-  mediaType: number,
+  advertiserId: string[];
+  normId: number;
+  displayType: number;
+  adType: number;
+  mediaType: number;
 }
 
 /**营销-创编-Vivo营销-提交审核 */
 export interface VivoSubmitType {
-  name: string,
-  platform: string,
-  projectId: string,
-  ruleType: string,
-  version: string,
-  fullParamsData: string,
-  configArea: string,
+  name: string;
+  platform: string;
+  projectId: string;
+  ruleType: string;
+  version: string;
+  fullParamsData: string;
+  configArea: string;
 }
 /**营销-创编-Vivo营销-策略组 */
 export interface StrategyGropType<T = any> extends BaseItem {
@@ -677,6 +665,7 @@ export interface StrategyGropType<T = any> extends BaseItem {
   projectId: string;
   config: string;
   configObj: PlatformCreation<T>;
+  version: string;
 }
 export interface GetStrategyGropType extends PageRequestParams {
   name: string;
@@ -713,7 +702,36 @@ export interface ReportSubscriptionItem {
 export interface UpdateSubscribeType extends ReportSubscriptionItem {
   id: string;
 }
-export interface GetSubscribeType extends PageRequestParams{
+export interface GetSubscribeType extends PageRequestParams {
   name: string;
   type: string;
+}
+
+//落地页-查询
+export interface LandingPageQuery {
+  platform: string;
+  name: string;
+}
+
+//落地页-创建
+export interface CreateLandingPage extends LandingPageQuery {
+  id?: string;
+  config: {
+    pageUrl: string;
+  };
+}
+
+//落地页-删除
+export interface DelLandingPage {
+  targetIds: string[];
+  type: string;
+}
+
+//落地页-item
+export interface LandingPageData extends BaseItem {
+  platform: string;
+  name: string;
+  config: {
+    pageUrl: string;
+  };
 }

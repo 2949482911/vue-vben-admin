@@ -317,6 +317,27 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
     },
     {
+      component: 'Input',
+      fieldName: 'price',
+      label: '一阶段出价',
+      suffix: () => h('span', { class: 'text-600' }, '元'),
+      dependencies: {
+        triggerFields: ['chargeType'],
+        show: (values) => {
+          return !!(values.chargeType && values.chargeType !== 3);
+        },
+        required: (values) => {
+          return !!(values.chargeType && values.chargeType !== 3);
+        },
+        rules: (values) => {
+          if (values.chargeType && values.chargeType !== 3) {
+            return 'required';
+          }
+          return '';
+        },
+      },
+    },
+    {
       component: 'Select',
       componentProps: {
         options: PHASETWOGOAL_SELECT,

@@ -3,6 +3,7 @@
     "authAccount": "授权",
     "authType": "授权类型",
     "authUrl": "授权链接",
+    "exportAll": "全部导出",
     "columns": {
       "advertiserId": "账户ID",
       "advertiserName": "账户名字",

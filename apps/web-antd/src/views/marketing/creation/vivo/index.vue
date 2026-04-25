@@ -18,6 +18,7 @@ import type {
   VivoTitlePackageData,
   QualificationValue,
   VivoDeepLinkData,
+  VivoLandingPageData,
 } from '#/views/marketing/creation/vivo/vivo';
 import { Platform } from '#/constants/enums';
 import type {
@@ -29,13 +30,13 @@ import type {
   RuleInfo,
 } from '#/views/marketing/creation/creation';
 import AdOrientation from './adgroup/adOrientationModule.vue';
-import TitlePackagePopup from './titlePackage/titlePackagePopup.vue';
 import AdvertisingGroupModule from './adgroup/advertisingGroupModule.vue';
-import type { TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
+import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
 import { message } from 'ant-design-vue';
 import CreativeMaterialsDrawer from './creativeMatGroup/creativeMaterialsDrawer.vue';
 import { watch } from 'vue';
 import Create from '../components/create.vue';
+import landingPageModule from './landingPage/landingPageModule.vue';
 
 const advertisingGroupRef = ref();
 const previewAreaRef = ref();
@@ -140,6 +141,12 @@ const creationInfo = ref<VivoCreation>({
       },
       data: new Map<string, Array<TitlePackageItem>>(),
     },
+    landingPage: {
+      landingPageConfig: {
+        method: 'all',
+      },
+      data: new Map<string, Array<LandingPageData>>(),
+    },
   },
   platform: Platform.VIVO,
   ruleInfo: {
@@ -212,20 +219,29 @@ function handlerOrientation(data: VivoAudienceData) {
 }
 
 //----------标题包-----------
-const [TitlePackagePopupModule, titlePackagePopupModuleModalApi] = useVbenModal({
-  connectedComponent: TitlePackagePopup,
-});
-
-function openTitlePackagePopupModule() {
-  if (!creationInfo.value.configData.promotion.name)
-    return message.warning('请先完善并保存“素材组”基本信息');
-  titlePackagePopupModuleModalApi.setData(creationInfo.value.configData.titlePackage);
-  titlePackagePopupModuleModalApi.open();
-}
-
 /**添加标题包到大对象 */
 function handleTitlePackageUpdate(data: VivoTitlePackageData) {
   creationInfo.value.configData.titlePackage = data;
+}
+
+//----------选择落地页-----------
+const [LandingPageModule, landingPageModalApi] = useVbenModal({
+  connectedComponent: landingPageModule,
+});
+
+function openLandingPageModule() {
+  if (!creationInfo.value.configData.campaign.name)
+    return message.warning('请先完善并保存“素材组”基本信息');
+  landingPageModalApi.setData(creationInfo.value.configData.landingPage);
+  landingPageModalApi.open();
+}
+
+/**
+ * 添加落地页到大对象
+ * @param data
+ */
+function handleLandingPageUpdate(data: VivoLandingPageData) {
+  creationInfo.value.configData.landingPage = data;
 }
 
 //----------创意素材组-----------
@@ -294,6 +310,7 @@ function handleAccountUpdate(data: Array<AccountInfo>) {
       { obj: config.audience, methodKey: 'audienceConfig' },
       { obj: config.material, methodKey: 'config' },
       { obj: config.titlePackage, methodKey: 'titlePackageConfig' },
+      { obj: config.landingPage, methodKey: 'landingPageConfig' },
     ];
 
     cleanupTargets.forEach(({ obj, methodKey }) => {
@@ -369,6 +386,11 @@ function handleReuseUpdate(data: VivoCreation) {
     // 4. 恢复 titlePackage.data
     if (config.titlePackage && !(config.titlePackage.data instanceof Map)) {
       config.titlePackage.data = new Map(Object.entries(config.titlePackage.data || {}));
+    }
+
+    // 5. 恢复 landingPage.data
+    if (config.landingPage && !(config.landingPage.data instanceof Map)) {
+      config.landingPage.data = new Map(Object.entries(config.landingPage.data || {}));
     }
   }
 
@@ -567,16 +589,19 @@ function generatePreview() {
           <Col :span="6">
             <Card>
               <TitlePackageModule
-                :titlePackage="creationInfo.configData.titlePackage"
                 :accountInfo="creationInfo.accountInfo"
-              />
-              <TitlePackagePopupModule
-                :accountInfo="creationInfo.accountInfo"
+                :promotionName="creationInfo.configData.promotion.name"
                 :titlePackage="creationInfo.configData.titlePackage"
+                :landingPage="creationInfo.configData.landingPage"
                 @update:titlePackageConfig="handleTitlePackageUpdate"
               />
+              <LandingPageModule
+                :accountInfo="creationInfo.accountInfo"
+                :landingPage="creationInfo.configData.landingPage"
+                @update:landingPageConfig="handleLandingPageUpdate"
+              />
               <div class="btnCla">
-                <Button type="text" @click="openTitlePackagePopupModule()">添加标题包</Button>
+                <Button type="text" @click="openLandingPageModule">添加落地页</Button>
               </div>
             </Card>
           </Col>

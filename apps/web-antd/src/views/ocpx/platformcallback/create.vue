@@ -1,7 +1,6 @@
 <script lang="ts" setup name="CreateNotice">
 import type {
   CreatePlatformCallbackRequest,
-  EventSettlementItem,
   PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
   UpdatePlatformCallbackRequest
@@ -15,7 +14,6 @@ import {$t} from '@vben/locales';
 import {Divider} from 'ant-design-vue';
 
 import {useVbenForm} from '#/adapter/form';
-import {advertiserApi, eventSettlementApi} from '#/api';
 import {platformCallbackApi} from '#/api/core/ocpx';
 import {Platform} from '#/constants/enums';
 import {
@@ -26,16 +24,19 @@ import {
   ANDROID_USER_ACTION_SET_ID,
   IOS_USER_ACTION_SET_ID
 } from '#/constants/locales';
-import { trimObject } from '#/utils/trim';
-const emit = defineEmits(['pageReload']);
+import {trimObject} from '#/utils/trim';
+import {eventSettlementApi} from '#/api';
+import eventMatching from './components/eventMatching.vue'
 
+const emit = defineEmits(['pageReload']);
+const callbackPlatform = ref<string>('');
+const eventMappingRules = ref<eventMappingType[]>([]);
+const editEventMappingRules = ref<eventMappingType[]>([]);
 const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest>({
   advertiserId: "", advertiserName: "",
   onlyClick: 0, config: new Map<string, any>(), id: "", name: "", platform: "", remark: ""
 });
 const isUpdate = ref<Boolean>(false);
-const mobileAppIds = ref([])
-const userActionSetIds = ref([])
 // 媒体配置表单
 const platformConfigForm = new Map<string, Array<any>>();
 // vivo 配置清单
@@ -575,6 +576,7 @@ platformConfigForm.set(Platform.UBI, [
     defaultValue: 1,
   },
 ]);
+
 /**
  *
  * @param platform 平台
@@ -630,6 +632,7 @@ const [Form, formApi] = useVbenForm({
       formVal.advertiserName = formVal.config.advertiserName;
     }
     formVal.onlyClick = Boolean(formVal.onlyClick);
+    formVal.eventMappingRules = eventMappingRules.value;
     const params = trimObject(formVal);
     await (isUpdate.value
       ? platformCallbackApi.fetchPlatformcallbackUpdate(params as UpdatePlatformCallbackRequest)
@@ -659,13 +662,14 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
         options: BACKHAUL,
         onSelect: async (value: string) => {
+          callbackPlatform.value = value;
           configFormApi.setState((_) => {
             return {
               schema: platformConfigForm.get(value),
             };
           });
-          if(value === Platform.UBI) {
-            await configFormApi.setFieldValue('test',1)
+          if (value === Platform.UBI) {
+            await configFormApi.setFieldValue('test', 1)
           }
           // 更新字段
           const values = await formApi.getValues();
@@ -916,6 +920,7 @@ const [Modal, modalApi] = useVbenModal({
         isUpdate.value = false;
       }
     } else {
+      isUpdate.value = false;
       configFormApi.setState((_) => {
         return {
           schema: []
@@ -930,6 +935,8 @@ function handleSetFormValue(row: PlatformcallbackItem | CreatePlatformCallbackRe
     ...row,
     onlyClick: row.onlyClick ? 1 : 0, // 关键这一行
   });
+  callbackPlatform.value = row.platform;
+  editEventMappingRules.value = row.eventMappingRules ?? [];
   configFormApi.setState((_) => {
     return {
       schema: platformConfigForm.get(row.platform),
@@ -938,9 +945,17 @@ function handleSetFormValue(row: PlatformcallbackItem | CreatePlatformCallbackRe
   configFormApi.setValues(row.config);
 }
 
-const title: string = objectRequest.value
-  ? `${$t('common.edit')}`
-  : `${$t('common.create')}`;
+function handleEventSubmit(values: Array<eventMappingType>) {
+  eventMappingRules.value = values;
+}
+const title = ref<string>()
+watch(isUpdate,(newVal) => {
+  if(newVal) {
+    title.value = `${$t('common.edit')}`
+  } else {
+    title.value = `${$t('common.create')}`;
+  }
+},{ deep: true, immediate: true });
 </script>
 <template>
   <Modal :title="title">
@@ -950,5 +965,7 @@ const title: string = objectRequest.value
 
     <Divider>{{ $t('core.configuration') }}</Divider>
     <ConfigForm/>
+    <Divider>{{ $t('core.eventmatching') }}</Divider>
+    <eventMatching @eventSubmit="handleEventSubmit" :callbackPlatform="callbackPlatform" :editEventMappingRules="editEventMappingRules"/>
   </Modal>
 </template>

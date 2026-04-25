@@ -7,11 +7,11 @@ import type {AdvertiserItem, DeveloperItem} from '#/api/models';
 import {Page, useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
-import {Button, Switch, Tag, Dropdown, Menu, MenuItem, message} from 'ant-design-vue';
+import {Button, Switch, Tag, Dropdown, Menu, MenuItem, SubMenu, message} from 'ant-design-vue';
 import { UploadOutlined } from '@ant-design/icons-vue';
 
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {advertiserApi} from '#/api/core';
+import {advertiserApi, userApi} from '#/api/core';
 import {projectApi, developerApi} from "#/api";
 import {
   BatchOptionsType,
@@ -86,6 +86,44 @@ const [ImportChildAdvertiserModal, improtChildApi] = useVbenModal({
   modal: true,
 });
 
+async function exportAllData() {
+  const params = trimObject(await gridApi.formApi.getValues());
+  await advertiserApi.fetchExportAllData(params);
+  message.success('导出成功，请前往下载中心查看');
+}
+async function cancelBatchOptions(opType: string) {
+  const targetIds = selectedRows.value.map((item) => item.id);
+  let values = {};
+  let type = '';
+  if(opType === 'edit') {
+    type = 'update_advertiser_project';
+    values = {
+      projectId: null
+    };
+  }  else if (opType === 'bind') {
+    type = 'update_advertiser_tag';
+    values = {
+      tag_id: null
+    };
+  } else if (opType === 'org') {
+    type = 'update_advertiser_organization';
+    values = {
+      org_id: null,
+      org_code: null,
+    };
+  } else if (opType === 'sale') {
+    type = 'update_advertiser_sale';
+    values = {
+      sale_id: null,
+    };
+  }
+  await advertiserApi.fetchBatchOptions({
+    targetIds: targetIds,
+    type: type,
+    values: values,
+  });
+  pageReload();
+}
 const roleType = ref<string>('')
 
 function openImportChildModal(row: AdvertiserItem) {
@@ -345,6 +383,28 @@ const formOptions: VbenFormProps = {
         }
       },
     },
+        {
+      component: 'ApiSelect',
+      componentProps: {
+        showSearch: true,
+        placeholder: `${$t('common.input')}`,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        params: {
+          page: 1,
+          pageSize: 1000,
+        },
+        valueField: 'nickname',
+        labelField: 'nickname',        // 两个接口返回的数据都有 name 字段，直接固定
+        resultField: 'items',
+        api: async (params: any) => {
+          return await userApi.fetchUserList(params);
+        },
+      },
+      fieldName: 'createUsername',
+      label: '创建人',
+    },
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
@@ -541,12 +601,12 @@ async function loadAgentData(platform: string) {
     return;
   }
   const res = await advertiserApi.fetchAdvertiserList({
-            page:1,
-            pageSize:1000,
-            platform: platform,
-            advertiserRole: 'proxy'
-          })
-  agentData.value = res.items.map((item: AdvertiserItem) => ({
+      page:1,
+      pageSize:1000,
+      platform: platform,
+      advertiserRole: 'proxy'
+    });
+    agentData.value = res.items.map((item: AdvertiserItem) => ({
     label: `${item.advertiserName}-${item.advertiserId}`,
     value: item.id,
   }));
@@ -628,18 +688,38 @@ async function loadAgentData(platform: string) {
             </Button>
             <template #overlay>
               <Menu>
-                <MenuItem  @click="openBatchOptions('edit')">
-                  修改项目
-                </MenuItem>
-                <MenuItem  @click="openBatchOptions('bind')">
-                  绑定标签
-                </MenuItem>
-                <MenuItem  @click="openBatchOptions('org')">
-                  修改部门
-                </MenuItem>
-                <MenuItem  @click="openBatchOptions('sale')">
-                  修改销售
-                </MenuItem>
+                <SubMenu title="修改项目">
+                  <MenuItem @click="openBatchOptions('edit')">
+                    绑定项目
+                  </MenuItem>
+                  <MenuItem @click="cancelBatchOptions('edit')">
+                    取消绑定
+                  </MenuItem>
+                </SubMenu>
+                <SubMenu title="修改标签">
+                  <MenuItem @click="openBatchOptions('bind')">
+                    绑定标签
+                  </MenuItem>
+                  <MenuItem @click="cancelBatchOptions('bind')">
+                    取消绑定
+                  </MenuItem>
+                </SubMenu>
+                <SubMenu title="修改部门">
+                  <MenuItem @click="openBatchOptions('org')">
+                    绑定部门
+                  </MenuItem>
+                  <MenuItem @click="cancelBatchOptions('org')">
+                    取消绑定
+                  </MenuItem>
+                </SubMenu>
+                <SubMenu title="修改销售">
+                  <MenuItem @click="openBatchOptions('sale')">
+                    绑定销售
+                  </MenuItem>
+                  <MenuItem @click="cancelBatchOptions('sale')">
+                    取消绑定
+                  </MenuItem>
+                </SubMenu>
                 <MenuItem  @click="openBatchOptions('creator')">
                   修改创建人
                 </MenuItem>
@@ -655,7 +735,13 @@ async function loadAgentData(platform: string) {
           <Button class="mr-2" type="primary" @click="() => openCreateModal()">
             {{ $t('common.create') }}
           </Button>
-
+          <Button
+            class="mr-2"
+            type="primary"
+            @click="exportAllData"
+          >
+            {{ $t('marketing.advertiser.exportAll') }}
+          </Button>
           <Button
             class="mr-2"
             type="primary"

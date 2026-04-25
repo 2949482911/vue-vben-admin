@@ -78,7 +78,9 @@ function accountInfoName(id: string) {
           {{ material.config.method === 'all' ? '全部相同' : '按账户分配' }}
         </span>
       </div>
-      <Button type="primary" danger :disabled="isClearDisabled" @click="allClear">清空</Button>
+      <Button type="primary" size="small" danger :disabled="isClearDisabled" @click="allClear"
+        >清空</Button
+      >
     </div>
     <Card class="infoBody">
       <div v-if="material.data.size === 0" class="empty-status">

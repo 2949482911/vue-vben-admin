@@ -133,7 +133,7 @@ function handleAccountClick(account: AccountInfo) {
       </div>
       <div class="flex items-center">
         <div>deepLink链接：</div>
-        <Input v-model:value="deepLinkStr" class="w-[300px]" />
+        <Input v-model:value="deepLinkStr" class="!w-[300px]" />
       </div>
     </div>
   </Modal>

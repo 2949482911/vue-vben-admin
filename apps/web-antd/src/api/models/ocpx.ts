@@ -17,8 +17,14 @@ export interface PlatformcallbackItem extends BaseItem {
   behaviorTypeName: string;
   onlyClick: boolean;
   hadClick: boolean;
+  eventMappingRules?: Array<eventMappingType>;
 }
-
+export interface eventMappingType {
+  behaviorPlatformId: string;
+  behaviorPlatform: string;
+  behaviorEventTypes: string[];
+  callbackEventType: string;
+}
 export interface CreatePlatformCallbackRequest {
   name: string;
   platform: string;
@@ -27,7 +33,8 @@ export interface CreatePlatformCallbackRequest {
   onlyClick: boolean | number;
   advertiserId?: string;
   advertiserName?: string;
-  eventSettlementId: string
+  eventMappingRules?: Array<eventMappingType>;
+  eventSettlementId: string;
 }
 
 export interface UpdatePlatformCallbackRequest
@@ -48,7 +55,7 @@ export interface BehavioraPlatformItem extends BaseItem {
   type: number,
   directLink: string,
   matchField?: number | string;
-  simulateBehaviorType?: string
+  simulateBehaviorType?:string
 }
 
 // 转化匹配列表
@@ -62,7 +69,7 @@ export interface OcpxPlatformMatch extends BaseItem {
   creativeId: string;
   behavioraPlatform: string;
   matchId: string;
-  _isNew?: boolean
+  _isNew?:boolean
 }
 
 export interface BehavioraPlatformPageRequest extends PageRequestParams {
