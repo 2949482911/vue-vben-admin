@@ -111,7 +111,7 @@ const [Form, formApi] = useVbenForm({
         },
         params: {
           page: 1,
-          size: 1000,
+          pageSize: 1000,
         },
         valueField: 'id',
         labelField: 'name',
