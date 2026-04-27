@@ -44,6 +44,7 @@ const [Form, formApi] = useVbenForm({
       component: 'ApiSelect',
       // 对应组件的参数
       componentProps: {
+        showSearch: true,
         placeholder: `${$t('common.input')}`,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
@@ -117,14 +118,18 @@ function handleLeftClick(item: LeftEventItem) {
   }
 }
 function handleRightClick(item: EventItem) {
+  // 切换右侧事件时，先清除所有现有连线
+  connections.value = [];
+  // 更新选中的右侧事件ID
   selectedRightId.value = item.id;
-  for(let i = 0; i < selectedLeftList.value.length; i++) {
+  // 重新为所有已选中的左侧事件建立连线
+  for (let i = 0; i < selectedLeftList.value.length; i++) {
     const leftId = selectedLeftList.value[i];
     addConnection(leftId, item.id);
   }
   nextTick(() => {
     connectAll();
-  })
+  });
 }
 function addConnection(leftId: string, rightId: string) {
   if (connections.value.some(conn => conn.leftId === leftId && conn.rightId === rightId)) {
