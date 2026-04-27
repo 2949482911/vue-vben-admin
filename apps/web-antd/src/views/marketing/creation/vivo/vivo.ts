@@ -321,6 +321,7 @@ export interface VivoCreative {
   pushSubTitle: string;
   imgsCode: string;
   videoCode: string;
+  appName: string;
   strongReminder: number;
 }
 
@@ -539,12 +540,14 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
         newMaterialList.forEach((material) => {
           materialIdsList.push(material.localMaterialId);
           // 添加创意
+          const appName = renderProjectTitle(creationInfo.configData.promotion.name, k); //当媒体类型是广告联盟需要appName
           creativeList.push({
+            appName: creationInfo.configData.campaign.mediaType === 2 ? appName : '',
             placeType: creationInfo.configData.promotion.config.placeType,
             materialNormId: creationInfo.configData.promotion.config.materialNormId,
             virtualPositionId: creationInfo.configData.promotion.config.virtualPositionId,
             title: title.title,
-            subTitle: Array.isArray(title.config?.subTitle) ? title.config.subTitle[0] || '' : '',
+            subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : '', //当媒体类型是广告联盟需要subTitle
             pushSubTitle: Array.isArray(title.config?.pushSubTitle)
               ? title.config.pushSubTitle[0] || ''
               : '',
