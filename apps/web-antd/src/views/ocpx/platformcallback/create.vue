@@ -1,12 +1,12 @@
 <script lang="ts" setup name="CreateNotice">
 import type {
-  CreatePlatformCallbackRequest,
+  CreatePlatformCallbackRequest, eventMappingType, EventSettlementItem,
   PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
   UpdatePlatformCallbackRequest
 } from '#/api/models';
 
-import {ref} from 'vue';
+import {ref, watch} from 'vue';
 
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -18,11 +18,7 @@ import {platformCallbackApi} from '#/api/core/ocpx';
 import {Platform} from '#/constants/enums';
 import {
   BACKHAUL,
-  BM_COFIG_TYPE,
-  ANDROID_APPLICATION_ID,
-  IOS_APPLICATION_ID,
-  ANDROID_USER_ACTION_SET_ID,
-  IOS_USER_ACTION_SET_ID
+  BM_COFIG_TYPE
 } from '#/constants/locales';
 import {trimObject} from '#/utils/trim';
 import {eventSettlementApi} from '#/api';
@@ -33,6 +29,7 @@ const callbackPlatform = ref<string>('');
 const eventMappingRules = ref<eventMappingType[]>([]);
 const editEventMappingRules = ref<eventMappingType[]>([]);
 const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest>({
+  eventMappingRules: undefined, eventSettlementId: "",
   advertiserId: "", advertiserName: "",
   onlyClick: 0, config: new Map<string, any>(), id: "", name: "", platform: "", remark: ""
 });
@@ -884,6 +881,10 @@ const [Modal, modalApi] = useVbenModal({
     await formApi.resetForm();
     await configFormApi.resetForm();
     objectRequest.value = {
+      advertiserId: '',
+      advertiserName: '',
+      eventMappingRules: [],
+      eventSettlementId: '',
       config: new Map<string, any>(),
       id: '',
       name: '',
@@ -948,14 +949,15 @@ function handleSetFormValue(row: PlatformcallbackItem | CreatePlatformCallbackRe
 function handleEventSubmit(values: Array<eventMappingType>) {
   eventMappingRules.value = values;
 }
+
 const title = ref<string>()
-watch(isUpdate,(newVal) => {
-  if(newVal) {
+watch(isUpdate, (newVal) => {
+  if (newVal) {
     title.value = `${$t('common.edit')}`
   } else {
     title.value = `${$t('common.create')}`;
   }
-},{ deep: true, immediate: true });
+}, {deep: true, immediate: true});
 </script>
 <template>
   <Modal :title="title">
@@ -966,6 +968,7 @@ watch(isUpdate,(newVal) => {
     <Divider>{{ $t('core.configuration') }}</Divider>
     <ConfigForm/>
     <Divider>{{ $t('core.eventmatching') }}</Divider>
-    <eventMatching @eventSubmit="handleEventSubmit" :callbackPlatform="callbackPlatform" :editEventMappingRules="editEventMappingRules"/>
+    <eventMatching @eventSubmit="handleEventSubmit" :callbackPlatform="callbackPlatform"
+                   :editEventMappingRules="editEventMappingRules"/>
   </Modal>
 </template>
