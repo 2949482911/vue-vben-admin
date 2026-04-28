@@ -32,6 +32,7 @@ function openTemplateListModalModal(){
 }
 
 const currentQueryMetric = ref<string[]>([]);
+const currentDecimalPoint = ref<number>()
 
 // 防抖标记，避免重复请求
 let pendingRequest = null;
@@ -53,6 +54,7 @@ const searchData = ref<searchDataFilter>({
   platform: [],
   projectId: '',
   queryMetric: [],
+  decimalPoint: 4,
   dateTimeRange: ['',''],
   campaign_id:[],
   adgroup_id:[],
@@ -332,7 +334,7 @@ const projectSelectOptions = computed(() =>
 
 /* 优化7：表单提交防抖 */
 let submitTimer = null;
-
+const decimalPoint = ref<number>();
 // 辅助函数
 const makeFilter = (
   field: string,
@@ -374,6 +376,7 @@ function buildReportParams(values: any): AdReportRequest {
     dateTimeRange,
     dims,
     queryMetric,
+    decimalPoint: decimalPoint.value,
     filters: filters.length ? filters : undefined,
   };
 }
@@ -398,6 +401,7 @@ async function handleFormReset() {
   }
   
   currentQueryMetric.value = [];
+  currentDecimalPoint.value = 4;
   allData.value = [];
   allDataOrigin.value = [];
   currentPageData.value = [];
@@ -430,7 +434,8 @@ async function handleUseTemplate(row: TemplateDto) {
       remark: row.remark
     }
   }
-
+  currentDecimalPoint.value = row.template.decimalPoint;
+  decimalPoint.value = row.template.decimalPoint;
   // 使用表单实例设置值
   await filterFormRef.value?.setValues(row.template);
   
@@ -441,13 +446,19 @@ async function handleUseTemplate(row: TemplateDto) {
   await init(params);
 }
 
-function reloadFromStart(metricIds: string[]) {
+function reloadFromStart(metricIds: string[], newDecimalPoint: number) {
+  decimalPoint.value = newDecimalPoint;
+  currentDecimalPoint.value = newDecimalPoint;
   filterFormRef.value?.setFieldValue('queryMetric', metricIds);
+  console.log('reloadFromStart',decimalPoint.value);
   currentQueryMetric.value = metricIds;
 }
 
 async function openSaveTemplateModalModal() {
   searchData.value = await filterFormRef.value?.getValues();
+  searchData.value.decimalPoint = decimalPoint.value;
+  
+  console.log('searchData', searchData.value);
   if(tmplateData.value.id) {
     sveTemplateModalApi.setData(tmplateData.value)
   } else {
@@ -558,7 +569,7 @@ const isShowActions = ref(true)
         </Grid>
       </div>
     </Page>
-    <SelectMetricModalModal @confirmMetric="reloadFromStart" :selectedMetrics="currentQueryMetric"/>
+    <SelectMetricModalModal @confirmMetric="reloadFromStart" :selectedMetrics="currentQueryMetric" :decimalPoint="currentDecimalPoint"/>
     <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData"/>
     <TemplateDrawer @useTemplate="handleUseTemplate"/>
   </div>

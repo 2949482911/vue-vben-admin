@@ -77,14 +77,12 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen) {
     if (isOpen) {
       const data = modalApi.getData()
-      console.log('data', data);
       if(data.id) {
         isUpdate.value = true;
         await formApi.setFieldValue('name',data.name);
         await formApi.setFieldValue('remark',data.remark);
         await formApi.setFieldValue('id',data.id);
       } else {
-        console.log('创建');
         isUpdate.value = false;
         formApi.resetForm();
       }

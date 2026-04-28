@@ -221,6 +221,7 @@ export interface AdReportRequest {
   platform?: ReportFilter[];
   /** 账户名字 */
   filters?: ReportFilter[];
+  decimalPoint?: number;
 }
 
 export interface ReportTemplate {
@@ -245,6 +246,7 @@ export interface searchDataFilter {
   adgroup_id?: string[];
   promotion_id?: string[];
   creative_id?: string[];
+  decimalPoint: number;
 }
 
 /**模板列表数据类型*/
