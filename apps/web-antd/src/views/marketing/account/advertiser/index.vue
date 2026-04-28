@@ -12,7 +12,7 @@ import { UploadOutlined } from '@ant-design/icons-vue';
 
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {advertiserApi, userApi} from '#/api/core';
-import {projectApi, developerApi} from "#/api";
+import {projectApi, developerApi, accountLabelApi} from "#/api";
 import {
   BatchOptionsType,
   PLATFORM,
@@ -383,7 +383,7 @@ const formOptions: VbenFormProps = {
         }
       },
     },
-        {
+    {
       component: 'ApiSelect',
       componentProps: {
         showSearch: true,
@@ -404,6 +404,29 @@ const formOptions: VbenFormProps = {
       },
       fieldName: 'createUsername',
       label: '创建人',
+    },
+    {
+      component: 'ApiSelect',
+      componentProps: {
+        allowClear: true,
+        showSearch: true,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        },
+        api: async (params:any) => {
+          return await accountLabelApi.fetchGetAccountLabelList(params);
+        },
+        params: {
+          page: 1,
+          pageSize: 1000,
+        },
+        valueField: 'id',
+        labelField: 'name',
+        resultField: 'items',
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'advertiserTagId',
+      label: '账户标签',
     },
   ],
   // 控制表单是否显示折叠按钮

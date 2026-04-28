@@ -62,6 +62,7 @@ import type {
   LandingPageQuery,
   CreateLandingPage,
   DelLandingPage,
+  ExportAllDataType,
 } from '#/api/models/marketing';
 import { requestClient } from '#/api/request';
 import type { BatchOptions } from '#/api/models/core';
@@ -167,7 +168,7 @@ class AdvertiserApi extends BaseApi {
 
   /**广告主-导出数据 */
   fetchExportAllData(params: ExportAllDataType) {
-    return requestClient.get(this.getServiceUrl("export"), { params });
+    return requestClient.get(this.getServiceUrl('export'), { params });
   }
 }
 
@@ -281,7 +282,7 @@ class ReportTemplateApi extends BaseApi {
     return requestClient.post(this.getServiceUrl('template_create'), params);
   }
   fetchUpdateTemplate(params: UpdateReportTemplate) {
-    return requestClient.post(this.getServiceUrl("template_update"), params)
+    return requestClient.post(this.getServiceUrl('template_update'), params);
   }
   fetchGetTemplateList(params: templateListType) {
     return requestClient.get(this.getServiceUrl('template_list'), { params: params });

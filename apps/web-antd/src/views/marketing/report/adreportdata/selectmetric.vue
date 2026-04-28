@@ -3,7 +3,7 @@ import { Page, useVbenModal } from '@vben/common-ui';
 import { onMounted, ref, reactive, watch, nextTick, computed } from 'vue';
 import { metricApi } from '#/api';
 import type { MetricItem,CreateSystemMetric, MetricGroupType} from '#/api/models';
-import { Checkbox, Divider, CheckboxGroup, Space, InputSearch, Button, message, Tabs, TabPane } from 'ant-design-vue';
+import { Checkbox, Divider, CheckboxGroup, Space, InputSearch, Button, message, RadioGroup, Radio, } from 'ant-design-vue';
 import { ReloadOutlined, ArrowDownOutlined, ArrowUpOutlined  } from '@ant-design/icons-vue';
 import { $t } from '@vben/locales';
 import { useVbenForm } from '#/adapter/form';
@@ -15,7 +15,8 @@ const isDataLoading = ref<Boolean>(false)
 const metricGropList = ref<MetricGroupType[]>([])
 //接收父组件使用模板传回来的指标回显数组
 const props = defineProps<{
-  selectedMetrics: string[]
+  selectedMetrics: string[],
+  decimalPoint: number
 }>()
 
 // 搜索关键字
@@ -43,7 +44,7 @@ const visibleMetricIds = computed(() => {
 
 // 实际用于展示的 checkbox options
 const checkboxOptionTypeList = ref<{ label: string; value: string }[]>([]);
-
+const decimalPoint = ref<number>(4);
 // Modal
 function validateFormula(formula: string): boolean {
   if (!formula) {
@@ -103,7 +104,7 @@ const [Modal, modalApi] = useVbenModal({
     await modalApi.close();
   },
   async onConfirm() {
-    emit('confirmMetric', state.checkedList);
+    emit('confirmMetric', state.checkedList,decimalPoint.value);
     await modalApi.close();
   },
   async onOpenChange(isOpen){
@@ -117,6 +118,7 @@ const [Modal, modalApi] = useVbenModal({
         state.checkedList = props.selectedMetrics
           ? [...props.selectedMetrics]
           : [];
+          decimalPoint.value = props.decimalPoint
       });
     }
   }
@@ -376,7 +378,14 @@ onMounted(() => {
           </Checkbox>
 
           <Divider />
-
+          <div>
+            <span style="font-size: 12px;" class="mr-5">保留小数位</span>
+            <RadioGroup v-model:value="decimalPoint" class="metric-radio-group"> 
+              <Radio :value=4>4位</Radio>
+              <Radio :value=5>5位</Radio>
+            </RadioGroup>
+          </div>
+          <Divider />
           <Space size="large">
             <CheckboxGroup v-model:value="state.checkedList" @change="handleChange">
               <div class="metric-checkbox-group">

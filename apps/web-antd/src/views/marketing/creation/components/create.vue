@@ -22,6 +22,7 @@ const objectRequest = ref<StrategyGropType>(<StrategyGropType>{
   name: '',
   platform: '',
   id: '',
+  version: '',
 });
 
 const isUpdate = ref<Boolean>(false);
@@ -45,6 +46,7 @@ const [Form, formApi] = useVbenForm({
             projectId: params.projectId,
             platform: params.platform,
             config: params.config,
+            version: VIVO_VERSION,
           })
         : strategyGropApi.fetchNewStrategyGrop(<StrategyGropType>{
             name: params.name,
@@ -111,7 +113,7 @@ const [Form, formApi] = useVbenForm({
         },
         params: {
           page: 1,
-          size: 1000,
+          pageSize: 1000,
         },
         valueField: 'id',
         labelField: 'name',
@@ -138,6 +140,7 @@ const [Modal, modalApi] = useVbenModal({
       name: '',
       id: '',
       platform: '',
+      version: '',
     } as StrategyGropType;
     isUpdate.value = false;
     await modalApi.close();
