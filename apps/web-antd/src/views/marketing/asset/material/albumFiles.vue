@@ -106,6 +106,83 @@ async function delFile(item: FileInfo) {
   fileList()
   message.success('删除成功');
 }
+// 判断视频文件
+function isVideo(fileName: string): boolean {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  return ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext || '');
+}
+
+function showControls(event: Event) {
+  const video = event.target as HTMLVideoElement;
+  video.controls = true;
+}
+
+function hideControls(event: Event) {
+  const video = event.target as HTMLVideoElement;
+  video.controls = false;
+}
+
+function setVideoPoster(videoElement: HTMLVideoElement, callback?: (url: string) => void) {
+  // 避免重复处理
+  if (videoElement.getAttribute('data-poster-done')) return;
+  
+  // 先确保元数据已加载
+  if (videoElement.readyState < 1) {
+    videoElement.addEventListener('loadedmetadata', () => setVideoPoster(videoElement, callback));
+    return;
+  }
+  
+  // 保存当前播放状态
+  const wasPaused = videoElement.paused;
+  
+  // 跳转到 0.2 秒
+  const targetTime = 0.2;
+  videoElement.currentTime = targetTime;
+  
+  // 监听 seeked 事件
+  const onSeeked = () => {
+    // 确保视频有尺寸
+    if (videoElement.videoWidth === 0) {
+      videoElement.removeEventListener('seeked', onSeeked);
+      return;
+    }
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+      const posterUrl = canvas.toDataURL('image/jpeg');
+      videoElement.setAttribute('poster', posterUrl);
+      videoElement.setAttribute('data-poster-done', 'true');
+      if (callback) callback(posterUrl);
+    }
+    
+    // 恢复原来的播放状态
+    if (wasPaused) videoElement.pause();
+    videoElement.removeEventListener('seeked', onSeeked);
+  };
+  
+  videoElement.addEventListener('seeked', onSeeked);
+  
+  // 设置超时保护
+  setTimeout(() => {
+    if (!videoElement.getAttribute('data-poster-done')) {
+      videoElement.removeEventListener('seeked', onSeeked);
+      // 后备：直接尝试截图当前帧
+      const canvas = document.createElement('canvas');
+      canvas.width = videoElement.videoWidth || 320;
+      canvas.height = videoElement.videoHeight || 180;
+      const ctx = canvas.getContext('2d');
+      if (ctx && videoElement.videoWidth > 0) {
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        videoElement.setAttribute('poster', canvas.toDataURL('image/jpeg'));
+        videoElement.setAttribute('data-poster-done', 'true');
+      }
+    }
+  }, 200);
+}
 </script>
 
 <template>
@@ -167,8 +244,18 @@ async function delFile(item: FileInfo) {
             <!-- 文件 -->
             <template v-else>
               <div class="file-cover">
-                <img :src="item.fileUrl" alt="file" />
-                <!-- <span class="size">{{ item.size }}</span> -->
+                <!-- 图片文件 -->
+                <img v-if="!isVideo(item.name)" :src="item.fileUrl" alt="file"/>
+                <!-- 视频文件 -->
+                <video 
+                  v-else
+                  :src="item.fileUrl"
+                  preload="metadata"
+                  class="video-cover"
+                  @loadeddata="setVideoPoster($event)"
+                  @mouseenter="showControls($event)"
+                  @mouseleave="hideControls($event)"
+                ></video>
               </div>
               <div class="file-info">
                 <div class="title" :title="item.name">{{ item.name }}</div>
@@ -353,6 +440,12 @@ async function delFile(item: FileInfo) {
   position: relative;
   height: 170px;
   background: #000;
+  .video-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background-color: #000; /* 提取前的背景 */
+  }
 }
 
 .file-cover img {
