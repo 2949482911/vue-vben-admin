@@ -916,7 +916,7 @@ platformConfigForm.set(Platform.QWEN, [
     // 界面显示的label
     label: `type`,
     rules: 'required',
-  },{
+  }, {
     // 媒体配置表单
     component: 'Input',
     // 对应组件的参数
@@ -1279,7 +1279,6 @@ platformConfigForm.set(Platform.RUIZHANG, [
 ])
 
 
-
 platformConfigForm.set(Platform.THREE_WATER, [
   {
     component: 'Input',
@@ -1532,6 +1531,30 @@ platformConfigForm.set(Platform.LONGYU, [
     fieldName: 'adid',
     label: 'adid',
     rules: 'required',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'eventType',
+    label: 'eventType',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'channel',
+    label: 'channel',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'source',
+    label: 'source',
   }
 ])
 
