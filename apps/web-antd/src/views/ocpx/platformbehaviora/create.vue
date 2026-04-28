@@ -1279,6 +1279,35 @@ platformConfigForm.set(Platform.TB_SHANGOU_ET, [
   }
 ])
 
+// 唯品会配置
+platformConfigForm.set(Platform.VPH, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'appKey',
+    // 界面显示的label
+    label: `appKey`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'appSecret',
+    // 界面显示的label
+    label: `appSecret`,
+    rules: 'required',
+  },
+]);
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -1351,10 +1380,8 @@ const [Form, formApi] = useVbenForm({
 
     baseForm.simulate = Boolean(baseForm.simulate);
 
-    if(baseForm.platform === 'jd'){
+    if(baseForm.platform === 'jd' || baseForm.platform === 'vph'){
       const matchList = matchTableRef.value?.getSubmitData() ?? []
-      console.log(matchList,'matchListmatchList');
-      
       baseForm.ocpxPlatformMatches = matchList
     }
     // 5️⃣ 提交
@@ -1406,7 +1433,7 @@ const [Form, formApi] = useVbenForm({
           if (value === "tb_union") {
             configFormApi.setValues({action: 2});
           }
-          if (value === "jd") {
+          if (value === "jd" || value === "vph") {
             formApi.setValues({
               model: 'match'
             });
