@@ -12,19 +12,7 @@ import type { MediaAccount } from './vivo/vivo';
 
 const emit = defineEmits(['update:accountInfo', 'update:productInfo']);
 
-const { project } = defineProps({
-  project: {
-    type: Object,
-    default: () => {
-      return {
-        projectId: '',
-        projectName: '',
-        icon: '',
-      };
-    },
-  },
-});
-
+const projectId = ref<SelectValue>('');
 const productList = ref();
 // 媒体账户显示文字 (String 格式方便绑定 Input)
 const mediaAccountLabel = ref<string>('');
@@ -42,13 +30,15 @@ onMounted(async () => {
 
 // 当项目 ID 改变时，查找完整对象并 emit
 function handleProjectChange(val: SelectValue) {
-  const selectedProject = productList.value?.find((item: any) => item.id === val);
+  projectId.value = val;
+  const selectedProject = productList.value?.find((item: any) => String(item.id) === String(val));
   if (selectedProject) {
-    project.projectId = selectedProject.id;
-    project.projectName = selectedProject.name;
-    project.icon = selectedProject.icon;
-    project.packageName = selectedProject.packageName;
-    emit('update:productInfo', project);
+    emit('update:productInfo', {
+      projectId: selectedProject.id,
+      projectName: selectedProject.name,
+      icon: selectedProject.icon,
+      packageName: selectedProject.packageName,
+    });
   }
 }
 
@@ -216,7 +206,7 @@ defineExpose({ reuseDisplay });
           <div>项目：</div>
           <Select
             ref="select"
-            v-model:value="project.projectId"
+            v-model:value="projectId"
             style="width: 120px"
             @change="handleProjectChange"
           >

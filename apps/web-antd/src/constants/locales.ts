@@ -487,8 +487,11 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: 'soul',
     value: 'soul'
+  },
+  {
+    label: '唯品会',
+    value: 'vph'
   }
-
 ];
 
 // 匹配下拉

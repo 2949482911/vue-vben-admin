@@ -50,7 +50,8 @@ export enum Platform {
   LONGYU = "long_yu",
   UBI = 'ubi',
   TB_SHANGOU_ET  = 'tb_shangou_et',
-  SOUL = 'soul'
+  SOUL = 'soul',
+  VPH = 'vph',
 }
 
 export enum RuleType {

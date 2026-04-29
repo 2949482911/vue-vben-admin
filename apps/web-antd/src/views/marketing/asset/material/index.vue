@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Row, Col, DirectoryTree, Button, Card, Spin } from "ant-design-vue";
+import { Row, Col, DirectoryTree, Button, Card, Spin, Dropdown, Menu, MenuItem, message } from "ant-design-vue";
 import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { nextTick, onMounted, ref } from "vue";
 import NewFolder from "./newFolder.vue";
@@ -106,6 +106,22 @@ function handleBreadcrumbJump(item: FolderItem) {
   }
 }
 
+// 删除文件夹
+async function deleteFolder(folder: MaterialLibraryFolderType) {
+  try {
+    const params = {
+      targetIds: [folder.id],
+      type: "delete",
+      values: {}
+    }
+    await materialLibraryApi.fetchDelFolder(params);
+    message.success('删除成功');
+    await requestTreeNode(); // 刷新树数据
+  } catch (error) {
+    message.error('删除失败');
+    console.error('删除文件夹失败:', error);
+  }
+}
 </script>
 
 <template>
@@ -127,6 +143,30 @@ function handleBreadcrumbJump(item: FolderItem) {
                 }"
                 @select="itemFile"
               >
+                <template #title="{ data }">
+                  <div class="tree-node-title">
+                    <span class="tree-node-name">{{ data.name }}</span>
+                    <Dropdown 
+                      trigger="click"
+                      placement="bottomRight"
+                      :overlay-style="{ minWidth: '80px' }"
+                    >
+                      <a href="javascript:;" class="tree-node-menu" @click.stop>
+                        •••
+                      </a>
+                      <template #overlay>
+                        <Menu>
+                          <MenuItem key="edit" @click="newBuilt(data)">
+                            编辑
+                          </MenuItem>
+                          <MenuItem key="delete" @click="deleteFolder(data)">
+                            删除
+                          </MenuItem>
+                        </Menu>
+                      </template>
+                    </Dropdown>
+                  </div>
+                </template>
               </DirectoryTree>
             </div>
           </div>
@@ -196,6 +236,46 @@ function handleBreadcrumbJump(item: FolderItem) {
 
 :deep(.ant-tree){
   border-radius: 0
+}
+
+.tree-node-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-right: 8px;
+  line-height: 24px;
+}
+
+.tree-node-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-node-menu {
+  color: #999;
+  font-size: 14px;
+  padding: 0 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  line-height: 24px;
+}
+
+.tree-node-title:hover .tree-node-menu {
+  opacity: 1;
+}
+
+:deep(.ant-tree-node-content-wrapper) {
+  display: flex;
+  align-items: center;
+}
+
+:deep(.ant-tree-title) {
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 // .maskDebris{
