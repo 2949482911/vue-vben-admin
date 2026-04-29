@@ -94,6 +94,26 @@ const formOptions: VbenFormProps = {
         resultField: "items",
       },
     },
+    {
+      component: 'Select',
+      fieldName: 'monitorType',
+      label: '监测类型',
+      defaultValue: 'click',
+      componentProps: {
+        allowClear: true,
+        placeholder: `${$t('common.choice')}`,
+        options: [
+          {
+            label: `点击`,
+            value: 'click',
+          },
+          {
+            label: '曝光',
+            value: 'exposure',
+          }
+        ]
+      }
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
@@ -116,7 +136,7 @@ const gridOptions: VxeGridProps<OcpxBehaviorRecordItem> = {
   columns: [
     { title: '序号', type: 'seq', width: 50 },
     {
-      field: 'behavioraPlatformName',
+      field: 'behaviorPlatformName',
       title: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorPlatformName')}`,
     },
     {
