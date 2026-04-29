@@ -310,6 +310,10 @@ class MaterialLibraryApi extends BaseApi {
   fetchUpdateFile(params: CreateFolderParams) {
     return requestClient.post(this.getServiceUrl('update'), params);
   }
+  /**删除文件夹*/
+  fetchDelFolder(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl('batch_options'), params);
+  }
 }
 
 export const materialLibraryApi = new MaterialLibraryApi('/platform/album');
