@@ -422,10 +422,11 @@ const gridOptions: VxeGridProps = {
           field: 'campaignName',
           title: '项目',
           slots: { default: ({ row }) => renderEditCell(row, 'campaignName') },
+          width: 'auto'
         },
-        { field: 'campaignBudget', title: '项目预算' },
-        { field: 'campaignMediaType', title: '媒体类型', slots: { default: 'campaignMediaType' } },
-        { field: 'campaignAdType', title: '推广目标', slots: { default: 'campaignAdType' } },
+        { field: 'campaignBudget', title: '项目预算', width: 'auto' },
+        { field: 'campaignMediaType', title: '媒体类型', slots: { default: 'campaignMediaType' }, width: 'auto' },
+        { field: 'campaignAdType', title: '推广目标', slots: { default: 'campaignAdType' }, width: 'auto' },
         {
           title: '广告组',
           children: [
@@ -433,9 +434,10 @@ const gridOptions: VxeGridProps = {
               field: 'groupName',
               title: '名字',
               slots: { default: ({ row }) => renderEditCell(row, 'groupName') },
+              width: 'auto'
             },
-            { field: 'groupOcpxPrice', title: '转化出价' },
-            { field: 'groupDailyBudget', title: '日预算' },
+            { field: 'groupOcpxPrice', title: '转化出价',  width: 'auto'},
+            { field: 'groupDailyBudget', title: '日预算', width: 'auto' },
             {
               title: '广告',
               children: [
@@ -443,41 +445,45 @@ const gridOptions: VxeGridProps = {
                   field: 'promoName',
                   title: '名字',
                   slots: { default: ({ row }) => renderEditCell(row, 'promoName') },
+                  width: 'auto'
                 },
                 {
                   field: 'deepLink',
                   title: 'deepLink链接',
-                  width: '98px',
                   slots: { default: ({ row }) => renderEditCell(row, 'deepLink') },
+                  width: '98px'
                 },
                 {
                   field: 'clickLink',
                   title: '点击链接',
                   slots: { default: ({ row }) => renderEditCell(row, 'clickLink') },
+                  width: '120px'
                 },
                 {
                   field: 'exposureLink',
                   title: '曝光链接',
                   slots: { default: ({ row }) => renderEditCell(row, 'exposureLink') },
+                  width: 'auto'
                 },
                 {
                   field: 'pageUrlName',
                   title: '落地页',
+                  width: 'auto'
                 },
                 {
                   title: '创意',
                   children: [
-                    { field: 'displayCreativeTitle', title: '标题' },
-                    { field: 'displayCreativeSubTitle', title: '副标题' }, // 修正 key
-                    { field: 'displayCreativePushTitle', title: '应用标题' },
+                    { field: 'displayCreativeTitle', title: '标题', width: 'auto' },
+                    { field: 'displayCreativeSubTitle', title: '副标题', width: 'auto' }, // 修正 key
+                    { field: 'displayCreativePushTitle', title: '应用标题', width: 'auto' },
                   ],
                 },
               ],
             },
           ],
         },
-        { field: 'campaignState', title: '提交状态', slots: { default: 'stateSlot' } },
-        { field: 'errorMsg', title: '原因', width: 200 },
+        { field: 'campaignState', title: '提交状态', slots: { default: 'stateSlot' }, width: 'auto' },
+        { field: 'errorMsg', title: '原因', width: 'auto' },
       ],
     },
   ],

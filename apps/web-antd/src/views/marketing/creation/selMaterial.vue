@@ -184,6 +184,23 @@ async function search() {
   queryParam.value.pageSize = 20;
   await fetchList()
 }
+// 判断视频文件
+function isVideo(fileName: string): boolean {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  return ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext || '');
+}
+
+function showControls(event: Event) {
+  const video = event.target as HTMLVideoElement;
+  video.controls = true;
+}
+
+function hideControls(event: Event) {
+  const video = event.target as HTMLVideoElement;
+  video.controls = false;
+}
+
+  
 </script>
 
 <template>
@@ -215,19 +232,34 @@ async function search() {
                 <template #cover>
                   <div
                     class="relative w-full h-[100px] bg-[#f0f2f5] flex items-center justify-center overflow-hidden">
-                    <div class="absolute top-1 left-1 z-10" @click.stop>
+                    <div class="absolute top-1 right-2 z-10" @click.stop>
                       <Checkbox
                         :checked="item.selected" 
                         :disabled="isReachQuota && !item.selected" 
                         @change="handleSelect(item)"
                       />
                     </div>
-
+<!-- 
                     <img
                       v-if="item.fileUrl"
                       :src="item.fileUrl"
                       class="w-full h-full object-contain bg-black"
                     />
+                    -->
+                    <div v-if="item.fileUrl" class="w-full h-full object-contain bg-black">
+                      <!-- 图片文件 -->
+                      <img v-if="!isVideo(item.name)" :src="item.fileUrl" alt="file"  class="w-full h-full object-contain bg-black"/>
+                      <!-- 视频文件 -->
+                      <video 
+                        v-else
+                        :src="item.fileUrl"
+                        preload="metadata"
+                        class="w-full h-full object-contain bg-black"
+                        @mouseenter="showControls($event)"
+                        @mouseleave="hideControls($event)"
+                      ></video>
+                    </div>
+
                     <div v-else class="text-gray-400 text-[10px] flex flex-col items-center">
                       <div class="mb-1 text-lg">🖼️</div>
                       暂无预览
@@ -343,4 +375,10 @@ async function search() {
 :deep(.ant-checkbox-disabled) {
   cursor: not-allowed;
 }
+  .video-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background-color: #000; /* 提取前的背景 */
+  }
 </style>
