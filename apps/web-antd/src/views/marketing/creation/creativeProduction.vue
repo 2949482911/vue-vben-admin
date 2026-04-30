@@ -299,6 +299,15 @@ const checkAccountHasData = (accountId: string | number) => {
   // 只要有一个组里有图片或视频，就显示“有数据”状态
   return data.some((group) => group.image.length > 0 || group.video.length > 0);
 };
+function showControls(event: Event) {
+  const video = event.target as HTMLVideoElement;
+  video.controls = true;
+}
+
+function hideControls(event: Event) {
+  const video = event.target as HTMLVideoElement;
+  video.controls = false;
+}
 </script>
 
 <template>
@@ -368,8 +377,14 @@ const checkAccountHasData = (accountId: string | number) => {
                   class="asset-item uploaded"
                 >
                   <div class="img-box">
-                    <img :src="v.url" />
-                    <div class="play-icon">▶</div>
+                    <video 
+                      :src="v.url" 
+                      preload="metadata"
+                      class="w-full h-full object-cover"
+                      @mouseenter="showControls($event)"
+                      @mouseleave="hideControls($event)"
+                      >
+                    </video>
                     <CloseCircleFilled
                       class="remove-btn"
                       @click="removeAsset(index, 'video', vIdx)"

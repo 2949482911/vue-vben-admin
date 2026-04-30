@@ -65,6 +65,15 @@ function accountInfoName(id: string) {
   };
   return advertiserName.advertiserName;
 }
+function showControls(event: Event) {
+  const video = event.target as HTMLVideoElement;
+  video.controls = true;
+}
+
+function hideControls(event: Event) {
+  const video = event.target as HTMLVideoElement;
+  video.controls = false;
+}
 </script>
 
 <template>
@@ -98,8 +107,15 @@ function accountInfoName(id: string) {
           </div>
           <div class="asset-preview-grid">
             <div v-for="v in group.video" :key="v.localMaterialId" class="preview-item">
-              <img :src="v.url" />
-              <div class="play-mask">▶</div>
+              <video 
+                :src="v.url" 
+                preload="metadata"
+                class="w-full h-full object-contain"
+                @mouseenter="showControls($event)"
+                @mouseleave="hideControls($event)"
+                >
+              </video>
+              <!-- <div class="play-mask">▶</div> -->
             </div>
             <div v-for="img in group.image" :key="img.localMaterialId" class="preview-item">
               <img :src="img.url" />
@@ -122,8 +138,13 @@ function accountInfoName(id: string) {
             </div>
             <div class="asset-preview-grid">
               <div v-for="v in group.video" :key="v.localMaterialId" class="preview-item small">
-                <img :src="v.url" />
-                <div class="play-mask">▶</div>
+              <video 
+                :src="v.url" 
+                preload="metadata"
+                @mouseenter="showControls($event)"
+                @mouseleave="hideControls($event)"
+                >
+              </video>
               </div>
               <div v-for="img in group.image" :key="img.localMaterialId" class="preview-item small">
                 <img :src="img.url" />

@@ -272,8 +272,8 @@ function hideControls(event: Event) {
                   </div>
                 </template>
 
-                <div class="p-2 h-[70px] flex flex-col justify-between overflow-hidden">
-                  <div class="text-[12px] font-medium name-text mb-1 leading-snug"
+                <div class="p-2 h-[40px] flex flex-col justify-between overflow-hidden">
+                  <div class="text-[12px] font-medium name-text mb-1 leading-snug truncate"
                        :title="item.name">
                     {{ item.name }}
                   </div>

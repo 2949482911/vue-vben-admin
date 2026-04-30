@@ -483,7 +483,7 @@ const gridOptions: VxeGridProps = {
           ],
         },
         { field: 'campaignState', title: '提交状态', slots: { default: 'stateSlot' }, width: 'auto' },
-        { field: 'errorMsg', title: '原因', width: 'auto' },
+        { field: 'errorMsg', title: '原因', width: 'auto',fixed: 'right' }
       ],
     },
   ],
