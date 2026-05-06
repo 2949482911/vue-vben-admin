@@ -1,18 +1,13 @@
 <script setup lang="ts">
-import { trimObject } from '#/utils/trim';
-import { useVbenDrawer, Page } from '@vben/common-ui';
-import type { VbenFormProps } from '@vben/common-ui';
-import type { DspItem } from '#/api/models';
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import {Button, Dropdown, Menu, MenuItem, Switch, Tag} from 'ant-design-vue';
-import {
-  BatchOptionsType,
-  PLATFORM,
-  STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { dspApi } from '#/api/core/adx.ts';
+import {trimObject} from '#/utils/trim';
+import type {VbenFormProps} from '@vben/common-ui';
+import {Page, useVbenDrawer} from '@vben/common-ui';
+import type {DspItem} from '#/api/models';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {Button, Switch} from 'ant-design-vue';
+import {TABLE_COMMON_COLUMNS,} from '#/constants/locales';
+import {dspApi} from '#/api/core/adx.ts';
 import {$t} from '@vben/locales';
 import CreateDSpDrawer from './create.vue';
 

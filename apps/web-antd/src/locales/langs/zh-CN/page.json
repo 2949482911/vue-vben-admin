@@ -78,6 +78,7 @@
     "title": "竞价交易",
     "dsp": "Dsp渠道",
     "rtb": "Rtb渠道",
-    "campaign": "投放计划"
+    "campaign": "投放计划",
+    "push_campaign": "Push计划"
   }
 }

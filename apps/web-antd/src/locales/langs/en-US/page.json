@@ -78,6 +78,7 @@
     "title": "Adx",
     "dsp": "Dsp Channel",
     "rtb": "Rtb Channel",
-    "campaign": "Campaign Strategy"
+    "campaign": "Campaign Strategy",
+    "push_campaign": "Push Campaign"
   }
 }
