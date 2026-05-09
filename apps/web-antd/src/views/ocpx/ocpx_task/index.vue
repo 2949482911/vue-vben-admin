@@ -21,6 +21,7 @@ import {
 import Behavioracallbackrecordlist from './behavioracallbackrecordlist.vue';
 import BehaviorRecordList from './behaviorrecordlist.vue';
 import ClickMonitor from './clickmonitor.vue';
+import ClickRecordList from './clickRecordlist.vue';
 import CreateObjectRequestComp from './create.vue';
 import DataStatistics from './dataStatistics.vue';
 import DataExportModal from './dataExport.vue';
@@ -117,6 +118,18 @@ function openExportModal(row?:OcpxTaskItem) {
     exportModalApi.setData({})
   }
   exportModalApi.open()
+}
+
+// 转化请求事件列表
+const [ClickRecordModel, clickRecordApi] = useVbenModal({
+  connectedComponent: ClickRecordList,
+  centered: true,
+  modal: true,
+});
+
+function openClickRecord(row: OcpxTaskItem) {
+  clickRecordApi.setData(row);
+  clickRecordApi.open();
 }
 async function handlerState(row: OcpxTaskItem) {
   await (row.status === 1
@@ -310,6 +323,9 @@ function pageReload() {
                 <MenuItem @click="openBehaviorRecord(row)">
                   {{ $t('core.behaviorRecord') }}
                 </MenuItem>
+                <MenuItem @click="openClickRecord(row)">
+                  {{ $t('core.clickRecord') }}
+                </MenuItem>
                 <MenuItem @click="openDataStatistics(row)">
                   {{ $t('core.data_statistics') }}
                 </MenuItem>
@@ -334,5 +350,6 @@ function pageReload() {
     <BehaviorRecordModel/>
     <Drawer />
     <ExportModal/>
+    <ClickRecordModel/>
   </div>
 </template>

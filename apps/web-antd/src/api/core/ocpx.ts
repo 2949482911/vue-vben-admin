@@ -9,6 +9,8 @@ import type {
   OcpxBehavioracallbackRecordPageRequest,
   OcpxExportEventClickRequest,
   OcpxDataStatisticsRequest,
+  CallbackClickReordItem,
+  ClickReordPageRequest,
   OcpxTaskItem,
   OpcxTaskPageRequest, PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
@@ -138,6 +140,14 @@ class OcpxTaskApi extends BaseApi {
   // 获取统计数据
   fetchOcpxDataStatistics(params: OcpxDataStatisticsRequest) {
     return requestClient.post(this.getServiceUrl("report_ocpx_task"), params)
+  }
+  // 获取点击记录数据
+  fetchClickRecordList(params: ClickReordPageRequest) {
+    return requestClient.get(this.getServiceUrl("event_click_list"), { params })
+  }
+  // 点击记录批量回传
+  fetchBatchClickRecordList(params: CallbackClickReordItem) {
+    return requestClient.post(this.getServiceUrl("custom_behavior_callback"), params)
   }
 }
 

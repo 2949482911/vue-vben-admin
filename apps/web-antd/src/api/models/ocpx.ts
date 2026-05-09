@@ -232,3 +232,27 @@ export interface dayDataItem {
   conversion_rate:number;
   day:string;
 }
+export interface ClickReordItem {
+  platformCallbackName: string;
+  platformCallbackId: string;
+  advertiserId: string;
+  requestId: string;
+  clickId: string;
+  adgroupId: string;
+  taskId: string;
+  createTime: string;
+}
+export interface ClickReordPageRequest extends PageRequestParams {
+  taskId: string;
+  platformCallbackId: string;
+  requestId: string;
+  clickId: string;
+  adgroupId: string;
+}
+export interface CallbackClickReordItem {
+  behaviorPlatformId: string;
+  platformCallbackId: string;
+  requestIds: string[];
+  behaviorType: string;
+  taskId: string;
+}

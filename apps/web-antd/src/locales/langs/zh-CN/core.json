@@ -36,6 +36,7 @@
   "configuration": "配置信息",
   "behavioracallbackrecord": "回传记录",
   "behaviorRecord": "转化记录",
+  "clickRecord": "点击记录",
   "metric": "指标",
   "checkAll": "全选",
   "import": "导入",

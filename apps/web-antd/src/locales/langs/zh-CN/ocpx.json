@@ -107,6 +107,13 @@
       "testCallback": "联调回传",
       "directLink": "直连监测",
       "exposureUrl": "曝光监测"
+    },
+    "click_record_columns": {
+      "platformCallbackName": "回传平台",
+      "advertiserId": "广告主ID",
+      "requestId": "请求ID",
+      "clickTime": "点击时间",
+      "adgroup": "广告组"
     }
   }
 }
