@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { useVbenDrawer } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
-import { UploadDragger, TreeSelect, Image, message, Button, Upload, Radio, Switch } from 'ant-design-vue';
+import { UploadDragger, TreeSelect, message, Upload, Switch } from 'ant-design-vue';
 import { ref } from 'vue';
 import { SvgUploadIcon } from '@vben/icons';
-import type { FolderItem } from '#/api/models';
-import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import type { FileInfo, FolderItem } from '#/api/models';
+import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import { useOssClient } from './useOssClient';
 import { getFileMeta } from '#/utils/fileMeta';
 import { uploadToOss } from '#/utils/uploadToOss';
@@ -26,7 +26,7 @@ const isUploading = ref(false);
 const isDirectoryMode = ref<boolean>(true);
 
 const emit = defineEmits<{
-  (e: 'treeNode'): void
+  (e: 'treeNode'): void;
 }>();
 
 /** ================== Drawer ================== */
@@ -35,7 +35,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   async onOpenChange(isOpen) {
     if (!isOpen) {
       await drawerApi.close();
-      await resetAll()
+      await resetAll();
     }
   },
   async onConfirm() {
@@ -45,7 +45,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
 });
 
 /** ================== Form ================== */
-const [Form,formApi] = useVbenForm({
+const [Form, formApi] = useVbenForm({
   layout: 'vertical',
   showDefaultActions: false,
   commonConfig: {
@@ -63,8 +63,8 @@ const [Form,formApi] = useVbenForm({
       label: '附件上传',
       component: 'UploadDragger',
       rules: 'required',
-    }
-  ]
+    },
+  ],
 });
 
 /** ================== 表格 ================== */
@@ -83,24 +83,26 @@ const gridOptions: VxeGridProps = {
 };
 
 /** ================== 批量串行上传逻辑 ================== */
-
+interface RcFile extends File {
+  uid: string;
+}
 // 1. 拦截文件加入队列
 function handleBeforeUpload(file: any) {
   if (!nameId.value) {
     if (pendingFiles.value.length === 0 && !isUploading.value) {
-      message.error("请先选择上传文件夹");
+      message.error('请先选择上传文件夹');
     }
     return Upload.LIST_IGNORE;
   }
 
-  const rawFile: File = file.originFileObj ?? file;
+  const rawFile = (file.originFileObj ?? file) as RcFile;
   // 过滤幽灵文件夹
   if (rawFile.size === 0 && !rawFile.name.includes('.')) {
     return Upload.LIST_IGNORE;
   }
 
   // 防止同一批次重复拖拽
-  const isExist = gridData.value.some(item => item.category === rawFile.name);
+  const isExist = gridData.value.some((item) => item.category === rawFile.name);
   if (isExist) {
     return Upload.LIST_IGNORE;
   }
@@ -111,14 +113,14 @@ function handleBeforeUpload(file: any) {
     category: rawFile.name,
     status: '排队中...',
   });
-  
+
   // 2：VxeGrid 刷新数据，解决可能存在的响应式丢失问题
   gridApi.setGridOptions({ data: gridData.value });
 
   // 加入执行队列并触发处理
   pendingFiles.value.push(rawFile);
   processQueue();
-  return Upload.LIST_IGNORE; 
+  return Upload.LIST_IGNORE;
 }
 
 // 3. 单个文件上传核心逻辑
@@ -126,11 +128,13 @@ async function doUpload(rawFile: File) {
   const isVideo = rawFile.type.startsWith('video/');
 
   // 从表格中精准找到当前这个文件，更新状态为“上传中...”
-  const currentRecord = gridData.value.find(item => item.category === rawFile.name && item.status === '排队中...');
+  const currentRecord = gridData.value.find(
+    (item) => item.category === rawFile.name && item.status === '排队中...',
+  );
   if (currentRecord) {
     currentRecord.status = '上传中...';
     // 每次状态改变都最好同步一下 Grid
-    gridApi.setGridOptions({ data: gridData.value }); 
+    gridApi.setGridOptions({ data: gridData.value });
   }
 
   try {
@@ -149,12 +153,10 @@ async function doUpload(rawFile: File) {
       width: meta.width,
       height: meta.height,
       fileUrl: result.url,
-      thumbnailUrl: isVideo 
-        ? `${result.url}?x-oss-process=video/snapshot,t_1000,f_jpg,w_200` 
-        : result.url,
+      thumbnailUrl: isVideo ? `${result.url}?x-oss-process=video/snapshot,t_0,f_jpg` : result.url,
     };
 
-    await uploadEditApi.fetchUploadMaterials(payload);
+    await uploadEditApi.fetchUploadMaterials(payload as unknown as FileInfo);
 
     if (currentRecord) {
       currentRecord.status = '已上传';
@@ -163,7 +165,7 @@ async function doUpload(rawFile: File) {
   } catch (err: any) {
     console.error(`文件 ${rawFile.name} 上传失败:`, err);
     if (currentRecord) {
-      console.log('currentRecord',currentRecord)
+      console.log('currentRecord', currentRecord);
       currentRecord.status = err?.message?.includes('已上传') ? '文件已存在' : '上传失败';
       gridApi.setGridOptions({ data: gridData.value });
     }
@@ -184,9 +186,9 @@ async function processQueue() {
   isUploading.value = false;
 }
 
-function delFile(index: number){
-  gridData.value.splice(index, 1);
-}
+// function delFile(index: number) {
+//   gridData.value.splice(index, 1);
+// }
 
 /** ================== 重置逻辑 ================== */
 function resetAll() {
@@ -194,7 +196,7 @@ function resetAll() {
   nameId.value = '';
   fileList.value = [];
   gridData.value = [];
-  
+
   // 重置队列
   pendingFiles.value = [];
   isUploading.value = false;
@@ -221,13 +223,31 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
         </template>
 
         <template #files="slotProps">
-          <div style="width: 100%;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px;">
-              <span :style="{ fontWeight: !isDirectoryMode ? 'bold' : 'normal', color: !isDirectoryMode ? '#1890ff' : 'inherit' }">
+          <div style="width: 100%">
+            <div
+              style="
+                display: flex;
+                gap: 12px;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 16px;
+              "
+            >
+              <span
+                :style="{
+                  fontWeight: !isDirectoryMode ? 'bold' : 'normal',
+                  color: !isDirectoryMode ? '#1890ff' : 'inherit',
+                }"
+              >
                 文件
               </span>
               <Switch v-model:checked="isDirectoryMode" />
-              <span :style="{ fontWeight: isDirectoryMode ? 'bold' : 'normal', color: isDirectoryMode ? '#1890ff' : 'inherit' }">
+              <span
+                :style="{
+                  fontWeight: isDirectoryMode ? 'bold' : 'normal',
+                  color: isDirectoryMode ? '#1890ff' : 'inherit',
+                }"
+              >
                 文件夹
               </span>
             </div>
@@ -244,38 +264,44 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
                 <SvgUploadIcon class="iconClass" />
               </p>
               <p class="ant-upload-text">
-                {{ isDirectoryMode ? '点击选择文件夹，或拖拽文件夹到此处' : '点击选择文件（支持多选），或拖拽文件到此处' }}
+                {{
+                  isDirectoryMode
+                    ? '点击选择文件夹，或拖拽文件夹到此处'
+                    : '点击选择文件（支持多选），或拖拽文件到此处'
+                }}
               </p>
             </UploadDragger>
-        </div>
-      </template>
+          </div>
+        </template>
       </Form>
-      <Grid style="height:58%">
-      </Grid>
+      <Grid style="height: 58%"> </Grid>
     </Drawer>
   </div>
 </template>
 
 <style scoped lang="scss">
-.pIcon{
+.pIcon {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.iconClass{
+.iconClass {
   font-size: 60px;
 }
+
 .selectBtns {
   // text-align: center;
   position: absolute;
-  left: 0;
   top: 50px;
+  left: 0;
+
   .singleBtn {
     margin-bottom: 10px;
   }
 }
-:deep(.vxe-cell--col-resizable){
+
+:deep(.vxe-cell--col-resizable) {
   right: -3px !important;
 }
 </style>
