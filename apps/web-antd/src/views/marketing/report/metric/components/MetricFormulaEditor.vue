@@ -37,21 +37,16 @@ const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.'];
 const loadMetricList = async () => {
   const data = await metricApi.fetchMetric() as MetricItem[];
   metricList.value = data;
-  // 如果已有公式，重新渲染以显示中文名
-  if (props.value) {
-    renderContent(props.value);
-  }
 };
 // 渲染公式
+// 渲染内容（根据公式字符串和当前指标列表）
 const renderContent = (formula: string) => {
   if (!editorRef.value) return;
   const html = formula.replace(/\{([^}]+)\}/g, (match, ename) => {
     const metric = metricList.value.find(m => m.ename === ename);
     if (metric) {
-      // 存在指标，渲染为输入框（显示中文名）
       return `<input type="text" class="metric-input" readonly data-metric="${ename}" value="${metric.cname}" />`;
     } else {
-      // 不存在指标，作为普通文本（去掉花括号）
       return ename;
     }
   });
@@ -65,11 +60,11 @@ watch(() => props.value, (val) => {
 }, { immediate: true });
 
 // 当指标列表变化时，重新渲染（以便显示中文名）
-watch(metricList, () => {
-  if (props.value) {
-    renderContent(props.value);
-  }
-});
+// watch(metricList, () => {
+//   if (props.value) {
+//     renderContent(props.value);
+//   }
+// });
 // 将内容转为公式字符串，并触发 onConfirm
 const updateFormulaFromContent = () => {
   if (!editorRef.value) return;
@@ -112,6 +107,7 @@ const handleEditorMouseDown = (e: MouseEvent) => {
 
 // 插入指标按钮
 const handleInsertMetric = async () => {
+
   // 优先使用最后点击位置
   if (lastClickPosition.value) {
     const { node, offset } = lastClickPosition.value;
@@ -137,9 +133,9 @@ const handleInsertMetric = async () => {
       pendingInsertPosition.value = null;
     }
   }
-
-  const dataList = await metricApi.fetchMetric() as MetricItem[];
-  metricList.value = dataList;
+  if (metricList.value.length === 0) {
+    await loadMetricList();
+  }
   searchKeyword.value = ''; // 清空搜索词
   selectorVisible.value = true;
 };
@@ -149,17 +145,15 @@ const handleMetricClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement;
   if (target.classList.contains('metric-input')) {
     pendingInsertPosition.value = { node: target, offset: 0 };
-    setTimeout(() => {
-      metricApi.fetchMetric().then((res: MetricItem[]) => {
-        metricList.value = res;
-        searchKeyword.value = ''; // 清空搜索词
-        const current = metricList.value.find(
-          (m: any) => m.ename === target.getAttribute('data-metric')
-        );
-        selectedMetric.value = current || null;
-        selectorVisible.value = true;
-      });
-    }, 10);
+    const ename = target.getAttribute('data-metric');
+    if (ename) {
+      const currentMetric = metricList.value.find(m => m.ename === ename);
+      selectedMetric.value = currentMetric || null;
+    } else {
+      selectedMetric.value = null;
+    }
+    searchKeyword.value = ''; // 清空搜索
+    selectorVisible.value = true;
   }
 };
 
@@ -169,26 +163,29 @@ const handleSelectMetric = () => {
     message.warning('请选择一个指标');
     return;
   }
-
-  if (pendingInsertPosition.value && pendingInsertPosition.value.node === editorRef.value) {
-    pendingInsertPosition.value = null;
+  let posValid = false;
+  if (pendingInsertPosition.value) {
+    const { node, offset } = pendingInsertPosition.value;
+    if (document.body.contains(node)) {
+      posValid = true;
+    } else {
+      pendingInsertPosition.value = null;
+    }
   }
 
   const ename = selectedMetric.value.ename;
   const cname = selectedMetric.value.cname;
-  if (pendingInsertPosition.value) {
-    const { node, offset } = pendingInsertPosition.value;
-    const range = document.createRange();
-    const sel = window.getSelection();
 
+  if (posValid && pendingInsertPosition.value) {
+    const { node, offset } = pendingInsertPosition.value;
+
+    // 情况1：文本节点内插入/替换
     if (node.nodeType === Node.TEXT_NODE && offset !== undefined) {
       const textNode = node as Text;
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'metric-input';
-      input.readOnly = true;
-      input.setAttribute('data-metric', ename);
-      input.value = cname;
+      const input = createMetricInput(ename, cname);
+
+      const range = document.createRange();
+      const sel = window.getSelection();
 
       range.setStart(textNode, offset);
       range.setEnd(textNode, offset);
@@ -198,47 +195,35 @@ const handleSelectMetric = () => {
       range.collapse(true);
       sel?.removeAllRanges();
       sel?.addRange(range);
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
+    }
+    // 情况2：元素节点（应该是旧的 .metric-input）
+    else if (node.nodeType === Node.ELEMENT_NODE) {
       const oldInput = node as HTMLElement;
+      // 确保它是一个指标输入框，且还有父节点（未被移除）
       if (!oldInput.classList.contains('metric-input')) {
-        console.warn('Unexpected element to replace, fallback to append');
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.className = 'metric-input';
-        input.readOnly = true;
-        input.setAttribute('data-metric', ename);
-        input.value = cname;
-        editorRef.value?.appendChild(input);
-        editorRef.value?.appendChild(document.createTextNode(' '));
-        selectorVisible.value = false;
-        selectedMetric.value = null;
-        pendingInsertPosition.value = null;
-        updateFormulaFromContent();
-        return;
+        // 不是预期的输入框，降级为追加
+        appendMetricToEnd(ename, cname);
+      } else if (!oldInput.parentNode) {
+        // 父节点丢失，降级为追加
+        appendMetricToEnd(ename, cname);
+      } else {
+        // 正常替换
+        const newInput = createMetricInput(ename, cname);
+        oldInput.parentNode.replaceChild(newInput, oldInput);
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.setStartAfter(newInput);
+        range.collapse(true);
+        sel?.removeAllRanges();
+        sel?.addRange(range);
       }
-
-      const newInput = document.createElement('input');
-      newInput.type = 'text';
-      newInput.className = 'metric-input';
-      newInput.readOnly = true;
-      newInput.setAttribute('data-metric', ename);
-      newInput.value = cname;
-
-      oldInput.parentNode?.replaceChild(newInput, oldInput);
-      range.setStartAfter(newInput);
-      range.collapse(true);
-      sel?.removeAllRanges();
-      sel?.addRange(range);
+    } else {
+      // 其他情况降级追加
+      appendMetricToEnd(ename, cname);
     }
   } else {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'metric-input';
-    input.readOnly = true;
-    input.setAttribute('data-metric', ename);
-    input.value = cname;
-    editorRef.value?.appendChild(input);
-    editorRef.value?.appendChild(document.createTextNode(' '));
+    // 没有有效插入位置，直接在末尾追加
+    appendMetricToEnd(ename, cname);
   }
 
   selectorVisible.value = false;
@@ -246,6 +231,25 @@ const handleSelectMetric = () => {
   pendingInsertPosition.value = null;
   updateFormulaFromContent();
 };
+
+// 辅助函数：创建指标输入框
+function createMetricInput(ename: string, cname: string): HTMLInputElement {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'metric-input';
+  input.readOnly = true;
+  input.setAttribute('data-metric', ename);
+  input.value = cname;
+  return input;
+}
+
+// 辅助函数：在编辑器末尾追加指标
+function appendMetricToEnd(ename: string, cname: string) {
+  if (!editorRef.value) return;
+  const input = createMetricInput(ename, cname);
+  editorRef.value.appendChild(input);
+  editorRef.value.appendChild(document.createTextNode(' '));
+}
 
 // 失去焦点时更新
 const handleBlur = () => {
@@ -308,11 +312,14 @@ const clearFormula = () => {
   }
 };
 
-onMounted(() => {
-  loadMetricList()
+onMounted(async () => {
+  await loadMetricList(); // 加载指标列表
+  if (props.value) {
+    renderContent(props.value);
+  }
   editorRef.value?.addEventListener('click', handleMetricClick);
   editorRef.value?.addEventListener('mousedown', handleEditorMouseDown);
-});
+});;
 </script>
 
 <template>

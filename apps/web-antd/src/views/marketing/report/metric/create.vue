@@ -317,7 +317,7 @@ function validateFormula(formula: string): boolean {
   return true;
 }
 function handleSetFormValue(row: UpdateMetric | CreateSystemMetric) {
-  const rawFormula = row.formula || '';
+  const rawFormula = row.formula.replace(/[A-Za-z][A-Za-z0-9]*?_\d+/g, match => match.replace(/_\d+$/, ''))|| '';
   
   // 精确转换：只将 metricList 中存在的指标名包裹花括号
   let displayFormula = rawFormula;

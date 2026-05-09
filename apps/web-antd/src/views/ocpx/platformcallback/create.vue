@@ -876,6 +876,8 @@ const [Modal, modalApi] = useVbenModal({
       }
     } else {
       isUpdate.value = false;
+      editEventMappingRules.value = [];
+      callbackPlatform.value = '';
       configFormApi.setState((_) => {
         return {
           schema: []

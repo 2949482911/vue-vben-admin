@@ -4,7 +4,7 @@ import { TABLE_COMMON_COLUMNS } from '#/constants/locales';
 import { trimObject } from '#/utils/trim';
 import { Page, useVbenModal, type VbenFormProps } from '@vben/common-ui';
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { Button, message, Tag } from 'ant-design-vue';
+import { Button, message, Switch } from 'ant-design-vue';
 import CreateLoadingPage from './createLoadingPage.vue';
 import type { LandingPageData } from '#/api/models';
 
@@ -118,7 +118,8 @@ async function delLoadingPage() {
 function pageReload() {
   gridApi.reload();
 }
-
+function handlerState(row: LandingPageData) {
+}
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
@@ -130,8 +131,7 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
           {{ row.config.pageUrl }}
         </template>
         <template #status="{ row }">
-          <Tag color="green" v-if="row.status === 1"> 启用 </Tag>
-          <Tag v-else color="red">不启用</Tag>
+          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
         </template>
         <template #action="{ row }">
           <Button type="link" @click="openModal(row)"> 编辑 </Button>

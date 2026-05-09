@@ -236,6 +236,7 @@ function setMappingList(value: eventMappingType[]) {
   value.forEach(item => {
     if(item.callbackEventType.value) {
       mappingList.value.push({
+        label: item.behaviorPlatformName,
         rightId: item.callbackEventType.value,
         rightName: item.callbackEventType.label,
         leftItems: item.behaviorEventTypes
@@ -352,6 +353,7 @@ watch(() => props.editEventMappingRules,async (val) => {
       return {
         behaviorPlatformId: item.behaviorPlatformId,
         behaviorPlatform: item.behaviorPlatform,
+        behaviorPlatformName: item.behaviorPlatformName,
         behaviorEventTypes: item.behaviorEventTypes.map(item => item.value),
         callbackEventType: item.callbackEventType.value
       }
