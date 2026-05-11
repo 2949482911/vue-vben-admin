@@ -32,6 +32,7 @@ const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallback
   onlyClick: 0, config: new Map<string, any>(), id: "", name: "", platform: "", remark: ""
 });
 const isUpdate = ref<Boolean>(false);
+const modalType = ref<string>('edit');
 // 媒体配置表单
 const platformConfigForm = new Map<string, Array<any>>();
 // vivo 配置清单
@@ -615,9 +616,16 @@ const [Form, formApi] = useVbenForm({
     formVal.onlyClick = Boolean(formVal.onlyClick);
     formVal.eventMappingRules = eventMappingRules.value;
     const params = trimObject(formVal);
-    await (isUpdate.value
-      ? platformCallbackApi.fetchPlatformcallbackUpdate(params as UpdatePlatformCallbackRequest)
-      : platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest));
+    if(isUpdate.value) {
+      if(modalType.value === 'edit') {  
+        platformCallbackApi.fetchPlatformcallbackUpdate(params as UpdatePlatformCallbackRequest);
+      } else if(modalType.value === 'copy') {
+        params.id = undefined;
+        platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest);
+      }
+    } else {
+      platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest);
+    }
   },
   schema: [
     {
@@ -850,6 +858,7 @@ const [Modal, modalApi] = useVbenModal({
       remark: ''
     };
     isUpdate.value = false;
+    modalType.value = 'edit';
     await modalApi.close();
   },
   async onConfirm() {
@@ -861,12 +870,15 @@ const [Modal, modalApi] = useVbenModal({
     await formApi.submitForm();
     await configFormApi.resetForm();
     isUpdate.value = false;
+    modalType.value = 'edit';
     emit('pageReload');
     await modalApi.close();
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<Record<string, any>>() as CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest;
+      const data = modalApi.getData();
+      objectRequest.value = data.row as CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest;
+      modalType.value = data.type;
       if ('id' in objectRequest.value) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);

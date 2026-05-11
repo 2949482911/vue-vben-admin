@@ -36,10 +36,15 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
 });
 
 function openCreateModal(
-  row?: PlatformcallbackItem
+  row?: PlatformcallbackItem,
+  type?: string
 ) {
   if (row?.id) {
-    createObjectApi.setData(row);
+    createObjectApi.setData(      
+      {
+        row: row,
+        type: type,
+      });
   } else {
     createObjectApi.setData({});
   }
@@ -241,7 +246,10 @@ function pageReload() {
           </Button>
         </template>
         <template #action="{ row }">
-          <Button type="link" @click="openCreateModal(row)">
+          <Button type="link" @click="openCreateModal(row, 'copy')">
+            复制
+          </Button>
+          <Button type="link" @click="openCreateModal(row, 'edit')">
             {{ $t('common.edit') }}
           </Button>
           <Button type="link" @click="handlerDelete(row)">

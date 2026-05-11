@@ -7,8 +7,7 @@ import { useVbenForm } from '#/adapter/form';
 import { Page, useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { useVbenVxeGrid } from '@vben/plugins/vxe-table';
-import { Button, message } from 'ant-design-vue';
-
+import { Button, message, RangePicker } from 'ant-design-vue';
 import { ocpxTaskApi,platformCallbackApi } from '#/api/core/ocpx';
 import { trimObject } from '#/utils/trim';
 const defalutPlatformCallbackId = ref<string>()
@@ -123,6 +122,15 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
+      component: 'DatePicker',
+      componentProps: {
+        format: 'YYYY-MM-DD',
+        valueFormat: 'YYYY-MM-DD',
+      },
+      fieldName: 'createTime',
+      label: '时间'
+    },
+    {
       fieldName: 'adgroupId',
       label: $t('ocpx.ocpx_task.click_record_columns.adgroup'),
       component: 'Input',
@@ -192,8 +200,13 @@ const gridOptions: VxeGridProps<ClickReordItem> = {
     },
     {
       formatter: 'formatDateTime',
-      field: 'createTime',
+      field: 'createDatetime',
       title: `${$t('ocpx.ocpx_task.click_record_columns.clickTime')}`,
+    },
+    {
+      formatter: 'formatDate',
+      field: 'createTime',
+      title: `点击日期`,
     },
 
     {

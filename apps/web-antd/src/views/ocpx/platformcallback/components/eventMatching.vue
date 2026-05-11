@@ -287,6 +287,7 @@ function clearAllConnections() {
   });
   mappingList.value = [];
   eventMappingRules.value = [];
+  emit('eventSubmit', eventMappingRules.value);
   connectAll();
 }
 let containerResizeObserver = ref<ResizeObserver | null>(null)
