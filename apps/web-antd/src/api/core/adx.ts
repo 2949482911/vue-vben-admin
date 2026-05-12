@@ -1,7 +1,20 @@
 import {BaseApi} from "#/api/core/baseapi";
 import {requestClient} from "#/api/request";
+import { customRequest } from '#/api/customRequest';
 import type {BatchOptions} from "#/api/models/core";
-import type {DspItem, DspPageRequest, DspUpdateItem, RtbItem, RtbPageRequest, RtbUpdateItem, CampaignItem, CampaignPageRequest, CampaignUpdateItem} from "#/api/models/adx";
+import type {
+  DspItem, 
+  DspPageRequest, 
+  DspUpdateItem, 
+  RtbItem, 
+  RtbPageRequest, 
+  RtbUpdateItem, 
+  CampaignItem, 
+  CampaignPageRequest, 
+  CampaignUpdateItem,
+  PushCampaignItem,
+  PushCampaignPageRequest
+} from "#/api/models/adx";
 class DspApi extends BaseApi {
   fetchDspList(params: DspPageRequest) {
     return requestClient.get(this.getServiceUrl("list"), {params: params})
@@ -60,3 +73,29 @@ class CampaignApi extends BaseApi {
 }
 
 export const campaignApi = new CampaignApi("/platform/adx_campaign_strategy");
+
+// 查询push计划列表
+class PushCampaignApi extends BaseApi {
+  fetchPushCampaignList(params: PushCampaignPageRequest) {
+    return requestClient.get(this.getServiceUrl("list"), {params: params})
+  }
+  // 获取图片id
+  fetchImageId(params: FormData) {
+    return customRequest.post(this.getServiceUrl("image_id"), params)
+  }
+}
+export const pushCampaignApi = new PushCampaignApi("/platform/push_campaign");
+// 创建华为用户增长计划
+class HuaweiCampaignApi extends BaseApi {
+  fetchCreateCampaign(params: PushCampaignItem) {
+    return requestClient.post(this.getServiceUrl("create"), params)
+  }
+}
+export const huaweiCampaignApi = new HuaweiCampaignApi("/platform/huawei_campaign");
+// 创建荣耀用户增长计划
+class HonorCampaignApi extends BaseApi {
+  fetchCreateCampaign(params: PushCampaignItem) {
+    return requestClient.post(this.getServiceUrl("create"), params)
+  }
+}
+export const honorCampaignApi = new HonorCampaignApi("/platform/honor_campaign");

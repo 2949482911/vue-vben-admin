@@ -51,7 +51,8 @@ function openBehavioracallbackrecord(row: OcpxTaskItem) {
   behavioracallbackrecordApi.setData({
     taskId: row.id,
     behavioraPlatformIds: row.behavioraPlatformIds,
-    platformCallbackIds: row.platformCallbackIds
+    platformCallbackIds: row.platformCallbackIds,
+    platform: row.platform
   });
   
   behavioracallbackrecordApi.open();

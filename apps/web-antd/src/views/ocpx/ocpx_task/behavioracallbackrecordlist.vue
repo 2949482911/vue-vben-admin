@@ -9,7 +9,7 @@ import {Tag, Button, message} from "ant-design-vue";
 import { trimObject } from "#/utils/trim";
 import viewDetailsModel from './viewDetailsModel.vue';
 import { ref } from "vue";
-
+const platform = ref<string>()
 const defalutBehavioraPlatformId = ref<string>()
 const defalutPlatformCallbackId = ref<string>()
 const taskId = ref<string>()
@@ -62,6 +62,7 @@ const [Modal, modalApi] = useVbenModal({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const modalData = modalApi.getData()
+      platform.value = modalData.platform
       taskId.value = modalData.taskId
       defalutBehavioraPlatformId.value = modalData.behavioraPlatformIds[0]
       defalutPlatformCallbackId.value = modalData.platformCallbackIds[0]
@@ -133,6 +134,23 @@ const formOptions: VbenFormProps = {
         labelField: 'name',
         resultField: "items",
       },
+    },
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'ApiSelect',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+        api: async () => {
+          return  await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(platform.value as string);
+        },
+        showSearch: true,
+        allowClear: true
+      },
+      // 字段名
+      fieldName: 'behaviorType',
+      // 界面显示的label
+      label: '事件'
     },
   ],
   // 控制表单是否显示折叠按钮
