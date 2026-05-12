@@ -10,15 +10,11 @@ import { message } from 'ant-design-vue';
 // 当前选中的账户 ID
 const currentAccountId = ref<string>('');
 const localAdvertiserQualification = ref<Map<string, QualificationValue>>(new Map());
-const { accountInfo, advertiserQualification } = defineProps({
+const { accountInfo } = defineProps({
   // 账户列表
   accountInfo: {
     type: Array<AccountInfo>,
     default: () => [],
-  },
-  advertiserQualification: {
-    type: Object,
-    default: new Map<string, QualificationValue>(),
   },
 });
 
@@ -67,8 +63,10 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions, gridEvents });
 const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
+      // 从 modalApi 中获取刚才 open 时传入的 data
+      const { advertiserQualification: latestData } = modalApi.getData();
       if (accountInfo.length > 0) {
-        await initSelection(advertiserQualification);
+        await initSelection(latestData);
         await nextTick();
         await handleAccountClick(accountInfo[0]!);
       }
