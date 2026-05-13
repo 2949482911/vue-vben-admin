@@ -91,14 +91,20 @@
       "platformCallbackName": "回传媒体",
       "respCode": "响应码",
       "respMsg": "消息",
-      "success": "是否成功"
+      "success": "是否成功",
+      "taskId": "任务ID",
+      "platform": "平台",
+      "eventType": "事件",
+      "requestId": "请求ID",
+      "createTime": "创建时间"
     },
     "behavior_record_columns": {
       "behaviorPlatformName": "转化媒体",
       "platformCallbackName": "回传媒体",
       "respCode": "响应码",
       "respMsg": "消息",
-      "success": "是否成功"
+      "success": "是否成功",
+      "behaviorType": "事件"
     },
     "clickmonitor": {
       "name": "转化配置名字",

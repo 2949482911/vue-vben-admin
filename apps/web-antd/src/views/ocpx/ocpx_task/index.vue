@@ -22,6 +22,7 @@ import Behavioracallbackrecordlist from './behavioracallbackrecordlist.vue';
 import BehaviorRecordList from './behaviorrecordlist.vue';
 import ClickMonitor from './clickmonitor.vue';
 import ClickRecordList from './clickRecordlist.vue';
+import Callbackrecordlist from './callbackrecordlist.vue';
 import CreateObjectRequestComp from './create.vue';
 import DataStatistics from './dataStatistics.vue';
 import DataExportModal from './dataExport.vue';
@@ -45,6 +46,23 @@ const [BehavioracallbackrecordModel, behavioracallbackrecordApi] = useVbenModal(
 function openClickMonitor(row: OcpxTaskItem) {
   clickMonitorApi.setData({taskId: row.id});
   clickMonitorApi.open();
+}
+// 转化回调事件列表
+const [CallbackrecordModel, callbackrecordApi] = useVbenModal(
+  {
+    connectedComponent: Callbackrecordlist,
+    centered: true,
+    modal: true,
+  },
+);
+function openCallbackRecord(row: OcpxTaskItem) {
+  callbackrecordApi.setData({
+    taskId: row.id,
+    behavioraPlatformIds: row.behavioraPlatformIds,
+    platform: row.platform
+  });
+  
+  callbackrecordApi.open();
 }
 
 function openBehavioracallbackrecord(row: OcpxTaskItem) {
@@ -321,6 +339,9 @@ function pageReload() {
                 <MenuItem @click="openBehavioracallbackrecord(row)">
                   {{ $t('core.behavioracallbackrecord') }}
                 </MenuItem>
+                <MenuItem @click="openCallbackRecord(row)">
+                  {{ $t('core.callbackRecord') }}
+                </MenuItem>
                 <MenuItem @click="openBehaviorRecord(row)">
                   {{ $t('core.behaviorRecord') }}
                 </MenuItem>
@@ -347,6 +368,7 @@ function pageReload() {
     </Page>
     <CreateObjectModal @page-reload="pageReload"/>
     <ClickMonitorModal/>
+    <CallbackrecordModel/>
     <BehavioracallbackrecordModel/>
     <BehaviorRecordModel/>
     <Drawer />

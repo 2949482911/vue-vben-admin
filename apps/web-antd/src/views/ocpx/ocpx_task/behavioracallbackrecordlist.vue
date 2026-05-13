@@ -9,6 +9,13 @@ import {Tag, Button, message} from "ant-design-vue";
 import { trimObject } from "#/utils/trim";
 import viewDetailsModel from './viewDetailsModel.vue';
 import { ref } from "vue";
+
+interface eventType {
+  label: string;
+  value: string;
+}
+const eventList = ref<eventType[]>([])
+let TYPE_LABEL_MAP: Record<string, string> = {};
 const platform = ref<string>()
 const defalutBehavioraPlatformId = ref<string>()
 const defalutPlatformCallbackId = ref<string>()
@@ -142,7 +149,10 @@ const formOptions: VbenFormProps = {
       componentProps: {
         placeholder: `${$t('common.input')}`,
         api: async () => {
-          return  await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(platform.value as string);
+          const res = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(platform.value as string);
+          eventList.value = res;
+          TYPE_LABEL_MAP = Object.fromEntries(eventList.value.map(item => [item.value, item.label]));
+          return  res
         },
         showSearch: true,
         allowClear: true
@@ -191,7 +201,11 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
       field: 'respMsg',
       title: `${$t('ocpx.ocpx_task.behavior_record_columns.respMsg')}`,
     },
-
+    {
+      field: 'behaviorType',
+      title: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorType')}`,
+      slots: {default: 'behaviorType'},
+    },
     {
       field: 'success',
       title: `${$t('ocpx.ocpx_task.behavior_record_columns.success')}`,
@@ -265,6 +279,9 @@ async function batchRetry(){
   }
   
 }
+function getTypeLabel(value: string): string {
+  return TYPE_LABEL_MAP[value] ?? value;
+}
 const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
 
 </script>
@@ -280,7 +297,9 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
             <Tag color="red" v-else>{{ $t('common.no') }}</Tag>
           </template>
 
-
+          <template #behaviorType="{ row }">
+            <Tag color="blue">{{getTypeLabel(row.behaviorType)}}</Tag>
+          </template>
           <template #action="{ row }">
             <Button type="link" v-if="!row.success" @click="rePushBehaviorCallback(row)">
               {{ $t('core.repush') }}

@@ -618,13 +618,13 @@ const [Form, formApi] = useVbenForm({
     const params = trimObject(formVal);
     if(isUpdate.value) {
       if(modalType.value === 'edit') {  
-        platformCallbackApi.fetchPlatformcallbackUpdate(params as UpdatePlatformCallbackRequest);
+        await platformCallbackApi.fetchPlatformcallbackUpdate(params as UpdatePlatformCallbackRequest);
       } else if(modalType.value === 'copy') {
         params.id = undefined;
-        platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest);
+         await platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest);
       }
     } else {
-      platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest);
+       await platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest);
     }
   },
   schema: [

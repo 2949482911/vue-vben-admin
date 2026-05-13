@@ -165,6 +165,7 @@ export interface OcpxBehavioracallbackRecordItem extends BaseItem {
   success: boolean;
   clickId: string;
   requestId: string;
+  behaviorType: string;
 }
 
 // 转化请求记录
@@ -255,4 +256,18 @@ export interface CallbackClickReordItem {
   requestIds: string[];
   behaviorType: string;
   taskId: string;
+}
+export interface CallbackClickReordListItem extends PageRequestParams {
+  behaviorPlatformId: string;
+  taskId: number;
+  callbackStatus: number;
+  eventType: string;
+  createTime: string;
+}
+export interface OcpxCallbackRecordItem {
+  behaviorPlatformId: string;
+  taskId: number;
+  callbackStatus: number;
+  eventType: string;
+  createTime: string;
 }

@@ -1,8 +1,8 @@
-<script setup lang="ts" name="BehaviorRecordList">
+<script setup lang="ts" name="CallbackRecordList">
 import type { VbenFormProps } from '@vben/common-ui';
 import {ref} from 'vue';
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { OcpxBehaviorRecordItem } from '#/api/models';
+import type { OcpxCallbackRecordItem } from '#/api/models';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
@@ -13,7 +13,7 @@ import { ocpxTaskApi, behavioraPlatformApi, platformCallbackApi } from '#/api/co
 import { trimObject } from '#/utils/trim';
 
 const defalutBehavioraPlatformId = ref<string>()
-const defalutPlatformCallbackId = ref<string>()
+const platform = ref<string>()
 const taskId = ref<string>()
 const queryBehaviora = ref({
   page: 1,
@@ -21,12 +21,12 @@ const queryBehaviora = ref({
   ids:'',
   name:''
 })
-const queryCallback = ref({
-  page: 1,
-  pageSize: 1000,
-  ids:'',
-  name:''
-})
+interface eventType {
+  label: string;
+  value: string;
+}
+const eventList = ref<eventType[]>([])
+let TYPE_LABEL_MAP: Record<string, string> = {};
 const [Modal, modalApi] = useVbenModal({
   fullscreen: true,
   fullscreenButton: false,
@@ -41,8 +41,7 @@ const [Modal, modalApi] = useVbenModal({
       const modalData = modalApi.getData()
       taskId.value = modalData.taskId
       defalutBehavioraPlatformId.value = modalData.behavioraPlatformIds[0]
-      defalutPlatformCallbackId.value = modalData.platformCallbackIds[0]
-      queryCallback.value.ids = modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : []
+      platform.value = modalData.platform
       queryBehaviora.value.ids = modalData.behavioraPlatformIds.length > 0? modalData.behavioraPlatformIds.join(',') : []
     }
   },
@@ -73,45 +72,18 @@ const formOptions: VbenFormProps = {
     },
     {
       component: 'ApiSelect',
-      fieldName: 'platformCallbackId',
-      label: `${$t('ocpx.ocpx_task.behavior_record_columns.platformCallbackName')}`,
-      defaultValue: defalutPlatformCallbackId,
+      fieldName: 'eventType',
+      label: '事件',
+      defaultValue: null,
       componentProps: {
         allowClear: true,
         placeholder: `${$t('common.choice')}`,
         api: async () => {
-          return await platformCallbackApi.fetchPlatformcallbackList(queryCallback.value);
+          const res = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(platform.value as string);
+          eventList.value = res;
+          TYPE_LABEL_MAP = Object.fromEntries(eventList.value.map(item => [item.value, item.label]));
+          return  res
         },
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        params: {
-          page: 1,
-          pageSize: 1000,
-        },
-        valueField: 'id',
-        labelField: 'name',
-        resultField: "items",
-      },
-    },
-    {
-      component: 'Select',
-      fieldName: 'monitorType',
-      label: '监测类型',
-      defaultValue: 'click',
-      componentProps: {
-        allowClear: true,
-        placeholder: `${$t('common.choice')}`,
-        options: [
-          {
-            label: `点击`,
-            value: 'click',
-          },
-          {
-            label: '曝光',
-            value: 'exposure',
-          }
-        ]
       }
     },
     {
@@ -132,7 +104,7 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-const gridOptions: VxeGridProps<OcpxBehaviorRecordItem> = {
+const gridOptions: VxeGridProps<OcpxCallbackRecordItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
@@ -147,26 +119,21 @@ const gridOptions: VxeGridProps<OcpxBehaviorRecordItem> = {
   columns: [
     { title: '序号', type: 'seq', width: 50 },
     {
-      field: 'behaviorPlatformName',
-      title: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorPlatformName')}`,
+      field: 'taskId',
+      title: `${$t('ocpx.ocpx_task.callback_record_columns.taskId')}`,
     },
     {
-      field: 'platformCallbackName',
-      title: `${$t('ocpx.ocpx_task.behavior_record_columns.platformCallbackName')}`,
+      field: 'platform',
+      title: `${$t('ocpx.ocpx_task.callback_record_columns.platform')}`,
     },
     {
-      field: 'respCode',
-      title: `${$t('ocpx.ocpx_task.behavior_record_columns.respCode')}`,
+      field: 'eventType',
+      title: `${$t('ocpx.ocpx_task.callback_record_columns.eventType')}`,
+      slots: { default: 'eventType' }
     },
     {
-      field: 'respMsg',
-      title: `${$t('ocpx.ocpx_task.behavior_record_columns.respMsg')}`,
-    },
-
-    {
-      field: 'success',
-      title: `${$t('ocpx.ocpx_task.behavior_record_columns.success')}`,
-      slots: { default: 'success' },
+      field: 'requestId',
+      title: `${$t('ocpx.ocpx_task.callback_record_columns.requestId')}`,
     },
     {
       field: 'createTime',
@@ -181,16 +148,19 @@ const gridOptions: VxeGridProps<OcpxBehaviorRecordItem> = {
     ajax: {
       query: async ({ page }, args) => {
         const params = trimObject(args);
-        return await ocpxTaskApi.fetchOxpcBehaviorRecordList({
+        return await ocpxTaskApi.fetchOxpcCallbackRecordList({
           page: page.currentPage,
           pageSize: page.pageSize,
           ...params,
-          taskId: modalApi.getData().taskId,
+          taskId: taskId.value
         });
       },
     },
   },
 };
+function getTypeLabel(value: string): string {
+  return TYPE_LABEL_MAP[value] ?? value;
+}
 const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
@@ -199,11 +169,8 @@ const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
     <Modal>
       <Page auto-content-height>
         <Grid>
-          <template #success="{ row }">
-            <Tag color="green" v-if="row.requestSuccess">
-              {{ $t('common.yes') }}
-            </Tag>
-            <Tag color="red" v-else>{{ $t('common.no') }}</Tag>
+          <template #eventType="{ row }">
+            <Tag color="blue">{{getTypeLabel(row.eventType)}}</Tag>
           </template>
         </Grid>
       </Page>
