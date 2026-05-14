@@ -268,7 +268,7 @@ function setMappingList(value: eventMappingType[]) {
   const mappingData = Array.from(map.values())
   mappingList.value = [...mappingData, ...mappingList.value]
 }
-function deleteConnection(leftId: string, rightId: string) {
+function deleteConnection(leftId: string, leftValue:string,rightId: string) {
   // connections.value = connections.value.filter(
   //   conn => conn.leftId !== leftId || conn.rightId !== rightId
   // );
@@ -277,6 +277,11 @@ function deleteConnection(leftId: string, rightId: string) {
     item.leftItems = item.leftItems.filter(l => l.label !== leftId);
     return item.leftItems.length > 0;
   });
+  eventMappingRules.value = eventMappingRules.value.filter(item => {
+    item.behaviorEventTypes = item.behaviorEventTypes.filter(l => l !== leftValue);
+    return item.behaviorEventTypes.length > 0;
+  });
+  emit('eventSubmit', eventMappingRules.value);
 }
 function clearAllConnections() {
   connections.value = [];
@@ -397,7 +402,7 @@ onUnmounted(() => {
             <div class="label-name">{{ mapping.label || '----------' }}</div>
             <div class="mapping-item">
               <div v-for="left  in mapping.leftItems" :key="left.label" class="right-tag">{{ left.label }}
-                <span class="delete-btn" @click="deleteConnection(left.label, mapping.rightId)">✕</span>
+                <span class="delete-btn" @click="deleteConnection(left.label,left.value, mapping.rightId)">✕</span>
               </div>
               <div>=></div>
               <div class="left-item">{{ mapping.rightName  }}</div>

@@ -41,7 +41,6 @@ const [Modal, modalApi] = useVbenModal({
       const modalData = modalApi.getData()
       taskId.value = modalData.taskId
       defalutBehavioraPlatformId.value = modalData.behavioraPlatformIds[0]
-      platform.value = modalData.platform
       queryBehaviora.value.ids = modalData.behavioraPlatformIds.length > 0? modalData.behavioraPlatformIds.join(',') : []
     }
   },
@@ -60,7 +59,10 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         placeholder: `${$t('common.choice')}`,
           api: async () => {
-          return await behavioraPlatformApi.fetchBehavioraPlatformList(queryBehaviora.value);
+            const res = await behavioraPlatformApi.fetchBehavioraPlatformList(queryBehaviora.value);
+            platform.value = res.items[0].platform;
+            eventList.value = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(platform.value as string);
+            return res
         },
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
@@ -71,19 +73,14 @@ const formOptions: VbenFormProps = {
       },
     },
     {
-      component: 'ApiSelect',
+      component: 'Select',
       fieldName: 'eventType',
       label: '事件',
       defaultValue: null,
       componentProps: {
         allowClear: true,
         placeholder: `${$t('common.choice')}`,
-        api: async () => {
-          const res = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(platform.value as string);
-          eventList.value = res;
-          TYPE_LABEL_MAP = Object.fromEntries(eventList.value.map(item => [item.value, item.label]));
-          return  res
-        },
+        options: eventList
       }
     },
     {
@@ -159,6 +156,7 @@ const gridOptions: VxeGridProps<OcpxCallbackRecordItem> = {
   },
 };
 function getTypeLabel(value: string): string {
+  TYPE_LABEL_MAP = Object.fromEntries(eventList.value.map(item => [item.value, item.label]));
   return TYPE_LABEL_MAP[value] ?? value;
 }
 const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
