@@ -65,27 +65,54 @@ const [AdPlacementQualification, modalApi] = useVbenModal({
   connectedComponent: adPlacementQualification,
   async onOpenChange(isOpen) {
     if (!isOpen) {
-      localAdvertiserQualification.value = modalApi.getData();
-      const isEmpty =
-        !localAdvertiserQualification.value ||
-        (localAdvertiserQualification.value instanceof Map
-          ? localAdvertiserQualification.value.size === 0
-          : Object.keys(localAdvertiserQualification.value).length === 0);
+      const res = modalApi.getData();
 
-      if (isEmpty) {
+      // 1. 如果没有返回数据（点击叉号/取消），直接退出，保护现有回显
+      if (!res) return;
+
+      // 2. 根据截图，数据在 res.advertiserQualification 里面
+      // 我们提取它，并防御性地兼容“直接返回 Map”的情况
+      const rawData = res.advertiserQualification || res;
+
+      // 3. 强制标准化为 Map 类型
+      let standardMap: Map<string, QualificationValue>;
+      if (rawData instanceof Map) {
+        standardMap = rawData;
+      } else if (typeof rawData === 'object' && rawData !== null) {
+        standardMap = new Map(Object.entries(rawData));
+      } else {
+        return;
+      }
+
+      // 4. 同步到本地 ref（确保它是标准的 Map）
+      localAdvertiserQualification.value = standardMap;
+
+      // 5. 判断是否为空
+      if (standardMap.size === 0) {
+        // 只有明确返回空数据时才清空回显
         advertiseQualificationId.value = '';
         return;
       }
-      const dataArray = Array.from<QualificationValue>(localAdvertiserQualification.value.values());
+
+      // 6. 此时调用 .values() 就绝对安全了
+      const dataArray = Array.from(standardMap.values());
+
       advertiseQualificationId.value = dataArray
         .map((item) => item.qualificationName)
-        .filter(Boolean) // 过滤空值
+        .filter(Boolean)
         .join('，');
     }
   },
 });
 
 function openAdPlacementQualificationModal() {
+  modalApi.setData({
+    // 优先使用本地已经选好的，如果没有则使用 Props 传进来的初始值
+    advertiserQualification:
+      localAdvertiserQualification.value.size > 0
+        ? localAdvertiserQualification.value
+        : advertiserQualification,
+  });
   modalApi.open();
 }
 
@@ -429,10 +456,7 @@ const [Form, formApi] = useVbenForm({
         <TimeSelectionPeriod class="timeTab" v-model="scheduleTimeValue" />
       </div>
     </Drawer>
-    <AdPlacementQualification
-      :accountInfo="accountInfo"
-      :advertiserQualification="advertiserQualification"
-    />
+    <AdPlacementQualification :accountInfo="accountInfo" />
   </div>
 </template>
 

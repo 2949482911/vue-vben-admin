@@ -51,4 +51,94 @@ export interface CampaignItem extends BaseItem {
 export interface CampaignUpdateItem extends CampaignItem {
   id: string;
 }
+// push计划创建
+export interface PushCampaignItem extends BaseItem {
+  name: string;
+  requestId?: string;
+  targetType?: number;
+  sendNum?: number;
+  audience: AudienceType;
+  plan: PlanType;
+  material?: MaterialType;
+  materialStyle?: MaterialStyleType;
+  options?: OptionsType;
+  targetClientId?: string;
+  rtaCfgId?: string;
+  isTestCampaign?: number;
+  conversionReportId: string;
+  sendTiming: number;
+  eventNames: string[];
+  appGroupId: string;
+  excludeOneself:number;
+  fullSend: boolean;
+  excludeFistActiveAudience: boolean
 
+}
+interface AudienceType {
+  type?: number;
+  tagSet?: TagCatalogType[];
+}
+interface PlanType {
+  time?: TimeType[];
+  noDisturbEnable?: number;
+}
+interface MaterialType {
+  title: string;
+  body?: string;
+  summary?: string;
+  imageUrl?: string;
+  imageId?: string;
+  actionType?: number;
+  intent?: string;
+  action?: string;
+  data?: string;
+  buttons: ButtonType[];
+}
+interface MaterialStyleType {
+  advancedStyle?: AdvancedStyleType;
+  smallIcon?: SmallIconType;
+  displayMode?: number;
+  foldType?: number;
+}
+interface OptionsType {
+  conversionReportFlag?: number;
+  biTag?: string;
+  rtaMode?: number;
+  preinstallVoucher?: number;
+  commonVoucher: number;
+  appVoucher: number;
+  notifyId: number;
+}
+interface TagCatalogType {
+  name: string;
+  tags: Array<string>;
+}
+interface TimeType {
+  start: number;
+  end: number;
+}
+interface ButtonType {
+  name: string;
+  actionType: number;
+  intentType: number;
+  intent: string;
+  data: string;
+}
+interface AdvancedStyleType {
+  color: string;
+  backgroundImageId: string;
+  transparentBackgroundImageId: string;
+  colorMode: number;
+  bigImageId: string;
+}
+
+interface SmallIconType {
+  type: number;
+  imageId: string;
+  iconPath: string;
+  iconUrl: string;
+}
+export interface PushCampaignPageRequest extends PageRequestParams {
+  name: string;
+  platform: string;
+}

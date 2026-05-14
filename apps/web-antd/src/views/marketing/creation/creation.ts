@@ -1,4 +1,10 @@
-import { AdRuleKey, CampaignRuleKey, DistributionMode, Platform } from '#/constants/enums';
+import {
+  AdGroupRuleKey,
+  AdRuleKey,
+  CampaignRuleKey,
+  DistributionMode,
+  Platform,
+} from '#/constants/enums';
 import type { VivoConfigData, VivoCreation } from '#/views/marketing/creation/vivo/vivo';
 import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
 
@@ -40,6 +46,8 @@ export interface AccountInfo {
 export interface RuleInfo {
   projectRuleKey: string;
   projectCount: number;
+  adGroupRuleKey: string;
+  adGroupCount: number;
   adRuleKey: string;
   adCount: number;
 }
@@ -138,7 +146,42 @@ export function getRuleInfoCampaignCount(
 }
 
 /**
- * 根据广告配置获取广告个数
+ * 根据项目配置获取广告组个数
+ */
+export function getRuleInfoAdCountGroup(
+  platform: string,
+  creation: PlatformCreation<VivoConfigData | any>,
+  localMaterialIds: Array<string>,
+): number {
+  if (platform === Platform.VIVO) {
+    creation = creation as VivoCreation;
+  }
+  const adGroupRuleKey = creation.ruleInfo.adGroupRuleKey;
+  if (adGroupRuleKey === AdGroupRuleKey.targeting) {
+    return getCampaignCount(
+      creation.configData.audience?.audienceConfig.method,
+      creation.configData.audience?.data,
+      localMaterialIds,
+    );
+  } else if (adGroupRuleKey === AdGroupRuleKey.creative) {
+    return getCampaignCount(
+      creation.configData.material?.config.method,
+      creation.configData.material?.data,
+      localMaterialIds,
+    );
+  } else if (adGroupRuleKey === AdGroupRuleKey.title) {
+    return getCampaignCount(
+      creation.configData.titlePackage?.titlePackageConfig.method,
+      creation.configData.titlePackage?.data,
+      localMaterialIds,
+    );
+  } else {
+    return creation.ruleInfo.adGroupCount || 0;
+  }
+}
+
+/**
+ * 根据广告组配置获取广告个数
  */
 export function getRuleInfoAdCount(
   platform: string,

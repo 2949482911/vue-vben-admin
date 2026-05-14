@@ -694,6 +694,10 @@ export const BM_COFIG_TYPE = [
     label: 'ANDROID',
     value: 'ANDROID',
   },
+  {
+    label: 'IOS',
+    value: 'IOS',
+  }
 ];
 /**
  * 广点通-安卓应用ID

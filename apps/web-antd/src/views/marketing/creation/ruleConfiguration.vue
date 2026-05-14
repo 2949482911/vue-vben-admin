@@ -14,6 +14,8 @@ const { ruleInfo } = defineProps({
       return {
         projectRuleKey: '',
         projectCount: 1,
+        adGroupRuleKey: '',
+        adGroupCount: 1,
         adRuleKey: '',
         adCount: 1,
       };
@@ -37,6 +39,21 @@ const projectRules = [
   { title: '指定数量', desc: '手动指定每个账户的项目数量', key: 'custom' },
 ];
 
+const adGroupRules = [
+  { title: '根据定向包生成', desc: '广告组数量与定向包数量相等', key: 'targeting' },
+  {
+    title: '根据创意组生成',
+    desc: '广告组数量与创意组数量相等',
+    key: 'creative',
+  },
+  {
+    title: '根据标题包生成',
+    desc: '广告组数量与标题包数量相等',
+    key: 'title',
+  },
+  { title: '指定数量', desc: '手动指定每个账户的广告组数量', key: 'custom' },
+];
+
 const adRules = [
   {
     title: '按创意组数',
@@ -53,8 +70,10 @@ const adRules = [
 ];
 
 const selectedProjectRule = ref('targeting');
+const selectedAdGroupRule = ref('targeting');
 const selectedAdRule = ref('creative');
 const projectCount = ref(1);
+const adGroupCount = ref(1);
 const adCount = ref(1);
 
 // 顶部展示文本：依然绑定正式变量
@@ -62,19 +81,24 @@ const displayDisplayText = computed(() => {
   let projectText = projectRules.find((r) => r.key === ruleInfo.projectRuleKey)?.title || '';
   if (ruleInfo.projectRuleKey === 'custom') projectText = `指定数量 ${ruleInfo.projectCount}`;
 
+  let adGroupText = projectRules.find((r) => r.key === ruleInfo.adGroupRuleKey)?.title || '';
+  if (ruleInfo.adGroupRuleKey === 'custom') adGroupText = `指定数量 ${ruleInfo.adGroupCount}`;
+
   let adText = adRules.find((r) => r.key === ruleInfo.adRuleKey)?.title || '';
   if (ruleInfo.adRuleKey === 'custom') adText = `指定数量 ${ruleInfo.adCount}`;
 
-  return { projectText, adText };
+  return { projectText, adText, adGroupText };
 });
 
 const [Modal, modalApi] = useVbenModal({
   contentClass: 'rule-modal-content',
   async onConfirm() {
     ruleInfo.projectRuleKey = selectedProjectRule.value;
+    ruleInfo.adGroupRuleKey = selectedAdGroupRule.value;
     ruleInfo.adRuleKey = selectedAdRule.value;
     ruleInfo.projectCount = projectCount.value;
     ruleInfo.adCount = adCount.value;
+    ruleInfo.adGroupCount = adGroupCount.value;
 
     // 3. 点击确认：将临时变量同步给正式变量，此时顶部文字才会变化
     emit('update:ruleInfo', ruleInfo);
@@ -88,9 +112,11 @@ const [Modal, modalApi] = useVbenModal({
 function ruleConfigurationEvent() {
   // 4. 打开弹窗：将当前正式变量的值回显给临时变量
   selectedProjectRule.value = ruleInfo.projectRuleKey;
+  selectedAdGroupRule.value = ruleInfo.adGroupRuleKey;
   selectedAdRule.value = ruleInfo.adRuleKey;
   projectCount.value = ruleInfo.projectCount;
   adCount.value = ruleInfo.adCount;
+  adGroupCount.value = ruleInfo.adGroupCount;
   modalApi.open();
 }
 
@@ -117,6 +143,8 @@ async function reuseData(params: VivoCreation) {
       <div class="info-tag">
         <span class="label">项目：</span>
         <span class="value">{{ displayDisplayText.projectText }}</span>
+        <span class="label ml-4">广告组：</span>
+        <span class="value">{{ displayDisplayText.adGroupText }}</span>
         <span class="label ml-4">广告：</span>
         <span class="value">{{ displayDisplayText.adText }}</span>
       </div>
@@ -144,6 +172,27 @@ async function reuseData(params: VivoCreation) {
         <div v-if="selectedProjectRule === 'custom'" class="input-row">
           <div class="label">每个账户指定项目数</div>
           <Input v-model:value="projectCount" style="width: 200px" placeholder="请输入数量" />
+        </div>
+
+        <div class="rule-section">
+          <div class="label">广告组生成规则</div>
+          <div class="options-grid">
+            <div
+              v-for="item in adGroupRules"
+              :key="item.key"
+              class="option-card"
+              :class="{ active: selectedAdGroupRule === item.key }"
+              @click="selectedAdGroupRule = item.key"
+            >
+              <div class="option-title">{{ item.title }}</div>
+              <div class="option-desc">{{ item.desc }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="selectedAdGroupRule === 'custom'" class="input-row">
+          <div class="label">每个项目指定广告组数</div>
+          <Input v-model:value="adGroupCount" style="width: 200px" placeholder="请输入数量" />
         </div>
 
         <div class="rule-section">

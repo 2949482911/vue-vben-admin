@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { advertiserApi, targetedPackageApi } from '#/api';
+import { targetedPackageApi } from '#/api';
 import { ACTIVE_PLATFORM } from '#/constants/locales';
 import { trimObject } from '#/utils/trim';
 import { useVbenModal, type VbenFormProps } from '@vben/common-ui';
@@ -53,29 +53,29 @@ const formOptions: VbenFormProps = {
       fieldName: 'name',
       label: '定向包名称',
     },
-    {
-      component: 'ApiSelect',
-      componentProps: {
-        allowClear: true,
-        showSearch: true,
-        placeholder: '请选择',
-        api: async (params: any) => {
-          return await advertiserApi.fetchAdvertiserList(params);
-        },
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
-        params: {
-          page: 1,
-          pageSize: 10000,
-        },
-        valueField: 'advertiserId',
-        labelField: 'advertiserName',
-        resultField: 'items',
-      },
-      fieldName: 'platformAdvertiserId',
-      label: '平台开发者',
-    },
+    // {
+    //   component: 'ApiSelect',
+    //   componentProps: {
+    //     allowClear: true,
+    //     showSearch: true,
+    //     placeholder: '请选择',
+    //     api: async (params: any) => {
+    //       return await advertiserApi.fetchAdvertiserList(params);
+    //     },
+    //     filterOption: (inputValue: string, option: { label: string }) => {
+    //       return option.label.toLowerCase().includes(inputValue.toLowerCase());
+    //     },
+    //     params: {
+    //       page: 1,
+    //       pageSize: 10000,
+    //     },
+    //     valueField: 'advertiserId',
+    //     labelField: 'advertiserName',
+    //     resultField: 'items',
+    //   },
+    //   fieldName: 'platformAdvertiserId',
+    //   label: '平台开发者',
+    // },
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: false,

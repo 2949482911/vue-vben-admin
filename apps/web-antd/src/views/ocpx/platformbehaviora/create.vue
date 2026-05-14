@@ -53,7 +53,7 @@ const objectRequest = ref<BehavioraPlatformItem>({
 
 const isUpdate = ref<Boolean>(false);
 const matchModel = ref<string>('match');
-
+const modalType = ref<string>('edit');
 // 配置项
 const platformConfigForm = new Map<string, Array<any>>();
 
@@ -372,6 +372,16 @@ platformConfigForm.set(Platform.KUAISHOU, [
     label: `adid`,
     rules: 'required',
   },
+  {
+    component: 'Switch',
+    defaultValue: false,
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+      class: 'w-10',
+    },
+    fieldName: 'replayClickEnabled',
+    label: `模拟上报`
+  }
 ]);
 
 // 网易
@@ -1639,6 +1649,9 @@ const [Form, formApi] = useVbenForm({
 
     // 2️⃣ trim config 表单（关键）
     const rawConfig = await configFormApi.getValues();
+    if(baseForm.platform === 'kuaishou') {
+      rawConfig.replayClickEnabled = rawConfig.replayClickEnabled ? 1 : 9;
+    }
     const config = trimObject(rawConfig);
 
     // 3️⃣ 淘宝联盟特殊处理
@@ -1665,10 +1678,16 @@ const [Form, formApi] = useVbenForm({
       const matchList = matchTableRef.value?.getSubmitData() ?? []
       baseForm.ocpxPlatformMatches = matchList
     }
-    // 5️⃣ 提交
-    await (isUpdate.value
-      ? behavioraPlatformApi.fetchUpdateBehavioraPlatform(baseForm as UpdateBehavioraPlatformRequest)
-      : behavioraPlatformApi.fetchCreateBehavioraPlatform(baseForm as CreateBehavioraPlatformRequest));
+    if(isUpdate.value ) {
+      if(modalType.value === 'edit') {
+        await  behavioraPlatformApi.fetchUpdateBehavioraPlatform(baseForm as UpdateBehavioraPlatformRequest);
+      } else if(modalType.value === 'copy'){
+        baseForm.id = undefined
+        await behavioraPlatformApi.fetchCreateBehavioraPlatform(baseForm as CreateBehavioraPlatformRequest);
+      }
+    }  else {
+      behavioraPlatformApi.fetchCreateBehavioraPlatform(baseForm as CreateBehavioraPlatformRequest);
+    }
   },
   schema: [
     {
@@ -1936,6 +1955,7 @@ const [Modal, modalApi] = useVbenModal({
     await configFormApi.resetForm();
     ocpxPlatformMatchList.value = [];
     isUpdate.value = false;
+    modalType.value = 'edit';
     await modalApi.close();
   },
   async onConfirm() {
@@ -1947,12 +1967,15 @@ const [Modal, modalApi] = useVbenModal({
     await formApi.submitForm();
     await configFormApi.resetForm();
     isUpdate.value = false;
+    modalType.value = 'edit';
     emit('pageReload');
     await modalApi.close();
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<BehavioraPlatformItem>();
+      const data = modalApi.getData();
+      objectRequest.value = data.row as BehavioraPlatformItem;
+      modalType.value = data.type;
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
@@ -1979,6 +2002,13 @@ async function handleSetFormValue(row: BehavioraPlatformItem) {
   const configObj = row.config instanceof Map
     ? Object.fromEntries(row.config.entries())
     : row.config;
+  if(row.platform === 'kuaishou') {
+    if(configObj.replayClickEnabled === 1) {
+      configObj.replayClickEnabled = true;
+    } else {
+      configObj.replayClickEnabled = false;
+    }
+  }
   // 先获取原有平台配置schema
   let schema = platformConfigForm.get(row.platform) ?? [];
   // 如果是淘宝联盟并且有tbkId数组

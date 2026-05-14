@@ -2,13 +2,13 @@ import {BaseApi} from "#/api/core/baseapi";
 import {requestClient} from "#/api/request";
 import type {
   BehavioraPlatformPageRequest,
+  CallbackClickReordItem,
+  CallbackClickReordListItem,
   ClickMonitorResponse,
+  ClickReordPageRequest,
   CreateBehavioraPlatformRequest,
-  CreateEventSettlementRequest,
   CreateOcpxTaskRequest,
   CreatePlatformCallbackRequest,
-  EventSettlementItem,
-  EventSettlementPageRequest,
   OcpxBehavioracallbackRecordPageRequest,
   OcpxDataStatisticsRequest,
   OcpxExportEventClickRequest,
@@ -21,7 +21,6 @@ import type {
   SingleRePushRetryBehaviorCallbackType,
   TestCallbackRequest,
   UpdateBehavioraPlatformRequest,
-  UpdateEventSettlementRequest,
   UpdateOcpxTaskRequest,
   UpdatePlatformCallbackRequest
 } from "#/api/models";
@@ -139,11 +138,28 @@ class OcpxTaskApi extends BaseApi {
   }
 
   fetchOpcxExportEventClick(params: OcpxExportEventClickRequest) {
-    return requestClient.get(this.getServiceUrl("export_event_click"),{ params })
+    return requestClient.get(this.getServiceUrl("export_event_click"), {params})
   }
+
   // 获取统计数据
   fetchOcpxDataStatistics(params: OcpxDataStatisticsRequest) {
     return requestClient.post(this.getServiceUrl("report_ocpx_task"), params)
+  }
+
+  // 获取点击记录数据
+  fetchClickRecordList(params: ClickReordPageRequest) {
+    return requestClient.get(this.getServiceUrl("event_click_list"), {params})
+  }
+
+  // 点击记录批量回传
+  fetchBatchClickRecordList(params: CallbackClickReordItem) {
+    return requestClient.post(this.getServiceUrl("custom_behavior_callback"), params)
+  }
+
+  // 获取回调记录数据
+  fetchOxpcCallbackRecordList(params: CallbackClickReordListItem) {
+    return requestClient.get(this.getServiceUrl("event_callback_list"), {params})
+
   }
 }
 

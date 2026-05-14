@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { trimObject } from '#/utils/trim';
-import { useVbenForm } from '#/adapter/form';
-import { useVbenDrawer, Page } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { ref, watch } from 'vue'; // 添加 watch
-import { message } from 'ant-design-vue';
-import type {
-  searchDataFilter,
-  RtbUpdateItem,
-  UpdateSubscribeType,
-  RtbItem
-} from '#/api/models';
-import {
-  BatchOptionsType,
-  PLATFORM,
-  STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
-import { rtbApi } from '#/api/core/adx.ts';
+import {trimObject} from '#/utils/trim';
+import {useVbenForm} from '#/adapter/form';
+import {Page, useVbenDrawer} from '@vben/common-ui';
+import {$t} from '@vben/locales';
+import {ref, watch} from 'vue'; // 添加 watch
+import {message} from 'ant-design-vue';
+import type {RtbItem, RtbUpdateItem} from '#/api/models';
+import {PLATFORM,} from '#/constants/locales';
+import {rtbApi} from '#/api/core/adx.ts';
 
 const title = ref<string>('');
 const emit = defineEmits(['pageReload']);
-const objectRequest = ref<RtbUpdateItem>({});
+const objectRequest = ref<RtbUpdateItem>({
+  _X_ROW_KEY: "",
+  createTime: "",
+  createUsername: "",
+  createdBy: "",
+  id: "",
+  status: 0,
+  updateTime: "",
+  updateUsername: "",
+  updatedBy: ""
+});
 const isUpdate = ref<Boolean>(false);
   watch(isUpdate,(newVal) => {
   if(newVal) {
@@ -115,7 +115,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
 });
 </script>
-<template> 
+<template>
   <div>
     <Page auto-content-height>
       <Drawer class="w-[40%]" :title="title">

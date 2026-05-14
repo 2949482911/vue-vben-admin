@@ -152,6 +152,8 @@ const creationInfo = ref<VivoCreation>({
   ruleInfo: {
     projectRuleKey: 'targeting',
     projectCount: 1,
+    adGroupRuleKey: 'targeting',
+    adGroupCount: 1,
     adRuleKey: 'creative',
     adCount: 1,
   },

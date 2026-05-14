@@ -4,7 +4,7 @@ import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import { projectApi, titlePackApi } from '#/api';
 import { trimObject } from '#/utils/trim';
 import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from '#/constants/locales';
-import { Button, message, Tag } from 'ant-design-vue';
+import { Button, message, Switch } from 'ant-design-vue';
 import type { TitlePackItem } from './titlePackageType';
 import CreatedTitlePackage from './createdTitlePackage.vue';
 import { $t } from '#/locales';
@@ -150,18 +150,16 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 function pageReload() {
   gridApi.reload();
 }
-
+function handlerState(row: TitlePackItem) {
+}
 </script>
 
 <template>
   <div>
     <Page auto-content-height>
       <Grid>
-        <template #status="{row}">
-          <Tag color="green" v-if="row.status === 1">
-            启用
-          </Tag>
-          <Tag v-else color="red">不启用</Tag>
+        <template #status="{ row }">
+          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
         </template>
         <template #action="{ row }">
           <Button type="link" danger @click="handlerDelete(row)">

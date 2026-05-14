@@ -21,6 +21,8 @@ import {
 import Behavioracallbackrecordlist from './behavioracallbackrecordlist.vue';
 import BehaviorRecordList from './behaviorrecordlist.vue';
 import ClickMonitor from './clickmonitor.vue';
+import ClickRecordList from './clickRecordlist.vue';
+import Callbackrecordlist from './callbackrecordlist.vue';
 import CreateObjectRequestComp from './create.vue';
 import DataStatistics from './dataStatistics.vue';
 import DataExportModal from './dataExport.vue';
@@ -45,12 +47,30 @@ function openClickMonitor(row: OcpxTaskItem) {
   clickMonitorApi.setData({taskId: row.id});
   clickMonitorApi.open();
 }
+// 转化回调事件列表
+const [CallbackrecordModel, callbackrecordApi] = useVbenModal(
+  {
+    connectedComponent: Callbackrecordlist,
+    centered: true,
+    modal: true,
+  },
+);
+function openCallbackRecord(row: OcpxTaskItem) {
+  callbackrecordApi.setData({
+    taskId: row.id,
+    behavioraPlatformIds: row.behavioraPlatformIds,
+    platform: row.platform
+  });
+  
+  callbackrecordApi.open();
+}
 
 function openBehavioracallbackrecord(row: OcpxTaskItem) {
   behavioracallbackrecordApi.setData({
     taskId: row.id,
     behavioraPlatformIds: row.behavioraPlatformIds,
-    platformCallbackIds: row.platformCallbackIds
+    platformCallbackIds: row.platformCallbackIds,
+    platform: row.platform
   });
   
   behavioracallbackrecordApi.open();
@@ -117,6 +137,18 @@ function openExportModal(row?:OcpxTaskItem) {
     exportModalApi.setData({})
   }
   exportModalApi.open()
+}
+
+// 转化请求事件列表
+const [ClickRecordModel, clickRecordApi] = useVbenModal({
+  connectedComponent: ClickRecordList,
+  centered: true,
+  modal: true,
+});
+
+function openClickRecord(row: OcpxTaskItem) {
+  clickRecordApi.setData(row);
+  clickRecordApi.open();
 }
 async function handlerState(row: OcpxTaskItem) {
   await (row.status === 1
@@ -307,8 +339,14 @@ function pageReload() {
                 <MenuItem @click="openBehavioracallbackrecord(row)">
                   {{ $t('core.behavioracallbackrecord') }}
                 </MenuItem>
+                <MenuItem @click="openCallbackRecord(row)">
+                  {{ $t('core.callbackRecord') }}
+                </MenuItem>
                 <MenuItem @click="openBehaviorRecord(row)">
                   {{ $t('core.behaviorRecord') }}
+                </MenuItem>
+                <MenuItem @click="openClickRecord(row)">
+                  {{ $t('core.clickRecord') }}
                 </MenuItem>
                 <MenuItem @click="openDataStatistics(row)">
                   {{ $t('core.data_statistics') }}
@@ -330,9 +368,11 @@ function pageReload() {
     </Page>
     <CreateObjectModal @page-reload="pageReload"/>
     <ClickMonitorModal/>
+    <CallbackrecordModel/>
     <BehavioracallbackrecordModel/>
     <BehaviorRecordModel/>
     <Drawer />
     <ExportModal/>
+    <ClickRecordModel/>
   </div>
 </template>

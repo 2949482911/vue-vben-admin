@@ -4,7 +4,7 @@ import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 // import { projectApi, titlePackApi } from '#/api';
 import { trimObject } from '#/utils/trim';
 import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from '#/constants/locales';
-import { Button, message, Tag } from 'ant-design-vue';
+import { Button, message, Switch } from 'ant-design-vue';
 import { advertiserApi, targetedPackageApi } from '#/api';
 import type { AdConfig } from './audiencePackageType';
 import CreatedAudiencePackage from './createdAudiencePackage.vue';
@@ -165,18 +165,16 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 function pageReload() {
   gridApi.reload();
 }
-
+function handlerState(row:AdConfig) {
+}
 </script>
 
 <template>
   <div>
     <Page auto-content-height>
       <Grid>
-        <template #status="{row}">
-          <Tag color="green" v-if="row.status === 1">
-            启用
-          </Tag>
-          <Tag v-else color="red">不启用</Tag>
+        <template #status="{ row }">
+          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
         </template>
         <template #action="{ row }">
           <Button type="link" @click="handlerEdit(row)">编辑</Button>

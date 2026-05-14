@@ -1,12 +1,13 @@
 <script lang="ts" setup name="CreateNotice">
 import type {
-  CreatePlatformCallbackRequest, eventMappingType, EventSettlementItem,
+  CreatePlatformCallbackRequest,
+  eventMappingType, EventSettlementItem,
   PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
   UpdatePlatformCallbackRequest
 } from '#/api/models';
 
-import {ref, watch} from 'vue';
+import {ref,watch} from 'vue';
 
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -34,6 +35,7 @@ const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallback
   onlyClick: 0, config: new Map<string, any>(), id: "", name: "", platform: "", remark: ""
 });
 const isUpdate = ref<Boolean>(false);
+const modalType = ref<string>('edit');
 // 媒体配置表单
 const platformConfigForm = new Map<string, Array<any>>();
 // vivo 配置清单
@@ -631,9 +633,16 @@ const [Form, formApi] = useVbenForm({
     formVal.onlyClick = Boolean(formVal.onlyClick);
     formVal.eventMappingRules = eventMappingRules.value;
     const params = trimObject(formVal);
-    await (isUpdate.value
-      ? platformCallbackApi.fetchPlatformcallbackUpdate(params as UpdatePlatformCallbackRequest)
-      : platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest));
+    if(isUpdate.value) {
+      if(modalType.value === 'edit') {
+        await platformCallbackApi.fetchPlatformcallbackUpdate(params as UpdatePlatformCallbackRequest);
+      } else if(modalType.value === 'copy') {
+        params.id = undefined;
+         await platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest);
+      }
+    } else {
+       await platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest);
+    }
   },
   schema: [
     {
@@ -665,8 +674,8 @@ const [Form, formApi] = useVbenForm({
               schema: platformConfigForm.get(value),
             };
           });
-          if (value === Platform.UBI) {
-            await configFormApi.setFieldValue('test', 1)
+          if(value === Platform.UBI) {
+            await configFormApi.setFieldValue('test',1)
           }
           // 更新字段
           const values = await formApi.getValues();
@@ -894,6 +903,7 @@ const [Modal, modalApi] = useVbenModal({
     };
     isUpdate.value = false;
     eventSettlementList.value = [];
+    modalType.value = 'edit';
     await modalApi.close();
   },
   async onConfirm() {
@@ -906,12 +916,15 @@ const [Modal, modalApi] = useVbenModal({
     await configFormApi.resetForm();
     eventSettlementList.value = [];
     isUpdate.value = false;
+    modalType.value = 'edit';
     emit('pageReload');
     await modalApi.close();
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<Record<string, any>>() as CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest;
+      const data = modalApi.getData();
+      objectRequest.value = data.row as CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest;
+      modalType.value = data.type;
       if ('id' in objectRequest.value) {
         isUpdate.value = true;
         getEventSettlementList();
@@ -922,6 +935,8 @@ const [Modal, modalApi] = useVbenModal({
       }
     } else {
       isUpdate.value = false;
+      editEventMappingRules.value = [];
+      callbackPlatform.value = '';
       configFormApi.setState((_) => {
         return {
           schema: []
@@ -957,7 +972,7 @@ watch(isUpdate, (newVal) => {
   } else {
     title.value = `${$t('common.create')}`;
   }
-}, {deep: true, immediate: true});
+},{ deep: true, immediate: true });
 </script>
 <template>
   <Modal :title="title">
@@ -968,7 +983,6 @@ watch(isUpdate, (newVal) => {
     <Divider>{{ $t('core.configuration') }}</Divider>
     <ConfigForm/>
     <Divider>{{ $t('core.eventmatching') }}</Divider>
-    <eventMatching @eventSubmit="handleEventSubmit" :callbackPlatform="callbackPlatform"
-                   :editEventMappingRules="editEventMappingRules"/>
+    <eventMatching @eventSubmit="handleEventSubmit" :callbackPlatform="callbackPlatform" :editEventMappingRules="editEventMappingRules"/>
   </Modal>
 </template>
