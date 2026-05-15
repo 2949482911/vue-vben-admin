@@ -207,6 +207,10 @@ export const PLATFORM = [
     value: 'tencent',
   },
   {
+    label: '广点通-小程序',
+    value: 'tencent_mini_app',
+  },
+  {
     label: 'oppo push',
     value: 'oppo_push',
   },
@@ -279,6 +283,10 @@ export const BACKHAUL = [
   {
     label: '广点通',
     value: 'tencent',
+  },
+  {
+    label: '广点通-小程序',
+    value: 'tencent_mini_app'
   },
   {
     label: 'oppo push',

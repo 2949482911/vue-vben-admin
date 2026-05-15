@@ -484,6 +484,45 @@ platformConfigForm.set(Platform.TENCENT, [
     label: 'user_action_set_id',
   },
 ])
+// 广点通-小程序端
+platformConfigForm.set(Platform.TENCENT_MINI_APP, [
+  {
+    component: 'Input',
+    componentProps: {
+      allowClear: true,
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'mobile_app_id',
+    label: 'mobile_app_id',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      allowClear: true,
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'user_action_set_id',
+    label: 'user_action_set_id',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      allowClear: true,
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'wechat_openid',
+    label: 'wechat_openid',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      allowClear: true,
+      placeholder: `${$t('common.input')}`,
+    },
+    fieldName: 'wechat_app_id',
+    label: 'wechat_app_id',
+  }
+])
 // oppo push
 platformConfigForm.set(Platform.OPPO_PUSH, [
   {
@@ -803,6 +842,7 @@ const [Form, formApi] = useVbenForm({
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'InputNumber',
+      help:'该比例为千分比',
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
@@ -812,11 +852,11 @@ const [Form, formApi] = useVbenForm({
         formatter: (value: number) => {
           if (value === null || value === undefined) return '';
           const fixedValue = Number(value).toFixed(1);
-          return `${fixedValue}%`;
+          return `${fixedValue}‰`;
         },
         parser: (value: string) => {
           if (!value) return 0;
-          const num = Number(value.replace('%', ''));
+          const num = Number(value.replace('‰', ''));
           return isNaN(num) ? 0 : Number(num.toFixed(1));
         },
       },
@@ -879,7 +919,7 @@ const [Modal, modalApi] = useVbenModal({
       const data = modalApi.getData();
       objectRequest.value = data.row as CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest;
       modalType.value = data.type;
-      if ('id' in objectRequest.value) {
+      if (objectRequest.value?.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
         getPlatformCallbackBehaviorTypeItem(objectRequest.value.platform);

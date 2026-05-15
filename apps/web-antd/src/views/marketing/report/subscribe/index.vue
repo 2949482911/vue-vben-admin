@@ -7,10 +7,10 @@ import { PLATFORM, DIMS } from "#/constants/locales";
 import { Page, useVbenDrawer} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
-import { Tag, Switch, Button, message } from 'ant-design-vue';
+import { Switch, Button, message } from 'ant-design-vue';
 import { trimObject } from '#/utils/trim';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { subscribeApi } from '#/api';
+import { subscribeApi, reportApi } from '#/api';
 import {
   TASK_STATUS_SELECT,
   TABLE_COMMON_COLUMNS,
@@ -139,7 +139,7 @@ function openCreateDrawer(row?: UpdateSubscribeType) {
   }
   createObjectApi.open();
 }
-async function handlerDelete(row: ReportSubscriptionItem){
+async function handlerDelete(row: UpdateSubscribeType){
   const params = {
     targetIds:[row?.id],
     type: 'delete',
@@ -148,6 +148,14 @@ async function handlerDelete(row: ReportSubscriptionItem){
   await subscribeApi.fetchBatchSubscribe(params)
   message.success('删除成功')
   pageReload()
+}
+async function handleTestDescribe(row: UpdateSubscribeType) {
+  try {
+    await reportApi.fetchTestReport(row.id);
+    message.success('发送成功')
+  } catch (error) {
+    message.success('发送失败')
+  }
 }
 const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
 
@@ -171,6 +179,9 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
           </Button>
           <Button type="link" @click="handlerDelete(row)">
             {{ $t('common.delete') }}
+          </Button>
+          <Button type="link" @click="handleTestDescribe(row)">
+            测试
           </Button>
           </template>
       </Grid>
