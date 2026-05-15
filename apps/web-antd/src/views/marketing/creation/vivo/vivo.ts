@@ -24,7 +24,7 @@ import type { Ref } from 'vue';
 /**
  * vivo 版本常量
  */
-export const VIVO_VERSION = '0.1.2';
+export const VIVO_VERSION = '0.1.3';
 
 /**
  * vivo 初始化对象
@@ -42,6 +42,15 @@ export interface VivoConfigData {
   advertiserQualification: Map<string, QualificationValue>;
   deepLinkList: VivoDeepLinkData;
   landingPage: VivoLandingPageData;
+  // 渠道包
+  channelPackage: Map<string, ChannelPackageValue>;
+}
+
+/**定义存储的资质信息结构 */
+export interface ChannelPackageValue {
+  channelPackageId: string;
+  channelPackageApkId: string;
+  channelPackageName: string;
 }
 
 // 广告创意素材组deepLink链接
@@ -139,8 +148,8 @@ export interface VivoAdgroupData {
   spentType: number | null;
   retrieveType: number;
   ruleAudience: string;
-  channelId: number;
-  apkId: number;
+  channelId: string;
+  apkId: string;
   secondCvType: number | null;
   secondOcpxPrice: number;
   conversionFilterCycle: number;
@@ -275,8 +284,8 @@ export interface VivoAdgroup extends Adgroup {
   spentType: number | null;
   retrieveType: number;
   ruleAudience: string;
-  channelId: number;
-  apkId: number;
+  channelId: string;
+  apkId: string;
   secondCvType: number | null;
   secondOcpxPrice: number;
   conversionFilterCycle: number;
@@ -376,6 +385,22 @@ export interface AdvertisingQualificationType {
   icpCaseNumber?: string;
   icpDomainName?: string;
   productDescription?: string;
+}
+
+/**渠道包类型 */
+export interface channelPackageInfo {
+  id: string;
+  apkId: string;
+  appId: string;
+  appName: string;
+  appPackage: string;
+  name: string;
+  version: string;
+  versionCode: string;
+  showState: number;
+  deleted: number;
+  createTime: string;
+  modifyTime: string;
 }
 
 /**提交审核批投当前账户扁平数组类型 */
@@ -499,8 +524,12 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           spentType: creationInfo.configData.adgroup.spentType,
           retrieveType: creationInfo.configData.adgroup.retrieveType,
           ruleAudience: creationInfo.configData.adgroup.ruleAudience,
-          channelId: creationInfo.configData.adgroup.channelId,
-          apkId: creationInfo.configData.adgroup.apkId,
+          channelId:
+            creationInfo.configData.channelPackage.get(account.localAdvertiserId)
+              ?.channelPackageId || '',
+          apkId:
+            creationInfo.configData.channelPackage.get(account.localAdvertiserId)
+              ?.channelPackageApkId || '',
           secondCvType: creationInfo.configData.adgroup.secondCvType,
           secondOcpxPrice: creationInfo.configData.adgroup.secondOcpxPrice * 100000,
           conversionFilterCycle: creationInfo.configData.adgroup.conversionFilterCycle,

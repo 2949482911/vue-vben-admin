@@ -19,6 +19,7 @@ import type {
   QualificationValue,
   VivoDeepLinkData,
   VivoLandingPageData,
+  ChannelPackageValue,
 } from '#/views/marketing/creation/vivo/vivo';
 import { Platform } from '#/constants/enums';
 import type {
@@ -52,6 +53,8 @@ const creationInfo = ref<VivoCreation>({
   },
   accountInfo: [],
   configData: {
+    // 渠道包
+    channelPackage: new Map<string, ChannelPackageValue>(),
     deepLinkList: {
       deepLinkConfig: {
         method: 'all',
@@ -72,14 +75,14 @@ const creationInfo = ref<VivoCreation>({
       conversionMonitorType: 0,
     },
     adgroup: {
-      apkId: 0,
+      apkId: '',
       appPackageName: '',
       appletOriginId: '',
       appletPath: '',
       biddingStrategy: 0,
       builtInRpkDeepLink: '',
       campaignId: 0,
-      channelId: 0,
+      channelId: '',
       chargeType: null,
       conversionFilterCycle: 0,
       cvType: '',
@@ -394,6 +397,11 @@ function handleReuseUpdate(data: VivoCreation) {
     if (config.landingPage && !(config.landingPage.data instanceof Map)) {
       config.landingPage.data = new Map(Object.entries(config.landingPage.data || {}));
     }
+
+    // 6. 恢复 channelPackage
+    if (!(config.channelPackage instanceof Map)) {
+      config.channelPackage = new Map(Object.entries(config.channelPackage || {}));
+    }
   }
 
   creationInfo.value = data;
@@ -404,6 +412,7 @@ function handleReuseUpdate(data: VivoCreation) {
   advertisingGroupRef.value.setLocalAdGroupData(
     creationInfo.value.configData.adgroup,
     creationInfo.value.configData.advertiserQualification,
+    creationInfo.value.configData.channelPackage,
   );
   console.log(creationInfo.value, '复用策略组');
 }
@@ -428,17 +437,22 @@ function handleAdQualification(data: Map<string, QualificationValue>) {
   creationInfo.value.configData.advertiserQualification = data;
 }
 
+/**渠道包 */
+function handleChannelPackage(data: Map<string, ChannelPackageValue>) {
+  creationInfo.value.configData.channelPackage = data;
+}
+
 /**如果项目里的推广目标改变，广告组的所有数据需要重新填写 */
 function handleAdTypeChangeWarning() {
   creationInfo.value.configData.adgroup = {
-    apkId: 0,
+    apkId: '',
     appPackageName: '',
     appletOriginId: '',
     appletPath: '',
     biddingStrategy: 0,
     builtInRpkDeepLink: '',
     campaignId: 0,
-    channelId: 0,
+    channelId: '',
     chargeType: null,
     conversionFilterCycle: 0,
     cvType: '',
@@ -465,9 +479,11 @@ function handleAdTypeChangeWarning() {
     wechatFollow: 0,
   };
   creationInfo.value.configData.advertiserQualification = new Map<string, QualificationValue>();
+  creationInfo.value.configData.channelPackage = new Map<string, ChannelPackageValue>();
   advertisingGroupRef.value.setLocalAdGroupData(
     creationInfo.value.configData.adgroup,
     creationInfo.value.configData.advertiserQualification,
+    creationInfo.value.configData.channelPackage,
   );
   message.warning('“推广目标”已变更，请重新完善“广告组”基本信息');
 }
@@ -544,8 +560,10 @@ function generatePreview() {
                 :accountInfo="creationInfo.accountInfo"
                 :orientation="creationInfo.configData.audience"
                 :advertiserQualification="creationInfo.configData.advertiserQualification"
+                :channelPackage="creationInfo.configData.channelPackage"
                 @update:adGroupConfig="handleAdGroupUpdate"
                 @update:adQualification="handleAdQualification"
+                @update:channelPackage="handleChannelPackage"
               />
               <Divider type="horizontal" />
               <AdOrientationModule

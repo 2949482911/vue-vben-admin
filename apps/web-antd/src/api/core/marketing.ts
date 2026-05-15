@@ -537,3 +537,15 @@ class LoadingPageApi extends BaseApi {
 }
 
 export const loadingPageApi = new LoadingPageApi('/platform/loading_page');
+
+/**
+ * 营销-创编-渠道包
+ */
+class ChannelPageApi extends BaseApi {
+  //查询
+  fetchChannelPage(params: AdInvestmentType) {
+    return requestClient.post(this.getServiceUrl('ad_channel_page'), params);
+  }
+}
+
+export const channelPageApi = new ChannelPageApi('/platform/vivo_advertisement');
