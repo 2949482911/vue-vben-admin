@@ -492,15 +492,6 @@ platformConfigForm.set(Platform.TENCENT_MINI_APP, [
       allowClear: true,
       placeholder: `${$t('common.input')}`,
     },
-    fieldName: 'mobile_app_id',
-    label: 'mobile_app_id',
-  },
-  {
-    component: 'Input',
-    componentProps: {
-      allowClear: true,
-      placeholder: `${$t('common.input')}`,
-    },
     fieldName: 'user_action_set_id',
     label: 'user_action_set_id',
   },
