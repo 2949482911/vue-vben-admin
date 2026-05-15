@@ -33,11 +33,16 @@ const [Form, formApi] = useVbenForm({
   handleSubmit: async (formVal: Record<string, any>) => {
     const params = trimObject(formVal);
     const pushConfig = buildPushConfig(params.pushMethod, params.emailAddress);
+    const {advertiserId,...otherFields} = params.config;
+    const reportParams = {
+      ...otherFields,
+      'platform_account_id':advertiserId
+    };
     const addSubmitParams: ReportSubscriptionItem = {
       name: params.name,
       type: params.type,
       queryMetric: params.queryMetric,
-      config: params.config,
+      config: reportParams,
       status: Number(params.status) === 1? 1 : 9,
       subscribeDateTimeRange: params.subscribeDateTimeRange,
       pushConfig

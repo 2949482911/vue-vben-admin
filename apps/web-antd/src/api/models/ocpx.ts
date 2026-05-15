@@ -270,4 +270,5 @@ export interface OcpxCallbackRecordItem {
   callbackStatus: number;
   eventType: string;
   createTime: string;
+  requestId: string;
 }
