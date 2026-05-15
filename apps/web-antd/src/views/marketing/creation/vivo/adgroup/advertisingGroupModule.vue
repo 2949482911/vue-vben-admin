@@ -109,7 +109,9 @@ const [AdGroupDrawerModule, drawerApi] = useVbenDrawer({
         if (finalParams) {
           adGroupData.value = finalParams as VivoAdgroupData;
           emit('update:adGroupConfig', adGroupData.value);
-          emit('update:adQualification', localAdvertiserQualification);
+          if (localAdvertiserQualification && localAdvertiserQualification.size > 0) {
+            emit('update:adQualification', localAdvertiserQualification);
+          }
           drawerApi.setData(null);
         }
       }

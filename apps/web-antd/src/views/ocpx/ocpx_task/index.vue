@@ -59,6 +59,7 @@ function openCallbackRecord(row: OcpxTaskItem) {
   callbackrecordApi.setData({
     taskId: row.id,
     behavioraPlatformIds: row.behavioraPlatformIds,
+    platformCallbackIds: row.platformCallbackIds,
     platform: row.platform
   });
   
