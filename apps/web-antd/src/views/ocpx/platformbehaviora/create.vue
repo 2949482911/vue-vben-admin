@@ -1597,6 +1597,36 @@ platformConfigForm.set(Platform.VPH, [
     rules: 'required',
   },
 ]);
+
+
+platformConfigForm.set(Platform.SOUL_DSP, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'channel_name',
+    // 界面显示的label
+    label: `channel_name`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'subsource',
+    // 界面显示的label
+    label: `subsource`,
+    rules: 'required',
+  },
+]);
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {

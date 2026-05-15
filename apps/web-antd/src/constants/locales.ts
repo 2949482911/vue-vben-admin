@@ -441,6 +441,10 @@ export const BEHAVIORA_PLATFORM = [
     value: 'long_yu'
   },
   {
+    label: `${$t('ocpx.platform.soul_dsp')}`,
+    value: 'soul_dsp'
+  },
+  {
     label: `${$t('ocpx.platform.inteyun')}`,
     value: Platform.INTEYUN,
   },

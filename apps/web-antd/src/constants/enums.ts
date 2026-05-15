@@ -52,6 +52,7 @@ export enum Platform {
   TB_SHANGOU_ET = 'tb_shangou_et',
   SOUL = 'soul',
   VPH = 'vph',
+  SOUL_DSP = 'soul_dsp'
 }
 
 export enum RuleType {
