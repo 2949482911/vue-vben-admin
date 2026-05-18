@@ -9,45 +9,59 @@ import {
   VXFOLLOW_SELECT,
 } from '../projectEnum';
 import { computed, ref } from 'vue';
-import type { QualificationValue, VivoAdgroupData } from '#/views/marketing/creation/vivo/vivo';
+import type {
+  QualificationValue,
+  VivoAdgroupData,
+  ChannelPackageValue,
+} from '#/views/marketing/creation/vivo/vivo';
 import AdGroupDrawer from './adGroupDrawer.vue';
 import type { TargetedPackageTypeItem } from '#/api/models';
 import type { AccountInfo } from '../../creation';
 
-const { campaign, orientation, accountInfo, advertiserQualification } = defineProps({
-  // 接收来自 index 的项目基本信息
-  campaign: {
-    type: Object,
-    default: () => ({}),
+const { campaign, orientation, accountInfo, advertiserQualification, channelPackage } = defineProps(
+  {
+    // 接收来自 index 的项目基本信息
+    campaign: {
+      type: Object,
+      default: () => ({}),
+    },
+    // 定向包
+    orientation: {
+      type: Object,
+      default: new Map<string, Array<TargetedPackageTypeItem>>(),
+    },
+    // 账户列表
+    accountInfo: {
+      type: Array<AccountInfo>,
+      default: () => [],
+    },
+    advertiserQualification: {
+      type: Object,
+      default: new Map<string, QualificationValue>(),
+    },
+    channelPackage: {
+      type: Object,
+      default: new Map<string, ChannelPackageValue>(),
+    },
   },
-  // 定向包
-  orientation: {
-    type: Object,
-    default: new Map<string, Array<TargetedPackageTypeItem>>(),
-  },
-  // 账户列表
-  accountInfo: {
-    type: Array<AccountInfo>,
-    default: () => [],
-  },
-  advertiserQualification: {
-    type: Object,
-    default: new Map<string, QualificationValue>(),
-  },
-});
+);
 
-const emit = defineEmits(['update:adGroupConfig', 'update:adQualification']);
+const emit = defineEmits([
+  'update:adGroupConfig',
+  'update:adQualification',
+  'update:channelPackage',
+]);
 
 const adGroupData = ref<VivoAdgroupData>({
   // advertiseQualificationId: "",
-  apkId: 0,
+  apkId: '',
   appPackageName: '',
   appletOriginId: '',
   appletPath: '',
   biddingStrategy: 0,
   builtInRpkDeepLink: '',
   campaignId: 0,
-  channelId: 0,
+  channelId: '',
   chargeType: null,
   conversionFilterCycle: 0,
   cvType: '',
@@ -74,6 +88,7 @@ const adGroupData = ref<VivoAdgroupData>({
   wechatFollow: 0,
 });
 const localAdvertiserQualification = ref<Map<string, QualificationValue>>(new Map());
+const localChannelPackage = ref<Map<string, ChannelPackageValue>>(new Map());
 
 // 按账户分配方式的回显
 const accountSelectionMap = computed(() => {
@@ -103,7 +118,8 @@ const [AdGroupDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: AdGroupDrawer,
   onOpenChange(isOpen) {
     if (!isOpen) {
-      const { finalParams, localAdvertiserQualification } = drawerApi.getData();
+      const { finalParams, localAdvertiserQualification, localChannelPackage } =
+        drawerApi.getData();
 
       if (finalParams && finalParams._isConfirmed) {
         if (finalParams) {
@@ -111,6 +127,9 @@ const [AdGroupDrawerModule, drawerApi] = useVbenDrawer({
           emit('update:adGroupConfig', adGroupData.value);
           if (localAdvertiserQualification && localAdvertiserQualification.size > 0) {
             emit('update:adQualification', localAdvertiserQualification);
+          }
+          if (localChannelPackage && localChannelPackage.size > 0) {
+            emit('update:channelPackage', localChannelPackage);
           }
           drawerApi.setData(null);
         }
@@ -236,8 +255,9 @@ function newAdGroup() {
   if (isConfigValid) return message.warning('请先完善并保存“项目”基本信息');
 
   drawerApi.setData({
-    adGroupData: adGroupData.value, // 如果 adGroupData 也是 ref
+    adGroupData: adGroupData.value,
     localAdQualification: localAdvertiserQualification.value,
+    localChannelPackage: localChannelPackage.value,
   });
   drawerApi.open();
 }
@@ -248,9 +268,11 @@ defineExpose({ setLocalAdGroupData });
 function setLocalAdGroupData(
   localAdGroupData: VivoAdgroupData,
   advertiserQualification: Map<string, QualificationValue>,
+  channelPackage: Map<string, ChannelPackageValue>,
 ) {
   adGroupData.value = localAdGroupData;
   localAdvertiserQualification.value = advertiserQualification;
+  localChannelPackage.value = channelPackage;
 }
 </script>
 
@@ -351,6 +373,7 @@ function setLocalAdGroupData(
       :campaign="campaign"
       :accountInfo="accountInfo"
       :advertiserQualification="advertiserQualification"
+      :channelPackage="channelPackage"
     />
   </div>
 </template>

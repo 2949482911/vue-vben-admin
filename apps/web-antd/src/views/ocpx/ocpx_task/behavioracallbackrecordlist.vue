@@ -1,37 +1,42 @@
 <script setup lang="ts" name="Behavioracallbackrecordlist">
-import {useVbenVxeGrid} from "@vben/plugins/vxe-table";
-import type {VxeGridProps} from "#/adapter/vxe-table";
-import type {OcpxBehavioracallbackRecordItem} from "#/api/models";
-import {$t} from "@vben/locales";
-import {ocpxTaskApi, clickMonitorApi,behavioraPlatformApi, platformCallbackApi} from "#/api/core/ocpx";
-import {Page, useVbenModal, type VbenFormProps, useVbenDrawer} from '@vben/common-ui';
-import {Tag, Button, message} from "ant-design-vue";
-import { trimObject } from "#/utils/trim";
+import { useVbenVxeGrid } from '@vben/plugins/vxe-table';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { OcpxBehavioracallbackRecordItem } from '#/api/models';
+import { $t } from '@vben/locales';
+import {
+  ocpxTaskApi,
+  clickMonitorApi,
+  behavioraPlatformApi,
+  platformCallbackApi,
+} from '#/api/core/ocpx';
+import { Page, useVbenModal, type VbenFormProps, useVbenDrawer } from '@vben/common-ui';
+import { Tag, Button, message } from 'ant-design-vue';
+import { trimObject } from '#/utils/trim';
 import viewDetailsModel from './viewDetailsModel.vue';
-import { ref } from "vue";
+import { ref } from 'vue';
 
 interface eventType {
   label: string;
   value: string;
 }
-const eventList = ref<eventType[]>([])
+const eventList = ref<eventType[]>([]);
 let TYPE_LABEL_MAP: Record<string, string> = {};
-const platform = ref<string>()
-const defalutBehavioraPlatformId = ref<string>()
-const defalutPlatformCallbackId = ref<string>()
-const taskId = ref<string>()
+const platform = ref<string>();
+const defalutBehavioraPlatformId = ref<string>();
+const defalutPlatformCallbackId = ref<string>();
+const taskId = ref<string>();
 const queryBehaviora = ref({
   page: 1,
   pageSize: 1000,
-  ids:'',
-  name:''
-})
+  ids: '',
+  name: '',
+});
 const queryCallback = ref({
   page: 1,
   pageSize: 1000,
-  ids:'',
-  name:''
-})
+  ids: '',
+  name: '',
+});
 const [ViewDetailsModel, drawerApi] = useVbenDrawer({
   // 连接抽离的组件
   connectedComponent: viewDetailsModel,
@@ -46,10 +51,10 @@ const [ViewDetailsModel, drawerApi] = useVbenDrawer({
 });
 
 function viewDetailsOpen(row: OcpxBehavioracallbackRecordItem) {
-    if(row) {
-    drawerApi.setData(row)
+  if (row) {
+    drawerApi.setData(row);
   } else {
-    drawerApi.setData({})
+    drawerApi.setData({});
   }
   drawerApi.open();
 }
@@ -68,33 +73,33 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const modalData = modalApi.getData()
-      platform.value = modalData.platform
-      taskId.value = modalData.taskId
-      defalutBehavioraPlatformId.value = modalData.behavioraPlatformIds[0]
-      defalutPlatformCallbackId.value = modalData.platformCallbackIds[0]
-      queryCallback.value.ids = modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : []
-      queryBehaviora.value.ids = modalData.behavioraPlatformIds.length > 0? modalData.behavioraPlatformIds.join(',') : []
+      const modalData = modalApi.getData();
+      platform.value = modalData.platform;
+      taskId.value = modalData.taskId;
+      defalutBehavioraPlatformId.value = modalData.behavioraPlatformIds[0];
+      defalutPlatformCallbackId.value = modalData.platformCallbackIds[0];
+      queryCallback.value.ids =
+        modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : [];
+      queryBehaviora.value.ids =
+        modalData.behavioraPlatformIds.length > 0 ? modalData.behavioraPlatformIds.join(',') : [];
     }
   },
 });
-
 
 /**
  * 重提转换回传
  * @param row
  */
 async function rePushBehaviorCallback(row: OcpxBehavioracallbackRecordItem) {
-  const { taskId, platformCallbackId, behaviorPlatformId, requestId} = row
+  const { taskId, platformCallbackId, behaviorPlatformId, requestId } = row;
   await clickMonitorApi.fetchRePushBehaviorCallback({
     taskId,
     platformCallbackId,
     behaviorPlatformId,
-    requestId
-  })
+    requestId,
+  });
   await gridApi.reload();
 }
-
 
 // 默认展开
 const formOptions: VbenFormProps = {
@@ -108,7 +113,7 @@ const formOptions: VbenFormProps = {
       componentProps: {
         allowClear: true,
         placeholder: `${$t('common.choice')}`,
-          api: async () => {
+        api: async () => {
           return await behavioraPlatformApi.fetchBehavioraPlatformList(queryBehaviora.value);
         },
         filterOption: (inputValue: string, option: { label: string }) => {
@@ -116,7 +121,7 @@ const formOptions: VbenFormProps = {
         },
         valueField: 'id',
         labelField: 'name',
-        resultField: "items",
+        resultField: 'items',
       },
     },
     {
@@ -139,7 +144,7 @@ const formOptions: VbenFormProps = {
         },
         valueField: 'id',
         labelField: 'name',
-        resultField: "items",
+        resultField: 'items',
       },
     },
     {
@@ -149,18 +154,44 @@ const formOptions: VbenFormProps = {
       componentProps: {
         placeholder: `${$t('common.input')}`,
         api: async () => {
-          const res = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(platform.value as string);
+          const res = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(
+            platform.value as string,
+          );
           eventList.value = res;
-          TYPE_LABEL_MAP = Object.fromEntries(eventList.value.map(item => [item.value, item.label]));
-          return  res
+          TYPE_LABEL_MAP = Object.fromEntries(
+            eventList.value.map((item) => [item.value, item.label]),
+          );
+          return res;
         },
         showSearch: true,
-        allowClear: true
+        allowClear: true,
       },
       // 字段名
       fieldName: 'behaviorType',
       // 界面显示的label
-      label: '事件'
+      label: '事件',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        placeholder: '请选择',
+        options: [
+          {
+            label: '系统回传',
+            value: 'callback',
+          },
+          {
+            label: '扣量',
+            value: 'deduction',
+          },
+          {
+            label: '补量',
+            value: 'supplement',
+          },
+        ],
+      },
+      fieldName: 'recordType',
+      label: '记录类型',
     },
   ],
   // 控制表单是否显示折叠按钮
@@ -168,7 +199,6 @@ const formOptions: VbenFormProps = {
   // 按下回车时是否提交表单
   submitOnEnter: false,
 };
-
 
 const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
   border: true,
@@ -184,7 +214,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
   },
   columns: [
     { type: 'checkbox', width: 50 },
-    {title: '序号', type: 'seq', width: 50},
+    { title: '序号', type: 'seq', width: 50 },
     {
       field: 'behaviorPlatformName',
       title: `${$t('ocpx.ocpx_task.callback_record_columns.behaviorPlatformName')}`,
@@ -204,13 +234,16 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     {
       field: 'behaviorType',
       title: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorType')}`,
-      slots: {default: 'behaviorType'},
+      slots: { default: 'behaviorType' },
+    },
+    {
+      field: 'recordType',
+      title: '记录类型',
     },
     {
       field: 'success',
       title: `${$t('ocpx.ocpx_task.behavior_record_columns.success')}`,
-      slots: {default: 'success'},
-
+      slots: { default: 'success' },
     },
     {
       field: 'createTime',
@@ -221,7 +254,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
       field: 'options',
       title: `${$t('core.columns.options')}`,
       fixed: 'right',
-      slots: {default: 'action'},
+      slots: { default: 'action' },
       width: 'auto',
     },
   ],
@@ -230,60 +263,63 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         const params = trimObject(args);
         return await ocpxTaskApi.fetchOcpxBehavioracallbackRecordList({
           page: page.currentPage,
           pageSize: page.pageSize,
           ...params,
-          taskId: modalApi.getData()["taskId"]
+          taskId: modalApi.getData()['taskId'],
         });
       },
     },
   },
+};
+
+const detailsId = ref<string>('');
+async function viewDetails(row: OcpxBehavioracallbackRecordItem) {
+  detailsId.value = row.id;
+  viewDetailsOpen(row);
 }
 
-const detailsId = ref<string>('')
-async function viewDetails(row:OcpxBehavioracallbackRecordItem){
-  detailsId.value = row.id
-  viewDetailsOpen(row)
-}
-
-const selectedRows = ref<OcpxBehavioracallbackRecordItem[]>([])
+const selectedRows = ref<OcpxBehavioracallbackRecordItem[]>([]);
 const gridEvents = {
-  checkboxChange:({records}:{records:OcpxBehavioracallbackRecordItem[]})=>{
-    selectedRows.value = records
+  checkboxChange: ({ records }: { records: OcpxBehavioracallbackRecordItem[] }) => {
+    selectedRows.value = records;
   },
   //全选事件
-  checkboxAll:({records}:{records:OcpxBehavioracallbackRecordItem[]})=>{
-    selectedRows.value = records
+  checkboxAll: ({ records }: { records: OcpxBehavioracallbackRecordItem[] }) => {
+    selectedRows.value = records;
   },
-}
+};
 
-async function batchRetry(){
-  const requestId = selectedRows.value.map(item => item.requestId)
-  const {formApi} = gridApi
-  const formData = await formApi.getValues()
+async function batchRetry() {
+  if (!taskId.value) {
+    message.error('任务ID不存在，无法进行重试！');
+    return;
+  }
+
+  const requestId = selectedRows.value.map((item) => item.requestId);
+  const { formApi } = gridApi;
+  const formData = await formApi.getValues();
   const params = {
     requestId,
     behaviorPlatformId: formData.behaviorPlatformId,
     platformCallbackId: formData.platformCallbackId,
-    taskId: taskId.value
-  }
-  try{
-    await clickMonitorApi.fetchRePushRetryBehaviorCallback(params)
+    taskId: taskId.value,
+  };
+  try {
+    await clickMonitorApi.fetchRePushRetryBehaviorCallback(params);
     await gridApi.reload();
-    message.success("批量重试成功！")
-  }catch(err){
+    message.success('批量重试成功！');
+  } catch (err) {
     console.log(err);
   }
-  
 }
 function getTypeLabel(value: string): string {
   return TYPE_LABEL_MAP[value] ?? value;
 }
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
-
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents });
 </script>
 
 <template>
@@ -291,35 +327,35 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
     <Modal>
       <Page auto-content-height>
         <Grid>
-
           <template #success="{ row }">
             <Tag color="green" v-if="row.success">{{ $t('common.yes') }}</Tag>
             <Tag color="red" v-else>{{ $t('common.no') }}</Tag>
           </template>
 
           <template #behaviorType="{ row }">
-            <Tag color="blue">{{getTypeLabel(row.behaviorType)}}</Tag>
+            <Tag color="blue">{{ getTypeLabel(row.behaviorType) }}</Tag>
           </template>
           <template #action="{ row }">
             <Button type="link" v-if="!row.success" @click="rePushBehaviorCallback(row)">
               {{ $t('core.repush') }}
             </Button>
-            <Button type="link" @click="viewDetails(row)">
-              查看详情
-            </Button>
+            <Button type="link" @click="viewDetails(row)"> 查看详情 </Button>
           </template>
           <template #toolbar-tools>
-            <Button class="mr-2" type="primary" :disabled="selectedRows.length===0" @click="batchRetry">
+            <Button
+              class="mr-2"
+              type="primary"
+              :disabled="selectedRows.length === 0"
+              @click="batchRetry"
+            >
               批量重试
             </Button>
-        </template>
+          </template>
         </Grid>
       </Page>
     </Modal>
-    <ViewDetailsModel :detailsId="detailsId"/>
+    <ViewDetailsModel :detailsId="detailsId" />
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

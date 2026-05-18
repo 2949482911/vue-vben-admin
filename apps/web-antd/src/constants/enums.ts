@@ -52,6 +52,7 @@ export enum Platform {
   TB_SHANGOU_ET = 'tb_shangou_et',
   SOUL = 'soul',
   VPH = 'vph',
+  TENCENT_MINI_APP = 'tencent_mini_app',
   SOUL_DSP = 'soul_dsp'
 }
 

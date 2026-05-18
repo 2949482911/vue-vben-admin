@@ -57,7 +57,9 @@
     "creation": {
       "title": "创编",
       "vivo": "Vivo营销",
-      "creation_task": "创编任务"
+      "creation_task": "创编任务",
+      "promotion_manager": "广告管理",
+      "oppo": "Oppo营销"
     },
     "asset": {
       "title": "资产",

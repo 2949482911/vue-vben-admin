@@ -246,6 +246,10 @@ class ReportApi extends BaseApi {
   fetchAdLinkage(params: PlatformMatchRequest) {
     return requestClient.post(this.getServiceUrl('stat_select'), params);
   }
+  // 测试报表发送
+  fetchTestReport(id: string) {
+    return requestClient.get(this.getServiceUrl('test_scribe'), {params: { id: id }});
+  }
 }
 
 export const reportApi = new ReportApi('/platform/report');
@@ -533,3 +537,15 @@ class LoadingPageApi extends BaseApi {
 }
 
 export const loadingPageApi = new LoadingPageApi('/platform/loading_page');
+
+/**
+ * 营销-创编-渠道包
+ */
+class ChannelPageApi extends BaseApi {
+  //查询
+  fetchChannelPage(params: AdInvestmentType) {
+    return requestClient.post(this.getServiceUrl('ad_channel_page'), params);
+  }
+}
+
+export const channelPageApi = new ChannelPageApi('/platform/vivo_advertisement');

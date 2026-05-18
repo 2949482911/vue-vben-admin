@@ -85,6 +85,9 @@ const [Modal, modalApi] = useVbenModal({
 
 function openSubmitReviewModal() {
   modalApi.open();
+  PROJECT_PLACEHOLDERS.forEach((element) => {
+    handleTagClick(element.value);
+  });
 }
 
 //--------------自定义修改项目名称--------------

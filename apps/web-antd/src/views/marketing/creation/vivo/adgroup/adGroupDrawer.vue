@@ -15,7 +15,8 @@ import { Input, Tag } from 'ant-design-vue';
 import { useProjectPlaceholder } from '#/utils/customName';
 import type { AccountInfo } from '../../creation';
 import adPlacementQualification from '#/views/marketing/creation/adPlacementQualification.vue';
-import type { QualificationValue } from '../vivo';
+import type { QualificationValue, ChannelPackageValue } from '../vivo';
+import channelPackageModule from '#/views/marketing/creation/channelPackage.vue';
 
 const PROJECT_PLACEHOLDERS = [
   { label: '时间', value: '<时间>' },
@@ -26,7 +27,7 @@ const PROJECT_PLACEHOLDERS = [
 
 const { customizeName, handleTagClick } = useProjectPlaceholder('', 100);
 
-const { campaign, accountInfo, advertiserQualification } = defineProps({
+const { campaign, accountInfo, advertiserQualification, channelPackage } = defineProps({
   campaign: {
     type: Object,
     default: () => {
@@ -52,6 +53,10 @@ const { campaign, accountInfo, advertiserQualification } = defineProps({
     type: Object,
     default: new Map<string, QualificationValue>(),
   },
+  channelPackage: {
+    type: Object,
+    default: new Map<string, ChannelPackageValue>(),
+  },
 });
 
 const scheduleTimeValue = ref('1'.repeat(336));
@@ -70,7 +75,7 @@ const [AdPlacementQualification, modalApi] = useVbenModal({
       // 1. 如果没有返回数据（点击叉号/取消），直接退出，保护现有回显
       if (!res) return;
 
-      // 2. 根据截图，数据在 res.advertiserQualification 里面
+      // 2. 数据在 res.advertiserQualification 里面
       // 我们提取它，并防御性地兼容“直接返回 Map”的情况
       const rawData = res.advertiserQualification || res;
 
@@ -116,15 +121,65 @@ function openAdPlacementQualificationModal() {
   modalApi.open();
 }
 
+const channelPackageStr = ref<string>('');
+const localChannelPackage = ref<Map<string, ChannelPackageValue>>(new Map());
+
+//--------------渠道包---------------
+const [ChannelPackageModule, ChannelPackageModalApi] = useVbenModal({
+  // 连接抽离的组件
+  connectedComponent: channelPackageModule,
+  async onOpenChange(isOpen) {
+    if (!isOpen) {
+      const res = ChannelPackageModalApi.getData() as Map<string, ChannelPackageValue>;
+
+      if (!res) return;
+
+      const rawData = res;
+
+      let standardMap: Map<string, ChannelPackageValue>;
+      if (rawData instanceof Map) {
+        standardMap = rawData;
+      } else if (typeof rawData === 'object' && rawData !== null) {
+        standardMap = new Map(Object.entries(rawData));
+      } else {
+        return;
+      }
+
+      localChannelPackage.value = standardMap;
+
+      if (standardMap.size === 0) {
+        // 只有明确返回空数据时才清空回显
+        channelPackageStr.value = '';
+        return;
+      }
+
+      // 核心修改：使用 Array.from(res.values()) 将 Map 的值转为数组
+      channelPackageStr.value = Array.from(standardMap.values())
+        .map((item: any) => item.channelPackageName)
+        .filter(Boolean)
+        .join('，');
+    }
+  },
+});
+
+function openChannelPackageModal() {
+  ChannelPackageModalApi.setData({
+    // 优先使用本地已经选好的，如果没有则使用 Props 传进来的初始值
+    channelPackage: localChannelPackage.value.size > 0 ? localChannelPackage.value : channelPackage,
+  });
+  ChannelPackageModalApi.open();
+}
+
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
   async onOpenChange(isOpen) {
     if (isOpen) {
       const currentAdType = campaign.adType;
 
-      const { adGroupData, localAdQualification } = drawerApi.getData();
+      const { adGroupData, localAdQualification, localChannelPackage } = drawerApi.getData();
 
       if (localAdQualification.size === 0) advertiseQualificationId.value = '';
+      if (localChannelPackage.size === 0) channelPackageStr.value = '';
 
       if (adGroupData) {
         customizeName.value = adGroupData.name;
@@ -151,6 +206,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
           .filter(Boolean) // 过滤空值
           .join('，');
       }
+      //回显渠道包
+      if (channelPackage.size > 0) {
+        const dataArray = Array.from<ChannelPackageValue>(channelPackage.values());
+        channelPackageStr.value = dataArray
+          .map((item) => item.channelPackageName)
+          .filter(Boolean) // 过滤空值
+          .join('，');
+      }
     }
   },
   async onConfirm() {
@@ -171,6 +234,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     drawerApi.setData({
       finalParams: finalParams,
       localAdvertiserQualification: localAdvertiserQualification.value,
+      localChannelPackage: localChannelPackage.value,
     });
     await drawerApi.close();
   },
@@ -204,6 +268,11 @@ const [Form, formApi] = useVbenForm({
       label: '广告组名称',
       rules: 'required',
       formItemClass: 'col-span-2 items-baseline',
+    },
+    {
+      component: 'Default' as any,
+      fieldName: 'channelPackage',
+      label: '渠道包',
     },
     {
       fieldName: 'adType_proxy',
@@ -441,6 +510,15 @@ const [Form, formApi] = useVbenForm({
             </div>
           </div>
         </template>
+        <template #channelPackage>
+          <Input
+            v-model:value="channelPackageStr"
+            placeholder="请选择渠道包"
+            class="!w-[250px]"
+            readonly
+            @click="openChannelPackageModal"
+          />
+        </template>
         <template #advertiseQualificationId>
           <Input
             v-model:value="advertiseQualificationId"
@@ -457,6 +535,7 @@ const [Form, formApi] = useVbenForm({
       </div>
     </Drawer>
     <AdPlacementQualification :accountInfo="accountInfo" />
+    <ChannelPackageModule :accountInfo="accountInfo" />
   </div>
 </template>
 

@@ -1,4 +1,4 @@
-import type {BaseItem, PageRequestParams} from '#/api/models/core';
+import type { BaseItem, PageRequestParams } from '#/api/models/core';
 
 // callback page request
 export interface PlatformcallbackPageRequest extends PageRequestParams {
@@ -37,8 +37,7 @@ export interface CreatePlatformCallbackRequest {
   eventSettlementId: string;
 }
 
-export interface UpdatePlatformCallbackRequest
-  extends CreatePlatformCallbackRequest {
+export interface UpdatePlatformCallbackRequest extends CreatePlatformCallbackRequest {
   id: string;
 }
 
@@ -52,10 +51,10 @@ export interface BehavioraPlatformItem extends BaseItem {
   ocpxPlatformMatchList: Array<OcpxPlatformMatch>;
   filterBehavior: Array<string>;
   simulate: boolean | number;
-  type: number,
-  directLink: string,
+  type: number;
+  directLink: string;
   matchField?: number | string;
-  simulateBehaviorType?:string
+  simulateBehaviorType?: string;
 }
 
 // 转化匹配列表
@@ -69,7 +68,7 @@ export interface OcpxPlatformMatch extends BaseItem {
   creativeId: string;
   behavioraPlatform: string;
   matchId: string;
-  _isNew?:boolean
+  _isNew?: boolean;
 }
 
 export interface BehavioraPlatformPageRequest extends PageRequestParams {
@@ -90,8 +89,7 @@ export interface CreateBehavioraPlatformRequest {
 }
 
 // 编辑转化配置
-export interface UpdateBehavioraPlatformRequest
-  extends CreateBehavioraPlatformRequest {
+export interface UpdateBehavioraPlatformRequest extends CreateBehavioraPlatformRequest {
   id: string;
 }
 
@@ -141,12 +139,11 @@ export interface ClickMonitorResponse {
     url: string;
     platformBehaviorId: string;
     name: string;
-    directLink: string
+    directLink: string;
   }>;
 }
 
-export interface OcpxBehavioracallbackRecordPageRequest
-  extends PageRequestParams {
+export interface OcpxBehavioracallbackRecordPageRequest extends PageRequestParams {
   taskId: string;
   platformCallbackId: string;
   behaviorPlatformId: string;
@@ -184,7 +181,6 @@ export interface OcpxBehaviorRecordItem extends BaseItem {
   requestSuccess: boolean;
 }
 
-
 /**
  * 回传媒体事件类型
  */
@@ -192,7 +188,6 @@ export interface PlatformCallbackBehaviorTypeItem {
   label: string;
   value: string;
 }
-
 
 /**
  * 回调测试
@@ -208,11 +203,11 @@ export interface RePushRePushRetryBehaviorCallbackItem {
   behaviorPlatformId: string;
 }
 // 单个重试
-export interface SingleRePushRetryBehaviorCallbackType extends RePushRePushRetryBehaviorCallbackItem{
+export interface SingleRePushRetryBehaviorCallbackType extends RePushRePushRetryBehaviorCallbackItem {
   requestId: string;
 }
 // 批量重试
-export interface RePushRetryBehaviorCallbackType extends RePushRePushRetryBehaviorCallbackItem{
+export interface RePushRetryBehaviorCallbackType extends RePushRePushRetryBehaviorCallbackItem {
   requestId: string[];
 }
 export interface OcpxExportEventClickRequest {
@@ -231,8 +226,8 @@ export interface OcpxDataStatisticsRequest {
 export interface dayDataItem {
   callback_count: string;
   click_count: string;
-  conversion_rate:number;
-  day:string;
+  conversion_rate: number;
+  day: string;
 }
 export interface ClickReordItem {
   platformCallbackName: string;
@@ -272,6 +267,13 @@ export interface OcpxCallbackRecordItem {
   eventType: string;
   createTime: string;
   requestId: string;
+}
+
+export interface ObtainUserActionSetId {
+  platform: string;
+  advertiserId: string;
+  type: string;
+  typeValue: string;
 }
 
 
