@@ -1,11 +1,11 @@
-import {BaseApi} from "#/api/core/baseapi";
-import {requestClient} from "#/api/request";
+import { BaseApi } from '#/api/core/baseapi';
+import { requestClient } from '#/api/request';
 import type {
   BehavioraPlatformPageRequest,
   ClickMonitorResponse,
   CreateBehavioraPlatformRequest,
   CreateOcpxTaskRequest,
-  CreatePlatformCallbackRequest, 
+  CreatePlatformCallbackRequest,
   OcpxBehavioracallbackRecordPageRequest,
   OcpxExportEventClickRequest,
   OcpxDataStatisticsRequest,
@@ -13,83 +13,86 @@ import type {
   CallbackClickReordListItem,
   ClickReordPageRequest,
   OcpxTaskItem,
-  OpcxTaskPageRequest, PlatformCallbackBehaviorTypeItem,
+  OpcxTaskPageRequest,
+  PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
-  PlatformcallbackPageRequest, TestCallbackRequest,
+  PlatformcallbackPageRequest,
+  TestCallbackRequest,
   UpdateBehavioraPlatformRequest,
   UpdateOcpxTaskRequest,
   UpdatePlatformCallbackRequest,
   RePushRetryBehaviorCallbackType,
-  SingleRePushRetryBehaviorCallbackType
-} from "#/api/models";
-import type {BehavioraPlatformItem} from "#/api/models/ocpx";
-import type {BatchOptions} from "#/api/models/core";
-
+  SingleRePushRetryBehaviorCallbackType,
+} from '#/api/models';
+import type { BehavioraPlatformItem, ObtainUserActionSetId } from '#/api/models/ocpx';
+import type { BatchOptions } from '#/api/models/core';
 
 class PlatformCallbackApi extends BaseApi {
-
   fetchPlatformcallbackList(params: PlatformcallbackPageRequest) {
-    return requestClient.get<PlatformcallbackItem[]>(this.getServiceUrl("list"), {
-      params: params
+    return requestClient.get<PlatformcallbackItem[]>(this.getServiceUrl('list'), {
+      params: params,
     });
   }
 
   fetchPlatformcallbackCreate(params: CreatePlatformCallbackRequest) {
-    return requestClient.post(this.getServiceUrl("create"), params);
+    return requestClient.post(this.getServiceUrl('create'), params);
   }
 
   fetchPlatformcallbackUpdate(params: UpdatePlatformCallbackRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
+    return requestClient.post(this.getServiceUrl('update'), params);
   }
 
   fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("batch_options"), params)
+    return requestClient.post(this.getServiceUrl('batch_options'), params);
   }
 
   /**
    * 获取回传媒体支持的转化事件类型
    */
   fetchPlatformCallbackBehaviorTypeItem(platform: string) {
-    return requestClient.get<PlatformCallbackBehaviorTypeItem[]>(this.getServiceUrl("behavior_type_list"), {
-      params: {
-        platform: platform
-      }
-    })
+    return requestClient.get<PlatformCallbackBehaviorTypeItem[]>(
+      this.getServiceUrl('behavior_type_list'),
+      {
+        params: {
+          platform: platform,
+        },
+      },
+    );
+  }
+  /**
+   * 回传媒体-新增-广点通获取user_action_set_id
+   */
+  fetchUserActionSetId(params: ObtainUserActionSetId) {
+    return requestClient.post(this.getServiceUrl('tencent_user_action_set'), params);
   }
 }
 
-export const platformCallbackApi = new PlatformCallbackApi("/platform/platformcallback");
-
+export const platformCallbackApi = new PlatformCallbackApi('/platform/platformcallback');
 
 /**
  * 转化平台
  */
 class BehavioraPlatformApi extends BaseApi {
-
   fetchBehavioraPlatformList(params: BehavioraPlatformPageRequest) {
-    return requestClient.get<BehavioraPlatformItem[]>(this.getServiceUrl("list"), {
-      params
+    return requestClient.get<BehavioraPlatformItem[]>(this.getServiceUrl('list'), {
+      params,
     });
   }
 
-
   fetchCreateBehavioraPlatform(params: CreateBehavioraPlatformRequest) {
-    return requestClient.post(this.getServiceUrl("create"), params);
+    return requestClient.post(this.getServiceUrl('create'), params);
   }
 
-
   fetchUpdateBehavioraPlatform(params: UpdateBehavioraPlatformRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
+    return requestClient.post(this.getServiceUrl('update'), params);
   }
 
   fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("batch_options"), params)
+    return requestClient.post(this.getServiceUrl('batch_options'), params);
   }
 }
 
-
-export const behavioraPlatformApi = new BehavioraPlatformApi("/platform/platformbehaviora");
-
+export const behavioraPlatformApi = new BehavioraPlatformApi('/platform/platformbehaviora');
 
 /**
  * ocpx 任务
@@ -97,21 +100,21 @@ export const behavioraPlatformApi = new BehavioraPlatformApi("/platform/platform
 
 class OcpxTaskApi extends BaseApi {
   fetchOcpxTaskList(params: OpcxTaskPageRequest) {
-    return requestClient.get<OcpxTaskItem[]>(this.getServiceUrl("list"), {
-      params: params
+    return requestClient.get<OcpxTaskItem[]>(this.getServiceUrl('list'), {
+      params: params,
     });
   }
 
   fetchCreateOcpxTask(params: CreateOcpxTaskRequest) {
-    return requestClient.post(this.getServiceUrl("create"), params);
+    return requestClient.post(this.getServiceUrl('create'), params);
   }
 
   fetchUpdateOcpxTask(params: UpdateOcpxTaskRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
+    return requestClient.post(this.getServiceUrl('update'), params);
   }
 
   fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("batch_options"), params)
+    return requestClient.post(this.getServiceUrl('batch_options'), params);
   }
 
   /**
@@ -119,7 +122,7 @@ class OcpxTaskApi extends BaseApi {
    * @param params
    */
   fetchOcpxBehavioracallbackRecordList(params: OcpxBehavioracallbackRecordPageRequest) {
-    return requestClient.get(this.getServiceUrl("callback_record_list"), {params: params})
+    return requestClient.get(this.getServiceUrl('callback_record_list'), { params: params });
   }
 
   /**
@@ -127,69 +130,66 @@ class OcpxTaskApi extends BaseApi {
    * @param params
    */
   fetchOxpcBehaviorRecordList(params: OcpxBehavioracallbackRecordPageRequest) {
-    return requestClient.get(this.getServiceUrl("behavior_record_list"), {params: params})
+    return requestClient.get(this.getServiceUrl('behavior_record_list'), { params: params });
   }
 
   /**回传记录详细信息*/
   fetchOxpcTransmissionRecord(params: SingleRePushRetryBehaviorCallbackType) {
-    return requestClient.get(this.getServiceUrl("callback_record_detail"), {params})
+    return requestClient.get(this.getServiceUrl('callback_record_detail'), { params });
   }
 
   fetchOpcxExportEventClick(params: OcpxExportEventClickRequest) {
-    return requestClient.get(this.getServiceUrl("export_event_click"),{ params })
+    return requestClient.get(this.getServiceUrl('export_event_click'), { params });
   }
   // 获取统计数据
   fetchOcpxDataStatistics(params: OcpxDataStatisticsRequest) {
-    return requestClient.post(this.getServiceUrl("report_ocpx_task"), params)
+    return requestClient.post(this.getServiceUrl('report_ocpx_task'), params);
   }
   // 获取点击记录数据
   fetchClickRecordList(params: ClickReordPageRequest) {
-    return requestClient.get(this.getServiceUrl("event_click_list"), { params })
+    return requestClient.get(this.getServiceUrl('event_click_list'), { params });
   }
   // 点击记录批量回传
   fetchBatchClickRecordList(params: CallbackClickReordItem) {
-    return requestClient.post(this.getServiceUrl("custom_behavior_callback"), params)
+    return requestClient.post(this.getServiceUrl('custom_behavior_callback'), params);
   }
   // 获取回调记录数据
   fetchOxpcCallbackRecordList(params: CallbackClickReordListItem) {
-    return requestClient.get(this.getServiceUrl("event_callback_list"), { params })
-
+    return requestClient.get(this.getServiceUrl('event_callback_list'), { params });
   }
 }
 
-export const ocpxTaskApi = new OcpxTaskApi("/platform/ocpxtask");
-
+export const ocpxTaskApi = new OcpxTaskApi('/platform/ocpxtask');
 
 /**
  * 点击检测获取
  */
 class ClickMonitorApi extends BaseApi {
-
   fetchGenClickUrl(taskId: string) {
-    return requestClient.get<Array<ClickMonitorResponse>>(this.getServiceUrl("gen_click_url"), {params: {ocpxTaskId: taskId}});
+    return requestClient.get<Array<ClickMonitorResponse>>(this.getServiceUrl('gen_click_url'), {
+      params: { ocpxTaskId: taskId },
+    });
   }
 
   /**
    * 联调测试
    */
   fetchTestCallback(params: TestCallbackRequest) {
-    return requestClient.get(this.getServiceUrl("test_callback"), {params})
+    return requestClient.get(this.getServiceUrl('test_callback'), { params });
   }
-
 
   /**
    * 重推转化回传
    * @param id
    */
   fetchRePushBehaviorCallback(params: SingleRePushRetryBehaviorCallbackType) {
-    return requestClient.get(this.getServiceUrl("repush_behavior_callback"), {params})
+    return requestClient.get(this.getServiceUrl('repush_behavior_callback'), { params });
   }
 
   /**回传媒体批量重试*/
   fetchRePushRetryBehaviorCallback(params: RePushRetryBehaviorCallbackType) {
-    return requestClient.post(this.getServiceUrl("batch_repush_behavior_callback"), params)
+    return requestClient.post(this.getServiceUrl('batch_repush_behavior_callback'), params);
   }
 }
 
-
-export const clickMonitorApi = new ClickMonitorApi("/platform/clickmonitor");
+export const clickMonitorApi = new ClickMonitorApi('/platform/clickmonitor');

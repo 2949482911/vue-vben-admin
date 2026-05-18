@@ -286,7 +286,7 @@ export const BACKHAUL = [
   },
   {
     label: '广点通-小程序',
-    value: 'tencent_mini_app'
+    value: 'tencent_mini_app',
   },
   {
     label: 'oppo push',
@@ -444,16 +444,16 @@ export const BEHAVIORA_PLATFORM = [
   },
   {
     label: '淘宝闪购ET',
-    value: 'tb_shangou_et'
+    value: 'tb_shangou_et',
   },
   {
     label: 'soul',
-    value: 'soul'
+    value: 'soul',
   },
   {
     label: '唯品会',
-    value: 'vph'
-  }
+    value: 'vph',
+  },
 ];
 
 // 匹配下拉
@@ -659,7 +659,16 @@ export const BM_COFIG_TYPE = [
   {
     label: 'IOS',
     value: 'IOS',
-  }
+  },
+];
+/**
+ * 广点通-小程序配置类型
+ */
+export const BM_COFIG_MINI_TYPE = [
+  {
+    label: 'WECHAT_MINI_PROGRAM',
+    value: 'WECHAT_MINI_PROGRAM',
+  },
 ];
 /**
  * 广点通-安卓应用ID

@@ -2,34 +2,38 @@
 import type {
   CreatePlatformCallbackRequest,
   PlatformCallbackBehaviorTypeItem,
-  PlatformcallbackItem, UpdatePlatformCallbackRequest,
-  eventMappingType
+  PlatformcallbackItem,
+  UpdatePlatformCallbackRequest,
+  eventMappingType,
 } from '#/api/models';
 
-import {ref,watch} from 'vue';
+import { h, ref, watch } from 'vue';
 
-import {useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import {Divider} from 'ant-design-vue';
+import { Divider, Button, message } from 'ant-design-vue';
 
-import {useVbenForm} from '#/adapter/form';
-import {platformCallbackApi} from '#/api/core/ocpx';
-import {Platform} from '#/constants/enums';
-import {
-  BACKHAUL, 
-  BM_COFIG_TYPE
-} from '#/constants/locales';
+import { useVbenForm } from '#/adapter/form';
+import { platformCallbackApi } from '#/api/core/ocpx';
+import { Platform } from '#/constants/enums';
+import { BACKHAUL, BM_COFIG_MINI_TYPE, BM_COFIG_TYPE } from '#/constants/locales';
 import { trimObject } from '#/utils/trim';
-import eventMatching from './components/eventMatching.vue'
+import eventMatching from './components/eventMatching.vue';
 
 const emit = defineEmits(['pageReload']);
 const callbackPlatform = ref<string>('');
 const eventMappingRules = ref<eventMappingType[]>([]);
 const editEventMappingRules = ref<eventMappingType[]>([]);
 const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest>({
-  advertiserId: "", advertiserName: "",
-  onlyClick: 0, config: new Map<string, any>(), id: "", name: "", platform: "", remark: ""
+  advertiserId: '',
+  advertiserName: '',
+  onlyClick: 0,
+  config: new Map<string, any>(),
+  id: '',
+  name: '',
+  platform: '',
+  remark: '',
 });
 const isUpdate = ref<Boolean>(false);
 const modalType = ref<string>('edit');
@@ -37,7 +41,6 @@ const modalType = ref<string>('edit');
 const platformConfigForm = new Map<string, Array<any>>();
 // vivo 配置清单
 platformConfigForm.set(Platform.VIVO, [
-
   {
     // 媒体配置表单
     component: 'Input',
@@ -72,20 +75,20 @@ platformConfigForm.set(Platform.VIVO, [
       placeholder: `${$t('common.select')}`,
       options: [
         {
-          label: "手动输入",
-          value: "input"
+          label: '手动输入',
+          value: 'input',
         },
         {
-          label: "选择",
-          value: "select"
-        }
+          label: '选择',
+          value: 'select',
+        },
       ],
     },
     // 字段名
     fieldName: 'advertiserType',
     // 界面显示的label
     label: `advertiserType`,
-    defaultValue: "select",
+    defaultValue: 'select',
     rules: 'required',
   },
   {
@@ -102,7 +105,7 @@ platformConfigForm.set(Platform.VIVO, [
     rules: 'required',
   },
   {
-    component: 'lazyLoadSelect',        // 使用自定义组件
+    component: 'lazyLoadSelect', // 使用自定义组件
     fieldName: 'advertiserName',
     label: `advertiser`,
     componentProps: {
@@ -251,7 +254,7 @@ platformConfigForm.set(Platform.GYXHW, [
     label: 'secretKey',
     rules: 'required',
   },
-   {
+  {
     // 媒体配置表单
     component: 'Input',
     // 对应组件的参数
@@ -358,21 +361,22 @@ platformConfigForm.set(Platform.BAIDU, [
       placeholder: `${$t('common.select')}`,
       options: [
         {
-          label: "OAID",
-          value: "OAID"
+          label: 'OAID',
+          value: 'OAID',
         },
         {
-          label: "IMEI",
-          value: "IMEI"
+          label: 'IMEI',
+          value: 'IMEI',
         },
         {
-          label: "CAID",
-          value: "CAID"
-        }, {
-          label: "IDFA",
-          value: "IDFA"
+          label: 'CAID',
+          value: 'CAID',
         },
-      ]
+        {
+          label: 'IDFA',
+          value: 'IDFA',
+        },
+      ],
     },
     defaultValue: 'OAID',
     // 字段名
@@ -381,7 +385,7 @@ platformConfigForm.set(Platform.BAIDU, [
     label: 'join_type',
     rules: 'required',
   },
-])
+]);
 
 // 快手
 platformConfigForm.set(Platform.KUAISHOU, [
@@ -399,8 +403,7 @@ platformConfigForm.set(Platform.KUAISHOU, [
     label: 'test',
     rules: 'required',
   },
-])
-
+]);
 
 // 巨量引擎
 platformConfigForm.set(Platform.BYTEDANCE, [
@@ -417,7 +420,7 @@ platformConfigForm.set(Platform.BYTEDANCE, [
     label: `test`,
     rules: 'required',
   },
-])
+]);
 
 // 努比亚
 platformConfigForm.set(Platform.NBY, [
@@ -434,7 +437,7 @@ platformConfigForm.set(Platform.NBY, [
     label: `test`,
     rules: 'required',
   },
-])
+]);
 
 // 趣头条
 platformConfigForm.set(Platform.QUTOUTIAO, [
@@ -451,7 +454,7 @@ platformConfigForm.set(Platform.QUTOUTIAO, [
     label: 'test',
     rules: 'required',
   },
-])
+]);
 // 广点通
 platformConfigForm.set(Platform.TENCENT, [
   {
@@ -471,6 +474,7 @@ platformConfigForm.set(Platform.TENCENT, [
       allowClear: true,
       placeholder: `${$t('common.input')}`,
     },
+    rules: 'required',
     fieldName: 'mobile_app_id',
     label: 'mobile_app_id',
   },
@@ -480,20 +484,39 @@ platformConfigForm.set(Platform.TENCENT, [
       allowClear: true,
       placeholder: `${$t('common.input')}`,
     },
+    rules: 'required',
     fieldName: 'user_action_set_id',
     label: 'user_action_set_id',
+    renderComponentContent: () => ({
+      suffix: () =>
+        h(
+          Button,
+          {
+            type: 'link',
+            size: 'small',
+            style: { padding: 0, height: 'auto' },
+            onClick: () => {
+              handleGetActionSetId('gdt');
+            },
+          },
+          () => '获取',
+        ),
+    }),
   },
-])
+]);
+
 // 广点通-小程序端
 platformConfigForm.set(Platform.TENCENT_MINI_APP, [
   {
-    component: 'Input',
+    component: 'Select',
     componentProps: {
       allowClear: true,
-      placeholder: `${$t('common.input')}`,
+      options: BM_COFIG_MINI_TYPE,
+      placeholder: `${$t('common.choice')}`,
     },
-    fieldName: 'user_action_set_id',
-    label: 'user_action_set_id',
+    rules: 'required',
+    fieldName: 'type',
+    label: 'type',
   },
   {
     component: 'Input',
@@ -501,6 +524,7 @@ platformConfigForm.set(Platform.TENCENT_MINI_APP, [
       allowClear: true,
       placeholder: `${$t('common.input')}`,
     },
+    rules: 'required',
     fieldName: 'wechat_openid',
     label: 'wechat_openid',
   },
@@ -510,10 +534,52 @@ platformConfigForm.set(Platform.TENCENT_MINI_APP, [
       allowClear: true,
       placeholder: `${$t('common.input')}`,
     },
+    rules: 'required',
     fieldName: 'wechat_app_id',
     label: 'wechat_app_id',
+  },
+  {
+    component: 'Input',
+    componentProps: {
+      allowClear: true,
+      placeholder: `${$t('common.input')}`,
+    },
+    rules: 'required',
+    fieldName: 'user_action_set_id',
+    label: 'user_action_set_id',
+    renderComponentContent: () => ({
+      suffix: () =>
+        h(
+          Button,
+          {
+            type: 'link',
+            size: 'small',
+            style: { padding: 0, height: 'auto' },
+            onClick: () => {
+              handleGetActionSetId('gdtxcx');
+            },
+          },
+          () => '获取',
+        ),
+    }),
+  },
+]);
+
+async function handleGetActionSetId(value: string) {
+  const basicInfo = await formApi.getValues();
+  const configurationInfo = await configFormApi.getValues();
+  const res = await platformCallbackApi.fetchUserActionSetId({
+    platform: basicInfo.platform,
+    advertiserId: basicInfo.advertiserId,
+    type: configurationInfo.type,
+    typeValue: value === 'gdt' ? configurationInfo.mobile_app_id : configurationInfo.wechat_app_id,
+  });
+  if (res.userActionSetId && res.userActionSetId != null && res.userActionSetId != undefined) {
+    await configFormApi.setFieldValue('user_action_set_id', res.userActionSetId);
+  } else {
+    message.error(res.message);
   }
-])
+}
 // oppo push
 platformConfigForm.set(Platform.OPPO_PUSH, [
   {
@@ -607,13 +673,11 @@ platformConfigForm.set(Platform.UBI, [
  * @param platform 平台
  */
 async function getPlatformCallbackBehaviorTypeItem(platform: string) {
-  behaviorTypeList.value = await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(
-    platform
-  );
+  behaviorTypeList.value =
+    await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(platform);
 }
 
 const behaviorTypeList = ref<Array<PlatformCallbackBehaviorTypeItem>>([]);
-
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
@@ -646,15 +710,21 @@ const [Form, formApi] = useVbenForm({
     formVal.onlyClick = Boolean(formVal.onlyClick);
     formVal.eventMappingRules = eventMappingRules.value;
     const params = trimObject(formVal);
-    if(isUpdate.value) {
-      if(modalType.value === 'edit') {  
-        await platformCallbackApi.fetchPlatformcallbackUpdate(params as UpdatePlatformCallbackRequest);
-      } else if(modalType.value === 'copy') {
+    if (isUpdate.value) {
+      if (modalType.value === 'edit') {
+        await platformCallbackApi.fetchPlatformcallbackUpdate(
+          params as UpdatePlatformCallbackRequest,
+        );
+      } else if (modalType.value === 'copy') {
         params.id = undefined;
-         await platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest);
+        await platformCallbackApi.fetchPlatformcallbackCreate(
+          params as CreatePlatformCallbackRequest,
+        );
       }
     } else {
-       await platformCallbackApi.fetchPlatformcallbackCreate(params as CreatePlatformCallbackRequest);
+      await platformCallbackApi.fetchPlatformcallbackCreate(
+        params as CreatePlatformCallbackRequest,
+      );
     }
   },
   schema: [
@@ -687,15 +757,15 @@ const [Form, formApi] = useVbenForm({
               schema: platformConfigForm.get(value),
             };
           });
-          if(value === Platform.UBI) {
-            await configFormApi.setFieldValue('test',1)
+          if (value === Platform.UBI) {
+            await configFormApi.setFieldValue('test', 1);
           }
           // 更新字段
           const values = await formApi.getValues();
-          if (values["behaviorTypeMoel"] === 'custom') {
-            await getPlatformCallbackBehaviorTypeItem(value)
+          if (values['behaviorTypeMoel'] === 'custom') {
+            await getPlatformCallbackBehaviorTypeItem(value);
           }
-        }
+        },
       },
       // 字段名
       fieldName: 'platform',
@@ -768,8 +838,8 @@ const [Form, formApi] = useVbenForm({
           {
             label: `${$t('common.no')}`,
             value: 0,
-          }
-        ]
+          },
+        ],
       },
       // 字段名
       fieldName: 'onlyClick',
@@ -792,16 +862,16 @@ const [Form, formApi] = useVbenForm({
           {
             label: `${$t('ocpx.platformcallback.custom')}`,
             value: 'custom',
-          }
+          },
         ],
         onSelect: async (value: string) => {
-          if (value === "custom") {
+          if (value === 'custom') {
             const values = await formApi.getValues();
-            await getPlatformCallbackBehaviorTypeItem(values["platform"])
+            await getPlatformCallbackBehaviorTypeItem(values['platform']);
           } else {
-            await formApi.setFieldValue("behaviorType", "");
+            await formApi.setFieldValue('behaviorType', '');
           }
-        }
+        },
       },
       defaultValue: 'auto',
       // 字段名
@@ -833,13 +903,13 @@ const [Form, formApi] = useVbenForm({
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'InputNumber',
-      help:'该比例为千分比',
+      help: '该比例为千分比',
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
         min: 0,
         max: 1000,
-        precision: 1, 
+        precision: 1,
         formatter: (value: number) => {
           if (value === null || value === undefined) return '';
           const fixedValue = Number(value).toFixed(1);
@@ -853,7 +923,7 @@ const [Form, formApi] = useVbenForm({
       },
       // 字段名
       fieldName: 'ratio',
-      defaultValue: 1000.00, // 显式设置为2位小数的浮点型
+      defaultValue: 1000.0, // 显式设置为2位小数的浮点型
       // 界面显示的label
       label: `${$t('ocpx.platformcallback.columns.ratio')}`,
       rules: 'required',
@@ -886,7 +956,7 @@ const [Modal, modalApi] = useVbenModal({
       name: '',
       onlyClick: 0,
       platform: 'vivo',
-      remark: ''
+      remark: '',
     };
     isUpdate.value = false;
     modalType.value = 'edit';
@@ -908,9 +978,11 @@ const [Modal, modalApi] = useVbenModal({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const data = modalApi.getData();
-      objectRequest.value = data.row as CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest;
+      objectRequest.value = data.row as
+        | CreatePlatformCallbackRequest
+        | UpdatePlatformCallbackRequest;
       modalType.value = data.type;
-      if (objectRequest.value?.id) {
+      if (objectRequest.value && 'id' in objectRequest.value && objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
         getPlatformCallbackBehaviorTypeItem(objectRequest.value.platform);
@@ -923,14 +995,16 @@ const [Modal, modalApi] = useVbenModal({
       callbackPlatform.value = '';
       configFormApi.setState((_) => {
         return {
-          schema: []
+          schema: [],
         };
       });
     }
   },
 });
 
-function handleSetFormValue(row: PlatformcallbackItem | CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest) {
+function handleSetFormValue(
+  row: PlatformcallbackItem | CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest,
+) {
   formApi.setValues({
     ...row,
     onlyClick: row.onlyClick ? 1 : 0, // 关键这一行
@@ -948,24 +1022,32 @@ function handleSetFormValue(row: PlatformcallbackItem | CreatePlatformCallbackRe
 function handleEventSubmit(values: Array<eventMappingType>) {
   eventMappingRules.value = values;
 }
-const title = ref<string>()
-watch(isUpdate,(newVal) => {
-  if(newVal) {
-    title.value = `${$t('common.edit')}`
-  } else {
-    title.value = `${$t('common.create')}`;
-  }
-},{ deep: true, immediate: true });
+const title = ref<string>();
+watch(
+  isUpdate,
+  (newVal) => {
+    if (newVal) {
+      title.value = `${$t('common.edit')}`;
+    } else {
+      title.value = `${$t('common.create')}`;
+    }
+  },
+  { deep: true, immediate: true },
+);
 </script>
 <template>
   <Modal :title="title">
     <Divider>{{ $t('core.baseInfo') }}</Divider>
 
-    <Form/>
+    <Form />
 
     <Divider>{{ $t('core.configuration') }}</Divider>
-    <ConfigForm/>
+    <ConfigForm />
     <Divider>{{ $t('core.eventmatching') }}</Divider>
-    <eventMatching @eventSubmit="handleEventSubmit" :callbackPlatform="callbackPlatform" :editEventMappingRules="editEventMappingRules"/>
+    <eventMatching
+      @eventSubmit="handleEventSubmit"
+      :callbackPlatform="callbackPlatform"
+      :editEventMappingRules="editEventMappingRules"
+    />
   </Modal>
 </template>
