@@ -1,26 +1,25 @@
 <script lang="ts" setup name="CreateNotice">
 import type {
   CreatePlatformCallbackRequest,
-  eventMappingType, EventSettlementItem,
+  eventMappingType,
+  EventSettlementItem,
   PlatformCallbackBehaviorTypeItem,
   PlatformcallbackItem,
   UpdatePlatformCallbackRequest,
-  eventMappingType,
 } from '#/api/models';
 
-import { h, ref, watch } from 'vue';
+import {h, ref, watch} from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import {useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
 
-import { Divider, Button, message } from 'ant-design-vue';
+import {Button, Divider, message} from 'ant-design-vue';
 
-import { useVbenForm } from '#/adapter/form';
-import { platformCallbackApi } from '#/api/core/ocpx';
-import { Platform } from '#/constants/enums';
-import { BACKHAUL, BM_COFIG_MINI_TYPE, BM_COFIG_TYPE } from '#/constants/locales';
-import { trimObject } from '#/utils/trim';
-import eventMatching from './components/eventMatching.vue';
+import {useVbenForm} from '#/adapter/form';
+import {platformCallbackApi} from '#/api/core/ocpx';
+import {Platform} from '#/constants/enums';
+import {BACKHAUL, BM_COFIG_MINI_TYPE, BM_COFIG_TYPE} from '#/constants/locales';
+import {trimObject} from '#/utils/trim';
 import {eventSettlementApi} from '#/api';
 import eventMatching from './components/eventMatching.vue'
 
@@ -32,7 +31,6 @@ const editEventMappingRules = ref<eventMappingType[]>([]);
 const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest>({
   eventSettlementId: "",
   eventMappingRules: undefined,
-  eventSettlementId: "",
   advertiserId: '',
   advertiserName: '',
   onlyClick: 0,
@@ -501,7 +499,7 @@ platformConfigForm.set(Platform.TENCENT, [
           {
             type: 'link',
             size: 'small',
-            style: { padding: 0, height: 'auto' },
+            style: {padding: 0, height: 'auto'},
             onClick: () => {
               handleGetActionSetId('gdt');
             },
@@ -561,7 +559,7 @@ platformConfigForm.set(Platform.TENCENT_MINI_APP, [
           {
             type: 'link',
             size: 'small',
-            style: { padding: 0, height: 'auto' },
+            style: {padding: 0, height: 'auto'},
             onClick: () => {
               handleGetActionSetId('gdtxcx');
             },
@@ -587,6 +585,7 @@ async function handleGetActionSetId(value: string) {
     message.error(res.message);
   }
 }
+
 // oppo push
 platformConfigForm.set(Platform.OPPO_PUSH, [
   {
@@ -1074,6 +1073,7 @@ function handleSetFormValue(
 function handleEventSubmit(values: Array<eventMappingType>) {
   eventMappingRules.value = values;
 }
+
 const title = ref<string>();
 watch(
   isUpdate,
@@ -1084,17 +1084,17 @@ watch(
       title.value = `${$t('common.create')}`;
     }
   },
-  { deep: true, immediate: true },
+  {deep: true, immediate: true},
 );
 </script>
 <template>
   <Modal :title="title">
     <Divider>{{ $t('core.baseInfo') }}</Divider>
 
-    <Form />
+    <Form/>
 
     <Divider>{{ $t('core.configuration') }}</Divider>
-    <ConfigForm />
+    <ConfigForm/>
     <Divider>{{ $t('core.eventmatching') }}</Divider>
     <eventMatching
       @eventSubmit="handleEventSubmit"
