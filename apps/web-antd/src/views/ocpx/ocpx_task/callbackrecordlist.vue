@@ -157,6 +157,10 @@ const gridOptions: VxeGridProps<OcpxCallbackRecordItem> = {
       title: `${$t('ocpx.ocpx_task.callback_record_columns.platform')}`,
     },
     {
+      field: 'adgroupId',
+      title: '广告组ID',
+    },
+    {
       field: 'eventType',
       title: `${$t('ocpx.ocpx_task.callback_record_columns.eventType')}`,
       slots: { default: 'eventType' },

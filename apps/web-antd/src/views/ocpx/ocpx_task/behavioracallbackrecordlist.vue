@@ -224,6 +224,10 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
       title: `${$t('ocpx.ocpx_task.callback_record_columns.platformCallbackName')}`,
     },
     {
+      field: 'adgroupId',
+      title: '广告组ID',
+    },
+    {
       field: 'respCode',
       title: `${$t('ocpx.ocpx_task.callback_record_columns.respCode')}`,
     },
