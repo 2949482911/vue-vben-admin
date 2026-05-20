@@ -21,7 +21,8 @@
     "notice": "公告",
     "operator": "操作日志",
     "org": "组织",
-    "role": "角色"
+    "role": "角色",
+    "profile": "个人中心"
   },
   "bpm": {
     "flowable": "流程",
