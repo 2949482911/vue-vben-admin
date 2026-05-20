@@ -29,17 +29,17 @@ import type {
   UploadFile,
   UploadProps,
 } from 'ant-design-vue';
-import type { RangePickerProps } from 'ant-design-vue/es/date-picker';
+import type {RangePickerProps} from 'ant-design-vue/es/date-picker';
 
-import type { Component, Ref } from 'vue';
+import type {Component, Ref} from 'vue';
 
 import type {
   ApiComponentSharedProps,
   BaseFormComponentType,
   IconPickerProps,
 } from '@vben/common-ui';
-import type { Sortable } from '@vben/hooks';
-import type { Recordable } from '@vben/types';
+import type {Sortable} from '@vben/hooks';
+import type {Recordable} from '@vben/types';
 
 import {
   computed,
@@ -61,12 +61,12 @@ import {
   IconPicker,
   VCropper,
 } from '@vben/common-ui';
-import { useSortable } from '@vben/hooks';
-import { IconifyIcon } from '@vben/icons';
-import { $t } from '@vben/locales';
-import { isEmpty } from '@vben/utils';
+import {useSortable} from '@vben/hooks';
+import {IconifyIcon} from '@vben/icons';
+import {$t} from '@vben/locales';
+import {isEmpty} from '@vben/utils';
 
-import { message, Modal, notification } from 'ant-design-vue';
+import {message, Modal, notification} from 'ant-design-vue';
 
 type AdapterUploadProps = UploadProps & {
   aspectRatio?: string;
@@ -78,15 +78,6 @@ type AdapterUploadProps = UploadProps & {
   onHandleChange?: (event: UploadChangeParam) => void;
 };
 
-const HybridSearchSelect = defineAsyncComponent(
-  () => import('#/views/marketing/report/adreportdata/components/HybridSearchSelect.vue'),
-);
-const lazyLoadSelect = defineAsyncComponent(
-  () => import('#/views/ocpx/platformcallback/components/lazyLoadSelect.vue'),
-);
-const MetricFormulaEditor = defineAsyncComponent(
-  () => import('#/views/marketing/report/metric/components/MetricFormulaEditor.vue'),
-);
 const AutoComplete = defineAsyncComponent(
   () => import('ant-design-vue/es/auto-complete'),
 );
@@ -140,41 +131,41 @@ const Image = defineAsyncComponent(() => import('ant-design-vue/es/image'));
 const PreviewGroup = defineAsyncComponent(() =>
   import('ant-design-vue/es/image').then((res) => res.ImagePreviewGroup),
 );
-const Slider = defineAsyncComponent(() => import('ant-design-vue/es/slider'));
 
-const withDefaultPlaceholder = <T extends Component>(
-  component: T,
-  type: 'input' | 'select' | 'tree',
-  componentProps: Recordable<any> = {},
-) => {
-  return defineComponent({
-    name: component.name,
-    inheritAttrs: false,
-    setup: (props: any, { attrs, expose, slots }) => {
-      const placeholder =
-        props?.placeholder ||
-        attrs?.placeholder ||
-        $t(`ui.placeholder.${type}`);
-      // 透传组件暴露的方法
-      const innerRef = ref();
-      expose(
-        new Proxy(
-          {},
-          {
-            get: (_target, key) => innerRef.value?.[key],
-            has: (_target, key) => key in (innerRef.value || {}),
-          },
-        ),
-      );
-      return () =>
-        h(
-          component,
-          { ...componentProps, placeholder, ...props, ...attrs, ref: innerRef },
-          slots,
+const withDefaultPlaceholder = (
+    component: Component,
+    type: 'input' | 'select' | 'tree',
+    componentProps: Recordable<any> = {},
+  ) => {
+    return defineComponent({
+      name: component.name,
+      inheritAttrs: false,
+      setup: (props: any, {attrs, expose, slots}) => {
+        const placeholder =
+          props?.placeholder ||
+          attrs?.placeholder ||
+          $t(`ui.placeholder.${type}`);
+        // 透传组件暴露的方法
+        const innerRef = ref();
+        expose(
+          new Proxy(
+            {},
+            {
+              get: (_target, key) => innerRef.value?.[key],
+              has: (_target, key) => key in (innerRef.value || {}),
+            },
+          ),
         );
-    },
-  });
-};
+        return () =>
+          h(
+            component,
+            {...componentProps, placeholder, ...props, ...attrs, ref: innerRef},
+            slots,
+          );
+      },
+    });
+  }
+;
 
 const IMAGE_EXTENSIONS = new Set([
   'bmp',
@@ -212,7 +203,7 @@ function isImageFile(file: UploadFile): boolean {
  */
 function createDefaultUploadSlots(listType: string, placeholder: string) {
   if (listType === 'picture-card') {
-    return { default: () => placeholder };
+    return {default: () => placeholder};
   }
   return {
     default: () =>
@@ -426,7 +417,7 @@ const withPreviewUpload = () => {
     emits: ['update:modelValue'],
     setup(
       props: any,
-      { attrs, slots, emit }: { attrs: any; emit: any; slots: any },
+      {attrs, slots, emit}: { attrs: any; emit: any; slots: any },
     ) {
       const previewVisible = ref<boolean>(false);
       const placeholder = attrs?.placeholder || $t('ui.placeholder.upload');
@@ -540,14 +531,14 @@ const withPreviewUpload = () => {
           return;
         }
 
-        const { initializeSortable } = useSortable(container, {
+        const {initializeSortable} = useSortable(container, {
           animation: 300,
           delay: 400,
           delayOnTouchOnly: true,
           filter:
             '.ant-upload-select, .ant-upload-list-item-error, .ant-upload-list-item-uploading',
           onEnd: (evt) => {
-            const { oldIndex, newIndex } = evt;
+            const {oldIndex, newIndex} = evt;
             if (
               oldIndex === undefined ||
               newIndex === undefined ||
@@ -588,7 +579,7 @@ const withPreviewUpload = () => {
       return () =>
         h(
           'div',
-          { 'data-upload-id': uploadId, class: 'w-full' },
+          {'data-upload-id': uploadId, class: 'w-full'},
           h(
             Upload,
             {
@@ -636,10 +627,6 @@ export type ComponentType =
   | 'Tree'
   | 'TreeSelect'
   | 'Upload'
-  | 'Slider'
-  | 'MetricFormulaEditor'
-  | 'lazyLoadSelect'
-  | 'HybridSearchSelect'
   | BaseFormComponentType;
 
 /**
@@ -683,7 +670,7 @@ async function initComponentAdapter() {
 
     ApiCascader: withDefaultPlaceholder(ApiComponent, 'select', {
       component: Cascader,
-      fieldNames: { label: 'label', value: 'value', children: 'children' },
+      fieldNames: {label: 'label', value: 'value', children: 'children'},
       loadingSlot: 'suffixIcon',
       modelPropName: 'value',
       visibleEvent: 'onVisibleChange',
@@ -696,7 +683,7 @@ async function initComponentAdapter() {
     }),
     ApiTreeSelect: withDefaultPlaceholder(ApiComponent, 'select', {
       component: TreeSelect,
-      fieldNames: { label: 'label', value: 'value', children: 'children' },
+      fieldNames: {label: 'label', value: 'value', children: 'children'},
       loadingSlot: 'suffixIcon',
       modelPropName: 'value',
       optionsPropName: 'treeData',
@@ -707,12 +694,9 @@ async function initComponentAdapter() {
     Checkbox,
     CheckboxGroup,
     DatePicker,
-    MetricFormulaEditor,
-    lazyLoadSelect,
-    HybridSearchSelect,
     // 自定义默认按钮
-    DefaultButton: (props, { attrs, slots }) => {
-      return h(Button, { ...props, attrs, type: 'default' }, slots);
+    DefaultButton: (props, {attrs, slots}) => {
+      return h(Button, {...props, attrs, type: 'default'}, slots);
     },
     Divider,
     IconPicker: withDefaultPlaceholder(IconPicker, 'select', {
@@ -721,12 +705,14 @@ async function initComponentAdapter() {
       modelValueProp: 'value',
     }),
     Input: withDefaultPlaceholder(Input, 'input'),
-    InputNumber: withDefaultPlaceholder(InputNumber, 'input'),
+    InputNumber: withDefaultPlaceholder(InputNumber, 'input', {
+      style: { width: '100%' },
+    }),
     InputPassword: withDefaultPlaceholder(InputPassword, 'input'),
     Mentions: withDefaultPlaceholder(Mentions, 'input'),
     // 自定义主要按钮
-    PrimaryButton: (props, { attrs, slots }) => {
-      return h(Button, { ...props, attrs, type: 'primary' }, slots);
+    PrimaryButton: (props, {attrs, slots}) => {
+      return h(Button, {...props, attrs, type: 'primary'}, slots);
     },
     Radio,
     RadioGroup,
@@ -740,7 +726,6 @@ async function initComponentAdapter() {
     TreeSelect: withDefaultPlaceholder(TreeSelect, 'select'),
     Upload: withPreviewUpload(),
     Tree,
-    Slider,
   };
 
   // 将组件注册到全局共享状态中
@@ -759,4 +744,4 @@ async function initComponentAdapter() {
   });
 }
 
-export { initComponentAdapter };
+export {initComponentAdapter};

@@ -23,7 +23,7 @@
   "editor.suggestSelection": "recentlyUsedByPrefix",
   "editor.acceptSuggestionOnEnter": "smart",
   "editor.suggest.snippetsPreventQuickSuggestions": false,
-  "editor.stickyScroll.enabled": false,
+  "editor.stickyScroll.enabled": true,
   "editor.hover.sticky": true,
   "editor.suggest.insertMode": "replace",
   "editor.bracketPairColorization.enabled": true,
@@ -38,7 +38,7 @@
 
   // lint && format
   "oxc.enable": true,
-  "oxc.typeAware": true,
+  "oxc.typeAware": false,
   "oxc.configPath": "oxlint.config.ts",
   "oxc.fmt.configPath": "oxfmt.config.ts",
   "eslint.useFlatConfig": true,
@@ -62,7 +62,7 @@
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[json]": {
     "editor.defaultFormatter": "oxc.oxc-vscode"
@@ -74,7 +74,7 @@
     "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[vue]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
 
   // extensions

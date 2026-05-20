@@ -21,7 +21,8 @@
     "notice": "Notice",
     "operator": "Operator Log",
     "org": "Dept",
-    "role": "Role"
+    "role": "Role",
+    "profile": "Account Profile"
   },
   "bpm": {
     "flowable": "Flow Work",
