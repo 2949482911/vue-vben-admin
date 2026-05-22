@@ -180,6 +180,7 @@ const gridOptions: VxeGridProps<OcpxCallbackRecordItem> = {
     {
       field: 'recordType',
       title: '记录类型',
+      slots: { default: 'recordType' },
     },
     {
       field: 'requestId',
@@ -328,6 +329,9 @@ function pageReload() {
           </template>
           <template #eventType="{ row }">
             <Tag color="blue">{{ getTypeLabel(row.eventType) }}</Tag>
+          </template>
+          <template #recordType="{ row }">
+            <Tag :color="row.recordType==='系统回传'?'blue':(row.recordType==='补量'?'green':'red')">{{ row.recordType }}</Tag>
           </template>
         </Grid>
       </Page>

@@ -255,6 +255,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     {
       field: 'recordType',
       title: '记录类型',
+      slots: { default: 'recordType' },
     },
     {
       field: 'success',
@@ -350,6 +351,9 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents })
 
           <template #behaviorType="{ row }">
             <Tag color="blue">{{ getTypeLabel(row.behaviorType) }}</Tag>
+          </template>
+          <template #recordType="{ row }">
+            <Tag :color="row.recordType==='系统回传'?'blue':(row.recordType==='补量'?'green':'red')">{{ row.recordType }}</Tag>
           </template>
           <template #action="{ row }">
             <Button type="link" v-if="!row.success" @click="rePushBehaviorCallback(row)">
