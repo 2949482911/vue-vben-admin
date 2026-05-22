@@ -149,6 +149,18 @@ const formOptions: VbenFormProps = {
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      // 字段名
+      fieldName: 'adgroupId',
+      // 界面显示的label
+      label: '广告组ID',
+    },
+    {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'ApiSelect',
       // 对应组件的参数
       componentProps: {
@@ -222,6 +234,10 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
     {
       field: 'platformCallbackName',
       title: `${$t('ocpx.ocpx_task.callback_record_columns.platformCallbackName')}`,
+    },
+    {
+      field: 'adgroupId',
+      title: '广告组ID',
     },
     {
       field: 'respCode',
