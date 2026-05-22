@@ -98,6 +98,53 @@ export const CONVERSION_SELECT = [
   },
 ];
 
+/**批投项目-日限额状态 */
+export const DAILYLIMIT_SELECT = [
+  {
+    label: '未到',
+    value: 0,
+  },
+  {
+    label: '到达日限额',
+    value: 1,
+  },
+];
+
+/**批投项目-删除标志 */
+export const DELETEFLAG_SELECT = [
+  {
+    label: '未删除',
+    value: 0,
+  },
+  {
+    label: '删除',
+    value: 1,
+  },
+];
+
+/**批投项目-是否使用流量优选 */
+export const ISTRAFFIC_SELECT = [
+  {
+    label: '否',
+    value: 0,
+  },
+  {
+    label: '是',
+    value: 1,
+  },
+];
+
+/**批投项目-暂停标识 */
+export const PAUSESIGN_SELECT = [
+  {
+    label: '未暂停',
+    value: 0,
+  },
+  {
+    label: '暂停',
+    value: 1,
+  },
+];
 /**批投广告组-推广链接类型枚举 */
 export const PROMOTIONLINK_SELECT = [
   {

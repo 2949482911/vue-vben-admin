@@ -63,6 +63,8 @@ import type {
   CreateLandingPage,
   DelLandingPage,
   ExportAllDataType,
+  AdManagementType,
+  AdManagementDetailType,
 } from '#/api/models/marketing';
 import { requestClient } from '#/api/request';
 import type { BatchOptions } from '#/api/models/core';
@@ -248,7 +250,7 @@ class ReportApi extends BaseApi {
   }
   // 测试报表发送
   fetchTestReport(id: string) {
-    return requestClient.get(this.getServiceUrl('test_scribe'), {params: { id: id }});
+    return requestClient.get(this.getServiceUrl('test_scribe'), { params: { id: id } });
   }
 }
 
@@ -549,3 +551,25 @@ class ChannelPageApi extends BaseApi {
 }
 
 export const channelPageApi = new ChannelPageApi('/platform/vivo_advertisement');
+
+/**
+ * 营销-创编-广告管理
+ */
+class AdManagementApi extends BaseApi {
+  //查询列表
+  fetchAdManagementList(params: AdManagementType) {
+    return requestClient.post(this.getServiceUrl('list'), params);
+  }
+
+  //查询详情
+  fetchAdManagementDetail(params: AdManagementDetailType) {
+    return requestClient.post(this.getServiceUrl('detail'), params);
+  }
+
+  //广告导出
+  fetchAdExport(params: AdManagementType) {
+    return requestClient.post(this.getServiceUrl('export'), params);
+  }
+}
+
+export const aManagementApi = new AdManagementApi('/platform/promotion');

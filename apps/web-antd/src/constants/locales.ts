@@ -515,6 +515,10 @@ export const ACTIVE_PLATFORM = [
     label: `${$t('ocpx.platform.oppo')}`,
     value: 'oppo',
   },
+  {
+    label: '华为商店',
+    value: 'huawei_store',
+  },
 ];
 
 /**

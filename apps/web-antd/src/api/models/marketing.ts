@@ -737,3 +737,88 @@ export interface LandingPageData extends BaseItem {
     pageUrl: string;
   };
 }
+
+export interface AdManagementType {
+  page?: number;
+  pageSize?: number;
+  level: string;
+  filters?: ReportFilter[];
+}
+
+export interface AdManagementDetailType {
+  targetId: string;
+  platform: string;
+  level: string;
+}
+
+export interface CampaignItem {
+  advertiserId: string;
+  campaignCreateTime: string;
+  campaignId: string;
+  campaignName: string;
+  deleted: number;
+  platform: string;
+  state: number;
+}
+
+export interface AdGroupItem {
+  adgroupCreateTime: string;
+  adgroupId: string;
+  adgroupName: string;
+  advertiserId: string;
+  campaignId: string;
+  deleted: number;
+  endDate: string;
+  platform: string;
+  price: number;
+  startDate: string;
+  state: number;
+}
+
+export interface PromotionItem {
+  adgroupId: string;
+  advertiserId: string;
+  campaignId: string;
+  deleted: number;
+  platform: string;
+  promotionCreateTime: string;
+  promotionId: string;
+  promotionName: string;
+  state: number;
+}
+
+export interface Vivo_campaignDetailItem extends public_campaignDetailItem {
+  activityId: number;
+  adType: string;
+  campaignType: number;
+  conversionMonitorType: number;
+  dailyBudget: number;
+  dailyBudgetState: number;
+  mediaType: number;
+  optimizeFlag: number;
+  pauseState: number;
+  pauseTime: string;
+  promotionType: number;
+}
+
+export interface Oppo_campaignDetailItem extends public_campaignDetailItem {
+  budgetLimit: number;
+  campaign_update_time: string;
+  deliveryMode: number;
+  deliveryModeName: string;
+  pacingStatus: number;
+  showStatus: number;
+  showStatusName: string;
+  state: number;
+  statusName: string;
+  subShowStatusName: string;
+}
+
+export interface public_campaignDetailItem {
+  advertiserId: string;
+  campaignCreateTime: string;
+  campaignId: number;
+  campaignName: string;
+  deleted: number;
+  update_ut: string;
+}
