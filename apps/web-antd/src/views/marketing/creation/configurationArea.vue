@@ -107,6 +107,15 @@ const formOptions: VbenFormProps = {
       fieldName: 'advertiserName',
       label: '账户名称',
     },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: '请输入媒体账户ID',
+      },
+      fieldName: 'advertiserId',
+      label: '媒体账户ID',
+    },
   ],
   submitOnEnter: false,
 };
