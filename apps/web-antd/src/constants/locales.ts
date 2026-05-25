@@ -454,6 +454,10 @@ export const BEHAVIORA_PLATFORM = [
     label: '唯品会',
     value: 'vph',
   },
+  {
+    label: '菜鸟',
+    value: 'cainiao',
+  },
 ];
 
 // 匹配下拉

@@ -1318,6 +1318,48 @@ platformConfigForm.set(Platform.VPH, [
     rules: 'required',
   },
 ]);
+// 菜鸟配置
+platformConfigForm.set(Platform.CAINIAO, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'cn_biz',
+    // 界面显示的label
+    label: `cn_biz`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'channel',
+    // 界面显示的label
+    label: `channel`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'strategyId',
+    // 界面显示的label
+    label: `strategyId`,
+    rules: 'required',
+  },
+]);
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
