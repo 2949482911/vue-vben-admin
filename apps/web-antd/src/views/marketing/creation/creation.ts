@@ -72,6 +72,7 @@ export interface Material {
   video: Array<LocalMaterialData>;
   isExpanded: boolean;
   active: string;
+  brandName: string;
 }
 
 // 本地素材data

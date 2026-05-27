@@ -88,10 +88,7 @@ export const FLOWSCENE_SELECT = [
     label: '搜索',
     value: 5,
   },
-  {
-    label: '信息流',
-    value: 6,
-  },
+
   {
     label: 'Banner',
     value: 7,
@@ -117,16 +114,20 @@ export const FLOWSCENE_SELECT = [
     value: 12,
   },
   {
-    label: '展示优选',
-    value: 13,
-  },
-  {
     label: '通知栏',
     value: 14,
   },
   {
     label: '网络消息',
     value: 15,
+  },
+  {
+    label: '展示优选',
+    value: 13,
+  },
+  {
+    label: '信息流',
+    value: 6,
   }
 ];
 // 深度转化类型
@@ -519,6 +520,14 @@ export const GLOBAL_SPECID_SELECT = [
     value: 1
   },
   {
+    label: '横版小图',
+    value: 20
+  },
+  {
+    label: '横版组图',
+    value: 30
+  },
+  {
     label: '竖版大图',
     value: 50
   },
@@ -634,7 +643,7 @@ export const VXFOLLOW_SELECT = [
 /**批投广告组-计费类型枚举 */
 export const BILLINGTYPE_SELECT = [
   {
-    label: 'CPM',
+    label: 'CPD',
     value: 1,
   },
   {
@@ -642,8 +651,20 @@ export const BILLINGTYPE_SELECT = [
     value: 2,
   },
   {
-    label: 'oCPD',
+    label: 'CPM',
+    value: 3,
+  },
+  {
+    label: 'CPS',
+    value: 4,
+  },
+  {
+    label: 'OCPC',
     value: 5,
+  },
+  {
+    label: 'CPA',
+    value: 6,
   },
 ];
 

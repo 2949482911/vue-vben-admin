@@ -8,6 +8,7 @@ import {
   EXTENSION_SELECT,
   FLOWSCENE_SELECT,
   DAY_LIMIT_SELECT,
+  DEEP_CV_SELECT
 } from '../../projectEnum';
 import { h, ref, watch, computed } from 'vue';
 import TimeSelectionPeriod from './timeSelectionPeriod.vue';
@@ -18,6 +19,10 @@ import adPlacementQualification from '#/views/marketing/creation/adPlacementQual
 import type { QualificationValue, ChannelPackageValue } from '../../Oppo.types';
 import channelPackageModule from '#/views/marketing/creation/channelPackage.vue';
 import type { OppoCampaignData } from '#/views/marketing/creation/oppo/Oppo.types';
+interface selectType {
+  label: string;
+  value: string | number;
+}
 const { campaign, accountInfo } = defineProps(
   {
     // 接收来自 index 的项目基本信息
@@ -41,7 +46,7 @@ const PROJECT_PLACEHOLDERS = [
   { label: '时分秒', value: '<时分秒>' },
   { label: '动态标号', value: '<动态标号>' },
 ] as const; // 使用 as const 保证类型安全
-
+const flowsenceData = ref<selectType[]>()
 const { customizeName, handleTagClick } = useProjectPlaceholder('', 100);
 
 const timeSet = ref('1'.repeat(336));
@@ -193,6 +198,69 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
       formItemClass: 'col-span-2 items-baseline',
     },
+    
+    {
+      component: 'Select',
+      componentProps: {
+        options: FLOW_SELECT,
+      },
+      fieldName: 'extensionFlow',
+      label: '推广流量',
+      rules: 'required',
+    },
+    // {
+    //   component: 'Select',
+    //   componentProps: {
+    //     options: EXTENSION_SELECT,
+    //   },
+    //   fieldName: 'extensionType',
+    //   label: '标的物类型',
+    //   rules: 'required',
+    // },
+    {
+      component: 'Select',
+      componentProps: {
+        options: flowsenceData,
+      },
+      fieldName: 'flowScene',
+      label: '流量场景',
+      rules: 'required',
+      dependencies: {
+        if:(values) => {
+          if(values.extensionFlow === 2) {
+            flowsenceData.value = FLOWSCENE_SELECT.slice(-2)
+          } else {
+            flowsenceData.value = FLOWSCENE_SELECT.slice(0,13)
+          }
+          return true
+        },
+        triggerFields: ['extensionFlow'],
+      },
+    },
+    {
+      component: 'ApiSelect',
+      componentProps: {
+        api: () => {},
+      },
+      fieldName: 'appId',
+      label: '应用ID',
+      dependencies: {
+        show: (values) => {
+          if(values.adType_proxy === 2) {
+            return true
+          }
+          return false
+        },
+        // rules: (values) => {
+        //   if(values.adType_proxy === 2) {
+        //     return 'required'
+        //   }
+        //   return ''
+        // },
+        triggerFields: ['adType_proxy'],
+      },
+      
+    },
     {
       fieldName: 'adType_proxy',
       component: 'Input',
@@ -263,7 +331,20 @@ const [Form, formApi] = useVbenForm({
         triggerFields: ['adType_proxy'],
       },
     },
-
+    {
+      component: 'Switch',
+      fieldName: 'linkDeskFlag',
+      label: '打开并加桌',
+      dependencies: {
+        show: (values) => {
+          if(values.adType_proxy === 3) {
+            return true
+          }
+          return false
+        },
+        triggerFields: ['adType_proxy']
+      }
+    },
     {
       component: 'Select',
       componentProps: {
@@ -324,28 +405,18 @@ const [Form, formApi] = useVbenForm({
         triggerFields: ['dayLimit'],
       },
     },
-    {
-      component: 'Input',
-      fieldName: 'deepOcpcPrice',
-      label: '深度ocpc转化出价',
-      dependencies: {
-        show: (values) => { 
-          return values.deliveryMode !== 1
-        },
-        triggerFields: ['deliveryMode'],
-      },
-    },
-    {
-      component: 'Input',
-      fieldName: 'ocpcPrice',
-      label: '目标转化出价',
-      dependencies: {
-        show: (values) => { 
-          return values.deliveryMode !== 1
-        },
-        triggerFields: ['deliveryMode'],
-      },
-    },
+    // {
+    //   component: 'Input',
+    //   fieldName: 'deepOcpcPrice',
+    //   label: '深度ocpc转化出价',
+    //   dependencies: {
+    //     show: (values) => { 
+    //       return values.deliveryMode !== 1
+    //     },
+    //     triggerFields: ['deliveryMode'],
+    //   },
+    // },
+
     // {
     //   component: 'Default' as any,
     //   fieldName: 'pageId',
@@ -355,40 +426,42 @@ const [Form, formApi] = useVbenForm({
       component: 'Input',
       fieldName: 'price',
       label: '基础出价',
+      componentProps: {
+        placeholder: '最低出价1.2元',
+      },
       dependencies: {
         show: (values) => {
           return values.deliveryMode !== 1
         },
         triggerFields: ['deliveryMode'],
       },
-    },
-
-    {
-      component: 'Select',
-      componentProps: {
-        options: FLOW_SELECT,
-      },
-      fieldName: 'extensionFlow',
-      label: '推广流量',
-      rules: 'required',
+      suffix: () => h('span', { class: 'text-600' }, '元'),
+      rules: 'required'
     },
     {
       component: 'Select',
       componentProps: {
-        options: EXTENSION_SELECT,
+        options: DEEP_CV_SELECT,
       },
-      fieldName: 'extensionType',
-      label: '标的物类型',
-      rules: 'required',
+      fieldName: 'ocpcType',
+      label: '转化类型',
+      rules: 'required'
     },
     {
-      component: 'Select',
+      component: 'Input',
+      fieldName: 'ocpcPrice',
+      label: '转化出价',
       componentProps: {
-        options: FLOWSCENE_SELECT,
+        placeholder: '最低出价2.5元',
       },
-      fieldName: 'flowScene',
-      label: '流量场景',
+      dependencies: {
+        show: (values) => { 
+          return values.deliveryMode !== 1
+        },
+        triggerFields: ['deliveryMode'],
+      },
       rules: 'required',
+      suffix: () => h('span', { class: 'text-600' }, '元')
     },
     // {
     //   component: 'Input',
@@ -432,19 +505,19 @@ const [Form, formApi] = useVbenForm({
         },
       },
     },
-    {
-      component: 'Input',
-      fieldName: 'secondOcpxPrice',
-      label: '深度优化出价',
-      suffix: () => h('span', { class: 'text-600' }, '元'),
-    },
-    {
-      component: 'Input',
-      fieldName: 'dailyBudget',
-      label: '日预算',
-      suffix: () => h('span', { class: 'text-600' }, '元'),
-      rules: 'required',
-    },
+    // {
+    //   component: 'Input',
+    //   fieldName: 'secondOcpxPrice',
+    //   label: '深度优化出价',
+    //   suffix: () => h('span', { class: 'text-600' }, '元'),
+    // },
+    // {
+    //   component: 'Input',
+    //   fieldName: 'dailyBudget',
+    //   label: '日预算',
+    //   suffix: () => h('span', { class: 'text-600' }, '元'),
+    //   rules: 'required',
+    // },
     
   ],
 });

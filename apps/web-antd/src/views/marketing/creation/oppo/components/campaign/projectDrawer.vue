@@ -2,12 +2,6 @@
 import { useVbenDrawer } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
 import {
-  ADTYPE_SELECT,
-  CONVERSION_SELECT,
-  MEDIA_SELECT,
-  NOTIFICATIONTYPE_SELECT,
-  NOTIFORMAT_SELECT,
-  PROMOTION_SELECT,
   EXTENSION_SELECT,
   DAYLIMIT_SELECT,
   DELIVERMODE_SELECT

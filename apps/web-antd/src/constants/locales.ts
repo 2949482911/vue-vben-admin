@@ -458,6 +458,10 @@ export const BEHAVIORA_PLATFORM = [
     label: '菜鸟',
     value: 'cainiao',
   },
+  {
+    label: '南京字节',
+    value: 'nj_bytedance'
+  }
 ];
 
 // 匹配下拉

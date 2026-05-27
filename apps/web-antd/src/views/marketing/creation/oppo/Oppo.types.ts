@@ -234,9 +234,33 @@ export interface OppoPromotionData {
   adName: string;
   // 统一规格id 
   globalSpecId: number;
+  // 广告来源
+  adSource: number;
+  // 品牌背景logo
+  brandLogoImgId: string;
+  // 品牌名称
+  brandName: string;
+  // 按钮文案
+  buttonTxt: string;
+  // 广告文案
+  copywriter: string;
+  // 文案id
+  copywriterId: string;
+  // 下载监测链接
+  downloadUrl: string;
+  // 是否开启了衍生 0否 1是
+  dynamicCr: number;
+  // 曝光监测链接
+  exposeUrl: string;
+  // 视频封面图
+  videoImgId: string;
+  // 图片素材id
+  imgMatIds: number[];
+  // 点击链接
+  clickUrl: string;
+  config: OPPOPromotionConfig;
 }
-
-export interface OppoPromotionConfig {
+export interface OPPOPromotionConfig {
   videoMaxCount: number;
   imageMaxCount: number;
   materialNormId: number;
@@ -244,7 +268,6 @@ export interface OppoPromotionConfig {
   strongReminder: number;
   virtualPositionId: string;
 }
-
 /**
  * 标题包
  */

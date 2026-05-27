@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVbenModal } from '@vben/common-ui';
 import { onMounted, ref } from 'vue';
-import { Button, TabPane, Tabs } from 'ant-design-vue';
+import { Button, TabPane, Tabs, Input } from 'ant-design-vue';
 import { CloseCircleFilled, CloseOutlined, DownOutlined, UpOutlined } from '@ant-design/icons-vue';
 import selMaterial from './selMaterial.vue';
 import type {
@@ -11,7 +11,7 @@ import type {
   MaterialData,
 } from '#/views/marketing/creation/creation';
 
-const { accountInfo, imageMaxCount, videoMaxCount, distributionMode, material } = defineProps({
+const { accountInfo, imageMaxCount, videoMaxCount, distributionMode, material, showBrandName } = defineProps({
   imageMaxCount: { type: Number, default: 5 },
   videoMaxCount: { type: Number, default: 5 },
   distributionMode: { type: String, default: 'all' },
@@ -29,6 +29,10 @@ const { accountInfo, imageMaxCount, videoMaxCount, distributionMode, material } 
         data: new Map<string, Material>(),
       };
     },
+  },
+  showBrandName: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -50,6 +54,7 @@ const localMaterialData = ref<MaterialData>({
           video: [],
           active: 'video',
           isExpanded: true,
+          brandName: '',
         },
       ],
     ],
@@ -107,7 +112,7 @@ function initLocalMaterialData(mode: string) {
   if (mode === 'all') {
     if (cacheAllData.value.size === 0) {
       // 只有第一次进入或真正需要重置时才初始化
-      cacheAllData.value.set('0', [{ image: [], video: [], active: 'video', isExpanded: true }]);
+      cacheAllData.value.set('0', [{ image: [], video: [], active: 'video', isExpanded: true, brandName: '' }]);
     }
     // 切换当前显示引用
     localMaterialData.value.data = cacheAllData.value;
@@ -116,7 +121,7 @@ function initLocalMaterialData(mode: string) {
     if (cacheAccountData.value.size === 0) {
       accountInfo.forEach((x) => {
         cacheAccountData.value.set(x.localAdvertiserId, [
-          { image: [], video: [], active: 'video', isExpanded: true },
+          { image: [], video: [], active: 'video', isExpanded: true, brandName: '' },
         ]);
       });
     }
@@ -208,6 +213,7 @@ const addGroup = () => {
       video: [],
       active: 'video',
       isExpanded: true,
+      brandName: '',
     });
     localMaterialData.value.data.set('0', materialList);
   } else {
@@ -218,6 +224,7 @@ const addGroup = () => {
       video: [],
       active: 'video',
       isExpanded: true,
+      brandName: '',
     });
     localMaterialData.value.data.set(currentCreativeAccountId.value, materialList);
   }
@@ -364,6 +371,7 @@ function hideControls(event: Event) {
         </div>
 
         <div v-show="group.isExpanded" class="group-content">
+
           <Tabs v-model:activeKey="group.active" class="custom-tabs">
             <TabPane key="video">
               <template #tab>
@@ -445,6 +453,16 @@ function hideControls(event: Event) {
             </TabPane>
           </Tabs>
         </div>
+          <div v-if="showBrandName" class="brand-name-input ml-5 mb-5">
+            <span>品牌名称：</span>
+            <Input
+              v-model:value="group.brandName"
+              placeholder="请输入品牌名称"
+              :maxlength="100"
+              allow-clear
+              class="!w-[200px]"
+            />
+          </div>
       </div>
 
       <div class="footer-action">
@@ -510,6 +528,15 @@ function hideControls(event: Event) {
 
 .group-content {
   padding: 0 15px 15px;
+}
+
+/* 品牌名称输入框样式 */
+.brand-name-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  font-size: 14px;
 }
 
 /* 素材网格布局 */

@@ -8,6 +8,7 @@ import {
   EXTENSION_SELECT,
   FLOWSCENE_SELECT,
   DAY_LIMIT_SELECT,
+  DEEP_CV_SELECT
 } from '../../projectEnum';
 import { computed, ref } from 'vue';
 import type {
@@ -175,8 +176,8 @@ const labelMap: Partial<Record<keyof OppoAdgroupData, string>> = {
   instantAppId: '快应用id',
   instantAppUrl: '快应用落地链接',
   ocpcOptmType: '出价类型',
-  ocpcPrice: '目标转化出价',
-  ocpcType: '目标转化类型',
+  ocpcPrice: '转化出价',
+  ocpcType: '转化类型',
   price: '基础出价',
   timeLimit: '推广时段限制'
 };
@@ -188,13 +189,14 @@ const enumMap = computed<Partial<Record<keyof OppoAdgroupData, any[]>>>(() => ({
   extensionFlow: FLOW_SELECT,
   flowScene: FLOWSCENE_SELECT,
   timeLimit: TIME_LIMIT_SELECT,
-  billingType: BILLINGTYPE_SELECT
+  billingType: BILLINGTYPE_SELECT,
+  ocpcType: DEEP_CV_SELECT
 }));
 
 const formatDisplayValue = (key: keyof OppoAdgroupData, value: any) => {
   if (value === null || value === undefined || value === '') return '-';
 
-  if (['price', 'ocpxPrice', 'dailyBudget', 'secondOcpxPrice'].includes(key)) {
+  if (['price', 'ocpcPrice', 'dailyBudget', 'secondOcpxPrice'].includes(key)) {
     return `${value} 元`;
   }
 

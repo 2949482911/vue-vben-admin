@@ -43,7 +43,8 @@ export enum Platform {
   SOUL = 'soul',
   VPH = 'vph',
   TENCENT_MINI_APP = 'tencent_mini_app',
-  CAINIAO = 'cainiao'
+  CAINIAO = 'cainiao',
+  NJ_BYTEDANCE = 'nj_bytedance'
 }
 
 export enum RuleType {

@@ -8,7 +8,6 @@ import type {
   AccountInfo,
   Material,
   MaterialData,
-  MonitoringLinkType,
   Project,
   RuleInfo,
 } from '#/views/marketing/creation/creation';
@@ -17,13 +16,18 @@ import type {
   QualificationValue,
   ChannelPackageValue,
 } from './Oppo.types';
-import type {OppoCreation} from './Oppo.types';
+import type { OppoCreation, OppoPromotionData } from './Oppo.types';
 import ConfigurationArea from './components/configurationArea.vue';
 import ProjectModule from './components/campaign/projectModule.vue';
 import AdvertisingGroupModule from './components/adGroup/advertisingGroupModule.vue';
 import AdOrientation from './components/adGroup/adOrientationModule.vue';
 import CreativeMaterialsDrawer from './components/creativeMatGroup/creativeMaterialsDrawer.vue';
 import CreativeMaterialsGroupModule from './components/creativeMatGroup/creativeMaterialsGroupModule.vue';
+import TitlePackageModule from './components/titlePackage/titlePackageModule.vue';
+import landingPageModule from './components/landingPage/landingPageModule.vue';
+import MonitoringLinkGroup from './components/monitoringLinkGroup.vue';
+import Create from '../components/create.vue';
+const previewAreaRef = ref();
 // 创建对象
 const creationInfo = ref<OppoCreation>({
   project: {
@@ -100,14 +104,36 @@ const creationInfo = ref<OppoCreation>({
       marketingObjectiveDTO: undefined
     },
     promotion: {
-      groupId: '',
-      name: '',
-      deepLink: '',
-      videoAttribution: 0,
-      pageUrl: '',
-      h5Code: '',
-      h5Type: 0,
-      generalSwitch: 0,
+      // 广告组id
+      adGroupId: '',
+      // 广告组名称
+      adName: '',
+      // 统一规格id 
+      globalSpecId: 0,
+      // 广告来源
+      adSource: 0,
+      // 品牌背景logo
+      brandLogoImgId: '',
+      // 品牌名称
+      brandName: '',
+      // 按钮文案
+      buttonTxt: '',
+      // 广告文案
+      copywriter: '',
+      // 文案id
+      copywriterId: '',
+      // 下载监测链接
+      downloadUrl: '',
+      // 是否开启了衍生 0否 1是
+      dynamicCr: 0,
+      // 曝光监测链接
+      exposeUrl: '',
+      // 视频封面图
+      videoImgId: '',
+      // 图片素材id
+      imgMatIds: [],
+      // 点击链接
+      clickUrl: '',
       config: {
         videoMaxCount: 5,
         imageMaxCount: 5,
@@ -216,7 +242,101 @@ function openCreativeMaterialsDrawerModule() {
   });
   creativeMaterialsDrawerApi.open();
 }
+/**清空广告创意素材上半部分组 */
+function handleClearCreativeMaterialsDrawerUpdate(data: OppoPromotionData) {
+  creationInfo.value.configData.promotion = data;
+}
 
+/**清空广告创意素材组（视频+图片） */
+function handleClearCreativeMaterialsGroupList(data: MaterialData) {
+  creationInfo.value.configData.material = data;
+}
+/**广告创意素材上半部分组 */
+function handleCreativeMaterialsDrawerUpdate(data: OppoPromotionData) {
+  creationInfo.value.configData.promotion = data;
+  console.log('handleCreativeMaterialsDrawerUpdate', data);
+}
+
+/**广告创意素材组（视频+图片） */
+function handleCreativeMaterialsGroupList(data: MaterialData) {
+  creationInfo.value.configData.material = data;
+}
+/**添加标题包到大对象 */
+function handleTitlePackageUpdate(data) {
+  creationInfo.value.configData.titlePackage = data;
+}
+
+//----------选择落地页-----------
+const [LandingPageModule, landingPageModalApi] = useVbenModal({
+  connectedComponent: landingPageModule,
+});
+
+function openLandingPageModule() {
+  // if (!creationInfo.value.configData.promotion.adName)
+    // return message.warning('请先完善并保存“素材组”基本信息');
+  landingPageModalApi.setData(creationInfo.value.configData.landingPage);
+  landingPageModalApi.open();
+}
+/**
+ * 添加落地页到大对象
+ * @param data
+ */
+function handleLandingPageUpdate(data) {
+  creationInfo.value.configData.landingPage = data;
+}
+//----------监测链接组-----------
+const [monitoringLinkGroupModal, modalApi] = useVbenModal({
+  connectedComponent: MonitoringLinkGroup,
+});
+
+/**打开监测链接组 */
+function openMonitoringLinkModal() {
+  modalApi.open();
+}
+
+//----------保存策略组-----------
+const [CreateModule, createModalApi] = useVbenModal({
+  connectedComponent: Create,
+});
+
+/**保存策略组 */
+async function savePolicyGroup() {
+  if (
+    creationInfo.value.accountInfo.length &&
+    creationInfo.value.project.projectId &&
+    creationInfo.value.configData.campaign.planName &&
+    creationInfo.value.configData.adgroup.adGroupName&&
+    creationInfo.value.configData.promotion.adName &&
+    creationInfo.value.configData.audience.data.size > 0 &&
+    creationInfo.value.configData.titlePackage.data.size > 0
+  ) {
+    createModalApi.setData(creationInfo.value);
+  } else {
+    return message.warning('请完善“配置区域”基本信息');
+  }
+  createModalApi.open();
+}
+/**生成预览 */
+function generatePreview() {
+  if (
+    creationInfo.value.accountInfo.length &&
+    creationInfo.value.project.projectId &&
+    creationInfo.value.configData.campaign.planName &&
+    creationInfo.value.configData.adgroup.adGroupName &&
+    creationInfo.value.configData.promotion.adName &&
+    // creationInfo.value.monitoringLink.clickLink &&
+    // creationInfo.value.monitoringLink.exposureLink &&
+    creationInfo.value.configData.audience.data.size > 0 &&
+    creationInfo.value.configData.titlePackage.data.size > 0
+  ) {
+    previewAreaRef.value?.generateTable(creationInfo.value);
+  } else {
+    return message.warning('请完善“配置区域”基本信息');
+  }
+}
+function handlemonitoringLinkGroupUpdate(data: MonitoringLinkType) {
+  creationInfo.value.monitoringLink = data;
+}
 </script>
 
 <template>
@@ -288,12 +408,53 @@ function openCreativeMaterialsDrawerModule() {
                 :deepLinkList="creationInfo.configData.deepLinkList"
                 @update:creativeMaterialsDrawerConfig="handleCreativeMaterialsDrawerUpdate"
                 @update:creativeMaterialsGroupList="handleCreativeMaterialsGroupList"
-                @update:deepLink="handleDeepLink"
               />
             </Card>
           </Col>
+           <Col :span="6">
+            <Card>
+              <TitlePackageModule
+                :accountInfo="creationInfo.accountInfo"
+                :promotionName="creationInfo.configData.promotion.adName"
+                :titlePackage="creationInfo.configData.titlePackage"
+                :landingPage="creationInfo.configData.landingPage"
+                @update:titlePackageConfig="handleTitlePackageUpdate"
+              />
+              <LandingPageModule
+                :accountInfo="creationInfo.accountInfo"
+                :landingPage="creationInfo.configData.landingPage"
+                @update:landingPageConfig="handleLandingPageUpdate"
+              />
+              <div class="btnCla">
+                <Button type="text" @click="openLandingPageModule">添加落地页</Button>
+              </div>
+            </Card>
+          </Col>
         </Row>
+        <div class="generateButton">
+          <Button type="primary" @click="openMonitoringLinkModal">监测链接组</Button>
+          <div>
+            <Button type="primary" @click="savePolicyGroup">保存策略组</Button>
+            <Button style="margin: 0 0 0 10px" type="primary" @click="generatePreview"
+              >生成广告预览</Button
+            >
+          </div>
+        </div>
+        <Card>
+          <h2 class="text">预览区</h2>
+          <PreviewArea
+            ref="previewAreaRef"
+            :creationInfo="creationInfo"
+            :accountInfo="creationInfo.accountInfo"
+          />
+        </Card>
     </Card>
+    <monitoringLinkGroupModal
+      :accountInfo="creationInfo.accountInfo"
+      :monitoringLink="creationInfo.monitoringLink"
+      @update:monitoringLinkGroup="handlemonitoringLinkGroupUpdate"
+    />
+    <CreateModule />
   </Page>
 </template>
 
@@ -306,4 +467,9 @@ function openCreativeMaterialsDrawerModule() {
   justify-content: center;
   width: 100%;
 }
+  .generateButton {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+  }
 </style>
