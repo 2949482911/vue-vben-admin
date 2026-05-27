@@ -65,6 +65,8 @@ import type {
   ExportAllDataType,
   AdManagementType,
   AdManagementDetailType,
+  oppo_regionalMetadata,
+  oppo_modelMetadata,
 } from '#/api/models/marketing';
 import { requestClient } from '#/api/request';
 import type { BatchOptions } from '#/api/models/core';
@@ -573,3 +575,31 @@ class AdManagementApi extends BaseApi {
 }
 
 export const aManagementApi = new AdManagementApi('/platform/promotion');
+
+/**
+ * 营销-资产-oppo定向包
+ */
+class oppoAdvertisement extends BaseApi {
+  //地区元数据
+  fetchOppoAdvertisement(params: oppo_regionalMetadata) {
+    return requestClient.post(this.getServiceUrl('area_info'), params);
+  }
+  //机型元数据
+  fetchOppoMetadata(params: oppo_modelMetadata) {
+    return requestClient.post(this.getServiceUrl('metadata'), params);
+  }
+  //应用已安装元数据
+  fetchOppoMetadataApp(params: oppo_modelMetadata) {
+    return requestClient.post(this.getServiceUrl('metadata_app'), params);
+  }
+  //兴趣标签
+  fetchOppoInterestTag(params: oppo_modelMetadata) {
+    return requestClient.post(this.getServiceUrl('interest_tag'), params);
+  }
+  //联盟AppId\联盟App反向
+  fetchOppoMetadataUapp(params: oppo_modelMetadata) {
+    return requestClient.post(this.getServiceUrl('metadata_uapp'), params);
+  }
+}
+
+export const oppo_advertisementApi = new oppoAdvertisement('/platform/oppo_advertisement');

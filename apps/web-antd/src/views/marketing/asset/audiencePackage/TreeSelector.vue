@@ -7,24 +7,24 @@ type Key = string | number;
 const props = defineProps({
   // 选中的值 (v-model)
   value: {
-    type: Array as PropType<number[]>,
-    default: () => []
+    type: Array as PropType<(string | number)[]>,
+    default: () => [],
   },
   // 完整的树形数据源
   treeData: {
     type: Array as PropType<any[]>,
-    default: () => []
+    default: () => [],
   },
   // 搜索框提示词
   placeholder: {
     type: String,
-    default: '搜索...'
+    default: '搜索...',
   },
   // 树形结构的字段映射
   fieldNames: {
     type: Object as PropType<{ children: string; title: string; key: string }>,
-    default: () => ({ children: 'childBaseTag', title: 'tagName', key: 'tagId' })
-  }
+    default: () => ({ children: 'childBaseTag', title: 'tagName', key: 'tagId' }),
+  },
 });
 
 const emit = defineEmits(['update:value', 'change']);
@@ -38,10 +38,10 @@ const searchValue = ref('');
  */
 const handleCheck = (checked: any) => {
   const { children, key: keyField } = props.fieldNames;
-  const currentCheckedKeys = (checked.checked || checked) as number[];
+  const currentCheckedKeys = (checked.checked || checked) as (string | number)[];
 
   // 1. 过滤逻辑：判断哪些节点是“真全选”
-  const currentFilteredIds = currentCheckedKeys.filter((key: number) => {
+  const currentFilteredIds = currentCheckedKeys.filter((key: string | number) => {
     const node = findNodeById(props.treeData, key);
     const parentId = findParentId(props.treeData, key);
 
@@ -49,8 +49,8 @@ const handleCheck = (checked: any) => {
     if (!node?.[children] || node[children].length === 0) {
       if (parentId && currentCheckedKeys.includes(parentId)) {
         const parentNode = findNodeById(props.treeData, parentId);
-        const isParentRealAllSelected = parentNode?.[children]?.every((child: any) => 
-          currentCheckedKeys.includes(child[keyField])
+        const isParentRealAllSelected = parentNode?.[children]?.every((child: any) =>
+          currentCheckedKeys.includes(child[keyField]),
         );
         return !isParentRealAllSelected;
       }
@@ -62,16 +62,16 @@ const handleCheck = (checked: any) => {
   });
 
   // 2. 跨搜索结果合并逻辑
-  const currentViewVisibleIds: number[] = [];
+  const currentViewVisibleIds: (string | number)[] = [];
   const traverse = (data: any[]) => {
-    data.forEach(item => {
+    data.forEach((item) => {
       currentViewVisibleIds.push(item[keyField]);
       if (item[children]) traverse(item[children]);
     });
   };
   traverse(filteredTreeData.value);
 
-  const outOfViewIds = (props.value || []).filter(id => !currentViewVisibleIds.includes(id));
+  const outOfViewIds = (props.value || []).filter((id) => !currentViewVisibleIds.includes(id));
   const finalIds = Array.from(new Set([...outOfViewIds, ...currentFilteredIds]));
 
   emit('update:value', finalIds);
@@ -87,14 +87,16 @@ const filteredTreeData = computed(() => {
   if (!keyword) return props.treeData;
 
   const filter = (data: any[]): any[] => {
-    return data.map((item) => {
-      const isSelfMatch = item[title].includes(keyword);
-      const childList = item[children] ? filter(item[children]) : [];
+    return data
+      .map((item) => {
+        const isSelfMatch = item[title].includes(keyword);
+        const childList = item[children] ? filter(item[children]) : [];
 
-      if (isSelfMatch) return { ...item, [children]: item[children] }; 
-      if (childList.length > 0) return { ...item, [children]: childList };
-      return null;
-    }).filter(Boolean) as any[];
+        if (isSelfMatch) return { ...item, [children]: item[children] };
+        if (childList.length > 0) return { ...item, [children]: childList };
+        return null;
+      })
+      .filter(Boolean) as any[];
   };
   return filter(props.treeData);
 });
@@ -102,10 +104,10 @@ const filteredTreeData = computed(() => {
 /**
  * 辅助工具函数
  */
-const findNodeById = (data: any[], id: number): any => {
+const findNodeById = (data: any[], id: string | number): any => {
   const { children, key } = props.fieldNames;
   for (const item of data) {
-    if (item[key] === id) return item;
+    if (String(item[key]) === String(id)) return item; // 字符串兼容比较
     if (item[children]) {
       const res = findNodeById(item[children], id);
       if (res) return res;
@@ -113,10 +115,14 @@ const findNodeById = (data: any[], id: number): any => {
   }
 };
 
-const findParentId = (data: any[], id: number, pId: number | null = null): number | null => {
+const findParentId = (
+  data: any[],
+  id: string | number,
+  pId: string | number | null = null,
+): string | number | null => {
   const { children, key } = props.fieldNames;
   for (const item of data) {
-    if (item[key] === id) return pId;
+    if (String(item[key]) === String(id)) return pId;
     if (item[children]) {
       const found = findParentId(item[children], id, item[key]);
       if (found !== null) return found;
@@ -133,7 +139,7 @@ watch(searchValue, (val) => {
   const { children, title, key: keyField } = props.fieldNames;
   const keys: Key[] = [];
   const collect = (data: any[]) => {
-    data.forEach(item => {
+    data.forEach((item) => {
       if (item[title].includes(val) || item[children]?.some((c: any) => c[title].includes(val))) {
         keys.push(item[keyField]);
       }
@@ -144,10 +150,13 @@ watch(searchValue, (val) => {
   expandedKeys.value = [...new Set(keys)];
 });
 
-watch(() => props.value, (newVal) => {
-  checkedKeys.value = newVal ? [...newVal] : [];
-}, { immediate: true, deep: true });
-
+watch(
+  () => props.value,
+  (newVal) => {
+    checkedKeys.value = newVal ? [...newVal] : [];
+  },
+  { immediate: true, deep: true },
+);
 </script>
 
 <template>

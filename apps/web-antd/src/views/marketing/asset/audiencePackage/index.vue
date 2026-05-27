@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Page, useVbenModal, type VbenFormProps } from '@vben/common-ui';
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-// import { projectApi, titlePackApi } from '#/api';
 import { trimObject } from '#/utils/trim';
 import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from '#/constants/locales';
 import { Button, message, Switch } from 'ant-design-vue';
@@ -11,10 +10,9 @@ import CreatedAudiencePackage from './createdAudiencePackage.vue';
 import { onMounted, ref } from 'vue';
 
 const [CreatedAudiencePackageModule, modalApi] = useVbenModal({
-  // 连接抽离的组件
   connectedComponent: CreatedAudiencePackage,
-    centered: true,
-    modal: true,
+  centered: true,
+  modal: true,
 });
 
 function openModal() {
@@ -30,7 +28,7 @@ interface DeveloperOption {
   label: string;
   value: string;
 }
-const advertiserOption = ref<DeveloperOption[]>([])
+const advertiserOption = ref<DeveloperOption[]>([]);
 async function loadAdvertiserOptions(platform?: string) {
   advertiserOption.value = [];
   const res = await advertiserApi.fetchAdvertiserList({
@@ -49,12 +47,12 @@ async function loadAdvertiserOptions(platform?: string) {
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: "Select",
+      component: 'Select',
       componentProps: {
         allowClear: true,
-        options:ACTIVE_PLATFORM,
+        options: ACTIVE_PLATFORM,
         placeholder: '请选择',
-         onChange: async (val: string) => {
+        onChange: async (val: string) => {
           await loadAdvertiserOptions(val);
         },
       },
@@ -89,7 +87,7 @@ const formOptions: VbenFormProps = {
   showCollapseButton: false,
   // 按下回车时是否提交表单
   submitOnEnter: false,
-}
+};
 
 const gridOptions: VxeGridProps = {
   border: true,
@@ -122,13 +120,13 @@ const gridOptions: VxeGridProps = {
       title: '备注',
       width: 'auto',
     },
-    ...TABLE_COMMON_COLUMNS as any,
+    ...(TABLE_COMMON_COLUMNS as any),
   ],
   height: 'auto',
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         const params = trimObject(args);
         return await targetedPackageApi.fetchGetTitleTargetedPackage({
           page: page.currentPage,
@@ -140,13 +138,13 @@ const gridOptions: VxeGridProps = {
   },
 };
 
-const displayValue = ref<AdConfig>()
-async function handlerEdit(row:AdConfig){
+const displayValue = ref<AdConfig>();
+async function handlerEdit(row: AdConfig) {
   openModal();
-  displayValue.value = { ...row }
+  displayValue.value = { ...row };
 }
 
-async function handlerDelete(row:AdConfig) {
+async function handlerDelete(row: AdConfig) {
   try {
     await targetedPackageApi.fetchDelTargetedPackage({
       targetIds: [row.id],
@@ -157,7 +155,6 @@ async function handlerDelete(row:AdConfig) {
   } catch (err) {
     console.error('删除失败:', err);
   }
-  
 }
 
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
@@ -165,8 +162,7 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 function pageReload() {
   gridApi.reload();
 }
-function handlerState(row:AdConfig) {
-}
+function handlerState(_row: AdConfig) {}
 </script>
 
 <template>
@@ -174,7 +170,7 @@ function handlerState(row:AdConfig) {
     <Page auto-content-height>
       <Grid>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>
         <template #action="{ row }">
           <Button type="link" @click="handlerEdit(row)">编辑</Button>
@@ -187,10 +183,8 @@ function handlerState(row:AdConfig) {
         </template>
       </Grid>
     </Page>
-    <CreatedAudiencePackageModule @page-reload="pageReload" :displayValue="displayValue"/>
+    <CreatedAudiencePackageModule @page-reload="pageReload" :displayValue="displayValue" />
   </div>
 </template>
 
-<style scoped lang="scss">
-
-</style>
+<style scoped lang="scss"></style>

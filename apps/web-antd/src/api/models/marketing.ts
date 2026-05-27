@@ -826,3 +826,44 @@ export interface public_campaignDetailItem {
   deleted: number;
   update_ut: string;
 }
+
+export interface oppo_regionalMetadata {
+  queryType: number;
+  areaIds?: string;
+  advertiserId: string[];
+}
+
+export interface oppo_modelMetadata {
+  advertiserId: string[];
+}
+
+export interface PhoneSeriesItem {
+  id: number;
+  name: string;
+  parentId: number | null;
+  width: number | null;
+  height: number | null;
+  series: string | null;
+  fseries: string | null;
+}
+
+export interface IndustryTag {
+  comments: string;
+  delStatus: number;
+  id: number;
+  level: number;
+  name: string;
+  pid: number;
+}
+
+export interface UnionAppsTag {
+  id: string;
+  name: string;
+  platform: string;
+  platformName: string;
+}
+
+export interface WeatherShowListType {
+  weatherCode: string;
+  weatherName: string;
+}
