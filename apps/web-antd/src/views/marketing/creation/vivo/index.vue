@@ -414,7 +414,7 @@ function handleReuseUpdate(data: VivoCreation) {
     creationInfo.value.configData.advertiserQualification,
     creationInfo.value.configData.channelPackage,
   );
-  console.log(creationInfo.value, '复用策略组');
+  // console.log(creationInfo.value, '复用策略组');
 }
 
 /**配置规则 */
