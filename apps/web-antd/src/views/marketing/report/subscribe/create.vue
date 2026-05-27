@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Page, useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
-import { ref, watch } from 'vue'; // 添加 watch
+import { ref, watch, h } from 'vue'; // 添加 watch
 import { useVbenForm } from '#/adapter/form';
 import type {
   searchDataFilter,
@@ -14,6 +14,8 @@ import dayjs from 'dayjs';
 import { message } from 'ant-design-vue';
 import AdReportFilterForm from '../components/AdReportFilterForm.vue';
 import MetricTemplate from './components/metricTemplate.vue';
+import { WEEKLIST, DAYLIST, TIMELIST } from '#/constants/locales.js'
+
 const emit = defineEmits(['pageReload']);
 const objectRequest = ref<ReportSubscriptionItem>({});
 const isUpdate = ref<Boolean>(false);
@@ -45,7 +47,11 @@ const [Form, formApi] = useVbenForm({
       config: reportParams,
       status: Number(params.status) === 1? 1 : 9,
       subscribeDateTimeRange: params.subscribeDateTimeRange,
-      pushConfig
+      pushConfig,
+      days: params.days,
+      weeks: params.weeks,
+      sendDateTime: params.sendDateTime,
+      dayRange: params.dayRange,
     }
     const updateSubmitParams: UpdateSubscribeType = {
       id: params.id,
@@ -135,6 +141,45 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
     },
     {
+      component: 'InputNumber',
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      fieldName: 'dayRange',
+      label: `时间范围`,
+      suffix: () => h('span', { class: 'text-400' }, '日'),
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        placeholder: `${$t('common.select')}`,
+        mode: 'multiple',
+        options: TIMELIST
+      },
+      fieldName: 'sendDateTime',
+      label: `发送时间`,
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        placeholder: `${$t('common.select')}`,
+        mode: 'multiple',
+        options: DAYLIST
+      },
+      fieldName: 'days',
+      label: `发送日`
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        placeholder: `${$t('common.select')}`,
+        options: WEEKLIST,
+        mode: 'multiple',
+      },
+      fieldName: 'weeks',
+      label: `发送周`,
+    },
+    {
       component: 'RadioGroup',
       defaultValue: 'email',
       componentProps: {
@@ -204,7 +249,11 @@ async function handleSetFormValue(row: ReportSubscriptionItem) {
     pushMethod,
     emailAddress,
     subscribeDateTimeRange,
-    status
+    status,
+    days: row.days,
+    weeks: row.weeks,
+    sendDateTime: row.sendDateTime,
+    dayRange: row.dayRange
   });
   metricList.value = metricIds;
   filterCriteria.value = row.config;

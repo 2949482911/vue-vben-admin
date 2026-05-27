@@ -700,6 +700,10 @@ export interface ReportSubscriptionItem {
   config: searchDataFilter;
   subscribeDateTimeRange: [string, string];
   pushConfig: Record<string, string[]>[];
+  sendDateTime: string[];
+  weeks: number[];
+  days: number[];
+  dayRange: number;
 }
 export interface UpdateSubscribeType extends ReportSubscriptionItem {
   id: string;

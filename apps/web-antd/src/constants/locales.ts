@@ -724,3 +724,213 @@ export const ANDROID_USER_ACTION_SET_ID = [
  * 广点通-IOS用户行为设置ID
  */
 export const IOS_USER_ACTION_SET_ID = [];
+
+export const WEEKLIST = [
+  {
+    label: '星期一',
+    value: 1,
+  },
+  {
+    label: '星期二',
+    value: 2,
+  },
+  {
+    label: '星期三',
+    value: 3,
+  },
+  {
+    label: '星期四',
+    value: 4,
+  },
+  {
+    label: '星期五',
+    value: 5,
+  },
+  {
+    label: '星期六',
+    value: 6,
+  },
+  {
+    label: '星期日',
+    value: 7,
+  },
+]
+export const DAYLIST = [  
+  {
+    label: '每月1号',
+    value: 1,
+  },
+  {
+    label: '每月2号',
+    value: 2,
+  },
+  {
+    label: '每月3号',
+    value: 3,
+  },
+  {
+    label: '每月4号',
+    value: 4,
+  },
+  {
+    label: '每月5号',
+    value: 5,
+  },
+  {
+    label: '每月6号',
+    value: 6,
+  },
+  {
+    label: '每月7号',
+    value: 7,
+  },
+  {
+    label: '每月8号',
+    value: 8,
+  },
+  {
+    label: '每月9号',
+    value: 9,
+  },
+  {
+    label: '每月10号',
+    value: 10,
+  },
+  {
+    label: '每月11号',
+    value: 11,
+  },
+  {
+    label: '每月12号',
+    value: 12,
+  },
+  {
+    label: '每月13号',
+    value: 13,
+  },
+  {
+    label: '每月14号',
+    value: 14,
+  },
+  {
+    label: '每月15号',
+    value: 15,
+  },
+  {
+    label: '每月16号',
+    value: 16,
+  },
+  {
+    label: '每月17号',
+    value: 17,
+  },
+  {
+    label: '每月18号',
+    value: 18,
+  },
+  {
+    label: '每月19号',
+    value: 19,
+  },
+  {
+    label: '每月20号',
+    value: 20,
+  },
+  {
+    label: '每月21号',
+    value: 21,
+  },
+  {
+    label: '每月22号',
+    value: 22,
+
+  },
+  {
+    label: '每月23号',
+    value: 23,
+  },
+  {
+    label: '每月24号',
+    value: 24,
+  },
+  {
+    label: '每月25号',
+    value: 25,
+  },
+  {
+    label: '每月26号',
+    value: 26,
+  },
+  {
+    label: '每月27号',
+    value: 27,
+  },
+  {
+    label: '每月28号',
+    value: 28,
+  },
+  {
+    label: '每月29号',
+    value: 29,
+  
+  },
+  {
+    label: '每月30号',
+    value: 30,
+  
+  },
+  {
+    label: '每月31号',  
+    value: 31,
+  },
+]
+export const TIMELIST = [
+  { label: '00:00', value: '00:00' },
+  { label: '00:30', value: '00:30' },
+  { label: '01:00', value: '01:00' },
+  { label: '01:30', value: '01:30' },
+  { label: '02:00', value: '02:00' },
+  { label: '02:30', value: '02:30' },
+  { label: '03:00', value: '03:00' },
+  { label: '03:30', value: '03:30' },
+  { label: '04:00', value: '04:00' },
+  { label: '04:30', value: '04:30' },
+  { label: '05:00', value: '05:00' },
+  { label: '05:30', value: '05:30' },
+  { label: '06:00', value: '06:00' },
+  { label: '06:30', value: '06:30' },
+  { label: '07:00', value: '07:00' },
+  { label: '07:30', value: '07:30' },
+  { label: '08:00', value: '08:00' },
+  { label: '08:30', value: '08:30' },
+  { label: '09:00', value: '09:00' },
+  { label: '09:30', value: '09:30' },
+  { label: '10:00', value: '10:00' },
+  { label: '10:30', value: '10:30' },
+  { label: '11:00', value: '11:00' },
+  { label: '11:30', value: '11:30' },
+  { label: '12:00', value: '12:00' },
+  { label: '12:30', value: '12:30' },
+  { label: '13:00', value: '13:00' },
+  { label: '13:30', value: '13:30' },
+  { label: '14:00', value: '14:00' },
+  { label: '14:30', value: '14:30' },
+  { label: '15:00', value: '15:00' },
+  { label: '15:30', value: '15:30' },
+  { label: '16:00', value: '16:00' },
+  { label: '16:30', value: '16:30' },
+  { label: '17:00', value: '17:00' },
+  { label: '17:30', value: '17:30' },
+  { label: '18:00', value: '18:00' },
+  { label: '18:30', value: '18:30' },
+  { label: '19:00', value: '19:00' },
+  { label: '19:30', value: '19:30' },
+  { label: '20:00', value: '20:00' },
+  { label: '20:30', value: '20:30' },
+  { label: '21:00', value: '21:00' },
+  { label: '21:30', value: '21:30' },
+  { label: '22:00', value: '22:00' },
+  { label: '22:30', value: '22:30' },
+  { label: '23:00', value: '23:00' },
+  { label: '23:30', value: '23:30' },
+]
