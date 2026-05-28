@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import {useVbenModal} from '@vben/common-ui';
-import {ref, computed} from 'vue';
-import {Card, List, Checkbox, Pagination, ListItem, Button} from 'ant-design-vue';
-import {useVbenForm} from '#/adapter/form';
-import {uploadEditApi} from '#/api/core';
-import type {VivoMaterialLibrary} from './vivo/vivo';
-import type {LocalMaterialData} from './creation';
-
+import { useVbenModal } from '@vben/common-ui';
+import { ref, computed, onMounted } from 'vue';
+import {
+  Card,
+  List,
+  Checkbox,
+  Pagination,
+  ListItem,
+  Button,
+  TreeSelect,
+  type TreeProps,
+} from 'ant-design-vue';
+import { useVbenForm } from '#/adapter/form';
+import { materialLibraryApi, uploadEditApi } from '#/api/core';
+import type { VivoMaterialLibrary } from './vivo/vivo';
+import type { LocalMaterialData } from './creation';
+import type { FolderItem } from '#/api/models';
 
 const materialType = ref<string>('image');
 const currentGroupIndex = ref<number>(0);
@@ -20,40 +29,47 @@ const [Form, formApi] = useVbenForm({
     // 所有表单项
     componentProps: {
       allowClear: true,
-      class: 'w-[120px]'
+      class: 'w-[120px]',
     },
-    labelWidth: 56,
+    labelWidth: 70,
   },
+  layout: 'inline',
   schema: [
     {
       component: 'Input',
       fieldName: 'name',
       label: '素材名称',
     },
+    {
+      component: 'Slot',
+      fieldName: 'fileFiltering',
+      label: '文件夹筛选',
+    },
   ],
 });
 
 const loading = ref(false);
 const listData = ref<VivoMaterialLibrary[]>([]);
-const queryParam = ref({page: 1, pageSize: 20, total: 0});
+const queryParam = ref({ page: 1, pageSize: 20, total: 0 });
 // 存放跨分页、跨搜索的所有选中项
 const selectedAssets = ref<VivoMaterialLibrary[]>([]);
 
 // 2. 封装获取数据函数
 async function fetchList() {
-  const nameStr = await formApi.getValues()
+  const nameStr = await formApi.getValues();
   loading.value = true;
   try {
     const res = await uploadEditApi.fetchMaterialList({
       page: queryParam.value.page,
       pageSize: queryParam.value.pageSize,
-      type: materialType.value === 'image'? 1 : 2,
+      type: materialType.value === 'image' ? 1 : 2,
+      albumId: albumId.value || '',
       needAlbum: false,
-      name: nameStr?.name || ''
+      name: nameStr?.name || '',
     });
     listData.value = res.items.map((item: VivoMaterialLibrary) => {
-      const isPicked = selectedAssets.value.some(s => s.id === item.id);
-      return {...item, isPicked};//判断数据有没有被选中
+      const isPicked = selectedAssets.value.some((s) => s.id === item.id);
+      return { ...item, isPicked }; //判断数据有没有被选中
     });
     queryParam.value.total = res.total;
   } finally {
@@ -64,36 +80,33 @@ async function fetchList() {
 const [Modal, modalApi] = useVbenModal({
   onCancel() {
     materialList.value = [];
-    modalApi.close()
+    modalApi.close();
   },
   async onConfirm() {
     if (selectedAssets.value.length === 0) {
       await modalApi.close();
       return;
     }
-    selectedAssets.value.forEach(
-      x => {
-        materialList.value.push({
-          name: x.name,
-          url: x.fileUrl,
-          localMaterialId: x.id
-        })
-      }
-    )
+    selectedAssets.value.forEach((x) => {
+      materialList.value.push({
+        name: x.name,
+        url: x.fileUrl,
+        localMaterialId: x.id,
+      });
+    });
 
     modalApi.setData({
       materialList: materialList.value,
       materialType: materialType.value,
-      currentGroupIndex: currentGroupIndex.value
+      currentGroupIndex: currentGroupIndex.value,
     });
-    materialList.value = []
+    materialList.value = [];
     await modalApi.close();
-
   },
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       selectedAssets.value = []; // 打开时清空上次的操作记录
-      const {type, groupIndex} = modalApi.getData();
+      const { type, groupIndex } = modalApi.getData();
       materialType.value = type;
       currentGroupIndex.value = groupIndex;
       await fetchList();
@@ -116,9 +129,7 @@ const isCheckAll = computed({
     }
 
     // 情况 2: 标准逻辑——当前页所有项是否都在已选池中
-    return listData.value.every((item) =>
-      selectedAssets.value.some((s) => s.id === item.id)
-    );
+    return listData.value.every((item) => selectedAssets.value.some((s) => s.id === item.id));
   },
   set: (val: boolean) => {
     const data = modalApi.getData();
@@ -130,7 +141,7 @@ const isCheckAll = computed({
       if (remainingCanSelect <= 0) return;
 
       listData.value.forEach((item) => {
-        const isAlreadyPicked = selectedAssets.value.some(s => s.id === item.id);
+        const isAlreadyPicked = selectedAssets.value.some((s) => s.id === item.id);
         if (!isAlreadyPicked && remainingCanSelect > 0) {
           item.selected = true;
           selectedAssets.value.push(item);
@@ -139,9 +150,9 @@ const isCheckAll = computed({
       });
     } else {
       // 取消全选：只移除当前页存在于已选池中的项
-      const currentPageIds = listData.value.map(i => i.id);
-      listData.value.forEach(item => item.selected = false);
-      selectedAssets.value = selectedAssets.value.filter(s => !currentPageIds.includes(s.id));
+      const currentPageIds = listData.value.map((i) => i.id);
+      listData.value.forEach((item) => (item.selected = false));
+      selectedAssets.value = selectedAssets.value.filter((s) => !currentPageIds.includes(s.id));
     }
   },
 });
@@ -170,19 +181,19 @@ function handleSelect(item: any) {
 
   if (item.selected) {
     // 放入选中池（去重）
-    if (!selectedAssets.value.some(s => s.id === item.id)) {
+    if (!selectedAssets.value.some((s) => s.id === item.id)) {
       selectedAssets.value.push(item);
     }
   } else {
     // 从选中池移除
-    selectedAssets.value = selectedAssets.value.filter(s => s.id !== item.id);
+    selectedAssets.value = selectedAssets.value.filter((s) => s.id !== item.id);
   }
 }
 
 async function search() {
   queryParam.value.page = 1;
   queryParam.value.pageSize = 20;
-  await fetchList()
+  await fetchList();
 }
 // 判断视频文件
 function isVideo(fileName: string): boolean {
@@ -200,14 +211,82 @@ function hideControls(event: Event) {
   video.controls = false;
 }
 
-  
+// 树的数据
+const treeData = ref<TreeProps['treeData']>([]);
+// const selectedKeys = ref<string[]>([]);多选用这个
+const albumId = ref<string>(''); //单选模式下
+onMounted(async () => {
+  await requestTreeNode();
+});
+
+async function requestTreeNode() {
+  const res = await materialLibraryApi.fetchDirectoryTreeList();
+  treeData.value = res;
+}
+//树结点的选择
+const treeItem = ref<FolderItem[]>();
+function findPathNodes(tree: any[], targetId: string | number, path: any[] = []): any[] | null {
+  for (const node of tree) {
+    // 记录当前路径
+    const currentPath = [...path, node];
+
+    if (node.id === targetId) {
+      return currentPath;
+    }
+
+    if (node.children && node.children.length > 0) {
+      const result = findPathNodes(node.children, targetId, currentPath);
+      if (result) return result;
+    }
+  }
+  return null;
+}
+
+function itemFile(value: any, _option: any) {
+  // TreeSelect 的 @select 事件中，可以直接通过 value 拿到当前选中节点的 id
+  const nodeId = value;
+
+  const fullPath = findPathNodes(treeData.value || [], nodeId);
+  if (fullPath) {
+    treeItem.value = fullPath;
+  }
+}
 </script>
 
 <template>
   <Modal title="素材库" class="w-[65.5%]">
     <div class="flex flex-col h-[65vh]">
       <div class="flex border-b pb-1 mb-4">
-        <Form/>
+        <Form>
+          <template #fileFiltering>
+            <!-- multiple
+            v-model:selectedKeys="selectedKeys" -->
+            <TreeSelect
+              show-search
+              allow-clear
+              v-model:value="albumId"
+              style="width: 180px"
+              placeholder="请选择文件夹"
+              :tree-data="treeData"
+              :field-names="{
+                label: 'name',
+                value: 'id',
+                children: 'children',
+              }"
+              @select="itemFile"
+            >
+              <template #title="slotData">
+                <!-- <template #title="{ data }"> -->
+                <div class="tree-node-title">
+                  <!-- <span class="tree-node-name">{{ data.name}}</span> -->
+                  <span class="tree-node-name">{{
+                    slotData?.name ?? slotData?.data?.name ?? ''
+                  }}</span>
+                </div>
+              </template>
+            </TreeSelect>
+          </template>
+        </Form>
         <Button class="ml-4" type="primary" @click="search">搜索</Button>
       </div>
 
@@ -225,21 +304,22 @@ function hideControls(event: Event) {
                   'material-card',
                   item.selected ? 'is-selected' : '',
                   // 核心：已达上限且自己没被选中时，应用禁用样式
-                  (isReachQuota && !item.selected) ? 'is-disabled' : ''
+                  isReachQuota && !item.selected ? 'is-disabled' : '',
                 ]"
                 @click="handleSelect(item)"
               >
                 <template #cover>
                   <div
-                    class="relative w-full h-[100px] bg-[#f0f2f5] flex items-center justify-center overflow-hidden">
+                    class="relative w-full h-[100px] bg-[#f0f2f5] flex items-center justify-center overflow-hidden"
+                  >
                     <div class="absolute top-1 right-2 z-10" @click.stop>
                       <Checkbox
-                        :checked="item.selected" 
-                        :disabled="isReachQuota && !item.selected" 
+                        :checked="item.selected"
+                        :disabled="isReachQuota && !item.selected"
                         @change="handleSelect(item)"
                       />
                     </div>
-<!-- 
+                    <!-- 
                     <img
                       v-if="item.fileUrl"
                       :src="item.fileUrl"
@@ -248,9 +328,14 @@ function hideControls(event: Event) {
                     -->
                     <div v-if="item.fileUrl" class="w-full h-full object-contain bg-black">
                       <!-- 图片文件 -->
-                      <img v-if="!isVideo(item.name)" :src="item.fileUrl" alt="file"  class="w-full h-full object-contain bg-black"/>
+                      <img
+                        v-if="!isVideo(item.name)"
+                        :src="item.fileUrl"
+                        alt="file"
+                        class="w-full h-full object-contain bg-black"
+                      />
                       <!-- 视频文件 -->
-                      <video 
+                      <video
                         v-else
                         :src="item.fileUrl"
                         preload="metadata"
@@ -265,16 +350,20 @@ function hideControls(event: Event) {
                       暂无预览
                     </div>
 
-                    <span v-if="item.duration"
-                          class="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1 rounded">
+                    <span
+                      v-if="item.duration"
+                      class="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1 rounded"
+                    >
                       {{ item.duration }}
                     </span>
                   </div>
                 </template>
 
                 <div class="p-2 h-[40px] flex flex-col justify-between overflow-hidden">
-                  <div class="text-[12px] font-medium name-text mb-1 leading-snug truncate"
-                       :title="item.name">
+                  <div
+                    class="text-[12px] font-medium name-text mb-1 leading-snug truncate"
+                    :title="item.name"
+                  >
                     {{ item.name }}
                   </div>
                   <!-- <div class="flex gap-1">
@@ -375,10 +464,10 @@ function hideControls(event: Event) {
 :deep(.ant-checkbox-disabled) {
   cursor: not-allowed;
 }
-  .video-cover {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    background-color: #000; /* 提取前的背景 */
-  }
+.video-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: #000; /* 提取前的背景 */
+}
 </style>
