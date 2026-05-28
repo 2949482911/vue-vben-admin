@@ -44,7 +44,8 @@ export enum Platform {
   VPH = 'vph',
   TENCENT_MINI_APP = 'tencent_mini_app',
   CAINIAO = 'cainiao',
-  NJ_BYTEDANCE = 'nj_bytedance'
+  NJ_BYTEDANCE = 'nj_bytedance',
+  BAIDU_BOX = 'baidu_box'
 }
 
 export enum RuleType {

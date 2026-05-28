@@ -461,6 +461,10 @@ export const BEHAVIORA_PLATFORM = [
   {
     label: '南京字节',
     value: 'nj_bytedance'
+  },
+  {
+    label: '百度网盘',
+    value: 'baidu_box'
   }
 ];
 

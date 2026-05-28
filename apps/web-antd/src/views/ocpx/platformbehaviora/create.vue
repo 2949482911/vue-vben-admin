@@ -1376,6 +1376,161 @@ platformConfigForm.set(Platform.NJ_BYTEDANCE, [
     rules: 'required',
   }
 ]);
+// 百度网盘配置
+platformConfigForm.set(Platform.BAIDU_BOX, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 0,
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'account_type',
+    // 界面显示的label
+    label: `account_type`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 1,
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'schema_type',
+    // 界面显示的label
+    label: `schema_type`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 'xinghuoliaoyuan',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'channel',
+    // 界面显示的label
+    label: `channel`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 6,
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'flow_type',
+    // 界面显示的label
+    label: `flow_type`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'package_id',
+    // 界面显示的label
+    label: `package_id`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 'wangpan',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'app_name',
+    // 界面显示的label
+    label: `app_name`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 'baiduwangpan_hh_lahuo_xinghuoliaoyuan',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'account_id',
+    // 界面显示的label
+    label: `account_id`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 'android',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'app_type',
+    // 界面显示的label
+    label: `app_type`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 'invoke',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'conv_type',
+    // 界面显示的label
+    label: `conv_type`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'ug_sign',
+    // 界面显示的label
+    label: `ug_sign`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 1,
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'common_cpa',
+    // 界面显示的label
+    label: `common_cpa`,
+    rules: 'required',
+  },
+]);
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -1752,7 +1907,7 @@ const [Modal, modalApi] = useVbenModal({
       const data = modalApi.getData();
       objectRequest.value = data.row as BehavioraPlatformItem;
       modalType.value = data.type;
-      if (objectRequest.value.id) {
+      if (objectRequest.value?.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
         ocpxPlatformMatchList.value = objectRequest.value.ocpxPlatformMatchList;
