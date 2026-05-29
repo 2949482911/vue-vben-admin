@@ -24,7 +24,7 @@ import type { Ref } from 'vue';
 /**
  * vivo 版本常量
  */
-export const VIVO_VERSION = '0.1.3';
+export const VIVO_VERSION = '0.1.4';
 
 /**
  * vivo 初始化对象

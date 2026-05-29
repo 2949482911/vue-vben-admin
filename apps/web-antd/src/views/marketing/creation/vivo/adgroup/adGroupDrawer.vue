@@ -176,10 +176,47 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (isOpen) {
       const currentAdType = campaign.adType;
 
-      const { adGroupData, localAdQualification, localChannelPackage } = drawerApi.getData();
+      // 使用不同的变量名避免遮蔽外层 ref
+      const {
+        adGroupData,
+        localAdQualification: savedAdQualification,
+        localChannelPackage: savedChannelPackage,
+      } = drawerApi.getData();
 
-      if (localAdQualification.size === 0) advertiseQualificationId.value = '';
-      if (localChannelPackage.size === 0) channelPackageStr.value = '';
+      // ★ 关键修复：将抽屉 data 中保存的本地选择状态同步回 ref
+      // 优先使用本地保存的选择，若没有则降级使用 Props 传入的初始值
+      localAdvertiserQualification.value =
+        savedAdQualification instanceof Map && savedAdQualification.size > 0
+          ? new Map(savedAdQualification)
+          : new Map(advertiserQualification as Map<string, QualificationValue>);
+
+      localChannelPackage.value =
+        savedChannelPackage instanceof Map && savedChannelPackage.size > 0
+          ? new Map(savedChannelPackage)
+          : new Map(channelPackage as Map<string, ChannelPackageValue>);
+
+      // 根据本地 Map 更新展示字符串
+      if (localAdvertiserQualification.value.size === 0) {
+        advertiseQualificationId.value = '';
+      } else {
+        advertiseQualificationId.value = Array.from<QualificationValue>(
+          localAdvertiserQualification.value.values(),
+        )
+          .map((item) => item.qualificationName)
+          .filter(Boolean)
+          .join('，');
+      }
+
+      if (localChannelPackage.value.size === 0) {
+        channelPackageStr.value = '';
+      } else {
+        channelPackageStr.value = Array.from<ChannelPackageValue>(
+          localChannelPackage.value.values(),
+        )
+          .map((item) => item.channelPackageName)
+          .filter(Boolean)
+          .join('，');
+      }
 
       if (adGroupData) {
         customizeName.value = adGroupData.name;
@@ -197,22 +234,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
             adType_proxy: currentAdType,
           });
         }
-      }
-      //回显广告资质
-      if (advertiserQualification.size > 0) {
-        const dataArray = Array.from<QualificationValue>(advertiserQualification.values());
-        advertiseQualificationId.value = dataArray
-          .map((item) => item.qualificationName)
-          .filter(Boolean) // 过滤空值
-          .join('，');
-      }
-      //回显渠道包
-      if (channelPackage.size > 0) {
-        const dataArray = Array.from<ChannelPackageValue>(channelPackage.values());
-        channelPackageStr.value = dataArray
-          .map((item) => item.channelPackageName)
-          .filter(Boolean) // 过滤空值
-          .join('，');
       }
     }
   },

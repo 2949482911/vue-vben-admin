@@ -349,6 +349,15 @@ function handleAccountUpdate(data: Array<AccountInfo>) {
       // 如果有子组件引用，记得同步更新子组件内部状态
     }
 
+    // ★ 新增：账户变更时清空广告投放资质和渠道包
+    config.advertiserQualification = new Map<string, QualificationValue>();
+    config.channelPackage = new Map<string, ChannelPackageValue>();
+    // 同步子组件内部的本地状态，并关闭已打开的抽屉（避免旧快照残留展示）
+    advertisingGroupRef.value?.setLocalAdGroupData(
+      config.adgroup,
+      config.advertiserQualification,
+      config.channelPackage,
+    );
     // 账户变了，预览表格也需要重置（因为表格行是基于账户生成的）
     if (previewAreaRef.value) {
       previewAreaRef.value.clearTable();
