@@ -142,6 +142,7 @@ const [Form, formApi] = useVbenForm({
     },
     {
       component: 'InputNumber',
+      defaultValue: 7,
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
@@ -166,6 +167,12 @@ const [Form, formApi] = useVbenForm({
         mode: 'multiple',
         options: DAYLIST
       },
+      dependencies: {
+        show: (value) => {
+          return value.type !== 'week'
+        },
+        triggerFields: ['type'],
+      },
       fieldName: 'days',
       label: `发送日`
     },
@@ -175,6 +182,12 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.select')}`,
         options: WEEKLIST,
         mode: 'multiple',
+      },
+      dependencies: {
+        show: (value) => {
+          return value.type === 'week'
+        },
+        triggerFields: ['type'],
       },
       fieldName: 'weeks',
       label: `发送周`,
@@ -289,7 +302,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       } else {
         isUpdate.value = false;
         metricList.value = [];
-        formApi.resetForm();
+        await formApi.resetForm();
         filterCriteria.value = {};
       }
     }
