@@ -225,6 +225,17 @@ export const BILLINGTYPE_SELECT = [
   },
 ];
 
+export const BIDDING_STRATEGY = [
+  {
+    label: '稳定拿量',
+    value: 0,
+  },
+  {
+    label: '优先拿量',
+    value: 1,
+  },
+];
+
 /**批投广告组-二阶段转化目标枚举 */
 export const PHASETWOGOAL_SELECT = [
   { label: '下载', value: 1 },

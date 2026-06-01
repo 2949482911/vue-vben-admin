@@ -2,6 +2,7 @@
 import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
 import {
+  BIDDING_STRATEGY,
   BILLINGTYPE_SELECT,
   COMMODITYURL_SELECT,
   DELIVER_SELECT,
@@ -481,6 +482,14 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'secondOcpxPrice',
       label: '深度优化出价',
       suffix: () => h('span', { class: 'text-600' }, '元'),
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        options: BIDDING_STRATEGY,
+      },
+      fieldName: 'biddingStrategy',
+      label: '出价策略',
     },
     {
       component: 'Input',
