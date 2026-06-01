@@ -1,16 +1,21 @@
 <script lang="ts" setup name="AccountManager">
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { DownloadCenterItem } from '#/api/models/tools';
-import type { VbenFormProps } from '@vben/common-ui';
-import { Page } from '@vben/common-ui';
-import { $t } from '@vben/locales';
 
-import { Switch, Tag } from 'ant-design-vue';
-
+import type {VxeGridProps, VxeGridListeners} from '#/adapter/vxe-table';
+import type {DownloadCenterItem} from '#/api/models/tools';
+import type {VbenFormProps} from '@vben/common-ui';
+import { Page, useVbenDrawer} from '@vben/common-ui';
+import {$t} from '@vben/locales';
+import { useVbenForm } from '#/adapter/form';
+import { Switch, Tag, Button } from 'ant-design-vue';
+import dayjs from 'dayjs';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { downloadCenterApi } from '#/api/core/tools';
-import { TABLE_COMMON_COLUMNS } from '#/constants/locales';
+import {
+  TASK_STATUS_SELECT,
+  TABLE_COMMON_COLUMNS,
+} from '#/constants/locales';
 import { trimObject } from '#/utils/trim';
+import type { ExportRTADataItem } from "#/api/models/tools";
 const gridOptions: VxeGridProps<DownloadCenterItem> = {
   columns: [
     {
@@ -109,7 +114,93 @@ const formOptions: VbenFormProps = {
   // 按下回车时是否提交表单
   submitOnEnter: false,
 };
-const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Form, formApi] = useVbenForm({
+  showDefaultActions: false,
+  commonConfig: {
+    componentProps: {
+      class: 'w-full',
+    },
+  },
+  layout: 'horizontal',
+  handleSubmit: async (formVal: Record<string, any>) => {
+    // const params = trimObject(formVal);
+    const params = formVal;
+    await downloadCenterApi.exportRtaData(params as ExportRTADataItem);
+  },
+  schema: [
+    {
+      component: 'Select',
+      fieldName: 'type',
+      label: `任务类型`,
+      componentProps: {
+        options: [
+          {
+            label: 'rta',
+            value: 'rta',
+          }
+        ],
+      },
+      rules: 'required'
+    },
+    {
+      component: 'RangePicker',
+      componentProps: {
+        placeholder: [`${$t('common.select')}`, `${$t('common.select')}`],
+        format: 'YYYY-MM-DD HH:mm:ss',
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        showTime: true
+      },
+      fieldName: 'timeRange',
+      label: '创建日期',
+      rules: 'required',
+    },
+    {
+      component: 'Select',
+      fieldName: 'fromMediaType',
+      label: `来源媒体`,
+      rules: 'required',
+      componentProps: {
+        options: [
+          {
+            label: 'VIVO',
+            value: 'vivo',
+          }
+        ],
+      },
+    },
+    {
+      component: 'Select',
+      fieldName: 'toMediaType',
+      label: `去向媒体`,
+      rules: 'required',
+      componentProps: {
+        options: [
+          {
+            label: '喜马拉雅',
+            value: 'xmly',
+          }
+        ],
+      },
+    }
+  ],
+});
+// 导出rta数据抽屉
+const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: false,
+  // 当抽屉打开状态改变时触发
+  async onOpenChange(isOpen) {
+  },
+  async onConfirm() {
+    const result = await formApi.validate();
+    if(!result.valid) return;
+    await formApi.submitForm();
+    await drawerApi.close();
+  },
+});
+function exportRTAData() {
+  drawerApi.open()
+}
 </script>
 
 <template>
@@ -119,14 +210,9 @@ const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
         <template #status="{ row }">
           <Switch :checked="row.status === 1" />
         </template>
+
         <template #downloadUrl="{ row }">
-          <a
-            class="downloadLink"
-            :class="{ 'disabled-link': !row.downloadUrl }"
-            :href="row.downloadUrl"
-            :download="row.name"
-            >点击下载</a
-          >
+          <a class="downloadLink" :class="{'disabled-link': !row.downloadUrl}" :href="row.downloadUrl" :download="row.name">点击下载</a>
         </template>
         <template #taskState="{ row }">
           <Tag v-if="row.taskState === 0" color="orange">{{ $t('common.pending') }}</Tag>
@@ -134,7 +220,16 @@ const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
           <Tag v-if="row.taskState === 2" color="green">{{ $t('common.completed') }}</Tag>
           <Tag v-if="row.taskState === 3" color="red">{{ $t('common.failed') }}</Tag>
         </template>
+        <template #toolbar-tools>
+          <Button type="primary" @click="exportRTAData">
+            导出
+          </Button>
+        </template>
       </Grid>
+      <Drawer class="w-[40%]" title="数据导出">
+        <Form>
+        </Form>
+      </Drawer>
     </Page>
   </div>
 </template>

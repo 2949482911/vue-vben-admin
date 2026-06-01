@@ -57,3 +57,10 @@ export interface GetDownloadCenterItem extends BaseItem {
   taskState: string;
   createUsername: string;
 }
+// 工具-导出RTA数据
+export interface ExportRTADataItem {
+  timeRange: string[];
+  toMediaType: string;
+  fromMediaType: string;
+  type: string;
+}
