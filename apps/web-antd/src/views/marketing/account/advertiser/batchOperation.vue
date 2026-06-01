@@ -114,7 +114,7 @@ const [Form, formApi] = useVbenForm({
         },
         params: {
           page: 1,
-          size: 1000,
+          pageSize: 1000,
         },
         valueField: 'id',
         labelField: 'name',        // 两个接口返回的数据都有 name 字段，直接固定
@@ -142,7 +142,7 @@ const [Form, formApi] = useVbenForm({
         },
         params: {
           page: 1,
-          size: 1000,
+          pageSize: 1000,
         },
         valueField: 'id',
         labelField: 'name',        // 两个接口返回的数据都有 name 字段，直接固定
