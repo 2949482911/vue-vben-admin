@@ -67,7 +67,7 @@ const creationInfo = ref<VivoCreation>({
       name: '',
       adType: 0,
       mediaType: 0,
-      dailyBudget: -1,
+      dailyBudget: 200,
       campaignType: 0,
       pushForm: 0,
       pushType: 0,
