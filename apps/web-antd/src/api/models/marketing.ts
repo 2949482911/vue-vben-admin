@@ -10,6 +10,7 @@ export interface AdvertiserPageRequest extends PageRequestParams {
   putStatus?: number;
   platform?: string;
   putStatue?: number;
+  advertiserRole: string;
 }
 
 /**
@@ -38,6 +39,7 @@ export interface AdvertiserItem extends BaseItem {
   tagId: string;
   accessToken: string;
   hourlyState: number;
+  tagName: string;
 }
 // 拉取历史列表
 export interface HistoryItem extends BaseItem {
@@ -473,15 +475,15 @@ export interface AdCompanyOptionsType {
   platform: string;
 }
 export interface ExportAllDataType {
-  platform: string;
-  advertiserId: string;
-  advertiserName: string;
-  advertiserRole: string;
-  putStatue: number;
-  projectId: string;
-  parentId: string;
-  ids: string;
-  hourlyState: number;
+  platform?: string;
+  advertiserId?: string;
+  advertiserName?: string;
+  advertiserRole?: string;
+  putStatue?: number;
+  projectId?: string;
+  parentId?: string;
+  ids?: string;
+  hourlyState?: number;
 }
 /**营销-资产-标题包查询 */
 export interface GetTitlePackType {

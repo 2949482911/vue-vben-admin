@@ -12,8 +12,8 @@ import { $t } from '#/locales';
 const [CreatedTitlePackageModule, modalApi] = useVbenModal({
   // 连接抽离的组件
   connectedComponent: CreatedTitlePackage,
-    centered: true,
-    modal: true,
+  centered: true,
+  modal: true,
 });
 
 function openModal() {
@@ -23,10 +23,10 @@ function openModal() {
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: "Select",
+      component: 'Select',
       componentProps: {
         allowClear: true,
-        options:ACTIVE_PLATFORM,
+        options: ACTIVE_PLATFORM,
         placeholder: '请选择',
       },
       fieldName: 'platform',
@@ -47,7 +47,7 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         showSearch: true,
         placeholder: '请选择',
-        api: async (params:any) => {
+        api: async (params: any) => {
           return await projectApi.fetchProjectList(params);
         },
         filterOption: (inputValue: string, option: { label: string }) => {
@@ -69,7 +69,7 @@ const formOptions: VbenFormProps = {
   showCollapseButton: false,
   // 按下回车时是否提交表单
   submitOnEnter: false,
-}
+};
 
 const gridOptions: VxeGridProps = {
   border: true,
@@ -84,7 +84,7 @@ const gridOptions: VxeGridProps = {
   columns: [
     {
       field: 'title',
-      title: '标题名称',
+      title: '标题',
       width: 'auto',
     },
     {
@@ -97,13 +97,13 @@ const gridOptions: VxeGridProps = {
       title: '平台',
       width: 'auto',
     },
-    ...TABLE_COMMON_COLUMNS as any,
+    ...(TABLE_COMMON_COLUMNS as any),
   ],
   height: 'auto',
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         const params = trimObject(args);
         return await titlePackApi.fetchGetTitlePack({
           page: page.currentPage,
@@ -131,7 +131,7 @@ async function handlerDelete(data: TitlePackItem | TitlePackItem[]) {
     });
     message.success('删除成功');
     await pageReload();
-    gridApi.grid.clearCheckboxRow(); 
+    gridApi.grid.clearCheckboxRow();
   } catch (err) {
     console.error('删除失败:', err);
   }
@@ -150,8 +150,7 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 function pageReload() {
   gridApi.reload();
 }
-function handlerState(row: TitlePackItem) {
-}
+function handlerState(_row: TitlePackItem) {}
 </script>
 
 <template>
@@ -159,7 +158,7 @@ function handlerState(row: TitlePackItem) {
     <Page auto-content-height>
       <Grid>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>
         <template #action="{ row }">
           <Button type="link" danger @click="handlerDelete(row)">
@@ -172,10 +171,8 @@ function handlerState(row: TitlePackItem) {
         </template>
       </Grid>
     </Page>
-    <CreatedTitlePackageModule @page-reload="pageReload"/>
+    <CreatedTitlePackageModule @page-reload="pageReload" />
   </div>
 </template>
 
-<style scoped lang="scss">
-
-</style>
+<style scoped lang="scss"></style>

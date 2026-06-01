@@ -1,18 +1,18 @@
 <script lang="ts" setup name="AdvertiserManager">
-import type {VbenFormProps} from '@vben/common-ui';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import type {AdvertiserItem, DeveloperItem} from '#/api/models';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { AdvertiserItem, DeveloperItem } from '#/api/models';
 
-import {Page, useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { Page, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import {Button, Switch, Tag, Dropdown, Menu, MenuItem, SubMenu, message} from 'ant-design-vue';
+import { Button, Switch, Tag, Dropdown, Menu, MenuItem, SubMenu, message } from 'ant-design-vue';
 import { UploadOutlined } from '@ant-design/icons-vue';
 
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {advertiserApi, userApi} from '#/api/core';
-import {projectApi, developerApi, accountLabelApi} from "#/api";
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { advertiserApi, userApi } from '#/api/core';
+import { projectApi, developerApi, accountLabelApi } from '#/api';
 import {
   BatchOptionsType,
   PLATFORM,
@@ -20,17 +20,17 @@ import {
   TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
 
-import AuthAccount from './authaccount.vue';//授权弹窗
-import CreateObjectRequestComp from './create.vue';//新增|修改弹窗
-import BatchOperationComp from './batchOperation.vue';//批量修改弹窗
+import AuthAccount from './authaccount.vue'; //授权弹窗
+import CreateObjectRequestComp from './create.vue'; //新增|修改弹窗
+import BatchOperationComp from './batchOperation.vue'; //批量修改弹窗
 import ImportChildAdvertiser from './importchildadvertiser.vue';
 import BatchImportCom from './BatchImportCom.vue';
 import HistoryList from './historyList.vue';
 import { computed, onMounted, ref } from 'vue';
-import type { ProjectItem } from "./advertiser";
+import type { ProjectItem } from './advertiser';
 import { trimObject } from '#/utils/trim';
 
-const agentData = ref<AdvertiserItem[]>([])
+const agentData = ref<{ label: string; value: string }[]>([]);
 /**
  * 授权弹窗
  */
@@ -79,7 +79,6 @@ function openBatchOptions(modalType: string) {
   BatchOperationApi.open();
 }
 
-
 const [ImportChildAdvertiserModal, improtChildApi] = useVbenModal({
   connectedComponent: ImportChildAdvertiser,
   centered: true,
@@ -95,15 +94,15 @@ async function cancelBatchOptions(opType: string) {
   const targetIds = selectedRows.value.map((item) => item.id);
   let values = {};
   let type = '';
-  if(opType === 'edit') {
+  if (opType === 'edit') {
     type = 'update_advertiser_project';
     values = {
-      projectId: null
+      projectId: null,
     };
-  }  else if (opType === 'bind') {
+  } else if (opType === 'bind') {
     type = 'update_advertiser_tag';
     values = {
-      tag_id: null
+      tag_id: null,
     };
   } else if (opType === 'org') {
     type = 'update_advertiser_organization';
@@ -124,12 +123,12 @@ async function cancelBatchOptions(opType: string) {
   });
   pageReload();
 }
-const roleType = ref<string>('')
+const roleType = ref<string>('');
 
 function openImportChildModal(row: AdvertiserItem) {
-  improtChildApi.setData({id: row.id});
+  improtChildApi.setData({ id: row.id });
   improtChildApi.open();
-  roleType.value = row.roleType
+  roleType.value = row.roleType;
 }
 
 // 导入
@@ -139,8 +138,8 @@ const [ImportModal, importModalApi] = useVbenModal({
   modal: true,
 });
 function openHistoryModal(row: AdvertiserItem) {
-  historyModalApi.setData(row)
-  historyModalApi.open()
+  historyModalApi.setData(row);
+  historyModalApi.open();
 }
 
 // 导入
@@ -163,15 +162,15 @@ async function copyToken(text: string) {
 async function handlerState(row: AdvertiserItem) {
   await (row.status === 1
     ? advertiserApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.DISABLE,
-      values: new Map<string, any>(),
-    })
+        targetIds: [row.id],
+        type: BatchOptionsType.DISABLE,
+        values: new Map<string, any>(),
+      })
     : advertiserApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.Enable,
-      values: new Map<string, any>(),
-    }));
+        targetIds: [row.id],
+        type: BatchOptionsType.Enable,
+        values: new Map<string, any>(),
+      }));
   pageReload();
 }
 
@@ -184,7 +183,6 @@ async function handlerDelete(row: AdvertiserItem) {
   pageReload();
 }
 
-
 async function handlerPutState(row: AdvertiserItem) {
   const putStatue: string = row.putStatue == 1 ? 'stop_put_status' : 'start_put_status';
   await advertiserApi.fetchBatchOptions({
@@ -195,13 +193,13 @@ async function handlerPutState(row: AdvertiserItem) {
   pageReload();
 }
 async function handlerHourlyState(row: AdvertiserItem) {
-  const hourlyState = row.hourlyState === 1 ? 9 : 1
+  const hourlyState = row.hourlyState === 1 ? 9 : 1;
   await advertiserApi.fetchBatchOptions({
     targetIds: [row.id],
     type: 'update_advertiser_hourly',
     values: {
-      hourly_state: hourlyState
-    }
+      hourly_state: hourlyState,
+    },
   });
   pageReload();
 }
@@ -213,7 +211,7 @@ interface DeveloperOption {
   label: string;
   value: string;
 }
-const developerOption = ref<DeveloperOption[]>([])
+const developerOption = ref<DeveloperOption[]>([]);
 // 页面加载时请求数据
 onMounted(async () => {
   const res = await projectApi.fetchProjectList({
@@ -221,8 +219,8 @@ onMounted(async () => {
     pageSize: 1000,
   });
   projectOptions.value = res.items;
-  const resOption = await developerApi.fetchDeveloperList({ page:1, pageSize:200 })
-  developerOption.value = resOption.items.map((item:DeveloperItem) => ({
+  const resOption = await developerApi.fetchDeveloperList({ page: 1, pageSize: 200 });
+  developerOption.value = resOption.items.map((item: DeveloperItem) => ({
     label: `${item.name}-${item.id}`,
     value: item.id,
   }));
@@ -230,12 +228,11 @@ onMounted(async () => {
 
 //computed是响应式的，如果直接赋值projectOptions已经晚了，schema已经初始化完成了异步数据没有触发表单更新
 const projectSelectOptions = computed(() =>
-  projectOptions.value.map((item:ProjectItem) => ({
+  projectOptions.value.map((item: ProjectItem) => ({
     label: item.name,
     value: item.id,
-  }))
+  })),
 );
-
 
 const formOptions: VbenFormProps = {
   // 默认展开
@@ -264,7 +261,7 @@ const formOptions: VbenFormProps = {
       },
       // 字段名
       fieldName: 'developerId',
-      label: '开发者'
+      label: '开发者',
     },
     {
       component: 'Select',
@@ -314,7 +311,7 @@ const formOptions: VbenFormProps = {
         placeholder: `${$t('common.choice')}`,
       },
       fieldName: 'putStatue',
-      label: `${$t('marketing.advertiser.columns.putStatue')}`
+      label: `${$t('marketing.advertiser.columns.putStatue')}`,
     },
 
     {
@@ -350,7 +347,7 @@ const formOptions: VbenFormProps = {
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
-        options: projectSelectOptions,//options不能直接传ref
+        options: projectSelectOptions, //options不能直接传ref
         placeholder: `${$t('common.choice')}`,
       },
       fieldName: 'projectId',
@@ -374,13 +371,13 @@ const formOptions: VbenFormProps = {
         show: true,
         triggerFields: ['platform'],
         if: (value) => {
-          if(value.platform) {
-            loadAgentData(value.platform)
+          if (value.platform) {
+            loadAgentData(value.platform);
           } else {
-            agentData.value = []
+            agentData.value = [];
           }
           return true;
-        }
+        },
       },
     },
     {
@@ -396,7 +393,7 @@ const formOptions: VbenFormProps = {
           pageSize: 1000,
         },
         valueField: 'nickname',
-        labelField: 'nickname',        // 两个接口返回的数据都有 name 字段，直接固定
+        labelField: 'nickname', // 两个接口返回的数据都有 name 字段，直接固定
         resultField: 'items',
         api: async (params: any) => {
           return await userApi.fetchUserList(params);
@@ -413,7 +410,7 @@ const formOptions: VbenFormProps = {
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
-        api: async (params:any) => {
+        api: async (params: any) => {
           return await accountLabelApi.fetchGetAccountLabelList(params);
         },
         params: {
@@ -474,7 +471,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       field: 'accessToken',
       title: `${$t('marketing.advertiser.columns.accessToken')}`,
       width: 'auto',
-      slots: {default:'accessToken'}
+      slots: { default: 'accessToken' },
     },
 
     {
@@ -496,7 +493,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       field: 'advertiserRole',
       title: `${$t('marketing.advertiser.columns.advertiserRole')}`,
       width: 'auto',
-      slots: {default: 'advertiserRole'},
+      slots: { default: 'advertiserRole' },
     },
     {
       field: 'customer',
@@ -507,7 +504,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       field: 'hourlyState',
       title: `${$t('marketing.advertiser.columns.hourlyState')}`,
       width: 'auto',
-      slots: {default: 'hourlyState'}
+      slots: { default: 'hourlyState' },
     },
     {
       field: 'remark',
@@ -525,14 +522,14 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       field: 'putStatue',
       title: `${$t('marketing.advertiser.columns.putStatue')}`,
       width: 'auto',
-      slots: {default: 'putStatue'}
+      slots: { default: 'putStatue' },
     },
 
     {
       field: 'platformStatus',
       title: `${$t('marketing.advertiser.columns.platformStatus')}`,
       width: 'auto',
-      slots: {default: 'platformStatus'}
+      slots: { default: 'platformStatus' },
     },
 
     {
@@ -557,31 +554,57 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       field: 'platformAuditState',
       title: `${$t('marketing.advertiser.columns.platformAuditState')}`,
       width: 'auto',
-      slots: {default: 'platformAuditState'}
+      slots: { default: 'platformAuditState' },
     },
     {
       field: 'tagName',
       title: `${$t('marketing.advertiser.columns.tagName')}`,
       width: 'auto',
-      slots: {default: 'tagName'}
+      slots: { default: 'tagName' },
+    },
+    {
+      field: 'lockedMoney',
+      title: '锁定金额',
+      width: 'auto',
+    },
+    {
+      field: 'publicCash',
+      title: '公共金额',
+      width: 'auto',
+    },
+    {
+      field: 'cash',
+      title: '现金余额',
+      width: 'auto',
+    },
+    {
+      field: 'exchange',
+      title: '置换金额',
+      width: 'auto',
+    },
+    {
+      field: 'gift',
+      title: '赠送金额',
+      width: 'auto',
+    },
+    {
+      field: 'coupon',
+      title: '优惠券金额',
+      width: 'auto',
     },
 
-    ...TABLE_COMMON_COLUMNS as any,
+    ...(TABLE_COMMON_COLUMNS as any),
   ],
   height: 'auto',
   keepSource: true,
   pagerConfig: {},
   exportConfig: {
     filename: '',
-    types: [
-      "csv",
-      "xlsx",
-      "xls"
-    ]
+    types: ['csv', 'xlsx', 'xls'],
   },
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         const params = trimObject(args);
         return await advertiserApi.fetchAdvertiserList({
           page: page.currentPage,
@@ -596,27 +619,27 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   // },
 };
 // 勾选的数组
-const selectedRows = ref<AdvertiserItem[]>([])
+const selectedRows = ref<AdvertiserItem[]>([]);
 const gridEvents = {
-  checkboxChange:({records}:{records:AdvertiserItem[]})=>{
-    selectedRows.value = records
+  checkboxChange: ({ records }: { records: AdvertiserItem[] }) => {
+    selectedRows.value = records;
   },
   //全选事件
-  checkboxAll:({records}:{records:AdvertiserItem[]})=>{
-    selectedRows.value = records
+  checkboxAll: ({ records }: { records: AdvertiserItem[] }) => {
+    selectedRows.value = records;
   },
   //当分页时也需要置灰批量操作按钮
-  proxyQuery:({})=>{
-    selectedRows.value = []
-  }
-}
+  proxyQuery: ({}) => {
+    selectedRows.value = [];
+  },
+};
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions,gridEvents});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents });
 
 function pageReload() {
   gridApi.reload();
   // 在批量操作修改项目后，把数组设置为空，控制按钮置灰
-  selectedRows.value = []
+  selectedRows.value = [];
 }
 async function loadAgentData(platform: string) {
   if (!platform) {
@@ -624,12 +647,12 @@ async function loadAgentData(platform: string) {
     return;
   }
   const res = await advertiserApi.fetchAdvertiserList({
-      page:1,
-      pageSize:1000,
-      platform: platform,
-      advertiserRole: 'proxy'
-    });
-    agentData.value = res.items.map((item: AdvertiserItem) => ({
+    page: 1,
+    pageSize: 1000,
+    platform: platform,
+    advertiserRole: 'proxy',
+  });
+  agentData.value = res.items.map((item: AdvertiserItem) => ({
     label: `${item.advertiserName}-${item.advertiserId}`,
     value: item.id,
   }));
@@ -640,36 +663,31 @@ async function loadAgentData(platform: string) {
   <div>
     <Page auto-content-height>
       <Grid>
-        <template #putStatue="{row}">
+        <template #putStatue="{ row }">
           <Switch :checked="row.putStatue === 1" @click="handlerPutState(row)"></Switch>
         </template>
-        <template #hourlyState="{row}">
+        <template #hourlyState="{ row }">
           <Switch :checked="row.hourlyState === 1" @click="handlerHourlyState(row)"></Switch>
         </template>
         <template #advertiserRole="{ row }">
           <Tag color="red">{{ row.advertiserRoleName }}</Tag>
         </template>
         <template #accessToken="{ row }">
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-          <Button
-          type="link"
-          @click="copyToken(row.accessToken)"
-          >
-            一键复制
-          </Button>
-        </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <Button type="link" @click="copyToken(row.accessToken)"> 一键复制 </Button>
+          </div>
         </template>
 
-        <template #platformStatus="{row}">
+        <template #platformStatus="{ row }">
           <Tag color="green">{{ row.platformStatus }}</Tag>
         </template>
 
-        <template #platformAuditState="{row}">
+        <template #platformAuditState="{ row }">
           <Tag color="orange">{{ row.platformAuditState }}</Tag>
         </template>
-        <template #tagName="{row}">
+        <template #tagName="{ row }">
           <span v-if="!row.tagName">-</span>
-          <Tag v-else color="blue">{{ row.tagName}}</Tag>
+          <Tag v-else color="blue">{{ row.tagName }}</Tag>
         </template>
 
         <template #action="{ row }">
@@ -686,114 +704,81 @@ async function loadAgentData(platform: string) {
             </Button>
             <template #overlay>
               <Menu>
-                <MenuItem>
-                  投放
+                <MenuItem> 投放 </MenuItem>
+                <MenuItem
+                  v-if="row.advertiserRole === 'proxy' || row.advertiserRole === 'bm'"
+                  @click="openImportChildModal(row)"
+                >
+                  {{ $t('core.import') }}
                 </MenuItem>
-                <MenuItem v-if="row.advertiserRole === 'proxy' || row.advertiserRole === 'bm'" @click="openImportChildModal(row)">
-                  {{ $t('core.import')}}
-                </MenuItem>
-                <MenuItem @click="openHistoryModal(row)">
-                  同步历史
-                </MenuItem>
+                <MenuItem @click="openHistoryModal(row)"> 同步历史 </MenuItem>
               </Menu>
             </template>
           </Dropdown>
-
         </template>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>
 
         <template #toolbar-tools>
           <Dropdown trigger="click" placement="bottomCenter">
-            <Button class="mr-2" type="primary" :disabled="selectedRows.length===0">
+            <Button class="mr-2" type="primary" :disabled="selectedRows.length === 0">
               {{ $t('common.batch_options') }}
             </Button>
             <template #overlay>
               <Menu>
                 <SubMenu title="修改项目">
-                  <MenuItem @click="openBatchOptions('edit')">
-                    绑定项目
-                  </MenuItem>
-                  <MenuItem @click="cancelBatchOptions('edit')">
-                    取消绑定
-                  </MenuItem>
+                  <MenuItem @click="openBatchOptions('edit')"> 绑定项目 </MenuItem>
+                  <MenuItem @click="cancelBatchOptions('edit')"> 取消绑定 </MenuItem>
                 </SubMenu>
                 <SubMenu title="修改标签">
-                  <MenuItem @click="openBatchOptions('bind')">
-                    绑定标签
-                  </MenuItem>
-                  <MenuItem @click="cancelBatchOptions('bind')">
-                    取消绑定
-                  </MenuItem>
+                  <MenuItem @click="openBatchOptions('bind')"> 绑定标签 </MenuItem>
+                  <MenuItem @click="cancelBatchOptions('bind')"> 取消绑定 </MenuItem>
                 </SubMenu>
                 <SubMenu title="修改部门">
-                  <MenuItem @click="openBatchOptions('org')">
-                    绑定部门
-                  </MenuItem>
-                  <MenuItem @click="cancelBatchOptions('org')">
-                    取消绑定
-                  </MenuItem>
+                  <MenuItem @click="openBatchOptions('org')"> 绑定部门 </MenuItem>
+                  <MenuItem @click="cancelBatchOptions('org')"> 取消绑定 </MenuItem>
                 </SubMenu>
                 <SubMenu title="修改销售">
-                  <MenuItem @click="openBatchOptions('sale')">
-                    绑定销售
-                  </MenuItem>
-                  <MenuItem @click="cancelBatchOptions('sale')">
-                    取消绑定
-                  </MenuItem>
+                  <MenuItem @click="openBatchOptions('sale')"> 绑定销售 </MenuItem>
+                  <MenuItem @click="cancelBatchOptions('sale')"> 取消绑定 </MenuItem>
                 </SubMenu>
-                <MenuItem  @click="openBatchOptions('creator')">
-                  修改创建人
-                </MenuItem>
-                <MenuItem  @click="openBatchOptions('status')">
-                  修改投放状态
-                </MenuItem>
-                <MenuItem  @click="openBatchOptions('hourlyState')">
-                  修改分时状态
-                </MenuItem>
+                <MenuItem @click="openBatchOptions('creator')"> 修改创建人 </MenuItem>
+                <MenuItem @click="openBatchOptions('status')"> 修改投放状态 </MenuItem>
+                <MenuItem @click="openBatchOptions('hourlyState')"> 修改分时状态 </MenuItem>
               </Menu>
             </template>
           </Dropdown>
           <Button class="mr-2" type="primary" @click="() => openCreateModal()">
             {{ $t('common.create') }}
           </Button>
-          <Button
-            class="mr-2"
-            type="primary"
-            @click="exportAllData"
-          >
+          <Button class="mr-2" type="primary" @click="exportAllData">
             {{ $t('marketing.advertiser.exportAll') }}
           </Button>
-          <Button
-            class="mr-2"
-            type="primary"
-            danger
-            @click="openAuthAccountModal"
-          >
+          <Button class="mr-2" type="primary" danger @click="openAuthAccountModal">
             {{ $t('marketing.advertiser.authAccount') }}
           </Button>
-          <Button
-            @click="openImportModal"
-            class="importBtn"
-          >
-          <template #icon><UploadOutlined /></template>
+          <Button @click="openImportModal" class="importBtn">
+            <template #icon><UploadOutlined /></template>
           </Button>
-
         </template>
       </Grid>
     </Page>
-    <CreateObjectModal @page-reload="pageReload"/>
-    <AuthAccountModal/>
-    <BatchOperationModal @page-reload="pageReload"/>
-    <ImportModal @page-reload="pageReload"/>
-    <ImportChildAdvertiserModal @page-reload="pageReload" :projectOptions="projectOptions" :roleType="roleType"/>
-    <HistoryModal/>
+    <CreateObjectModal @page-reload="pageReload" />
+    <AuthAccountModal />
+    <BatchOperationModal @page-reload="pageReload" />
+    <ImportModal @page-reload="pageReload" />
+    <ImportChildAdvertiserModal
+      @page-reload="pageReload"
+      :projectOptions="projectOptions"
+      :roleType="roleType"
+    />
+    <HistoryModal />
   </div>
 </template>
 
 <style scoped lang="scss">
- :deep(.importBtn) {
+:deep(.importBtn) {
   border-radius: 50% !important;
 }
 </style>
