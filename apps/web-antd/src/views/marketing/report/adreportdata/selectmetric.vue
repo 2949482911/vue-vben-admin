@@ -2,22 +2,32 @@
 import { Page, useVbenModal } from '@vben/common-ui';
 import { onMounted, ref, reactive, watch, nextTick, computed } from 'vue';
 import { metricApi } from '#/api';
-import type { MetricItem,CreateSystemMetric, MetricGroupType} from '#/api/models';
-import { Checkbox, Divider, CheckboxGroup, Space, InputSearch, Button, message, RadioGroup, Radio, } from 'ant-design-vue';
-import { ReloadOutlined, ArrowDownOutlined, ArrowUpOutlined  } from '@ant-design/icons-vue';
+import type { MetricItem, CreateSystemMetric, MetricGroupType } from '#/api/models';
+import {
+  Checkbox,
+  Divider,
+  CheckboxGroup,
+  Space,
+  InputSearch,
+  Button,
+  message,
+  RadioGroup,
+  Radio,
+} from 'ant-design-vue';
+import { ReloadOutlined, ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons-vue';
 import { $t } from '@vben/locales';
 import { useVbenForm } from '#/adapter/form';
 import { trimObject } from '#/utils/trim';
-import { metricGroupApi } from '#/api/core'
+import { metricGroupApi } from '#/api/core';
 const emit = defineEmits(['confirmMetric']);
-const isDataLoading = ref<Boolean>(false)
+const isDataLoading = ref<Boolean>(false);
 // 指标类目列表
-const metricGropList = ref<MetricGroupType[]>([])
+const metricGropList = ref<MetricGroupType[]>([]);
 //接收父组件使用模板传回来的指标回显数组
 const props = defineProps<{
-  selectedMetrics: string[],
-  decimalPoint: number
-}>()
+  selectedMetrics: string[];
+  decimalPoint?: number;
+}>();
 
 // 搜索关键字
 const indicatorValue = ref('');
@@ -34,13 +44,12 @@ const metricList = ref<MetricItem[]>([]);
 const visibleMetricIds = computed(() => {
   const keyword = indicatorValue.value.trim().toLowerCase();
   if (!keyword) {
-    return metricList.value.map(item => item.id);
+    return metricList.value.map((item) => item.id);
   }
   return metricList.value
-    .filter(item => item.cname.toLowerCase().includes(keyword))
-    .map(item => item.id);
+    .filter((item) => item.cname.toLowerCase().includes(keyword))
+    .map((item) => item.id);
 });
-
 
 // 实际用于展示的 checkbox options
 const checkboxOptionTypeList = ref<{ label: string; value: string }[]>([]);
@@ -104,24 +113,22 @@ const [Modal, modalApi] = useVbenModal({
     await modalApi.close();
   },
   async onConfirm() {
-    emit('confirmMetric', state.checkedList,decimalPoint.value);
+    emit('confirmMetric', state.checkedList, decimalPoint.value);
     await modalApi.close();
   },
-  async onOpenChange(isOpen){
+  async onOpenChange(isOpen) {
     if (isOpen) {
       const res = await metricGroupApi.fetchGetMetricGroupList({
         page: 1,
-        pageSize: 1000
-      })
-      metricGropList.value = res.items
+        pageSize: 1000,
+      });
+      metricGropList.value = res.items;
       nextTick(() => {
-        state.checkedList = props.selectedMetrics
-          ? [...props.selectedMetrics]
-          : [];
-          decimalPoint.value = props.decimalPoint
+        state.checkedList = props.selectedMetrics ? [...props.selectedMetrics] : [];
+        decimalPoint.value = props.decimalPoint ?? 4;
       });
     }
-  }
+  },
 });
 const [MetricModal, metricModalApi] = useVbenModal({
   fullscreen: false,
@@ -136,16 +143,16 @@ const [MetricModal, metricModalApi] = useVbenModal({
     try {
       await formApi.submitForm(); // 如果校验失败，这里会抛出错误
       await metricModalApi.close();
-      getMetricList()
+      getMetricList();
     } catch (error) {
       // 校验失败或提交失败，弹窗保持打开，错误已通过 message 提示
       console.error('提交失败', error);
     }
   },
-  async onOpenChange(isOpen){
+  async onOpenChange(isOpen) {
     if (isOpen) {
     }
-  }
+  },
 });
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -154,7 +161,7 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (formVal: Record<string, any>) => {
-  const result = await formApi.validate();
+    const result = await formApi.validate();
     if (!result.valid) throw new Error('表单验证失败');
     const formValues = { ...formVal };
     let finalFormula = '';
@@ -172,7 +179,7 @@ const [Form, formApi] = useVbenForm({
     }
     formValues.formula = finalFormula;
     const params = trimObject(formValues);
-    await metricApi.fetchCreateMetric(params as CreateSystemMetric)
+    await metricApi.fetchCreateMetric(params as CreateSystemMetric);
   },
   schema: [
     {
@@ -215,32 +222,32 @@ const [Form, formApi] = useVbenForm({
       label: $t('marketing.metric.columns.rule'),
       componentProps: {
         onConfirm: handleFormulaConfirm,
-      }
+      },
     },
   ],
 });
 function handleFormulaConfirm(val) {
-  formulaForSubmit.value = val
+  formulaForSubmit.value = val;
 }
 // 拉取指标
-async function getMetricList(metricGroupId: string) {
-  isDataLoading.value = true
-  const dataList:any = await metricApi.fetchMetric({metricGroupId:metricGroupId});
+async function getMetricList(metricGroupId?: string) {
+  isDataLoading.value = true;
+  const dataList: any = await metricApi.fetchMetric({ metricGroupId: metricGroupId });
   metricList.value = dataList;
   updateCheckboxOptions(dataList);
-  isDataLoading.value = false
+  isDataLoading.value = false;
 }
 
 // 根据列表更新 checkbox options
 function updateCheckboxOptions(list: MetricItem[]) {
-  checkboxOptionTypeList.value = list.map(item => ({
+  checkboxOptionTypeList.value = list.map((item) => ({
     label: item.cname,
     value: item.id,
   }));
 }
 function clearAll() {
-  selectdMetricList.value = []
-  state.checkedList = []
+  selectdMetricList.value = [];
+  state.checkedList = [];
 }
 // 实时搜索（核心）
 watch(indicatorValue, (keyword) => {
@@ -250,8 +257,8 @@ watch(indicatorValue, (keyword) => {
     updateCheckboxOptions(metricList.value);
     return;
   }
-  const filteredList = metricList.value.filter(item =>
-    item.cname.toLowerCase().includes(searchText)
+  const filteredList = metricList.value.filter((item) =>
+    item.cname.toLowerCase().includes(searchText),
   );
   updateCheckboxOptions(filteredList);
 });
@@ -271,76 +278,73 @@ watch(
       state.checkAll = false;
       state.indeterminate = true;
     }
-    selectdMetricList.value = metricList.value.filter(item => val.includes(item.id)).map(item => item);
+    selectdMetricList.value = metricList.value
+      .filter((item) => val.includes(item.id))
+      .map((item) => item);
   },
-  { deep: true }
+  { deep: true },
 );
-
 
 // 全选
 const onCheckAllChange = (e: any) => {
-  const currentOptions = checkboxOptionTypeList.value.map(x => x.value);
+  const currentOptions = checkboxOptionTypeList.value.map((x) => x.value);
 
   if (e.target.checked) {
     // ✅ 追加（去重）
-    state.checkedList = Array.from(
-      new Set([...state.checkedList, ...currentOptions])
-    );
+    state.checkedList = Array.from(new Set([...state.checkedList, ...currentOptions]));
   } else {
     // ✅ 只取消“当前搜索结果”里的
-    state.checkedList = state.checkedList.filter(
-      val => !currentOptions.includes(val)
-    );
+    state.checkedList = state.checkedList.filter((val) => !currentOptions.includes(val));
   }
 
   state.indeterminate = false;
 };
-const selectdMetricList = ref<MetricItem[]>([])
-const handleChange = (e:any) => {
-  selectdMetricList.value = metricList.value.filter(item => e.includes(item.id)).map(item => item);
-}
+const selectdMetricList = ref<MetricItem[]>([]);
+const handleChange = (e: any) => {
+  selectdMetricList.value = metricList.value
+    .filter((item) => e.includes(item.id))
+    .map((item) => item);
+};
 const handleInsertMetric = () => {
-  metricModalApi.open()
-}
-const isClickAll = ref<Boolean>(false)
-const currentItem = ref<MetricItem>()
+  metricModalApi.open();
+};
+const isClickAll = ref<Boolean>(false);
+const currentItem = ref<MetricItem>();
 const handleClick = (row: MetricGroupType) => {
   const list = metricGropList.value;
   const targetId = row.id;
-  if(targetId) {
-    isClickAll.value = false
-    currentItem.value = row
-    getMetricList(row.id)
-    metricGropList.value = list.map(item => ({
+  if (targetId) {
+    isClickAll.value = false;
+    currentItem.value = row;
+    getMetricList(row.id);
+    metricGropList.value = list.map((item) => ({
       ...item,
-      isChecked: item.id === targetId
+      isChecked: item.id === targetId,
     }));
   } else {
-    getMetricList()
-    isClickAll.value = true
-    metricGropList.value = list.map(item => ({
+    getMetricList();
+    isClickAll.value = true;
+    metricGropList.value = list.map((item) => ({
       ...item,
-      isChecked: false
+      isChecked: false,
     }));
   }
-
 };
-const dragIndex = ref<number>()
+const dragIndex = ref<number>();
 const handleDragStart = (index: number) => {
-  dragIndex.value = index
-}
+  dragIndex.value = index;
+};
 
 const handleDrop = (dropIndex: number) => {
-  const newList:MetricItem[] = [...selectdMetricList.value]
-  const temp = newList[dragIndex.value]
-  newList[dragIndex.value] = newList[dropIndex]
-  newList[dropIndex] = temp
-  selectdMetricList.value = newList
-}
+  const newList: MetricItem[] = [...selectdMetricList.value];
+  const temp = newList[dragIndex.value];
+  newList[dragIndex.value] = newList[dropIndex];
+  newList[dropIndex] = temp;
+  selectdMetricList.value = newList;
+};
 onMounted(() => {
   getMetricList();
 });
-
 </script>
 
 <template>
@@ -355,17 +359,24 @@ onMounted(() => {
               allowClear
               class="metric-search"
             />
-          <div class="metric-list">
-            <div class="metric-list-item" @click="handleClick" :class="{itemActive:isClickAll}">全部指标</div>
-            <div 
-              class="metric-list-item" 
-              :class="{itemActive:item.isChecked}"  
-              v-for="item in metricGropList" 
-              :key="item.id"  
-              @click="handleClick(item)">
-              {{item.name}}
+            <div class="metric-list">
+              <div
+                class="metric-list-item"
+                @click="handleClick"
+                :class="{ itemActive: isClickAll }"
+              >
+                全部指标
+              </div>
+              <div
+                class="metric-list-item"
+                :class="{ itemActive: item.isChecked }"
+                v-for="item in metricGropList"
+                :key="item.id"
+                @click="handleClick(item)"
+              >
+                {{ item.name }}
+              </div>
             </div>
-          </div>
           </div>
         </div>
         <div class="metric-content-center" v-loading="isDataLoading">
@@ -379,10 +390,10 @@ onMounted(() => {
 
           <Divider />
           <div>
-            <span style="font-size: 12px;" class="mr-5">保留小数位</span>
-            <RadioGroup v-model:value="decimalPoint" class="metric-radio-group"> 
-              <Radio :value=4>4位</Radio>
-              <Radio :value=5>5位</Radio>
+            <span style="font-size: 12px" class="mr-5">保留小数位</span>
+            <RadioGroup v-model:value="decimalPoint" class="metric-radio-group">
+              <Radio :value="4">4位</Radio>
+              <Radio :value="5">5位</Radio>
             </RadioGroup>
           </div>
           <Divider />
@@ -394,159 +405,185 @@ onMounted(() => {
                   :key="item.id"
                   :value="item.id"
                   v-show="visibleMetricIds.includes(item.id)"
-                  
                 >
                   {{ item.cname }}
                 </Checkbox>
               </div>
             </CheckboxGroup>
           </Space>
-          <Button type="link" class="insertMetric flex items-center mt-1" @click="handleInsertMetric" v-if="currentItem?.name.includes('自定义')">
+          <Button
+            type="link"
+            class="insertMetric flex items-center mt-1"
+            @click="handleInsertMetric"
+            v-if="currentItem?.name.includes('自定义')"
+          >
             <template #icon><span class="icon-[mdi--plus] w-5 h-5"></span></template>
             自定义指标
           </Button>
         </div>
         <div class="metric-content-right">
           <div class="header">
-            <div class="header-left">已选{{selectdMetricList.length}}个指标</div>
+            <div class="header-left">已选{{ selectdMetricList.length }}个指标</div>
             <div class="header-right" @click="clearAll">
-              <ReloadOutlined :style="{fontSize: '12px',marginRight: '3px'}" />
+              <ReloadOutlined :style="{ fontSize: '12px', marginRight: '3px' }" />
               <span>清空</span>
             </div>
           </div>
           <div class="tips" v-if="selectdMetricList.length > 1">拖动可自定义指标顺序</div>
           <div class="rightboxList">
-            <div 
-              class="rightboxList-item" 
-              v-for="(item,index) in selectdMetricList" 
+            <div
+              class="rightboxList-item"
+              v-for="(item, index) in selectdMetricList"
               :key="item.id"
-              draggable="true"  
-              @dragstart="handleDragStart(index)"  
-              @dragover.prevent 
-              @drop="handleDrop(index)" 
-              >
-              <ArrowUpOutlined v-if="index == 0"/>
-              <ArrowDownOutlined v-else/>
+              draggable="true"
+              @dragstart="handleDragStart(index)"
+              @dragover.prevent
+              @drop="handleDrop(index)"
+            >
+              <ArrowUpOutlined v-if="index == 0" />
+              <ArrowDownOutlined v-else />
               {{ item.cname }}
             </div>
           </div>
         </div>
       </div>
     </Modal>
-      <!-- 指标选择弹窗（含搜索功能） -->
-      <MetricModal title="新增自定义指标">
-        <Form/>
-      </MetricModal>
+    <!-- 指标选择弹窗（含搜索功能） -->
+    <MetricModal title="新增自定义指标">
+      <Form />
+    </MetricModal>
   </div>
 </template>
 
-
 <style lang="scss" scoped>
-  //指标全选按钮分列排序每行三个，一起三列
-  .metric-content {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: space-around;
-    &-left {
-      width: 18%;
-      border: 1px solid rgb(233, 228, 228);
-      padding: 0 5px;
-      text-align: center;
-      .metric-search {
-        width: 200px;
-        margin-top:10px;
-      }
-      .metric-list {
-        margin-top: 15px;
-        &-item {
-          font-size: 14px;
-          line-height: 30px;
-          margin: 5px auto;
-          cursor: pointer;
-          list-style: none;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-        }
-      }
-      .itemActive {
-        background: hsl(var(--primary)/15%);
-        color: hsl(var(--primary));
-        border-radius: 4px;
-      }
-    }
-    &-center {
-      width: 65%;
-      height: 650px;
-      overflow-y: auto;
-      border: 1px solid rgb(233, 228, 228);
-      padding: 5px;
-      .metric-checkbox-group {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px 16px;
-        }
-      .insertMetric {
-        color: hsl(var(--primary));
-        cursor: pointer;
-        transition: color 0.2s;
-        font-size: 14px;
-        &:hover {
-          color: hsl(var(--primary) / 0.8);
-        }
-      }
-    }
-    &-right {
-      width: 15%;
-      border: 1px solid rgb(233, 228, 228);
-      .header {
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        height: 40px;
-        line-height: 40px;
-        background: hsl(var(--border));;
-        &-left {
-          font-size: 14px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+//指标全选按钮分列排序每行三个，一起三列
+.metric-content {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  height: 100%;
 
-        }
-        &-right {
-          font-size: 14px;
-          color: hsl(var(--primary));
-          text-align: center;
-          cursor: pointer;
-        }
+  &-left {
+    width: 18%;
+    padding: 0 5px;
+    text-align: center;
+    border: 1px solid rgb(233 228 228);
+
+    .metric-search {
+      width: 200px;
+      margin-top: 10px;
+    }
+
+    .metric-list {
+      margin-top: 15px;
+
+      &-item {
+        margin: 5px auto;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+          'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+          'Noto Color Emoji';
+        font-size: 14px;
+        line-height: 30px;
+        cursor: pointer;
+        list-style: none;
       }
-      .tips {
-        font-size: 12px;
-        text-align: center;
-        color: #a8abb2;
-        margin: 10px 0;
-      }
-      .rightboxList {
-        margin-top: 10px;
-        height: 570px;
-        overflow-y: auto;
-        &-item {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          transition: all .3s;
-          cursor: move;
-          margin-left: 8px;
-          border-radius: 2px;
-          margin-right: 8px;
-          line-height: 36px;
-          margin-bottom: 12px;
-          // background: #f7f7f7;
-          border: 1px solid rgb(233, 228, 228);
-          padding: 2px 2px 2px 10px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-          font-size: 14px;
-          user-select: none;
-        }
+    }
+
+    .itemActive {
+      color: hsl(var(--primary));
+      background: hsl(var(--primary) / 15%);
+      border-radius: 4px;
+    }
+  }
+
+  &-center {
+    width: 65%;
+    height: 650px;
+    padding: 5px;
+    overflow-y: auto;
+    border: 1px solid rgb(233 228 228);
+
+    .metric-checkbox-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px 16px;
+    }
+
+    .insertMetric {
+      font-size: 14px;
+      color: hsl(var(--primary));
+      cursor: pointer;
+      transition: color 0.2s;
+
+      &:hover {
+        color: hsl(var(--primary) / 80%);
       }
     }
   }
 
+  &-right {
+    width: 15%;
+    border: 1px solid rgb(233 228 228);
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      height: 40px;
+      line-height: 40px;
+      background: hsl(var(--border));
+
+      &-left {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+          'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+          'Noto Color Emoji';
+        font-size: 14px;
+      }
+
+      &-right {
+        font-size: 14px;
+        color: hsl(var(--primary));
+        text-align: center;
+        cursor: pointer;
+      }
+    }
+
+    .tips {
+      margin: 10px 0;
+      font-size: 12px;
+      color: #a8abb2;
+      text-align: center;
+    }
+
+    .rightboxList {
+      height: 570px;
+      margin-top: 10px;
+      overflow-y: auto;
+
+      &-item {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        padding: 2px 2px 2px 10px;
+        margin-right: 8px;
+        margin-bottom: 12px;
+        margin-left: 8px;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+          'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+          'Noto Color Emoji';
+        font-size: 14px;
+        line-height: 36px;
+        cursor: move;
+        user-select: none;
+        // background: #f7f7f7;
+        border: 1px solid rgb(233 228 228);
+        border-radius: 2px;
+        transition: all 0.3s;
+      }
+    }
+  }
+}
 </style>

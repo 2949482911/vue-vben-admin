@@ -249,6 +249,8 @@ export interface searchDataFilter {
   promotion_id?: string[];
   creative_id?: string[];
   decimalPoint: number;
+  /** 列顺序（field 数组，按用户调整后的顺序排列） */
+  columnOrder?: string[];
 }
 
 /**模板列表数据类型*/
