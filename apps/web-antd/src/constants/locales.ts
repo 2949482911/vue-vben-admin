@@ -460,12 +460,12 @@ export const BEHAVIORA_PLATFORM = [
   },
   {
     label: '南京字节',
-    value: 'nj_bytedance'
+    value: 'nj_bytedance',
   },
   {
     label: '百度网盘',
-    value: 'baidu_box'
-  }
+    value: 'baidu_box',
+  },
 ];
 
 // 匹配下拉
@@ -530,6 +530,10 @@ export const ACTIVE_PLATFORM = [
   {
     label: '华为商店',
     value: 'huawei_store',
+  },
+  {
+    label: '华为',
+    value: 'huawei',
   },
 ];
 
@@ -762,8 +766,8 @@ export const WEEKLIST = [
     label: '星期日',
     value: 7,
   },
-]
-export const DAYLIST = [  
+];
+export const DAYLIST = [
   {
     label: '每月1号',
     value: 1,
@@ -851,7 +855,6 @@ export const DAYLIST = [
   {
     label: '每月22号',
     value: 22,
-
   },
   {
     label: '每月23号',
@@ -880,18 +883,16 @@ export const DAYLIST = [
   {
     label: '每月29号',
     value: 29,
-  
   },
   {
     label: '每月30号',
     value: 30,
-  
   },
   {
-    label: '每月31号',  
+    label: '每月31号',
     value: 31,
   },
-]
+];
 export const TIMELIST = [
   { label: '00:00', value: '00:00' },
   { label: '00:30', value: '00:30' },
@@ -941,4 +942,4 @@ export const TIMELIST = [
   { label: '22:30', value: '22:30' },
   { label: '23:00', value: '23:00' },
   { label: '23:30', value: '23:30' },
-]
+];

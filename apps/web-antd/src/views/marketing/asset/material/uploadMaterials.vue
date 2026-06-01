@@ -10,12 +10,14 @@ import { useOssClient } from './useOssClient';
 import { getFileMeta } from '#/utils/fileMeta';
 import { uploadToOss } from '#/utils/uploadToOss';
 import { uploadEditApi } from '#/api/core';
+import { useUserStore } from '@vben/stores';
 
 const props = defineProps<{
   treeData: FolderItem[];
 }>();
 
 /** ================== 表单 & 文件 ================== */
+const userStore = useUserStore();
 const nameId = ref<string>('');
 const fileList = ref<any[]>([]);
 
@@ -140,7 +142,9 @@ async function doUpload(rawFile: File) {
   try {
     const meta = await getFileMeta(rawFile);
     const ext = rawFile.name.substring(rawFile.name.lastIndexOf('.'));
-    const ossKey = `${meta.fileMd5}${ext}`;
+    const mainId = userStore.userInfo?.mainId;
+    const resourceType = isVideo ? 'video' : 'image';
+    const ossKey = `${mainId}/${resourceType}/${meta.fileMd5}${ext}`;
 
     const client = await useOssClient();
     const result = await uploadToOss(client, rawFile, ossKey);
