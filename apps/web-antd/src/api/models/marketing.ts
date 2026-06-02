@@ -10,6 +10,7 @@ export interface AdvertiserPageRequest extends PageRequestParams {
   putStatus?: number;
   platform?: string;
   putStatue?: number;
+  advertiserRole: string;
 }
 
 /**
@@ -38,6 +39,7 @@ export interface AdvertiserItem extends BaseItem {
   tagId: string;
   accessToken: string;
   hourlyState: number;
+  tagName: string;
 }
 // 拉取历史列表
 export interface HistoryItem extends BaseItem {
@@ -247,6 +249,8 @@ export interface searchDataFilter {
   promotion_id?: string[];
   creative_id?: string[];
   decimalPoint: number;
+  /** 列顺序（field 数组，按用户调整后的顺序排列） */
+  columnOrder?: string[];
 }
 
 /**模板列表数据类型*/
@@ -473,15 +477,15 @@ export interface AdCompanyOptionsType {
   platform: string;
 }
 export interface ExportAllDataType {
-  platform: string;
-  advertiserId: string;
-  advertiserName: string;
-  advertiserRole: string;
-  putStatue: number;
-  projectId: string;
-  parentId: string;
-  ids: string;
-  hourlyState: number;
+  platform?: string;
+  advertiserId?: string;
+  advertiserName?: string;
+  advertiserRole?: string;
+  putStatue?: number;
+  projectId?: string;
+  parentId?: string;
+  ids?: string;
+  hourlyState?: number;
 }
 /**营销-资产-标题包查询 */
 export interface GetTitlePackType {
@@ -700,6 +704,10 @@ export interface ReportSubscriptionItem {
   config: searchDataFilter;
   subscribeDateTimeRange: [string, string];
   pushConfig: Record<string, string[]>[];
+  sendDateTime: string[];
+  weeks: number[];
+  days: number[];
+  dayRange: number;
 }
 export interface UpdateSubscribeType extends ReportSubscriptionItem {
   id: string;
@@ -736,4 +744,130 @@ export interface LandingPageData extends BaseItem {
   config: {
     pageUrl: string;
   };
+}
+
+export interface AdManagementType {
+  page?: number;
+  pageSize?: number;
+  level: string;
+  filters?: ReportFilter[];
+}
+
+export interface AdManagementDetailType {
+  targetId: string;
+  platform: string;
+  level: string;
+}
+
+export interface CampaignItem {
+  advertiserId: string;
+  campaignCreateTime: string;
+  campaignId: string;
+  campaignName: string;
+  deleted: number;
+  platform: string;
+  state: number;
+}
+
+export interface AdGroupItem {
+  adgroupCreateTime: string;
+  adgroupId: string;
+  adgroupName: string;
+  advertiserId: string;
+  campaignId: string;
+  deleted: number;
+  endDate: string;
+  platform: string;
+  price: number;
+  startDate: string;
+  state: number;
+}
+
+export interface PromotionItem {
+  adgroupId: string;
+  advertiserId: string;
+  campaignId: string;
+  deleted: number;
+  platform: string;
+  promotionCreateTime: string;
+  promotionId: string;
+  promotionName: string;
+  state: number;
+}
+
+export interface Vivo_campaignDetailItem extends public_campaignDetailItem {
+  activityId: number;
+  adType: string;
+  campaignType: number;
+  conversionMonitorType: number;
+  dailyBudget: number;
+  dailyBudgetState: number;
+  mediaType: number;
+  optimizeFlag: number;
+  pauseState: number;
+  pauseTime: string;
+  promotionType: number;
+}
+
+export interface Oppo_campaignDetailItem extends public_campaignDetailItem {
+  budgetLimit: number;
+  campaign_update_time: string;
+  deliveryMode: number;
+  deliveryModeName: string;
+  pacingStatus: number;
+  showStatus: number;
+  showStatusName: string;
+  state: number;
+  statusName: string;
+  subShowStatusName: string;
+}
+
+export interface public_campaignDetailItem {
+  advertiserId: string;
+  campaignCreateTime: string;
+  campaignId: number;
+  campaignName: string;
+  deleted: number;
+  update_ut: string;
+}
+
+export interface oppo_regionalMetadata {
+  queryType: number;
+  areaIds?: string;
+  advertiserId: string[];
+}
+
+export interface oppo_modelMetadata {
+  advertiserId: string[];
+}
+
+export interface PhoneSeriesItem {
+  id: number;
+  name: string;
+  parentId: number | null;
+  width: number | null;
+  height: number | null;
+  series: string | null;
+  fseries: string | null;
+}
+
+export interface IndustryTag {
+  comments: string;
+  delStatus: number;
+  id: number;
+  level: number;
+  name: string;
+  pid: number;
+}
+
+export interface UnionAppsTag {
+  id: string;
+  name: string;
+  platform: string;
+  platformName: string;
+}
+
+export interface WeatherShowListType {
+  weatherCode: string;
+  weatherName: string;
 }

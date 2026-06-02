@@ -151,6 +151,7 @@ export interface OcpxBehavioracallbackRecordPageRequest extends PageRequestParam
 
 // ocpx 执行 任务记录
 export interface OcpxBehavioracallbackRecordItem extends BaseItem {
+  recordType:string;
   taskId: string;
   behaviorPlatformId: string;
   behaviorPlatformName: string;
@@ -261,6 +262,7 @@ export interface CallbackClickReordListItem extends PageRequestParams {
   createTime: string;
 }
 export interface OcpxCallbackRecordItem {
+  recordType:string;
   behaviorPlatformId: string;
   taskId: number;
   callbackStatus: number;

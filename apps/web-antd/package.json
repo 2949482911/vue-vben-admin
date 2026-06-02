@@ -55,6 +55,6 @@
     "axios": "catalog:",
     "vxe-pc-ui": "catalog:",
     "vxe-table": "catalog:",
-    "vxe-table-plugin-export-xlsx": "^4.0.7"
+    "vxe-table-plugin-export-xlsx": "catalog:"
   }
 }

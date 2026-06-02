@@ -1062,6 +1062,14 @@ function handleSetFormValue(
   });
   callbackPlatform.value = row.platform;
   editEventMappingRules.value = row.eventMappingRules ?? [];
+  eventMappingRules.value = row.eventMappingRules?.map(item => {
+    return {
+      behaviorPlatformId: item.behaviorPlatformId,
+      behaviorPlatform: item.behaviorPlatform,
+      behaviorEventTypes: item.behaviorEventTypes.map(el => el.value),
+      callbackEventType: item.callbackEventType.value
+    }
+  })
   configFormApi.setState((_) => {
     return {
       schema: platformConfigForm.get(row.platform),

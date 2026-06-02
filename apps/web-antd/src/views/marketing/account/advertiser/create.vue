@@ -19,7 +19,7 @@ const emit = defineEmits(['pageReload']);
 const objectRequest = ref<AdvertiserItem>({
   config: new Map<string, any>(),
   projectId: '',
-  putStatus: 0,
+  putStatue: 0,
   advertiserId: '',
   advertiserName: '',
   advertiserRole: '',
@@ -287,7 +287,7 @@ const [Form, formApi] = useVbenForm({
       },
       defaultValue: 9,
       // 字段名
-      fieldName: 'putStatus',
+      fieldName: 'putStatue',
       label: `${$t('marketing.advertiser.columns.putStatue')}`,
     },
     {
@@ -340,7 +340,7 @@ const [Modal, modalApi] = useVbenModal({
     objectRequest.value = {
       config: new Map<string, any>(),
       projectId: '',
-      putStatus: 0,
+      putStatue: 0,
       advertiserId: '',
       advertiserName: '',
       customer: '',

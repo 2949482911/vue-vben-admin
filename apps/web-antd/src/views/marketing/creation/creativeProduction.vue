@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVbenModal } from '@vben/common-ui';
 import { onMounted, ref } from 'vue';
-import { Button, TabPane, Tabs } from 'ant-design-vue';
+import { Button, TabPane, Tabs, Input } from 'ant-design-vue';
 import { CloseCircleFilled, CloseOutlined, DownOutlined, UpOutlined } from '@ant-design/icons-vue';
 import selMaterial from './selMaterial.vue';
 import type {
@@ -11,26 +11,31 @@ import type {
   MaterialData,
 } from '#/views/marketing/creation/creation';
 
-const { accountInfo, imageMaxCount, videoMaxCount, distributionMode, material } = defineProps({
-  imageMaxCount: { type: Number, default: 5 },
-  videoMaxCount: { type: Number, default: 5 },
-  distributionMode: { type: String, default: 'all' },
-  accountInfo: {
-    type: Array as () => AccountInfo[],
-    default: () => [],
-  },
-  material: {
-    type: Object,
-    default: () => {
-      return {
-        config: {
-          method: 'all',
-        },
-        data: new Map<string, Material>(),
-      };
+const { accountInfo, imageMaxCount, videoMaxCount, distributionMode, material, showBrandName } =
+  defineProps({
+    imageMaxCount: { type: Number, default: 5 },
+    videoMaxCount: { type: Number, default: 5 },
+    distributionMode: { type: String, default: 'all' },
+    accountInfo: {
+      type: Array as () => AccountInfo[],
+      default: () => [],
     },
-  },
-});
+    material: {
+      type: Object,
+      default: () => {
+        return {
+          config: {
+            method: 'all',
+          },
+          data: new Map<string, Material>(),
+        };
+      },
+    },
+    showBrandName: {
+      type: Boolean,
+      default: false,
+    },
+  });
 
 //临时变量
 const cacheAllData = ref<Map<string, Material[]>>(new Map());
@@ -50,6 +55,7 @@ const localMaterialData = ref<MaterialData>({
           video: [],
           active: 'video',
           isExpanded: true,
+          brandName: '',
         },
       ],
     ],
@@ -107,7 +113,9 @@ function initLocalMaterialData(mode: string) {
   if (mode === 'all') {
     if (cacheAllData.value.size === 0) {
       // 只有第一次进入或真正需要重置时才初始化
-      cacheAllData.value.set('0', [{ image: [], video: [], active: 'video', isExpanded: true }]);
+      cacheAllData.value.set('0', [
+        { image: [], video: [], active: 'video', isExpanded: true, brandName: '' },
+      ]);
     }
     // 切换当前显示引用
     localMaterialData.value.data = cacheAllData.value;
@@ -116,7 +124,7 @@ function initLocalMaterialData(mode: string) {
     if (cacheAccountData.value.size === 0) {
       accountInfo.forEach((x) => {
         cacheAccountData.value.set(x.localAdvertiserId, [
-          { image: [], video: [], active: 'video', isExpanded: true },
+          { image: [], video: [], active: 'video', isExpanded: true, brandName: '' },
         ]);
       });
     }
@@ -148,6 +156,7 @@ async function addMaterial2LocalMaterialData(
     video: [],
     active: materialType,
     isExpanded: true,
+    brandName: '',
   };
   if (materialType === 'image') {
     tempMaterial.image.push(...materialList);
@@ -165,6 +174,8 @@ const [SelMaterialModule, modalApi] = useVbenModal({
       if (materialList) {
         localMaterialData.value.config.method = distributionMode;
         await addMaterial2LocalMaterialData(materialType, currentGroupIndex, materialList);
+        // 如果已配置分配规则，素材选完后自动按规则重新分配
+        applyCreativeRule();
       }
     }
   },
@@ -172,28 +183,31 @@ const [SelMaterialModule, modalApi] = useVbenModal({
 
 /** 打开素材弹框 */
 async function openModal(type: 'image' | 'video', groupIndex: number) {
-  // 1. 确定账户 Key
+  // 如果已配置分配规则，不限制单组配额（选完后统一分配）
+  if (hasCreativeRule.value) {
+    modalApi.setData({
+      type: type,
+      groupIndex: groupIndex,
+      remainingQuota: 999,
+    });
+    modalApi.open();
+    return;
+  }
+
+  // 默认模式：按组配额限制
   const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : '0';
-
-  // 2. 获取当前账户下的所有创意组
   const groups = localMaterialData.value.data.get(key) || [];
-
-  // 3. 找到当前正在操作的那一个创意组
   const targetGroup = groups[groupIndex];
-
   if (!targetGroup) return;
 
-  // 4. 计算该组内已有的素材数量
   const currentCount = type === 'image' ? targetGroup.image.length : targetGroup.video.length;
-
-  // 5. 计算剩余配额 (例如：5 - 4 = 1)
   const maxLimit = type === 'image' ? imageMaxCount : videoMaxCount;
   const remainingQuota = maxLimit - currentCount;
 
   modalApi.setData({
     type: type,
     groupIndex: groupIndex,
-    remainingQuota: remainingQuota, // 关键：传给子组件的是还能选几个
+    remainingQuota: remainingQuota,
   });
 
   modalApi.open();
@@ -208,6 +222,7 @@ const addGroup = () => {
       video: [],
       active: 'video',
       isExpanded: true,
+      brandName: '',
     });
     localMaterialData.value.data.set('0', materialList);
   } else {
@@ -218,6 +233,7 @@ const addGroup = () => {
       video: [],
       active: 'video',
       isExpanded: true,
+      brandName: '',
     });
     localMaterialData.value.data.set(currentCreativeAccountId.value, materialList);
   }
@@ -286,11 +302,13 @@ const clearAllAssets = () => {
       video: [],
       active: 'video',
       isExpanded: true,
+      brandName: '',
     },
   ];
 
-  // 4. 更新 Map 数据（使用解构确保响应式）
   localMaterialData.value.data.set(key, initialGroup);
+  // 清空素材时同时清除分配规则
+  clearCreativeRule();
 };
 
 const checkAccountHasData = (accountId: string | number) => {
@@ -307,6 +325,143 @@ function showControls(event: Event) {
 function hideControls(event: Event) {
   const video = event.target as HTMLVideoElement;
   video.controls = false;
+}
+
+//----------创意分配规则----------
+const creativeTeamNum = ref<number>();
+const selectedCreativeTeamRule = ref('targeting');
+// 是否已配置分配规则
+const hasCreativeRule = ref(false);
+// 规则生成的组数（用于区分规则组和手动添加的组）
+const ruleGroupCount = ref(0);
+// 规则选项数据
+const creativeTeamRules = [
+  { title: '按照创意素材数量生成', desc: '创意素材数量与创意组数量相等', key: 'targeting' },
+  { title: '自定义创意组数量', desc: '手动指定创意组数量', key: 'custom' },
+];
+
+/** 收集当前账户下所有图片和视频素材，可指定只收集前 maxGroups 个创意组 */
+function collectAllAssets(maxGroups?: number): {
+  images: LocalMaterialData[];
+  videos: LocalMaterialData[];
+} {
+  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : '0';
+  const groups = localMaterialData.value.data.get(key) || [];
+  const images: LocalMaterialData[] = [];
+  const videos: LocalMaterialData[] = [];
+  const limit = maxGroups !== undefined ? Math.min(maxGroups, groups.length) : groups.length;
+  for (let i = 0; i < limit; i++) {
+    const group = groups[i];
+    if (group) {
+      images.push(...group.image);
+      videos.push(...group.video);
+    }
+  }
+  return { images, videos };
+}
+
+/** 将素材按循环分配规则放入 N 个创意组 */
+function distributeToGroups(
+  images: LocalMaterialData[],
+  videos: LocalMaterialData[],
+  groupCount: number,
+): Material[] {
+  const count = Math.max(1, groupCount);
+  const groups: Material[] = Array.from({ length: count }, () => ({
+    image: [],
+    video: [],
+    active: images.length > 0 || videos.length > 0 ? 'video' : 'video',
+    isExpanded: true,
+    brandName: '',
+  }));
+
+  images.forEach((img, i) => {
+    groups[i % count]!.image.push(img);
+  });
+
+  videos.forEach((vid, i) => {
+    groups[i % count]!.video.push(vid);
+  });
+
+  return groups;
+}
+
+/** 应用创意分配规则：只重新分配规则范围内的素材，手动添加的组保持不变 */
+function applyCreativeRule() {
+  if (!hasCreativeRule.value) return;
+
+  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : '0';
+  const existingGroups = localMaterialData.value.data.get(key) || [];
+
+  // 确定本次要生成的规则组数
+  let groupCount: number;
+  if (selectedCreativeTeamRule.value === 'custom') {
+    groupCount = creativeTeamNum.value ?? 1;
+    if (groupCount < 1) groupCount = 1;
+  } else {
+    // 按素材数量：只统计规则范围内的素材
+    const scope = ruleGroupCount.value > 0 ? ruleGroupCount.value : existingGroups.length;
+    const stats = collectAllAssets(scope);
+    groupCount = Math.max(1, stats.images.length + stats.videos.length);
+  }
+
+  // 收集规则范围内的素材
+  const scope = ruleGroupCount.value > 0 ? ruleGroupCount.value : existingGroups.length;
+  const { images, videos } = collectAllAssets(scope);
+  const totalCount = images.length + videos.length;
+
+  // 首次运行且无素材时不做分配
+  if (totalCount === 0 && ruleGroupCount.value === 0) return;
+
+  // 保留手动添加的组（超出规则范围的部分）
+  const keepFrom = ruleGroupCount.value > 0 ? ruleGroupCount.value : existingGroups.length;
+  const manualGroups = existingGroups.slice(keepFrom);
+
+  // 按规则重新分配
+  const newGroups = distributeToGroups(images, videos, groupCount);
+  ruleGroupCount.value = groupCount;
+
+  localMaterialData.value.data.set(key, [...newGroups, ...manualGroups]);
+}
+
+/** 保存分配规则配置，同时清空素材回到初始空创意组 */
+function saveCreativeRule() {
+  clearAllAssets();
+  hasCreativeRule.value = true;
+  creativeModalApi.close();
+}
+
+/** 清除分配规则，恢复手动模式 */
+function clearCreativeRule() {
+  hasCreativeRule.value = false;
+  ruleGroupCount.value = 0;
+}
+
+const [CreativeAllocationModal, creativeModalApi] = useVbenModal({
+  async onConfirm() {
+    saveCreativeRule();
+  },
+  async onCancel() {
+    creativeModalApi.close();
+  },
+  async onOpenChange(isOpen) {
+    if (isOpen) {
+      // 只有"按素材数量"模式才自动计算，自定义模式保留用户之前输入的值
+      if (selectedCreativeTeamRule.value !== 'custom') {
+        const { images, videos } = collectAllAssets();
+        creativeTeamNum.value = Math.max(1, images.length + videos.length);
+      }
+    }
+  },
+});
+
+/** 切换分配规则类型 */
+function switchCreativeTeamRule(key: string) {
+  selectedCreativeTeamRule.value = key;
+}
+
+async function openCreativeAllocation() {
+  creativeModalApi.open();
 }
 </script>
 
@@ -338,7 +493,12 @@ function hideControls(event: Event) {
             >{{ localMaterialData.data.get(currentCreativeAccountId)?.length || 0 }}/200</span
           >
         </div>
-        <Button type="primary" danger @click="clearAllAssets">清空</Button>
+        <div>
+          <Button type="primary" style="margin: 0 8px 0 0" @click="openCreativeAllocation()">
+            {{ hasCreativeRule ? '分配规则(已设置)' : '创意素材分配规则' }}
+          </Button>
+          <Button type="primary" danger @click="clearAllAssets">清空</Button>
+        </div>
       </div>
 
       <div
@@ -377,14 +537,13 @@ function hideControls(event: Event) {
                   class="asset-item uploaded"
                 >
                   <div class="img-box">
-                    <video 
-                      :src="v.url" 
+                    <video
+                      :src="v.url"
                       preload="metadata"
                       class="w-full h-full object-cover"
                       @mouseenter="showControls($event)"
                       @mouseleave="hideControls($event)"
-                      >
-                    </video>
+                    ></video>
                     <CloseCircleFilled
                       class="remove-btn"
                       @click="removeAsset(index, 'video', vIdx)"
@@ -445,6 +604,16 @@ function hideControls(event: Event) {
             </TabPane>
           </Tabs>
         </div>
+        <div v-if="showBrandName" class="brand-name-input ml-5 mb-5">
+          <span>品牌名称：</span>
+          <Input
+            v-model:value="group.brandName"
+            placeholder="请输入品牌名称"
+            :maxlength="100"
+            allow-clear
+            class="!w-[200px]"
+          />
+        </div>
       </div>
 
       <div class="footer-action">
@@ -452,6 +621,30 @@ function hideControls(event: Event) {
       </div>
     </div>
     <SelMaterialModule />
+    <CreativeAllocationModal class="w-150" title="创意素材分配规则"
+      ><div class="rule-container">
+        <div class="rule-section">
+          <div class="label">创意素材分配规则</div>
+          <div class="options-grid">
+            <div
+              v-for="item in creativeTeamRules"
+              :key="item.key"
+              class="option-card"
+              :class="{ active: selectedCreativeTeamRule === item.key }"
+              @click="switchCreativeTeamRule(item.key)"
+            >
+              <div class="option-title">{{ item.title }}</div>
+              <div class="option-desc">{{ item.desc }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="selectedCreativeTeamRule === 'custom'" class="input-row">
+          <div class="label">创意组数量</div>
+          <Input v-model:value="creativeTeamNum" style="width: 200px" placeholder="请输入数量" />
+        </div>
+      </div>
+    </CreativeAllocationModal>
   </div>
 </template>
 
@@ -510,6 +703,15 @@ function hideControls(event: Event) {
 
 .group-content {
   padding: 0 15px 15px;
+}
+
+/* 品牌名称输入框样式 */
+.brand-name-input {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 14px;
 }
 
 /* 素材网格布局 */
@@ -720,5 +922,71 @@ function hideControls(event: Event) {
   color: #fff !important; /* 强制白色文字覆盖蓝色 */
   background-color: #006be6;
   opacity: 1;
+}
+
+.rule-container {
+  padding: 10px;
+
+  .rule-section {
+    display: flex;
+    margin-bottom: 20px;
+
+    .label {
+      flex-shrink: 0;
+      width: 120px;
+      padding-top: 10px;
+      font-size: 14px;
+    }
+
+    .options-grid {
+      display: flex;
+      flex: 1;
+      gap: 12px;
+    }
+  }
+
+  .option-card {
+    flex: 1;
+    padding: 12px;
+    cursor: pointer;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    transition: all 0.3s;
+
+    &:hover {
+      border-color: #006be6;
+    }
+
+    &.active {
+      border-color: #006be6;
+
+      .option-title {
+        color: #006be6;
+      }
+    }
+
+    .option-title {
+      margin-bottom: 4px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .option-desc {
+      font-size: 12px;
+      line-height: 1.4;
+      color: #999;
+    }
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    margin: -10px 0 20px 100px;
+
+    .label {
+      margin-right: 12px;
+      font-size: 13px;
+    }
+  }
 }
 </style>

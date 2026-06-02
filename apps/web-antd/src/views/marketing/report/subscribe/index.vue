@@ -50,11 +50,6 @@ const formOptions: VbenFormProps = {
 const gridOptions: VxeGridProps<ReportSubscriptionItem> = {
   columns: [
     {
-      field: 'id',
-      title: `${$t('marketing.report.subscribe.id')}`,
-      width: 'auto',
-    },
-    {
       field: 'name',
       title: `${$t('marketing.report.subscribe.name')}`,
       width: 'auto',

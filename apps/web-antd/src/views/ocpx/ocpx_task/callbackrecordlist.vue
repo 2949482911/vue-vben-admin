@@ -55,6 +55,18 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      // 字段名
+      fieldName: 'adgroupId',
+      // 界面显示的label
+      label: '广告组ID',
+    },
+    {
       component: 'ApiSelect',
       fieldName: 'behaviorPlatformId',
       label: `${$t('ocpx.ocpx_task.behavior_record_columns.behaviorPlatformName')}`,
@@ -157,6 +169,10 @@ const gridOptions: VxeGridProps<OcpxCallbackRecordItem> = {
       title: `${$t('ocpx.ocpx_task.callback_record_columns.platform')}`,
     },
     {
+      field: 'adgroupId',
+      title: '广告组ID',
+    },
+    {
       field: 'eventType',
       title: `${$t('ocpx.ocpx_task.callback_record_columns.eventType')}`,
       slots: { default: 'eventType' },
@@ -164,6 +180,7 @@ const gridOptions: VxeGridProps<OcpxCallbackRecordItem> = {
     {
       field: 'recordType',
       title: '记录类型',
+      slots: { default: 'recordType' },
     },
     {
       field: 'requestId',
@@ -312,6 +329,9 @@ function pageReload() {
           </template>
           <template #eventType="{ row }">
             <Tag color="blue">{{ getTypeLabel(row.eventType) }}</Tag>
+          </template>
+          <template #recordType="{ row }">
+            <Tag :color="row.recordType==='系统回传'?'blue':(row.recordType==='补量'?'green':'red')">{{ row.recordType }}</Tag>
           </template>
         </Grid>
       </Page>

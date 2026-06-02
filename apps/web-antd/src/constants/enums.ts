@@ -53,7 +53,10 @@ export enum Platform {
   SOUL = 'soul',
   VPH = 'vph',
   TENCENT_MINI_APP = 'tencent_mini_app',
-  SOUL_DSP = 'soul_dsp'
+  SOUL_DSP = 'soul_dsp',
+  CAINIAO = 'cainiao',
+  NJ_BYTEDANCE = 'nj_bytedance',
+  BAIDU_BOX = 'baidu_box'
 }
 
 export enum RuleType {

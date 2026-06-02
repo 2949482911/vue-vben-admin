@@ -15,7 +15,7 @@ export interface BaseItem {
   status: number;
   createdBy: string;
   updatedBy: string;
-  _X_ROW_KEY: string;
+  _X_ROW_KEY?: string;
 }
 
 export interface DeleteItem {

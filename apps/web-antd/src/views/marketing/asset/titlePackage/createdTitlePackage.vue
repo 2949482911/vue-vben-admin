@@ -16,27 +16,29 @@ const [titlePackageModal, modalApi] = useVbenModal({
   async onConfirm() {
     const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
-    const formValue = await formApi.getValues()
+    const formValue = await formApi.getValues();
     const formattedData = {
       title: formValue.title,
       platform: formValue.platform,
       projectId: formValue.projectId,
       config: {
-        pushSubTitle: formValue.pushSubTitle?.split('\n').filter((item: string) => item.trim() !== '') || [],
-        subTitle: formValue.subTitle?.split('\n').filter((item: string) => item.trim() !== '') || []
-      }
+        pushSubTitle:
+          formValue.pushSubTitle?.split('\n').filter((item: string) => item.trim() !== '') || [],
+        subTitle:
+          formValue.subTitle?.split('\n').filter((item: string) => item.trim() !== '') || [],
+      },
     };
-    try{
+    try {
       const params = trimObject(formattedData);
       await titlePackApi.fetchNewTitlePack(params);
       await formApi.resetForm();
       await modalApi.close();
       emit('pageReload');
-      message.success("添加成功！")
-    }catch(err){
-      console.log(err)
+      message.success('添加成功！');
+    } catch (err) {
+      console.log(err);
     }
   },
 });
@@ -56,7 +58,7 @@ const [Form, formApi] = useVbenForm({
         allowClear: true,
         showSearch: true,
         placeholder: '请选择',
-        api: async (params:any) => {
+        api: async (params: any) => {
           return await projectApi.fetchProjectList(params);
         },
         filterOption: (inputValue: string, option: { label: string }) => {
@@ -81,14 +83,14 @@ const [Form, formApi] = useVbenForm({
         placeholder: '请输入',
       },
       fieldName: 'title',
-      label: '标题名称',
+      label: '标题',
       rules: 'required',
     },
     {
-      component: "Select",
+      component: 'Select',
       componentProps: {
         allowClear: true,
-        options:ACTIVE_PLATFORM,
+        options: ACTIVE_PLATFORM,
         placeholder: '请选择',
       },
       fieldName: 'platform',
@@ -119,14 +121,11 @@ const [Form, formApi] = useVbenForm({
     },
   ],
 });
-
 </script>
 <template>
   <titlePackageModal title="添加标题包">
-    <Form/>
+    <Form />
   </titlePackageModal>
 </template>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

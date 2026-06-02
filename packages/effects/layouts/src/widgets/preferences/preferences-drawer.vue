@@ -178,6 +178,7 @@ const widgetThemeToggle = defineModel<boolean>('widgetThemeToggle');
 const widgetSidebarToggle = defineModel<boolean>('widgetSidebarToggle');
 const widgetLockScreen = defineModel<boolean>('widgetLockScreen');
 const widgetRefresh = defineModel<boolean>('widgetRefresh');
+const widgetTimezone = defineModel<boolean>('widgetTimezone');
 
 const {
   customPreferences,
@@ -282,8 +283,8 @@ async function handleCopy() {
 }
 
 async function handleClearCache() {
-  resetPreferences();
-  clearCache();
+  await resetPreferences();
+  await clearCache();
   emit('clearPreferencesAndLogout');
 }
 
@@ -291,7 +292,7 @@ async function handleReset() {
   if (!mergedDiffPreference.value) {
     return;
   }
-  resetPreferences();
+  await resetPreferences();
   await loadLocaleMessages(preferences.app.locale);
 }
 
@@ -485,6 +486,7 @@ function handleCustomPreferencesUpdate(updates: CustomPreferencesRecord) {
                 v-model:widget-refresh="widgetRefresh"
                 v-model:widget-sidebar-toggle="widgetSidebarToggle"
                 v-model:widget-theme-toggle="widgetThemeToggle"
+                v-model:widget-timezone="widgetTimezone"
               />
             </Block>
             <Block :title="$t('preferences.footer.title')">

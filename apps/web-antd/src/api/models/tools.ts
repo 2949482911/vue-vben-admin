@@ -1,22 +1,22 @@
-import type {BaseItem} from "#/api/models/core";
+import type { BaseItem } from '#/api/models/core';
 /**穿山甲商品查询 */
 export interface CreateSystemMetric {
-  page: number,
-  pageSize: number,
-  appId: string,
-  appSecret: string,
-  title: string,
-  priceMin: number,
-  priceMax: number,
-  sellNumMin: number,
-  sellNumMax: number,
-  searchType: number,
-  orderType: number,
-  cosFeeMin: number,
-  cosFeeMax: number,
-  cosRatioMin: number,
-  cosRatioMax: number,
-  activityId: number
+  page: number;
+  pageSize: number;
+  appId: string;
+  appSecret: string;
+  title: string;
+  priceMin: number;
+  priceMax: number;
+  sellNumMin: number;
+  sellNumMax: number;
+  searchType: number;
+  orderType: number;
+  cosFeeMin: number;
+  cosFeeMax: number;
+  cosRatioMin: number;
+  cosRatioMax: number;
+  activityId: number;
 }
 
 /**穿山甲商品列表 */
@@ -44,15 +44,23 @@ export interface ProductPangolinItem {
 }
 
 /**工具-下载中心列表 */
-export interface DownloadCenterItem extends BaseItem{
+export interface DownloadCenterItem extends BaseItem {
   name: string;
   type: string;
+  taskState: number;
   downloadUrl: string;
 }
 /**工具-下载中心列表-查询参数 */
-export interface GetDownloadCenterItem extends BaseItem{
+export interface GetDownloadCenterItem extends BaseItem {
   name: string;
   type: string;
   taskState: string;
   createUsername: string;
+}
+// 工具-导出RTA数据
+export interface ExportRTADataItem {
+  timeRange: string[];
+  toMediaType: string;
+  fromMediaType: string;
+  type: string;
 }

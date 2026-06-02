@@ -127,6 +127,11 @@ const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
           if (group) {
             group.name = newName;
           }
+        } else if (field === 'groupOcpxPrice') {
+          const group = campaign.adgroupList[adGroupIdx];
+          if (group) {
+            group.ocpxPrice = Number(newName) * 100000;
+          }
         } else if (
           field === 'promoName' ||
           field === 'deepLink' ||
@@ -181,6 +186,13 @@ const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
           ) {
             r.groupName = newName;
           }
+          if (
+            field === 'groupOcpxPrice' &&
+            r.campaignIdx === campaignIdx &&
+            r.adGroupIdx === adGroupIdx
+          ) {
+            r.groupOcpxPrice = newName || '-';
+          }
           if (r.advertiserId === advertiserId && r.submitIndex === submitIndex) {
             // 只要是广告层级的修改，都只针对 submitIndex 匹配的这一行
             if (field === 'promoName') {
@@ -208,7 +220,14 @@ const [CustomizeNameModal, customizeNamemodalApi] = useVbenModal({
 
 function handleEditName(
   row: CampaignData,
-  field: 'campaignName' | 'groupName' | 'promoName' | 'deepLink' | 'clickLink' | 'exposureLink',
+  field:
+    | 'campaignName'
+    | 'groupName'
+    | 'promoName'
+    | 'deepLink'
+    | 'clickLink'
+    | 'exposureLink'
+    | 'groupOcpxPrice',
 ) {
   if (field === 'deepLink') {
     editingTitle.value = '修改deepLink链接';
@@ -222,10 +241,13 @@ function handleEditName(
   } else if (field === 'exposureLink') {
     editingTitle.value = '修改曝光链接';
     editingText.value = '曝光链接';
+  } else if (field === 'groupOcpxPrice') {
+    editingTitle.value = '修改转化出价';
+    editingText.value = '转化出价';
   }
   editingRow.value = row;
   editingField.value = field;
-  tempName.value = row[field] || ''; // 根据字段获取初始值
+  tempName.value = field === 'groupOcpxPrice' ? String(row.groupOcpxPrice) : row[field] || ''; // 根据字段获取初始值
   customizeNamemodalApi.open();
 }
 
@@ -361,37 +383,59 @@ const handleSpanMethod = ({
 // 辅助渲染函数，减少冗余代码
 const renderEditCell = (
   row: CampaignData,
-  field: 'campaignName' | 'groupName' | 'promoName' | 'deepLink' | 'clickLink' | 'exposureLink',
+  field:
+    | 'campaignName'
+    | 'groupName'
+    | 'promoName'
+    | 'deepLink'
+    | 'clickLink'
+    | 'exposureLink'
+    | 'groupOcpxPrice',
 ) => {
-  return h('div', { class: 'edit-cell-wrapper' }, [
-    // 文本容器
-    h(
-      'span',
-      {
-        style:
-          field === 'deepLink' || field === 'clickLink' || field === 'exposureLink'
+  // 如果是链接类型的字段，我们提供更强力的折行样式
+  const isLinkField = ['deepLink', 'clickLink', 'exposureLink'].includes(field);
+
+  return h(
+    'div',
+    {
+      // 外层 wrapper 用 flex 布局限制，防止图标被挤掉
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+      },
+    },
+    [
+      // 文本容器
+      h(
+        'span',
+        {
+          style: isLinkField
             ? {
                 display: '-webkit-box',
                 '-webkit-box-orient': 'vertical',
-                '-webkit-line-clamp': '3',
+                '-webkit-line-clamp': '1',
                 overflow: 'hidden',
-                'word-break': 'break-all',
+                wordBreak: 'break-all',
+                whiteSpace: 'normal',
+                flex: 1,
               }
             : {},
-      },
-      row[field],
-    ),
-    // 修改图标
-    h(
-      Button,
-      {
-        type: 'link',
-        size: 'small',
-        onClick: () => handleEditName(row, field),
-      },
-      { default: () => '📝' },
-    ),
-  ]);
+        },
+        row[field],
+      ),
+      // 修改图标
+      h(
+        Button,
+        {
+          type: 'link',
+          size: 'small',
+          style: { flexShrink: 0 },
+          onClick: () => handleEditName(row, field),
+        },
+        { default: () => '📝' },
+      ),
+    ],
+  );
 };
 
 const gridOptions: VxeGridProps = {
@@ -449,7 +493,12 @@ const gridOptions: VxeGridProps = {
               slots: { default: ({ row }) => renderEditCell(row, 'groupName') },
               width: 'auto',
             },
-            { field: 'groupOcpxPrice', title: '转化出价', width: 'auto' },
+            {
+              field: 'groupOcpxPrice',
+              title: '转化出价',
+              slots: { default: ({ row }) => renderEditCell(row, 'groupOcpxPrice') },
+              width: 'auto',
+            },
             { field: 'groupDailyBudget', title: '日预算', width: 'auto' },
             {
               title: '广告',
@@ -464,19 +513,19 @@ const gridOptions: VxeGridProps = {
                   field: 'deepLink',
                   title: 'deepLink链接',
                   slots: { default: ({ row }) => renderEditCell(row, 'deepLink') },
-                  width: '98px',
+                  width: '100px',
                 },
                 {
                   field: 'clickLink',
                   title: '点击链接',
                   slots: { default: ({ row }) => renderEditCell(row, 'clickLink') },
-                  width: '120px',
+                  width: '100px',
                 },
                 {
                   field: 'exposureLink',
                   title: '曝光链接',
                   slots: { default: ({ row }) => renderEditCell(row, 'exposureLink') },
-                  width: 'auto',
+                  width: '100px',
                 },
                 {
                   field: 'pageUrlName',
@@ -596,7 +645,7 @@ function flattenVivoData(campaignList: VivoCampaign[], advertiserId: string) {
           // --- 广告组层级字段 ---
           groupName: group.name,
           // groupPrice: group.price / 100000 || '-',
-          groupOcpxPrice: group.ocpxPrice / 100000 || '-',
+          groupOcpxPrice: group.ocpxPrice ? group.ocpxPrice / 100000 : '-',
           groupDailyBudget: group.dailyBudget != -1 ? group.dailyBudget / 100000 : -1,
 
           // --- 广告层级字段 ---
@@ -881,7 +930,9 @@ function getUnifiedStatus(
 //--------------批量修改操作--------------
 const nameCollection = ref<string>('');
 //批量修改
-const batchModifyType = ref<'project' | 'ad' | 'clickLink' | 'exposureLink'>('project');
+const batchModifyType = ref<'project' | 'ad' | 'clickLink' | 'exposureLink' | 'groupOcpxPrice'>(
+  'project',
+);
 
 const { handleUpdateOriginalData } = useVivoTableUpdate({
   tableData,
@@ -932,6 +983,13 @@ const [BatchModifyNameModal, batchModifyNamemodalApi] = useVbenModal({
             allPromos[index].clickMonitorUrl = name;
           }
         });
+      } else if (batchModifyType.value === 'groupOcpxPrice') {
+        const allGroups = accountData.campaignList.flatMap((c) => c.adgroupList);
+        newNames.forEach((priceStr, index) => {
+          if (allGroups[index]) {
+            allGroups[index].ocpxPrice = Number(priceStr) * 100000;
+          }
+        });
       }
     });
     message.success('批量修改成功');
@@ -944,7 +1002,7 @@ const [BatchModifyNameModal, batchModifyNamemodalApi] = useVbenModal({
   },
 });
 
-function batchModifyName(val: 'project' | 'ad' | 'clickLink' | 'exposureLink') {
+function batchModifyName(val: 'project' | 'ad' | 'clickLink' | 'exposureLink' | 'groupOcpxPrice') {
   batchModifyType.value = val; // 记录当前修改的是哪个层级
   if (val === 'project') {
     batchModifyTitle.value = '批量修改项目名称';
@@ -958,6 +1016,9 @@ function batchModifyName(val: 'project' | 'ad' | 'clickLink' | 'exposureLink') {
   } else if (val === 'exposureLink') {
     batchModifyTitle.value = '批量修改曝光链接';
     batchModifyText.value = '曝光链接';
+  } else if (val === 'groupOcpxPrice') {
+    batchModifyTitle.value = '批量修改转化出价';
+    batchModifyText.value = '转化出价';
   }
   batchModifyNamemodalApi.open();
 }
@@ -994,6 +1055,7 @@ onUnmounted(() => {
               <MenuItem @click="batchModifyName('ad')"> 修改广告名称 </MenuItem>
               <MenuItem @click="batchModifyName('clickLink')"> 修改点击链接 </MenuItem>
               <MenuItem @click="batchModifyName('exposureLink')"> 修改曝光链接 </MenuItem>
+              <MenuItem @click="batchModifyName('groupOcpxPrice')"> 修改转化出价 </MenuItem>
             </Menu>
           </template>
         </Dropdown>

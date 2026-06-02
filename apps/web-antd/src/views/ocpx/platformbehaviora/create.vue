@@ -1,11 +1,5 @@
 <script lang="ts" setup name="CreateNotice">
-import type {
-  BehavioraPlatformItem,
-  CreateBehavioraPlatformRequest,
-  OcpxPlatformMatch,
-  PlatformCallbackBehaviorTypeItem,
-  UpdateBehavioraPlatformRequest
-} from '#/api/models';
+import type {BehavioraPlatformItem, CreateBehavioraPlatformRequest, OcpxPlatformMatch, PlatformCallbackBehaviorTypeItem, UpdateBehavioraPlatformRequest} from '#/api/models';
 
 import {ref, h} from 'vue';
 
@@ -24,7 +18,7 @@ import {
 } from '#/constants/locales';
 
 import MatchTable from './matchTable.vue';
-import {trimObject} from '#/utils/trim';
+import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
@@ -42,8 +36,8 @@ const objectRequest = ref<BehavioraPlatformItem>({
   platform: "",
   remark: "",
   simulate: 0,
-  filterBehavior: [],
-  simulateBehaviorType: "",
+  filterBehavior:[],
+  simulateBehaviorType:"",
   status: 0,
   updateTime: "",
   updateUsername: "",
@@ -532,7 +526,31 @@ platformConfigForm.set(Platform.TB_UNION, [
           onClick: batchDeleteSchema
         }, '-')
       ])
-  }
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'appKey',
+    // 界面显示的label
+    label: `appKey`
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'appSecret',
+    // 界面显示的label
+    label: `appSecret`
+  },
 ])
 
 // 穿山甲
@@ -807,7 +825,7 @@ function batchDeleteSchema() {
 
     // 删除最后一个 tbkId
     const last = tbkIndexes.at(-1);
-    if (!last) return {schema};
+    if (!last) return { schema };
     const newSchema = [...schema];
     newSchema.splice(last.index, 1);
 
@@ -926,7 +944,7 @@ platformConfigForm.set(Platform.QWEN, [
     // 界面显示的label
     label: `type`,
     rules: 'required',
-  }, {
+  },{
     // 媒体配置表单
     component: 'Input',
     // 对应组件的参数
@@ -1597,6 +1615,219 @@ platformConfigForm.set(Platform.VPH, [
     rules: 'required',
   },
 ]);
+// 菜鸟配置
+platformConfigForm.set(Platform.CAINIAO, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'cn_biz',
+    // 界面显示的label
+    label: `cn_biz`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'channel',
+    // 界面显示的label
+    label: `channel`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'strategyId',
+    // 界面显示的label
+    label: `strategyId`,
+    rules: 'required',
+  },
+]);
+// 南京字节配置
+platformConfigForm.set(Platform.NJ_BYTEDANCE, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'pname',
+    // 界面显示的label
+    label: `pname`,
+    rules: 'required',
+  }
+]);
+// 百度网盘配置
+platformConfigForm.set(Platform.BAIDU_BOX, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 0,
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'account_type',
+    // 界面显示的label
+    label: `account_type`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 1,
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'schema_type',
+    // 界面显示的label
+    label: `schema_type`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 'xinghuoliaoyuan',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'channel',
+    // 界面显示的label
+    label: `channel`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 6,
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'flow_type',
+    // 界面显示的label
+    label: `flow_type`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'package_id',
+    // 界面显示的label
+    label: `package_id`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 'wangpan',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'app_name',
+    // 界面显示的label
+    label: `app_name`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 'baiduwangpan_hh_lahuo_xinghuoliaoyuan',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'account_id',
+    // 界面显示的label
+    label: `account_id`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 'android',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'app_type',
+    // 界面显示的label
+    label: `app_type`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 'invoke',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'conv_type',
+    // 界面显示的label
+    label: `conv_type`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'ug_sign',
+    // 界面显示的label
+    label: `ug_sign`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    defaultValue: 1,
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'common_cpa',
+    // 界面显示的label
+    label: `common_cpa`,
+    rules: 'required',
+  },
+]);
 
 
 platformConfigForm.set(Platform.SOUL_DSP, [
@@ -1745,7 +1976,7 @@ const [Form, formApi] = useVbenForm({
         onSelect: async (value: string) => {
           const schema = platformConfigForm.get(value) ?? [];
           // 1️⃣ 切 schema
-          configFormApi.setState({schema});
+          configFormApi.setState({ schema });
           // 2️⃣ 收集 schema 里的 defaultValue
           const defaultValues: Record<string, any> = {};
           schema.forEach((item) => {
@@ -1768,13 +1999,13 @@ const [Form, formApi] = useVbenForm({
               model: 'match'
             });
             matchModel.value = 'match'
-          } else {
+          }else{
             formApi.setValues({
               model: 'callback',
             });
             matchModel.value = 'callback'
           }
-          if (value != "tb" && value != "jd" && value != "csjp") {
+          if(value != "tb" && value != "jd" && value != "csjp"){
             filterModel(value)
           }
         },
@@ -1919,13 +2150,12 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: `${$t('ocpx.platformcallback.columns.behaviorType')}`,
       rules: 'required',
-      dependencies: {
-        show: (values) => {
+      dependencies: {show: (values) => {
           const isSimulate = values.simulate === 1;
           const isValidPlatform = !['tb', 'jd', 'csjp'].includes(values.platform);
           return isSimulate && isValidPlatform;
         },
-        triggerFields: ['simulate', 'platform'],
+        triggerFields: ['simulate','platform'],
         // 联动触发：当依赖项变化时，自动决定是否加载下拉列表
         trigger: async (values) => {
           const isValidPlatform = !['tb', 'jd', 'csjp'].includes(values.platform);
@@ -1945,7 +2175,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Select',
       // 对应组件的参数
       componentProps: {
-        mode: "multiple",
+        mode:"multiple",
         placeholder: `${$t('common.input')}`,
         options: filterModelSelect,
       },
@@ -2006,7 +2236,7 @@ const [Modal, modalApi] = useVbenModal({
       const data = modalApi.getData();
       objectRequest.value = data.row as BehavioraPlatformItem;
       modalType.value = data.type;
-      if (objectRequest.value.id) {
+      if (objectRequest.value?.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
         ocpxPlatformMatchList.value = objectRequest.value.ocpxPlatformMatchList;

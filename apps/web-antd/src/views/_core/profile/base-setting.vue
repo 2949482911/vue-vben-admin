@@ -1,56 +1,47 @@
 <script setup lang="ts">
-import type { BasicOption } from '@vben/types';
+import type {VbenFormSchema} from '#/adapter/form';
 
-import type { VbenFormSchema } from '#/adapter/form';
+import {computed, onMounted, ref} from 'vue';
 
-import { computed, onMounted, ref } from 'vue';
+import {ProfileBaseSetting} from '@vben/common-ui';
 
-import { ProfileBaseSetting } from '@vben/common-ui';
-
-import { authApi } from '#/api';
+import {authApi} from '#/api';
 
 const profileBaseSettingRef = ref();
-
-const MOCK_ROLES_OPTIONS: BasicOption[] = [
-  {
-    label: '管理员',
-    value: 'super',
-  },
-  {
-    label: '用户',
-    value: 'user',
-  },
-  {
-    label: '测试',
-    value: 'test',
-  },
-];
 
 const formSchema = computed((): VbenFormSchema[] => {
   return [
     {
-      fieldName: 'realName',
+      fieldName: 'nickname',
       component: 'Input',
       label: '姓名',
     },
     {
-      fieldName: 'username',
+      fieldName: 'authName',
       component: 'Input',
       label: '用户名',
     },
     {
-      fieldName: 'roles',
-      component: 'Select',
-      componentProps: {
-        mode: 'tags',
-        options: MOCK_ROLES_OPTIONS,
-      },
-      label: '角色',
+      fieldName: 'phone',
+      component: 'Input',
+      label: '电话',
     },
     {
-      fieldName: 'introduction',
-      component: 'Textarea',
-      label: '个人简介',
+      fieldName: 'email',
+      component: 'Input',
+      label: 'Email',
+    },
+
+    {
+      fieldName: 'platformAdmin',
+      component: 'Switch',
+      label: '平台管理员',
+    },
+
+    {
+      fieldName: 'mainAdmin',
+      component: 'Switch',
+      label: '主体管理员',
     },
   ];
 });
@@ -61,5 +52,5 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <ProfileBaseSetting ref="profileBaseSettingRef" :form-schema="formSchema" />
+  <ProfileBaseSetting ref="profileBaseSettingRef" :form-schema="formSchema"/>
 </template>
