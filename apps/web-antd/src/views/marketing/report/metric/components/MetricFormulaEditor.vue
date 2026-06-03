@@ -368,7 +368,7 @@ onMounted(async () => {
 
     <!-- 指标选择弹窗（含搜索功能） -->
     <Modal
-      v-model:visible="selectorVisible"
+      v-model:open="selectorVisible"
       title="选择指标"
       @ok="handleSelectMetric"
       @cancel="selectorVisible = false; selectedMetric = null; pendingInsertPosition = null"
