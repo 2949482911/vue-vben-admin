@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { aManagementApi } from '#/api';
+import { advertiserApi, aManagementApi } from '#/api';
 import type { CampaignItem } from '#/api/models';
 import { trimObject } from '#/utils/trim';
 import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
@@ -37,6 +37,40 @@ const formOptions: VbenFormProps = {
       },
       fieldName: 'platform',
       label: '平台',
+    },
+    {
+      component: 'ApiSelect',
+      dependencies: {
+        triggerFields: ['platform'],
+        trigger: (_values, { setFieldValue }) => {
+          setFieldValue('platform_account_id', undefined);
+        },
+      },
+      componentProps: (formValues: Record<string, any>) => {
+        const platform = formValues.platform;
+        return {
+          allowClear: true,
+          showSearch: true,
+          placeholder: '请选择账户',
+          api: async (params: any) => {
+            return await advertiserApi.fetchAdvertiserList(params);
+          },
+          filterOption: (inputValue: string, option: { label: string }) => {
+            return option.label.toLowerCase().includes(inputValue.toLowerCase());
+          },
+          // 动态把平台塞进请求参数
+          params: {
+            page: 1,
+            pageSize: 10000,
+            platform: platform,
+          },
+          valueField: 'advertiserId',
+          labelField: 'advertiserName',
+          resultField: 'items',
+        };
+      },
+      fieldName: 'platform_account_id',
+      label: '账户名称',
     },
     {
       component: 'Input',
@@ -114,6 +148,7 @@ const gridOptions: VxeGridProps = {
           platform: 1,
           campaignId: 1,
           campaignName: 3,
+          platform_account_id: 1,
         };
 
         const filters = buildApiFilters(params, filterMap);
@@ -142,6 +177,7 @@ async function handleCustomExport() {
     platform: 1,
     campaignId: 1,
     campaignName: 3,
+    platform_account_id: 1,
   };
 
   const filters = buildApiFilters(formValues, filterMap);
