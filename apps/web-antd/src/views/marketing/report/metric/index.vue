@@ -38,9 +38,7 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
   modal: true,
 });
 
-function openCreateModal(
-  row?: MetricItem
-) {
+function openCreateModal(row?: MetricItem) {
   if (row?.id) {
     createObjectApi.setData(row);
   } else {
