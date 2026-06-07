@@ -7,7 +7,7 @@ import type { StrategyGropType } from '#/api/models';
 import { $t } from '@vben/locales';
 import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from '#/constants/locales';
 import { trimObject } from '#/utils/trim';
-import CreateObjectRequestComp from './create.vue'; //新增|修改弹窗
+import CreateObjectRequestComp from './createStrategyGroup.vue'; //新增|修改弹窗
 import { VIVO_VERSION } from '../vivo/vivo';
 
 // 组件 Props 类型定义

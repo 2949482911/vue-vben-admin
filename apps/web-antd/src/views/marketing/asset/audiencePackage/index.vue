@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Page, useVbenModal, type VbenFormProps } from '@vben/common-ui';
+import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import { trimObject } from '#/utils/trim';
 import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from '#/constants/locales';
@@ -9,15 +9,13 @@ import type { AdConfig } from './audiencePackageType';
 import CreatedAudiencePackage from './createdAudiencePackage.vue';
 import { onMounted, ref } from 'vue';
 
-const [CreatedAudiencePackageModule, modalApi] = useVbenModal({
+const [CreatedAudiencePackageModule, drawerApi] = useVbenDrawer({
   connectedComponent: CreatedAudiencePackage,
-  centered: true,
-  modal: true,
 });
 
-function openModal() {
+function openDrawer() {
   displayValue.value = undefined;
-  modalApi.open();
+  drawerApi.open();
 }
 
 onMounted(() => {
@@ -36,6 +34,7 @@ async function loadAdvertiserOptions(platform?: string) {
     putStatue: 1,
     page: 1,
     pageSize: 100000,
+    advertiserRole: '',
   });
 
   advertiserOption.value = res.items.map((item) => ({
@@ -140,7 +139,7 @@ const gridOptions: VxeGridProps = {
 
 const displayValue = ref<AdConfig>();
 async function handlerEdit(row: AdConfig) {
-  openModal();
+  openDrawer();
   displayValue.value = { ...row };
 }
 
@@ -179,7 +178,7 @@ function handlerState(_row: AdConfig) {}
           </Button>
         </template>
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openModal">新建定向包</Button>
+          <Button class="mr-2" type="primary" @click="openDrawer">新建定向包</Button>
         </template>
       </Grid>
     </Page>

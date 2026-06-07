@@ -5,8 +5,8 @@ import {
   DistributionMode,
   Platform,
 } from '#/constants/enums';
-import type { VivoConfigData, VivoCreation } from '#/views/marketing/creation/vivo/vivo';
-import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
+import type {VivoConfigData, VivoCreation} from '#/views/marketing/creation/vivo/vivo';
+import type {LandingPageData, TargetedPackageTypeItem, TitlePackageItem} from '#/api/models';
 
 /**
  * 媒体基类
@@ -345,4 +345,39 @@ export function getLandingPage(
     dataList = data.get(advertiserId) || [];
   }
   return dataList[0];
+}
+
+
+/**
+ * 生成规则判断
+ */
+export interface MethodConfig {
+  method: string;
+}
+
+
+/**
+ * ConfigurationConfig
+ * 配置区配置对象
+ */
+export interface ConfigurationConfig {
+  platform: string;
+}
+
+
+/**
+ * 定向包配置
+ */
+export interface AudienceConfigData {
+  config: MethodConfig;
+  data: Map<string, Array<TargetedPackageTypeItem>>;
+}
+
+
+/**
+ * 标题包配置
+ */
+export interface TitlePackageConfigData {
+  config: MethodConfig;
+  data: Map<string, Array<TitlePackageItem>>;
 }

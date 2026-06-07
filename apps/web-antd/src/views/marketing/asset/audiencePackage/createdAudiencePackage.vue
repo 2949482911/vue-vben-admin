@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { advertiserApi, targetedPackageApi } from '#/api';
-import { useVbenForm, useVbenModal } from '@vben/common-ui';
+import { useVbenForm, useVbenDrawer } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 import { computed, ref } from 'vue';
 import { ACTIVE_PLATFORM } from '#/constants/locales';
@@ -8,6 +8,8 @@ import type { AdOppoConfig, AdVivoConfig } from './audiencePackageType';
 import { trimObject } from '#/utils/trim';
 import Vivo_audienceForm from './vivoAudience/vivo_audienceForm.vue';
 import Oppo_audienceForm from './oppoAudience/oppo_audienceForm.vue';
+import HuaWeiStoreAudienceForm from './huaweistoreAudience/huawei_store_audienceForm.vue';
+import {Platform} from "#/constants/enums";
 
 const props = defineProps<{
   displayValue?: AdVivoConfig | AdOppoConfig;
@@ -16,24 +18,26 @@ const props = defineProps<{
 const emit = defineEmits(['pageReload']);
 const vivoAudienceRef = ref();
 const oppoAudienceRef = ref();
+const huaWeiStoreAudienceRef = ref();
 const localAdId = ref<string>();
 const platformConfig = ref<string | undefined>();
 //传给oppo的广告主，因为oppo的地域需要广告主才能查询
 const platformAdId = ref<string | undefined>();
 
-const [titlePackageModal, modalApi] = useVbenModal({
-  fullscreenButton: false,
+const [titlePackageDrawer, drawerApi] = useVbenDrawer({
   async onCancel() {
     await popUpCancel();
     platformConfig.value = '';
-    await modalApi.close();
+    await drawerApi.close();
   },
   async onConfirm() {
     let configData = {};
-    if (platformConfig.value === 'vivo') {
+    if (platformConfig.value === Platform.VIVO) {
       configData = await vivoAudienceRef.value.submitVivoConfig();
-    } else if (platformConfig.value === 'oppo') {
+    } else if (platformConfig.value === Platform.OPPO) {
       configData = await oppoAudienceRef.value.submitOppoConfig();
+    } else if (platformConfig.value === Platform.HUAWEI_STORE) {
+      configData = await huaWeiStoreAudienceRef.value.submitHuaweiStoreConfig();
     }
     const result = await formApi.validate();
     if (!result.valid) {
@@ -61,7 +65,7 @@ const [titlePackageModal, modalApi] = useVbenModal({
         message.success('添加成功！');
       }
       await popUpCancel();
-      await modalApi.close();
+      await drawerApi.close();
       emit('pageReload');
     } catch (err) {
       console.error('保存失败:', err);
@@ -82,6 +86,8 @@ const [titlePackageModal, modalApi] = useVbenModal({
         await vivoAudienceRef.value.echoVivoConfig(data);
       } else if (platformConfig.value === 'oppo') {
         await oppoAudienceRef.value.echoOppoConfig(data);
+      } else if (platformConfig.value === Platform.HUAWEI_STORE) {
+        await huaWeiStoreAudienceRef.value.echoHuaweiStoreConfig(data);
       }
     } else {
       await popUpCancel();
@@ -94,10 +100,12 @@ const [titlePackageModal, modalApi] = useVbenModal({
 async function popUpCancel() {
   await formApi.resetForm();
   localAdId.value = '';
-  if (platformConfig.value === 'vivo') {
+  if (platformConfig.value === Platform.VIVO) {
     await vivoAudienceRef.value.popUpVivoCancel();
-  } else if (platformConfig.value === 'oppo') {
+  } else if (platformConfig.value === Platform.OPPO) {
     await oppoAudienceRef.value.popUpOppoCancel();
+  } else if (platformConfig.value === Platform.HUAWEI_STORE) {
+    await huaWeiStoreAudienceRef.value.popUpCancel();
   }
 }
 
@@ -190,18 +198,14 @@ const [Form, formApi] = useVbenForm({
 
 <template>
   <div>
-    <titlePackageModal
-      class="w-[40%]"
+    <titlePackageDrawer
       :title="props.displayValue?.id ? '修改定向包' : '添加定向包'"
     >
       <Form />
-      <Vivo_audienceForm v-if="platformConfig === 'vivo'" ref="vivoAudienceRef" />
-      <Oppo_audienceForm
-        v-if="platformConfig === 'oppo'"
-        ref="oppoAudienceRef"
-        :advertiser-id="platformAdId"
-      />
-    </titlePackageModal>
+      <Vivo_audienceForm v-if="platformConfig === Platform.VIVO" ref="vivoAudienceRef" />
+      <Oppo_audienceForm v-if="platformConfig === Platform.OPPO" ref="oppoAudienceRef" :advertiser-id="platformAdId"/>
+      <HuaWeiStoreAudienceForm v-if="platformConfig === Platform.HUAWEI_STORE" ref="huaWeiStoreAudienceRef" :advertiser-id="platformAdId"/>
+    </titlePackageDrawer>
   </div>
 </template>
 
