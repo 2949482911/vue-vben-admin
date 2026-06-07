@@ -74,6 +74,7 @@ function openAdgroupDrawer() {
 // 定向包
 
 function openAudiencePackage() {
+  audiencePackageModalApi.setData(audience);
   audiencePackageModalApi.open();
 }
 

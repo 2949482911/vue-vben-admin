@@ -50,6 +50,9 @@ export interface RuleInfo {
   adGroupCount: number;
   adRuleKey: string;
   adCount: number;
+  // 创意生成规则
+  creativeRuleKey: string;
+  creativeCount: number;
 }
 
 export interface MaterialData {

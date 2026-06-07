@@ -4,6 +4,7 @@
 export enum RuleMethod {
   ALL = "all",
   CUSTOM = "custom",
+  AVG = "avg",
   // 账户分配
   ACCOUNT = "account",
 }

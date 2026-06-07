@@ -36,7 +36,7 @@ import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from 
 import { message } from 'ant-design-vue';
 import CreativeMaterialsDrawer from './creativeMatGroup/creativeMaterialsDrawer.vue';
 import { watch } from 'vue';
-import Create from '../components/create.vue';
+import Create from '../components/createStrategyGroup.vue';
 import landingPageModule from './landingPage/landingPageModule.vue';
 
 const advertisingGroupRef = ref();
@@ -159,6 +159,8 @@ const creationInfo = ref<VivoCreation>({
     adGroupCount: 1,
     adRuleKey: 'creative',
     adCount: 1,
+    creativeRuleKey: "",
+    creativeCount: 0
   },
   monitoringLink: {
     clickLink: '',

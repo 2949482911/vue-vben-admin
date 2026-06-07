@@ -8,6 +8,7 @@ import type {
   AccountInfo,
   Material,
   MaterialData,
+  MonitoringLinkType,
   Project,
   RuleInfo,
 } from '#/views/marketing/creation/creation';
@@ -26,7 +27,7 @@ import CreativeMaterialsGroupModule from './components/creativeMatGroup/creative
 import TitlePackageModule from './components/titlePackage/titlePackageModule.vue';
 import landingPageModule from './components/landingPage/landingPageModule.vue';
 import MonitoringLinkGroup from './components/monitoringLinkGroup.vue';
-import Create from '../components/create.vue';
+import Create from '../components/createStrategyGroup.vue';
 const previewAreaRef = ref();
 // 创建对象
 const creationInfo = ref<OppoCreation>({
@@ -93,7 +94,7 @@ const creationInfo = ref<OppoCreation>({
       channelPkgId: '',
       defaultSecondStage: 0,
       targetROI: '',
-      adsDpaProductDTO: undefined,
+      adsDpaProductDTO: {},
       advertiseType: 0,
       pushAppPageType: 0,
       ocpxOptimizeSwitch: 0,
@@ -101,14 +102,14 @@ const creationInfo = ref<OppoCreation>({
       extJson: '',
       appletId: '',
       appletPath: '',
-      marketingObjectiveDTO: undefined
+      marketingObjectiveDTO: {}
     },
     promotion: {
       // 广告组id
       adGroupId: '',
       // 广告组名称
       adName: '',
-      // 统一规格id 
+      // 统一规格id
       globalSpecId: 0,
       // 广告来源
       adSource: 0,
@@ -185,7 +186,7 @@ const creationInfo = ref<OppoCreation>({
     allocateType: 'all',
   },
 });
-function handleAccountUpdate(data: Array<AccountInfo>) {  
+function handleAccountUpdate(data: Array<AccountInfo>) {
   creationInfo.value.accountInfo = data;
   console.log('handleAccountUpdate', data);
 }
@@ -200,7 +201,7 @@ function handleRuleUpdate(data: RuleInfo) {
   console.log('handleRuleUpdate', data);
 }
 // 项目配置
-function handleProjectConfigUpdate(data: OppoCreation) { 
+function handleProjectConfigUpdate(data: OppoCreation) {
   creationInfo.value.configData.campaign = data;
   console.log('handleProjectConfigUpdate', data);
 }

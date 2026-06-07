@@ -8,10 +8,12 @@ import SubTask from "../HuaweiStoreSubTask.vue";
 import type {
   HuaWeiStoreCampaignData,
 } from "#/views/marketing/creation/huawei_store/huawei_store";
-import type {AudienceConfigData} from "#/views/marketing/creation/creation";
+import type {AudienceConfigData, MaterialData} from "#/views/marketing/creation/creation";
 
+import CreativeGroupSelector
+  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
 
-const emit = defineEmits(["update:campaign", "update:adgroup", "update:audiencePackage"])
+const emit = defineEmits(["update:campaign", "update:adgroup", "update:audiencePackage", "update:updateMaterial"])
 
 const {creationInfo} = defineProps({
   creationInfo: {
@@ -330,6 +332,13 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 }
 
 
+/**
+ * 更新素材
+ */
+function updateMaterial(materialData: MaterialData) {
+  emit('update:updateMaterial', materialData)
+}
+
 </script>
 
 <template>
@@ -350,7 +359,11 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
       </Col>
 
       <Col :span="6">
-
+        <CreativeGroupSelector
+          :account-info="creationInfo.accountInfo"
+          :material="creationInfo.configData?.material"
+          @update:material="updateMaterial"
+        />
       </Col>
     </Row>
   </div>

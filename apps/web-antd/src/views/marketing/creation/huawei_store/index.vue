@@ -11,7 +11,7 @@ import {RuleKey, RuleMethod} from "#/views/marketing/creation/creation_enums";
 import type {
   AccountInfo,
   AudienceConfigData,
-  Material,
+  Material, MaterialData,
   Project,
   RuleInfo
 } from "#/views/marketing/creation/creation";
@@ -76,6 +76,16 @@ function updateAdgroup(adgroup: HuaWeiStoreAdgroupData) {
  */
 function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
   creationInfo.value.configData.audience = audienceConfigData;
+}
+
+
+/**
+ * update material
+ * @param materialData
+ */
+function updateMaterial(materialData: MaterialData) {
+  creationInfo.value.configData.material = materialData;
+  console.log(creationInfo.value.configData.material);
 }
 
 //// creationInfo 华为商店创建信息
@@ -174,6 +184,8 @@ const creationInfo = ref<HuaWeiStoreCreation>({
     adGroupCount: 1,
     adRuleKey: RuleKey.CREATIVE,
     adCount: 1,
+    creativeRuleKey: 'creative_group',
+    creativeCount: 1,
   },
   configurationConfig: {
     platform: Platform.HUAWEI_STORE,
@@ -209,6 +221,7 @@ const creationInfo = ref<HuaWeiStoreCreation>({
                                @update:campaign="updateCampaign"
                                @update:adgroup="updateAdgroup"
                                @update:audience-package="updateAudiencePackage"
+                               @update:update-material="updateMaterial"
         />
       </Card>
     </Page>
