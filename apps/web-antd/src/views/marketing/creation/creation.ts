@@ -8,6 +8,7 @@ import {
 import type { VivoConfigData, VivoCreation } from "#/views/marketing/creation/vivo/vivo";
 import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import type { PageViewItem } from "#/api/models/assert";
+import type { HuaWeiStoreCreation } from "#/views/marketing/creation/huawei_store/huawei_store";
 
 /**
  * 媒体基类
@@ -122,9 +123,9 @@ export function getRuleInfoCampaignCount(
 
   const projectRuleKey: string = creation.ruleInfo.projectRuleKey;
   if (projectRuleKey === CampaignRuleKey.targeting) {
-    method = creation.configData.audience?.audienceConfig.method;
+    method = creation.configData.audience?.audienceConfig ? creation.configData.audience?.audienceConfig.method : creation.configData.audience.config.method;
     campaignCount = getCampaignCount(
-      creation.configData.audience?.audienceConfig.method,
+      method,
       creation.configData.audience?.data,
       localMaterialIds
     );
@@ -136,9 +137,9 @@ export function getRuleInfoCampaignCount(
       localMaterialIds
     );
   } else if (projectRuleKey === CampaignRuleKey.title) {
-    method = creation.configData.titlePackage?.titlePackageConfig.method;
+    method = creation.configData.titlePackage?.titlePackageConfig ? creation.configData.titlePackage?.titlePackageConfig.method : creation.configData.titlePackage?.config.method;
     campaignCount = getCampaignCount(
-      creation.configData.titlePackage?.titlePackageConfig.method,
+      method,
       creation.configData.titlePackage?.data,
       localMaterialIds
     );
@@ -164,10 +165,13 @@ export function getRuleInfoAdCountGroup(
   if (platform === Platform.VIVO) {
     creation = creation as VivoCreation;
   }
+  if (platform === Platform.HUAWEI_STORE) {
+    creation = creation as HuaWeiStoreCreation;
+  }
   const adGroupRuleKey = creation.ruleInfo.adGroupRuleKey;
   if (adGroupRuleKey === AdGroupRuleKey.targeting) {
     return getCampaignCount(
-      creation.configData.audience?.audienceConfig.method,
+      creation.configData.audience?.audienceConfig ? creation.configData.audience?.audienceConfig.method : creation.configData.audience?.config.method,
       creation.configData.audience?.data,
       localMaterialIds
     );
@@ -179,7 +183,7 @@ export function getRuleInfoAdCountGroup(
     );
   } else if (adGroupRuleKey === AdGroupRuleKey.title) {
     return getCampaignCount(
-      creation.configData.titlePackage?.titlePackageConfig.method,
+      creation.configData.titlePackage?.config.method,
       creation.configData.titlePackage?.data,
       localMaterialIds
     );
@@ -199,6 +203,9 @@ export function getRuleInfoAdCount(
   if (platform === Platform.VIVO) {
     creation = creation as VivoCreation;
   }
+  if (platform === Platform.HUAWEI_STORE) {
+    creation = creation as HuaWeiStoreCreation;
+  }
   const adRuleKey = creation.ruleInfo.adRuleKey;
   if (adRuleKey === AdRuleKey.creative) {
     return getCampaignCount(
@@ -208,7 +215,7 @@ export function getRuleInfoAdCount(
     );
   } else if (adRuleKey === AdRuleKey.title) {
     return getCampaignCount(
-      creation.configData.titlePackage?.titlePackageConfig.method,
+      creation.configData.titlePackage?.titlePackageConfig ? creation.configData.titlePackage?.titlePackageConfig.method : creation.configData.titlePackage?.config.method,
       creation.configData.titlePackage?.data,
       localMaterialIds
     );

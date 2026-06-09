@@ -2,10 +2,9 @@
 import { Button, Space } from "ant-design-vue";
 import MonitoringDrawer
   from "#/views/marketing/creation/components/monitoringLink/MonitoringDrawer.vue";
-import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
+import { useVbenDrawer } from "@vben/common-ui";
 import type { AccountInfo, MonitoringLinkConfigData } from "#/views/marketing/creation/creation";
-import { watch } from "vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 
 // 账户列表
@@ -20,9 +19,7 @@ const { accountInfo, monitoringLink } = defineProps({
   }
 });
 
-const emit = defineEmits(["update:monitoringLink", "save:createStrategyGroup", "gen:adList"]);
-
-
+const emit = defineEmits(["update:monitoringLink", "save:createStrategyGroup", "gen:adList", "submit:createBatch"]);
 
 
 // 本地监测链接数据
@@ -49,7 +46,7 @@ watch(
       };
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true, deep: true }
 );
 
 // 监测链接组
@@ -84,6 +81,14 @@ function genAdList() {
   emit("gen:adList");
 }
 
+
+/**
+ * 提交审核
+ */
+function submitCreateBatch() {
+  emit("submit:createBatch");
+}
+
 /**
  * 编辑监测链接配置
  * @param monitoringLink
@@ -105,11 +110,16 @@ function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
 
 <template>
   <div>
-    <Space align="end">
-      <Button @click="openMonitoringDrawer">监测连接</Button>
-      <Button @click="createStrategyGroup">保存策略组</Button>
-      <Button @click="genAdList">生成广告预览</Button>
-    </Space>
+    <div class="flex justify-between">
+      <Space>
+        <Button type="primary" @click="openMonitoringDrawer">监测连接</Button>
+      </Space>
+      <Space>
+        <Button type="primary" @click="createStrategyGroup">保存策略组</Button>
+        <Button type="primary" @click="genAdList">生成广告预览</Button>
+        <Button type="primary" @click="submitCreateBatch">提交审核</Button>
+      </Space>
+    </div>
 
     <!--    监测链接组-->
     <MonitoringDrawerModal

@@ -93,6 +93,10 @@ const taskFormFields = [
   {
     component: 'DatePicker',
     fieldName: 'startDate',
+    componentProps: {
+      format: 'YYYY-MM-DD',
+      valueFormat: 'YYYY-MM-DD',
+    },
     label: '开始时间',
     rules: 'required',
     formItemClass: 'items-baseline',
@@ -101,6 +105,10 @@ const taskFormFields = [
   {
     component: 'DatePicker',
     fieldName: 'endDate',
+    componentProps: {
+      format: 'YYYY-MM-DD',
+      valueFormat: 'YYYY-MM-DD',
+    },
     label: '结束时间',
     rules: 'required',
     formItemClass: 'items-baseline',

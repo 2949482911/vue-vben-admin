@@ -163,11 +163,12 @@ const creationInfo = ref<VivoCreation>({
     creativeCount: 0
   },
   monitoringLink: {
-    clickLink: '',
-    exposureLink: '',
-    monitorLink: '',
-    linkModeType: 'manual',
-    allocateType: 'all',
+    clickLink: "",
+    exposureLink: "",
+    monitorLink: "",
+    linkModeType: "manual",
+    allocateType: "all",
+    ocpxTaskId: ""
   },
 });
 

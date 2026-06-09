@@ -1,12 +1,12 @@
 <script setup lang="ts" name="CreativeGroupModal">
 // 创意组选择弹窗组件 - 供所有媒体公用
 
-import {ref, computed, watch} from 'vue';
-import {Button, RadioGroup, RadioButton, InputNumber, Switch, message} from 'ant-design-vue';
-import {useVbenModal} from '@vben/common-ui';
-import SelMaterial from '#/views/marketing/creation/selMaterial.vue';
-import type {Material} from '#/views/marketing/creation/creation';
-import {RuleMethod} from '#/views/marketing/creation/creation_enums';
+import { computed, ref } from "vue";
+import { Button, InputNumber, message, RadioButton, RadioGroup, Switch } from "ant-design-vue";
+import { useVbenModal } from "@vben/common-ui";
+import SelMaterial from "#/views/marketing/creation/selMaterial.vue";
+import type { Material } from "#/views/marketing/creation/creation";
+import { RuleMethod } from "#/views/marketing/creation/creation_enums";
 
 const {formSchema} = defineProps({
   formSchema: {

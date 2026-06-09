@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { Page, useVbenModal } from "@vben/common-ui";
 import type {
   HuaWeiStoreAdgroupData,
   HuaWeiStoreCampaignData,
-  HuaWeiStoreCreation
+  HuaWeiStoreCreation,
+  HuaWeiStoreCreationData
 } from "./huawei_store";
+import { getPreviewTableData } from "./huawei_store";
 import { Platform } from "#/constants/enums";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import type {
@@ -21,15 +23,15 @@ import type {
 } from "#/views/marketing/creation/creation";
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import ConfigurationConfig from "../components/configurationArea.vue";
-import { Card, Select } from "ant-design-vue";
+import { Card, message, Select } from "ant-design-vue";
 import { TaskTypeSelect } from "#/views/marketing/creation/huawei_store/data";
 
 import DeliveryTaskRecommend from "./components/delivery-task-recommend/index.vue";
 import type { PageViewItem } from "#/api/models/assert";
 import Function from "#/views/marketing/creation/components/Function.vue";
-import PreviewArea from "#/views/marketing/creation/components/preview_area/PreviewArea.vue";
 import CreateAdvertiser from "../components/createStrategyGroup.vue";
-
+import RecommendPreviewArea
+  from "#/views/marketing/creation/huawei_store/components/delivery-task-recommend/RecommendPreviewArea.vue";
 // 策略组
 const [CreateAdvertiserModal, createAdvertiserApi] = useVbenModal({
   connectedComponent: CreateAdvertiser,
@@ -37,7 +39,6 @@ const [CreateAdvertiserModal, createAdvertiserApi] = useVbenModal({
     createAdvertiserApi.close();
   }
 });
-
 
 
 /**
@@ -154,11 +155,29 @@ function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
  * 保存策略组
  */
 function createStrategyGroup() {
-  createAdvertiserApi.setData(creationInfo.value)
+  createAdvertiserApi.setData(creationInfo.value);
   createAdvertiserApi.open();
 }
 
-//// creationInfo 华为商店创建信息
+// ad list
+const adList = ref<Array<HuaWeiStoreCreationData>>([]);
+
+/**
+ * genPreviewTableData 获取预览表格数据
+ */
+function genPreviewTableData() {
+  adList.value = getPreviewTableData(creationInfo.value);
+}
+
+
+/**
+ * 提交审核数据
+ */
+function submitCreateBatch() {
+
+}
+
+// creationInfo 华为商店创建信息
 const creationInfo = ref<HuaWeiStoreCreation>({
   monitoringLink: {
     clickLink: "",
@@ -181,7 +200,6 @@ const creationInfo = ref<HuaWeiStoreCreation>({
         campaignName: "",
         dailyBudget: 0,
         marketingGoal: 0,
-        subTasks: [],
         type: 0
       },
       clickAdMonitorReportUrl: "",
@@ -281,6 +299,24 @@ const creationInfo = ref<HuaWeiStoreCreation>({
 });
 
 
+// 监听数据变化
+watch(() => creationInfo, (_) => {
+  resetCreationInfo();
+}, { immediate: true, deep: true });
+
+/**
+ * 重置方法
+ * 当配置区内任意属性发生改变时则需要生成预览区数据
+ * 1.如果是计划发生了改变则
+ */
+function resetCreationInfo() {
+  if (adList.value.length > 0) {
+    adList.value = [];
+    message.warn("配置已更新,预览区已重置");
+  }
+}
+
+
 </script>
 
 
@@ -322,11 +358,13 @@ const creationInfo = ref<HuaWeiStoreCreation>({
           :monitoring-link="creationInfo.configData.monitoringLink"
           @update:monitoring-link="updateMonitoringLink"
           @save:create-strategy-group="createStrategyGroup"
+          @gen:ad-list="genPreviewTableData"
+          @submit:create-batch="submitCreateBatch"
         />
       </Card>
 
       <Card class="header" title="预览区">
-        <PreviewArea></PreviewArea>
+        <RecommendPreviewArea :ad-list="adList" :account-info="creationInfo.accountInfo" />
       </Card>
 
       <!--      策略组-->

@@ -565,6 +565,8 @@ export interface TargetedPackageTypeItem extends BaseItem {
   platformAdvertiserId: string;
   config: string;
   remark: string;
+  // 媒体ID
+  mediaId: string;
 }
 
 /**标题包类型 */
