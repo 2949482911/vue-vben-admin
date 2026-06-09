@@ -8,12 +8,18 @@ import SubTask from "../HuaweiStoreSubTask.vue";
 import type {
   HuaWeiStoreCampaignData,
 } from "#/views/marketing/creation/huawei_store/huawei_store";
-import type {AudienceConfigData, MaterialData} from "#/views/marketing/creation/creation";
+import type {
+  AudienceConfigData,
+  MaterialData,
+  TitlePackageConfigData
+} from "#/views/marketing/creation/creation";
 
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
 
-const emit = defineEmits(["update:campaign", "update:adgroup", "update:audiencePackage", "update:updateMaterial"])
+const emit = defineEmits(["update:campaign", "update:adgroup",
+  "update:audiencePackage", "update:updateMaterial", "update:titlePackage"])
 
 const {creationInfo} = defineProps({
   creationInfo: {
@@ -339,20 +345,34 @@ function updateMaterial(materialData: MaterialData) {
   emit('update:updateMaterial', materialData)
 }
 
+
+/**
+ * 编辑标题包
+ * @param titlePackage 标题包
+ */
+function updateTitlePackage(titlePackage: TitlePackageConfigData) {
+  emit('update:titlePackage', titlePackage)
+}
+
 </script>
 
 <template>
   <div>
     <Row :gutter="16">
       <Col :span="6">
-        <Task :form-fields="taskFormFields" :task-show-label="taskShowLabel"
-              @update:campaign="updateCampaign"></Task>
+        <Task :form-fields="taskFormFields"
+              :task-show-label="taskShowLabel"
+              :campaign="creationInfo.configData?.campaign"
+              @update:campaign="updateCampaign">
+
+        </Task>
       </Col>
       <Col :span="6">
         <SubTask :form-fields="subTaskFormFields"
                  :sub-task-show-label="subTaskShowLabel"
                  :account-info="creationInfo.accountInfo"
                  :audience="creationInfo.configData?.audience"
+                 :adgroup="creationInfo.configData?.adgroup"
                  @update:adgroup="updateAdgroup"
                  @update:audience-package="updateAudiencePackage"
         />
@@ -364,6 +384,14 @@ function updateMaterial(materialData: MaterialData) {
           :material="creationInfo.configData?.material"
           @update:material="updateMaterial"
         />
+      </Col>
+
+      <Col :span="6">
+        <TitleSelector
+          :title-package="creationInfo.configData?.titlePackage"
+          :account-info="creationInfo.accountInfo"
+          @update:title-package="updateTitlePackage"
+        ></TitleSelector>
       </Col>
     </Row>
   </div>

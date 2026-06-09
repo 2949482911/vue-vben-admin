@@ -1,11 +1,11 @@
 <script setup lang="ts" name="HuaweiStoreTask">
-import {ref} from 'vue';
+import {ref, watch} from 'vue';
 import type {HuaWeiStoreCampaignData} from "#/views/marketing/creation/huawei_store/huawei_store";
 import {Card, Divider, Descriptions, DescriptionsItem, Alert, Button, Space} from 'ant-design-vue';
 import {useVbenDrawer} from '@vben/common-ui';
 import HuaweiStoreTaskDrawer from './HuaweiStoreTaskDrawer.vue'
 
-const {formFields, taskShowLabel} = defineProps({
+const {formFields, taskShowLabel, campaign} = defineProps({
   formFields: {
     type: Array,
     default: () => []
@@ -14,6 +14,10 @@ const {formFields, taskShowLabel} = defineProps({
     type: Object,
     default: () => {
     }
+  },
+  campaign: {
+    type: Object as () => HuaWeiStoreCampaignData | null,
+    default: null
   }
 });
 
@@ -57,6 +61,17 @@ const campaignInfo = ref<HuaWeiStoreCampaignData>({
   startDate: "",
   taskName: ""
 });
+
+// 监听父组件传入的 campaign 数据变化，实现回显（复用策略组时）
+watch(
+  () => campaign,
+  (newCampaign) => {
+    if (newCampaign) {
+      campaignInfo.value = { ...newCampaign };
+    }
+  },
+  { immediate: true, deep: true }
+);
 
 
 function openCampaignDrawer() {

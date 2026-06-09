@@ -1,23 +1,23 @@
 <script setup lang="ts" name="CreativeGroupDrawer">
 // 创意组编辑抽屉 - 供所有媒体公用
 
-import {ref, computed, nextTick} from 'vue';
+import {computed, nextTick, ref} from 'vue';
 import {
+  Anchor,
+  AnchorLink,
   Button,
-  RadioGroup,
-  RadioButton,
-  InputNumber,
-  Switch,
-  message,
-  Tabs,
-  TabPane,
   Card,
   Collapse,
   CollapsePanel,
   Divider,
-  Anchor,
-  AnchorLink,
+  InputNumber,
+  message,
+  RadioButton,
+  RadioGroup,
   Space,
+  Switch,
+  TabPane,
+  Tabs,
 } from 'ant-design-vue';
 import {useVbenDrawer, useVbenModal} from '@vben/common-ui';
 import type {AccountInfo, Material, MaterialData} from '#/views/marketing/creation/creation';
@@ -58,23 +58,26 @@ const activeAccountId = ref<string>('');
 //   return creativeGroups.value;
 // });
 
-// 初始化账户创意组数据
+// 初始化账户创意组数据（仅补充未存在的账户，不覆盖已有数据）
 function initAccountGroups() {
-  accountCreativeGroups.value.clear();
-  accountInfo.forEach(account => {
-    const accountId = String(account.localAdvertiserId);
-    if (!accountCreativeGroups.value.has(accountId)) {
-      accountCreativeGroups.value.set(accountId, [{
-        image: [],
-        video: [],
-        isExpanded: false,
-        active: '',
-        brandName: '',
-      }]);
-    }
-  });
+  // 只在 Map 为空时才初始化，避免覆盖已有数据
+  if (accountCreativeGroups.value.size === 0) {
+    accountInfo.forEach(account => {
+      const accountId = String(account.localAdvertiserId);
+      if (!accountCreativeGroups.value.has(accountId)) {
+        accountCreativeGroups.value.set(accountId, [{
+          image: [],
+          video: [],
+          isExpanded: false,
+          active: '',
+          brandName: '',
+        }]);
+      }
+    });
+  }
+  // 始终确保有默认选中账户
   if (accountInfo.length > 0 && !activeAccountId.value) {
-    activeAccountId.value = String(accountInfo[0].localAdvertiserId);
+    activeAccountId.value = String(accountInfo[0]?.localAdvertiserId);
   }
 }
 
@@ -124,6 +127,9 @@ function setActiveTab(index: number, key: 'video' | 'image') {
   activeTabs.value.set(index, key);
 }
 
+/**
+ * 全部素材个数
+ */
 const totalMaterials = computed(() => {
   let total = 0;
   const groups = distributionMethod.value === RuleMethod.ACCOUNT
@@ -141,6 +147,50 @@ function getCurrentGroups(): Material[] {
     return accountCreativeGroups.value.get(activeAccountId.value) || [];
   }
   return creativeGroups.value;
+}
+
+
+/**
+ * 切换分配方式时清空素材数据
+ * - 切换到账户分配：清空全部复用数据，初始化账户数据
+ * - 切换到全部复用/平均分配：清空账户数据，初始化创意组数据
+ */
+function allocationMethodChange() {
+  activeTabs.value.clear();
+  activeCollapseKeys.value = [0];
+  currentAnchor.value = ['group-0'];
+
+  if (distributionMethod.value === RuleMethod.ACCOUNT) {
+    // 切换到账户分配：清空全部复用数据，初始化账户数据
+    creativeGroups.value = [];
+    accountCreativeGroups.value.clear();
+    accountInfo.forEach(account => {
+      const accountId = String(account.localAdvertiserId);
+      accountCreativeGroups.value.set(accountId, [{
+        image: [],
+        video: [],
+        isExpanded: false,
+        active: '',
+        brandName: '',
+      }]);
+    });
+    if (accountInfo.length > 0) {
+      activeAccountId.value = String(accountInfo[0]?.localAdvertiserId);
+    }
+  } else {
+    // 切换到全部复用/平均分配：清空账户数据，初始化创意组数据
+    accountCreativeGroups.value.clear();
+    activeAccountId.value = '';
+    if (creativeGroups.value.length === 0) {
+      creativeGroups.value.push({
+        image: [],
+        video: [],
+        isExpanded: false,
+        active: '',
+        brandName: '',
+      });
+    }
+  }
 }
 
 
@@ -165,7 +215,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
             accountCreativeGroups.value.set(accountId, groups || []);
           });
           if (accountInfo.length > 0) {
-            activeAccountId.value = String(accountInfo[0].localAdvertiserId);
+            activeAccountId.value = String(accountInfo[0]?.localAdvertiserId);
           }
           // 全账户复用/平均分配：从 data 的 '0' key 恢复
         } else if (data.data instanceof Map) {
@@ -228,6 +278,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
 });
 
+// 新增创意组
 function addCreativeGroup() {
   const groups = getCurrentGroups();
   const newIndex = groups.length;
@@ -249,6 +300,7 @@ function addCreativeGroup() {
   });
 }
 
+// 删除创意组
 function removeCreativeGroup(index: number) {
   const groups = getCurrentGroups();
   if (groups.length <= 1) {
@@ -326,6 +378,11 @@ function copyGroup(index: number) {
   });
 }
 
+/**
+ * 锚点跳转
+ * @param index
+ * @param event
+ */
 function scrollToGroup(index: number, event: Event) {
   event.preventDefault();
   event.stopPropagation();
@@ -366,10 +423,8 @@ function updateMaterial(selectedMaterials: Array<MaterialItem>, creativeGroupInd
   // 将 MaterialItem 转换为 Material 素材格式
   const materials = selectedMaterials.map(item => ({
     name: item.name,
-    url: item.fileUrl || '',
-    size: (item as any).fileSize,
-    duration: (item as any).duration,
-    dimensions: (item as any).dimensions,
+    url: item.fileUrl,
+    localMaterialId: item.id,
   }));
 
   // 根据分配模式更新素材
@@ -378,7 +433,7 @@ function updateMaterial(selectedMaterials: Array<MaterialItem>, creativeGroupInd
     const accountGroups = accountCreativeGroups.value.get(activeAccountId.value);
     if (accountGroups && accountGroups[creativeGroupIndex]) {
       const group = accountGroups[creativeGroupIndex];
-      if (currentMaterialType.value === 'video') {
+      if (currentMaterialType.value === 'video' && group) {
         group.video = materials;
       } else {
         group.image = materials;
@@ -389,7 +444,7 @@ function updateMaterial(selectedMaterials: Array<MaterialItem>, creativeGroupInd
     const groups = creativeGroups.value;
     if (groups[creativeGroupIndex]) {
       const group = groups[creativeGroupIndex];
-      if (currentMaterialType.value === 'video') {
+      if (currentMaterialType.value === 'video' && group) {
         group.video = materials;
       } else {
         group.image = materials;
@@ -398,12 +453,6 @@ function updateMaterial(selectedMaterials: Array<MaterialItem>, creativeGroupInd
   }
 }
 
-defineExpose({
-  open: drawerApi.open,
-  close: drawerApi.close,
-  setData: drawerApi.setData,
-  getData: drawerApi.getData,
-});
 </script>
 
 <template>
@@ -414,7 +463,7 @@ defineExpose({
         <Space direction="vertical" class="w-full">
           <div class="form-item">
             <span class="form-label">素材分配方式</span>
-            <RadioGroup v-model:value="distributionMethod">
+            <RadioGroup v-model:value="distributionMethod" @change="allocationMethodChange">
               <RadioButton :value="RuleMethod.ALL">全账户复用</RadioButton>
               <RadioButton :value="RuleMethod.AVG">平均分配</RadioButton>
               <RadioButton :value="RuleMethod.ACCOUNT">按账户分配</RadioButton>
@@ -463,7 +512,7 @@ defineExpose({
           >
             <div class="collapse-header">
               <span class="collapse-title">创意组</span>
-              <Button type="dashed" size="small" @click="addCreativeGroup">+ 添加创意组</Button>
+              <Button size="small" @click="addCreativeGroup">+添加创意组</Button>
             </div>
             <div class="creative-content">
               <div class="anchor-nav">
@@ -488,12 +537,11 @@ defineExpose({
                   >
                     <template #extra>
                       <Space size="small">
-                        <Button size="small" type="text" @click.stop="copyGroup(groupIndex)">复制</Button>
-                        <Button size="small" type="text"
-                                @click.stop="shuffleGroup">乱序
+                        <Button size="small" type="text" @click.stop="copyGroup(groupIndex)">复制
                         </Button>
-                        <Button size="small" type="text" danger
-                                @click.stop="removeCreativeGroup(groupIndex)">删除
+                        <Button size="small" type="text" @click.stop="shuffleGroup">乱序
+                        </Button>
+                        <Button size="small" type="text" danger @click.stop="removeCreativeGroup(groupIndex)">删除
                         </Button>
                       </Space>
                     </template>
@@ -556,7 +604,8 @@ defineExpose({
                                     :key="card.index">
                             <div v-if="card.type === 'material'" class="material-card">
                               <div class="material-preview">
-                                <img :src="card.mat.url" :alt="card.mat.name" class="preview-thumb"/>
+                                <img :src="card.mat.url" :alt="card.mat.name"
+                                     class="preview-thumb"/>
                               </div>
                               <div class="material-info">
                               <span class="material-name" :title="card.mat.name">{{
@@ -591,7 +640,7 @@ defineExpose({
       <!-- 全账户复用/平均分配时的创意组列表 -->
       <Card v-else title="创意组">
         <div class="collapse-header">
-          <span>{{totalMaterials/200}}</span>
+          <span>{{ totalMaterials / 200 }}</span>
           <Button type="dashed" size="small" @click="addCreativeGroup">+ 添加创意组</Button>
         </div>
 
@@ -621,7 +670,8 @@ defineExpose({
               >
                 <template #extra>
                   <Space size="small">
-                    <Button size="small" type="text" @click.stop="copyGroup(groupIndex)">复制</Button>
+                    <Button size="small" type="text" @click.stop="copyGroup(groupIndex)">复制
+                    </Button>
                     <Button size="small" type="text"
                             @click.stop="shuffleGroup">乱序
                     </Button>

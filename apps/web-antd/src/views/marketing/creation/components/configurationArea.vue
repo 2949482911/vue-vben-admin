@@ -1,5 +1,5 @@
 <script setup lang="ts" name = "configurationArea">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { Select, Tooltip, Input, Button } from 'ant-design-vue';
 import type { SelectValue } from 'ant-design-vue/es/select';
 import { advertiserApi, projectApi } from '#/api';
@@ -9,6 +9,7 @@ import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import { trimObject } from '#/utils/trim';
 // 策略组
 import StrategyGroup from "#/views/marketing/creation/components/strategyGroup.vue";
+import type { AccountInfo, Project } from "#/views/marketing/creation/creation";
 const projectId = ref<SelectValue>('');
 const productList = ref();
 // 媒体账户显示文字 (String 格式方便绑定 Input)
@@ -22,7 +23,7 @@ const tempSelectedRows = ref<AdvertiserItem[]>([]);
 const emit = defineEmits(['update:accountInfo', 'update:productInfo','update:ruleInfo', 'update:reuse']);
 
 
-const { ruleInfo, configurationConfig } = defineProps({
+const { ruleInfo, configurationConfig, accountInfo, project } = defineProps({
   ruleInfo: {
     type: Object,
     default: () => {
@@ -47,6 +48,18 @@ const { ruleInfo, configurationConfig } = defineProps({
         platform: '',
       }
     }
+  },
+
+  // 账户信息（复用策略组时传入）
+  accountInfo: {
+    type: Array<AccountInfo>,
+    default: () => []
+  },
+
+  // 项目信息（复用策略组时传入）
+  project: {
+    type: Object as () => Project | null,
+    default: null
   }
 
 });
@@ -129,6 +142,56 @@ onMounted(async() => {
   const res = await projectApi.fetchProjectList({ page: 1, pageSize: 1000 });
   productList.value = res.items;
 });
+
+// 监听父组件传入的 accountInfo 数据变化，实现回显（复用策略组时）
+watch(
+  () => accountInfo,
+  (newAccountInfo) => {
+    if (newAccountInfo && newAccountInfo.length > 0) {
+      // 更新显示文字
+      mediaAccountLabel.value = newAccountInfo.map((r: AccountInfo) => r.advertiserName).join('，');
+      // 更新选中的 ID 数组
+      selectedAccountIds.value = newAccountInfo.map((r: AccountInfo) => String(r.localAdvertiserId));
+      // 更新选中的行数据
+      selectedRowsData.value = newAccountInfo.map((r: AccountInfo) => ({
+        id: r.localAdvertiserId,
+        advertiserName: r.advertiserName,
+      }));
+      // 同步到临时变量
+      tempSelectedRows.value = [...selectedRowsData.value];
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+// 监听父组件传入的 project 数据变化，实现回显（复用策略组时）
+watch(
+  () => project,
+  (newProject) => {
+    if (newProject && newProject.projectId) {
+      projectId.value = newProject.projectId;
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+// 监听父组件传入的 ruleInfo 数据变化，实现回显（复用策略组时）
+watch(
+  () => ruleInfo,
+  (newRuleInfo) => {
+    if (newRuleInfo) {
+      selectedProjectRule.value = newRuleInfo.projectRuleKey || 'targeting';
+      selectedAdGroupRule.value = newRuleInfo.adGroupRuleKey || 'targeting';
+      selectedAdRule.value = newRuleInfo.adRuleKey || 'creative';
+      selectedCreativeRule.value = newRuleInfo.creativeRuleKey || 'creative_group';
+      projectCount.value = newRuleInfo.projectCount || 1;
+      adGroupCount.value = newRuleInfo.adGroupCount || 1;
+      adCount.value = newRuleInfo.adCount || 1;
+      creativeCount.value = newRuleInfo.creativeCount || 1;
+    }
+  },
+  { immediate: true, deep: true }
+);
 const gridOptions: VxeGridProps<AdvertiserItem> = {
   border: true,
   checkboxConfig: {
@@ -161,6 +224,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
           putStatue: 1,
           ...params,
         });
+        console.log(configurationConfig);
         setTimeout(() => {
           const grid = gridApi.grid;
           if (grid) {
@@ -449,7 +513,7 @@ function reuseStrategyGroup() {
       </div>
     </RuleModal>
 
-    <StrategyGroupModal @update:reuse="updateStrategyReuse"/>
+    <StrategyGroupModal @update:reuse="updateStrategyReuse" :platform="configurationConfig.platform"/>
   </div>
 </template>
 <style lang="scss">

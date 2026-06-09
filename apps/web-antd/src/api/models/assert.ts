@@ -1,4 +1,4 @@
-import type {BaseItem} from "#/api/models/core";
+import type { BaseItem } from "#/api/models/core";
 
 
 /**
@@ -28,11 +28,21 @@ export interface MaterialItem extends BaseItem {
 /**
  * 专辑列表
  */
-export interface AlbumItem extends BaseItem{
+export interface AlbumItem extends BaseItem {
   name: string;
   parentId: string;
   rootId: string;
   remark: string;
   level: number;
-  children: Array<AlbumItem>
+  children: Array<AlbumItem>;
+}
+
+
+/**
+ * 落地页
+ */
+
+export interface PageViewItem extends BaseItem {
+  name: string;
+  platform: string;
 }

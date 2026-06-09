@@ -3,10 +3,11 @@ import {
   AdRuleKey,
   CampaignRuleKey,
   DistributionMode,
-  Platform,
-} from '#/constants/enums';
-import type {VivoConfigData, VivoCreation} from '#/views/marketing/creation/vivo/vivo';
-import type {LandingPageData, TargetedPackageTypeItem, TitlePackageItem} from '#/api/models';
+  Platform
+} from "#/constants/enums";
+import type { VivoConfigData, VivoCreation } from "#/views/marketing/creation/vivo/vivo";
+import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { PageViewItem } from "#/api/models/assert";
 
 /**
  * 媒体基类
@@ -26,6 +27,7 @@ export interface MonitoringLinkType {
   monitorLink: string;
   linkModeType: string;
   allocateType: string;
+  ocpxTaskId: string;
 }
 
 /**
@@ -36,6 +38,8 @@ export interface Project {
   projectName: string;
   packageName: string;
   icon: string;
+  // 媒体APPID
+  // appId: string
 }
 
 export interface AccountInfo {
@@ -107,7 +111,7 @@ export interface Promotion {
 export function getRuleInfoCampaignCount(
   platform: string,
   creation: PlatformCreation<VivoConfigData | any>,
-  localMaterialIds: Array<string>,
+  localMaterialIds: Array<string>
 ): number {
   if (platform === Platform.VIVO) {
     creation = creation as VivoCreation;
@@ -122,21 +126,21 @@ export function getRuleInfoCampaignCount(
     campaignCount = getCampaignCount(
       creation.configData.audience?.audienceConfig.method,
       creation.configData.audience?.data,
-      localMaterialIds,
+      localMaterialIds
     );
   } else if (projectRuleKey === CampaignRuleKey.creative) {
     method = creation.configData.material?.config.method;
     campaignCount = getCampaignCount(
       creation.configData.material?.config.method,
       creation.configData.material?.data,
-      localMaterialIds,
+      localMaterialIds
     );
   } else if (projectRuleKey === CampaignRuleKey.title) {
     method = creation.configData.titlePackage?.titlePackageConfig.method;
     campaignCount = getCampaignCount(
       creation.configData.titlePackage?.titlePackageConfig.method,
       creation.configData.titlePackage?.data,
-      localMaterialIds,
+      localMaterialIds
     );
   } else {
     campaignCount = creation.ruleInfo.projectCount || 0;
@@ -155,7 +159,7 @@ export function getRuleInfoCampaignCount(
 export function getRuleInfoAdCountGroup(
   platform: string,
   creation: PlatformCreation<VivoConfigData | any>,
-  localMaterialIds: Array<string>,
+  localMaterialIds: Array<string>
 ): number {
   if (platform === Platform.VIVO) {
     creation = creation as VivoCreation;
@@ -165,19 +169,19 @@ export function getRuleInfoAdCountGroup(
     return getCampaignCount(
       creation.configData.audience?.audienceConfig.method,
       creation.configData.audience?.data,
-      localMaterialIds,
+      localMaterialIds
     );
   } else if (adGroupRuleKey === AdGroupRuleKey.creative) {
     return getCampaignCount(
       creation.configData.material?.config.method,
       creation.configData.material?.data,
-      localMaterialIds,
+      localMaterialIds
     );
   } else if (adGroupRuleKey === AdGroupRuleKey.title) {
     return getCampaignCount(
       creation.configData.titlePackage?.titlePackageConfig.method,
       creation.configData.titlePackage?.data,
-      localMaterialIds,
+      localMaterialIds
     );
   } else {
     return creation.ruleInfo.adGroupCount || 0;
@@ -190,7 +194,7 @@ export function getRuleInfoAdCountGroup(
 export function getRuleInfoAdCount(
   platform: string,
   creation: PlatformCreation<VivoConfigData | any>,
-  localMaterialIds: Array<string>,
+  localMaterialIds: Array<string>
 ): number {
   if (platform === Platform.VIVO) {
     creation = creation as VivoCreation;
@@ -200,13 +204,13 @@ export function getRuleInfoAdCount(
     return getCampaignCount(
       creation.configData.material?.config.method,
       creation.configData.material?.data,
-      localMaterialIds,
+      localMaterialIds
     );
   } else if (adRuleKey === AdRuleKey.title) {
     return getCampaignCount(
       creation.configData.titlePackage?.titlePackageConfig.method,
       creation.configData.titlePackage?.data,
-      localMaterialIds,
+      localMaterialIds
     );
   } else {
     return creation.ruleInfo.adCount || 0;
@@ -222,10 +226,10 @@ export function getRuleInfoAdCount(
 export function getCampaignCount(
   method: string,
   data: Map<string, any[]>,
-  advertiserIds: string[],
+  advertiserIds: string[]
 ): number {
   if (method === DistributionMode.all) {
-    return data.get('0')?.length || 0;
+    return data.get("0")?.length || 0;
   } else {
     let count: number = 0;
     advertiserIds.forEach((x) => {
@@ -246,11 +250,11 @@ export function getAudience(
   method: string,
   data: Map<string, Array<TargetedPackageTypeItem>>,
   advertiserId: string,
-  index: number,
+  index: number
 ): TargetedPackageTypeItem {
   let dataList: Array<TargetedPackageTypeItem> = [];
   if (method === DistributionMode.all) {
-    dataList = data.get('0') || [];
+    dataList = data.get("0") || [];
   } else {
     dataList = data.get(advertiserId) || [];
   }
@@ -267,11 +271,11 @@ export function getAudience(
 export function getMaterial(
   method: string,
   data: Map<string, Array<Material>>,
-  advertiserId: string,
+  advertiserId: string
 ): Array<Material> {
   let dataList: Array<Material> = [];
   if (method === DistributionMode.all) {
-    dataList = data.get('0') || [];
+    dataList = data.get("0") || [];
   } else {
     dataList = data.get(advertiserId) || [];
   }
@@ -289,11 +293,11 @@ export function getTiltePackage(
   method: string,
   data: Map<string, Array<TitlePackageItem>>,
   advertiserId: string,
-  index: number,
+  index: number
 ): TitlePackageItem {
   let dataList: Array<TitlePackageItem> = [];
   if (method === DistributionMode.all) {
-    dataList = data.get('0') || [];
+    dataList = data.get("0") || [];
   } else {
     dataList = data.get(advertiserId) || [];
   }
@@ -309,17 +313,17 @@ export function getTiltePackage(
 export function getDeepLink(
   method: string,
   data: Map<string, Array<string>>,
-  advertiserId: string,
+  advertiserId: string
 ): string {
   // 1. 确定查找的 Key
   // 如果是全部相同模式，固定查找 '0'；否则查找传入的广告主 ID
-  const key = method === DistributionMode.all ? '0' : String(advertiserId);
+  const key = method === DistributionMode.all ? "0" : String(advertiserId);
 
   // 2. 兼容性取值
   let dataList: string[] | undefined;
 
   // 检查 data 是否为 Map（是否有 get 方法）
-  if (data instanceof Map || typeof (data as any).get === 'function') {
+  if (data instanceof Map || typeof (data as any).get === "function") {
     dataList = (data as Map<string, string[]>).get(key);
   } else {
     // 如果是普通对象，直接用 key 取值
@@ -327,7 +331,7 @@ export function getDeepLink(
   }
 
   // 3. 安全返回第一个值
-  return Array.isArray(dataList) && dataList.length > 0 ? String(dataList[0]) : '';
+  return Array.isArray(dataList) && dataList.length > 0 ? String(dataList[0]) : "";
 }
 
 /**
@@ -339,11 +343,11 @@ export function getDeepLink(
 export function getLandingPage(
   method: string,
   data: Map<string, Array<LandingPageData>>,
-  advertiserId: string,
+  advertiserId: string
 ): LandingPageData | undefined {
   let dataList: Array<LandingPageData> = [];
   if (method === DistributionMode.all) {
-    dataList = data.get('0') || [];
+    dataList = data.get("0") || [];
   } else {
     dataList = data.get(advertiserId) || [];
   }
@@ -383,4 +387,24 @@ export interface AudienceConfigData {
 export interface TitlePackageConfigData {
   config: MethodConfig;
   data: Map<string, Array<TitlePackageItem>>;
+}
+
+
+/**
+ * 落地页配置
+ */
+export interface PageViewConfigData {
+  config: MethodConfig;
+  data: Map<string, Array<PageViewItem>>;
+}
+
+
+/**
+ * 监测链接配置
+ *
+ */
+export interface MonitoringLinkConfigData {
+  config: MethodConfig;
+  linkType: string;
+  data: Map<string, Array<MonitoringLinkType>>;
 }

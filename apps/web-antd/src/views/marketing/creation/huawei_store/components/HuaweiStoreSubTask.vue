@@ -1,5 +1,5 @@
 <script setup lang="ts" name="HuaweiStoreSubTask">
-import {ref} from 'vue';
+import {ref, watch} from 'vue';
 import {Card, Divider, Descriptions, DescriptionsItem, Alert, Button, Space} from 'ant-design-vue';
 import type {HuaWeiStoreAdgroupData} from "#/views/marketing/creation/huawei_store/huawei_store";
 import {useVbenDrawer, useVbenModal} from '@vben/common-ui';
@@ -14,7 +14,7 @@ import AudiencePackageShow
 
 const emit = defineEmits(["update:adgroup", "update:audiencePackage"])
 
-const {formFields, subTaskShowLabel, accountInfo, audience} = defineProps({
+const {formFields, subTaskShowLabel, accountInfo, audience, adgroup} = defineProps({
   formFields: {
     type: Array,
     default: () => []
@@ -32,6 +32,10 @@ const {formFields, subTaskShowLabel, accountInfo, audience} = defineProps({
     type: Object as () => AudienceConfigData | null,
     default: () => {
     }
+  },
+  adgroup: {
+    type: Object as () => HuaWeiStoreAdgroupData | null,
+    default: null
   }
 });
 
@@ -65,8 +69,20 @@ const adgroupData = ref<HuaWeiStoreAdgroupData>({
   taskId: ""
 });
 
+// 监听父组件传入的 adgroup 数据变化，实现回显（复用策略组时）
+watch(
+  () => adgroup,
+  (newAdgroup) => {
+    if (newAdgroup) {
+      adgroupData.value = { ...newAdgroup };
+    }
+  },
+  { immediate: true, deep: true }
+);
+
 
 function openAdgroupDrawer() {
+  drawerApi.setData(adgroupData.value);
   drawerApi.open();
 }
 

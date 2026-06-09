@@ -1,9 +1,10 @@
 // 华为创编对象定义
 
+// 华为创编对象定义
 import type {
   AudienceConfigData,
   ConfigurationConfig,
-  MaterialData,
+  MaterialData, MonitoringLinkConfigData, PageViewConfigData,
   PlatformCreation,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
@@ -11,9 +12,13 @@ import type {
 export const HUAWEI_STORE: string = "0.1";
 
 export interface HuaWeiStoreCreation extends PlatformCreation <HuaWeiStoreConfigData> {
-  configurationConfig: ConfigurationConfig
+  configurationConfig: ConfigurationConfig;
 }
 
+/**
+ * HuaWeiStoreConfigData
+ * 华为商店的
+ */
 export interface HuaWeiStoreConfigData {
   campaign: HuaWeiStoreCampaignData;
   adgroup: HuaWeiStoreAdgroupData;
@@ -21,6 +26,8 @@ export interface HuaWeiStoreConfigData {
   material: MaterialData;
   audience: AudienceConfigData;
   titlePackage: TitlePackageConfigData;
+  pageView: PageViewConfigData;
+  monitoringLink: MonitoringLinkConfigData;
 }
 
 

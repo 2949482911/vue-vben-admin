@@ -7,6 +7,10 @@ export enum RuleMethod {
   AVG = "avg",
   // 账户分配
   ACCOUNT = "account",
+
+  //
+  MANUAL = 'manual',
+  OCPX = 'ocpx'
 }
 
 

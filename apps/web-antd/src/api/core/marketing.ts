@@ -70,7 +70,7 @@ import type {
 } from '#/api/models/marketing';
 import {requestClient} from '#/api/request';
 import type {BatchOptions} from '#/api/models/core';
-import type {AlbumItem} from "#/api/models/assert";
+import type { AlbumItem, PageViewItem } from "#/api/models/assert";
 
 /**
  * 开发者
@@ -551,7 +551,7 @@ export const subscribeApi = new SubscribeApi('/platform/report_subscribe');
 class LoadingPageApi extends BaseApi {
   // 查询
   fetchGetLoadingPage(params: LandingPageQuery) {
-    return requestClient.get(this.getServiceUrl('list'), {params});
+    return requestClient.get<PageViewItem>(this.getServiceUrl('list'), {params});
   }
 
   // 创建

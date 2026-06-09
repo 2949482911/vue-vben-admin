@@ -1,26 +1,43 @@
 <script setup lang="ts">
-import {ref} from 'vue';
-import {Page} from '@vben/common-ui';
+import { ref } from "vue";
+import { Page, useVbenModal } from "@vben/common-ui";
 import type {
   HuaWeiStoreAdgroupData,
   HuaWeiStoreCampaignData,
   HuaWeiStoreCreation
-} from "./huawei_store"
-import {Platform} from "#/constants/enums";
-import {RuleKey, RuleMethod} from "#/views/marketing/creation/creation_enums";
+} from "./huawei_store";
+import { Platform } from "#/constants/enums";
+import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import type {
   AccountInfo,
   AudienceConfigData,
-  Material, MaterialData,
+  Material,
+  MaterialData,
+  MonitoringLinkConfigData,
+  MonitoringLinkType,
   Project,
-  RuleInfo
+  RuleInfo,
+  TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
-import type {TargetedPackageTypeItem, TitlePackageItem} from "#/api/models";
-import ConfigurationConfig from '../components/configurationArea.vue';
-import {Card, Select} from 'ant-design-vue';
-import {TaskTypeSelect} from "#/views/marketing/creation/huawei_store/data";
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import ConfigurationConfig from "../components/configurationArea.vue";
+import { Card, Select } from "ant-design-vue";
+import { TaskTypeSelect } from "#/views/marketing/creation/huawei_store/data";
 
-import DeliveryTaskRecommend from './components/delivery-task-recommend/index.vue';
+import DeliveryTaskRecommend from "./components/delivery-task-recommend/index.vue";
+import type { PageViewItem } from "#/api/models/assert";
+import Function from "#/views/marketing/creation/components/Function.vue";
+import PreviewArea from "#/views/marketing/creation/components/preview_area/PreviewArea.vue";
+import CreateAdvertiser from "../components/createStrategyGroup.vue";
+
+// 策略组
+const [CreateAdvertiserModal, createAdvertiserApi] = useVbenModal({
+  connectedComponent: CreateAdvertiser,
+  onCancel() {
+    createAdvertiserApi.close();
+  }
+});
+
 
 
 /**
@@ -51,6 +68,37 @@ function updateRuleInfo(ruleInfo: RuleInfo) {
  * 策略组复用对象
  */
 function updateReuse(huaweiStoreCreation: HuaWeiStoreCreation) {
+  // 核心：在赋值前，恢复被丢失的 Map 类型（JSON 序列化后 Map 变成普通对象）
+  if (huaweiStoreCreation.configData) {
+    const config = huaweiStoreCreation.configData;
+
+    // 1. 恢复 material.data
+    if (config.material && !(config.material.data instanceof Map)) {
+      config.material.data = new Map(Object.entries(config.material.data || {}));
+    }
+
+    // 2. 恢复 audience.data
+    if (config.audience && !(config.audience.data instanceof Map)) {
+      config.audience.data = new Map(Object.entries(config.audience.data || {}));
+    }
+
+    // 3. 恢复 titlePackage.data
+    if (config.titlePackage && !(config.titlePackage.data instanceof Map)) {
+      config.titlePackage.data = new Map(Object.entries(config.titlePackage.data || {}));
+    }
+
+    // 4. 恢复 pageView.data
+    if (config.pageView && !(config.pageView.data instanceof Map)) {
+      config.pageView.data = new Map(Object.entries(config.pageView.data || {}));
+    }
+
+    // 5. 恢复 monitoringLink.data
+    if (config.monitoringLink && !(config.monitoringLink.data instanceof Map)) {
+      config.monitoringLink.data = new Map(Object.entries(config.monitoringLink.data || {}));
+    }
+
+  }
+
   creationInfo.value = huaweiStoreCreation;
 }
 
@@ -85,11 +133,41 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
  */
 function updateMaterial(materialData: MaterialData) {
   creationInfo.value.configData.material = materialData;
-  console.log(creationInfo.value.configData.material);
+}
+
+/**
+ * 更新标题包
+ */
+function updateTitlePackage(titlePackage: TitlePackageConfigData) {
+  creationInfo.value.configData.titlePackage = titlePackage;
+}
+
+/**
+ * 更新监测链接
+ */
+function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
+  creationInfo.value.configData.monitoringLink = monitoringLink;
+}
+
+
+/**
+ * 保存策略组
+ */
+function createStrategyGroup() {
+  createAdvertiserApi.setData(creationInfo.value)
+  createAdvertiserApi.open();
 }
 
 //// creationInfo 华为商店创建信息
 const creationInfo = ref<HuaWeiStoreCreation>({
+  monitoringLink: {
+    clickLink: "",
+    exposureLink: "",
+    monitorLink: "",
+    linkModeType: "",
+    allocateType: "",
+    ocpxTaskId: ""
+  },
   accountInfo: [],
   configData: {
     campaign: {
@@ -145,37 +223,45 @@ const creationInfo = ref<HuaWeiStoreCreation>({
       pageType: "",
       slogan: "",
       verticalScreenFloatPic: ""
-
     },
     material: {
       config: {
-        method: RuleMethod.ALL,
+        method: RuleMethod.ALL
       },
-      data: new Map<string, Material[]>(),
+      data: new Map<string, Material[]>()
     },
     audience: {
       config: {
-        method: RuleMethod.ALL,
+        method: RuleMethod.ALL
       },
-      data: new Map<string, Array<TargetedPackageTypeItem>>(),
+      data: new Map<string, Array<TargetedPackageTypeItem>>()
     },
     titlePackage: {
       config: {
-        method: RuleMethod.ALL,
+        method: RuleMethod.ALL
       },
-      data: new Map<string, Array<TitlePackageItem>>(),
+      data: new Map<string, Array<TitlePackageItem>>()
+    },
+    pageView: {
+      config: {
+        method: RuleMethod.ALL
+      },
+      data: new Map<string, Array<PageViewItem>>()
+    },
+    monitoringLink: {
+      config: {
+        method: RuleMethod.ALL
+      },
+      linkType: RuleMethod.MANUAL,
+      data: new Map<string, Array<MonitoringLinkType>>()
     }
-
-  },
-  monitoringLink: {
-    allocateType: "", clickLink: "", exposureLink: "", linkModeType: "", monitorLink: ""
   },
   platform: Platform.HUAWEI_STORE,
   project: {
-    projectId: '',
-    projectName: '',
-    icon: '',
-    packageName: '',
+    projectId: "",
+    projectName: "",
+    icon: "",
+    packageName: ""
   },
   ruleInfo: {
     projectRuleKey: RuleKey.TARGET,
@@ -184,11 +270,11 @@ const creationInfo = ref<HuaWeiStoreCreation>({
     adGroupCount: 1,
     adRuleKey: RuleKey.CREATIVE,
     adCount: 1,
-    creativeRuleKey: 'creative_group',
-    creativeCount: 1,
+    creativeRuleKey: "creative_group",
+    creativeCount: 1
   },
   configurationConfig: {
-    platform: Platform.HUAWEI_STORE,
+    platform: Platform.HUAWEI_STORE
   }
 
 
@@ -205,6 +291,8 @@ const creationInfo = ref<HuaWeiStoreCreation>({
         <ConfigurationConfig
           :rule-info="creationInfo.ruleInfo"
           :configuration-config="creationInfo.configurationConfig"
+          :account-info="creationInfo.accountInfo"
+          :project="creationInfo.project"
           @update:accountInfo="updateAccountInfo"
           @update:productInfo="updateProject"
           @update:ruleInfo="updateRuleInfo"
@@ -222,8 +310,27 @@ const creationInfo = ref<HuaWeiStoreCreation>({
                                @update:adgroup="updateAdgroup"
                                @update:audience-package="updateAudiencePackage"
                                @update:update-material="updateMaterial"
+                               @update:title-package="updateTitlePackage"
+
         />
       </Card>
+
+      <!--监测链接组-->
+      <Card class="header">
+        <Function
+          :accountInfo="creationInfo.accountInfo"
+          :monitoring-link="creationInfo.configData.monitoringLink"
+          @update:monitoring-link="updateMonitoringLink"
+          @save:create-strategy-group="createStrategyGroup"
+        />
+      </Card>
+
+      <Card class="header" title="预览区">
+        <PreviewArea></PreviewArea>
+      </Card>
+
+      <!--      策略组-->
+      <CreateAdvertiserModal />
     </Page>
   </div>
 </template>
