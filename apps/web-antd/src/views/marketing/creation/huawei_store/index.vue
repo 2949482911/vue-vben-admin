@@ -32,12 +32,20 @@ import Function from "#/views/marketing/creation/components/Function.vue";
 import CreateAdvertiser from "../components/createStrategyGroup.vue";
 import RecommendPreviewArea
   from "#/views/marketing/creation/huawei_store/components/delivery-task-recommend/RecommendPreviewArea.vue";
+
+import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
+
 // 策略组
 const [CreateAdvertiserModal, createAdvertiserApi] = useVbenModal({
   connectedComponent: CreateAdvertiser,
   onCancel() {
     createAdvertiserApi.close();
   }
+});
+
+// 提交弹窗
+const [SubmitModal, submitApi] = useVbenModal({
+  connectedComponent: Submit
 });
 
 
@@ -174,7 +182,11 @@ function genPreviewTableData() {
  * 提交审核数据
  */
 function submitCreateBatch() {
-
+  if (adList.value.length < 0) {
+    message.error("请求配置预览区数据");
+    return;
+  }
+  submitApi.open();
 }
 
 // creationInfo 华为商店创建信息
@@ -188,27 +200,28 @@ const creationInfo = ref<HuaWeiStoreCreation>({
     ocpxTaskId: ""
   },
   accountInfo: [],
+  version: "1.0",
   configData: {
     campaign: {
       appId: "",
-      attributionMode: 0,
-      budget: 0,
+      attributionMode: 3,
+      budget: 200,
       campaignId: "",
       campaignInfo: {
-        adNetwork: 0,
-        buyMode: 0,
+        adNetwork: 1,
+        buyMode: 1,
         campaignName: "",
-        dailyBudget: 0,
-        marketingGoal: 0,
-        type: 0
+        dailyBudget: 200,
+        marketingGoal: 1,
+        type: 1
       },
       clickAdMonitorReportUrl: "",
       deliveryHours: [],
       endDate: "",
       impAdMonitorReportUrl: "",
       isExcludeInstalledApp: 0,
-      isPositiveRegion: "",
-      regions: "",
+      isPositiveRegion: "Y",
+      regions: "CN",
       startDate: "",
       taskName: ""
     },
@@ -219,7 +232,7 @@ const creationInfo = ref<HuaWeiStoreCreation>({
       subTaskKey: "",
       subTaskKeyMatchType: "",
       subTaskName: "",
-      subTaskPrice: 0,
+      subTaskPrice: 200,
       subTaskRtaId: "",
       subTaskUserGroupId: "",
       taskId: ""
@@ -294,8 +307,6 @@ const creationInfo = ref<HuaWeiStoreCreation>({
   configurationConfig: {
     platform: Platform.HUAWEI_STORE
   }
-
-
 });
 
 
@@ -369,6 +380,8 @@ function resetCreationInfo() {
 
       <!--      策略组-->
       <CreateAdvertiserModal />
+      <!--      提交审核-->
+      <SubmitModal :creation-info="creationInfo" :ad-list="adList" />
     </Page>
   </div>
 </template>
