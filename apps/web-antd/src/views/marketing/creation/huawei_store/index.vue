@@ -7,7 +7,9 @@ import type {
   HuaWeiStoreCreation,
   HuaWeiStoreCreationData
 } from "./huawei_store";
-import { getPreviewTableData } from "./huawei_store";
+import {
+  getPreviewTableData
+} from "./huawei_store";
 import { Platform } from "#/constants/enums";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import type {
@@ -23,8 +25,8 @@ import type {
 } from "#/views/marketing/creation/creation";
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import ConfigurationConfig from "../components/configurationArea.vue";
-import { Card, message, Select } from "ant-design-vue";
-import { TaskTypeSelect } from "#/views/marketing/creation/huawei_store/data";
+import { Card, message, Select, Space } from "ant-design-vue";
+import { AdType, TaskTypeSelect } from "#/views/marketing/creation/huawei_store/data";
 
 import DeliveryTaskRecommend from "./components/delivery-task-recommend/index.vue";
 import type { PageViewItem } from "#/api/models/assert";
@@ -106,6 +108,13 @@ function updateReuse(huaweiStoreCreation: HuaWeiStoreCreation) {
       config.monitoringLink.data = new Map(Object.entries(config.monitoringLink.data || {}));
     }
 
+    //
+    if (!config.promotionType) {
+      config.promotionType = {
+        adType: "search_card",
+        taskType: "461314520477184955"
+      };
+    }
   }
 
   creationInfo.value = huaweiStoreCreation;
@@ -202,6 +211,11 @@ const creationInfo = ref<HuaWeiStoreCreation>({
   accountInfo: [],
   version: "1.0",
   configData: {
+    // 广告信息
+    promotionType: {
+      adType: "search_card",
+      taskType: "461314520477184955"
+    },
     campaign: {
       appId: "",
       attributionMode: 3,
@@ -348,7 +362,11 @@ function resetCreationInfo() {
       </Card>
 
       <Card class="header">
-        <Select :options="TaskTypeSelect" default-value="461314520477184955"></Select>
+        <Space>
+          <Select :options="TaskTypeSelect"
+                  :value="creationInfo.configData.promotionType.taskType"></Select>
+          <Select :options="AdType" :value="creationInfo.configData.promotionType.adType"></Select>
+        </Space>
       </Card>
 
       <Card class="header">

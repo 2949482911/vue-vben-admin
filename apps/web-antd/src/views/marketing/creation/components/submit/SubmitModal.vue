@@ -20,7 +20,6 @@ const props = defineProps<{
 const emit = defineEmits(["result:getCreationTask"]);
 
 
-
 // // 上传json
 const uploadJson = async (data: any, subName: string) => {
   const client = await useOssClient();
@@ -73,21 +72,22 @@ const [Modal, modalApi] = useVbenModal({
     // 提交的参数
     const submitVals = {
       name: values.name,
-      platform: props.creationInfo?.platform || '',
-      projectId: props.creationInfo?.project.projectId || '',
+      platform: props.creationInfo?.platform || "",
+      projectId: props.creationInfo?.project.projectId || "",
       version: props.creationInfo?.version,
       ruleType: values.ruleType,
       configArea: creationUrl, //本地数据
-      fullParamsData: tableUrl //上传表格
+      fullParamsData: tableUrl, //上传表格
+      extraParams: props.creationInfo.configData.promotionType || {} // 附加参数
     };
     // 获取请求结果
-    const res =  await creationTaskApi.fetchVivoSubmitReview(
+    const res = await creationTaskApi.fetchVivoSubmitReview(
       submitVals
-    )
+    );
 
     // 结果响应数据
     if (res.taskId) {
-      emit("result:getCreationTask", res.taskId)
+      emit("result:getCreationTask", res.taskId);
     }
     // 上茶
     modalApi.close();
@@ -99,7 +99,7 @@ const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
     componentProps: {
-      allowClear: true,
+      allowClear: true
     },
     labelWidth: 70
   },

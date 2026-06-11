@@ -15,6 +15,7 @@ import type { HuaWeiStoreCreation } from "#/views/marketing/creation/huawei_stor
  */
 export interface PlatformCreation<C> {
   platform: string;
+  version: string;
   accountInfo: Array<AccountInfo>;
   ruleInfo: RuleInfo;
   configData: C;

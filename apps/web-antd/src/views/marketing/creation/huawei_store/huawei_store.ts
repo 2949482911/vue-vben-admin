@@ -48,8 +48,17 @@ export interface HuaWeiStoreConfigData {
   titlePackage: TitlePackageConfigData;
   pageView: PageViewConfigData;
   monitoringLink: MonitoringLinkConfigData;
+  promotionType: PromotionType
 }
 
+
+/**
+ * 投放华为的具体类型
+ */
+export interface PromotionType {
+  taskType: string;
+  adType: string;
+}
 
 export interface HuaWeiStoreCampaignData {
   appId: string;

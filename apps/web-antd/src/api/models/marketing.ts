@@ -665,6 +665,8 @@ export interface VivoSubmitType {
   version: string;
   fullParamsData: string;
   configArea: string;
+  // 附加参数
+  extraParams: any;
 }
 /**营销-创编-Vivo营销-策略组 */
 export interface StrategyGropType<T = any> extends BaseItem {
