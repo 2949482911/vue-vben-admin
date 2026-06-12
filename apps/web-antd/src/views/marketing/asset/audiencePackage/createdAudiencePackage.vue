@@ -9,6 +9,7 @@ import { trimObject } from '#/utils/trim';
 import Vivo_audienceForm from './vivoAudience/vivo_audienceForm.vue';
 import Oppo_audienceForm from './oppoAudience/oppo_audienceForm.vue';
 import HuaWeiStoreAudienceForm from './huaweistoreAudience/huawei_store_audienceForm.vue';
+import TencentAudienceForm from './tencent/tencent_audienceForm.vue';
 import {Platform} from "#/constants/enums";
 
 const props = defineProps<{
@@ -19,6 +20,7 @@ const emit = defineEmits(['pageReload']);
 const vivoAudienceRef = ref();
 const oppoAudienceRef = ref();
 const huaWeiStoreAudienceRef = ref();
+const tencentAudienceRef = ref();
 const localAdId = ref<string>();
 const platformConfig = ref<string | undefined>();
 //传给oppo的广告主，因为oppo的地域需要广告主才能查询
@@ -205,6 +207,7 @@ const [Form, formApi] = useVbenForm({
       <Vivo_audienceForm v-if="platformConfig === Platform.VIVO" ref="vivoAudienceRef" />
       <Oppo_audienceForm v-if="platformConfig === Platform.OPPO" ref="oppoAudienceRef" :advertiser-id="platformAdId"/>
       <HuaWeiStoreAudienceForm v-if="platformConfig === Platform.HUAWEI_STORE" ref="huaWeiStoreAudienceRef" :advertiser-id="platformAdId"/>
+      <TencentAudienceForm v-if="platformConfig === Platform.TENCENT" ref="tencentAudienceRef" :advertiser-id="platformAdId"/>
     </titlePackageDrawer>
   </div>
 </template>

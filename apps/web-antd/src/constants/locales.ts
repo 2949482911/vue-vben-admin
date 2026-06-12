@@ -585,6 +585,11 @@ export const ACTIVE_PLATFORM = [
     label: '华为',
     value: 'huawei',
   },
+
+  {
+    label: 'tencent',
+    value: 'tencent',
+  },
 ];
 
 /**
