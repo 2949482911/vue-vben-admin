@@ -96,7 +96,9 @@
       "platformCallback": "Callback Platform",
       "clickRangeDay": "Click Range Day Ago",
       "callbackRate": "Callback Rate",
-      "hadClick": "Had Click"
+      "hadClick": "Had Click",
+      "taskType": "Task Type",
+      "assessmentAmount": "Assessment Amount"
     },
     "callback_record_columns": {
       "behaviorPlatformName": "Behavior Name",
@@ -130,5 +132,14 @@
       "price": "Price",
       "eventName": "Event Name"
     }
+  },
+  "analytics" : {
+    "totalClick": "Total Click",
+    "totalExposureCount": "Total Exposure",
+    "totalAmount": "Total Amount",
+    "totalEventCnt": "Total Event",
+    "assessmentAmount": "Total Assessment Amount",
+    "dims": "Dims",
+    "dateRange": "Date Range"
   }
 }

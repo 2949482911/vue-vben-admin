@@ -1,4 +1,4 @@
-import type { BaseItem, PageRequestParams } from '#/api/models/core';
+import type { BaseItem, PageRequestParams } from "#/api/models/core";
 
 // callback page request
 export interface PlatformcallbackPageRequest extends PageRequestParams {
@@ -19,12 +19,14 @@ export interface PlatformcallbackItem extends BaseItem {
   hadClick: boolean;
   eventMappingRules?: Array<eventMappingType>;
 }
+
 export interface eventMappingType {
   behaviorPlatformId: string;
   behaviorPlatform: string;
   behaviorEventTypes: string[];
   callbackEventType: string;
 }
+
 export interface CreatePlatformCallbackRequest {
   name: string;
   platform: string;
@@ -151,7 +153,7 @@ export interface OcpxBehavioracallbackRecordPageRequest extends PageRequestParam
 
 // ocpx 执行 任务记录
 export interface OcpxBehavioracallbackRecordItem extends BaseItem {
-  recordType:string;
+  recordType: string;
   taskId: string;
   behaviorPlatformId: string;
   behaviorPlatformName: string;
@@ -198,25 +200,30 @@ export interface TestCallbackRequest {
   platformCallbackId: string;
   behaviorType: string;
 }
+
 export interface RePushRePushRetryBehaviorCallbackItem {
   taskId: string;
   platformCallbackId: string;
   behaviorPlatformId: string;
 }
+
 // 单个重试
 export interface SingleRePushRetryBehaviorCallbackType extends RePushRePushRetryBehaviorCallbackItem {
   requestId: string;
 }
+
 // 批量重试
 export interface RePushRetryBehaviorCallbackType extends RePushRePushRetryBehaviorCallbackItem {
   requestId: string[];
 }
+
 export interface OcpxExportEventClickRequest {
   taskId: string;
   startDate: string;
   endDate: string;
   reportName: string;
 }
+
 export interface OcpxDataStatisticsRequest {
   timeList: string[];
   taskId: string;
@@ -224,12 +231,14 @@ export interface OcpxDataStatisticsRequest {
   platformCallbackId: string;
   dims: string[];
 }
+
 export interface dayDataItem {
   callback_count: string;
   click_count: string;
   conversion_rate: number;
   day: string;
 }
+
 export interface ClickReordItem {
   platformCallbackName: string;
   platformCallbackId: string;
@@ -240,6 +249,7 @@ export interface ClickReordItem {
   taskId: string;
   createTime: string;
 }
+
 export interface ClickReordPageRequest extends PageRequestParams {
   taskId: string;
   platformCallbackId: string;
@@ -247,6 +257,7 @@ export interface ClickReordPageRequest extends PageRequestParams {
   clickId: string;
   adgroupId: string;
 }
+
 export interface CallbackClickReordItem {
   behaviorPlatformId: string;
   platformCallbackId: string;
@@ -254,6 +265,7 @@ export interface CallbackClickReordItem {
   behaviorType: string;
   taskId: string;
 }
+
 export interface CallbackClickReordListItem extends PageRequestParams {
   behaviorPlatformId: string;
   taskId: number;
@@ -261,8 +273,9 @@ export interface CallbackClickReordListItem extends PageRequestParams {
   eventType: string;
   createTime: string;
 }
+
 export interface OcpxCallbackRecordItem {
-  recordType:string;
+  recordType: string;
   behaviorPlatformId: string;
   taskId: number;
   callbackStatus: number;
@@ -296,7 +309,7 @@ export interface EventSettlementItem extends BaseItem {
     event: string;
     price: number;
     eventName: string;
-  }>
+  }>;
 }
 
 
@@ -308,10 +321,35 @@ export interface CreateEventSettlementRequest {
     event: string;
     price: number;
     eventName: string;
-  }>
+  }>;
 }
 
 export interface UpdateEventSettlementRequest
   extends CreateEventSettlementRequest {
   id: string;
+}
+
+
+/**
+ * ocpx 报表分析
+ */
+export interface ReportAnalysisOcpxRequest {
+  dateList: Array<string>;
+  dimensions: Array<string>;
+  platforms: Array<string>;
+  taskType: Array<string>;
+}
+
+
+/**
+ * ocpx 数据返回
+ */
+export interface ReportAnalysisOcpxResponse {
+  items: Array<Map<string, any>>;
+  total: Array<Map<string, any>>;
+  columns: Array<string>;
+  totalAmount: Number;
+  totalEventCnt: number;
+  assessmentAmount: number,
+  cname: Map<string, string>;
 }

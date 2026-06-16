@@ -96,7 +96,9 @@
       "platformCallback": "回调平台",
       "clickRangeDay": "点击回溯天数",
       "callbackRate": "回传比例",
-      "hadClick": "点击"
+      "hadClick": "点击",
+      "taskType": "任务类型",
+      "assessmentAmount": "考核金额"
     },
     "callback_record_columns": {
       "behaviorPlatformName": "转化媒体",
@@ -144,5 +146,14 @@
       "price": "单价",
       "eventName": "事件名字"
     }
+  },
+  "analytics" : {
+    "totalClick": "总点击",
+    "totalExposureCount": "总曝光",
+    "totalAmount": "总预估结算金额",
+    "totalEventCnt": "总转化事件量",
+    "assessmentAmount": "考核总金额",
+    "dims": "维度",
+    "dateRange": "时间范围"
   }
 }

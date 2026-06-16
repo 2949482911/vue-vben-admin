@@ -31,12 +31,13 @@
     "work_flow": "Work Flow"
   },
   "ocpx": {
-    "title": "OCPX",
-    "ocpx_task": "Ocpx Task",
-    "match": "Ocpx Match",
+    "title": "Promotion Activity",
+    "ocpx_task": "Promotion Activity",
+    "match": "Promotion Match",
     "platformcallback": "Callback Platform",
-    "platformbehaviora": "Behaviora Platform",
-    "event_settlement": "Event Settlement"
+    "platformbehaviora": "Behavior Platform",
+    "event_settlement": "Event Settlement",
+    "analysis": "Analysis"
   },
   "marketing": {
     "title": "Marketing",

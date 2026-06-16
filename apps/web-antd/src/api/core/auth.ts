@@ -19,6 +19,15 @@ export namespace AuthApi {
     data: string;
     status: number;
   }
+
+  /**
+   * 修改密码
+   */
+  export interface UpdatePasswordRequest {
+    oldPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }
 }
 
 class AuthApi extends BaseApi {
@@ -49,6 +58,10 @@ class AuthApi extends BaseApi {
 
   register(params: RegisterUser) {
     return requestClient.post(this.getServiceUrl("register"), params);
+  }
+
+  updatePassword(params: AuthApi.UpdatePasswordRequest) {
+    return requestClient.post(this.getServiceUrl("update_password"), params);
   }
 }
 
