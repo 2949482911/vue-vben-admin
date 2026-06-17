@@ -140,6 +140,9 @@
     "totalEventCnt": "Total Event",
     "assessmentAmount": "Total Assessment Amount",
     "dims": "Dims",
-    "dateRange": "Date Range"
+    "day": "Day",
+    "dateRange": "Date Range",
+    "completionRate": "Completion",
+    "totalEventRate": ""
   }
 }

@@ -338,6 +338,7 @@ export interface ReportAnalysisOcpxRequest {
   dimensions: Array<string>;
   platforms: Array<string>;
   taskType: Array<string>;
+  
 }
 
 

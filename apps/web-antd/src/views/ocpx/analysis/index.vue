@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ocpxTaskApi } from "#/api";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, reactive } from "vue";
 import type { ReportAnalysisOcpxRequest, ReportAnalysisOcpxResponse } from "#/api/models";
 import { Button, Card, Col, RangePicker, Row, Select, Space, Statistic } from "ant-design-vue";
 import dayjs from "dayjs";
@@ -8,10 +8,44 @@ import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import {$t} from '@vben/locales';
 import { PLATFORM } from "#/constants/locales";
 import { Loading, Page } from '@vben/common-ui';
+
 const allData = ref<any>([]); // 全部数据
 const tableColumns = ref<any[]>([]); // 表头
 const footerData = ref<any>({}); // 表尾汇总
 
+// 分页数据
+const pager = reactive({
+  currentPage: 1,
+  pageSize: 100,
+  total: 0,
+});
+
+// 更新当前页数据
+function updateCurrentPageData() {
+  const start = (pager.currentPage - 1) * pager.pageSize;
+  const end = Math.min(start + pager.pageSize, pager.total);
+  const pageData = allData.value.slice(start, end);
+
+  gridApi.setGridOptions({
+    data: pageData,
+    pagerConfig: {
+      total: pager.total,
+      currentPage: pager.currentPage,
+      pageSize: pager.pageSize,
+      pageSizes: [100, 200, 500, 1000],
+    },
+  });
+}
+
+// 分页事件处理
+const gridEvents = {
+  pageChange({ currentPage, pageSize }: { currentPage: number; pageSize: number }) {
+    if (pager.currentPage === currentPage && pager.pageSize === pageSize) return;
+    pager.currentPage = currentPage;
+    pager.pageSize = pageSize;
+    updateCurrentPageData();
+  },
+};
 
 // 表格配置
 const gridOptions: VxeGridProps = {
@@ -21,17 +55,15 @@ const gridOptions: VxeGridProps = {
     custom: true,
     export: true,
     refresh: true,
-    zoom: true
+    zoom: true,
   },
-  columns: [],
-  data: [],
-  footerData: [],
-  height: "auto",
   keepSource: true,
   pagerConfig: {
     enabled: true,
-    pageSize: 100,
-    pageSizes: [100, 200, 500, 1000]
+    total: pager.total,
+    currentPage: pager.currentPage,
+    pageSize: pager.pageSize,
+    pageSizes: [100, 200, 500, 1000],
   },
   exportConfig: {
     filename: '',
@@ -44,11 +76,11 @@ const gridOptions: VxeGridProps = {
   rowConfig: {
     isHover: false,
     useKey: true,
-    keyField: 'seq',
+    keyField: '_seq',
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({ gridOptions, gridEvents });
 
 // 任务类型
 const taskType = [
@@ -68,21 +100,21 @@ const taskType = [
 
 // 时间范围 默认七天内
 const dateRange = ref<[string, string]>([
-  dayjs().subtract(30, "day").format("YYYY-MM-DD"),
+  dayjs().subtract(7, "day").format("YYYY-MM-DD"),
   dayjs().format("YYYY-MM-DD")
 ]);
 
 // 维度选项
 const dimensionOptions = [
-  { label: "平台", value: "platform" },
-  { label: "推广活动", value: "ocpx_task_id" },
-  { label: "日期", value: "day" }
+  { label: `${$t('ocpx.platform.title')}`, value: "platform" },
+  { label: `${$t('ocpx.analytics.dims')}`, value: "ocpx_task_id" },
+  { label: `${$t('ocpx.analytics.day')}`, value: "day" },
 ];
 
 // 请求数据
 const ocpxAnalysisRequest = ref<ReportAnalysisOcpxRequest>({
   dateList: dateRange.value,
-  dimensions: ["platform"],
+  dimensions: ["platform", "ocpx_task_id"],
   platforms: [],
   taskType: []
 });
@@ -112,17 +144,28 @@ const summaryData = computed(() => {
       totalAmount: 0,
       totalEventCnt: 0,
       assessmentAmount: 0,
+      conversionRate: '0.0000',
     };
   }
 
   // total 是一个数组，取第一个元素
   const totalItem = total[0] as any;
+  const clickCnt = totalItem[ocpxAnalysisResponse.value.cname['click_cnt']] || 0;
+  const eventCnt = ocpxAnalysisResponse.value.totalEventCnt || 0;
+
+  // 计算转化率（万分比精度）
+  let conversionRate = '0.0000';
+  if (clickCnt > 0) {
+    conversionRate = ((eventCnt / clickCnt) * 100).toFixed(4);
+  }
+
   return {
-    totalClickCount: totalItem[ocpxAnalysisResponse.value.cname['click_cnt']] || 0,
+    totalClickCount: clickCnt,
     totalExposureCount: totalItem[ocpxAnalysisResponse.value.cname['show_cnt']] || 0,
     totalAmount: ocpxAnalysisResponse.value.totalAmount || 0,
-    totalEventCnt: ocpxAnalysisResponse.value.totalEventCnt || 0,
-    assessmentAmount: ocpxAnalysisResponse.value.assessmentAmount || 0
+    totalEventCnt: eventCnt,
+    assessmentAmount: ocpxAnalysisResponse.value.assessmentAmount || 0,
+    conversionRate,
   };
 });
 
@@ -200,13 +243,15 @@ async function handleSearch() {
     }));
     allData.value = items;
 
+    // 设置分页总数
+    pager.total = items.length;
+    pager.currentPage = 1;
+
     // 更新表格结构
     updateTableStructure(ocpxAnalysisResponse.value.columns || [], ocpxAnalysisResponse.value.total?.[0] || {});
 
-    // 设置表格数据
-    gridApi.setGridOptions({
-      data: items
-    });
+    // 更新当前页数据
+    updateCurrentPageData();
   } finally {
     loading.value = false;
   }
@@ -220,7 +265,7 @@ function handleReset() {
   ];
   ocpxAnalysisRequest.value = {
     dateList: dateRange.value,
-    dimensions: ["platform"],
+    dimensions: ["platform", "ocpx_task_id"],
     platforms: [],
     taskType: []
   };
@@ -246,7 +291,6 @@ onMounted(() => {
               <RangePicker
                 :value="[dayjs(dateRange[0]), dayjs(dateRange[1])]"
                 @change="handleDateRangeChange"
-                :placeholder="['开始日期', '结束日期']"
               />
             </Space>
 
@@ -332,7 +376,7 @@ onMounted(() => {
                     />
                   </div>
                   <div class="text-center">
-                    <div class="text-gray-500 text-sm mb-1">完成比</div>
+                    <div class="text-gray-500 text-sm mb-1">{{$t('ocpx.analytics.completionRate')}}</div>
                     <div class="text-3xl font-bold" :style="{ color: completionRate >= 100 ? '#3f8600' : '#cf1322' }">
                       {{ completionRate }}%
                     </div>
@@ -347,6 +391,11 @@ onMounted(() => {
                   :value="summaryData.totalEventCnt"
                   :value-style="{ color: '#722ed1' }"
                 />
+                <Statistic
+                  :title="$t('ocpx.analytics.totalEventRate')"
+                  :value="summaryData.conversionRate"
+                  suffix="%"
+                />
               </Card>
             </Col>
           </Row>
@@ -354,7 +403,11 @@ onMounted(() => {
 
         <!-- 第三块：数据表格 -->
         <Card>
-          <Grid></Grid>
+          <Grid>
+            <template #toolbar-tools>
+
+            </template>
+          </Grid>
         </Card>
       </Space>
     </Loading>

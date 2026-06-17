@@ -154,6 +154,9 @@
     "totalEventCnt": "总转化事件量",
     "assessmentAmount": "考核总金额",
     "dims": "维度",
-    "dateRange": "时间范围"
+    "dateRange": "时间范围",
+    "day": "天",
+    "completionRate": "完成比",
+    "totalEventRate": "转化率"
   }
 }

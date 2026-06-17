@@ -34,8 +34,8 @@
     "title": "推广活动",
     "ocpx_task": "推广活动",
     "match": "推广活动映射",
-    "platformcallback": "回传媒体",
-    "platformbehaviora": "转化媒体",
+    "platformcallback": "转化回传",
+    "platformbehaviora": "归因媒体",
     "event_settlement": "事件结算",
     "analysis": "总览"
   },
