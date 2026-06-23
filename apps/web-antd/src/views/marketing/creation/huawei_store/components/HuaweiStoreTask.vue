@@ -48,7 +48,6 @@ const campaignInfo = ref<HuaWeiStoreCampaignData>({
     campaignName: "",
     dailyBudget: 200,
     marketingGoal: 1,
-    subTasks: [],
     type: 1
   },
   clickAdMonitorReportUrl: "",

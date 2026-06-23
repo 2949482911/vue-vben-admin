@@ -8,6 +8,7 @@ export namespace AuthApi {
   export interface LoginParams {
     password?: string;
     email?: string;
+    rememberMe?: boolean;
   }
 
   /** 登录接口返回值 */

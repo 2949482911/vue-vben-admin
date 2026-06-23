@@ -100,6 +100,11 @@ const gridOptions: VxeGridProps = {
   },
   columns: [
     {
+      field: 'platform',
+      title: '平台',
+      width: 'auto',
+    },
+    {
       field: 'name',
       title: '定向包名称',
       width: 'auto',
@@ -107,11 +112,6 @@ const gridOptions: VxeGridProps = {
     {
       field: 'platformAdvertiserName',
       title: '广告主名称',
-      width: 'auto',
-    },
-    {
-      field: 'platform',
-      title: '平台',
       width: 'auto',
     },
     {
@@ -150,7 +150,7 @@ async function handlerDelete(row: AdConfig) {
       type: 'delete',
     });
     message.success('删除成功');
-    await pageReload();
+    pageReload();
   } catch (err) {
     console.error('删除失败:', err);
   }

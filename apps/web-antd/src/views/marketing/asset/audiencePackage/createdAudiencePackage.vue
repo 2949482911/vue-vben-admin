@@ -27,6 +27,7 @@ const platformConfig = ref<string | undefined>();
 const platformAdId = ref<string | undefined>();
 
 const [titlePackageDrawer, drawerApi] = useVbenDrawer({
+  // class: 'w-[30vw]',
   async onCancel() {
     await popUpCancel();
     platformConfig.value = '';
@@ -40,6 +41,8 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
       configData = await oppoAudienceRef.value.submitOppoConfig();
     } else if (platformConfig.value === Platform.HUAWEI_STORE) {
       configData = await huaWeiStoreAudienceRef.value.submitHuaweiStoreConfig();
+    } else if (platformConfig.value === Platform.TENCENT) {
+      configData = await tencentAudienceRef.value.submitTencentConfig();
     }
     const result = await formApi.validate();
     if (!result.valid) {
@@ -84,12 +87,14 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
       });
       localAdId.value = data.localAdvertiserId;
       await loadAdvertiserOptions(data.platform);
-      if (platformConfig.value === 'vivo') {
+      if (platformConfig.value === Platform.VIVO) {
         await vivoAudienceRef.value.echoVivoConfig(data);
-      } else if (platformConfig.value === 'oppo') {
+      } else if (platformConfig.value === Platform.OPPO) {
         await oppoAudienceRef.value.echoOppoConfig(data);
       } else if (platformConfig.value === Platform.HUAWEI_STORE) {
         await huaWeiStoreAudienceRef.value.echoHuaweiStoreConfig(data);
+      } else if (platformConfig.value == Platform.TENCENT) {
+        await tencentAudienceRef.value.echoTencentConfig(data);
       }
     } else {
       await popUpCancel();
@@ -108,6 +113,8 @@ async function popUpCancel() {
     await oppoAudienceRef.value.popUpOppoCancel();
   } else if (platformConfig.value === Platform.HUAWEI_STORE) {
     await huaWeiStoreAudienceRef.value.popUpCancel();
+  } else if (platformConfig.value == Platform.TENCENT) {
+    await tencentAudienceRef.value.popUpCancel();
   }
 }
 
@@ -121,10 +128,11 @@ async function loadAdvertiserOptions(platform?: string) {
   platformConfig.value = platform;
   advertiserOption.value = [];
   const res = await advertiserApi.fetchAdvertiserList({
+    advertiserRole: "",
     platform,
     putStatue: 1,
     page: 1,
-    pageSize: 100000,
+    pageSize: 100000
   });
 
   advertiserOption.value = res.items.map((item) => ({
