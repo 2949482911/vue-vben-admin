@@ -1,4 +1,4 @@
-import type {RouteRecordStringComponent} from './vue-router';
+import type { RouteRecordStringComponent } from "./vue-router";
 
 interface BasicOption {
   label: string;
@@ -37,6 +37,27 @@ interface BasicMenu {
   title: string;
   type: number;
 }
+
+/**
+ * 用户权益
+ */
+interface MainBodyComboVo {
+  name: string;
+  type: string;
+  startTime: string;
+  endTime: string;
+  privileges: Array<MainBodyComboPrivilegeEntity>;
+}
+
+/**
+ * 权益列表
+ */
+interface MainBodyComboPrivilegeEntity {
+  privilegeName: string;
+  quota: number;
+  unit: string;
+}
+
 
 interface BasicUserInfo {
   authName: string;
@@ -78,6 +99,11 @@ interface BasicUserInfo {
    * 用户名
    */
   username: string;
+
+  /**
+   * mainBodyComboVo 用户权益
+   */
+  mainBodyComboVo: MainBodyComboVo
 }
 
 type ClassType =
@@ -88,4 +114,4 @@ type ClassType =
   | string
   | undefined;
 
-export type {BasicOption, BasicUserInfo, ClassType, SelectOption, TabOption, BasicRole};
+export type { BasicOption, BasicUserInfo, ClassType, SelectOption, TabOption, BasicRole };

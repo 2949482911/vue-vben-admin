@@ -22,7 +22,8 @@
     "operator": "Operator Log",
     "org": "Dept",
     "role": "Role",
-    "profile": "Account Profile"
+    "profile": "Account Profile",
+    "main_body_combo": "Marketing Combo"
   },
   "bpm": {
     "flowable": "Flow Work",
@@ -62,7 +63,9 @@
       "creation_task": "Creation Task",
       "promotion_manager": "Promotion Manager",
       "oppo": "Oppo Marketing",
-      "huawei_store": "Huawei Store Marketing"
+      "huawei_store": "Huawei Store Marketing",
+      "tencent": "Tencent Marketing",
+      "bytedance": "Bytedance Marketing"
     },
     "asset": {
       "title": "Asset",

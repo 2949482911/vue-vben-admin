@@ -44,6 +44,7 @@ const [AudiencePackage, audiencePackageModalApi] = useVbenModal({
   connectedComponent: AudiencePackageModal,
 });
 
+// 广告组编辑弹窗
 const [AdgroupDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: HuaweiStoreSubTaskDrawer,
   onOpenChange(isOpen: boolean) {
@@ -100,7 +101,6 @@ function openAudiencePackage() {
  */
 function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
   emit("update:audiencePackage", audienceConfigData);
-  console.log(audienceConfigData);
 }
 
 </script>

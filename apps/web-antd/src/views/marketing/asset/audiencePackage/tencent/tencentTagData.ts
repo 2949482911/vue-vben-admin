@@ -450,6 +450,7 @@ export const Excluded_dimension = [
 
 /**
  * 转化行为，ENUM 值同优化目标类型
+ * 优化目标类型
  *
  * OPTIMIZATIONGOAL_NONE none
  * OPTIMIZATIONGOAL_BRAND_CONVERSION 品牌转化
@@ -689,5 +690,4 @@ export const Excluded_day = [
     label: "1 天",
     value: "EXCLUDED_DAY_ONE_DAY"
   }
-
 ];

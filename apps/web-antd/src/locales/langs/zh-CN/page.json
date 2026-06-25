@@ -22,7 +22,8 @@
     "operator": "操作日志",
     "org": "组织",
     "role": "角色",
-    "profile": "个人中心"
+    "profile": "个人中心",
+    "main_body_combo": "套餐"
   },
   "bpm": {
     "flowable": "流程",
@@ -62,7 +63,9 @@
       "creation_task": "创编任务",
       "promotion_manager": "广告管理",
       "oppo": "Oppo营销",
-      "huawei_store": "华为商店"
+      "huawei_store": "华为商店",
+      "tencent": "腾讯广告",
+      "bytedance": "巨量引擎"
     },
     "asset": {
       "title": "资产",

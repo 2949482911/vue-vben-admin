@@ -102,7 +102,7 @@ const [Form, formApi] = useVbenForm({
           const data = await formApi.getValues();
           return data["geo_location_select"] === "customer";
         },
-        triggerFields: ["geo_location_select"]
+        triggerFields: ["geo_location_select"],
       }
     },
     {
@@ -159,7 +159,7 @@ const [Form, formApi] = useVbenForm({
     {
       component: "Switch",
       fieldName: "geo_location_auto_audience",
-      label: "是否使用地域优选",
+      label: "地域优选",
       defaultValue: false,
       dependencies: {
         show: async () => {
@@ -307,8 +307,6 @@ const [Form, formApi] = useVbenForm({
       label: "排除设备品牌型号",
       defaultValue: []
     },
-
-
     {
       component: "Select",
       fieldName: "user_os",
