@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Page } from "@vben/common-ui";
-import { Card, Select } from "ant-design-vue";
+import { Page, useVbenModal } from "@vben/common-ui";
+import { Card, message, Select } from "ant-design-vue";
 import ConfigurationConfig from "../components/configurationArea.vue";
 import { ref } from "vue";
 import type { TencentCreation } from "./tencent";
@@ -10,6 +10,7 @@ import type {
   AccountInfo,
   AudienceConfigData,
   Material,
+  MonitoringLinkConfigData,
   MonitoringLinkType,
   Project,
   RuleInfo
@@ -19,7 +20,15 @@ import { Platform } from "#/constants/enums";
 import { TENCENT_MARKETING_TYPE } from "#/views/marketing/creation/tencent/enums";
 import TencentBaseTemplate
   from "#/views/marketing/creation/tencent/components/base/TencentBaseTemplate.vue";
-
+import Function from "#/views/marketing/creation/components/Function.vue";
+import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
+// 策略组
+const [CreateStrategyGroupModal, createStrategyGroupApi] = useVbenModal({
+  connectedComponent: CreateStrategyGroup,
+  onCancel() {
+    createStrategyGroupApi.close();
+  }
+});
 
 /**
  * 更新账户信息
@@ -51,6 +60,49 @@ function updateRuleInfo(ruleInfo: RuleInfo) {
  */
 function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
   creationInfo.value.configData.audience = audienceConfigData;
+}
+
+
+/**
+ * 更新监测链接
+ */
+function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
+  creationInfo.value.configData.monitoringLink = monitoringLink;
+}
+
+
+function genPreviewTableData() {
+
+}
+
+
+
+
+
+
+function submitCreateBatch() {
+  // if (adList.value.length < 0) {
+  //   message.error("请求配置预览区数据");
+  //   return;
+  // }
+  // submitApi.open();
+}
+
+
+/**
+ * 保存策略组
+ */
+function createStrategyGroup() {
+  createStrategyGroupApi.setData(creationInfo.value);
+  createStrategyGroupApi.open();
+}
+
+/**
+ * 模板选择
+ */
+const template = ref<string>("base_template");
+function updateTemplate(changeVal: string) {
+  template.value = changeVal;
 }
 
 
@@ -199,8 +251,10 @@ const creationInfo = ref<TencentCreation>({
       dynamic_creative_type: "",
       impression_tracking_url: "",
       page_track_url: "",
+      program_creative_info_switch: false,
       program_creative_info: {
-        bid_mode: "", derive_version: "",
+        bid_mode: "",
+        derive_version: "",
         material_derive_id: 0,
         material_derive_info: {
           derive_data_list: [],
@@ -281,14 +335,36 @@ const creationInfo = ref<TencentCreation>({
       </Card>
 
       <Card class="header">
-        <Select :options="TENCENT_MARKETING_TYPE" default-value="base_template"></Select>
+        <Select class='w-[200px]' :options="TENCENT_MARKETING_TYPE" :value="template" @change="updateTemplate"></Select>
       </Card>
 
       <Card class="header">
-        <TencentBaseTemplate :creation-info="creationInfo"
-                             @update:audience-package="updateAudiencePackage"
+        <TencentBaseTemplate
+          v-if="template === 'base_template'"
+          :creation-info="creationInfo"
+          @update:audience-package="updateAudiencePackage"
         />
       </Card>
+
+      <!--监测链接组-->
+      <Card class="header">
+        <Function
+          :accountInfo="creationInfo.accountInfo"
+          :monitoring-link="creationInfo.configData.monitoringLink"
+          @update:monitoring-link="updateMonitoringLink"
+          @save:create-strategy-group="createStrategyGroup"
+          @gen:ad-list="genPreviewTableData"
+          @submit:create-batch="submitCreateBatch"
+        />
+      </Card>
+
+
+      <Card title="预览区" class="header">
+
+      </Card>
+
+
+      <CreateStrategyGroupModal />
     </Page>
   </div>
 </template>

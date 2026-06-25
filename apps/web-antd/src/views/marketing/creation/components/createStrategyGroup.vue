@@ -1,4 +1,4 @@
-<script setup lang="ts" name="CreateAdvertiserModal">
+<script setup lang="ts" name="CreateStrategyGroup">
 import { Page, useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { ref } from 'vue';

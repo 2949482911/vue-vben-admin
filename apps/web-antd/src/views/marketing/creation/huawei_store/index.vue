@@ -31,7 +31,7 @@ import { AdType, TaskTypeSelect } from "#/views/marketing/creation/huawei_store/
 import DeliveryTaskRecommend from "./components/delivery-task-recommend/index.vue";
 import type { PageViewItem } from "#/api/models/assert";
 import Function from "#/views/marketing/creation/components/Function.vue";
-import CreateAdvertiser from "../components/createStrategyGroup.vue";
+import CreateStrategyGroupModal from "../components/createStrategyGroup.vue";
 import RecommendPreviewArea
   from "#/views/marketing/creation/huawei_store/components/delivery-task-recommend/RecommendPreviewArea.vue";
 
@@ -39,7 +39,7 @@ import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue
 
 // 策略组
 const [CreateAdvertiserModal, createAdvertiserApi] = useVbenModal({
-  connectedComponent: CreateAdvertiser,
+  connectedComponent: CreateStrategyGroupModal,
   onCancel() {
     createAdvertiserApi.close();
   }

@@ -13,6 +13,7 @@ import type {
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 import type {
+  TencentAdgroupData,
   TencentCampaignData,
   TencentCreation
 } from "#/views/marketing/creation/tencent/tencent";
@@ -20,35 +21,38 @@ import {
   Marketing_carrier_type,
   Tencent_adx_realtime_type,
   Tencent_auto_derived_creative_method_type_list,
+  Tencent_bid_mode,
   Tencent_bid_scene,
   Tencent_configured_status,
   Tencent_cost_constraint_scene,
+  Tencent_creative_delivery_mode,
   Tencent_deep_conversion_type,
   Tencent_deep_conversion_worth_spec_goal,
   Tencent_display_scene,
   Tencent_dynamic_ad_type,
+  Tencent_dynamic_creative_type,
   Tencent_ecom_pkam_switch,
   Tencent_exploration_strategy,
   Tencent_marketing_goal,
-  Tencent_marketing_sub_goal, Tencent_marketing_target_type,
-  Tencent_mobile_union, Tencent_pc_scene, Tencent_qbsearch_scene,
+  Tencent_marketing_sub_goal,
+  Tencent_marketing_target_type,
+  Tencent_mobile_union,
+  Tencent_pc_scene,
+  Tencent_qbsearch_scene,
   Tencent_search_expand_targeting_switch,
   Tencent_short_play_pay_type,
+  Tencent_site_set_validate_model,
   Tencent_smart_bid_type,
   Tencent_smart_coupon_mode,
   Tencent_smart_targeting_mode,
-  Tencent_tencent_news, Tencent_wechat_search_scene,
+  Tencent_tencent_news,
+  Tencent_wechat_search_scene,
   TencentOptimization_goal,
   Tencnet_site_set
 } from "#/views/marketing/creation/tencent/tencent_enums";
 
-const emit = defineEmits([
-  "update:campaign",
-  "update:adgroup",
-  "update:audiencePackage",
-  "update:updateMaterial",
-  "update:titlePackage"
-]);
+const emit = defineEmits(["update:campaign", "update:adgroup",
+  "update:audiencePackage", "update:updateMaterial", "update:titlePackage"]);
 
 
 const { creationInfo } = defineProps({
@@ -70,13 +74,21 @@ function updateCampaign(campaign: TencentCampaignData) {
 
 
 /**
+ * update adgroup
+ */
+function updateAdgroup(adgroup: TencentAdgroupData) {
+  emit("update:adgroup", adgroup);
+}
+
+
+/**
  * 场景定向，ADX 程序化投放不可填写提交。
  */
 const scene_spec = [
   // scene_spec 开关 场景定向，ADX 程序化投放不可填写提交。
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "scene_spec_switch",
     label: "场景定向",
     defaultValue: false,
@@ -234,7 +246,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"] && currentValue["site_set"] === 'SITE_SET_WECHAT';
+        return currentValue["scene_spec_switch"] && currentValue["site_set"] === "SITE_SET_WECHAT";
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -249,12 +261,11 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"] && currentValue["site_set"] === 'SITE_SET_MOBILE_UNION';
+        return currentValue["scene_spec_switch"] && currentValue["site_set"] === "SITE_SET_MOBILE_UNION";
       },
       triggerFields: ["scene_spec_switch"]
     }
   },
-
 
   {
     component: "Select",
@@ -270,8 +281,6 @@ const scene_spec = [
       triggerFields: ["scene_spec_switch"]
     }
   },
-
-
 
   {
     component: "Select",
@@ -317,10 +326,10 @@ const scene_spec = [
       },
       triggerFields: ["scene_spec_switch"]
     }
-  },
+  }
 
 
-]
+];
 
 
 /**
@@ -341,7 +350,7 @@ const marketing_carrier_detail = [
       },
       triggerFields: ["marketing_carrier_detail_switch", "marketing_carrier_type"],
       rules: () => {
-        return 'required'
+        return "required";
       }
     }
   },
@@ -374,9 +383,9 @@ const marketing_carrier_detail = [
       },
       triggerFields: ["marketing_carrier_type"]
     }
-  },
+  }
 
-]
+];
 
 
 /**
@@ -387,7 +396,7 @@ const deep_conversion_spec = [
   // deep_conversion_spec 开关
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "deep_conversion_spec_switch",
     label: "oCPA 深度优化配置",
     defaultValue: false,
@@ -527,9 +536,9 @@ const deep_conversion_spec = [
       },
       triggerFields: ["deep_conversion_spec_switch", "deep_conversion_type"]
     }
-  },
+  }
 
-]
+];
 
 
 /**
@@ -540,7 +549,7 @@ const deep_conversion_spec = [
 const auto_derived_creative_preference = [
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "auto_derived_creative_preference_switch",
     label: "创意增强 MAX 偏好设置",
     defaultValue: false,
@@ -565,8 +574,8 @@ const auto_derived_creative_preference = [
       },
       triggerFields: ["auto_derived_creative_preference_switch"]
     }
-  },
-]
+  }
+];
 
 
 /**
@@ -575,7 +584,7 @@ const auto_derived_creative_preference = [
 const marketing_asset_outer_spec = [
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "marketing_asset_outer_spec_switch",
     label: "营销资产外部配置",
     defaultValue: false,
@@ -590,7 +599,7 @@ const marketing_asset_outer_spec = [
     fieldName: "marketing_target_type",
     label: "营销目标类型",
     componentProps: {
-      options: Tencent_marketing_target_type,
+      options: Tencent_marketing_target_type
     },
     dependencies: {
       show: (currentValue: any) => {
@@ -632,8 +641,8 @@ const marketing_asset_outer_spec = [
       },
       triggerFields: ["marketing_asset_outer_spec_switch"]
     }
-  },
-]
+  }
+];
 
 
 /**
@@ -642,7 +651,7 @@ const marketing_asset_outer_spec = [
 const mpa_spec = [
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "mpa_spec_switch",
     label: "MPA配置",
     defaultValue: false,
@@ -690,8 +699,8 @@ const mpa_spec = [
       },
       triggerFields: ["mpa_spec_switch"]
     }
-  },
-]
+  }
+];
 
 
 /**
@@ -726,12 +735,12 @@ const dca_spec = [
     label: "动态内容营销的素材集合",
     dependencies: {
       show: (currentValue: any) => {
-        return  currentValue["dynamic_ad_type"] === "DYNAMIC_AD_TYPE_DYNAMIC_CONTENT";
+        return currentValue["dynamic_ad_type"] === "DYNAMIC_AD_TYPE_DYNAMIC_CONTENT";
       },
       triggerFields: ["dynamic_ad_type"]
     }
-  },
-]
+  }
+];
 
 
 /**
@@ -740,7 +749,7 @@ const dca_spec = [
 const aoi_optimization_strategy = [
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "aoi_optimization_strategy_switch",
     label: "AOI优化策略",
     defaultValue: false,
@@ -751,7 +760,7 @@ const aoi_optimization_strategy = [
 
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "aoi_optimization_strategy_enabled",
     label: "AOI优化策略是否启用",
     defaultValue: false,
@@ -780,9 +789,9 @@ const aoi_optimization_strategy = [
       },
       triggerFields: ["aoi_optimization_strategy_switch", "aoi_optimization_strategy_enabled"]
     }
-  },
+  }
 
-]
+];
 
 
 /**
@@ -792,7 +801,7 @@ const cloud_union_spec = [
   // cloud_union_spec 开关
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "cloud_union_spec_switch",
     label: "云选",
     defaultValue: false,
@@ -832,8 +841,8 @@ const cloud_union_spec = [
         return currentValue["cloud_union_spec_switch"] ? "required" : "";
       }
     }
-  },
-]
+  }
+];
 
 /**
  * 附加商品属性，ADX 程序化投放不可填写提交。
@@ -841,7 +850,7 @@ const cloud_union_spec = [
 const additional_product_spec = [
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "additional_product_spec_switch",
     label: "附加产品配置",
     defaultValue: false,
@@ -872,10 +881,9 @@ const additional_product_spec = [
       },
       triggerFields: ["additional_product_spec_switch"]
     }
-  },
+  }
 
-]
-
+];
 
 
 // 计划表单字段
@@ -884,7 +892,7 @@ const campaignFormFields = [
     component: "Input",
     fieldName: "adgroup_name",
     label: "名字",
-    rules: "required",
+    rules: "required"
   },
   {
     component: "Select",
@@ -967,24 +975,25 @@ const campaignFormFields = [
   {
     component: "Switch",
     fieldName: "automatic_site_enabled",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     componentProps: {
       checked: false
     },
     defaultValue: false,
-    label: "是否开启智能版位功能"
+    label: "智能版位"
   },
 
   {
     component: "Select",
     fieldName: "site_set",
     componentProps: {
-      options: Tencnet_site_set
+      options: Tencnet_site_set,
+      mode: "multiple"
     },
     label: "投放版位集合",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["automatic_site_enabled"] === false;
+        return currentValue["automatic_site_enabled"];
       },
       triggerFields: ["automatic_site_enabled"]
     }
@@ -1047,11 +1056,10 @@ const campaignFormFields = [
   ...deep_conversion_spec,
 
 
-
   // 一键起量开关定义
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "auto_acquisition_enabled",
     label: "键起量开关",
     defaultValue: false,
@@ -1111,12 +1119,12 @@ const campaignFormFields = [
 
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "auto_derived_landing_page_switch",
     label: "是否开启自动衍生落地页开关",
     defaultValue: false,
     componentProps: {
-      checked: false,
+      checked: false
     }
   },
 
@@ -1149,7 +1157,7 @@ const campaignFormFields = [
     componentProps: {
       options: [],
       mode: "multiple"
-    },
+    }
   },
 
 
@@ -1226,7 +1234,7 @@ const campaignFormFields = [
     componentProps: {
       options: Tencent_dynamic_ad_type
     },
-    label: "动态营销类型",
+    label: "动态营销类型"
   },
 
   ...dca_spec,
@@ -1235,7 +1243,7 @@ const campaignFormFields = [
   // aoi_optimization_strategy 开关
   ...aoi_optimization_strategy,
   // 云选
-  ... cloud_union_spec,
+  ...cloud_union_spec,
 
 
   // additional_product_spec 开关
@@ -1244,7 +1252,7 @@ const campaignFormFields = [
 
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "live_recommend_strategy_enabled",
     label: "直播种草人群探索",
     defaultValue: false,
@@ -1261,7 +1269,7 @@ const campaignFormFields = [
 
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "search_expansion_switch",
     label: "搜索扩量",
     defaultValue: false,
@@ -1281,7 +1289,7 @@ const campaignFormFields = [
 
   {
     component: "Switch",
-    formItemClass: 'w-[250px]',
+    formItemClass: "w-[250px]",
     fieldName: "enable_steady_exploration",
     label: "搜索扩量",
     defaultValue: false,
@@ -1310,8 +1318,6 @@ const campaignFormFields = [
 ];
 
 
-
-
 // 显示标签名字
 const campaignShowLabel: Record<string, string> = {
   adgroup_name: "营销单元名字",
@@ -1321,6 +1327,185 @@ const campaignShowLabel: Record<string, string> = {
   daily_budget: "日预算",
   bid_mode: "出价方式"
 };
+
+
+// 广告字段 程序化创意信息，（备注：程序化 adx 投放无需提交入参）
+
+const program_creative_info = [
+  {
+    component: "Switch",
+    formItemClass: "w-[250px]",
+    fieldName: "program_creative_info_switch",
+    label: "程序创意信息",
+    defaultValue: false,
+    componentProps: {
+      checked: false
+    }
+  },
+
+  {
+    component: "Input",
+    fieldName: "material_derive_id",
+    label: "素材衍生ID",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["program_creative_info_switch"];
+      },
+      triggerFields: ["program_creative_info_switch"]
+    }
+  },
+
+  {
+    component: "Select",
+    fieldName: "bid_mode",
+    label: "出价方式",
+    componentProps: {
+      options: Tencent_bid_mode
+    },
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["program_creative_info_switch"];
+      },
+      triggerFields: ["program_creative_info_switch"]
+    }
+  },
+
+  {
+    component: "Input",
+    fieldName: "derive_version",
+    label: "衍生版本",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["program_creative_info_switch"];
+      },
+      triggerFields: ["program_creative_info_switch"]
+    }
+  },
+
+  {
+    component: "Select",
+    fieldName: "original_material_id_list",
+    label: "原始素材ID列表",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["program_creative_info_switch"];
+      },
+      triggerFields: ["program_creative_info_switch"]
+    }
+  },
+
+  {
+    component: "Select",
+    fieldName: "original_adcreative_template_id_list",
+    label: "原始创意模板ID列表",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["program_creative_info_switch"];
+      },
+      triggerFields: ["program_creative_info_switch"]
+    }
+  },
+
+
+  {
+    component: "Input",
+    fieldName: "original_cover_image_id",
+    label: "原始封面图片ID",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["program_creative_info_switch"];
+      },
+      triggerFields: ["program_creative_info_switch"]
+    }
+  },
+
+  {
+    component: "Select",
+    fieldName: "derive_data_list",
+    label: "衍生信息列表",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["program_creative_info_switch"];
+      },
+      triggerFields: ["program_creative_info_switch"]
+    }
+  }
+];
+
+// 广告表单字段
+const adgroupFormFields = [
+  {
+    component: "Input",
+    fieldName: "dynamic_creative_name",
+    label: "动态创意名称",
+    rules: "required"
+  },
+  {
+    component: "Input",
+    fieldName: "creative_template_id",
+    label: "创意模板ID",
+  },
+  {
+    component: "Select",
+    fieldName: "delivery_mode",
+    label: "投放模式",
+    componentProps: {
+      options: Tencent_creative_delivery_mode
+    },
+  },
+  {
+    component: "Select",
+    fieldName: "dynamic_creative_type",
+    label: "动态创意类型",
+    componentProps: {
+      options: Tencent_dynamic_creative_type
+    },
+  },
+  {
+    component: "Switch",
+    formItemClass: "w-[250px]",
+    fieldName: "auto_derived_program_creative_switch",
+    label: "自动衍生程序创意开关",
+    defaultValue: false,
+    componentProps: {
+      checked: false
+    }
+  },
+  {
+    component: "Select",
+    fieldName: "configured_status",
+    label: "状态",
+    componentProps: {
+      options: Tencent_configured_status
+    },
+    defaultValue: "AD_STATUS_SUSPEND"
+  },
+  {
+    component: "Select",
+    fieldName: "site_set_validate_model",
+    label: "版位验证模型",
+    componentProps: {
+      options: Tencent_site_set_validate_model
+    }
+  },
+
+  // 程序化创意信息，（备注：程序化 adx 投放无需提交入参）
+  ...program_creative_info,
+
+];
+
+
+// 广告显示标签名字
+const adgroupShowLabel: Record<string, string> = {
+  dynamic_creative_name: "动态创意名称",
+  creative_template_id: "创意模板ID",
+  delivery_mode: "投放模式",
+  dynamic_creative_type: "动态创意类型",
+  configured_status: "状态"
+};
+
+
+//
 
 
 /**
@@ -1366,7 +1551,12 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
       </Col>
 
       <Col :span="6">
-        <TencentAdgroup></TencentAdgroup>
+        <TencentAdgroup
+          :form-fields="adgroupFormFields"
+          :adgroup-show-label="adgroupShowLabel"
+          :adgroup="creationInfo?.configData.adgroup"
+          @update:adgroup="updateAdgroup"
+        ></TencentAdgroup>
       </Col>
 
       <Col :span="6">

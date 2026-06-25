@@ -1071,7 +1071,7 @@ export const Tencent_smart_coupon_mode = [
  */
 export const Tencent_exploration_strategy= [
   {
-    label: "默认值 默认是自动探索",
+    label: "默认值(默认是自动探索)",
     value: "EXPLORATION_UNKNOW"
   },
   {
@@ -1591,5 +1591,62 @@ export const Tencent_marketing_target_type = [
   {
     label: "视频号活动",
     value: "MARKETING_TARGET_TYPE_WECHAT_CHANNELS_ACTIVITY"
+  }
+]
+
+
+
+/**
+ * 动态创意类型
+ *
+ * DYNAMIC_CREATIVE_TYPE_COMMON
+ * 手动指定
+ * DYNAMIC_CREATIVE_TYPE_PROGRAM
+ * 自动匹配
+ */
+export const Tencent_dynamic_creative_type = [
+  {
+    label: "手动指定",
+    value: "DYNAMIC_CREATIVE_TYPE_COMMON"
+  },
+  {
+    label: "自动匹配",
+    value: "DYNAMIC_CREATIVE_TYPE_PROGRAM"
+  }
+]
+
+
+/**
+ * 版位验证模型
+ * SITE_SET_VALIDATE_MODEL_ROLLBACK 版位回滚
+ * SITE_SET_VALIDATE_MODEL_FILTER 版位过滤
+ */
+export const Tencent_site_set_validate_model = [
+  {
+    label: "版位回滚",
+    value: "SITE_SET_VALIDATE_MODEL_ROLLBACK"
+  },
+  {
+    label: "版位过滤",
+    value: "SITE_SET_VALIDATE_MODEL_FILTER"
+  }
+]
+
+
+/**
+ * DELIVERY_MODE_COMPONENT
+ * 组件化创意
+ * DELIVERY_MODE_CUSTOMIZE
+ * 自定义创意
+ *
+ */
+export const Tencent_creative_delivery_mode = [
+  {
+    label: "组件化创意",
+    value: "DELIVERY_MODE_COMPONENT"
+  },
+  {
+    label: "自定义创意",
+    value: "DELIVERY_MODE_CUSTOMIZE"
   }
 ]

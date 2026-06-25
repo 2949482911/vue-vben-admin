@@ -233,6 +233,7 @@ export interface TencentAdgroupData {
   configured_status: string;
   site_set_validate_model: string;
   creative_components: Array<TencentCreativeComponent>;
+  program_creative_info_switch: boolean;
   program_creative_info: TencentProgramCreativeInfo;
 }
 
