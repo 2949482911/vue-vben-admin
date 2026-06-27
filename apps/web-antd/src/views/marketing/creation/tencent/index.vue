@@ -20,7 +20,9 @@ import type {
   MonitoringLinkType,
   Project,
   RuleInfo,
-  TitlePackageConfigData
+  TitlePackageConfigData,
+  RuleConfiguration,
+  RuleOptions
 } from "#/views/marketing/creation/creation";
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import { Platform } from "#/constants/enums";
@@ -41,6 +43,63 @@ const [CreateStrategyGroupModal, createStrategyGroupApi] = useVbenModal({
 
 import TencentPreviewArea
   from "#/views/marketing/creation/tencent/components/TencentPreviewArea.vue";
+
+/**
+ * 腾讯平台的规则配置
+ */
+const tencentRuleConfiguration: RuleConfiguration = {
+  project: {
+    show: true,
+    name: '营销单元',
+    rules: '营销单元生成规则',
+    countLabel: '每个账户指定营销单元数'
+  },
+  adGroup: {
+    show: true,
+    name: '动态创意',
+    rules: '动态创意生成规则',
+    countLabel: '每个营销单元指定动态创意数'
+  },
+  ad: {
+    show: false, // 腾讯没有广告层级
+    name: '广告',
+    rules: '广告生成规则',
+    countLabel: '每个动态创意指定广告数'
+  },
+  creative: {
+    show: true,
+    name: '创意',
+    rules: '创意生成规则',
+    countLabel: '每个动态创意指定创意数'
+  }
+};
+
+/**
+ * 腾讯平台的规则选项
+ */
+const tencentRuleOptions: RuleOptions = {
+  projectRules: [
+    { title: '根据定向包生成', desc: '营销单元数量与定向包数量相等', key: 'targeting' },
+    { title: '根据创意组生成', desc: '营销单元数量与创意组数量相等', key: 'creative' },
+    { title: '根据标题包生成', desc: '营销单元数量与标题包数量相等', key: 'title' },
+    { title: '指定数量', desc: '手动指定每个账户的营销单元数量', key: 'custom' },
+  ],
+  adGroupRules: [
+    { title: '根据定向包生成', desc: '动态创意数量与定向包数量相等', key: 'targeting' },
+    { title: '根据创意组生成', desc: '动态创意数量与创意组数量相等', key: 'creative' },
+    { title: '根据标题包生成', desc: '动态创意数量与标题包数量相等', key: 'title' },
+    { title: '指定数量', desc: '手动指定每个营销单元的动态创意数量', key: 'custom' },
+  ],
+  adRules: [
+    { title: '按创意组数', desc: '按创意组数生成广告', key: 'creative' },
+    { title: '按标题包数', desc: '按标题包数生成广告', key: 'title' },
+    { title: '指定数量', desc: '手动指定广告数量', key: 'custom' },
+  ],
+  creativeRules: [
+    { title: '根据创意组生成', desc: '创意数量与创意组数量相等', key: 'creative_group' },
+    { title: '指定数量', desc: '手动指定每个动态创意的创意数量', key: 'custom' },
+  ],
+};
 
 /**
  * 更新账户信息
@@ -426,6 +485,8 @@ function resetCreationInfo() {
           :configuration-config="creationInfo.configurationConfig"
           :account-info="creationInfo.accountInfo"
           :project="creationInfo.project"
+          :rule-configuration="tencentRuleConfiguration"
+          :rule-options="tencentRuleOptions"
           @update:accountInfo="updateAccountInfo"
           @update:productInfo="updateProject"
           @update:ruleInfo="updateRuleInfo"

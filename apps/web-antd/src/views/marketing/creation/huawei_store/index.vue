@@ -21,7 +21,9 @@ import type {
   MonitoringLinkType,
   Project,
   RuleInfo,
-  TitlePackageConfigData
+  TitlePackageConfigData,
+  RuleConfiguration,
+  RuleOptions
 } from "#/views/marketing/creation/creation";
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import ConfigurationConfig from "../components/configurationArea.vue";
@@ -36,6 +38,63 @@ import RecommendPreviewArea
   from "#/views/marketing/creation/huawei_store/components/delivery-task-recommend/RecommendPreviewArea.vue";
 
 import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
+
+/**
+ * 华为商店平台的规则配置
+ */
+const huaweiStoreRuleConfiguration: RuleConfiguration = {
+  project: {
+    show: true,
+    name: '任务',
+    rules: '任务生成规则',
+    countLabel: '每个账户指定任务数'
+  },
+  adGroup: {
+    show: true,
+    name: '子任务',
+    rules: '子任务生成规则',
+    countLabel: '每个任务指定子任务数'
+  },
+  ad: {
+    show: true,
+    name: '广告',
+    rules: '广告生成规则',
+    countLabel: '每个子任务指定广告数'
+  },
+  creative: {
+    show: true,
+    name: '创意',
+    rules: '创意生成规则',
+    countLabel: '每个广告指定创意数'
+  }
+};
+
+/**
+ * 华为商店平台的规则选项
+ */
+const huaweiStoreRuleOptions: RuleOptions = {
+  projectRules: [
+    { title: '根据定向包生成', desc: '任务数量与定向包数量相等', key: 'targeting' },
+    { title: '根据创意组生成', desc: '任务数量与创意组数量相等', key: 'creative' },
+    { title: '根据标题包生成', desc: '任务数量与标题包数量相等', key: 'title' },
+    { title: '指定数量', desc: '手动指定每个账户的任务数量', key: 'custom' },
+  ],
+  adGroupRules: [
+    { title: '根据定向包生成', desc: '子任务数量与定向包数量相等', key: 'targeting' },
+    { title: '根据创意组生成', desc: '子任务数量与创意组数量相等', key: 'creative' },
+    { title: '根据标题包生成', desc: '子任务数量与标题包数量相等', key: 'title' },
+    { title: '指定数量', desc: '手动指定每个任务的子任务数量', key: 'custom' },
+  ],
+  adRules: [
+    { title: '按创意组数', desc: '按创意组数生成广告，自动匹配标题包，标题包不足时循环使用', key: 'creative' },
+    { title: '按标题包数', desc: '按标题包数生成广告，自动匹配创意数，创意数不足时循环使用', key: 'title' },
+    { title: '指定数量', desc: '先指定广告数量，自动循环使用素材和标题，多退少补', key: 'custom' },
+  ],
+  creativeRules: [
+    { title: '根据创意组生成', desc: '创意数量与创意组数量相等', key: 'creative_group' },
+    { title: '指定数量', desc: '手动指定每个广告的创意数量', key: 'custom' },
+  ],
+};
 
 // 策略组
 const [CreateAdvertiserModal, createAdvertiserApi] = useVbenModal({
@@ -354,6 +413,8 @@ function resetCreationInfo() {
           :configuration-config="creationInfo.configurationConfig"
           :account-info="creationInfo.accountInfo"
           :project="creationInfo.project"
+          :rule-configuration="huaweiStoreRuleConfiguration"
+          :rule-options="huaweiStoreRuleOptions"
           @update:accountInfo="updateAccountInfo"
           @update:productInfo="updateProject"
           @update:ruleInfo="updateRuleInfo"

@@ -9,7 +9,7 @@ import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import { trimObject } from '#/utils/trim';
 // 策略组
 import StrategyGroup from "#/views/marketing/creation/components/strategyGroup.vue";
-import type { AccountInfo, Project } from "#/views/marketing/creation/creation";
+import type { AccountInfo, Project, RuleConfiguration, RuleOptions } from "#/views/marketing/creation/creation";
 const projectId = ref<SelectValue>('');
 const productList = ref();
 // 媒体账户显示文字 (String 格式方便绑定 Input)
@@ -23,7 +23,7 @@ const tempSelectedRows = ref<AdvertiserItem[]>([]);
 const emit = defineEmits(['update:accountInfo', 'update:productInfo','update:ruleInfo', 'update:reuse']);
 
 
-const { ruleInfo, configurationConfig, accountInfo, project } = defineProps({
+const { ruleInfo, configurationConfig, accountInfo, project, ruleConfiguration, ruleOptions } = defineProps({
   ruleInfo: {
     type: Object,
     default: () => {
@@ -50,6 +50,69 @@ const { ruleInfo, configurationConfig, accountInfo, project } = defineProps({
     }
   },
 
+  // 规则配置对象（从父组件传入）
+  ruleConfiguration: {
+    type: Object as () => RuleConfiguration,
+    default: () => {
+      return {
+        project: {
+          show: true,
+          name: '项目',
+          rules: '项目生成规则',
+          countLabel: '每个账户指定项目数'
+        },
+        adGroup: {
+          show: true,
+          name: '广告组',
+          rules: '广告组生成规则',
+          countLabel: '每个项目指定广告组数'
+        },
+        ad: {
+          show: true,
+          name: '广告',
+          rules: '广告生成规则',
+          countLabel: '每个广告组指定广告数'
+        },
+        creative: {
+          show: true,
+          name: '创意',
+          rules: '创意生成规则',
+          countLabel: '每个广告指定创意数'
+        }
+      };
+    }
+  },
+
+  // 规则选项集合（从父组件传入）
+  ruleOptions: {
+    type: Object as () => RuleOptions,
+    default: () => {
+      return {
+        projectRules: [
+          { title: '根据定向包生成', desc: '项目数量与定向包数量相等', key: 'targeting' },
+          { title: '根据创意组生成', desc: '项目数量与创意组数量相等，项目中的广告都使用相同的素材', key: 'creative' },
+          { title: '根据标题包生成', desc: '项目数量与标题包数量相等，项目中的广告都使用相同的标题包', key: 'title' },
+          { title: '指定数量', desc: '手动指定每个账户的项目数量', key: 'custom' },
+        ],
+        adGroupRules: [
+          { title: '根据定向包生成', desc: '广告组数量与定向包数量相等', key: 'targeting' },
+          { title: '根据创意组生成', desc: '广告组数量与创意组数量相等', key: 'creative' },
+          { title: '根据标题包生成', desc: '广告组数量与标题包数量相等', key: 'title' },
+          { title: '指定数量', desc: '手动指定每个账户的广告组数量', key: 'custom' },
+        ],
+        adRules: [
+          { title: '按创意组数', desc: '按创意组数生成广告，自动匹配标题包，标题包不足时循环使用', key: 'creative' },
+          { title: '按标题包数', desc: '按标题包数生成广告，自动匹配创意数，创意数不足时循环使用', key: 'title' },
+          { title: '指定数量', desc: '先指定广告数量，自动循环使用素材和标题，多退少补', key: 'custom' },
+        ],
+        creativeRules: [
+          { title: '根据创意组生成', desc: '创意数量与创意组数量相等', key: 'creative_group' },
+          { title: '指定数量', desc: '手动指定每个账户的创意数量', key: 'custom' },
+        ],
+      };
+    }
+  },
+
   // 账户信息（复用策略组时传入）
   accountInfo: {
     type: Array<AccountInfo>,
@@ -63,72 +126,26 @@ const { ruleInfo, configurationConfig, accountInfo, project } = defineProps({
   }
 
 });
-// 顶部展示文本：依然绑定正式变量
+
+// 顶部展示文本：根据传入的规则配置动态生成
 const displayDisplayText = computed(() => {
-  let projectText = projectRules.find((r) => r.key === ruleInfo.projectRuleKey)?.title || '';
+  const config = ruleConfiguration;
+  const options = ruleOptions;
+
+  let projectText = options.projectRules.find((r) => r.key === ruleInfo.projectRuleKey)?.title || '';
   if (ruleInfo.projectRuleKey === 'custom') projectText = `指定数量 ${ruleInfo.projectCount}`;
 
-  let adGroupText = projectRules.find((r) => r.key === ruleInfo.adGroupRuleKey)?.title || '';
+  let adGroupText = options.adGroupRules.find((r) => r.key === ruleInfo.adGroupRuleKey)?.title || '';
   if (ruleInfo.adGroupRuleKey === 'custom') adGroupText = `指定数量 ${ruleInfo.adGroupCount}`;
 
-  let adText = adRules.find((r) => r.key === ruleInfo.adRuleKey)?.title || '';
-  if (ruleInfo.adRuleKey === 'custom') adText = `指定数量 ${ruleInfo.adCount}`;
+  let adText = config.ad.show ? (options.adRules.find((r) => r.key === ruleInfo.adRuleKey)?.title || '') : '';
+  if (config.ad.show && ruleInfo.adRuleKey === 'custom') adText = `指定数量 ${ruleInfo.adCount}`;
 
-  let creativeText = creativeRules.find((r) => r.key === ruleInfo.creativeRuleKey)?.title || '';
+  let creativeText = options.creativeRules.find((r) => r.key === ruleInfo.creativeRuleKey)?.title || '';
   if (ruleInfo.creativeRuleKey === 'custom') creativeText = `指定数量 ${ruleInfo.creativeCount}`;
 
   return { projectText, adText, adGroupText, creativeText };
 });
-// 1. 定义规则选项数据
-const projectRules = [
-  { title: '根据定向包生成', desc: '项目数量与定向包数量相等', key: 'targeting' },
-  {
-    title: '根据创意组生成',
-    desc: '项目数量与创意组数量相等，项目中的广告都使用相同的素材',
-    key: 'creative',
-  },
-  {
-    title: '根据标题包生成',
-    desc: '项目数量与标题包数量相等，项目中的广告都使用相同的标题包',
-    key: 'title',
-  },
-  { title: '指定数量', desc: '手动指定每个账户的项目数量', key: 'custom' },
-];
-
-const adGroupRules = [
-  { title: '根据定向包生成', desc: '广告组数量与定向包数量相等', key: 'targeting' },
-  {
-    title: '根据创意组生成',
-    desc: '广告组数量与创意组数量相等',
-    key: 'creative',
-  },
-  {
-    title: '根据标题包生成',
-    desc: '广告组数量与标题包数量相等',
-    key: 'title',
-  },
-  { title: '指定数量', desc: '手动指定每个账户的广告组数量', key: 'custom' },
-];
-
-const adRules = [
-  {
-    title: '按创意组数',
-    desc: '按创意组数生成广告，自动匹配标题包，标题包不足时循环使用',
-    key: 'creative',
-  },
-  {
-    title: '按标题包数',
-    desc: '按标题包数生成广告，自动匹配创意数，创意数不足时循环使用',
-    key: 'title',
-  },
-  // {title: '按创意组*标题包', desc: '基于创意组*标题包自动生成广告', key: 'mix'},
-  { title: '指定数量', desc: '先指定广告数量，自动循环使用素材和标题，多退少补', key: 'custom' },
-];
-
-const creativeRules = [
-  { title: '根据创意组生成', desc: '创意数量与创意组数量相等', key: 'creative_group' },
-  { title: '指定数量', desc: '手动指定每个账户的创意数量', key: 'custom' },
-];
 
 const selectedProjectRule = ref('targeting');
 const selectedAdGroupRule = ref('targeting');
@@ -408,13 +425,13 @@ function reuseStrategyGroup() {
       </div>
       <div class="header-configuration-content-right">
         <div class="info-tag">
-          <span class="label">项目：</span>
+          <span class="label">{{ ruleConfiguration.project.name }}：</span>
           <span class="value">{{ displayDisplayText.projectText }}</span>
-          <span class="label ml-4">广告组：</span>
+          <span class="label ml-4">{{ ruleConfiguration.adGroup.name }}：</span>
           <span class="value">{{ displayDisplayText.adGroupText }}</span>
-          <span class="label ml-4">广告：</span>
-          <span class="value">{{ displayDisplayText.adText }}</span>
-          <span class="label ml-4">创意：</span>
+          <span v-if="ruleConfiguration.ad.show" class="label ml-4">{{ ruleConfiguration.ad.name }}：</span>
+          <span v-if="ruleConfiguration.ad.show" class="value">{{ displayDisplayText.adText }}</span>
+          <span class="label ml-4">{{ ruleConfiguration.creative.name }}：</span>
           <span class="value">{{ displayDisplayText.creativeText }}</span>
         </div>
         <Button type="primary" @click="ruleConfigurationEvent">规则配置</Button>
@@ -427,11 +444,12 @@ function reuseStrategyGroup() {
     <!-- 规则匹配弹窗 -->
     <RuleModal class="w-[900px]" title="规则配置">
       <div class="rule-container">
+        <!-- 项目生成规则 -->
         <div class="rule-section">
-          <div class="label">项目生成规则</div>
+          <div class="label">{{ ruleConfiguration.project.rules }}</div>
           <div class="options-grid">
             <div
-              v-for="item in projectRules"
+              v-for="item in ruleOptions.projectRules"
               :key="item.key"
               class="option-card"
               :class="{ active: selectedProjectRule === item.key }"
@@ -444,15 +462,16 @@ function reuseStrategyGroup() {
         </div>
 
         <div v-if="selectedProjectRule === 'custom'" class="input-row">
-          <div class="label">每个账户指定项目数</div>
+          <div class="label">{{ ruleConfiguration.project.countLabel }}</div>
           <Input v-model:value="projectCount" style="width: 200px" placeholder="请输入数量" />
         </div>
 
+        <!-- 广告组生成规则 -->
         <div class="rule-section">
-          <div class="label">广告组生成规则</div>
+          <div class="label">{{ ruleConfiguration.adGroup.rules }}</div>
           <div class="options-grid">
             <div
-              v-for="item in adGroupRules"
+              v-for="item in ruleOptions.adGroupRules"
               :key="item.key"
               class="option-card"
               :class="{ active: selectedAdGroupRule === item.key }"
@@ -465,15 +484,16 @@ function reuseStrategyGroup() {
         </div>
 
         <div v-if="selectedAdGroupRule === 'custom'" class="input-row">
-          <div class="label">每个项目指定广告组数</div>
+          <div class="label">{{ ruleConfiguration.adGroup.countLabel }}</div>
           <Input v-model:value="adGroupCount" style="width: 200px" placeholder="请输入数量" />
         </div>
 
-        <div class="rule-section">
-          <div class="label">广告生成规则</div>
+        <!-- 广告生成规则（根据配置决定是否显示） -->
+        <div v-if="ruleConfiguration.ad.show" class="rule-section">
+          <div class="label">{{ ruleConfiguration.ad.rules }}</div>
           <div class="options-grid">
             <div
-              v-for="item in adRules"
+              v-for="item in ruleOptions.adRules"
               :key="item.key"
               class="option-card"
               :class="{ active: selectedAdRule === item.key }"
@@ -485,16 +505,17 @@ function reuseStrategyGroup() {
           </div>
         </div>
 
-        <div v-if="selectedAdRule === 'custom'" class="input-row">
-          <div class="label">每个项目指定广告数</div>
+        <div v-if="ruleConfiguration.ad.show && selectedAdRule === 'custom'" class="input-row">
+          <div class="label">{{ ruleConfiguration.ad.countLabel }}</div>
           <Input v-model:value="adCount" style="width: 200px" placeholder="请输入数量" />
         </div>
 
+        <!-- 创意生成规则 -->
         <div class="rule-section">
-          <div class="label">创意生成规则</div>
+          <div class="label">{{ ruleConfiguration.creative.rules }}</div>
           <div class="options-grid">
             <div
-              v-for="item in creativeRules"
+              v-for="item in ruleOptions.creativeRules"
               :key="item.key"
               class="option-card"
               :class="{ active: selectedCreativeRule === item.key }"
@@ -507,7 +528,7 @@ function reuseStrategyGroup() {
         </div>
 
         <div v-if="selectedCreativeRule === 'custom'" class="input-row">
-          <div class="label">每个项目指定创意数</div>
+          <div class="label">{{ ruleConfiguration.creative.countLabel }}</div>
           <Input v-model:value="creativeCount" style="width: 200px" placeholder="请输入数量" />
         </div>
       </div>

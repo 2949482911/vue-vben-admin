@@ -105,6 +105,49 @@ export interface Promotion {
 }
 
 /**
+ * 规则层级配置接口
+ * 定义每个规则层级的显示名称和是否显示
+ */
+export interface RuleLevelConfig {
+  show: boolean;         // 是否显示该层级
+  name: string;          // 该层级的显示名称
+  rules: string;         // 该层级的规则名称（如：营销单元生成规则）
+  countLabel: string;    // 该层级指定数量时的标签文字
+}
+
+/**
+ * 规则配置接口
+ * 定义整个规则配置的结构
+ */
+export interface RuleConfiguration {
+  project: RuleLevelConfig;    // 项目层级配置
+  adGroup: RuleLevelConfig;    // 广告组层级配置
+  ad: RuleLevelConfig;         // 广告层级配置
+  creative: RuleLevelConfig;   // 创意层级配置
+}
+
+/**
+ * 规则选项接口
+ * 定义单个规则选项的数据结构
+ */
+export interface RuleOption {
+  title: string;    // 规则标题
+  desc: string;     // 规则描述
+  key: string;      // 规则键值
+}
+
+/**
+ * 规则选项集合接口
+ * 定义所有规则选项的集合
+ */
+export interface RuleOptions {
+  projectRules: RuleOption[];      // 项目规则选项
+  adGroupRules: RuleOption[];      // 广告组规则选项
+  adRules: RuleOption[];           // 广告规则选项
+  creativeRules: RuleOption[];     // 创意规则选项
+}
+
+/**
  *根据规则获取计划个数
  * @param platform
  * @param creation
