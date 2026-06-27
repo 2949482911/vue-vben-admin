@@ -365,9 +365,9 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 </script>
 
 <template>
-  <div>
-    <Row :gutter="16">
-      <Col :span="6">
+  <div class="delivery-task-recommend-container">
+    <Row :gutter="16" class="equal-height-row">
+      <Col :span="6" class="equal-height-col">
         <Task :form-fields="taskFormFields"
               :task-show-label="taskShowLabel"
               :campaign="creationInfo.configData?.campaign"
@@ -375,7 +375,7 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 
         </Task>
       </Col>
-      <Col :span="6">
+      <Col :span="6" class="equal-height-col">
         <SubTask :form-fields="subTaskFormFields"
                  :sub-task-show-label="subTaskShowLabel"
                  :account-info="creationInfo.accountInfo"
@@ -386,7 +386,7 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
         />
       </Col>
 
-      <Col :span="6">
+      <Col :span="6" class="equal-height-col">
         <CreativeGroupSelector
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData?.material"
@@ -394,7 +394,7 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
         />
       </Col>
 
-      <Col :span="6">
+      <Col :span="6" class="equal-height-col">
         <TitleSelector
           :title-package="creationInfo.configData?.titlePackage"
           :account-info="creationInfo.accountInfo"
@@ -406,5 +406,25 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 </template>
 
 <style scoped lang="scss">
+.delivery-task-recommend-container {
+  width: 100%;
+}
 
+// 让所有列高度一致，但不强制扩容
+.equal-height-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.equal-height-col {
+  display: flex;
+  
+  // 让内部组件高度自适应父容器（匹配最高的列）
+  > * {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+}
 </style>

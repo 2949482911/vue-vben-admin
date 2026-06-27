@@ -106,36 +106,36 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 </script>
 
 <template>
-  <div>
-    <Card title="子任务">
-      <Divider type="horizontal"/>
-      <Descriptions title="基本信息" v-if="adgroupData.subTaskName">
-        <DescriptionsItem v-for="(label, key ) in subTaskShowLabel"
-                          :key="key" :label="label" :span="5">
-          {{ adgroupData[key] }}
-        </DescriptionsItem>
-      </Descriptions>
-      <Alert v-else type="error" message="请先填写子任务信息"></Alert>
-      <Divider type="horizontal"/>
-      <Space align="center" class="w-full justify-center">
-        <Button primary danger @click="openAdgroupDrawer">
-          {{ adgroupData.subTaskName ? '编辑子任务' : '添加子任务' }}
-        </Button>
-      </Space>
-    </Card>
+  <div class="huawei-store-subtask-container">
+    <div class="subtask-cards-wrapper">
+      <Card title="子任务" class="info-card">
+        <div class="card-content">
+          <Descriptions title="基本信息" v-if="adgroupData.subTaskName" :column="1" class="info-descriptions">
+            <DescriptionsItem v-for="(label, key ) in subTaskShowLabel"
+                              :key="key" :label="label">
+              {{ adgroupData[key] }}
+            </DescriptionsItem>
+          </Descriptions>
+          <Alert v-else type="error" message="请先填写子任务信息" class="empty-alert"></Alert>
+        </div>
+        <div class="card-footer">
+          <Button primary danger @click="openAdgroupDrawer">
+            {{ adgroupData.subTaskName ? '编辑子任务' : '添加子任务' }}
+          </Button>
+        </div>
+      </Card>
 
-    <Divider type="horizontal"/>
-
-    <Card title="定向包">
-      <AudiencePackageShow :audience="audience" />
-      <Divider type="horizontal"/>
-      <Space align="center" class="w-full justify-center">
-        <Button primary danger @click="openAudiencePackage">
-          添加定向包
-        </Button>
-      </Space>
-
-    </Card>
+      <Card title="定向包" class="info-card">
+        <div class="card-content">
+          <AudiencePackageShow :audience="audience" />
+        </div>
+        <div class="card-footer">
+          <Button primary danger @click="openAudiencePackage">
+            添加定向包
+          </Button>
+        </div>
+      </Card>
+    </div>
 
     <AdgroupDrawerModule :form-fields="formFields"></AdgroupDrawerModule>
     <AudiencePackage :account-info="accountInfo"
@@ -146,5 +146,71 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 </template>
 
 <style scoped lang="scss">
+.huawei-store-subtask-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
+.subtask-cards-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-card {
+  width: 100%;
+  min-height: 300px; // 固定最小高度，防止内容被挤压
+  
+  // Card 样式优化
+  &.ant-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+    
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+  }
+  
+  .ant-card-head {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 12px 16px;
+    min-height: 57px; // Card 标题固定高度
+  }
+  
+  .ant-card-body {
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.card-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+  min-height: 150px; // 增大内容区域最小高度，确保有足够空间显示内容
+}
+
+.card-footer {
+  display: flex;
+  justify-content: center; // 居中对齐
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: auto; // 自动推到底部
+}
+
+.info-descriptions {
+  .ant-descriptions-item-label {
+    font-weight: 500;
+  }
+}
+
+.empty-alert {
+  margin: 8px 0;
+}
 </style>

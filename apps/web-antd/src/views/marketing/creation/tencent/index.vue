@@ -2,18 +2,25 @@
 import { Page, useVbenModal } from "@vben/common-ui";
 import { Card, message, Select } from "ant-design-vue";
 import ConfigurationConfig from "../components/configurationArea.vue";
-import { ref } from "vue";
-import type { TencentCreation } from "./tencent";
+import { ref, watch } from "vue";
+import type {
+  TencentAdgroupData,
+  TencentCampaignData,
+  TencentCreation,
+  TencentCreationData
+} from "./tencent";
+import {getPreviewTableData} from './tencent';
 import { TENCENT } from "./tencent";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import type {
   AccountInfo,
   AudienceConfigData,
-  Material,
+  Material, MaterialData,
   MonitoringLinkConfigData,
   MonitoringLinkType,
   Project,
-  RuleInfo
+  RuleInfo,
+  TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import { Platform } from "#/constants/enums";
@@ -22,6 +29,8 @@ import TencentBaseTemplate
   from "#/views/marketing/creation/tencent/components/base/TencentBaseTemplate.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
+
+const adList = ref<Array<TencentCreationData>>([]);
 // 策略组
 const [CreateStrategyGroupModal, createStrategyGroupApi] = useVbenModal({
   connectedComponent: CreateStrategyGroup,
@@ -29,6 +38,9 @@ const [CreateStrategyGroupModal, createStrategyGroupApi] = useVbenModal({
     createStrategyGroupApi.close();
   }
 });
+
+import TencentPreviewArea
+  from "#/views/marketing/creation/tencent/components/TencentPreviewArea.vue";
 
 /**
  * 更新账户信息
@@ -44,7 +56,6 @@ function updateAccountInfo(accountInfo: Array<AccountInfo>) {
  */
 function updateProject(project: Project) {
   creationInfo.value.project = project;
-
 }
 
 /**
@@ -71,10 +82,46 @@ function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
 }
 
 
-function genPreviewTableData() {
-
+/**
+ * 更新推广计划
+ */
+function updateCampaign(campaign: TencentCampaignData) {
+  creationInfo.value.configData.campaign = campaign;
 }
 
+/**
+ * 推广单元
+ * @param adgroup
+ */
+function updateAdgroup(adgroup: TencentAdgroupData) {
+  creationInfo.value.configData.adgroup = adgroup;
+}
+
+
+/**
+ * 素材
+ * @param material
+ */
+function updateMaterial(material: MaterialData) {
+  creationInfo.value.configData.material = material;
+}
+
+
+/**
+ * 更新标题包
+ * @param titlePackage
+ */
+function updateTitlePackage(titlePackage: TitlePackageConfigData) {
+  creationInfo.value.configData.titlePackage = titlePackage;
+}
+
+
+/**
+ * 预览数据生成
+ */
+function genPreviewTableData() {
+  adList.value = getPreviewTableData(creationInfo.value)
+}
 
 
 
@@ -101,8 +148,44 @@ function createStrategyGroup() {
  * 模板选择
  */
 const template = ref<string>("base_template");
+
 function updateTemplate(changeVal: string) {
   template.value = changeVal;
+}
+
+/**
+ * 复用策略
+ * @param tencentCreation
+ */
+function updateReuse(tencentCreation: TencentCreation) {
+  if (tencentCreation.configData) {
+    const config = tencentCreation.configData;
+    // 1. 恢复 material.data
+    if (config.material && !(config.material.data instanceof Map)) {
+      config.material.data = new Map(Object.entries(config.material.data || {}));
+    }
+
+    // 2. 恢复 audience.data
+    if (config.audience && !(config.audience.data instanceof Map)) {
+      config.audience.data = new Map(Object.entries(config.audience.data || {}));
+    }
+
+    // 3. 恢复 titlePackage.data
+    if (config.titlePackage && !(config.titlePackage.data instanceof Map)) {
+      config.titlePackage.data = new Map(Object.entries(config.titlePackage.data || {}));
+    }
+
+    // 4. 恢复 pageView.data
+    // if (config.pageView && !(config.pageView.data instanceof Map)) {
+    //   config.pageView.data = new Map(Object.entries(config.pageView.data || {}));
+    // }
+
+    // 5. 恢复 monitoringLink.data
+    if (config.monitoringLink && !(config.monitoringLink.data instanceof Map)) {
+      config.monitoringLink.data = new Map(Object.entries(config.monitoringLink.data || {}));
+    }
+  }
+  creationInfo.value = tencentCreation;
 }
 
 
@@ -119,6 +202,7 @@ const creationInfo = ref<TencentCreation>({
   accountInfo: [],
   configData: {
     campaign: {
+      adgroup_id: 0,
       additional_product_spec: {
         product_catalog_id: "",
         product_outer_id: ""
@@ -295,7 +379,7 @@ const creationInfo = ref<TencentCreation>({
   configurationConfig: {
     platform: Platform.TENCENT
   },
-  platform: "",
+  platform: Platform.TENCENT,
   project: {
     projectId: "",
     projectName: "",
@@ -316,6 +400,21 @@ const creationInfo = ref<TencentCreation>({
 });
 
 
+
+// 监听数据变化
+watch(() => creationInfo, (_) => {
+  resetCreationInfo();
+}, { immediate: true, deep: true });
+
+
+
+function resetCreationInfo() {
+  if (adList.value.length > 0) {
+    adList.value = [];
+    message.warn("配置已更新,预览区已重置");
+  }
+}
+
 </script>
 
 <template>
@@ -330,18 +429,23 @@ const creationInfo = ref<TencentCreation>({
           @update:accountInfo="updateAccountInfo"
           @update:productInfo="updateProject"
           @update:ruleInfo="updateRuleInfo"
-
+          @update:reuse="updateReuse"
         />
       </Card>
 
       <Card class="header">
-        <Select class='w-[200px]' :options="TENCENT_MARKETING_TYPE" :value="template" @change="updateTemplate"></Select>
+        <Select class='w-[200px]' :options="TENCENT_MARKETING_TYPE" :value="template"
+                @change="updateTemplate"></Select>
       </Card>
 
       <Card class="header">
         <TencentBaseTemplate
           v-if="template === 'base_template'"
           :creation-info="creationInfo"
+          @update:title-package="updateTitlePackage"
+          @update:update-material="updateMaterial"
+          @update:campaign="updateCampaign"
+          @update:adgroup="updateAdgroup"
           @update:audience-package="updateAudiencePackage"
         />
       </Card>
@@ -360,9 +464,8 @@ const creationInfo = ref<TencentCreation>({
 
 
       <Card title="预览区" class="header">
-
+        <TencentPreviewArea :ad-list="adList" :account-info="creationInfo.accountInfo"></TencentPreviewArea>
       </Card>
-
 
       <CreateStrategyGroupModal />
     </Page>

@@ -4,7 +4,8 @@ import { Card, Divider, TabPane, Tabs } from "ant-design-vue";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import type {
   AccountTabData,
-  PreviewColumn
+  PreviewColumn,
+  LevelNames
 } from "#/views/marketing/creation/components/preview_area/previewAreaData";
 
 /**
@@ -23,6 +24,8 @@ const props = defineProps<{
   campaignMergeFields?: string[];
   /** 广告组层级的合并字段列表（用于单元格合并） */
   adgroupMergeFields?: string[];
+  /** 自定义层级名称配置 */
+  levelNames?: LevelNames;
 }>();
 
 const emit = defineEmits<{
@@ -31,6 +34,29 @@ const emit = defineEmits<{
   (e: "selectionChange", records: any[]): void;
   (e: "tabChange", accountId: string): void;
 }>();
+
+// 默认层级配置
+const defaultLevelNames: LevelNames = {
+  campaign: { show: true, labelName: "计划" },
+  adgroup: { show: true, labelName: "子任务" },
+  promotion: { show: true, labelName: "广告" }
+};
+
+// 实际使用的层级配置
+const levelNamesConfig = computed(() => ({
+  campaign: {
+    show: props.levelNames?.campaign?.show ?? defaultLevelNames.campaign?.show ?? true,
+    labelName: props.levelNames?.campaign?.labelName || defaultLevelNames.campaign?.labelName || "计划"
+  },
+  adgroup: {
+    show: props.levelNames?.adgroup?.show ?? defaultLevelNames.adgroup?.show ?? true,
+    labelName: props.levelNames?.adgroup?.labelName || defaultLevelNames.adgroup?.labelName || "子任务"
+  },
+  promotion: {
+    show: props.levelNames?.promotion?.show ?? defaultLevelNames.promotion?.show ?? true,
+    labelName: props.levelNames?.promotion?.labelName || defaultLevelNames.promotion?.labelName || "广告"
+  }
+}));
 
 // 当前选中的账户 Tab
 const activeAccountId = ref<string>("");
@@ -137,6 +163,7 @@ const gridOptions: VxeGridProps = {
 
 // 表格事件
 const gridEvents = {
+  // @ts-ignore
   checkboxChange({ checked, row }: { checked: boolean; row: any }) {
     const $grid = gridApi.grid;
     if ($grid) {
@@ -219,6 +246,7 @@ onMounted(() => {
  */
 function generateTable() {
   if (props.tableData && props.tableData.length > 0) {
+    // @ts-ignore
     activeAccountId.value = props.tableData[0].advertiserId;
     handleTabChange(activeAccountId.value);
   }
@@ -298,13 +326,13 @@ defineExpose({
       <!-- 统计信息 -->
       <Card style="margin-top: 10px">
         <div class="statistics-bar">
-          <span>计划总数：<span class="stat-value">{{ currentAccountData?.campaignCount || 0
+          <span v-if="levelNamesConfig.campaign.show">{{ levelNamesConfig.campaign.labelName }}总数：<span class="stat-value">{{ currentAccountData?.campaignCount || 0
             }}</span></span>
-          <Divider type="vertical" />
-          <span>子任务总数：<span class="stat-value">{{ currentAccountData?.adgroupCount || 0
+          <Divider v-if="levelNamesConfig.campaign.show && levelNamesConfig.adgroup.show" type="vertical" />
+          <span v-if="levelNamesConfig.adgroup.show">{{ levelNamesConfig.adgroup.labelName }}总数：<span class="stat-value">{{ currentAccountData?.adgroupCount || 0
             }}</span></span>
-          <Divider type="vertical" />
-          <span>广告总数：<span class="stat-value">{{ currentAccountData?.promotionCount || 0
+          <Divider v-if="levelNamesConfig.adgroup.show && levelNamesConfig.promotion.show" type="vertical" />
+          <span v-if="levelNamesConfig.promotion.show">{{ levelNamesConfig.promotion.labelName }}总数：<span class="stat-value">{{ currentAccountData?.promotionCount || 0
             }}</span></span>
         </div>
       </Card>

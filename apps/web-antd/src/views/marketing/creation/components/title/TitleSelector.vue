@@ -90,24 +90,23 @@ watch(
 </script>
 
 <template>
-  <div>
-    <Card title="标题包">
-      <Divider type="horizontal" />
-      <template v-if="totalCount > 0">
-        <TitlePackageShow :data="localTitlePackage.data" :method="localTitlePackage.config.method" />
-        <Space align="center" class="w-full justify-center">
-          <Button type="link" danger @click="handleClear">清空</Button>
-          <Button type="primary" @click="openTitlePackageDrawerModal">编辑</Button>
-        </Space>
-      </template>
+  <div class="title-selector-container">
+    <Card title="标题包" class="info-card">
+      <div class="card-content">
+        <template v-if="totalCount > 0">
+          <TitlePackageShow :data="localTitlePackage.data" :method="localTitlePackage.config.method" />
+        </template>
 
-      <template v-else>
-        <Alert type="error" message="请选择标题包" show-icon />
-        <Divider type="horizontal" />
-        <Space align="center" class="w-full justify-center">
-          <Button type="primary" @click="openTitlePackageDrawerModal">添加</Button>
-        </Space>
-      </template>
+        <template v-else>
+          <Alert type="error" message="请选择标题包" show-icon class="empty-alert" />
+        </template>
+      </div>
+      <div class="card-footer">
+        <Button v-if="totalCount > 0" type="link" danger @click="handleClear">清空</Button>
+        <Button type="primary" @click="openTitlePackageDrawerModal">
+          {{ totalCount > 0 ? "编辑" : "添加" }}
+        </Button>
+      </div>
     </Card>
 
     <TitlePackageDrawerComp :account-info="accountInfo" @update:title-package="updateTitlePackage" />
@@ -115,4 +114,60 @@ watch(
 </template>
 
 <style scoped lang="scss">
+.title-selector-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-card {
+  width: 100%;
+  height: 100%;
+  min-height: 616px; // 固定最小高度，匹配营销单元（300px * 2 + 16px gap）
+  
+  // Card 样式优化
+  &.ant-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+    
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+  }
+  
+  .ant-card-head {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 12px 16px;
+    min-height: 57px; // Card 标题固定高度
+  }
+  
+  .ant-card-body {
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.card-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+  min-height: 150px; // 增大内容区域最小高度，确保有足够空间显示内容
+}
+
+.card-footer {
+  display: flex;
+  justify-content: center; // 居中对齐
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: auto; // 自动推到底部
+}
+
+.empty-alert {
+  margin: 8px 0;
+}
 </style>

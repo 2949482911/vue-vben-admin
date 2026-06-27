@@ -11,6 +11,27 @@ export interface PreviewColumn {
 }
 
 
+/**
+ * 层级配置项接口
+ */
+export interface LevelConfig {
+  /** 是否显示该层级的统计信息 */
+  show?: boolean;
+  /** 该层级的显示名称（如：任务、营销单元） */
+  labelName?: string;
+}
+
+/**
+ * 层级名称配置接口
+ */
+export interface LevelNames {
+  /** 计划层级配置 */
+  campaign?: LevelConfig;
+  /** 广告组层级配置 */
+  adgroup?: LevelConfig;
+  /** 广告层级配置 */
+  promotion?: LevelConfig;
+}
 
 
 /**

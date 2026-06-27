@@ -110,24 +110,22 @@ watch(
 </script>
 
 <template>
-  <div>
+  <div class="creative-group-selector-container">
     <!-- 已选素材预览 -->
-    <Card title="创意组">
-      <Divider type="horizontal" />
-      <CreativeGroupPreview
-        v-if="totalCount > 0"
-        :material="localMaterial"
-        :max-count="maxCount"
-        @edit="openEditDrawer"
-        @clear="handleClear"
-      />
-      <!-- 未选素材提示 -->
-      <div v-else>
-        <Alert message="暂无创意组,请点击编辑添加"></Alert>
-        <Divider type="horizontal" />
-        <Space align="center" class="w-full justify-center">
-          <Button type="primary" @click="openEditDrawer">编辑</Button>
-        </Space>
+    <Card title="创意组" class="info-card">
+      <div class="card-content">
+        <CreativeGroupPreview
+          v-if="totalCount > 0"
+          :material="localMaterial"
+          :max-count="maxCount"
+          @edit="openEditDrawer"
+          @clear="handleClear"
+        />
+        <!-- 未选素材提示 -->
+        <Alert v-else message="暂无创意组,请点击编辑添加" class="empty-alert"></Alert>
+      </div>
+      <div class="card-footer">
+        <Button type="primary" @click="openEditDrawer">编辑</Button>
       </div>
 
       <!-- 创意组编辑抽屉 -->
@@ -140,5 +138,59 @@ watch(
 </template>
 
 <style scoped lang="scss">
+.creative-group-selector-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
+.info-card {
+  width: 100%;
+  height: 100%;
+  min-height: 616px; // 固定最小高度，匹配营销单元（300px * 2 + 16px gap）
+  
+  // Card 样式优化
+  &.ant-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+    
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+  }
+  
+  .ant-card-head {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 12px 16px;
+    min-height: 57px; // Card 标题固定高度
+  }
+  
+  .ant-card-body {
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.card-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+  min-height: 150px; // 增大内容区域最小高度，确保有足够空间显示内容
+}
+
+.card-footer {
+  display: flex;
+  justify-content: center; // 居中对齐
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: auto; // 自动推到底部
+}
+
+.empty-alert {
+  margin: 8px 0;
+}
 </style>

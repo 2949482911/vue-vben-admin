@@ -2,7 +2,7 @@
 // 创意组预览组件 - 展示已选素材信息（通用组件）
 
 import {computed} from 'vue';
-import {Button, Space, Tag} from 'ant-design-vue';
+import {Button, Space} from 'ant-design-vue';
 import type {Material, MaterialData} from '#/views/marketing/creation/creation';
 import {RuleMethod} from '#/views/marketing/creation/creation_enums';
 
@@ -112,11 +112,6 @@ function getGroupMaterialCount(group: Material): number {
         </div>
       </div>
     </template>
-
-    <!-- 底部操作 -->
-    <div class="preview-footer">
-      <Button type="primary" ghost @click="emit('edit')">编辑</Button>
-    </div>
   </div>
 </template>
 

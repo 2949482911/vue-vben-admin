@@ -1,146 +1,164 @@
 <script lang="ts" setup name="CreateOrg">
-import type { OrgCreateRequest } from '#/api/models/users';
+import type { MainBodyComboPageItem, MainBodyCreateRequest } from "#/api/models/main-body";
 
-import { ref } from 'vue';
+import { onMounted, ref } from "vue";
 
-import { useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import { useVbenDrawer } from "@vben/common-ui";
+import { $t } from "@vben/locales";
 
-import { Card } from 'ant-design-vue';
+import { Card, message } from "ant-design-vue";
 
-import { useVbenForm } from '#/adapter/form';
-import { mainBodyApi, orgApi, roleApi } from '#/api';
+import { useVbenForm } from "#/adapter/form";
+import { mainBodyApi, mainBodyComboApi } from "#/api";
 
-const emit = defineEmits(['pageReload']);
+const emit = defineEmits(["pageReload"]);
 
-const notice = ref<OrgCreateRequest>({});
-const menuData = ref([]);
-const roleData = ref([]);
+const notice = ref<MainBodyCreateRequest>({
+  comboId: "", email: "", id: "", name: "", remark: ""
+});
 const isUpdate = ref<Boolean>(false);
+
+// 套餐选项列表
+const comboOptions = ref<{ label: string; value: string }[]>([]);
+
+// 加载套餐选项
+async function loadComboOptions() {
+  try {
+    const res = await mainBodyComboApi.fetchMainBodyComboList({
+      name: "", type: "",
+      page: 1,
+      pageSize: 1000,
+      status: 1
+    });
+    comboOptions.value = res.items.map((item: MainBodyComboPageItem) => ({
+      label: item.name,
+      value: item.id
+    }));
+  } catch (err) {
+    console.error("加载套餐列表失败:", err);
+  }
+}
+
+onMounted(() => {
+  loadComboOptions();
+});
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
-    // 所有表单项
     componentProps: {
-      class: 'w-full',
-    },
+      class: "w-full"
+    }
   },
-  layout: 'horizontal',
   schema: [
     {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
+      component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      // 字段名
-      fieldName: 'id',
-      // 界面显示的label
+      fieldName: "id",
       dependencies: {
         show: false,
-        triggerFields: ['*'],
-      },
+        triggerFields: ["*"]
+      }
     },
     {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
+      component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      // 字段名
-      fieldName: 'name',
-      // 界面显示的label
-      label: `${$t('system.mainbody.columns.name')}`,
-      rules: 'required',
+      fieldName: "name",
+      label: `${$t("system.mainbody.columns.name")}`,
+      rules: "required"
     },
+    {
+      component: "Input",
+      componentProps: {
+        placeholder: `${$t("common.input")}`
+      },
+      fieldName: "email",
+      label: `${$t("system.mainbody.columns.email")}`,
+      rules: "required"
+    },
+    {
+      component: "Textarea",
+      componentProps: {
+        placeholder: `${$t("common.input")}`
+      },
+      fieldName: "remark",
+      label: `${$t("system.mainbody.columns.remark")}`
+    },
+    {
+      component: "Select",
+      componentProps: {
+        placeholder: "请选择套餐",
+        options: comboOptions,
+        allowClear: true,
+        showSearch: true,
+        filterOption: (inputValue: string, option: { label: string }) => {
+          return option.label.toLowerCase().includes(inputValue.toLowerCase());
+        }
+      },
+      fieldName: "comboId",
+      label: "套餐",
+      rules: "required"
+    }
+  ]
+});
 
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      // 字段名
-      fieldName: 'email',
-      // 界面显示的label
-      label: `${$t('system.mainbody.columns.email')}`,
-      rules: 'required',
-    },
-
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Textarea',
-      // 对应组件的参数
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      // 字段名
-      fieldName: 'remark',
-      // 界面显示的label
-      label: `${$t('system.mainbody.columns.remark')}`,
-    },
-  ],
-  // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-  handleSubmit: async (values: Record<string, any>) => {
+const [Drawer, drawerApi] = useVbenDrawer({
+  onCancel() {
+    drawerApi.close();
+    isUpdate.value = false;
+  },
+  async onConfirm() {
     const result = await formApi.validate();
     if (!result.valid) {
       return;
     }
-    await (isUpdate.value
-      ? mainBodyApi.fetchMainUpdate(JSON.stringify(values))
-      : mainBodyApi.fetchMainCreate(JSON.stringify(values)));
-    await modalApi.close();
+    const values = await formApi.getValues();
+    try {
+      if (isUpdate.value) {
+        // @ts-ignore
+        await mainBodyApi.fetchMainUpdate(values);
+        message.success("修改成功！");
+      } else {
+        // @ts-ignore
+        await mainBodyApi.fetchMainCreate(values);
+        message.success("创建成功！");
+      }
+      await drawerApi.close();
+      isUpdate.value = false;
+      emit("pageReload");
+    } catch (err) {
+      console.error("保存失败:", err);
+    }
   },
-});
-
-const [Modal, modalApi] = useVbenModal({
-  fullscreen: true,
-  fullscreenButton: false,
-  onCancel() {
-    modalApi.close();
-    isUpdate.value = false;
-  },
-  async onConfirm() {
-    await formApi.submitForm();
-    isUpdate.value = false;
-    emit('pageReload');
-  },
-  onOpenChange(isOpen: boolean) {
+  async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      notice.value = modalApi.getData<Record<string, any>>();
+      // 重新加载套餐选项数据
+      await loadComboOptions();
+      // @ts-ignore
+      notice.value = drawerApi.getData<Record<string, any>>();
       if (notice.value.id) {
         isUpdate.value = true;
         handleSetFormValue(notice.value);
       } else {
         isUpdate.value = false;
+        formApi.resetForm();
       }
-      orgApi.fetchOrgTree().then((res) => {
-        menuData.value = res;
-      });
-      roleApi.fetchRoleList({ page: 1000 }).then((res) => {
-        roleData.value = res.items;
-      });
     }
-  },
+  }
 });
 
-function handleSetFormValue(row) {
+function handleSetFormValue(row: any) {
   formApi.setValues(row);
 }
-
-const title: string = notice.value
-  ? `${$t('common.edit')}`
-  : `${$t('common.create')}`;
 </script>
 <template>
-  <Modal :title="title">
+  <Drawer :title="isUpdate ? `${$t('common.edit')}` : `${$t('common.create')}`">
     <Card>
       <Form />
     </Card>
-  </Modal>
+  </Drawer>
 </template>

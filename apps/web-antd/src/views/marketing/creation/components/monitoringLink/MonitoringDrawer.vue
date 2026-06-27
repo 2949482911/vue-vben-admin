@@ -1,7 +1,7 @@
 <script setup lang="ts" name="MonitoringDrawer">
 // 监测链接选择抽屉 - 供后续全媒体批投公用
 import { useVbenDrawer } from "@vben/common-ui";
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 import type {
   AccountInfo,
   MonitoringLinkConfigData,
@@ -77,6 +77,16 @@ function syncToEditingLink() {
   const link = currentLink.value;
   if (link) {
     currentEditingLink.value = { ...link };
+  } else {
+    // 如果没有链接数据，初始化一个空对象
+    currentEditingLink.value = {
+      allocateType: distributionMethod.value === RuleMethod.ACCOUNT ? "ACCOUNT" : "ALL",
+      clickLink: "",
+      exposureLink: "",
+      linkModeType: linkModeType.value,
+      monitorLink: "",
+      ocpxTaskId: ""
+    };
   }
 }
 
@@ -134,9 +144,11 @@ function getAccountName(account: AccountInfo): string {
 }
 
 // 账户点击/切换
-function handleAccountClick(account: AccountInfo) {
-  currentAccountId.value = String(account.localAdvertiserId);
+async function handleAccountClick(accountId: string) {
+  currentAccountId.value = accountId;
   // 切换账户时，同步该账户的链接到编辑对象
+  // 使用 nextTick 确保 currentAccountId 更新后再同步数据
+  await nextTick();
   syncToEditingLink();
 }
 
@@ -333,7 +345,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
                  :tab="getAccountName(account)">
           <!-- 手动输入 -->
           <MonitoringManualInput
-            v-show="linkModeType === RuleMethod.MANUAL"
+            v-if="linkModeType === RuleMethod.MANUAL"
+            :key="currentAccountId"
             :model-value="currentEditingLink"
             @update:model-value="val => {
               currentEditingLink = val;
@@ -342,7 +355,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
           />
           <!-- OCPX 任务列表选择 -->
           <MonitoringOcpx
-            v-show="linkModeType === RuleMethod.OCPX"
+            v-if="linkModeType === RuleMethod.OCPX"
+            :key="currentAccountId"
             :model-value="currentOcpxValue"
             @update:model-value="val => {
               currentOcpxValue = val;
@@ -358,7 +372,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       <div v-else>
         <!-- 手动输入 -->
         <MonitoringManualInput
-          v-show="linkModeType === RuleMethod.MANUAL"
+          v-if="linkModeType === RuleMethod.MANUAL"
           :model-value="currentEditingLink"
           @update:model-value="val => {
             currentEditingLink = val;
@@ -367,7 +381,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         />
         <!-- OCPX 任务列表选择 -->
         <MonitoringOcpx
-          v-show="linkModeType === RuleMethod.OCPX"
+          v-if="linkModeType === RuleMethod.OCPX"
           :model-value="currentOcpxValue"
           @update:model-value="val => {
             currentOcpxValue = val;

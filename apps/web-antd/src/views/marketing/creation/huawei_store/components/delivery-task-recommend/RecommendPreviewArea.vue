@@ -1,7 +1,10 @@
 <script setup lang="ts" name="RecommendPreviewArea">
 // 推荐广告的预览区数据
+import { computed } from "vue";
 import type {
-  PreviewColumn
+  PreviewColumn,
+  AccountTabData,
+  LevelNames
 } from "#/views/marketing/creation/components/preview_area/previewAreaData";
 import type { HuaWeiStoreCreationData } from "#/views/marketing/creation/huawei_store/huawei_store";
 import type { AccountInfo } from "#/views/marketing/creation/creation";
@@ -14,6 +17,17 @@ const props = defineProps<{
   accountInfo: AccountInfo[];
 }>();
 
+// 转换数据为预览区需要的格式
+const previewData = computed<AccountTabData[]>(() => {
+  return convertToPreviewData(props.adList, props.accountInfo);
+});
+
+// 华为商店的层级名称配置（使用对象结构）
+const levelNames: LevelNames = {
+  campaign: { show: true, labelName: "任务" },
+  adgroup: { show: true, labelName: "子任务" },
+  promotion: { show: true, labelName: "广告" }  // 华为商店有广告层级，显示
+};
 
 const tableColumns: PreviewColumn[] = [
   {
@@ -49,10 +63,11 @@ const tableColumns: PreviewColumn[] = [
 <template>
   <div>
     <PreviewArea
-      :table-data="convertToPreviewData(props.adList, props.accountInfo)"
+      :table-data="previewData"
       :table-columns="tableColumns"
       :campaign-merge-fields="['taskName', 'budget']"
       :adgroup-merge-fields="['subTaskName']"
+      :level-names="levelNames"
     ></PreviewArea>
   </div>
 </template>

@@ -1,17 +1,15 @@
 <script lang="ts" setup name="MainBodyManager">
-import type {VbenFormProps} from '@vben/common-ui';
+import type { VbenFormProps } from '@vben/common-ui';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { MainBodyItem } from '#/api/models';
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import type {MainBodyItem} from '#/api/models';
-import type {CreateMenuRequest, UpdateMenuRequest} from '#/api/models/menu';
+import { Page, useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import {Page, useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { Button, Switch, Tag } from 'ant-design-vue';
 
-import {Button, Switch, Tag} from 'ant-design-vue';
-
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {mainBodyApi} from '#/api';
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { mainBodyApi } from '#/api';
 import {
   BatchOptionsType,
   STATUS_SELECT,
@@ -19,20 +17,28 @@ import {
 } from '#/constants/locales';
 
 import Create from './create.vue';
+import ComboHistoryDrawer from './ComboHistoryDrawer.vue';
 
-const [CreateModal, createModalApi] = useVbenModal({
+const [CreateDrawerModule, createDrawerApi] = useVbenDrawer({
   connectedComponent: Create,
-  centered: true,
-  modal: true,
 });
 
-function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
+const [ComboHistoryDrawerModule, comboHistoryDrawerApi] = useVbenDrawer({
+  connectedComponent: ComboHistoryDrawer,
+});
+
+function openCreateDrawer(row?: MainBodyItem) {
   if (row) {
-    createModalApi.setData(row);
+    createDrawerApi.setData(row);
   } else {
-    createModalApi.setData({});
+    createDrawerApi.setData({});
   }
-  createModalApi.open();
+  createDrawerApi.open();
+}
+
+function openComboHistoryDrawer(row: MainBodyItem) {
+  comboHistoryDrawerApi.setData(row);
+  comboHistoryDrawerApi.open();
 }
 
 async function handlerState(row: MainBodyItem) {
@@ -46,7 +52,6 @@ async function handlerState(row: MainBodyItem) {
       targetIds: [row.id],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
-
     }));
   pageReload();
 }
@@ -55,19 +60,18 @@ async function handlerDelete(row: MainBodyItem) {
   await mainBodyApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
+    values: new Map<string, any>()
   });
   pageReload();
 }
 
 const formOptions: VbenFormProps = {
-  // 默认展开
   schema: [
     {
       component: 'Input',
       fieldName: 'name',
       label: `${$t('system.mainbody.columns.name')}`,
     },
-
     {
       component: 'Select',
       componentProps: {
@@ -79,9 +83,7 @@ const formOptions: VbenFormProps = {
       label: `${$t('core.columns.status')}`,
     },
   ],
-  // 控制表单是否显示折叠按钮
   showCollapseButton: true,
-  // 按下回车时是否提交表单
   submitOnEnter: false,
 };
 
@@ -111,7 +113,7 @@ const gridOptions: VxeGridProps<MainBodyItem> = {
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         return await mainBodyApi.fetchMainList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -131,7 +133,7 @@ const gridOptions: VxeGridProps<MainBodyItem> = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 const pageReload = () => {
   gridApi.reload();
@@ -143,7 +145,7 @@ const pageReload = () => {
     <Page>
       <Grid>
         <template #status="{ row }">
-          <Switch :checked="row.status == 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status == 1" @click="handlerState(row)" />
         </template>
 
         <template #sex="{ row }">
@@ -152,8 +154,11 @@ const pageReload = () => {
         </template>
 
         <template #action="{ row }">
-          <Button type="link" @click="openBaseDrawer(row)">
+          <Button type="link" @click="openCreateDrawer(row)">
             {{ $t('common.edit') }}
+          </Button>
+          <Button type="link" @click="openComboHistoryDrawer(row)">
+            查看套餐
           </Button>
           <Button type="link" @click="handlerDelete(row)">
             {{ $t('common.delete') }}
@@ -161,12 +166,13 @@ const pageReload = () => {
         </template>
 
         <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
+          <Button class="mr-2" type="primary" @click="openCreateDrawer(null)">
             {{ $t('common.create') }}
           </Button>
         </template>
       </Grid>
     </Page>
-    <CreateModal @page-reload="pageReload"/>
+    <CreateDrawerModule @page-reload="pageReload" />
+    <ComboHistoryDrawerModule />
   </div>
 </template>
