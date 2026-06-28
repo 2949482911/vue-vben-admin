@@ -452,7 +452,7 @@ const creationInfo = ref<TencentCreation>({
     adGroupCount: 1,
     adRuleKey: RuleKey.CREATIVE,
     adCount: 1,
-    creativeRuleKey: "creative_group",
+    creativeRuleKey: RuleKey.CREATIVE_GROUP,
     creativeCount: 1
   },
   version: TENCENT

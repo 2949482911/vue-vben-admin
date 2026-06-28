@@ -9,13 +9,14 @@ export enum RuleMethod {
   ACCOUNT = "account",
 
   //
-  MANUAL = 'manual',
-  OCPX = 'ocpx'
+  MANUAL = "manual",
+  OCPX = "ocpx"
 }
 
 
 // 分配策略
 export enum RuleKey {
   TARGET = "targeting",
-  CREATIVE = "creative"
+  CREATIVE = "creative",
+  CREATIVE_GROUP = "creative_group"
 }

@@ -6,7 +6,7 @@ import {
   Platform
 } from "#/constants/enums";
 import type { VivoConfigData, VivoCreation } from "#/views/marketing/creation/vivo/vivo";
-import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import type { PageViewItem } from "#/api/models/assert";
 import type { HuaWeiStoreCreation } from "#/views/marketing/creation/huawei_store/huawei_store";
 
@@ -145,6 +145,17 @@ export interface RuleOptions {
   adGroupRules: RuleOption[];      // 广告组规则选项
   adRules: RuleOption[];           // 广告规则选项
   creativeRules: RuleOption[];     // 创意规则选项
+}
+
+/**
+ * 表单字段配置接口
+ * 定义单个表单字段的数据结构
+ */
+export interface FormFieldConfig {
+  component: string;    // 组件类型（如：Input、Select等）
+  fieldName: string;    // 字段名，对应实体字段
+  label: string;        // 字段label，用于显示
+  rules?: string;       // 校验规则（可选，如：required）
 }
 
 /**
@@ -393,10 +404,10 @@ export function getDeepLink(
  */
 export function getLandingPage(
   method: string,
-  data: Map<string, Array<LandingPageData>>,
+  data: Map<string, Array<PageViewItem>>,
   advertiserId: string
-): LandingPageData | undefined {
-  let dataList: Array<LandingPageData> = [];
+): PageViewItem | undefined {
+  let dataList: Array<PageViewItem> = [];
   if (method === DistributionMode.all) {
     dataList = data.get("0") || [];
   } else {

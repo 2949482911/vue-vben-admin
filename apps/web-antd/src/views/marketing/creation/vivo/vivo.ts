@@ -1,6 +1,8 @@
 import {
   type Adgroup,
+  type AudienceConfigData,
   type Campaign,
+  type ConfigurationConfig,
   getAudience,
   getDeepLink,
   getLandingPage,
@@ -9,41 +11,48 @@ import {
   getRuleInfoAdCountGroup,
   getRuleInfoCampaignCount,
   getTiltePackage,
-  // type LocalMaterialData,
   type Material,
   type MaterialData,
+  type MonitoringLinkConfigData,
+  type PageViewConfigData,
   type PlatformCreation,
   type Promotion,
-} from '#/views/marketing/creation/creation';
-import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from '#/api/models';
-import type { BaseItem } from '#/api/models/core';
-import { Platform } from '#/constants/enums';
-import { renderProjectTitle } from '#/utils/customName';
-import type { Ref } from 'vue';
+  type TitlePackageConfigData
+} from "#/views/marketing/creation/creation";
+import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { BaseItem } from "#/api/models/core";
+import { Platform } from "#/constants/enums";
+import { renderProjectTitle } from "#/utils/customName";
+import type { Ref } from "vue";
+import type { PageViewItem } from "#/api/models/assert";
 
 /**
  * vivo 版本常量
  */
-export const VIVO_VERSION = '0.1.4';
+export const VIVO_VERSION = "0.1.4";
 
 /**
  * vivo 初始化对象
  */
-export interface VivoCreation extends PlatformCreation<VivoConfigData> {}
+export interface VivoCreation extends PlatformCreation<VivoConfigData> {
+  configurationConfig: ConfigurationConfig;
+}
 
 export interface VivoConfigData {
   campaign: VivoCampaignData;
   adgroup: VivoAdgroupData;
   promotion: VivoPromotionData;
-  titlePackage: VivoTitlePackageData;
-  audience: VivoAudienceData;
+  titlePackage: TitlePackageConfigData;
+  audience: AudienceConfigData;
   material: MaterialData;
   // 投放资质
   advertiserQualification: Map<string, QualificationValue>;
   deepLinkList: VivoDeepLinkData;
-  landingPage: VivoLandingPageData;
+  landingPage: PageViewConfigData;
   // 渠道包
   channelPackage: Map<string, ChannelPackageValue>;
+  // 监测链接
+  monitoringLink: MonitoringLinkConfigData;
 }
 
 /**定义存储的资质信息结构 */
@@ -439,7 +448,7 @@ export interface CampaignData {
  * 生成vivo广告table数据
  */
 export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableData> {
-  const creativeLength: number = creationInfo.configData.material.data.get('0')?.length || 0;
+  const creativeLength: number = creationInfo.configData.material.data.get("0")?.length || 0;
   const ruleType: string = creationInfo.ruleInfo.adRuleKey;
   // 先从账户开始
   const vivoTableData: Array<VivoTableData> = [];
@@ -448,17 +457,17 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
     const tableData: VivoTableData = {
       advertiserId: account.localAdvertiserId,
       campaignList: [],
-      getCampaignCount: function (): number {
+      getCampaignCount: function(): number {
         return this.campaignList.length;
       },
-      getAdGroupCount: function (): number {
+      getAdGroupCount: function(): number {
         let count: number = 0;
         this.campaignList.forEach((campaign) => {
           count += campaign.adgroupList.length;
         });
         return count;
       },
-      getAdCount: function (): number {
+      getAdCount: function(): number {
         let count: number = 0;
         this.campaignList.forEach((campaign) => {
           campaign.adgroupList.forEach((adgroup) => {
@@ -466,17 +475,17 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           });
         });
         return count;
-      },
+      }
     };
     // 计划对应
     // 获取计划数量
     const campaignCount: number = getRuleInfoCampaignCount(creationInfo.platform, creationInfo, [
-      account.localAdvertiserId,
+      account.localAdvertiserId
     ]);
 
     // 生成广告组
     const adGroupCount: number = getRuleInfoAdCountGroup(Platform.VIVO, creationInfo, [
-      account.localAdvertiserId,
+      account.localAdvertiserId
     ]);
 
     // 遍历生成广告组
@@ -485,16 +494,16 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
       // 生成广告组
       for (let f = 0; f < adGroupCount; f++) {
         const adgroup: VivoAdgroup = {
-          getName: function (): string {
+          getName: function(): string {
             return this.name;
           },
-          adgroupId: '',
+          adgroupId: "",
           appPackageName: creationInfo.project.packageName,
           audienceInfo: getAudience(
-            creationInfo.configData.audience.audienceConfig.method,
+            creationInfo.configData.audience.config.method,
             creationInfo.configData.audience.data,
             account.localAdvertiserId,
-            f,
+            f
           ).config,
           rpkDeepLink: creationInfo.configData.adgroup.rpkDeepLink,
           webSiteUrl: creationInfo.configData.adgroup.webSiteUrl,
@@ -507,7 +516,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           industry2: creationInfo.configData.adgroup.industry2,
           advertiseQualificationId:
             creationInfo.configData.advertiserQualification.get(account.localAdvertiserId)
-              ?.qualificationId || '',
+              ?.qualificationId || "",
           wechatFollow: creationInfo.configData.adgroup.wechatFollow,
           startDate: creationInfo.configData.adgroup.startDate,
           endDate: creationInfo.configData.adgroup.endDate,
@@ -526,50 +535,51 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           ruleAudience: creationInfo.configData.adgroup.ruleAudience,
           channelId:
             creationInfo.configData.channelPackage.get(account.localAdvertiserId)
-              ?.channelPackageId || '',
+              ?.channelPackageId || "",
           apkId:
             creationInfo.configData.channelPackage.get(account.localAdvertiserId)
-              ?.channelPackageApkId || '',
+              ?.channelPackageApkId || "",
           secondCvType: creationInfo.configData.adgroup.secondCvType,
           secondOcpxPrice: creationInfo.configData.adgroup.secondOcpxPrice * 100000,
           conversionFilterCycle: creationInfo.configData.adgroup.conversionFilterCycle,
           biddingStrategy: creationInfo.configData.adgroup.biddingStrategy,
           subpackageId: creationInfo.configData.adgroup.subpackageId,
           builtInRpkDeepLink: creationInfo.configData.adgroup.builtInRpkDeepLink,
-          promotionList: [],
+          promotionList: []
         };
         // 生成广告
         const adCount: number = getRuleInfoAdCount(Platform.VIVO, creationInfo, [
-          account.localAdvertiserId,
+          account.localAdvertiserId
         ]);
 
         for (let k = 0; k < adCount; k++) {
           const materialList: Array<Material> = getMaterial(
             creationInfo.configData.material.config.method,
             creationInfo.configData.material.data,
-            account.localAdvertiserId,
+            account.localAdvertiserId
           );
           const title: TitlePackageItem = getTiltePackage(
-            creationInfo.configData.titlePackage.titlePackageConfig.method,
+            creationInfo.configData.titlePackage.config.method,
             creationInfo.configData.titlePackage.data,
             account.localAdvertiserId,
-            k,
+            k
           );
 
           const deepLink: string = getDeepLink(
             creationInfo.configData.deepLinkList.deepLinkConfig.method,
             creationInfo.configData.deepLinkList.data,
-            account.localAdvertiserId,
+            account.localAdvertiserId
           );
 
-          const landingPage: LandingPageData | undefined = getLandingPage(
-            creationInfo.configData.landingPage.landingPageConfig.method,
+          // @ts-ignore
+          const landingPage: PageViewItem = getLandingPage(
+            creationInfo.configData.landingPage.config.method,
             creationInfo.configData.landingPage.data,
-            account.localAdvertiserId,
+            account.localAdvertiserId
           );
           // 本地素材ID
           const creativeList: Array<VivoCreative> = [];
-          if (ruleType !== 'creative') {
+          if (ruleType !== "creative") {
             for (let j = 0; j < creativeLength; j++) {
               // 添加创意
               creativeList.push({
@@ -578,17 +588,17 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
                 materialNormId: creationInfo.configData.promotion.config.materialNormId,
                 virtualPositionId: creationInfo.configData.promotion.config.virtualPositionId,
                 title: title.title,
-                subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : '', //当媒体类型是广告联盟需要subTitle
+                subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : "", //当媒体类型是广告联盟需要subTitle
                 pushSubTitle: Array.isArray(title.config?.pushSubTitle)
-                  ? title.config.pushSubTitle[0] || ''
-                  : '',
-                imgsCode: '',
-                videoCode: '',
+                  ? title.config.pushSubTitle[0] || ""
+                  : "",
+                imgsCode: "",
+                videoCode: "",
                 strongReminder: creationInfo.configData.promotion.config.strongReminder,
                 materialIdsList: [
                   ...(materialList[j]?.image ?? []),
-                  ...(materialList[j]?.video ?? []),
-                ].map((item) => item.localMaterialId),
+                  ...(materialList[j]?.video ?? [])
+                ].map((item) => item.localMaterialId)
               });
             }
           } else {
@@ -598,37 +608,38 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
               materialNormId: creationInfo.configData.promotion.config.materialNormId,
               virtualPositionId: creationInfo.configData.promotion.config.virtualPositionId,
               title: title.title,
-              subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : '', //当媒体类型是广告联盟需要subTitle
+              subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : "", //当媒体类型是广告联盟需要subTitle
               pushSubTitle: Array.isArray(title.config?.pushSubTitle)
-                ? title.config.pushSubTitle[0] || ''
-                : '',
-              imgsCode: '',
-              videoCode: '',
+                ? title.config.pushSubTitle[0] || ""
+                : "",
+              imgsCode: "",
+              videoCode: "",
               strongReminder: creationInfo.configData.promotion.config.strongReminder,
               materialIdsList: [
                 ...(materialList[k]?.image ?? []),
-                ...(materialList[k]?.video ?? []),
-              ].map((item) => item.localMaterialId),
+                ...(materialList[k]?.video ?? [])
+              ].map((item) => item.localMaterialId)
             });
           }
 
           // 广告
           adgroup.promotionList.push({
-            adgroupId: '',
+            adgroupId: "",
             name: renderProjectTitle(creationInfo.configData.promotion.name, k),
             deepLink: deepLink,
             videoAttribution: creationInfo.configData.promotion.videoAttribution,
-            pageUrl: landingPage?.config.pageUrl || '',
-            pageUrlName: landingPage?.name || '',
+            // @ts-ignore
+            pageUrl: landingPage.config?.pageUrl || "",
+            pageUrlName: landingPage?.name || "",
             h5Code: creationInfo.configData.promotion.h5Code,
             h5Type: creationInfo.configData.promotion.h5Type,
             generalSwitch: creationInfo.configData.promotion.generalSwitch,
             creativeList: creativeList,
             viewMonitorUrl: creationInfo.monitoringLink.exposureLink,
             clickMonitorUrl: creationInfo.monitoringLink.clickLink,
-            getName: function () {
+            getName: function() {
               return this.name;
-            },
+            }
           });
         }
         // 必须在生成完该组下的所有广告后，再把 adgroup 推入 adgroupList
@@ -638,16 +649,16 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
       tableData.campaignList.push({
         adType: creationInfo.configData.campaign.adType,
         adgroupList: adgroupList,
-        campaignId: '',
+        campaignId: "",
         dailyBudget:
           creationInfo.configData.campaign.dailyBudget === -1
             ? -1
             : creationInfo.configData.campaign.dailyBudget * 100000,
         mediaType: creationInfo.configData.campaign.mediaType,
         name: renderProjectTitle(creationInfo.configData.campaign.name, i),
-        getName: function () {
+        getName: function() {
           return this.name;
-        },
+        }
       });
     }
 
@@ -675,11 +686,11 @@ export function useVivoTableUpdate(options: UseVivoTableUpdateOptions) {
   function handleUpdateOriginalData(callback: (accountData: VivoTableData) => void) {
     // 1. 找到当前操作的账户原始数据
     const currentAccountData = tableData.value.find(
-      (item) => item.advertiserId === activeAccountId.value,
+      (item) => item.advertiserId === activeAccountId.value
     );
 
     if (!currentAccountData) {
-      console.warn('未找到当前账户数据');
+      console.warn("未找到当前账户数据");
       return;
     }
 
@@ -695,6 +706,6 @@ export function useVivoTableUpdate(options: UseVivoTableUpdateOptions) {
   }
 
   return {
-    handleUpdateOriginalData,
+    handleUpdateOriginalData
   };
 }

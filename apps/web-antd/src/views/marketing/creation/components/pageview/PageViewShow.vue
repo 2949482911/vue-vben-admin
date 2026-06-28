@@ -1,32 +1,33 @@
 <script setup lang="ts" name="PageViewShow">
 // 落地页展示组件 - 展示已选落地页信息
 
-import {computed} from 'vue';
-import {Space, Tag} from 'ant-design-vue';
-import type {PageViewItem} from '#/api/models/assert';
-import {RuleMethod} from '#/views/marketing/creation/creation_enums';
+import { computed } from "vue";
+import { Space, Tag } from "ant-design-vue";
+import type { PageViewItem } from "#/api/models/assert";
+import { RuleMethod } from "#/views/marketing/creation/creation_enums";
+import type { AccountInfo, PageViewConfigData } from "#/views/marketing/creation/creation";
 
-const {data, method} = defineProps<{
-  data: Map<string, PageViewItem[]>;
-  method: RuleMethod;
+const { accountInfo, landingPage } = defineProps<{
+  landingPage: PageViewConfigData,
+  accountInfo: Array<AccountInfo>;
 }>();
 
 // 获取分配方式标签
 function getMethodLabel(): string {
-  switch (method) {
+  switch (landingPage.config.method) {
     case RuleMethod.ALL:
-      return '全账户复用';
+      return "全账户复用";
     case RuleMethod.ACCOUNT:
-      return '按账户分配';
+      return "按账户分配";
     default:
-      return '平均分配';
+      return "平均分配";
   }
 }
 
 // 计算总落地页数量
 const totalCount = computed(() => {
   let total = 0;
-  data.forEach(items => {
+  landingPage.data.forEach(items => {
     total += items.length;
   });
   return total;
@@ -34,9 +35,9 @@ const totalCount = computed(() => {
 
 // 获取条目列表
 const entries = computed(() => {
-  const result: Array<{key: string; items: PageViewItem[]}> = [];
-  data.forEach((items, key) => {
-    result.push({key, items});
+  const result: Array<{ key: string; items: PageViewItem[] }> = [];
+  landingPage.data.forEach((items, key) => {
+    result.push({ key, items });
   });
   return result;
 });
@@ -55,7 +56,8 @@ const entries = computed(() => {
     <template v-for="entry in entries" :key="entry.key">
       <div v-if="entry.items.length > 0" class="package-section">
         <div class="section-label">
-          {{ method === RuleMethod.ALL ? '落地页' : `账户 ${entry.key} 的落地页` }}
+          {{ landingPage.config.method === RuleMethod.ALL ? "落地页" : `账户 ${entry.key} 的落地页`
+          }}
         </div>
         <div class="package-tags">
           <Tag v-for="item in entry.items" :key="item.id" color="blue">

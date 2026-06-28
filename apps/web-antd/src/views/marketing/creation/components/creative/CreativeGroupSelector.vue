@@ -140,14 +140,15 @@ watch(
 <style scoped lang="scss">
 .creative-group-selector-container {
   width: 100%;
-  height: 100%;
+  flex: 1; // 让容器高度自适应，匹配父容器的高度
   display: flex;
   flex-direction: column;
+  min-height: 0; // 允许容器收缩，防止内容被挤压
 }
 
 .info-card {
   width: 100%;
-  height: 100%;
+  flex: 1; // 让Card高度自适应容器
   min-height: 616px; // 固定最小高度，匹配营销单元（300px * 2 + 16px gap）
   
   // Card 样式优化

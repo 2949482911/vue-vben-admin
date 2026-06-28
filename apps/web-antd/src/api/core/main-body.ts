@@ -10,6 +10,7 @@ import type {
   MainBodySearchRequest,
   MainBodyUpdateRequest
 } from "#/api/models/main-body";
+// @ts-ignore
 import qs from "qs";
 import type { BatchOptions } from "#/api/models/core";
 
