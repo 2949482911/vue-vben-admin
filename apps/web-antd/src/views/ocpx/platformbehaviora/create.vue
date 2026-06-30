@@ -36,13 +36,15 @@ const objectRequest = ref<BehavioraPlatformItem>({
   platform: "",
   remark: "",
   simulate: 0,
-  filterBehavior:[],
-  simulateBehaviorType:"",
+  filterBehavior: [],
+  simulateBehaviorType: "",
   status: 0,
   updateTime: "",
   updateUsername: "",
   type: 1,
-  directLink: ''
+  directLink: "",
+  createdBy: "",
+  updatedBy: ""
 });
 
 const isUpdate = ref<Boolean>(false);
@@ -768,6 +770,40 @@ platformConfigForm.set(Platform.SOUL, [
     label: `code`,
     rules: 'required',
   }
+])
+
+// 爱酷游
+platformConfigForm.set(Platform.MLEQUN, [
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'mediaKey',
+    // 界面显示的label
+    label: `mediaKey`,
+    rules: 'required',
+  },
+  {
+    // 媒体配置表单
+    component: 'Input',
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t('common.input')}`,
+    },
+    // 字段名
+    fieldName: 'orderId',
+    // 界面显示的label
+    label: `orderId`,
+    rules: 'required',
+  }
+])
+
+platformConfigForm.set(Platform.TANGMING, [
+
 ])
 
 //增加tbkId输入框

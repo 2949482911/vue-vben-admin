@@ -516,6 +516,14 @@ export const BEHAVIORA_PLATFORM = [
     label: '百度网盘',
     value: 'baidu_box',
   },
+  {
+    label: `${$t('ocpx.platform.tangming')}`,
+    value: 'tangming',
+  },
+  {
+    label: `${$t('ocpx.platform.mlequn')}`,
+    value: 'mlequn',
+  },
 ];
 
 // 匹配下拉

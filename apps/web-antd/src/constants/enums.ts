@@ -56,7 +56,9 @@ export enum Platform {
   SOUL_DSP = 'soul_dsp',
   CAINIAO = 'cainiao',
   NJ_BYTEDANCE = 'nj_bytedance',
-  BAIDU_BOX = 'baidu_box'
+  BAIDU_BOX = 'baidu_box',
+  TANGMING = "tangming",
+  MLEQUN = "mlequn"
 }
 
 export enum RuleType {
