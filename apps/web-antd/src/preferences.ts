@@ -1,4 +1,5 @@
 import {
+  appCopyrightPreferences,
   defineOverridesPreferences,
   definePreferencesExtension,
 } from '@vben/preferences';
@@ -25,6 +26,7 @@ export const overridesPreferences = defineOverridesPreferences({
     defaultHomePath: "/dashboard",
     authPageLayout: 'panel-center',
   },
+  copyright: appCopyrightPreferences,
   theme: {
     mode: 'auto',
   },
