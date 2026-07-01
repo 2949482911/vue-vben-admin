@@ -1,31 +1,54 @@
 <script setup lang="ts" name="CreateProject">
-import {Page, useVbenModal} from '@vben/common-ui';
+import {Page, useVbenDrawer} from '@vben/common-ui';
 import {$t} from '@vben/locales';
-import {ref} from 'vue';
+import {computed, ref} from 'vue';
 
 import type {
   CreateProjectRequest,
   UpdateProjectRequest
 } from "#/api/models";
-import {projectApi} from "#/api";
-import {useVbenForm} from "#/adapter/form";
+import { projectApi } from "#/api";
+import { useVbenForm } from "#/adapter/form";
 import { trimObject } from '#/utils/trim';
+import { ProjectType, ProjectTypeLabel } from "#/views/marketing/project/enums";
+import { useOssClient } from "#/views/marketing/asset/material/useOssClient";
+import { uploadToOss } from "#/utils/uploadToOss";
+import { calcFileMd5 } from "#/utils/fileMd5";
+import { useUserStore } from "@vben/stores";
 
 const emit = defineEmits(['pageReload']);
 
-
 const objectRequest = ref<CreateProjectRequest | UpdateProjectRequest>({
+  miniProgramId: "",
   description: "",
   icon: "",
   id: "",
   name: "",
   packageName: "",
-  projectType: 1
+  projectType: ProjectType.ANDROID,
+  appId: ''
 });
-
 
 const isUpdate = ref<Boolean>(false);
 
+const title = computed(() => isUpdate.value ? `${$t('common.edit')}` : `${$t('common.create')}`);
+
+/** 上传 icon 到阿里云 OSS */
+async function uploadIcon(file: File, onSuccess?: Function, onError?: Function) {
+  try {
+    const client = await useOssClient();
+    const md5 = await calcFileMd5(file);
+    const ext = file.name.substring(file.name.lastIndexOf('.'));
+    const userStore = useUserStore();
+    const mainId = userStore.userInfo?.mainId;
+    const ossKey = `${mainId}/image/project_icon/${md5}${ext}`;
+    const result = await uploadToOss(client, file, ossKey);
+    onSuccess?.({ url: result.url });
+    formApi.setFieldValue('icon', result.url);
+  } catch (err) {
+    onError?.(err);
+  }
+}
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -87,6 +110,22 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('marketing.project.columns.packageName')}`,
 
     },
+    {
+      component: "Upload",
+      componentProps: {
+        accept: '.png,.jpg,.jpeg,.svg,.ico',
+        maxCount: 1,
+        maxSize: 2,
+        multiple: false,
+        listType: 'picture-card',
+        customRequest: async (option: { file: File; onSuccess?: Function; onError?: Function }) => {
+          await uploadIcon(option.file, option.onSuccess, option.onError);
+        },
+      },
+      fieldName: "icon",
+      rules: 'required',
+      label: `${$t('marketing.project.columns.icon')}`,
+    },
 
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
@@ -94,34 +133,54 @@ const [Form, formApi] = useVbenForm({
       // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-        options: [
-          {
-            label: "APP",
-            value: 1,
-          },
-          {
-            label: "MiniApp",
-            value: 2,
-          },
-        ],
+        options: ProjectTypeLabel,
       },
       // 字段名
       fieldName: 'projectType',
-      defaultValue: 1,
+      defaultValue: ProjectType.ANDROID,
       // 界面显示的label
       label: `${$t('marketing.project.columns.projectType')}`,
       rules: 'required',
     },
 
+    {
+      component: "Input",
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      label: `${$t('marketing.project.columns.appId')}`,
+      rules: 'required',
+      fieldName: "appId"
+    },
+    {
+      component: "Input",
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      label: `${$t('marketing.project.columns.miniProgramId')}`,
+      rules: "required",
+      fieldName: "miniProgramId",
+      dependencies: {
+        show: (val: any) => {
+          return val.projectType === ProjectType.WECHAT_MINI_GAME || val.projectType === ProjectType.WECHAT_MINI_PROGRAM
+        },
+        triggerFields: ["projectType"],
+      }
+    },
+    {
+      component: "Textarea",
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
+      label: `${$t('marketing.project.columns.description')}`,
+      fieldName: "description",
+    }
   ],
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
 });
 
 
-const [Modal, modalApi] = useVbenModal({
-  fullscreen: true,
-  fullscreenButton: false,
-  closeOnPressEscape: false,
+const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   async onCancel() {
     await formApi.resetForm();
     objectRequest.value = {
@@ -130,10 +189,12 @@ const [Modal, modalApi] = useVbenModal({
       id: "",
       name: "",
       packageName: "",
-      projectType: 1
+      projectType: '',
+      miniProgramId: "",
+      appId: ""
     };
     isUpdate.value = false;
-    await modalApi.close();
+    await drawerApi.close();
   },
   async onConfirm() {
     const result = await formApi.validate();
@@ -145,11 +206,11 @@ const [Modal, modalApi] = useVbenModal({
     isUpdate.value = false;
     emit('pageReload');
 
-    await modalApi.close();
+    await drawerApi.close();
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<CreateProjectRequest | UpdateProjectRequest>();
+      objectRequest.value = drawerApi.getData<CreateProjectRequest | UpdateProjectRequest>();
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
@@ -161,7 +222,7 @@ const [Modal, modalApi] = useVbenModal({
 });
 
 function handleSetFormValue(row: CreateProjectRequest | UpdateProjectRequest) {
-  formApi.setValues(row)
+  formApi.setValues(row);
 }
 
 
@@ -169,9 +230,9 @@ function handleSetFormValue(row: CreateProjectRequest | UpdateProjectRequest) {
 
 <template>
   <Page>
-    <Modal>
+    <Drawer :title="title">
       <Form/>
-    </Modal>
+    </Drawer>
   </Page>
 </template>
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup name="ProjectManager">
-import { useVbenModal, type VbenFormProps } from '@vben/common-ui';
+import { useVbenDrawer, useVbenModal, type VbenFormProps } from '@vben/common-ui';
 import { Page } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
@@ -7,7 +7,7 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import type { ProjectItem } from '#/api/models';
 import { $t } from '@vben/locales';
 
-import { Button, Switch, Dropdown, Menu, MenuItem } from 'ant-design-vue';
+import { Button, Switch, Dropdown, Menu, MenuItem, Avatar } from 'ant-design-vue';
 import { projectApi } from '#/api/core';
 import { BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS } from '#/constants/locales';
 
@@ -16,11 +16,10 @@ import { trimObject } from '#/utils/trim';
 
 import { ref } from 'vue';
 import BatchOperationComp from './batchOperation.vue'; //批量修改弹窗
+import { ProjectTypeLabel } from '#/views/marketing/project/enums';
 
-const [CreateObjectModal, createObjectApi] = useVbenModal({
+const [CreateObjectDrawer, createObjectApi] = useVbenDrawer({
   connectedComponent: CreateProject,
-  centered: true,
-  modal: true,
 });
 
 function openCreateModal(row?: ProjectItem) {
@@ -109,6 +108,9 @@ const gridOptions: VxeGridProps<ProjectItem> = {
       field: 'projectType',
       title: `${$t('marketing.project.columns.projectType')}`,
       width: 'auto',
+      slots: {
+        default : 'projectType'
+      }
     },
 
     {
@@ -127,6 +129,9 @@ const gridOptions: VxeGridProps<ProjectItem> = {
       field: 'icon',
       title: `${$t('marketing.project.columns.icon')}`,
       width: 'auto',
+      slots: {
+        default : 'icon'
+      }
     },
 
     ...(TABLE_COMMON_COLUMNS as any),
@@ -190,6 +195,10 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents })
 function pageReload() {
   gridApi.reload();
 }
+
+function getProjectTypeLabel(value: string): string {
+  return ProjectTypeLabel.find((item) => item.value === value)?.label || value;
+}
 </script>
 
 <template>
@@ -203,6 +212,15 @@ function pageReload() {
           <Button type="link" @click="handlerDelete(row)">
             {{ $t('common.delete') }}
           </Button>
+        </template>
+
+        <template #projectType="{ row }">
+          {{ getProjectTypeLabel(row.projectType) }}
+        </template>
+
+        <template #icon="{ row }">
+          <Avatar v-if="row.icon" :src="row.icon" shape="square" />
+          <span v-else>-</span>
         </template>
 
         <template #status="{ row }">
@@ -231,7 +249,7 @@ function pageReload() {
       </Grid>
     </Page>
 
-    <CreateObjectModal @page-reload="pageReload" />
+    <CreateObjectDrawer @page-reload="pageReload" />
     <BatchOperationModal @page-reload="pageReload" />
   </div>
 </template>

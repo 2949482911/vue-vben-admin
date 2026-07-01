@@ -117,7 +117,28 @@
       "description": "描述",
       "packageName": "包名",
       "projectType": "类型",
-      "icon": "图标"
+      "icon": "图标",
+      "appId": "应用ID",
+      "miniProgramId": "小程序原始ID"
+    },
+    "projectType": {
+      "wechat_mini_game": "微信小游戏",
+      "android": "安卓",
+      "ios": "ios",
+      "harmony": "鸿蒙",
+      "douyin_mini_game": "抖音小游戏",
+      "alipay_mini_game": "支付宝小游戏",
+      "bilibili_mini_game": "哔哩哔哩小游戏",
+      "kuaishou_mini_game": "快手小游戏",
+      "baidu_mini_game": "百度小游戏",
+      "wechat_mini_program": "微信小程序",
+      "douyin_mini_program": "抖音小程序",
+      "alipay_mini_program": "支付宝小程序",
+      "kuaishou_mini_program": "快手小程序",
+      "taobao_mini_program": "淘宝小程序",
+      "quck_app": "快应用",
+      "quck_game": "快游戏",
+      "web_h5": "H5"
     }
   },
   "creation": {

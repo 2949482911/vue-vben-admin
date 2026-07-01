@@ -77,7 +77,28 @@
       "description": "Description",
       "packageName": "Package Name",
       "projectType": "Type",
-      "icon": "Icon"
+      "icon": "Icon",
+      "appId": "AppId",
+      "miniProgramId": "Mini Program Id"
+    },
+    "projectType": {
+      "wechat_mini_game": "Wechat Mini Game",
+      "android": "Android",
+      "ios": "Ios",
+      "harmony": "Harmony",
+      "douyin_mini_game": "Douyin Mini Game",
+      "alipay_mini_game": "Alipay Mini Game",
+      "bilibili_mini_game": "Bilibili Mini Game",
+      "kuaishou_mini_game": "Kuaishou Mini Game",
+      "baidu_mini_game": "Baidu Mini Game",
+      "wechat_mini_program": "Wechat Mini Program",
+      "douyin_mini_program": "Douyin Mini Program",
+      "alipay_mini_program": "Alipay Mini Program",
+      "kuaishou_mini_program": "Kuaishou Mini Program",
+      "taobao_mini_program": "Taobao Mini Program",
+      "quck_app": "Quck App",
+      "quck_game": "Quck Game",
+      "web_h5": "Web H5"
     }
   }
 }

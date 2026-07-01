@@ -1,6 +1,7 @@
-import type { BaseItem, PageRequestParams } from '#/api/models/core';
-import type { RuleType } from '#/constants/enums';
-import { type PlatformCreation } from '#/views/marketing/creation/creation';
+import type { BaseItem, PageRequestParams } from "#/api/models/core";
+import type { RuleType } from "#/constants/enums";
+import { type PlatformCreation } from "#/views/marketing/creation/creation";
+
 /**
  * 账户请求
  */
@@ -34,13 +35,14 @@ export interface AdvertiserItem extends BaseItem {
   projectId: string;
   platformAuditState: string;
   config: Map<string, any>;
-  customer?: '';
-  saleId?: '';
+  customer?: "";
+  saleId?: "";
   tagId: string;
   accessToken: string;
   hourlyState: number;
   tagName: string;
 }
+
 // 拉取历史列表
 export interface HistoryItem extends BaseItem {
   taskType: string;
@@ -54,7 +56,8 @@ export interface HistoryItem extends BaseItem {
   taskEndTime: string;
 }
 
-export interface CreateAdvertiserRequest {}
+export interface CreateAdvertiserRequest {
+}
 
 export interface UpdateAdvertiserRequest extends AdvertiserDeveloperBindRequest {
   id: string;
@@ -139,6 +142,7 @@ export interface SystemMetricPageRequest extends PageRequestParams {
   ename: string;
   cname: string;
 }
+
 export interface MetricPageRequest {
   metricGroupId: string;
 }
@@ -187,19 +191,22 @@ export interface ProjectPageRequest extends PageRequestParams {
 
 export interface ProjectItem extends BaseItem {
   name: string;
-  projectType: number;
+  projectType: string;
   packageName: string;
   description: string;
   icon: string;
+  miniProgramId: string;
 }
 
 export interface CreateProjectRequest {
   id?: string;
   name: string;
-  projectType: number;
+  projectType: string;
   packageName: string;
   description: string;
   icon: string;
+  miniProgramId: string;
+  appId: string;
 }
 
 export interface UpdateProjectRequest extends CreateProjectRequest {
@@ -232,6 +239,7 @@ export interface ReportTemplate {
   remark: string;
   template: Record<string, any>;
 }
+
 export interface UpdateReportTemplate extends ReportTemplate {
   id: string;
 }
@@ -467,6 +475,7 @@ export interface PlatformMatchRequest {
   groupIds?: string[];
   promotionIds?: string[];
 }
+
 export interface ImportDataType {
   platform: string;
   files: FormData;
@@ -476,6 +485,7 @@ export interface ImportDataType {
 export interface AdCompanyOptionsType {
   platform: string;
 }
+
 export interface ExportAllDataType {
   platform?: string;
   advertiserId?: string;
@@ -487,6 +497,7 @@ export interface ExportAllDataType {
   ids?: string;
   hourlyState?: number;
 }
+
 /**营销-资产-标题包查询 */
 export interface GetTitlePackType {
   platform?: string;
@@ -608,24 +619,29 @@ export interface CreationTaskItem extends BaseItem {
   endTime?: string;
   taskStatus?: Number;
 }
+
 // 账户标签
 export interface LabelItem extends BaseItem {
   name?: string;
   remark?: string;
 }
+
 /** 账户标签-查询任务列表 */
 export interface GetLabelItemType {
   name?: string;
 }
+
 /** 账户标签-新增任务列表 */
 export interface NewLabelItemType {
   name?: string;
   remark?: string;
 }
+
 /**账户标签-编辑任务列表 */
 export interface EditLabelItemType extends NewLabelItemType {
   id: string;
 }
+
 /**营销-资产-标题包删除 */
 export interface DelLabelItemType {
   targetIds: string[];
@@ -668,6 +684,7 @@ export interface VivoSubmitType {
   // 附加参数
   extraParams: any;
 }
+
 /**营销-创编-Vivo营销-策略组 */
 export interface StrategyGropType<T = any> extends BaseItem {
   name: string;
@@ -677,11 +694,13 @@ export interface StrategyGropType<T = any> extends BaseItem {
   configObj: PlatformCreation<T>;
   version: string;
 }
+
 export interface GetStrategyGropType extends PageRequestParams {
   name: string;
   platform: string;
   projectId: string;
 }
+
 export interface UpdateStrategyGropType extends StrategyGropType {
   id: string;
 }
@@ -690,16 +709,20 @@ export interface MetricGroupType extends BaseItem {
   name: string;
   description: string;
 }
+
 export interface MetricGroupPageRequest extends BaseItem {
   name: string;
 }
+
 export interface UpdateMetricGroupType extends MetricGroupType {
   id: string;
 }
+
 export interface pushConfigType {
   pushMethod: number;
   emailAddress: string;
 }
+
 export interface ReportSubscriptionItem {
   name: string;
   type: string;
@@ -713,9 +736,11 @@ export interface ReportSubscriptionItem {
   days: number[];
   dayRange: number;
 }
+
 export interface UpdateSubscribeType extends ReportSubscriptionItem {
   id: string;
 }
+
 export interface GetSubscribeType extends PageRequestParams {
   name: string;
   type: string;
