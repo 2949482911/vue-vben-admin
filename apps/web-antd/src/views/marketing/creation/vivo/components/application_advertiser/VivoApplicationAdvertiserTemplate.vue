@@ -17,9 +17,12 @@ import {
   PHASETWOGOAL_SELECT
 } from "#/views/marketing/creation/vivo/projectEnum";
 import { Col, Row } from "ant-design-vue";
+import {markRaw} from "vue";
 import VivoCampaign from "#/views/marketing/creation/vivo/components/VivoCampaign.vue";
 import VivoAdgroup from "#/views/marketing/creation/vivo/components/VivoAdgroup.vue";
 import VivoPromotion from "#/views/marketing/creation/vivo/components/VivoPromotion.vue";
+import TimeSelectionPeriod
+  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
 
 import type {
   AudienceConfigData,
@@ -270,10 +273,11 @@ const adgroupFormFields = [
     rules: "required"
   },
   {
-    component: "Input",
+    component: markRaw(TimeSelectionPeriod),
     fieldName: "scheduleTime",
     label: "广告投放时段",
-    rules: "required"
+    rules: "required",
+    formItemClass: 'auto',
   },
   {
     component: "Select",

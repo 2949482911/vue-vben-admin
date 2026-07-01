@@ -25,6 +25,7 @@ const [Form, formApi] = useVbenForm({
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
   class: 'w-[30vw]',
+  closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
       const campaign = drawerApi.getData();

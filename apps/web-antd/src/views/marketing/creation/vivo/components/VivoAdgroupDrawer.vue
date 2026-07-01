@@ -15,10 +15,10 @@ const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
     // 所有表单项
-    labelClass: 'w-[200px]',
+    // labelClass: 'w-[200px]',
     // formItemClass: 'w-[600px]',
     componentProps: {
-      class: "w-[300px]"
+      // class: "w-[600px]"
     }
   },
 });
@@ -29,6 +29,7 @@ const localChannelPackage = ref<Map<string, any>>(new Map());
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
   class: 'w-[30vw]',
+  closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
       const data = drawerApi.getData();

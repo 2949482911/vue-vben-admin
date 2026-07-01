@@ -3,7 +3,8 @@ import { useVbenDrawer } from '@vben/common-ui';
 import { aManagementApi } from '#/api';
 import { useVbenForm } from '#/adapter/form';
 import { getAdgroupFormSchema } from './public_adGroupFormItem';
-import TimeSelectionPeriod from '../../vivo/adgroup/timeSelectionPeriod.vue';
+import TimeSelectionPeriod
+  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
 import { nextTick, ref } from 'vue';
 
 // 控制时间组件挂载状态的开关

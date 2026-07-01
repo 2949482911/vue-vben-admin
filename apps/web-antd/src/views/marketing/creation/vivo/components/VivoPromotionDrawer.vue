@@ -171,6 +171,7 @@ function buildFullSchema() {
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
   class: 'w-[30vw]',
+  closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
       const promotion = drawerApi.getData();

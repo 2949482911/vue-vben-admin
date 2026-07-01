@@ -12,6 +12,7 @@ const {formFields} = defineProps({
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
+  closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
       const campaign = drawerApi.getData();

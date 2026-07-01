@@ -193,6 +193,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
   size: 'large',
   class: 'w-[75vw]',
+  closeOnPressEscape: true,
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const data = drawerApi.getData();
