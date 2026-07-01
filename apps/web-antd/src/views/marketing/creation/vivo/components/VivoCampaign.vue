@@ -16,6 +16,7 @@ const emit = defineEmits(["update:campaign", "adTypeChanged"]);
  */
 const [CampaignDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: VivoCampaignDrawer,
+  closeOnPressEscape: true,
   onOpenChange(isOpen) {
     if (!isOpen) {
       const campaignData = drawerApi.getData();

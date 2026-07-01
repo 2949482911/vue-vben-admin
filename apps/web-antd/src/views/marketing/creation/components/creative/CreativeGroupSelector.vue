@@ -3,8 +3,8 @@
 import { useVbenDrawer } from "@vben/common-ui";
 
 import { computed, ref, watch } from "vue";
-import { Alert, Button, Card, Divider, Space } from "ant-design-vue";
-import type { AccountInfo, Material, MaterialData } from "#/views/marketing/creation/creation";
+import { Alert, Button, Card } from "ant-design-vue";
+import type { AccountInfo, Material, MaterialData, RuleInfo } from "#/views/marketing/creation/creation";
 import { RuleMethod } from "#/views/marketing/creation/creation_enums";
 import CreativeGroupDrawer from "./CreativeGroupDrawer.vue";
 import CreativeGroupPreview from "./CreativeGroupPreview.vue";
@@ -19,7 +19,7 @@ const [CreativeGroupDrawerComp, creativeGroupDrawerApi] = useVbenDrawer({
 const emit = defineEmits(["update:material"]);
 
 // 传入的值
-const { accountInfo, material, formSchema } = defineProps({
+const { accountInfo, material, formSchema, ruleInfo } = defineProps({
   accountInfo: {
     type: Array<AccountInfo>,
     default: () => []
@@ -31,6 +31,10 @@ const { accountInfo, material, formSchema } = defineProps({
   formSchema: {
     type: Array,
     default: () => []
+  },
+  ruleInfo: {
+    type: Object as () => RuleInfo,
+    default: () => {}
   }
 });
 
@@ -132,6 +136,7 @@ watch(
       <CreativeGroupDrawerComp
         :account-info="accountInfo"
         :form-schema="formSchema"
+        :rule-info="ruleInfo"
         @update:material="updateMaterial" />
     </Card>
   </div>

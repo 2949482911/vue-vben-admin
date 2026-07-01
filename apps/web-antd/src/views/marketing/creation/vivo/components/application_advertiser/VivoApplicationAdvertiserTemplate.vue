@@ -130,7 +130,7 @@ const campaign: VivoCampaignData = {
   adType: 2, // 应用下载模板
   campaignType: 0,
   conversionMonitorType: 0,
-  dailyBudget: 0,
+  dailyBudget: 200,
   mediaType: 0,
   name: "",
   promotionType: 0,
@@ -143,7 +143,7 @@ const campaign: VivoCampaignData = {
 // 应用推广模式下
 const campaignFormFields = [
   {
-    component: "Input",
+    component: "AdNameGen",
     fieldName: "name",
     label: "计划名称",
     rules: "required"
@@ -195,7 +195,7 @@ const adgroup: VivoAdgroupData = {
   channelId: "",
   chargeType: 0,
   conversionFilterCycle: 0,
-  cvType: "",
+  cvType: 1,
   dailyBudget: 200,
   endDate: "",
   h5Code: "",
@@ -222,7 +222,7 @@ const adgroup: VivoAdgroupData = {
 
 const adgroupFormFields = [
   {
-    component: "Input",
+    component: "AdNameGen",
     fieldName: "name",
     label: "广告组名称",
     rules: "required"
@@ -247,6 +247,7 @@ const adgroupFormFields = [
     component: "Select",
     fieldName: "cvType",
     label: "转化目标",
+    formItemClass: "w-[300px]",
     componentProps: {
       options: PHASETWOGOAL_SELECT
     },
@@ -313,7 +314,7 @@ const adgroupShowLabel: Record<string, string> = {
 
 const promotionFormFields = [
   {
-    component: "Input",
+    component: "AdNameGen",
     fieldName: "name",
     label: "广告名称",
     rules: "required"
@@ -393,6 +394,7 @@ defineExpose({
         <CreativeGroupSelector
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData.material"
+          :rule-info="creationInfo.ruleInfo"
           @update:material="updateMaterial"
         />
       </Col>

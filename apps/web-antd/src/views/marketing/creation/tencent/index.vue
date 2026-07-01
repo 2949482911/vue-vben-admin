@@ -145,7 +145,7 @@ function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
  * 更新推广计划
  */
 function updateCampaign(campaign: TencentCampaignData) {
-  creationInfo.value.configData.campaign = campaign;
+  Object.assign(creationInfo.value.configData.campaign, campaign);
 }
 
 /**
@@ -153,7 +153,7 @@ function updateCampaign(campaign: TencentCampaignData) {
  * @param adgroup
  */
 function updateAdgroup(adgroup: TencentAdgroupData) {
-  creationInfo.value.configData.adgroup = adgroup;
+  Object.assign(creationInfo.value.configData.adgroup, adgroup);
 }
 
 

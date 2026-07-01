@@ -889,7 +889,7 @@ const additional_product_spec = [
 // 计划表单字段
 const campaignFormFields = [
   {
-    component: "Input",
+    component: "AdNameGen",
     fieldName: "adgroup_name",
     label: "名字",
     rules: "required"
@@ -1435,7 +1435,7 @@ const program_creative_info = [
 // 广告表单字段
 const adgroupFormFields = [
   {
-    component: "Input",
+    component: "AdNameGen",
     fieldName: "dynamic_creative_name",
     label: "动态创意名称",
     rules: "required"

@@ -34,6 +34,7 @@ const emit = defineEmits([
  */
 const [AdgroupDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: VivoAdgroupDrawer,
+  closeOnPressEscape: true,
   onOpenChange(isOpen) {
     if (!isOpen) {
       const { finalParams, localAdvertiserQualification, localChannelPackage } = drawerApi.getData();

@@ -8,7 +8,7 @@ import VivoApplicationAdvertiserTemplate
 import Function from "../components/Function.vue";
 import VivoPreviewArea from "./components/VivoPreviewArea.vue";
 import CreateStrategyGroup from "../components/createStrategyGroup.vue";
-import { ref, watch } from "vue";
+import { nextTick, ref, watch } from "vue";
 
 import { VIVO_MARKETING_TYPE } from "#/views/marketing/creation/vivo/components/enums";
 
@@ -50,13 +50,13 @@ const VivoApplicationAdvertiserTemplateRef = ref();
  * 更新模板
  * @param changeVal
  */
-function updateTemplate(changeVal: string) {
+async function updateTemplate(changeVal: string) {
   template.value = changeVal;
   // 读取模板预制参数
   if (changeVal === 'application_advertiser') {
-    // @ts-ignore
-    creationInfo.value.configData.campaign = VivoApplicationAdvertiserTemplateRef.campaign;
-    creationInfo.value.configData.adgroup = VivoApplicationAdvertiserTemplateRef.adgroup;
+    await nextTick(); // 等待 v-if 挂载子组件后，ref 才可用
+    creationInfo.value.configData.campaign = VivoApplicationAdvertiserTemplateRef.value.campaign;
+    creationInfo.value.configData.adgroup = VivoApplicationAdvertiserTemplateRef.value.adgroup;
   }
   creationInfo.value.configurationConfig.template = changeVal
 }
@@ -112,7 +112,7 @@ const creationInfo = ref<VivoCreation>({
       channelId: "",
       chargeType: null,
       conversionFilterCycle: 0,
-      cvType: "",
+      cvType: 1,
       dailyBudget: -1,
       endDate: "",
       h5Code: "",
@@ -193,7 +193,7 @@ const creationInfo = ref<VivoCreation>({
     adGroupCount: 1,
     adRuleKey: RuleKey.CREATIVE,
     adCount: 1,
-    creativeRuleKey: RuleKey.CREATIVE_GROUP,
+    creativeRuleKey: RuleKey.NONE,
     creativeCount: 0
   },
   monitoringLink: {
@@ -291,7 +291,7 @@ function updateReuse(vivoCreation: VivoCreation) {
     }
   }
   // 设置模板
-  if (vivoCreation.configurationConfig.template) {
+  if (vivoCreation.configurationConfig?.template) {
     template.value = vivoCreation.configurationConfig.template;
   }
   creationInfo.value = vivoCreation;
@@ -301,7 +301,8 @@ function updateReuse(vivoCreation: VivoCreation) {
  * 更新计划信息
  */
 function updateCampaign(campaign: VivoCampaignData) {
-  creationInfo.value.configData.campaign = campaign;
+  // 属性合并更新，避免覆盖模板预置的其他字段
+  Object.assign(creationInfo.value.configData.campaign, campaign);
 }
 
 /**
@@ -320,7 +321,7 @@ function handleAdTypeChanged() {
     channelId: "",
     chargeType: null,
     conversionFilterCycle: 0,
-    cvType: "",
+    cvType: 1,
     dailyBudget: -1,
     endDate: "",
     h5Code: "",
@@ -352,14 +353,14 @@ function handleAdTypeChanged() {
  * 更新广告组信息
  */
 function updateAdgroup(adgroup: VivoAdgroupData) {
-  creationInfo.value.configData.adgroup = adgroup;
+  Object.assign(creationInfo.value.configData.adgroup, adgroup);
 }
 
 /**
  * 更新广告信息
  */
 function updatePromotion(promotion: VivoPromotionData) {
-  creationInfo.value.configData.promotion = promotion;
+  Object.assign(creationInfo.value.configData.promotion, promotion);
 }
 
 /**

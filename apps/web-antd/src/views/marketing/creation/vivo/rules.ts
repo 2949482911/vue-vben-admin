@@ -52,6 +52,7 @@ export const vivoRuleOptions: RuleOptions = {
     { title: '指定数量', desc: '先指定广告数量，自动循环使用素材和标题，多退少补', key: 'custom' },
   ],
   creativeRules: [
+    { title: '无', desc: '无', key: 'none' },
     { title: '根据创意组生成', desc: '创意数量与创意组数量相等', key: 'creative_group' },
     { title: '指定数量', desc: '手动指定每个广告的创意数量', key: 'custom' },
   ],

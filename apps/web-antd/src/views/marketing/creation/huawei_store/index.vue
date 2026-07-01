@@ -185,14 +185,14 @@ function updateReuse(huaweiStoreCreation: HuaWeiStoreCreation) {
  * @param campaign
  */
 function updateCampaign(campaign: HuaWeiStoreCampaignData) {
-  creationInfo.value.configData.campaign = campaign;
+  Object.assign(creationInfo.value.configData.campaign, campaign);
 }
 
 /**
  * 更新子任务
  */
 function updateAdgroup(adgroup: HuaWeiStoreAdgroupData) {
-  creationInfo.value.configData.adgroup = adgroup;
+  Object.assign(creationInfo.value.configData.adgroup, adgroup);
 }
 
 

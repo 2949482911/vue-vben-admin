@@ -87,6 +87,9 @@ const lazyLoadSelect = defineAsyncComponent(
 const MetricFormulaEditor = defineAsyncComponent(
   () => import('#/views/marketing/report/metric/components/MetricFormulaEditor.vue'),
 );
+const AdNameGen = defineAsyncComponent(
+  () => import('#/views/marketing/creation/components/ad_name_gen/index.vue'),
+);
 const AutoComplete = defineAsyncComponent(
   () => import('ant-design-vue/es/auto-complete'),
 );
@@ -640,12 +643,20 @@ export type ComponentType =
   | 'MetricFormulaEditor'
   | 'lazyLoadSelect'
   | 'HybridSearchSelect'
+  | 'AdNameGen'
   | BaseFormComponentType;
 
 /**
  * 与 {@link ComponentType} 中注册的组件名一一对应，便于 Schema 上 `component` + `componentProps` 联动提示
  */
 export interface ComponentPropsMap {
+  /**广告名字生成组件 Props */
+  AdNameGen: {
+    placeholderTags?: string[];
+    maxLength?: number;
+    placeholder?: string;
+    disabled?: boolean;
+  };
   ApiCascader: ApiComponentSharedProps & CascaderProps;
   ApiSelect: ApiComponentSharedProps & SelectProps;
   ApiTreeSelect: ApiComponentSharedProps & TreeSelectProps;
@@ -688,6 +699,7 @@ async function initComponentAdapter() {
       modelPropName: 'value',
       visibleEvent: 'onVisibleChange',
     }),
+    AdNameGen,
     ApiSelect: withDefaultPlaceholder(ApiComponent, 'select', {
       component: Select,
       loadingSlot: 'suffixIcon',

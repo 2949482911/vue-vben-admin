@@ -516,7 +516,8 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
         adgroup_id: 0,
         adgroup_name: renderProjectTitle(
           createInfo.configData.campaign.adgroup_name,
-          campaignIdx
+          campaignIdx,
+          createInfo.project.projectName
         ),
         // 从定向包的 config 属性获取 targeting（config 可能是 JSON 字符串，需要解析）
         targeting: audience.config ? audience.config : {},
@@ -557,7 +558,8 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
           adgroup_id: 0,
           dynamic_creative_name: renderProjectTitle(
             createInfo.configData.adgroup.dynamic_creative_name,
-            adGroupIdx
+            adGroupIdx,
+            createInfo.project.projectName
           ),
           // 点击监测链接
           click_tracking_url: monitoringLink.clickLink || "",

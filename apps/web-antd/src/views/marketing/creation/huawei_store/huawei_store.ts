@@ -302,7 +302,8 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
           adgroupId: "",
           subTaskName: renderProjectTitle(
             creationInfo.configData.adgroup.subTaskName,
-            adGroupIdx
+            adGroupIdx,
+            creationInfo.project.projectName
           ),
           subTaskPrice: creationInfo.configData.adgroup.subTaskPrice,
           taskId: creationInfo.configData.campaign.campaignId,
@@ -390,7 +391,8 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
         isExcludeInstalledApp: creationInfo.configData.campaign.isExcludeInstalledApp,
         taskName: renderProjectTitle(
           creationInfo.configData.campaign.taskName,
-          campaignIdx
+          campaignIdx,
+          creationInfo.project.projectName
         ),
         budget: creationInfo.configData.campaign.budget,
         startDate: creationInfo.configData.campaign.startDate,

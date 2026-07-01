@@ -38,6 +38,7 @@ function updatePageView(landingPage: PageViewConfigData) {
  */
 const [PromotionDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: VivoPromotionDrawer,
+  closeOnPressEscape: true,
   onOpenChange(isOpen) {
     if (!isOpen) {
       const promotionData = drawerApi.getData();

@@ -20,8 +20,8 @@ import {
   Tabs,
 } from 'ant-design-vue';
 import {useVbenDrawer, useVbenModal} from '@vben/common-ui';
-import type {AccountInfo, Material, MaterialData} from '#/views/marketing/creation/creation';
-import {RuleMethod} from '#/views/marketing/creation/creation_enums';
+import type {AccountInfo, Material, MaterialData, RuleInfo} from '#/views/marketing/creation/creation';
+import {RuleKey, RuleMethod} from '#/views/marketing/creation/creation_enums';
 import MaterialSelector from '../material/MaterialSelector.vue';
 import type {MaterialItem} from "#/api/models/assert";
 
@@ -37,10 +37,14 @@ const emit = defineEmits(['update:material']);
 /**
  *
  */
-const {accountInfo} = defineProps({
+const {accountInfo, ruleInfo} = defineProps({
   accountInfo: {
     type: Array<AccountInfo>,
     default: () => [],
+  },
+  ruleInfo: {
+    type: Object as () => RuleInfo,
+    default: null,
   },
 });
 
@@ -416,6 +420,68 @@ function getMaterialCards(groupIndex: number, type: 'video' | 'image') {
 
 
 /**
+ * 根据创意生成规则，将选中的素材自动分配到创意组中
+ */
+function applyCreativeRule(
+  materials: Array<{ name: string; url: string; localMaterialId: number }>,
+  type: 'video' | 'image',
+  groups: Material[],
+) {
+  const count = materials.length;
+  if (count === 0) return;
+
+  const creativeKey = ruleInfo?.creativeRuleKey;
+
+  // 规则1: 根据创意组生成 — 素材数量等于创意组数量，每个组1个素材
+  if (creativeKey === RuleKey.CREATIVE_GROUP) {
+    groups.length = 0;
+    for (let i = 0; i < count; i++) {
+      const group: Material = {
+        video: [],
+        image: [],
+        isExpanded: false,
+        active: '',
+        brandName: '',
+      };
+      if (type === 'video') {
+        group.video = [materials[i]];
+      } else {
+        group.image = [materials[i]];
+      }
+      groups.push(group);
+    }
+    return;
+  }
+
+  // 规则2: 指定数量 — 按 creativeCount 分组分配
+  const creativeCount = ruleInfo?.creativeCount;
+  if (creativeCount && creativeCount > 0 && creativeKey !== RuleKey.CREATIVE_GROUP) {
+    const groupSize = creativeCount;
+    const groupCount = Math.ceil(count / groupSize);
+    groups.length = 0;
+    for (let g = 0; g < groupCount; g++) {
+      const slice = materials.slice(g * groupSize, (g + 1) * groupSize);
+      const group: Material = {
+        video: [],
+        image: [],
+        isExpanded: false,
+        active: '',
+        brandName: '',
+      };
+      if (type === 'video') {
+        group.video = slice;
+      } else {
+        group.image = slice;
+      }
+      groups.push(group);
+    }
+    return;
+  }
+
+  // 规则3: 无规则 — 保持用户手动操作（不在 updateMaterial 中处理）
+}
+
+/**
  * 更新素材 - 接收 MaterialSelector 的 emit，将素材绑定到创意组
  */
 function updateMaterial(selectedMaterials: Array<MaterialItem>, creativeGroupIndex: number) {
@@ -432,26 +498,40 @@ function updateMaterial(selectedMaterials: Array<MaterialItem>, creativeGroupInd
   if (distributionMethod.value === RuleMethod.ACCOUNT) {
     // 按账户分配：更新当前账户的创意组素材
     const accountGroups = accountCreativeGroups.value.get(activeAccountId.value);
-    if (accountGroups && accountGroups[creativeGroupIndex]) {
+    if (!accountGroups) return;
+
+    // 先检查是否需要应用创意规则
+    const creativeKey = ruleInfo?.creativeRuleKey;
+    if (creativeKey === RuleKey.CREATIVE_GROUP || (ruleInfo?.creativeCount && ruleInfo.creativeCount > 0 && creativeKey !== RuleKey.CREATIVE_GROUP)) {
+      applyCreativeRule(materials, currentMaterialType.value, accountGroups);
+    } else if (accountGroups[creativeGroupIndex]) {
       const group = accountGroups[creativeGroupIndex];
       if (currentMaterialType.value === 'video' && group) {
         group.video = materials;
-      } else {
+      } else if (group) {
         group.image = materials;
       }
     }
   } else {
-    // 全账户复用/平均分配：key 为 '0'
-    const groups = creativeGroups.value;
-    if (groups[creativeGroupIndex]) {
-      const group = groups[creativeGroupIndex];
+    // 全账户复用/平均分配
+    // 先检查是否需要应用创意规则
+    const creativeKey = ruleInfo?.creativeRuleKey;
+    if (creativeKey === RuleKey.CREATIVE_GROUP || (ruleInfo?.creativeCount && ruleInfo.creativeCount > 0 && creativeKey !== RuleKey.CREATIVE_GROUP)) {
+      applyCreativeRule(materials, currentMaterialType.value, creativeGroups.value);
+    } else if (creativeGroups.value[creativeGroupIndex]) {
+      const group = creativeGroups.value[creativeGroupIndex];
       if (currentMaterialType.value === 'video' && group) {
         group.video = materials;
-      } else {
+      } else if (group) {
         group.image = materials;
       }
     }
   }
+
+  // 更新选中项和锚点
+  activeCollapseKeys.value = [0];
+  activeTabs.value.clear();
+  currentAnchor.value = ['group-0'];
 }
 
 </script>

@@ -151,7 +151,7 @@ export interface VivoAdgroupData {
   endDate: string;
   scheduleTime: string;
   chargeType: null | number;
-  cvType: string;
+  cvType: number;
   price: number;
   ocpxPrice: number;
   name: string;
@@ -527,7 +527,10 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           cvType: creationInfo.configData.adgroup.cvType,
           price: creationInfo.configData.adgroup.price * 100_000,
           ocpxPrice: creationInfo.configData.adgroup.ocpxPrice * 100_000,
-          name: renderProjectTitle(creationInfo.configData.adgroup.name, f),
+          name: renderProjectTitle(
+            creationInfo.configData.adgroup.name, f,
+            creationInfo.project.projectName
+          ),
           dailyBudget:
             creationInfo.configData.adgroup.dailyBudget === -1
               ? -1
@@ -627,7 +630,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           // 广告
           adgroup.promotionList.push({
             adgroupId: "",
-            name: renderProjectTitle(creationInfo.configData.promotion.name, k),
+            name: renderProjectTitle(creationInfo.configData.promotion.name, k, creationInfo.project.projectName),
             deepLink,
             videoAttribution: creationInfo.configData.promotion.videoAttribution,
             // @ts-ignore
@@ -657,7 +660,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
             ? -1
             : creationInfo.configData.campaign.dailyBudget * 100_000,
         mediaType: creationInfo.configData.campaign.mediaType,
-        name: renderProjectTitle(creationInfo.configData.campaign.name, i),
+        name: renderProjectTitle(creationInfo.configData.campaign.name, i, creationInfo.project.projectName),
         getName() {
           return this.name;
         }

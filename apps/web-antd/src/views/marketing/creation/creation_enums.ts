@@ -16,6 +16,7 @@ export enum RuleMethod {
 
 // 分配策略
 export enum RuleKey {
+  NONE = 'none',
   TARGET = "targeting",
   CREATIVE = "creative",
   CREATIVE_GROUP = "creative_group"

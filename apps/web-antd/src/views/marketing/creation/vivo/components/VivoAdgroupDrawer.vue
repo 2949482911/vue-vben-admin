@@ -2,7 +2,6 @@
 import { ref } from "vue";
 import { useVbenDrawer } from "@vben/common-ui";
 import { useVbenForm } from "#/adapter/form";
-import type { VivoAdgroupData } from "#/views/marketing/creation/vivo/vivo";
 
 const { formFields } = defineProps({
   formFields: {

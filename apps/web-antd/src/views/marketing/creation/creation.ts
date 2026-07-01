@@ -431,6 +431,7 @@ export interface MethodConfig {
  */
 export interface ConfigurationConfig {
   platform: string;
+  template?: string;
 }
 
 

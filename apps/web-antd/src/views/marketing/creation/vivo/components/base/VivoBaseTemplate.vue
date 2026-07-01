@@ -471,6 +471,7 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
         <CreativeGroupSelector
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData.material"
+          :rule-info="creationInfo.ruleInfo"
           @update:material="updateMaterial"
         />
       </Col>
