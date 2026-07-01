@@ -44,10 +44,18 @@ async function uploadIcon(file: File, onSuccess?: Function, onError?: Function) 
     const ossKey = `${mainId}/image/project_icon/${md5}${ext}`;
     const result = await uploadToOss(client, file, ossKey);
     onSuccess?.({ url: result.url });
-    formApi.setFieldValue('icon', result.url);
   } catch (err) {
     onError?.(err);
   }
+}
+
+function extractIconUrl(icon: any): string {
+  if (!icon) return '';
+  if (typeof icon === 'string') return icon;
+  if (Array.isArray(icon) && icon.length > 0) {
+    return icon[0]?.url || icon[0]?.response?.url || '';
+  }
+  return '';
 }
 
 const [Form, formApi] = useVbenForm({
@@ -60,8 +68,9 @@ const [Form, formApi] = useVbenForm({
   },
   layout: 'horizontal',
   handleSubmit: async (values) => {
-    const formVal = values as CreateProjectRequest | UpdateProjectRequest;
-    const params = trimObject(formVal);
+    const formVal = values as Record<string, any>;
+    formVal.icon = extractIconUrl(formVal.icon);
+    const params = trimObject(formVal) as CreateProjectRequest | UpdateProjectRequest;
     await (isUpdate.value ? projectApi.fetchUpdateProject(params as UpdateProjectRequest)
       : projectApi.fetchCreateProject(params))
   },
@@ -205,7 +214,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     await formApi.submitForm();
     isUpdate.value = false;
     emit('pageReload');
-
+    await formApi.resetForm();
     await drawerApi.close();
   },
   onOpenChange(isOpen: boolean) {
@@ -214,6 +223,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
+      } else {
+        isUpdate.value = false;
+        formApi.resetForm();
       }
     } else {
       isUpdate.value = false;
@@ -222,7 +234,12 @@ const [Drawer, drawerApi] = useVbenDrawer({
 });
 
 function handleSetFormValue(row: CreateProjectRequest | UpdateProjectRequest) {
-  formApi.setValues(row);
+  formApi.setValues({
+    ...row,
+    icon: row.icon
+      ? [{ uid: row.icon, name: 'icon', status: 'done', url: row.icon }]
+      : undefined,
+  });
 }
 
 
