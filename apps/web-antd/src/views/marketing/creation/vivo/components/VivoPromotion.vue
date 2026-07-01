@@ -1,12 +1,13 @@
 <script setup lang="ts" name="VivoPromotion">
 import { ref, watch } from "vue";
-import type { VivoPromotionData } from "#/views/marketing/creation/vivo/vivo";
+import type { VivoCampaignData, VivoPromotionData } from "#/views/marketing/creation/vivo/vivo";
 import { useVbenDrawer } from "@vben/common-ui";
 import VivoPromotionDrawer from "./VivoPromotionDrawer.vue";
 import { Alert, Button, Card, Descriptions, DescriptionsItem, message } from "ant-design-vue";
 import type { AccountInfo, PageViewConfigData } from "#/views/marketing/creation/creation";
 import PageViewShow from "#/views/marketing/creation/components/pageview/PageViewShow.vue";
 import PageViewDrawer from "#/views/marketing/creation/components/pageview/PageViewDrawer.vue";
+import { Platform } from "#/constants/enums";
 
 
 const [PageViewDrawerModel, pageViewDrawerApi] = useVbenDrawer({
@@ -60,6 +61,7 @@ const [PromotionDrawerModule, drawerApi] = useVbenDrawer({
 const {
   formFields,
   promotionShowLabel,
+  campaign,
   promotion,
   accountInfo,
   hasAccount,
@@ -74,6 +76,10 @@ const {
     type: Object,
     default: () => {
     }
+  },
+  campaign: {
+    type: Object as () => VivoCampaignData | null,
+    default: () => null
   },
   promotion: {
     type: Object as () => VivoPromotionData | null,
@@ -185,8 +191,8 @@ function openPromotionDrawer() {
       </Card>
     </div>
 
-    <PromotionDrawerModule :form-fields="formFields" />
-    <PageViewDrawerModel @update:pageView="updatePageView"/>
+    <PromotionDrawerModule :form-fields="formFields" :campaign="campaign" :account-info="accountInfo" />
+    <PageViewDrawerModel :platform="Platform.VIVO" :account-info="accountInfo" @update:pageView="updatePageView"/>
   </div>
 </template>
 

@@ -11,7 +11,8 @@ import TitleSelector from "#/views/marketing/creation/components/title/TitleSele
 
 import type {
   AudienceConfigData,
-  MaterialData, PageViewConfigData,
+  MaterialData,
+  PageViewConfigData,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 import type {
@@ -24,12 +25,18 @@ import type {
 } from "#/views/marketing/creation/vivo/vivo";
 import {
   ADTYPE_SELECT,
+  BID_SELECT,
+  BILLINGTYPE_SELECT,
+  COMMODITYURL_SELECT,
   CONVERSION_SELECT,
+  DELIVER_SELECT,
   MEDIA_SELECT,
   NOTIFICATIONTYPE_SELECT,
   NOTIFORMAT_SELECT,
+  PHASETWOGOAL_SELECT,
   PROJRCT_SELECT,
-  PROMOTION_SELECT
+  PROMOTION_SELECT,
+  PROMOTIONLINK_SELECT
 } from "#/views/marketing/creation/vivo/projectEnum";
 
 const emit = defineEmits(["update:campaign", "update:adgroup", "update:promotion",
@@ -168,14 +175,20 @@ const adgroupFormFields = [
     label: "推广链接编码"
   },
   {
-    component: "Input",
+    component: "Select",
     fieldName: "h5Type",
-    label: "推广链接类型"
+    label: "推广链接类型",
+    componentProps: {
+      options: PROMOTIONLINK_SELECT
+    }
   },
   {
-    component: "Input",
+    component: "Select",
     fieldName: "productUrlType",
-    label: "商品URL类型"
+    label: "商品URL类型",
+    componentProps: {
+      options: COMMODITYURL_SELECT
+    }
   },
   {
     component: "Input",
@@ -188,9 +201,12 @@ const adgroupFormFields = [
     label: "小程序页面路径"
   },
   {
-    component: "Input",
+    component: "Select",
     fieldName: "chargeType",
-    label: "计费类型"
+    label: "计费类型",
+    componentProps: {
+      options: BILLINGTYPE_SELECT
+    }
   },
   {
     component: "Input",
@@ -198,9 +214,12 @@ const adgroupFormFields = [
     label: "一阶段出价"
   },
   {
-    component: "Input",
+    component: "Select",
     fieldName: "cvType",
-    label: "转化目标"
+    label: "转化目标",
+    componentProps: {
+      options: PHASETWOGOAL_SELECT
+    }
   },
   {
     component: "Input",
@@ -208,14 +227,25 @@ const adgroupFormFields = [
     label: "转化出价"
   },
   {
-    component: "Input",
+    component: "Select",
     fieldName: "secondCvType",
-    label: "深度优化转化目标"
+    label: "深度优化转化目标",
+    componentProps: {
+      options: PHASETWOGOAL_SELECT
+    }
   },
   {
     component: "Input",
     fieldName: "secondOcpxPrice",
     label: "深度优化出价"
+  },
+  {
+    component: "Select",
+    fieldName: "biddingStrategy",
+    label: "出价策略",
+    componentProps: {
+      options: BID_SELECT
+    }
   },
   {
     component: "Input",
@@ -229,13 +259,21 @@ const adgroupFormFields = [
   },
   {
     component: "Input",
+    fieldName: "advertiseQualificationId",
+    label: "投放资质"
+  },
+  {
+    component: "Input",
     fieldName: "dailyBudget",
     label: "日预算"
   },
   {
-    component: "Input",
+    component: "Select",
     fieldName: "spentType",
-    label: "投放状态"
+    label: "投放状态",
+    componentProps: {
+      options: DELIVER_SELECT
+    }
   },
   {
     component: "Input",
@@ -246,6 +284,11 @@ const adgroupFormFields = [
     component: "Input",
     fieldName: "endDate",
     label: "结束日期"
+  },
+  {
+    component: "Input",
+    fieldName: "scheduleTime",
+    label: "广告投放时段"
   },
   {
     component: "Input",
@@ -263,12 +306,7 @@ const adgroupShowLabel: Record<string, string> = {
   chargeType: "计费类型",
   price: "一阶段出价",
   cvType: "转化目标"
-  // ocpxPrice: '转化出价',
-  // secondCvType: '深度优化转化目标',
-  // secondOcpxPrice: '深度优化出价',
-  // dailyBudget: '日预算',
 };
-
 
 /**
  * 广告属性
@@ -285,9 +323,8 @@ const promotionFormFields = [
     fieldName: "deepLink",
     label: "快应用deepLink地址"
   },
-
   {
-    component: "Select",
+    component: "Input",
     fieldName: "videoAttribution",
     label: "视频类型拓展归因"
   },
@@ -295,15 +332,17 @@ const promotionFormFields = [
     component: "Switch",
     fieldName: "generalSwitch",
     label: "流量优选开关",
-    defaultValue: false
+    defaultValue: false,
+    formItemClass: "w-[250px]"
   }
-
 ];
 /**
  *
  */
 const promotionShowLabel: Record<string, string> = {
-  name: "广告名字"
+  name: "广告名字",
+  placeType: "展现形式",
+  generalSwitch: "流量优选"
 };
 
 /**
@@ -418,6 +457,7 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
           :promotion="creationInfo?.configData.promotion"
           :form-fields="promotionFormFields"
           :promotion-show-label="promotionShowLabel"
+          :campaign="creationInfo?.configData.campaign"
           :account-info="creationInfo.accountInfo"
           :landing-page="creationInfo.configData.landingPage"
           :has-account="creationInfo.accountInfo.length > 0"

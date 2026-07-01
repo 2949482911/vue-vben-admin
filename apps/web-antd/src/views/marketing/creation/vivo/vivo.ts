@@ -1,3 +1,11 @@
+import type { Ref } from "vue";
+
+import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { PageViewItem } from "#/api/models/assert";
+import type { BaseItem } from "#/api/models/core";
+
+import { Platform } from "#/constants/enums";
+import { renderProjectTitle } from "#/utils/customName";
 import {
   type Adgroup,
   type AudienceConfigData,
@@ -19,12 +27,6 @@ import {
   type Promotion,
   type TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
-import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
-import type { BaseItem } from "#/api/models/core";
-import { Platform } from "#/constants/enums";
-import { renderProjectTitle } from "#/utils/customName";
-import type { Ref } from "vue";
-import type { PageViewItem } from "#/api/models/assert";
 
 /**
  * vivo 版本常量
@@ -55,7 +57,7 @@ export interface VivoConfigData {
   monitoringLink: MonitoringLinkConfigData;
 }
 
-/**定义存储的资质信息结构 */
+/** 定义存储的资质信息结构 */
 export interface ChannelPackageValue {
   channelPackageId: string;
   channelPackageApkId: string;
@@ -72,13 +74,13 @@ export interface VivoDeepLinkDataConfig {
   method: string;
 }
 
-/**定义存储的资质信息结构 */
+/** 定义存储的资质信息结构 */
 export interface QualificationValue {
   qualificationId: string;
   qualificationName: string;
 }
 
-/**媒体账户信息结构 */
+/** 媒体账户信息结构 */
 export interface MediaAccount {
   advertiserName: string;
   localAdvertiserId: string;
@@ -108,7 +110,7 @@ export interface VivoAdgroupData {
   rpkDeepLink: string;
   webSiteUrl: string;
   h5Code: string;
-  h5Type: number | null;
+  h5Type: null | number;
   productUrlType: number;
   appletOriginId: string;
   appletPath: string;
@@ -148,18 +150,18 @@ export interface VivoAdgroupData {
   startDate: string;
   endDate: string;
   scheduleTime: string;
-  chargeType: number | null;
+  chargeType: null | number;
   cvType: string;
   price: number;
   ocpxPrice: number;
   name: string;
   dailyBudget: number;
-  spentType: number | null;
+  spentType: null | number;
   retrieveType: number;
   ruleAudience: string;
   channelId: string;
   apkId: string;
-  secondCvType: number | null;
+  secondCvType: null | number;
   secondOcpxPrice: number;
   conversionFilterCycle: number;
   biddingStrategy: number;
@@ -273,7 +275,7 @@ export interface VivoAdgroup extends Adgroup {
   rpkDeepLink: string;
   webSiteUrl: string;
   h5Code: string;
-  h5Type: number | null;
+  h5Type: null | number;
   productUrlType: number;
   appletOriginId: string;
   appletPath: string;
@@ -284,18 +286,18 @@ export interface VivoAdgroup extends Adgroup {
   startDate: string;
   endDate: string;
   scheduleTime: string;
-  chargeType: number | null;
+  chargeType: null | number;
   cvType: string;
   price: number;
   ocpxPrice: number;
   name: string;
   dailyBudget: number;
-  spentType: number | null;
+  spentType: null | number;
   retrieveType: number;
   ruleAudience: string;
   channelId: string;
   apkId: string;
-  secondCvType: number | null;
+  secondCvType: null | number;
   secondOcpxPrice: number;
   conversionFilterCycle: number;
   biddingStrategy: number;
@@ -376,7 +378,7 @@ export interface BatchReturnBasics {
   requestId: string;
 }
 
-/**广告资质类型 */
+/** 广告资质类型 */
 export interface AdvertisingQualificationType {
   advertiseQualificationId: string; // 资质ID: "385831"
   appCnName: string; // 应用名称: "京东-又好又便宜"
@@ -396,7 +398,7 @@ export interface AdvertisingQualificationType {
   productDescription?: string;
 }
 
-/**渠道包类型 */
+/** 渠道包类型 */
 export interface channelPackageInfo {
   id: string;
   apkId: string;
@@ -412,7 +414,7 @@ export interface channelPackageInfo {
   modifyTime: string;
 }
 
-/**提交审核批投当前账户扁平数组类型 */
+/** 提交审核批投当前账户扁平数组类型 */
 export interface CampaignData {
   exposureLink?: string;
   pageUrlName?: string;
@@ -457,17 +459,17 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
     const tableData: VivoTableData = {
       advertiserId: account.localAdvertiserId,
       campaignList: [],
-      getCampaignCount: function(): number {
+      getCampaignCount(): number {
         return this.campaignList.length;
       },
-      getAdGroupCount: function(): number {
+      getAdGroupCount(): number {
         let count: number = 0;
         this.campaignList.forEach((campaign) => {
           count += campaign.adgroupList.length;
         });
         return count;
       },
-      getAdCount: function(): number {
+      getAdCount(): number {
         let count: number = 0;
         this.campaignList.forEach((campaign) => {
           campaign.adgroupList.forEach((adgroup) => {
@@ -494,7 +496,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
       // 生成广告组
       for (let f = 0; f < adGroupCount; f++) {
         const adgroup: VivoAdgroup = {
-          getName: function(): string {
+          getName(): string {
             return this.name;
           },
           adgroupId: "",
@@ -523,13 +525,13 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           scheduleTime: creationInfo.configData.adgroup.scheduleTime,
           chargeType: creationInfo.configData.adgroup.chargeType,
           cvType: creationInfo.configData.adgroup.cvType,
-          price: creationInfo.configData.adgroup.price * 100000,
-          ocpxPrice: creationInfo.configData.adgroup.ocpxPrice * 100000,
+          price: creationInfo.configData.adgroup.price * 100_000,
+          ocpxPrice: creationInfo.configData.adgroup.ocpxPrice * 100_000,
           name: renderProjectTitle(creationInfo.configData.adgroup.name, f),
           dailyBudget:
             creationInfo.configData.adgroup.dailyBudget === -1
               ? -1
-              : creationInfo.configData.adgroup.dailyBudget * 100000,
+              : creationInfo.configData.adgroup.dailyBudget * 100_000,
           spentType: creationInfo.configData.adgroup.spentType,
           retrieveType: creationInfo.configData.adgroup.retrieveType,
           ruleAudience: creationInfo.configData.adgroup.ruleAudience,
@@ -540,7 +542,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
             creationInfo.configData.channelPackage.get(account.localAdvertiserId)
               ?.channelPackageApkId || "",
           secondCvType: creationInfo.configData.adgroup.secondCvType,
-          secondOcpxPrice: creationInfo.configData.adgroup.secondOcpxPrice * 100000,
+          secondOcpxPrice: creationInfo.configData.adgroup.secondOcpxPrice * 100_000,
           conversionFilterCycle: creationInfo.configData.adgroup.conversionFilterCycle,
           biddingStrategy: creationInfo.configData.adgroup.biddingStrategy,
           subpackageId: creationInfo.configData.adgroup.subpackageId,
@@ -579,7 +581,26 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           );
           // 本地素材ID
           const creativeList: Array<VivoCreative> = [];
-          if (ruleType !== "creative") {
+          if (ruleType === "creative") {
+            creativeList.push({
+              appName: creationInfo.project.projectName,
+              placeType: creationInfo.configData.promotion.config.placeType,
+              materialNormId: creationInfo.configData.promotion.config.materialNormId,
+              virtualPositionId: creationInfo.configData.promotion.config.virtualPositionId,
+              title: title.title,
+              subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : "", // 当媒体类型是广告联盟需要subTitle
+              pushSubTitle: Array.isArray(title.config?.pushSubTitle)
+                ? title.config.pushSubTitle[0] || ""
+                : "",
+              imgsCode: "",
+              videoCode: "",
+              strongReminder: creationInfo.configData.promotion.config.strongReminder,
+              materialIdsList: [
+                ...(materialList[k]?.image ?? []),
+                ...(materialList[k]?.video ?? [])
+              ].map((item) => item.localMaterialId)
+            });
+          } else {
             for (let j = 0; j < creativeLength; j++) {
               // 添加创意
               creativeList.push({
@@ -588,7 +609,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
                 materialNormId: creationInfo.configData.promotion.config.materialNormId,
                 virtualPositionId: creationInfo.configData.promotion.config.virtualPositionId,
                 title: title.title,
-                subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : "", //当媒体类型是广告联盟需要subTitle
+                subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : "", // 当媒体类型是广告联盟需要subTitle
                 pushSubTitle: Array.isArray(title.config?.pushSubTitle)
                   ? title.config.pushSubTitle[0] || ""
                   : "",
@@ -601,32 +622,13 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
                 ].map((item) => item.localMaterialId)
               });
             }
-          } else {
-            creativeList.push({
-              appName: creationInfo.project.projectName,
-              placeType: creationInfo.configData.promotion.config.placeType,
-              materialNormId: creationInfo.configData.promotion.config.materialNormId,
-              virtualPositionId: creationInfo.configData.promotion.config.virtualPositionId,
-              title: title.title,
-              subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : "", //当媒体类型是广告联盟需要subTitle
-              pushSubTitle: Array.isArray(title.config?.pushSubTitle)
-                ? title.config.pushSubTitle[0] || ""
-                : "",
-              imgsCode: "",
-              videoCode: "",
-              strongReminder: creationInfo.configData.promotion.config.strongReminder,
-              materialIdsList: [
-                ...(materialList[k]?.image ?? []),
-                ...(materialList[k]?.video ?? [])
-              ].map((item) => item.localMaterialId)
-            });
           }
 
           // 广告
           adgroup.promotionList.push({
             adgroupId: "",
             name: renderProjectTitle(creationInfo.configData.promotion.name, k),
-            deepLink: deepLink,
+            deepLink,
             videoAttribution: creationInfo.configData.promotion.videoAttribution,
             // @ts-ignore
             pageUrl: landingPage.config?.pageUrl || "",
@@ -634,10 +636,10 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
             h5Code: creationInfo.configData.promotion.h5Code,
             h5Type: creationInfo.configData.promotion.h5Type,
             generalSwitch: creationInfo.configData.promotion.generalSwitch,
-            creativeList: creativeList,
+            creativeList,
             viewMonitorUrl: creationInfo.monitoringLink.exposureLink,
             clickMonitorUrl: creationInfo.monitoringLink.clickLink,
-            getName: function() {
+            getName() {
               return this.name;
             }
           });
@@ -648,15 +650,15 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
       // 广告组加到计划内
       tableData.campaignList.push({
         adType: creationInfo.configData.campaign.adType,
-        adgroupList: adgroupList,
+        adgroupList,
         campaignId: "",
         dailyBudget:
           creationInfo.configData.campaign.dailyBudget === -1
             ? -1
-            : creationInfo.configData.campaign.dailyBudget * 100000,
+            : creationInfo.configData.campaign.dailyBudget * 100_000,
         mediaType: creationInfo.configData.campaign.mediaType,
         name: renderProjectTitle(creationInfo.configData.campaign.name, i),
-        getName: function() {
+        getName() {
           return this.name;
         }
       });
@@ -667,7 +669,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
   return vivoTableData;
 }
 
-/**批量修改操作 */
+/** 批量修改操作 */
 interface UseVivoTableUpdateOptions {
   tableData: Ref<VivoTableData[]>;
   activeAccountId: Ref<string>;
@@ -675,7 +677,7 @@ interface UseVivoTableUpdateOptions {
   flattenFn: (campaignList: VivoCampaign[], advertiserId: string) => any[];
 }
 
-/**批量修改操作 */
+/** 批量修改操作 */
 export function useVivoTableUpdate(options: UseVivoTableUpdateOptions) {
   const { tableData, activeAccountId, gridApi, flattenFn } = options;
 

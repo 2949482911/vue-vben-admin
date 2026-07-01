@@ -3,6 +3,8 @@ import { Page, useVbenModal } from "@vben/common-ui";
 import { Card, message, Select } from "ant-design-vue";
 import ConfigurationConfig from "../components/configurationArea.vue";
 import VivoBaseTemplate from "./components/base/VivoBaseTemplate.vue";
+import VivoApplicationAdvertiserTemplate
+  from "./components/application_advertiser/VivoApplicationAdvertiserTemplate.vue";
 import Function from "../components/Function.vue";
 import VivoPreviewArea from "./components/VivoPreviewArea.vue";
 import CreateStrategyGroup from "../components/createStrategyGroup.vue";
@@ -40,8 +42,23 @@ import type { PageViewItem } from "#/api/models/assert";
 const adList = ref<Array<any>>([]);
 const template = ref<string>("base_template");
 
+// 应用推广模板
+const VivoApplicationAdvertiserTemplateRef = ref();
+
+
+/**
+ * 更新模板
+ * @param changeVal
+ */
 function updateTemplate(changeVal: string) {
   template.value = changeVal;
+  // 读取模板预制参数
+  if (changeVal === 'application_advertiser') {
+    // @ts-ignore
+    creationInfo.value.configData.campaign = VivoApplicationAdvertiserTemplateRef.campaign;
+    creationInfo.value.configData.adgroup = VivoApplicationAdvertiserTemplateRef.adgroup;
+  }
+  creationInfo.value.configurationConfig.template = changeVal
 }
 
 // 策略组保存弹窗
@@ -188,7 +205,8 @@ const creationInfo = ref<VivoCreation>({
     ocpxTaskId: ""
   },
   configurationConfig: {
-    platform: Platform.VIVO
+    platform: Platform.VIVO,
+    template: 'base_template'
   }
 });
 
@@ -272,7 +290,10 @@ function updateReuse(vivoCreation: VivoCreation) {
       );
     }
   }
-
+  // 设置模板
+  if (vivoCreation.configurationConfig.template) {
+    template.value = vivoCreation.configurationConfig.template;
+  }
   creationInfo.value = vivoCreation;
 }
 
@@ -460,6 +481,22 @@ function submitCreateBatch() {
                         @update:channelPackage="updateChannelPackage"
                         @update:page-view="updatePageView"
                         @adTypeChanged="handleAdTypeChanged"
+      />
+
+      <!--      应用推广-->
+      <VivoApplicationAdvertiserTemplate
+        ref="VivoApplicationAdvertiserTemplateRef"
+        v-if="template === 'application_advertiser'"
+        :creation-info="creationInfo"
+        @update:campaign="updateCampaign"
+        @update:adgroup="updateAdgroup"
+        @update:promotion="updatePromotion"
+        @update:audiencePackage="updateAudiencePackage"
+        @update:material="updateMaterial"
+        @update:titlePackage="updateTitlePackage"
+        @update:adQualification="updateAdQualification"
+        @update:channelPackage="updateChannelPackage"
+        @update:page-view="updatePageView"
       />
     </Card>
 

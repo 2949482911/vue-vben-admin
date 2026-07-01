@@ -3,7 +3,7 @@ import { useVbenModal } from '@vben/common-ui';
 import { onMounted, ref } from 'vue';
 import { Button, TabPane, Tabs, Input } from 'ant-design-vue';
 import { CloseCircleFilled, CloseOutlined, DownOutlined, UpOutlined } from '@ant-design/icons-vue';
-import selMaterial from './selMaterial.vue';
+// import selMaterial from './selMaterial.vue';
 import type {
   AccountInfo,
   LocalMaterialData,
@@ -166,20 +166,20 @@ async function addMaterial2LocalMaterialData(
 }
 
 //---------选择素材框---------
-const [SelMaterialModule, modalApi] = useVbenModal({
-  connectedComponent: selMaterial,
-  async onOpenChange(isOpen) {
-    if (!isOpen) {
-      const { materialList, materialType, currentGroupIndex } = modalApi.getData();
-      if (materialList) {
-        localMaterialData.value.config.method = distributionMode;
-        await addMaterial2LocalMaterialData(materialType, currentGroupIndex, materialList);
-        // 如果已配置分配规则，素材选完后自动按规则重新分配
-        applyCreativeRule();
-      }
-    }
-  },
-});
+// const [SelMaterialModule, modalApi] = useVbenModal({
+//   connectedComponent: selMaterial,
+//   async onOpenChange(isOpen) {
+//     if (!isOpen) {
+//       const { materialList, materialType, currentGroupIndex } = modalApi.getData();
+//       if (materialList) {
+//         localMaterialData.value.config.method = distributionMode;
+//         await addMaterial2LocalMaterialData(materialType, currentGroupIndex, materialList);
+//         // 如果已配置分配规则，素材选完后自动按规则重新分配
+//         applyCreativeRule();
+//       }
+//     }
+//   },
+// });
 
 /** 打开素材弹框 */
 async function openModal(type: 'image' | 'video', groupIndex: number) {
@@ -620,7 +620,7 @@ async function openCreativeAllocation() {
         <Button type="primary" @click="addGroup">添加创意组</Button>
       </div>
     </div>
-    <SelMaterialModule />
+<!--    <SelMaterialModule />-->
     <CreativeAllocationModal class="w-150" title="创意素材分配规则"
       ><div class="rule-container">
         <div class="rule-section">

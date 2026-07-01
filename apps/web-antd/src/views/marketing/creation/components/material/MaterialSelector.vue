@@ -4,8 +4,6 @@ import {
   Button,
   Card,
   Checkbox,
-  List,
-  ListItem,
   Pagination,
   Space,
   Tag,
@@ -235,64 +233,61 @@ onMounted(async () => {
         </div>
 
         <div class="flex-1 overflow-y-auto px-4 pr-2">
-          <List
-            :grid="{gutter: 12, xs: 1, sm: 2, md: 3, lg: 4, xl: 5}"
-            :data-source="listData"
-            :loading="loading"
-          >
-            <template #renderItem="{item}">
-              <ListItem class="!p-0 !mb-3">
-                <Card
-                  hoverable
-                  :class="[
-                  'material-card',
-                  item.selected ? 'is-selected' : '',
-                  isReachQuota && !item.selected ? 'is-disabled' : '',
-                ]"
-                  @click="handleSelect(item)"
-                >
-                  <template #cover>
-                    <div
-                      class="relative w-full h-[100px] flex items-center justify-center overflow-hidden">
-                      <div class="absolute top-1 right-2 z-10" @click.stop>
-                        <Checkbox :checked="item.selected"
-                                  :disabled="isReachQuota && !item.selected"
-                                  @change="handleSelect(item)"/>
-                      </div>
-                      <div v-if="item.fileUrl" class="w-full h-full">
-                        <img v-if="!isVideo(item.name)" :src="item.fileUrl" :alt="item.name"
-                             class="w-full h-full object-contain"/>
-                        <video v-else :src="item.fileUrl" preload="metadata"
-                               class="w-full h-full object-contain"
-                               @mouseenter="(e: Event) => { (e.target as HTMLVideoElement).controls = true; }"
-                               @mouseleave="(e: Event) => { (e.target as HTMLVideoElement).controls = false; }"/>
-                      </div>
-                      <div v-else class="text-[10px] flex flex-col items-center justify-center">
-                        <div class="mb-1 text-lg">️</div>
-                        暂无预览
-                      </div>
-                      <span v-if="item.duration"
-                            class="absolute bottom-1 right-1 text-white text-[10px] px-1 rounded">
-                      {{ item.duration }}
-                    </span>
-                    </div>
-                  </template>
-                  <div class="p-2 h-[60px] flex flex-col justify-between overflow-hidden">
-                    <div class="text-[12px] font-medium leading-snug truncate" :title="item.name">
-                      {{ item.name }}
-                    </div>
-                    <div class="text-[10px]">{{ (item as any).fileSize }} ·
-                      {{ (item as any).uploadTime }}
-                    </div>
-                    <div class="flex gap-1">
-                      <Tag v-if="(item as any).isUsed" color="success" size="small">已使用</Tag>
-                      <Tag v-else color="default" size="small">无消耗</Tag>
-                    </div>
+          <div v-if="loading" class="flex items-center justify-center h-48 text-gray-400">
+            加载中...
+          </div>
+          <div v-else class="grid grid-cols-4 xl:grid-cols-5 gap-2.5 auto-rows-max">
+            <Card
+              v-for="item in listData"
+              :key="item.id"
+              hoverable
+              size="small"
+              :class="[
+                item.selected ? 'ring-2 ring-blue-500' : '',
+                isReachQuota && !item.selected ? 'opacity-50 pointer-events-none grayscale' : '',
+              ]"
+              class="overflow-hidden cursor-pointer transition-shadow hover:shadow-md"
+              @click="handleSelect(item)"
+            >
+              <template #cover>
+                <div class="relative w-full h-[100px] bg-gray-100 overflow-hidden">
+                  <div class="absolute top-1 right-2 z-10" @click.stop>
+                    <Checkbox :checked="item.selected"
+                              :disabled="isReachQuota && !item.selected"
+                              @change="handleSelect(item)" />
                   </div>
-                </Card>
-              </ListItem>
-            </template>
-          </List>
+                  <img
+                    v-if="item.fileUrl && !isVideo(item.name)"
+                    :src="item.fileUrl"
+                    :alt="item.name"
+                    class="w-full h-full object-cover block"
+                  />
+                  <video
+                    v-else-if="item.fileUrl"
+                    :src="item.fileUrl"
+                    preload="metadata"
+                    class="w-full h-full object-cover bg-black"
+                    @mouseenter="(e: Event) => { (e.target as HTMLVideoElement).controls = true }"
+                    @mouseleave="(e: Event) => { (e.target as HTMLVideoElement).controls = false }"
+                  />
+                  <div v-else class="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                    <span class="text-lg">&#x1F5BC;</span>
+                    <span class="text-[10px] mt-1">暂无预览</span>
+                  </div>
+                  <span
+                    v-if="item.duration"
+                    class="absolute bottom-1 right-1 text-white text-[10px] px-1 rounded bg-black/60"
+                  >{{ item.duration }}</span>
+                </div>
+              </template>
+              <div class="flex flex-col gap-1">
+                <div class="text-xs font-medium truncate" :title="item.name">{{ item.name }}</div>
+                <div class="text-[10px] text-gray-500">{{ (item as any).fileSize }} · {{ (item as any).uploadTime }}</div>
+                <Tag v-if="(item as any).isUsed" color="success" size="small" class="w-fit">已使用</Tag>
+                <Tag v-else color="default" size="small" class="w-fit">无消耗</Tag>
+              </div>
+            </Card>
+          </div>
         </div>
 
         <div class="flex-none border-t pt-3 px-4">
@@ -318,32 +313,7 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
-.material-card {
-  overflow: hidden;
-  transition: all 0.3s;
-  cursor: pointer;
-  height: 180px !important;
-
-  :deep(.ant-card-body) {
-    padding: 0 !important;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-
-  &.is-selected {
-    outline: 2px solid var(--ant-color-primary);
-    outline-offset: -2px;
-  }
-}
-
-.is-disabled {
-  filter: grayscale(100%);
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-:deep(.ant-list-spin-container) {
-  height: 100%;
-}
+// 选中状态 ring 已在模板中用 Tailwind ring-2 ring-blue-500 实现
+// 禁用状态 opacity / pointer-events-none / grayscale 已在模板中用 Tailwind 实现
+// 图片 object-fit: cover 已在模板中用 Tailwind object-cover 实现
 </style>
