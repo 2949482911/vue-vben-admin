@@ -1,4 +1,5 @@
 import {
+  appCopyrightPreferences,
   defineOverridesPreferences,
   definePreferencesExtension,
 } from '@vben/preferences';
@@ -26,6 +27,7 @@ export const overridesPreferences = defineOverridesPreferences({
     authPageLayout: 'panel-center',
     layout: "sidebar-mixed-nav"
   },
+  copyright: appCopyrightPreferences,
   theme: {
     mode: 'auto',
     builtinType: 'deep-blue',
