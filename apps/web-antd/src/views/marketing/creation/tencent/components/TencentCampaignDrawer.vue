@@ -14,10 +14,9 @@ const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
     // 所有表单项
-    labelClass: 'w-[200px]',
     // formItemClass: 'w-[600px]',
     componentProps: {
-      class: "w-[300px]"
+      // class: "w-[300px]"
     }
   },
 });

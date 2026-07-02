@@ -287,7 +287,7 @@ export interface VivoAdgroup extends Adgroup {
   endDate: string;
   scheduleTime: string;
   chargeType: null | number;
-  cvType: string;
+  cvType: number;
   price: number;
   ocpxPrice: number;
   name: string;

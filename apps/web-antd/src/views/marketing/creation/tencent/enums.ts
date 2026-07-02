@@ -8,8 +8,8 @@ export const TENCENT_MARKETING_TYPE = [
     value: "base_template"
   },
   {
-    label: "小游戏",
-    value: "mini_game"
+    label: "微信小游戏",
+    value: "wechat_mini_game"
   },
   {
     label: "小程序",

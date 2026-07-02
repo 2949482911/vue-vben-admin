@@ -550,7 +550,7 @@ const auto_derived_creative_preference = [
   {
     component: "Switch",
     formItemClass: "w-[250px]",
-    fieldName: "auto_derived_creative_preference_switch",
+    fieldName: "auto_derived_creative_enabled",
     label: "创意增强 MAX 偏好设置",
     defaultValue: false,
     componentProps: {
@@ -570,9 +570,9 @@ const auto_derived_creative_preference = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["auto_derived_creative_preference_switch"];
+        return currentValue["auto_derived_creative_enabled"];
       },
-      triggerFields: ["auto_derived_creative_preference_switch"]
+      triggerFields: ["auto_derived_creative_enabled"]
     }
   }
 ];
@@ -1443,7 +1443,7 @@ const adgroupFormFields = [
   {
     component: "Input",
     fieldName: "creative_template_id",
-    label: "创意模板ID",
+    label: "创意模板ID"
   },
   {
     component: "Select",
@@ -1451,7 +1451,7 @@ const adgroupFormFields = [
     label: "投放模式",
     componentProps: {
       options: Tencent_creative_delivery_mode
-    },
+    }
   },
   {
     component: "Select",
@@ -1459,7 +1459,7 @@ const adgroupFormFields = [
     label: "动态创意类型",
     componentProps: {
       options: Tencent_dynamic_creative_type
-    },
+    }
   },
   {
     component: "Switch",
@@ -1490,7 +1490,7 @@ const adgroupFormFields = [
   },
 
   // 程序化创意信息，（备注：程序化 adx 投放无需提交入参）
-  ...program_creative_info,
+  ...program_creative_info
 
 ];
 
@@ -1592,7 +1592,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 
 .equal-height-col {
   display: flex;
-  
+
   // 让内部组件高度自适应父容器（匹配最高的列）
   > * {
     width: 100%;

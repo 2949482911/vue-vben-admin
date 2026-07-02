@@ -20,6 +20,7 @@ import type {
   VivoCreation,
   VivoPromotionData
 } from "#/views/marketing/creation/vivo/vivo";
+import {VIVO_VERSION} from "#/views/marketing/creation/vivo/vivo";
 import { Platform } from "#/constants/enums";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import type {
@@ -47,18 +48,165 @@ const VivoApplicationAdvertiserTemplateRef = ref();
 
 
 /**
+ * 初始化
+ */
+async function initCreationInfo() {
+  creationInfo.value = {
+    version: VIVO_VERSION,
+    project: {
+      projectId: "",
+      projectName: "",
+      icon: "",
+      packageName: ""
+    },
+    accountInfo: [],
+    configData: {
+      // 渠道包
+      channelPackage: new Map<string, ChannelPackageValue>(),
+      deepLinkList: {
+        deepLinkConfig: {
+          method: "all"
+        },
+        data: new Map<string, Array<string>>()
+      },
+      // 投放资质
+      advertiserQualification: new Map<string, QualificationValue>(),
+      campaign: {
+        name: "",
+        adType: 2,
+        mediaType: 1,
+        dailyBudget: 200,
+        campaignType: 0,
+        pushForm: 0,
+        pushType: 0,
+        promotionType: 0,
+        conversionMonitorType: 0
+      },
+      adgroup: {
+        apkId: "",
+        appPackageName: "",
+        appletOriginId: "",
+        appletPath: "",
+        biddingStrategy: 0,
+        builtInRpkDeepLink: "",
+        campaignId: 0,
+        channelId: "",
+        chargeType: null,
+        conversionFilterCycle: 0,
+        cvType: 1,
+        dailyBudget: -1,
+        endDate: "",
+        h5Code: "",
+        h5Type: null,
+        industry1: "",
+        industry2: "",
+        name: "",
+        ocpxPrice: 0,
+        price: 0,
+        productUrlType: 0,
+        retrieveType: 0,
+        rpkDeepLink: "",
+        ruleAudience: "",
+        scheduleTime: "",
+        secondCvType: null,
+        secondOcpxPrice: 0,
+        spentType: null,
+        startDate: "",
+        subpackageId: 0,
+        webSiteUrl: "",
+        wechatFollow: 0
+      },
+      promotion: {
+        groupId: "",
+        name: "",
+        deepLink: "",
+        videoAttribution: 0,
+        pageUrl: "",
+        h5Code: "",
+        h5Type: 0,
+        generalSwitch: 0,
+        config: {
+          videoMaxCount: 5,
+          imageMaxCount: 5,
+          materialNormId: 0,
+          placeType: 0,
+          strongReminder: 0,
+          virtualPositionId: ""
+        }
+      },
+      audience: {
+        config: {
+          method: RuleMethod.ALL
+        },
+        data: new Map<string, Array<TargetedPackageTypeItem>>()
+      },
+      material: {
+        config: {
+          method: RuleMethod.ALL
+        },
+        data: new Map<string, Material[]>()
+      },
+      titlePackage: {
+        config: {
+          method: RuleMethod.ALL
+        },
+        data: new Map<string, Array<TitlePackageItem>>()
+      },
+      landingPage: {
+        config: {
+          method: RuleMethod.ALL
+        },
+        data: new Map<string, Array<PageViewItem>>()
+      },
+      monitoringLink: {
+        config: {
+          method: RuleMethod.ALL
+        },
+        linkType: RuleMethod.MANUAL,
+        data: new Map()
+      }
+    },
+    platform: Platform.VIVO,
+    ruleInfo: {
+      projectRuleKey: RuleKey.TARGET,
+      projectCount: 1,
+      adGroupRuleKey: RuleKey.TARGET,
+      adGroupCount: 1,
+      adRuleKey: RuleKey.CREATIVE,
+      adCount: 1,
+      creativeRuleKey: RuleKey.NONE,
+      creativeCount: 0
+    },
+    monitoringLink: {
+      clickLink: "",
+      exposureLink: "",
+      monitorLink: "",
+      linkModeType: "manual",
+      allocateType: "all",
+      ocpxTaskId: ""
+    },
+    configurationConfig: {
+      platform: Platform.VIVO,
+      template: "base_template"
+    }
+  };
+}
+
+/**
  * 更新模板
  * @param changeVal
  */
 async function updateTemplate(changeVal: string) {
   template.value = changeVal;
+  await initCreationInfo();
+
   // 读取模板预制参数
-  if (changeVal === 'application_advertiser') {
+  if (changeVal === "application_advertiser") {
     await nextTick(); // 等待 v-if 挂载子组件后，ref 才可用
     creationInfo.value.configData.campaign = VivoApplicationAdvertiserTemplateRef.value.campaign;
     creationInfo.value.configData.adgroup = VivoApplicationAdvertiserTemplateRef.value.adgroup;
   }
-  creationInfo.value.configurationConfig.template = changeVal
+  creationInfo.value.configurationConfig.template = changeVal;
 }
 
 // 策略组保存弹窗
@@ -71,7 +219,7 @@ const [CreateStrategyGroupModal, createStrategyGroupApi] = useVbenModal({
 
 // vivo创建信息
 const creationInfo = ref<VivoCreation>({
-  version: "",
+  version: VIVO_VERSION,
   project: {
     projectId: "",
     projectName: "",
@@ -206,7 +354,7 @@ const creationInfo = ref<VivoCreation>({
   },
   configurationConfig: {
     platform: Platform.VIVO,
-    template: 'base_template'
+    template: "base_template"
   }
 });
 
