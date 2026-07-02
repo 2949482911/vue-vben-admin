@@ -33,6 +33,8 @@ import type {
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+import VivoAdPlacementQualification
+  from "#/views/marketing/creation/vivo/components/VivoAdPlacementQualification.vue";
 
 const emit = defineEmits([
   "update:campaign",
@@ -228,9 +230,18 @@ const adgroupFormFields = [
     rules: "required"
   },
   {
-    component: "Input",
+    component: markRaw(VivoAdPlacementQualification),
     fieldName: "advertiseQualificationId",
-    label: "投放资质"
+    rules: "required",
+    label: "投放资质",
+    componentProps: {
+      accountInfo: creationInfo.accountInfo,
+      // advertiserQualification: creationInfo.configData.advertiserQualification,
+      // 触发数据变化emit到上层
+      updateQualificationValue: (val: Map<string, QualificationValue>) => {
+        emit("update:adQualification", val)
+      }
+    }
   },
   {
     component: "Input",
@@ -305,7 +316,6 @@ const adgroupFormFields = [
 
 const adgroupShowLabel: Record<string, string> = {
   name: "广告组名称",
-  webSiteUrl: "推广链接",
   chargeType: "计费类型",
   price: "一阶段出价",
   cvType: "转化目标"
@@ -384,6 +394,7 @@ defineExpose({
           :landing-page="creationInfo.configData.landingPage"
           :has-account="creationInfo.accountInfo.length > 0"
           :has-product="!!creationInfo.project.projectId"
+          :advertiser-qualification="creationInfo.configData.advertiserQualification"
           @update:promotion="updatePromotion"
           @update:page-view="updatePageView"
         />

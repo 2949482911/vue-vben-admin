@@ -324,7 +324,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         <span class="section-label">监测链接模式</span>
         <RadioGroup v-model:value="linkModeType" @change="linkTypeChange">
           <RadioButton :value="RuleMethod.MANUAL">手动输入</RadioButton>
-          <RadioButton :value="RuleMethod.OCPX">OCPX 任务</RadioButton>
+          <RadioButton :value="RuleMethod.OCPX">推广活动</RadioButton>
         </RadioGroup>
       </div>
 

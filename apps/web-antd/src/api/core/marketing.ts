@@ -71,6 +71,7 @@ import type {
 import {requestClient} from '#/api/request';
 import type {BatchOptions} from '#/api/models/core';
 import type { AlbumItem, PageViewItem } from "#/api/models/assert";
+import type { VivoQualification } from "#/api/models/vivo";
 
 /**
  * 开发者
@@ -485,7 +486,7 @@ export const accountLabelApi = new AccountLabelApi('/platform/advertiser_tag');
 class AdInvestmentApi extends BaseApi {
   /**广告投放资质ID下拉*/
   fetchGetAdInvestment(params: AdInvestmentType) {
-    return requestClient.post(this.getServiceUrl('qualification'), params);
+    return requestClient.post<Array<VivoQualification>>(this.getServiceUrl('qualification'), params);
   }
 
   /**广告创意类型下拉*/

@@ -38,9 +38,16 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
       // 回显表单数据
       if (data && data.adgroupData) {
-        await formApi.setValues(data.adgroupData);
+        // 排除 advertiseQualificationId（adgroupData 中为字符串，会覆盖资质 Map）
+        const { advertiseQualificationId, ...restAdgroupData } = data.adgroupData;
+        await formApi.setValues(restAdgroupData);
         localAdvertiserQualification.value = data.localAdQualification || new Map();
         localChannelPackage.value = data.localChannelPackage || new Map();
+
+        // 资质数据始终使用父组件传入的 advertiserQualification Map 回显
+        if (data.localAdQualification instanceof Map) {
+          await formApi.setFieldValue('advertiseQualificationId', data.localAdQualification);
+        }
       }
     }
   },
@@ -48,6 +55,12 @@ const [Drawer, drawerApi] = useVbenDrawer({
     const isValidate = await formApi.validate();
     if (!isValidate.valid) return;
     const currentValues = await formApi.getValues();
+
+    // 从表单字段读取资质 Map（VivoAdPlacementQualification 通过 v-model 写入）
+    const formQualification = currentValues.advertiseQualificationId;
+    if (formQualification instanceof Map && formQualification.size > 0) {
+      localAdvertiserQualification.value = formQualification;
+    }
 
     const adgroupData = {
       ...currentValues,

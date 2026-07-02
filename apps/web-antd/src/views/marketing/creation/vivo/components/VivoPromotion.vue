@@ -1,6 +1,10 @@
 <script setup lang="ts" name="VivoPromotion">
 import { ref, watch } from "vue";
-import type { VivoCampaignData, VivoPromotionData } from "#/views/marketing/creation/vivo/vivo";
+import type {
+  QualificationValue,
+  VivoCampaignData,
+  VivoPromotionData
+} from "#/views/marketing/creation/vivo/vivo";
 import { useVbenDrawer } from "@vben/common-ui";
 import VivoPromotionDrawer from "./VivoPromotionDrawer.vue";
 import { Alert, Button, Card, Descriptions, DescriptionsItem, message } from "ant-design-vue";
@@ -104,7 +108,6 @@ const {
     default: () => {
     }
   }
-
 });
 
 

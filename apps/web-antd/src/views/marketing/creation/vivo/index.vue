@@ -20,7 +20,7 @@ import type {
   VivoCreation,
   VivoPromotionData
 } from "#/views/marketing/creation/vivo/vivo";
-import {VIVO_VERSION} from "#/views/marketing/creation/vivo/vivo";
+import { VIVO_VERSION } from "#/views/marketing/creation/vivo/vivo";
 import { Platform } from "#/constants/enums";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import type {
@@ -391,6 +391,7 @@ function updateRuleInfo(ruleInfo: RuleInfo) {
   creationInfo.value.ruleInfo = ruleInfo;
 }
 
+
 /**
  * 复用策略组
  */
@@ -441,6 +442,9 @@ function updateReuse(vivoCreation: VivoCreation) {
   // 设置模板
   if (vivoCreation.configurationConfig?.template) {
     template.value = vivoCreation.configurationConfig.template;
+  }
+  if (!creationInfo.value.version) {
+    creationInfo.value.version = VIVO_VERSION;
   }
   creationInfo.value = vivoCreation;
 }
@@ -516,6 +520,7 @@ function updatePromotion(promotion: VivoPromotionData) {
  */
 function updateAdQualification(adQualification: Map<string, QualificationValue>) {
   creationInfo.value.configData.advertiserQualification = adQualification;
+  console.log("update ad advertiserQualification");
 }
 
 /**

@@ -24,7 +24,8 @@ const { formFields, campaign, accountInfo } = defineProps({
   accountInfo: {
     type: Array as () => AccountInfo[],
     default: () => []
-  }
+  },
+
 });
 
 const [Form, formApi] = useVbenForm({

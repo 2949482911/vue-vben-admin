@@ -119,7 +119,7 @@ const adgroupInfo = ref<VivoAdgroupData>({
   channelId: '',
   chargeType: null,
   conversionFilterCycle: 0,
-  cvType: '',
+  cvType: 0,
   dailyBudget: -1,
   endDate: '',
   h5Code: '',
