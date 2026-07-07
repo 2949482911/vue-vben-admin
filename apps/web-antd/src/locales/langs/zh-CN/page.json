@@ -89,5 +89,12 @@
     "rtb": "Rtb渠道",
     "campaign": "投放计划",
     "push_campaign": "Push计划"
+  },
+  "attribution": {
+    "title": "归因",
+    "event": "事件",
+    "properties": "属性",
+    "attribution_config": "归因配置",
+    "sdk_config": "Sdk配置"
   }
 }

@@ -4,7 +4,6 @@
 import { computed, ref } from "vue";
 import { Button, InputNumber, message, RadioButton, RadioGroup, Switch } from "ant-design-vue";
 import { useVbenModal } from "@vben/common-ui";
-import SelMaterial from "#/views/marketing/creation/selMaterial.vue";
 import type { Material } from "#/views/marketing/creation/creation";
 import { RuleMethod } from "#/views/marketing/creation/creation_enums";
 
@@ -425,8 +424,6 @@ defineExpose({
       </div>
     </div>
   </Modal>
-
-  <SelMaterial />
 </template>
 
 <style scoped lang="scss">

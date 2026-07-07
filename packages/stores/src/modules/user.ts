@@ -27,8 +27,9 @@ export const useUserStore = defineStore('core-user', {
       this.setUserRoles(roles);
     },
     setUserRoles(roles: BasicRole[]) {
+
       roles.forEach((role) => {
-        this.userRoles.push(role.roleType);
+        this.userRoles.push(String(role.roleType));
       });
       this.roles = roles;
     },

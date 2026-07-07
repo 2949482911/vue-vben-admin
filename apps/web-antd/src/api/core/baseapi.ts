@@ -13,6 +13,7 @@ export class BaseApi {
   public openService: boolean;
 
   private serviceUrlList: string[];
+  // @ts-ignore
   private baseUrl: string;
   private requestUrl: string = "";
 
@@ -27,8 +28,10 @@ export class BaseApi {
     this.openService = import.meta.env.VITE_MICRO_SERVICE
 
     this.serviceUrlList = this.serviceUrl.split("/");
+    // @ts-ignore
     this.baseUrl = this.serviceUrlList[1];
     for (let i = 2; i < this.serviceUrlList.length; i++) {
+      // @ts-ignore
       this.requestUrl += `/${this.serviceUrlList[i].toString()}`;
     }
   }
@@ -40,6 +43,7 @@ export class BaseApi {
    * @param url
    */
   getServiceUrl(url: string): string {
+    // @ts-ignore
     if (this.openService === 'true') {
       return `${this.serviceUrl}/${url}`;
     }

@@ -89,5 +89,12 @@
     "rtb": "Rtb Channel",
     "campaign": "Campaign Strategy",
     "push_campaign": "Push Campaign"
+  },
+  "attribution": {
+    "title": "Attribution",
+    "event": "Event",
+    "properties": "Properties",
+    "attribution_config": "Attribution Config",
+    "sdk_config": "Sdk Config"
   }
 }

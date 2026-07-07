@@ -1,0 +1,79 @@
+{
+  "properties": {
+    "name": "Name",
+    "displayName": "Display Name",
+    "type": "Type",
+    "category": "Category",
+    "isRequired": "Required",
+    "isSystem": "System",
+    "defaultValue": "Default Value",
+    "validationRegex": "Validation Regex",
+    "typeOptions": {
+      "string": "String",
+      "number": "Number",
+      "boolean": "Boolean",
+      "date": "Date",
+      "json": "JSON",
+      "money": "Money"
+    },
+    "categoryOptions": {
+      "device": "Device",
+      "user": "User",
+      "event": "Event",
+      "custom": "Custom"
+    }
+  },
+  "eventConfig": {
+    "eventName": "Event Name",
+    "eventDisplayName": "Event Display Name",
+    "eventType": "Event Type",
+    "eventCategory": "Event Category",
+    "eventValueType": "Value Type",
+    "eventValueRequired": "Value Required",
+    "eventCountEnabled": "Count Enabled",
+    "isCallbackEvent": "Callback Event",
+    "callbackEventType": "Callback Event Type",
+    "callbackPriority": "Callback Priority",
+    "isAttributionEvent": "Attribution Event",
+    "attributionWindowOverride": "Attribution Window Override",
+    "isSystem": "System",
+    "sortOrder": "Sort Order",
+    "attributeIds": "Attribute IDs",
+    "description": "Event Description",
+    "eventTypeOptions": {
+      "behavior": "Behavior",
+      "property": "Property"
+    },
+    "eventCategoryOptions": {
+      "standard": "Standard",
+      "custom": "Custom"
+    }
+  },
+  "attributionConfig": {
+    "name": "Config Name",
+    "attributionModel": "Attribution Model",
+    "clickLookbackWindow": "Click Lookback Window",
+    "exposureLookbackWindow": "Exposure Lookback Window",
+    "ipLookbackWindow": "IP Lookback Window",
+    "idMatchPriority": "ID Match Priority",
+    "callbackWindow": "Callback Window",
+    "isDefault": "Is Default",
+    "description": "Description",
+    "modelOptions": {
+      "lastClick": "Last Click",
+      "firstClick": "First Click",
+      "timeDecay": "Time Decay"
+    }
+  },
+  "sdkConfig": {
+    "projectId": "Project",
+    "projectName": "Project Name",
+    "projectType": "Project Type",
+    "packageName": "Package Name",
+    "sdkKey": "SDK Key",
+    "sdkEnabled": "SDK Enabled",
+    "attributionConfigId": "Attribution Config",
+    "attributionConfigName": "Attribution Config Name",
+    "enabledEventIds": "Enabled Events"
+  }
+}

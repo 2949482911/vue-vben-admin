@@ -1,0 +1,79 @@
+{
+  "properties": {
+    "name": "属性名称",
+    "displayName": "显示名称",
+    "type": "属性类型",
+    "category": "分类",
+    "isRequired": "是否必填",
+    "isSystem": "是否系统",
+    "defaultValue": "默认值",
+    "validationRegex": "校验正则",
+    "typeOptions": {
+      "string": "字符串",
+      "number": "数字",
+      "boolean": "布尔",
+      "date": "时间",
+      "json": "JSON",
+      "money": "金额"
+    },
+    "categoryOptions": {
+      "device": "设备",
+      "user": "用户",
+      "event": "事件",
+      "custom": "自定义"
+    }
+  },
+  "eventConfig": {
+    "eventName": "事件名称",
+    "eventDisplayName": "事件显示名",
+    "eventType": "事件类型",
+    "eventCategory": "事件分类",
+    "eventValueType": "值类型",
+    "eventValueRequired": "值必填",
+    "eventCountEnabled": "计数启用",
+    "isCallbackEvent": "是否回调事件",
+    "callbackEventType": "回调事件类型",
+    "callbackPriority": "回调优先级",
+    "isAttributionEvent": "是否归因事件",
+    "attributionWindowOverride": "归因窗口覆盖",
+    "isSystem": "是否系统",
+    "sortOrder": "排序",
+    "attributeIds": "关联属性",
+    "description": "描述",
+    "eventTypeOptions": {
+      "behavior": "行为事件",
+      "property": "属性事件"
+    },
+    "eventCategoryOptions": {
+      "standard": "标准",
+      "custom": "自定义"
+    }
+  },
+  "attributionConfig": {
+    "name": "配置名称",
+    "attributionModel": "归因模型",
+    "clickLookbackWindow": "点击回溯窗口",
+    "exposureLookbackWindow": "曝光回溯窗口",
+    "ipLookbackWindow": "IP回溯窗口",
+    "idMatchPriority": "ID匹配优先级",
+    "callbackWindow": "回调窗口",
+    "isDefault": "是否默认",
+    "description": "描述",
+    "modelOptions": {
+      "lastClick": "最后点击",
+      "firstClick": "首次点击",
+      "timeDecay": "时间衰减"
+    }
+  },
+  "sdkConfig": {
+    "projectId": "项目",
+    "projectName": "项目名称",
+    "projectType": "项目类型",
+    "packageName": "包名",
+    "sdkKey": "SDK Key",
+    "sdkEnabled": "SDK启用",
+    "attributionConfigId": "归因配置",
+    "attributionConfigName": "归因配置名称",
+    "enabledEventIds": "关联事件"
+  }
+}
