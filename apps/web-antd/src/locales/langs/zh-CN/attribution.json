@@ -74,6 +74,15 @@
     "sdkEnabled": "SDK启用",
     "attributionConfigId": "归因配置",
     "attributionConfigName": "归因配置名称",
-    "enabledEventIds": "关联事件"
+    "enabledEventIds": "关联事件",
+    "trackingLinks": "监测链接",
+    "trackingName": "链接名称",
+    "trackingChannel": "渠道",
+    "trackingPlatform": "平台",
+    "trackingCallbackUrl": "回调地址",
+    "trackingExtraParams": "额外参数",
+    "trackingRemark": "备注",
+    "available": "可选事件",
+    "selected": "已选事件"
   }
 }

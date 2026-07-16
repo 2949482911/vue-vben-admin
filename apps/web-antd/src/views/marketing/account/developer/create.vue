@@ -26,7 +26,10 @@ const objectRequest = ref<DeveloperItem>({
   remark: "",
   status: 0,
   updateTime: "",
-  updateUsername: ""
+  updateUsername: "",
+  createdBy: "",
+  updatedBy: ""
+
 });
 const isUpdate = ref<Boolean>(false);
 

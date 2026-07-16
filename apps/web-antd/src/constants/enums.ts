@@ -58,7 +58,9 @@ export enum Platform {
   NJ_BYTEDANCE = 'nj_bytedance',
   BAIDU_BOX = 'baidu_box',
   TANGMING = "tangming",
-  MLEQUN = "mlequn"
+  MLEQUN = "mlequn",
+  // 自媒体点击处理
+  APS = "aps"
 }
 
 export enum RuleType {

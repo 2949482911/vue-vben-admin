@@ -24,6 +24,22 @@ import {eventSettlementApi} from '#/api';
 import eventMatching from './components/eventMatching.vue'
 
 
+async function handleGetActionSetId(value: string) {
+  const basicInfo = await formApi.getValues();
+  const configurationInfo = await configFormApi.getValues();
+  const res = await platformCallbackApi.fetchUserActionSetId({
+    platform: basicInfo.platform,
+    advertiserId: basicInfo.advertiserId,
+    type: configurationInfo.type,
+    typeValue: value === 'gdt' ? configurationInfo.mobile_app_id : configurationInfo.wechat_app_id,
+  });
+  if (res.userActionSetId && res.userActionSetId != null && res.userActionSetId != undefined) {
+    await configFormApi.setFieldValue('user_action_set_id', res.userActionSetId);
+  } else {
+    message.error(res.message);
+  }
+}
+
 const emit = defineEmits(['pageReload']);
 const callbackPlatform = ref<string>('');
 const eventMappingRules = ref<eventMappingType[]>([]);
@@ -40,6 +56,8 @@ const objectRequest = ref<CreatePlatformCallbackRequest | UpdatePlatformCallback
   platform: '',
   remark: '',
 });
+
+
 const isUpdate = ref<Boolean>(false);
 const modalType = ref<string>('edit');
 // 媒体配置表单
@@ -570,22 +588,8 @@ platformConfigForm.set(Platform.TENCENT_MINI_APP, [
   },
 ]);
 
-async function handleGetActionSetId(value: string) {
-  const basicInfo = await formApi.getValues();
-  const configurationInfo = await configFormApi.getValues();
-  const res = await platformCallbackApi.fetchUserActionSetId({
-    platform: basicInfo.platform,
-    advertiserId: basicInfo.advertiserId,
-    type: configurationInfo.type,
-    typeValue: value === 'gdt' ? configurationInfo.mobile_app_id : configurationInfo.wechat_app_id,
-  });
-  if (res.userActionSetId && res.userActionSetId != null && res.userActionSetId != undefined) {
-    await configFormApi.setFieldValue('user_action_set_id', res.userActionSetId);
-  } else {
-    message.error(res.message);
-  }
-}
-
+// 自媒体
+platformConfigForm.set(Platform.APS, [])
 // oppo push
 platformConfigForm.set(Platform.OPPO_PUSH, [
   {

@@ -2,17 +2,17 @@ import type { BaseItem, PageRequestParams } from "#/api/models/core";
 
 
 export interface EventConfigPageRequest extends PageRequestParams {
-  eventName: string;
-  eventDisplayName: string;
-  eventType: string;
-  eventCategory: string;
-  eventValueType: string;
-  eventValueRequired: boolean;
-  eventCountEnabled: boolean;
-  isCallbackEvent: boolean;
-  callbackEventType: string;
-  isAttributionEvent: boolean;
-  isSystem: boolean;
+  eventName?: string;
+  eventDisplayName?: string;
+  eventType?: string;
+  eventCategory?: string;
+  eventValueType?: string;
+  eventValueRequired?: boolean;
+  eventCountEnabled?: boolean;
+  isCallbackEvent?: boolean;
+  callbackEventType?: string;
+  isAttributionEvent?: boolean;
+  isSystem?: boolean;
 }
 
 /**
@@ -24,7 +24,7 @@ export interface EventConfigItem extends BaseItem {
   // behavior 行为事件
   // property 属性事件
   eventType: string;
-   // STANDARD/CUSTOM
+  // STANDARD/CUSTOM
   eventCategory: string;
   //
   eventValueType: string;
@@ -42,7 +42,7 @@ export interface EventConfigItem extends BaseItem {
 }
 
 
-export interface EventAttributePageRequest extends PageRequestParams{
+export interface EventAttributePageRequest extends PageRequestParams {
   name: string;
   displayName: string;
   type: string;
@@ -131,7 +131,7 @@ export interface UpdateEventAttributeRequest extends CreateEventAttributeRequest
  * 归因配置表
  */
 export interface AttributionConfigPageRequest extends PageRequestParams {
-  name: string;
+  name?: string;
   attributionModel?: string;
   isDefault?: boolean;
 }
@@ -163,7 +163,7 @@ export interface CreateAttributionConfigRequest {
 }
 
 
-export interface UpdateAttributionConfigRequest extends CreateAttributionConfigRequest{
+export interface UpdateAttributionConfigRequest extends CreateAttributionConfigRequest {
   id: string;
 }
 
@@ -176,7 +176,7 @@ export interface SdkAppConfigListPageRequest extends PageRequestParams {
 }
 
 
-export interface SdkAppConfigItem extends BaseItem{
+export interface SdkAppConfigItem extends BaseItem {
   projectId: string;
   projectName: string;
   projectType: string;
@@ -187,13 +187,35 @@ export interface SdkAppConfigItem extends BaseItem{
   attributionConfigName: string;
   enabledEventIds: Array<number>;
   eventConfigItems: Array<EventConfigItem>;
+  trackingLinkItems: Array<TrackingLinkItem>;
 }
 
+export interface CreateTrackingLinkRequest {
+  name: string;
+  channel: string;
+  sdkAppConfigId: string;
+  platform: string;
+  extraParams: any;
+  callbackUrl: string;
+  remark: string;
+}
+
+export interface UpdateTrackingLinkRequest extends CreateTrackingLinkRequest {
+  id: string;
+}
+
+
+export interface TrackingLinkItem extends BaseItem {
+  name: string;
+  channel: string;
+
+}
 
 export interface CreateSdkAppRequest {
   projectId: string;
   attributionConfigId: string;
   enabledEventIds: Array<string>;
+  trackingLinks: Array<UpdateTrackingLinkRequest>;
 }
 
 

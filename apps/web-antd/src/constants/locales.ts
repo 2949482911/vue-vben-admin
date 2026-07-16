@@ -227,6 +227,10 @@ export const PLATFORM = [
     label: 'UBI',
     value: 'ubi',
   },
+  {
+    label: `${$t('ocpx.platform.aps')}`,
+    value: 'aps',
+  },
 ];
 
 /**
@@ -338,16 +342,20 @@ export const DEVELOPER_AUTH_ACCOUNT_PLATFORM = [
     value: 'tb',
   },
   {
-    label: '华为商店',
+    label: `${$t('ocpx.platform.huawei_store')}`,
     value: 'huawei_store',
   },
   {
-    label: '华为Ads',
+    label: `${$t('ocpx.platform.huawei')}`,
     value: 'huawei',
   },
   {
-    label: 'OPPO',
+    label: `${$t('ocpx.platform.oppo')}`,
     value: 'oppo',
+  },
+  {
+    label: `${$t('ocpx.platform.bytedance')}`,
+    value: 'bytedance',
   },
 ];
 
@@ -524,6 +532,11 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.mlequn')}`,
     value: 'mlequn',
   },
+
+  {
+    label: `${$t('ocpx.platform.aps')}`,
+    value: 'aps',
+  },
 ];
 
 // 匹配下拉
@@ -595,9 +608,13 @@ export const ACTIVE_PLATFORM = [
   },
 
   {
-    label: 'tencent',
+    label: `${$t('ocpx.platform.tencent')}`,
     value: 'tencent',
   },
+  {
+    label: `${$t('ocpx.platform.bytedance')}`,
+    value: 'bytedance'
+  }
 ];
 
 /**

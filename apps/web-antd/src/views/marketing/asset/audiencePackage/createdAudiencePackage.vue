@@ -4,16 +4,17 @@ import { useVbenForm, useVbenDrawer } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 import { computed, ref } from 'vue';
 import { ACTIVE_PLATFORM } from '#/constants/locales';
-import type { AdOppoConfig, AdVivoConfig } from './audiencePackageType';
+import type { AdBytedanceConfig, AdOppoConfig, AdVivoConfig } from './audiencePackageType';
 import { trimObject } from '#/utils/trim';
 import Vivo_audienceForm from './vivoAudience/vivo_audienceForm.vue';
 import Oppo_audienceForm from './oppoAudience/oppo_audienceForm.vue';
 import HuaWeiStoreAudienceForm from './huaweistoreAudience/huawei_store_audienceForm.vue';
 import TencentAudienceForm from './tencent/tencent_audienceForm.vue';
+import BytedanceAudienceForm from './bytedance/bytedance_audienceForm.vue';
 import {Platform} from "#/constants/enums";
 
 const props = defineProps<{
-  displayValue?: AdVivoConfig | AdOppoConfig;
+  displayValue?: AdVivoConfig | AdOppoConfig | AdBytedanceConfig;
 }>();
 
 const emit = defineEmits(['pageReload']);
@@ -21,6 +22,7 @@ const vivoAudienceRef = ref();
 const oppoAudienceRef = ref();
 const huaWeiStoreAudienceRef = ref();
 const tencentAudienceRef = ref();
+const bytedanceAudienceRef = ref();
 const localAdId = ref<string>();
 const platformConfig = ref<string | undefined>();
 //传给oppo的广告主，因为oppo的地域需要广告主才能查询
@@ -43,6 +45,8 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
       configData = await huaWeiStoreAudienceRef.value.submitHuaweiStoreConfig();
     } else if (platformConfig.value === Platform.TENCENT) {
       configData = await tencentAudienceRef.value.submitTencentConfig();
+    } else if (platformConfig.value === Platform.BYTEDANCE) {
+      configData = await bytedanceAudienceRef.value.submitBytedanceConfig();
     }
     const result = await formApi.validate();
     if (!result.valid) {
@@ -95,6 +99,8 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
         await huaWeiStoreAudienceRef.value.echoHuaweiStoreConfig(data);
       } else if (platformConfig.value == Platform.TENCENT) {
         await tencentAudienceRef.value.echoTencentConfig(data);
+      } else if (platformConfig.value == Platform.BYTEDANCE) {
+        await bytedanceAudienceRef.value.echoBytedanceConfig(data);
       }
     } else {
       await popUpCancel();
@@ -115,6 +121,8 @@ async function popUpCancel() {
     await huaWeiStoreAudienceRef.value.popUpCancel();
   } else if (platformConfig.value == Platform.TENCENT) {
     await tencentAudienceRef.value.popUpCancel();
+  } else if (platformConfig.value == Platform.BYTEDANCE) {
+    await bytedanceAudienceRef.value.popUpCancel();
   }
 }
 
@@ -216,6 +224,7 @@ const [Form, formApi] = useVbenForm({
       <Oppo_audienceForm v-if="platformConfig === Platform.OPPO" ref="oppoAudienceRef" :advertiser-id="platformAdId"/>
       <HuaWeiStoreAudienceForm v-if="platformConfig === Platform.HUAWEI_STORE" ref="huaWeiStoreAudienceRef" :advertiser-id="platformAdId"/>
       <TencentAudienceForm v-if="platformConfig === Platform.TENCENT" ref="tencentAudienceRef" :advertiser-id="platformAdId"/>
+      <BytedanceAudienceForm v-if="platformConfig === Platform.BYTEDANCE" ref="bytedanceAudienceRef" />
     </titlePackageDrawer>
   </div>
 </template>

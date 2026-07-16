@@ -806,6 +806,9 @@ platformConfigForm.set(Platform.TANGMING, [
 
 ])
 
+// aps 自媒体点击接收处理
+platformConfigForm.set(Platform.APS, [])
+
 //增加tbkId输入框
 function batchAddSchema() {
   configFormApi.setState((prev) => {

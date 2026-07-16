@@ -74,6 +74,15 @@
     "sdkEnabled": "SDK Enabled",
     "attributionConfigId": "Attribution Config",
     "attributionConfigName": "Attribution Config Name",
-    "enabledEventIds": "Enabled Events"
+    "enabledEventIds": "Enabled Events",
+    "trackingLinks": "Tracking Links",
+    "trackingName": "Link Name",
+    "trackingChannel": "Channel",
+    "trackingPlatform": "Platform",
+    "trackingCallbackUrl": "Callback URL",
+    "trackingExtraParams": "Extra Params",
+    "trackingRemark": "Remark",
+    "available": "Available",
+    "selected": "Selected"
   }
 }
