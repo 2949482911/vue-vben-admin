@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { $t } from '@vben/locales';
 import {
   Row,
   Col,
@@ -11,21 +12,60 @@ import {
   message,
 } from 'ant-design-vue';
 import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
-import { nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import type { ComponentPublicInstance } from 'vue';
 import NewFolder from './newFolder.vue';
 import UploadMaterials from './uploadMaterials.vue';
 import AlbumFiles from './albumFiles.vue';
+import PushMaterialDrawer from './PushMaterialDrawer.vue';
+import PushTaskListDrawer from './PushTaskListDrawer.vue';
 import { materialLibraryApi } from '#/api/core';
 import type { TreeProps } from 'ant-design-vue';
 import type { Key } from 'ant-design-vue/es/vc-tree-select/interface';
 import type { FolderItem } from '#/api/models';
+import type { MaterialItem } from '#/api/models/assert';
 import type { MaterialLibraryFolderType } from './materialType';
 
 // 树的数据
 const treeData = ref<TreeProps['treeData']>([]);
 const expandedKeys = ref<Key[]>([]);
-
 const selectedKeys = ref<string[]>([]);
+
+// ==================== 素材选中状态 ====================
+const selectedMaterials = ref<MaterialItem[]>([]);
+const selectedMaterialIds = computed(() =>
+  selectedMaterials.value.map((m) => m.id),
+);
+
+/** AlbumFiles 组件引用，用于获取当前页文件列表 */
+const albumFilesRef = ref<ComponentPublicInstance<{ currentPageFiles: MaterialItem[] }>>();
+
+/** 全选当前页 */
+function handleSelectAllCurrentPage() {
+  const files = albumFilesRef.value?.currentPageFiles ?? [];
+  if (files.length === 0) return;
+  const fileIds = new Set(files.map((f) => f.id));
+  const allSelected = files.every((f) => selectedMaterialIds.value.includes(f.id));
+  if (allSelected) {
+    // 取消当前页全选
+    selectedMaterials.value = selectedMaterials.value.filter(
+      (m) => !fileIds.has(m.id),
+    );
+  } else {
+    // 当前页全选
+    const existingIds = new Set(selectedMaterialIds.value);
+    for (const m of files) {
+      if (!existingIds.has(m.id)) {
+        selectedMaterials.value.push(m);
+      }
+    }
+  }
+}
+
+/** 清空所有选中 */
+function handleClearSelection() {
+  selectedMaterials.value = [];
+}
 
 onMounted(async () => {
   await requestTreeNode();
@@ -36,20 +76,13 @@ async function requestTreeNode() {
   treeData.value = res;
   if (res && res.length > 0) {
     const firstNode = res[0];
-
-    // 1. 设置路径数组（供子组件面包屑使用）
     treeItem.value = [firstNode];
-
-    // 2. 关键：设置选中状态的高亮 key
-    // 注意：Tree 组件的 key 通常是 string，如果接口返回的是 number，建议 String() 转换一下
     selectedKeys.value = [firstNode.id];
-
-    // 3. 可选：如果你希望默认展开第一个节点
     expandedKeys.value = [firstNode.id];
   }
 }
 
-//--------新建文件夹弹框------------
+// ==================== 新建文件夹 ====================
 const [NewFolderModal, newFolderApi] = useVbenModal({
   connectedComponent: NewFolder,
 });
@@ -57,16 +90,15 @@ const [NewFolderModal, newFolderApi] = useVbenModal({
 const idEditStr = ref<MaterialLibraryFolderType | null>(null);
 async function newBuilt(row?: MaterialLibraryFolderType) {
   if (row) {
-    idEditStr.value = { ...row }; // 使用解构防止引用污染
+    idEditStr.value = { ...row };
   } else {
     idEditStr.value = null;
   }
-
   await nextTick();
   newFolderApi.open();
 }
 
-//--------上传素材弹框------------
+// ==================== 上传素材 ====================
 const [UploadMaterialsModal, drawerApi] = useVbenDrawer({
   connectedComponent: UploadMaterials,
 });
@@ -75,15 +107,49 @@ function upMaterial() {
   drawerApi.open();
 }
 
-function findPathNodes(tree: any[], targetId: string | number, path: any[] = []): any[] | null {
-  for (const node of tree) {
-    // 记录当前路径
-    const currentPath = [...path, node];
+// ==================== 推送素材 ====================
+const [PushMaterialDrawerModal, pushMaterialDrawerApi] = useVbenDrawer({
+  connectedComponent: PushMaterialDrawer,
+});
 
+function openPushMaterialDrawer() {
+  if (selectedMaterials.value.length === 0) {
+    message.warning($t('page.marketing.asset.pushDrawer.selectMaterialFirst'));
+    return;
+  }
+  pushMaterialDrawerApi.open();
+}
+
+// ==================== 推送任务记录 ====================
+const [PushTaskListDrawerModal, pushTaskListDrawerApi] = useVbenDrawer({
+  connectedComponent: PushTaskListDrawer,
+});
+
+function openPushTaskListDrawer() {
+  pushTaskListDrawerApi.open();
+}
+
+// ==================== 素材选择处理 ====================
+function handleToggleMaterialSelect(material: MaterialItem) {
+  const idx = selectedMaterials.value.findIndex((m) => m.id === material.id);
+  if (idx >= 0) {
+    selectedMaterials.value.splice(idx, 1);
+  } else {
+    selectedMaterials.value.push(material);
+  }
+}
+
+// ==================== 树操作 ====================
+function findPathNodes(
+  tree: any[],
+  targetId: string | number,
+  path: any[] = [],
+): any[] | null {
+  for (const node of tree) {
+    const currentPath = [...path, node];
     if (node.id === targetId) {
       return currentPath;
     }
-
     if (node.children && node.children.length > 0) {
       const result = findPathNodes(node.children, targetId, currentPath);
       if (result) return result;
@@ -92,11 +158,19 @@ function findPathNodes(tree: any[], targetId: string | number, path: any[] = [])
   return null;
 }
 
-//树结点的选择
 const treeItem = ref<FolderItem[]>();
+
+// 切换文件夹时清空选中
+watch(
+  () => treeItem.value,
+  () => {
+    selectedMaterials.value = [];
+  },
+);
+
 function itemFile(_selectedKeys: Key[], info: any) {
   if (info.selected) {
-    const nodeId = info.node.key; // 或者 info.node.id
+    const nodeId = info.node.key;
     const fullPath = findPathNodes(treeData.value || [], nodeId);
     if (fullPath) {
       treeItem.value = fullPath;
@@ -104,19 +178,14 @@ function itemFile(_selectedKeys: Key[], info: any) {
   }
 }
 
-// 处理面包屑点击回跳
 function handleBreadcrumbJump(item: FolderItem) {
-  // 同步左侧树的高亮
   selectedKeys.value = [item.id as string];
-
-  // 重新计算路径（确保拼接完整）
   const fullPath = findPathNodes(treeData.value || [], item.id);
   if (fullPath) {
     treeItem.value = fullPath;
   }
 }
 
-// 删除文件夹
 async function deleteFolder(folder: MaterialLibraryFolderType) {
   try {
     const params = {
@@ -126,7 +195,7 @@ async function deleteFolder(folder: MaterialLibraryFolderType) {
     };
     await materialLibraryApi.fetchDelFolder(params);
     message.success('删除成功');
-    await requestTreeNode(); // 刷新树数据
+    await requestTreeNode();
   } catch (error) {
     message.error('删除失败');
     console.error('删除文件夹失败:', error);
@@ -179,14 +248,45 @@ async function deleteFolder(folder: MaterialLibraryFolderType) {
       <Col class="rightCol" :span="18">
         <Card style="width: 100%">
           <div class="materialRight" style="height: 100%">
-            <div>
-              <Button type="primary" @click="upMaterial">上传素材</Button>
-              <Button style="margin: 0 0 0 5px" @click="newBuilt()">新建文件夹</Button>
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <Button type="primary" @click="upMaterial">上传素材</Button>
+                <Button style="margin: 0 5px" @click="newBuilt()">新建文件夹</Button>
+                <Button
+                  type="primary"
+                  :disabled="selectedMaterials.length === 0"
+                  @click="openPushMaterialDrawer"
+                >
+                  {{ $t('page.marketing.asset.pushMaterial') }}
+                  <span v-if="selectedMaterials.length > 0" class="selected-count">
+                    ({{ selectedMaterials.length }})
+                  </span>
+                </Button>
+                <Button style="margin: 0 5px" @click="openPushTaskListDrawer">
+                  {{ $t('page.marketing.asset.pushTaskRecord') }}
+                </Button>
+                <Button
+                  style="margin: 0 5px"
+                  @click="handleSelectAllCurrentPage"
+                >
+                  {{ $t('page.marketing.asset.pushDrawer.selectAllCurrentPage') }}
+                </Button>
+                <Button
+                  danger
+                  :disabled="selectedMaterials.length === 0"
+                  @click="handleClearSelection"
+                >
+                  {{ $t('page.marketing.asset.pushDrawer.clearSelection') }}
+                </Button>
+              </div>
             </div>
             <AlbumFiles
+              ref="albumFilesRef"
               @open-file="newBuilt"
               @breadcrumb-click="handleBreadcrumbJump"
+              @toggle-material-select="handleToggleMaterialSelect"
               :treeItem="treeItem ?? []"
+              :selectedMaterialIds="selectedMaterialIds"
             />
           </div>
         </Card>
@@ -194,6 +294,11 @@ async function deleteFolder(folder: MaterialLibraryFolderType) {
     </Row>
     <NewFolderModal @treeNode="requestTreeNode" :treeData="treeData" :idEdit="idEditStr" />
     <UploadMaterialsModal @treeNode="requestTreeNode" :treeData="treeData" />
+    <PushMaterialDrawerModal
+      @closed="selectedMaterials = []"
+      :materials="selectedMaterials"
+    />
+    <PushTaskListDrawerModal />
   </Page>
 </template>
 
@@ -286,7 +391,22 @@ async function deleteFolder(folder: MaterialLibraryFolderType) {
   align-items: center;
 }
 
-// .maskDebris{
-//   padding: 10px 0;
-// }
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
+.selected-count {
+  margin-left: 2px;
+  font-weight: 600;
+}
 </style>

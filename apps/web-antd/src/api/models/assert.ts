@@ -1,4 +1,4 @@
-import type { BaseItem } from "#/api/models/core";
+import type { BaseItem, PageRequestParams } from "#/api/models/core";
 
 
 /**
@@ -45,5 +45,75 @@ export interface AlbumItem extends BaseItem {
 export interface PageViewItem extends BaseItem {
   name: string;
   platform: string;
-  config: object
+  config: object;
+}
+
+
+/**
+ * 素材推送
+ */
+export interface CreateMaterialPushTaskRequest {
+  platform: string;
+  name: string;
+  materialIds: Array<string>;
+  advertiserIds: Array<string>;
+}
+
+
+/**
+ * push任务推送
+ */
+export interface PushTaskPageRequest extends PageRequestParams {
+  name: string;
+  platform: string;
+  taskStatus: number;
+}
+
+
+/**
+ * 素材推送任务
+ */
+export interface PushMaterialTaskItem extends BaseItem {
+  name: string;
+  platform: string;
+  materialIds: Array<string>;
+  accountIds: Array<string>;
+  totalCount: number;
+  successCount: number;
+  failedCount: number;
+  skipCount: number;
+  taskStatus: number;
+  startTime: string;
+  endTime: string;
+  version: number;
+}
+
+
+/**
+ * 进度响应
+ */
+export interface PushMaterialTaskProgressVO {
+  taskId: string;
+  taskStatus: string;
+  taskStatusName: string;
+  totalCount: number;
+  successCount: number;
+  failedCount: number;
+  skipCount: number;
+  pendingCount: number;
+  progressPercent: number;
+  items: Array<PushMaterialTaskProgressItem>
+}
+
+// 具体的进度
+export interface PushMaterialTaskProgressItem{
+  materialId: string;
+  materialName: string;
+  advertiserId: string;
+  advertiserName: string;
+  status: string;
+  platformMaterialId: string;
+  platformVideoImgId: string;
+  errorMessage: string;
+  retryCount: number;
 }

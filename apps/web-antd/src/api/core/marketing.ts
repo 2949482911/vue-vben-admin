@@ -1,5 +1,5 @@
-import {BaseApi} from '#/api/core/baseapi';
-import {customRequest} from '#/api/customRequest';
+import { BaseApi } from "#/api/core/baseapi";
+import { customRequest } from "#/api/customRequest";
 import type {
   AccountChildResponse,
   AdCompanyOptionsType,
@@ -66,11 +66,16 @@ import type {
   UpdateStrategyGropType,
   UpdateSubscribeType,
   VirtualLocationType,
-  VivoSubmitType,
-} from '#/api/models/marketing';
-import {requestClient} from '#/api/request';
-import type {BatchOptions} from '#/api/models/core';
-import type { AlbumItem, PageViewItem } from "#/api/models/assert";
+  VivoSubmitType
+} from "#/api/models/marketing";
+import { requestClient } from "#/api/request";
+import type { BatchOptions } from "#/api/models/core";
+import type {
+  AlbumItem,
+  CreateMaterialPushTaskRequest,
+  PageViewItem, PushMaterialTaskItem, PushMaterialTaskProgressVO,
+  PushTaskPageRequest
+} from "#/api/models/assert";
 import type { VivoQualification } from "#/api/models/vivo";
 
 /**
@@ -78,23 +83,23 @@ import type { VivoQualification } from "#/api/models/vivo";
  */
 class DeveloperApi extends BaseApi {
   fetchDeveloperList(params: DeveloperPageRequest) {
-    return requestClient.get<DeveloperListResponse>(this.getServiceUrl('list'), {params: params});
+    return requestClient.get<DeveloperListResponse>(this.getServiceUrl("list"), { params: params });
   }
 
   fetchCreateDeveloper(params: CreateDeveloperRequest) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   fetchUpdateDeveloper(params: UpdateDeveloperRequest) {
-    return requestClient.post(this.getServiceUrl('update'), params);
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 
   fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 }
 
-export const developerApi = new DeveloperApi('/platform/developer');
+export const developerApi = new DeveloperApi("/platform/developer");
 
 /**
  * 账户
@@ -105,26 +110,26 @@ class AdvertiserApi extends BaseApi {
    * @param params
    */
   fetchAuthUrl(params: AuthAdvertiserRequest) {
-    return requestClient.get(this.getServiceUrl('auth_url'), {params});
+    return requestClient.get(this.getServiceUrl("auth_url"), { params });
   }
 
   /**广告主List */
   fetchAdvertiserList(params: AdvertiserPageRequest) {
-    return requestClient.get<PageResponse<AdvertiserItem>>(this.getServiceUrl('list'), {params});
+    return requestClient.get<PageResponse<AdvertiserItem>>(this.getServiceUrl("list"), { params });
   }
 
   /**华为商店新增接口 */
   fetchCreateAdvertiser(params: AdvertiserDeveloperBindRequest) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   /**华为商店更新接口 */
   fetchUpdateAdvertiser(params: UpdateAdvertiserRequest) {
-    return requestClient.post(this.getServiceUrl('update'), params);
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 
   fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
   /**
@@ -132,8 +137,8 @@ class AdvertiserApi extends BaseApi {
    * @param id
    */
   fetchAccountChild(id: string) {
-    return requestClient.get<AccountChildResponse>(this.getServiceUrl('account_child'), {
-      params: {id: id},
+    return requestClient.get<AccountChildResponse>(this.getServiceUrl("account_child"), {
+      params: { id: id }
     });
   }
 
@@ -142,74 +147,74 @@ class AdvertiserApi extends BaseApi {
    * @param data
    */
   fetchImportChild(data: ImportChildRequest) {
-    return requestClient.post(this.getServiceUrl('import_child'), data);
+    return requestClient.post(this.getServiceUrl("import_child"), data);
   }
 
   /**账户消耗详情 */
   fetchAdvertiserCostDetail(data: AdvertiserCostDetailType) {
-    return requestClient.post(this.getServiceUrl('advertiser_cost_detail'), data);
+    return requestClient.post(this.getServiceUrl("advertiser_cost_detail"), data);
   }
 
   /**账户消耗详情-appName下拉 */
   fetchAdvertiserAppOptions(params: AppNameOptionsType) {
-    return requestClient.get(this.getServiceUrl('app'), {params});
+    return requestClient.get(this.getServiceUrl("app"), { params });
   }
 
   /**账户消耗详情-账户名字下拉 */
   fetchAdCompanyOptions(params: AdCompanyOptionsType) {
-    return requestClient.get(this.getServiceUrl('advertiser_company'), {params});
+    return requestClient.get(this.getServiceUrl("advertiser_company"), { params });
   }
 
   /**广告主-获取下载模版 */
   fetchDownloadTemplate(params: AdCompanyOptionsType) {
-    return requestClient.get(this.getServiceUrl('template'), {params});
+    return requestClient.get(this.getServiceUrl("template"), { params });
   }
 
   /**广告主-导入Excel数据 */
   fetchImportData(data: FormData, platform: string) {
     // 拼接完整 URL
     // 直接使用 customRequest 发送，它会自动拼接 baseURL
-    return customRequest.post(this.getServiceUrl('import'), data, {
-      params: {platform},
+    return customRequest.post(this.getServiceUrl("import"), data, {
+      params: { platform }
       // 不需要手动设置 headers['Content-Type']，axios 会根据 data 类型自动设置
     });
   }
 
   /**广告主-导出数据 */
   fetchExportAllData(params: ExportAllDataType) {
-    return requestClient.get(this.getServiceUrl('export'), {params});
+    return requestClient.get(this.getServiceUrl("export"), { params });
   }
 }
 
-export const advertiserApi = new AdvertiserApi('/platform/advertiser');
+export const advertiserApi = new AdvertiserApi("/platform/advertiser");
 
 class AdvertiserReportApi extends BaseApi {
   // 拉取历史数据
   fetchHistoryList(params: AdvertiserPageRequest) {
-    return requestClient.get(this.getServiceUrl('list'), {params});
+    return requestClient.get(this.getServiceUrl("list"), { params });
   }
 }
 
-export const advertiserReportApi = new AdvertiserReportApi('/platform/advertiser_report_task');
+export const advertiserReportApi = new AdvertiserReportApi("/platform/advertiser_report_task");
 
 // 指标接口
 
 class MetricApi extends BaseApi {
   fetchCreateSystemMetric(params: CreateSystemMetric) {
-    return requestClient.post(this.getServiceUrl('create_system_metric'), params);
+    return requestClient.post(this.getServiceUrl("create_system_metric"), params);
   }
 
   fetchCreateMetric(params: CreateSystemMetric) {
-    return requestClient.post(this.getServiceUrl('create_metric'), params);
+    return requestClient.post(this.getServiceUrl("create_metric"), params);
   }
 
   fetchUpdateMetric(params: UpdateMetric) {
-    return requestClient.post(this.getServiceUrl('update'), params);
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 
   fetchSystemMetricList(params: SystemMetricPageRequest) {
-    return requestClient.get<MetricItem>(this.getServiceUrl('system_metric_list'), {
-      params,
+    return requestClient.get<MetricItem>(this.getServiceUrl("system_metric_list"), {
+      params
     });
   }
 
@@ -217,57 +222,57 @@ class MetricApi extends BaseApi {
    * 获取查询指标列表
    */
   fetchMetric(params: MetricPageRequest) {
-    return requestClient.get<MetricItem>(this.getServiceUrl('query_metric'), {params});
+    return requestClient.get<MetricItem>(this.getServiceUrl("query_metric"), { params });
   }
 
   fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 }
 
-export const metricApi = new MetricApi('/platform/metric');
+export const metricApi = new MetricApi("/platform/metric");
 
 // 指标类目
 class MetricGroupApi extends BaseApi {
   fetchGetMetricGroupList(params: MetricGroupPageRequest) {
-    return requestClient.get(this.getServiceUrl('list'), {params});
+    return requestClient.get(this.getServiceUrl("list"), { params });
   }
 
   fetchNewMetricGroupList(params: MetricGroupType) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   fetchUpdateMetricGroupList(params: UpdateMetricGroupType) {
-    return requestClient.post(this.getServiceUrl('update'), params);
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 
   fetchDelMetricGroupList(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 }
 
-export const metricGroupApi = new MetricGroupApi('/platform/metric_group');
+export const metricGroupApi = new MetricGroupApi("/platform/metric_group");
 
 /**
  * report data
  */
 class ReportApi extends BaseApi {
   fetchAdReport(params: AdReportRequest) {
-    return requestClient.post<AdReportResponse>(this.getServiceUrl('adreport'), params);
+    return requestClient.post<AdReportResponse>(this.getServiceUrl("adreport"), params);
   }
 
   /**广告效果数据-计划、广告、广告组、创意联动下拉 */
   fetchAdLinkage(params: PlatformMatchRequest) {
-    return requestClient.post(this.getServiceUrl('stat_select'), params);
+    return requestClient.post(this.getServiceUrl("stat_select"), params);
   }
 
   // 测试报表发送
   fetchTestReport(id: string) {
-    return requestClient.get(this.getServiceUrl('test_scribe'), {params: {id: id}});
+    return requestClient.get(this.getServiceUrl("test_scribe"), { params: { id: id } });
   }
 }
 
-export const reportApi = new ReportApi('/platform/report');
+export const reportApi = new ReportApi("/platform/report");
 
 /**
  * project
@@ -275,46 +280,46 @@ export const reportApi = new ReportApi('/platform/report');
 
 class ProjectApi extends BaseApi {
   fetchProjectList(params: ProjectPageRequest) {
-    return requestClient.get<PageResult>(this.getServiceUrl('list'), {params});
+    return requestClient.get<PageResult>(this.getServiceUrl("list"), { params });
   }
 
   fetchCreateProject(data: CreateProjectRequest) {
-    return requestClient.post(this.getServiceUrl('create_project'), data);
+    return requestClient.post(this.getServiceUrl("create_project"), data);
   }
 
   fetchUpdateProject(data: UpdateProjectRequest) {
-    return requestClient.post(this.getServiceUrl('update_project'), data);
+    return requestClient.post(this.getServiceUrl("update_project"), data);
   }
 
   fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 }
 
-export const projectApi = new ProjectApi('/platform/project');
+export const projectApi = new ProjectApi("/platform/project");
 
 /**
  * 报表保存模板
  */
 class ReportTemplateApi extends BaseApi {
   fetchReportTemplate(params: ReportTemplate) {
-    return requestClient.post(this.getServiceUrl('template_create'), params);
+    return requestClient.post(this.getServiceUrl("template_create"), params);
   }
 
   fetchUpdateTemplate(params: UpdateReportTemplate) {
-    return requestClient.post(this.getServiceUrl('template_update'), params);
+    return requestClient.post(this.getServiceUrl("template_update"), params);
   }
 
   fetchGetTemplateList(params: templateListType) {
-    return requestClient.get(this.getServiceUrl('template_list'), {params: params});
+    return requestClient.get(this.getServiceUrl("template_list"), { params: params });
   }
 
   fetchDelTemplate(params: delTemplate) {
-    return requestClient.post(this.getServiceUrl('template_batch_options'), params);
+    return requestClient.post(this.getServiceUrl("template_batch_options"), params);
   }
 }
 
-export const reportTemplateApi = new ReportTemplateApi('/platform/report_configuration');
+export const reportTemplateApi = new ReportTemplateApi("/platform/report_configuration");
 
 /**
  * 素材库
@@ -322,26 +327,26 @@ export const reportTemplateApi = new ReportTemplateApi('/platform/report_configu
 class MaterialLibraryApi extends BaseApi {
   /**目录树*/
   fetchDirectoryTreeList() {
-    return requestClient.get<AlbumItem>(this.getServiceUrl('tree'));
+    return requestClient.get<AlbumItem>(this.getServiceUrl("tree"));
   }
 
   /**创建文件夹*/
   fetchCreateFile(params: CreateFolderParams) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   /**编辑文件夹*/
   fetchUpdateFile(params: CreateFolderParams) {
-    return requestClient.post(this.getServiceUrl('update'), params);
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 
   /**删除文件夹*/
   fetchDelFolder(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 }
 
-export const materialLibraryApi = new MaterialLibraryApi('/platform/album');
+export const materialLibraryApi = new MaterialLibraryApi("/platform/album");
 
 /**
  * 素材库
@@ -349,26 +354,26 @@ export const materialLibraryApi = new MaterialLibraryApi('/platform/album');
 class UploadEditApi extends BaseApi {
   /**上传素材*/
   fetchUploadMaterials(params: FileInfo) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   /**编辑素材*/
   fetchEditMaterials(params: EditPaletteParams) {
-    return requestClient.post(this.getServiceUrl(''), params);
+    return requestClient.post(this.getServiceUrl(""), params);
   }
 
   /**素材列表*/
   fetchMaterialList(params: MaterialListParams) {
-    return requestClient.get(this.getServiceUrl('list'), {params});
+    return requestClient.get(this.getServiceUrl("list"), { params });
   }
 
   /**删除素材*/
   fetchDelMaterials(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 }
 
-export const uploadEditApi = new UploadEditApi('/platform/material');
+export const uploadEditApi = new UploadEditApi("/platform/material");
 
 /**
  * 素材库文件上传凭证
@@ -376,11 +381,11 @@ export const uploadEditApi = new UploadEditApi('/platform/material');
 class UploadCredentialsApi extends BaseApi {
   /**上传凭证*/
   fetchEvidence() {
-    return requestClient.get(this.getServiceUrl('sts_token'));
+    return requestClient.get(this.getServiceUrl("sts_token"));
   }
 }
 
-export const uploadCredentialsApi = new UploadCredentialsApi('/platform/aliyun');
+export const uploadCredentialsApi = new UploadCredentialsApi("/platform/aliyun");
 
 /**
  * 营销-资产-标题包
@@ -388,21 +393,21 @@ export const uploadCredentialsApi = new UploadCredentialsApi('/platform/aliyun')
 class TitlePackApi extends BaseApi {
   /**标题包查询*/
   fetchGetTitlePack(params: GetTitlePackType) {
-    return requestClient.get(this.getServiceUrl('list'), {params});
+    return requestClient.get(this.getServiceUrl("list"), { params });
   }
 
   /**标题包删除*/
   fetchDelTitlePack(params: DelTitlePackType) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
   /**标题包新建*/
   fetchNewTitlePack(params: TitlePackItem) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 }
 
-export const titlePackApi = new TitlePackApi('/platform/titlePackage');
+export const titlePackApi = new TitlePackApi("/platform/titlePackage");
 
 /**
  * 营销-资产-定向包
@@ -410,26 +415,26 @@ export const titlePackApi = new TitlePackApi('/platform/titlePackage');
 class TargetedPackageApi extends BaseApi {
   /**定向包查询*/
   fetchGetTitleTargetedPackage(params: GetTargetedPackageType) {
-    return requestClient.get(this.getServiceUrl('list'), {params});
+    return requestClient.get(this.getServiceUrl("list"), { params });
   }
 
   /**定向包删除*/
   fetchDelTargetedPackage(params: DelTitlePackType) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
   /**定向包新建*/
   fetchNewTargetedPackage(params: NewTargetedPackageType) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   /**定向包修改*/
   fetchModifyTargetedPackage(params: NewTargetedPackageType) {
-    return requestClient.post(this.getServiceUrl('update'), params);
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 }
 
-export const targetedPackageApi = new TargetedPackageApi('/platform/audience_package');
+export const targetedPackageApi = new TargetedPackageApi("/platform/audience_package");
 
 /**
  * 创编任务
@@ -437,21 +442,21 @@ export const targetedPackageApi = new TargetedPackageApi('/platform/audience_pac
 class CreationTaskApi extends BaseApi {
   /**任务列表查询*/
   fetchGetCreationTaskList(params: GetCreationTaskType) {
-    return requestClient.get(this.getServiceUrl('list'), {params});
+    return requestClient.get(this.getServiceUrl("list"), { params });
   }
 
   /**批投提交审核*/
   fetchVivoSubmitReview(params: VivoSubmitType) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   /**批投提交审核*/
   fetchVivoSubmitResult(params: { id: string }) {
-    return requestClient.get(this.getServiceUrl('create_result'), {params});
+    return requestClient.get(this.getServiceUrl("create_result"), { params });
   }
 }
 
-export const creationTaskApi = new CreationTaskApi('/platform/advertisement_batch_create');
+export const creationTaskApi = new CreationTaskApi("/platform/advertisement_batch_create");
 
 /**
  * 账户标签
@@ -459,26 +464,26 @@ export const creationTaskApi = new CreationTaskApi('/platform/advertisement_batc
 class AccountLabelApi extends BaseApi {
   /**标签列表查询*/
   fetchGetAccountLabelList(params: GetLabelItemType) {
-    return requestClient.get(this.getServiceUrl('list'), {params});
+    return requestClient.get(this.getServiceUrl("list"), { params });
   }
 
   /**标签列表删除*/
   fetchBatchOptions(params: DelLabelItemType) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
   /**标签列表新建*/
   fetchNewAccountLabel(params: NewLabelItemType) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   /**标签列表修改*/
   fetchModifyAccountLabel(params: EditLabelItemType) {
-    return requestClient.post(this.getServiceUrl('update'), params);
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 }
 
-export const accountLabelApi = new AccountLabelApi('/platform/advertiser_tag');
+export const accountLabelApi = new AccountLabelApi("/platform/advertiser_tag");
 
 /**
  * 营销-创编-Vivo营销-广告主-广告投放资质ID
@@ -486,65 +491,65 @@ export const accountLabelApi = new AccountLabelApi('/platform/advertiser_tag');
 class AdInvestmentApi extends BaseApi {
   /**广告投放资质ID下拉*/
   fetchGetAdInvestment(params: AdInvestmentType) {
-    return requestClient.post<Array<VivoQualification>>(this.getServiceUrl('qualification'), params);
+    return requestClient.post<Array<VivoQualification>>(this.getServiceUrl("qualification"), params);
   }
 
   /**广告创意类型下拉*/
   fetchCreativeType(params: AdCreativeType) {
-    return requestClient.post(this.getServiceUrl('position_creative_type'), params);
+    return requestClient.post(this.getServiceUrl("position_creative_type"), params);
   }
 
   /**投放虚拟位置下拉*/
   fetchVirtualLocation(params: VirtualLocationType) {
-    return requestClient.post(this.getServiceUrl('virtual_position'), params);
+    return requestClient.post(this.getServiceUrl("virtual_position"), params);
   }
 }
 
-export const adInvestmentApi = new AdInvestmentApi('/platform/vivo_advertisement');
+export const adInvestmentApi = new AdInvestmentApi("/platform/vivo_advertisement");
 
 /**
  * 营销-创编-Vivo营销-策略组
  */
 class StrategyGropApi extends BaseApi {
   fetchNewStrategyGrop(params: StrategyGropType) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   fetchBatchStrategyGrop(params: delTemplate) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
   fetchUpdateStrategyGrop(params: UpdateStrategyGropType) {
-    return requestClient.post(this.getServiceUrl('update'), params);
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 
   fetchGetStrategyGrop(params: GetStrategyGropType) {
-    return requestClient.get(this.getServiceUrl('list'), {params});
+    return requestClient.get(this.getServiceUrl("list"), { params });
   }
 }
 
-export const strategyGropApi = new StrategyGropApi('/platform/advertisement_batch/strategy/group');
+export const strategyGropApi = new StrategyGropApi("/platform/advertisement_batch/strategy/group");
 
 // 报表订阅
 class SubscribeApi extends BaseApi {
   fetchNewSubscribe(params: ReportSubscriptionItem) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   fetchBatchSubscribe(params: delTemplate) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
   fetchUpdateSubscribe(params: UpdateSubscribeType) {
-    return requestClient.post(this.getServiceUrl('update'), params);
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 
   fetchGetSubscribe(params: GetSubscribeType) {
-    return requestClient.get(this.getServiceUrl('list'), {params});
+    return requestClient.get(this.getServiceUrl("list"), { params });
   }
 }
 
-export const subscribeApi = new SubscribeApi('/platform/report_subscribe');
+export const subscribeApi = new SubscribeApi("/platform/report_subscribe");
 
 /**
  * 营销-资产-定向包
@@ -552,26 +557,26 @@ export const subscribeApi = new SubscribeApi('/platform/report_subscribe');
 class LoadingPageApi extends BaseApi {
   // 查询
   fetchGetLoadingPage(params: LandingPageQuery) {
-    return requestClient.get<PageViewItem>(this.getServiceUrl('list'), {params});
+    return requestClient.get<PageViewItem>(this.getServiceUrl("list"), { params });
   }
 
   // 创建
   fetchCreateLoadingPage(params: CreateLandingPage) {
-    return requestClient.post(this.getServiceUrl('create'), params);
+    return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   // 删除
   fetchDelLoadingPage(params: DelLandingPage) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
   // 编辑
   fetchUpdateLoadingPage(params: CreateLandingPage) {
-    return requestClient.post(this.getServiceUrl('update'), params);
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 }
 
-export const loadingPageApi = new LoadingPageApi('/platform/loading_page');
+export const loadingPageApi = new LoadingPageApi("/platform/loading_page");
 
 /**
  * 营销-创编-渠道包
@@ -579,11 +584,11 @@ export const loadingPageApi = new LoadingPageApi('/platform/loading_page');
 class ChannelPageApi extends BaseApi {
   //查询
   fetchChannelPage(params: AdInvestmentType) {
-    return requestClient.post(this.getServiceUrl('ad_channel_page'), params);
+    return requestClient.post(this.getServiceUrl("ad_channel_page"), params);
   }
 }
 
-export const channelPageApi = new ChannelPageApi('/platform/vivo_advertisement');
+export const channelPageApi = new ChannelPageApi("/platform/vivo_advertisement");
 
 /**
  * 营销-创编-广告管理
@@ -591,21 +596,21 @@ export const channelPageApi = new ChannelPageApi('/platform/vivo_advertisement')
 class AdManagementApi extends BaseApi {
   //查询列表
   fetchAdManagementList(params: AdManagementType) {
-    return requestClient.post(this.getServiceUrl('list'), params);
+    return requestClient.post(this.getServiceUrl("list"), params);
   }
 
   //查询详情
   fetchAdManagementDetail(params: AdManagementDetailType) {
-    return requestClient.post(this.getServiceUrl('detail'), params);
+    return requestClient.post(this.getServiceUrl("detail"), params);
   }
 
   //广告导出
   fetchAdExport(params: AdManagementType) {
-    return requestClient.post(this.getServiceUrl('export'), params);
+    return requestClient.post(this.getServiceUrl("export"), params);
   }
 }
 
-export const aManagementApi = new AdManagementApi('/platform/promotion');
+export const aManagementApi = new AdManagementApi("/platform/promotion");
 
 /**
  * 营销-资产-oppo定向包
@@ -613,28 +618,64 @@ export const aManagementApi = new AdManagementApi('/platform/promotion');
 class oppoAdvertisement extends BaseApi {
   //地区元数据
   fetchOppoAdvertisement(params: oppo_regionalMetadata) {
-    return requestClient.post(this.getServiceUrl('area_info'), params);
+    return requestClient.post(this.getServiceUrl("area_info"), params);
   }
 
   //机型元数据
   fetchOppoMetadata(params: oppo_modelMetadata) {
-    return requestClient.post(this.getServiceUrl('metadata'), params);
+    return requestClient.post(this.getServiceUrl("metadata"), params);
   }
 
   //应用已安装元数据
   fetchOppoMetadataApp(params: oppo_modelMetadata) {
-    return requestClient.post(this.getServiceUrl('metadata_app'), params);
+    return requestClient.post(this.getServiceUrl("metadata_app"), params);
   }
 
   //兴趣标签
   fetchOppoInterestTag(params: oppo_modelMetadata) {
-    return requestClient.post(this.getServiceUrl('interest_tag'), params);
+    return requestClient.post(this.getServiceUrl("interest_tag"), params);
   }
 
   //联盟AppId\联盟App反向
   fetchOppoMetadataUapp(params: oppo_modelMetadata) {
-    return requestClient.post(this.getServiceUrl('metadata_uapp'), params);
+    return requestClient.post(this.getServiceUrl("metadata_uapp"), params);
   }
 }
 
-export const oppo_advertisementApi = new oppoAdvertisement('/platform/oppo_advertisement');
+export const oppo_advertisementApi = new oppoAdvertisement("/platform/oppo_advertisement");
+
+
+// 素材推送的sdk
+
+class MaterialPushApi extends BaseApi {
+  /**
+   * create material push request
+   * @param data
+   */
+  fetchMaterialPush(data: CreateMaterialPushTaskRequest) {
+    return requestClient.post(this.getServiceUrl("create"),data );
+  }
+
+
+  fetchMaterialPushTaskList(params: PushTaskPageRequest ) {
+    return requestClient.get<PushMaterialTaskItem[]>(this.getServiceUrl("list"), {
+      params
+    })
+  }
+
+
+  /**
+   * 查询任务执行进度
+   * @param taskId
+   */
+  fetchMaterialPushProgress(taskId: string) {
+    return requestClient.get<PushMaterialTaskProgressVO>(this.getServiceUrl("progress"),{
+      params: {
+        taskId: taskId
+      }
+    })
+  }
+}
+
+
+export const materialPushApi: MaterialPushApi = new MaterialPushApi('/platform/material_push');
