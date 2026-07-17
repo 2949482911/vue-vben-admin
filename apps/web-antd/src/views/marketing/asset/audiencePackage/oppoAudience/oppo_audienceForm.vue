@@ -458,12 +458,6 @@ const [Form, formApi] = useVbenForm({
   schema: [
     {
       component: 'Slot',
-      defaultValue: 0,
-      fieldName: 'delStatus',
-      label: '删除状态',
-    },
-    {
-      component: 'Slot',
       fieldName: 'region',
       componentProps: {
         showSearch: true,

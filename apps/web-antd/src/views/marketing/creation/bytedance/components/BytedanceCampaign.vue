@@ -31,12 +31,13 @@ const [CampaignDrawerModule, drawerApi] = useVbenDrawer({
   },
 });
 
-const { formFields, campaignShowLabel, audience, campaign, accountInfo } = defineProps({
+const { formFields, campaignShowLabel, audience, campaign, accountInfo, fieldLabelMap } = defineProps({
   formFields: { type: Array, default: () => [] },
   campaignShowLabel: { type: Object, default: () => ({}) },
   audience: { type: Object as () => AudienceConfigData | null, default: () => ({}) },
   campaign: { type: Object as () => BytedanceCampaignData | null, default: () => ({}) },
   accountInfo: { type: Array as () => AccountInfo[], default: () => [] },
+  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
 
 const campaignInfo = ref<BytedanceCampaignData>({
@@ -134,7 +135,7 @@ function openAudiencePackage() {
         <div class="card-content">
           <Descriptions title="基本信息" v-if="campaignInfo.name" :column="1" class="info-descriptions">
             <DescriptionsItem v-for="(label, key) in campaignShowLabel" :key="key" :label="label">
-              {{ campaignInfo[key] }}
+              {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
             </DescriptionsItem>
           </Descriptions>
           <Alert v-else type="error" message="请先填写项目信息" class="empty-alert" />

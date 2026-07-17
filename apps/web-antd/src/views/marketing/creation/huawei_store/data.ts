@@ -34,3 +34,20 @@ export const AdType = [
     "value": "feed"
   }
 ];
+
+// ======================== Label 辅助函数 ========================
+
+/** 根据 value 从 options 数组中查找对应的 label */
+function findLabel(options: Array<{ label: string; value: any }>, value: any): string {
+  const item = options.find((opt) => opt.value === value);
+  return item?.label ?? String(value ?? '');
+}
+
+export function getTaskTypeLabel(value: any) { return findLabel(TaskTypeSelect, value); }
+export function getAdTypeLabel(value: any) { return findLabel(AdType, value); }
+
+/** 按字段名获取对应的 Label 转换函数 */
+export const fieldLabelMap: Record<string, (value: any) => string> = {
+  type: getTaskTypeLabel,
+  adType: getAdTypeLabel,
+};

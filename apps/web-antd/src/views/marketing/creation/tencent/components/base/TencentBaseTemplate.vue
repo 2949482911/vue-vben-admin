@@ -48,7 +48,8 @@ import {
   Tencent_tencent_news,
   Tencent_wechat_search_scene,
   TencentOptimization_goal,
-  Tencnet_site_set
+  Tencnet_site_set,
+  fieldLabelMap
 } from "#/views/marketing/creation/tencent/tencent_enums";
 
 const emit = defineEmits(["update:campaign", "update:adgroup",
@@ -1545,6 +1546,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           :campaign="creationInfo?.configData.campaign"
           :audience="creationInfo?.configData.audience"
           :account-info="creationInfo.accountInfo"
+          :field-label-map="fieldLabelMap"
           @update:campaign="updateCampaign"
           @update:audience-package="updateAudiencePackage"
         ></TencentCampaign>
@@ -1555,6 +1557,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           :form-fields="adgroupFormFields"
           :adgroup-show-label="adgroupShowLabel"
           :adgroup="creationInfo?.configData.adgroup"
+          :field-label-map="fieldLabelMap"
           @update:adgroup="updateAdgroup"
         ></TencentAdgroup>
       </Col>

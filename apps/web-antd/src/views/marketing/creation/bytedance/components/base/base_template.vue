@@ -62,6 +62,7 @@ import {
   BytedancePromotion_anchor_related_type,
   BytedancePromotion_auto_extend_traffic,
   BytedancePromotion_match_type,
+  fieldLabelMap,
 } from '#/views/marketing/creation/bytedance/enums';
 
 const emit = defineEmits([
@@ -271,6 +272,7 @@ const promotionShowLabel: Record<string, string> = {
           :campaign="creationInfo?.configData.campaign"
           :audience="creationInfo?.configData.audience"
           :account-info="creationInfo.accountInfo"
+          :field-label-map="fieldLabelMap"
           @update:campaign="updateCampaign"
           @update:audience-package="updateAudiencePackage"
         />
@@ -281,6 +283,7 @@ const promotionShowLabel: Record<string, string> = {
           :form-fields="promotionFormFields"
           :promotion-show-label="promotionShowLabel"
           :promotion="creationInfo?.configData.promotion"
+          :field-label-map="fieldLabelMap"
           @update:promotion="updatePromotion"
         />
       </Col>

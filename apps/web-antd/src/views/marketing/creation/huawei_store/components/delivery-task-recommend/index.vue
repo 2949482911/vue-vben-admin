@@ -21,13 +21,14 @@ import TitleSelector from "#/views/marketing/creation/components/title/TitleSele
 const emit = defineEmits(["update:campaign", "update:adgroup",
   "update:audiencePackage", "update:updateMaterial", "update:titlePackage"])
 
-const {creationInfo} = defineProps({
+const {creationInfo, fieldLabelMap} = defineProps({
   creationInfo: {
     type: Object,
     default: () => {
       return {}
     }
   },
+  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 })
 
 // 任务表单字段
@@ -371,6 +372,7 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
         <Task :form-fields="taskFormFields"
               :task-show-label="taskShowLabel"
               :campaign="creationInfo.configData?.campaign"
+              :field-label-map="fieldLabelMap"
               @update:campaign="updateCampaign">
 
         </Task>
@@ -381,6 +383,7 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
                  :account-info="creationInfo.accountInfo"
                  :audience="creationInfo.configData?.audience"
                  :adgroup="creationInfo.configData?.adgroup"
+                 :field-label-map="fieldLabelMap"
                  @update:adgroup="updateAdgroup"
                  @update:audience-package="updateAudiencePackage"
         />

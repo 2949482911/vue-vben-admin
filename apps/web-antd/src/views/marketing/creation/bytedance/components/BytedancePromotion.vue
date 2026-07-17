@@ -24,10 +24,11 @@ const [PromotionDrawerModule, drawerApi] = useVbenDrawer({
   },
 });
 
-const { formFields, promotionShowLabel, promotion } = defineProps({
+const { formFields, promotionShowLabel, promotion, fieldLabelMap } = defineProps({
   formFields: { type: Array, default: () => [] },
   promotionShowLabel: { type: Object, default: () => ({}) },
   promotion: { type: Object as () => BytedancePromotionData | null, default: () => ({}) },
+  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
 
 const promotionInfo = ref<BytedancePromotionData>({
@@ -102,7 +103,7 @@ function openPromotionDrawer() {
       <div class="card-content">
         <Descriptions title="基本信息" v-if="promotionInfo.name" :column="1" class="info-descriptions">
           <DescriptionsItem v-for="(label, key) in promotionShowLabel" :key="key" :label="label">
-            {{ promotionInfo[key] }}
+            {{ fieldLabelMap[key] ? fieldLabelMap[key](promotionInfo[key]) : promotionInfo[key] }}
           </DescriptionsItem>
         </Descriptions>
         <Alert v-else type="error" message="请先填写广告信息" class="empty-alert" />

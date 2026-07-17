@@ -1650,3 +1650,89 @@ export const Tencent_creative_delivery_mode = [
     value: "DELIVERY_MODE_CUSTOMIZE"
   }
 ]
+
+// ======================== Label 辅助函数 ========================
+
+/** 根据 value 从 options 数组中查找对应的 label */
+function findLabel(options: Array<{ label: string; value: any }>, value: any): string {
+  const item = options.find((opt) => opt.value === value);
+  return item?.label ?? String(value ?? '');
+}
+
+export function getMarketingGoalLabel(value: any) { return findLabel(Tencent_marketing_goal, value); }
+export function getMarketingSubGoalLabel(value: any) { return findLabel(Tencent_marketing_sub_goal, value); }
+export function getMarketingCarrierTypeLabel(value: any) { return findLabel(Marketing_carrier_type, value); }
+export function getOptimizationGoalLabel(value: any) { return findLabel(TencentOptimization_goal, value); }
+export function getSiteSetLabel(value: any) { return findLabel(Tencnet_site_set, value); }
+export function getMobileUnionLabel(value: any) { return findLabel(Tencent_mobile_union, value); }
+export function getDeepConversionTypeLabel(value: any) { return findLabel(Tencent_deep_conversion_type, value); }
+export function getDeepConversionWorthSpecGoalLabel(value: any) { return findLabel(Tencent_deep_conversion_worth_spec_goal, value); }
+export function getBidModeLabel(value: any) { return findLabel(Tencent_bid_mode, value); }
+export function getSmartBidTypeLabel(value: any) { return findLabel(Tencent_smart_bid_type, value); }
+export function getAutoDerivedCreativeMethodTypeLabel(value: any) { return findLabel(Tencent_auto_derived_creative_method_type_list, value); }
+export function getSearchExpandTargetingSwitchLabel(value: any) { return findLabel(Tencent_search_expand_targeting_switch, value); }
+export function getBidSceneLabel(value: any) { return findLabel(Tencent_bid_scene, value); }
+export function getConfiguredStatusLabel(value: any) { return findLabel(Tencent_configured_status, value); }
+export function getEcomPkamSwitchLabel(value: any) { return findLabel(Tencent_ecom_pkam_switch, value); }
+export function getCostConstraintSceneLabel(value: any) { return findLabel(Tencent_cost_constraint_scene, value); }
+export function getShortPlayPayTypeLabel(value: any) { return findLabel(Tencent_short_play_pay_type, value); }
+export function getDynamicAdTypeLabel(value: any) { return findLabel(Tencent_dynamic_ad_type, value); }
+export function getSearchExpansionSwitchLabel(value: any) { return findLabel(Tencent_search_expansion_switch, value); }
+export function getAdxRealtimeTypeLabel(value: any) { return findLabel(Tencent_adx_realtime_type, value); }
+export function getSmartTargetingModeLabel(value: any) { return findLabel(Tencent_smart_targeting_mode, value); }
+export function getSmartCouponModeLabel(value: any) { return findLabel(Tencent_smart_coupon_mode, value); }
+export function getExplorationStrategyLabel(value: any) { return findLabel(Tencent_exploration_strategy, value); }
+export function getTencentNewsLabel(value: any) { return findLabel(Tencent_tencent_news, value); }
+export function getDisplaySceneLabel(value: any) { return findLabel(Tencent_display_scene, value); }
+export function getQbsearchSceneLabel(value: any) { return findLabel(Tencent_qbsearch_scene, value); }
+export function getPcSceneLabel(value: any) { return findLabel(Tencent_pc_scene, value); }
+export function getWechatSearchSceneLabel(value: any) { return findLabel(Tencent_wechat_search_scene, value); }
+export function getMarketingTargetTypeLabel(value: any) { return findLabel(Tencent_marketing_target_type, value); }
+export function getDynamicCreativeTypeLabel(value: any) { return findLabel(Tencent_dynamic_creative_type, value); }
+export function getSiteSetValidateModelLabel(value: any) { return findLabel(Tencent_site_set_validate_model, value); }
+export function getCreativeDeliveryModeLabel(value: any) { return findLabel(Tencent_creative_delivery_mode, value); }
+
+// ======================== 字段名 → Label 函数 Map ========================
+
+/** 按字段名获取对应的 Label 转换函数 */
+export const fieldLabelMap: Record<string, (value: any) => string> = {
+  // Campaign level
+  marketing_goal: getMarketingGoalLabel,
+  marketing_sub_goal: getMarketingSubGoalLabel,
+  marketing_carrier_type: getMarketingCarrierTypeLabel,
+  optimization_goal: getOptimizationGoalLabel,
+  bid_mode: getBidModeLabel,
+  smart_bid_type: getSmartBidTypeLabel,
+  bid_scene: getBidSceneLabel,
+  configured_status: getConfiguredStatusLabel,
+  search_expand_targeting_switch: getSearchExpandTargetingSwitchLabel,
+  search_expansion_switch: getSearchExpansionSwitchLabel,
+  ecom_pkam_switch: getEcomPkamSwitchLabel,
+  cost_constraint_scene: getCostConstraintSceneLabel,
+  short_play_pay_type: getShortPlayPayTypeLabel,
+  dynamic_ad_type: getDynamicAdTypeLabel,
+  adx_realtime_type: getAdxRealtimeTypeLabel,
+  smart_targeting_mode: getSmartTargetingModeLabel,
+  smart_coupon_mode: getSmartCouponModeLabel,
+  exploration_strategy: getExplorationStrategyLabel,
+  // marketing_asset_outer_spec nested
+  marketing_target_type: getMarketingTargetTypeLabel,
+  // deep_conversion_spec nested
+  deep_conversion_type: getDeepConversionTypeLabel,
+  deep_conversion_worth_spec_goal: getDeepConversionWorthSpecGoalLabel,
+  // scene_spec nested
+  display_scene: getDisplaySceneLabel,
+  mobile_union: getMobileUnionLabel,
+  tencent_news: getTencentNewsLabel,
+  qbsearch_scene: getQbsearchSceneLabel,
+  pc_scene: getPcSceneLabel,
+  wechat_search_scene: getWechatSearchSceneLabel,
+  priority_site_set: getSiteSetLabel,
+  site_set: getSiteSetLabel,
+  // auto_derived_creative_preference nested
+  auto_derived_creative_method_type_list: getAutoDerivedCreativeMethodTypeLabel,
+  // Adgroup level
+  delivery_mode: getCreativeDeliveryModeLabel,
+  dynamic_creative_type: getDynamicCreativeTypeLabel,
+  site_set_validate_model: getSiteSetValidateModelLabel,
+};

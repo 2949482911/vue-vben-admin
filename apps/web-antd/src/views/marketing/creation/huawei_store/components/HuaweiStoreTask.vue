@@ -5,7 +5,7 @@ import {Card, Divider, Descriptions, DescriptionsItem, Alert, Button, Space} fro
 import {useVbenDrawer} from '@vben/common-ui';
 import HuaweiStoreTaskDrawer from './HuaweiStoreTaskDrawer.vue'
 
-const {formFields, taskShowLabel, campaign} = defineProps({
+const {formFields, taskShowLabel, campaign, fieldLabelMap} = defineProps({
   formFields: {
     type: Array,
     default: () => []
@@ -18,7 +18,8 @@ const {formFields, taskShowLabel, campaign} = defineProps({
   campaign: {
     type: Object as () => HuaWeiStoreCampaignData | null,
     default: null
-  }
+  },
+  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
 
 
@@ -87,7 +88,7 @@ function openCampaignDrawer() {
         <Descriptions title="基本信息" v-if="campaignInfo.taskName" :column="1" class="info-descriptions">
           <DescriptionsItem v-for="(label, key ) in taskShowLabel"
                             :key="key" :label="label">
-            {{ campaignInfo[key] }}
+            {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
           </DescriptionsItem>
         </Descriptions>
         <Alert v-else type="error" message="请先填写任务信息" class="empty-alert"></Alert>

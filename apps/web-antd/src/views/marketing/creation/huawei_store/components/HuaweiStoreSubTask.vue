@@ -14,7 +14,7 @@ import AudiencePackageShow
 
 const emit = defineEmits(["update:adgroup", "update:audiencePackage"])
 
-const {formFields, subTaskShowLabel, accountInfo, audience, adgroup} = defineProps({
+const {formFields, subTaskShowLabel, accountInfo, audience, adgroup, fieldLabelMap} = defineProps({
   formFields: {
     type: Array,
     default: () => []
@@ -36,7 +36,8 @@ const {formFields, subTaskShowLabel, accountInfo, audience, adgroup} = definePro
   adgroup: {
     type: Object as () => HuaWeiStoreAdgroupData | null,
     default: null
-  }
+  },
+  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
 
 //----------选择定向包-----------
@@ -113,7 +114,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           <Descriptions title="基本信息" v-if="adgroupData.subTaskName" :column="1" class="info-descriptions">
             <DescriptionsItem v-for="(label, key ) in subTaskShowLabel"
                               :key="key" :label="label">
-              {{ adgroupData[key] }}
+              {{ fieldLabelMap[key] ? fieldLabelMap[key](adgroupData[key]) : adgroupData[key] }}
             </DescriptionsItem>
           </Descriptions>
           <Alert v-else type="error" message="请先填写子任务信息" class="empty-alert"></Alert>

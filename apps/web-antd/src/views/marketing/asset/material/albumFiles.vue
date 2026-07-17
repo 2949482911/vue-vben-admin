@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Card, Checkbox, Dropdown, Menu, MenuItem, Pagination, message } from 'ant-design-vue';
+import { Spinner } from '@vben/common-ui';
 import { uploadEditApi } from '#/api/core';
 import { computed, reactive, ref, watch } from 'vue';
 import type { FolderItem } from '#/api/models';
@@ -32,7 +33,7 @@ watch(
 );
 
 const pages = reactive({
-  pageSize: 10,
+  pageSize: 20,
   current: 1,
   total: 0,
 });
@@ -145,11 +146,11 @@ defineExpose({ currentPageFiles });
       </template>
     </div>
 
-    <template v-if="!isShowLoading">
+    <Spinner :spinning="isShowLoading" class="flex-1 min-h-0">
       <!-- 空状态 -->
       <div
         v-if="list.length === 0"
-        class="flex flex-1 items-center justify-center text-gray-400"
+        class="flex items-center justify-center h-full text-gray-400"
       >
         暂无数据
       </div>
@@ -157,7 +158,7 @@ defineExpose({ currentPageFiles });
       <!-- 素材卡片网格 -->
       <div
         v-else
-        class="flex-1 min-h-0 overflow-y-auto p-4 grid gap-3 auto-rows-max"
+        class="h-full overflow-y-auto p-4 grid gap-3 auto-rows-max"
         style="grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));"
       >
         <!-- 文件夹卡片 -->
@@ -262,12 +263,12 @@ defineExpose({ currentPageFiles });
           </div>
         </Card>
       </div>
-    </template>
+    </Spinner>
 
     <!-- 分页 -->
     <Pagination
       v-if="list.length > 0"
-      class="flex-shrink-0 px-4 py-2 border-t border-gray-200"
+      class="flex-shrink-0 px-4 py-3 pt-4 border-t border-gray-200"
       show-size-changer
       v-model:current="pages.current"
       v-model:pageSize="pages.pageSize"

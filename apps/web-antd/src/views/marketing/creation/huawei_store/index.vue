@@ -28,7 +28,7 @@ import type {
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import ConfigurationConfig from "../components/configurationArea.vue";
 import { Card, message, Select, Space } from "ant-design-vue";
-import { AdType, TaskTypeSelect } from "#/views/marketing/creation/huawei_store/data";
+import { AdType, TaskTypeSelect, fieldLabelMap } from "#/views/marketing/creation/huawei_store/data";
 
 import DeliveryTaskRecommend from "./components/delivery-task-recommend/index.vue";
 import type { PageViewItem } from "#/api/models/assert";
@@ -432,6 +432,7 @@ function resetCreationInfo() {
 
       <Card class="header">
         <DeliveryTaskRecommend :creation-info="creationInfo"
+                               :field-label-map="fieldLabelMap"
                                @update:campaign="updateCampaign"
                                @update:adgroup="updateAdgroup"
                                @update:audience-package="updateAudiencePackage"

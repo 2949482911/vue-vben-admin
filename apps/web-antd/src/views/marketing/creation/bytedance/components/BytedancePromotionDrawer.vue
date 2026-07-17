@@ -1,4 +1,5 @@
 <script setup lang="ts" name="BytedancePromotionDrawer">
+import { nextTick } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
 
@@ -8,7 +9,11 @@ const { formFields } = defineProps({
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
-  commonConfig: {},
+  commonConfig: {
+    componentProps: {
+      class: 'w-full',
+    },
+  },
 });
 
 const [Drawer, drawerApi] = useVbenDrawer({
@@ -19,6 +24,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (isOpen) {
       const promotion = drawerApi.getData();
       formApi.setState({ schema: formFields });
+      await nextTick();
 
       // native_setting 平铺
       const ns = promotion.native_setting || {};

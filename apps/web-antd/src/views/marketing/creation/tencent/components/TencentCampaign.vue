@@ -50,7 +50,7 @@ const [CampaignDrawerModule, drawerApi] = useVbenDrawer({
  * campaign 计划数据
  * accountInfo 账户信息
  */
-const { formFields, campaignShowLabel, audience, campaign, accountInfo } = defineProps({
+const { formFields, campaignShowLabel, audience, campaign, accountInfo, fieldLabelMap } = defineProps({
   formFields: {
     type: Array,
     default: () => []
@@ -70,7 +70,8 @@ const { formFields, campaignShowLabel, audience, campaign, accountInfo } = defin
   accountInfo: {
     type: Array as () => AccountInfo[],
     default: () => []
-  }
+  },
+  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
 
 
@@ -254,7 +255,7 @@ function openAudiencePackage() {
           <Descriptions title="基本信息" v-if="campaignInfo.adgroup_name" :column="1" class="info-descriptions">
             <DescriptionsItem v-for="(label, key ) in campaignShowLabel"
                               :key="key" :label="label">
-              {{ campaignInfo[key] }}
+              {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
             </DescriptionsItem>
           </Descriptions>
           <Alert v-else type="error" message="请先填写营销单元信息" class="empty-alert"></Alert>

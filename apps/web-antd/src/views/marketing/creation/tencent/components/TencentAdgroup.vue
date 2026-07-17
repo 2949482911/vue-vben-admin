@@ -39,7 +39,7 @@ const [AdgroupDrawerModule, drawerApi] = useVbenDrawer({
  * adgroupShowLabel 展示的label
  * adgroup 广告数据
  */
-const { formFields, adgroupShowLabel, adgroup } = defineProps({
+const { formFields, adgroupShowLabel, adgroup, fieldLabelMap } = defineProps({
   formFields: {
     type: Array,
     default: () => []
@@ -51,7 +51,8 @@ const { formFields, adgroupShowLabel, adgroup } = defineProps({
   adgroup: {
     type: Object as () => TencentAdgroupData | null,
     default: () => {}
-  }
+  },
+  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
 
 
@@ -110,7 +111,7 @@ function openAdgroupDrawer() {
         <Descriptions title="基本信息" v-if="adgroupInfo.dynamic_creative_name" :column="1" class="info-descriptions">
           <DescriptionsItem v-for="(label, key ) in adgroupShowLabel"
                             :key="key" :label="label">
-            {{ adgroupInfo[key] }}
+            {{ fieldLabelMap[key] ? fieldLabelMap[key](adgroupInfo[key]) : adgroupInfo[key] }}
           </DescriptionsItem>
         </Descriptions>
         <Alert v-else type="error" message="请先填写广告信息" class="empty-alert"></Alert>

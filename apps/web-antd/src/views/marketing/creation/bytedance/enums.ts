@@ -1029,3 +1029,129 @@ export const BytedancePromotion_match_type = [
     value: 'PRECISION',
   },
 ]
+
+// ======================== Label 辅助函数 ========================
+
+function findLabel(options: Array<{ label: string; value: any }>, value: any): string {
+  const item = options.find((opt) => opt.value === value);
+  return item?.label ?? String(value ?? '');
+}
+
+export function getLandingTypeLabel(value: any) { return findLabel(BytedanceCampaign_landing_type, value); }
+export function getAppPromotionTypeLabel(value: any) { return findLabel(BytedanceCampaign_app_promotion_type, value); }
+export function getMarketingGoalLabel(value: any) { return findLabel(BytedanceCampaign_marketing_goal, value); }
+export function getAdTypeLabel(value: any) { return findLabel(BytedanceCampaign_ad_type, value); }
+export function getDeliveryTypeLabel(value: any) { return findLabel(BytedanceCampaign_delivery_type, value); }
+export function getAigcDynamicCreativeSwitchLabel(value: any) { return findLabel(BytedanceCampaign_aigc_dynamic_creative_switch, value); }
+export function getStarAutoMaterialAdditionSwitchLabel(value: any) { return findLabel(BytedanceCampaign_star_auto_material_addition_switch, value); }
+export function getStarAutoDeliverySwitchLabel(value: any) { return findLabel(BytedanceCampaign_star_auto_delivery_switch, value); }
+export function getAudienceExtendLabel(value: any) { return findLabel(BytedanceCampaign_audience_extend, value); }
+export function getAutoExtendTrafficCampaignLabel(value: any) { return findLabel(BytedanceCampaign_auto_extend_traffic, value); }
+export function getKeywordBidTypeLabel(value: any) { return findLabel(BytedanceCampaign_keyword_bid_type, value); }
+export function getKeywordMatchTypeLabel(value: any) { return findLabel(BytedanceCampaign_keyword_match_type, value); }
+export function getBlueFlowPackageSettingLabel(value: any) { return findLabel(BytedanceCampaign_blue_flow_package_setting, value); }
+export function getProductSettingLabel(value: any) { return findLabel(BytedanceCampaign_product_setting, value); }
+export function getDownloadModeLabel(value: any) { return findLabel(BytedanceCampaign_download_mode, value); }
+export function getDownloadTypeLabel(value: any) { return findLabel(BytedanceCampaign_download_type, value); }
+export function getLaunchTypeLabel(value: any) { return findLabel(BytedanceCampaign_launch_type, value); }
+export function getPromotionTypeLabel(value: any) { return findLabel(BytedanceCampaign_promotion_type, value); }
+export function getOpenUrlTypeLabel(value: any) { return findLabel(BytedanceCampaign_open_url_type, value); }
+export function getUlinkUrlTypeLabel(value: any) { return findLabel(BytedanceCampaign_ulink_url_type, value); }
+export function getAssetTypeLabel(value: any) { return findLabel(BytedanceCampaign_asset_type, value); }
+export function getMultiAssetTypeLabel(value: any) { return findLabel(BytedanceCampaign_multi_asset_type, value); }
+export function getMicroPromotionTypeLabel(value: any) { return findLabel(BytedanceCampaign_micro_promotion_type, value); }
+export function getDpaAdtypeLabel(value: any) { return findLabel(BytedanceCampaign_dpa_adtype, value); }
+export function getPaidSwitchLabel(value: any) { return findLabel(BytedanceCampaign_paid_switch, value); }
+export function getValueOptimizedTypeLabel(value: any) { return findLabel(BytedanceCampaign_value_optimized_type, value); }
+export function getLandingPageStayTimeLabel(value: any) { return findLabel(BytedanceCampaign_landing_page_stay_time, value); }
+export function getInventoryCatalogLabel(value: any) { return findLabel(BytedanceCampaign_inventory_catalog, value); }
+export function getInventoryTypeLabel(value: any) { return findLabel(BytedanceCampaign_inventory_type, value); }
+export function getUnionVideoTypeLabel(value: any) { return findLabel(BytedanceCampaign_union_video_type, value); }
+export function getScheduleTypeLabel(value: any) { return findLabel(BytedanceCampaign_schedule_type, value); }
+export function getFilterNightSwitchLabel(value: any) { return findLabel(BytedanceCampaign_filter_night_switch, value); }
+export function getDeepBidTypeLabel(value: any) { return findLabel(BytedanceCampaign_deep_bid_type, value); }
+export function getBidTypeLabel(value: any) { return findLabel(BytedanceCampaign_bid_type, value); }
+export function getProjectCustomLabel(value: any) { return findLabel(BytedanceCampaign_project_custom, value); }
+export function getBudgetModeCampaignLabel(value: any) { return findLabel(BytedanceCampgin_budget_mode, value); }
+export function getPricingLabel(value: any) { return findLabel(BytedanceCampaign_pricing, value); }
+export function getLayerRoiSwitchLabel(value: any) { return findLabel(BytedanceCampaign_layer_roi_switch, value); }
+export function getBudgetOptimizeSwitchLabel(value: any) { return findLabel(BytedanceCampaign_budget_optimize_switch, value); }
+export function getSearchContinueDeliveryLabel(value: any) { return findLabel(BytedanceCampaign_search_continue_delivery, value); }
+export function getSendTypeLabel(value: any) { return findLabel(BytedanceCampaign_send_type, value); }
+export function getAnchorRelatedTypeLabel(value: any) { return findLabel(BytedancePromotion_anchor_related_type, value); }
+export function getIntelligentGenerationLabel(value: any) { return findLabel(BytedancePromotion_intelligent_generation, value); }
+export function getIsCommentDisableLabel(value: any) { return findLabel(BytedancePromotion_is_comment_disable, value); }
+export function getAdDownloadStatusLabel(value: any) { return findLabel(BytedancePromotion_ad_download_status, value); }
+export function getBudgetModePromotionLabel(value: any) { return findLabel(BytedancePromotion_budget_mode, value); }
+export function getShopPlatformLabel(value: any) { return findLabel(BytedancePromotion_shop_platform, value); }
+export function getAutoExtendTrafficPromotionLabel(value: any) { return findLabel(BytedancePromotion_auto_extend_traffic, value); }
+export function getMatchTypeLabel(value: any) { return findLabel(BytedancePromotion_match_type, value); }
+
+const CAMPAIGN_OPERATION_OPTIONS = [
+  { label: '启用', value: 'ENABLE' },
+  { label: '停用', value: 'DISABLE' },
+];
+export function getCampaignOperationLabel(value: any) { return findLabel(CAMPAIGN_OPERATION_OPTIONS, value); }
+
+const DELIVERY_MODE_OPTIONS = [
+  { label: '手动', value: 'MANUAL' },
+  { label: '自动', value: 'PROCEDURAL' },
+];
+export function getDeliveryModeLabel(value: any) { return findLabel(DELIVERY_MODE_OPTIONS, value); }
+
+export const fieldLabelMap: Record<string, (value: any) => string> = {
+  // Campaign level (project)
+  landing_type: getLandingTypeLabel,
+  app_promotion_type: getAppPromotionTypeLabel,
+  marketing_goal: getMarketingGoalLabel,
+  ad_type: getAdTypeLabel,
+  delivery_type: getDeliveryTypeLabel,
+  aigc_dynamic_creative_switch: getAigcDynamicCreativeSwitchLabel,
+  star_auto_material_addition_switch: getStarAutoMaterialAdditionSwitchLabel,
+  star_auto_delivery_switch: getStarAutoDeliverySwitchLabel,
+  audience_extend: getAudienceExtendLabel,
+  auto_extend_traffic: getAutoExtendTrafficCampaignLabel,
+  keyword_bid_type: getKeywordBidTypeLabel,
+  keyword_match_type: getKeywordMatchTypeLabel,
+  blue_flow_package_setting: getBlueFlowPackageSettingLabel,
+  product_setting: getProductSettingLabel,
+  download_mode: getDownloadModeLabel,
+  download_type: getDownloadTypeLabel,
+  launch_type: getLaunchTypeLabel,
+  promotion_type: getPromotionTypeLabel,
+  open_url_type: getOpenUrlTypeLabel,
+  ulink_url_type: getUlinkUrlTypeLabel,
+  asset_type: getAssetTypeLabel,
+  multi_asset_type: getMultiAssetTypeLabel,
+  micro_promotion_type: getMicroPromotionTypeLabel,
+  dpa_adtype: getDpaAdtypeLabel,
+  paid_switch: getPaidSwitchLabel,
+  value_optimized_type: getValueOptimizedTypeLabel,
+  landing_page_stay_time: getLandingPageStayTimeLabel,
+  inventory_catalog: getInventoryCatalogLabel,
+  inventory_type: getInventoryTypeLabel,
+  union_video_type: getUnionVideoTypeLabel,
+  schedule_type: getScheduleTypeLabel,
+  filter_night_switch: getFilterNightSwitchLabel,
+  deep_bid_type: getDeepBidTypeLabel,
+  bid_type: getBidTypeLabel,
+  project_custom: getProjectCustomLabel,
+  budget_mode: getBudgetModeCampaignLabel,
+  pricing: getPricingLabel,
+  layer_roi_switch: getLayerRoiSwitchLabel,
+  budget_optimize_switch: getBudgetOptimizeSwitchLabel,
+  search_continue_delivery: getSearchContinueDeliveryLabel,
+  send_type: getSendTypeLabel,
+  // DeliveryMode enum
+  delivery_mode: getDeliveryModeLabel,
+  // Promotion level (ad)
+  operation: getCampaignOperationLabel,
+  anchor_related_type: getAnchorRelatedTypeLabel,
+  intelligent_generation: getIntelligentGenerationLabel,
+  is_comment_disable: getIsCommentDisableLabel,
+  ad_download_status: getAdDownloadStatusLabel,
+  // budget_mode for promotion (re-export same function with different key)
+  budget_mode_promotion: getBudgetModePromotionLabel,
+  shop_platform: getShopPlatformLabel,
+  match_type: getMatchTypeLabel,
+};

@@ -17,7 +17,8 @@ import {
   Tencent_auto_derived_creative_method_type_list,
   Tencent_configured_status,
   Tencent_creative_delivery_mode,
-  Tencent_ecom_pkam_switch
+  Tencent_ecom_pkam_switch,
+  fieldLabelMap
 } from "#/views/marketing/creation/tencent/tencent_enums";
 import { markRaw } from "vue";
 import TimeSelectionPeriod
@@ -465,6 +466,7 @@ defineExpose({
           :campaign="creationInfo?.configData.campaign"
           :audience="creationInfo?.configData.audience"
           :account-info="creationInfo.accountInfo"
+          :field-label-map="fieldLabelMap"
           @update:campaign="updateCampaign"
           @update:audience-package="updateAudiencePackage"
         ></TencentCampaign>
@@ -476,6 +478,7 @@ defineExpose({
           :form-fields="adgroupFormFields"
           :adgroup-show-label="adgroupShowLabel"
           :adgroup="creationInfo?.configData.adgroup"
+          :field-label-map="fieldLabelMap"
           @update:adgroup="updateAdgroup"
         ></TencentAdgroup>
       </Col>

@@ -982,3 +982,78 @@ export const FLOWSWITCH_SELECT = [
     value: 1,
   },
 ];
+
+// ======================== Label 辅助函数 ========================
+
+/** 根据 value 从 options 数组中查找对应的 label */
+function findLabel(options: Array<{ label: string; value: any }>, value: any): string {
+  const item = options.find((opt) => opt.value === value);
+  return item?.label ?? String(value ?? '');
+}
+
+export function getExtensionLabel(value: any) { return findLabel(EXTENSION_SELECT, value); }
+export function getDayLimitLabel(value: any) { return findLabel(DAYLIMIT_SELECT, value); }
+export function getDeliveryModeLabel(value: any) { return findLabel(DELIVERMODE_SELECT, value); }
+export function getFlowLabel(value: any) { return findLabel(FLOW_SELECT, value); }
+export function getFlowSceneLabel(value: any) { return findLabel(FLOWSCENE_SELECT, value); }
+export function getDeepCvLabel(value: any) { return findLabel(DEEP_CV_SELECT, value); }
+export function getPageTypeLabel(value: any) { return findLabel(PAGE_TYPE_SELECT, value); }
+export function getSmartExpandLabel(value: any) { return findLabel(SMART_EXPAND_SELECT, value); }
+export function getDayLimitFlagLabel(value: any) { return findLabel(DAY_LIMIT_SELECT, value); }
+export function getTimeLimitLabel(value: any) { return findLabel(TIME_LIMIT_SELECT, value); }
+export function getQuickAppLabel(value: any) { return findLabel(OPPO_QUICK_APP_SELECT, value); }
+export function getQuickAppTypeLabel(value: any) { return findLabel(QUICK_APP_TYPE_SELECT, value); }
+export function getFreeOrderLabel(value: any) { return findLabel(OPPO_FREE_ORDER_SELECT, value); }
+export function getProductAdTypeLabel(value: any) { return findLabel(PRODUCT_AD_TYPE_SELECT, value); }
+export function getAdTypeLabel(value: any) { return findLabel(ADTYPE_SELECT, value); }
+export function getAppPageLabel(value: any) { return findLabel(APP_PAGE_SELECT, value); }
+export function getOptimizeSwitchLabel(value: any) { return findLabel(OPTIMIZE_SWITCH_SELECT, value); }
+export function getOptimizeTypeLabel(value: any) { return findLabel(OPTIMIZE_TYPE_SELECT, value); }
+export function getGlobalSpecIdLabel(value: any) { return findLabel(GLOBAL_SPECID_SELECT, value); }
+export function getBillingTypeLabel(value: any) { return findLabel(BILLINGTYPE_SELECT, value); }
+
+// 内联枚举（未导出为常量，但表单中有使用）
+const OCPC_OPTM_TYPE_OPTIONS = [
+  { label: '无', value: 0 },
+  { label: '转化', value: 1 },
+  { label: '点击', value: 2 },
+];
+export function getOcpcOptmTypeLabel(value: any) { return findLabel(OCPC_OPTM_TYPE_OPTIONS, value); }
+
+const DYNAMIC_CR_OPTIONS = [
+  { label: '否', value: 0 },
+  { label: '是', value: 1 },
+];
+export function getDynamicCrLabel(value: any) { return findLabel(DYNAMIC_CR_OPTIONS, value); }
+
+// ======================== 字段名 → Label 函数 Map ========================
+
+/** 按字段名（与 OppoCampaignData / OppoAdgroupData / OppoPromotionData 属性名一致）获取对应的 Label 转换函数 */
+export const fieldLabelMap: Record<string, (value: any) => string> = {
+  // Campaign
+  extensionType: getExtensionLabel,
+  dayLimit: getDayLimitLabel,
+  deliveryMode: getDeliveryModeLabel,
+  // Adgroup
+  extensionFlow: getFlowLabel,
+  flowScene: getFlowSceneLabel,
+  billingType: getBillingTypeLabel,
+  advertiseType: getAdTypeLabel,
+  autoOpenFlag: getQuickAppLabel,
+  deepOcpcType: getDeepCvLabel,
+  ocpcOptmType: getOcpcOptmTypeLabel,
+  ocpcType: getDeepCvLabel,
+  pageType: getPageTypeLabel,
+  smartExpandType: getSmartExpandLabel,
+  timeLimit: getTimeLimitLabel,
+  linkDeskFlag: getQuickAppLabel,
+  appletType: getQuickAppTypeLabel,
+  defaultSecondStage: getFreeOrderLabel,
+  adsDpaProductDTO_dpaProductType: getProductAdTypeLabel,
+  pushAppPageType: getAppPageLabel,
+  ocpxOptimizeSwitch: getOptimizeSwitchLabel,
+  ocpxOptimizeType: getOptimizeTypeLabel,
+  // Promotion
+  globalSpecId: getGlobalSpecIdLabel,
+  dynamicCr: getDynamicCrLabel,
+};

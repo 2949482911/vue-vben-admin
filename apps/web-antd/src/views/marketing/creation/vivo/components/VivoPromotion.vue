@@ -1,7 +1,6 @@
 <script setup lang="ts" name="VivoPromotion">
 import { ref, watch } from "vue";
 import type {
-  QualificationValue,
   VivoCampaignData,
   VivoPromotionData
 } from "#/views/marketing/creation/vivo/vivo";

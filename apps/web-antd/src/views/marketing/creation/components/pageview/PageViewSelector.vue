@@ -93,7 +93,7 @@ watch(
   <div>
     <Card title="落地页">
       <template v-if="totalCount > 0">
-        <PageViewShow :data="localPageView.data" :method="localPageView.config.method" />
+        <PageViewShow :landing-page="localPageView" :account-info="accountInfo" />
         <Divider type="horizontal" />
         <Space align="center" class="w-full justify-center">
           <Button type="link" danger @click="handleClear">清空</Button>
