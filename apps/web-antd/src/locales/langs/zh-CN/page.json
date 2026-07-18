@@ -82,6 +82,10 @@
         "selectPlatformPlaceholder": "请选择推送的目标平台",
         "tencent": "腾讯广告",
         "bytedance": "巨量引擎",
+        "oppo": "OPPO",
+        "vivo": "VIVO",
+        "huawei_store": "华为商店",
+
         "seq": "序号",
         "materialName": "素材名称",
         "materialId": "素材ID",
