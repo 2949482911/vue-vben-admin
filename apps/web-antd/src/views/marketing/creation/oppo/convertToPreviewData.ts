@@ -1,40 +1,45 @@
 import type {
+  OppoAdgroup,
   OppoCampaign,
   OppoCreation,
-  OppoCreative,
-  OppoTableData
+  OppoCreationData,
+  OppoPromotion
 } from "./Oppo.types";
 import type {
   AccountInfo,
   Material,
-  MonitoringLinkType,
+  MonitoringLinkType
 } from "#/views/marketing/creation/creation";
 import {
   getAudience,
+  getDeepLink,
   getLandingPage,
   getMaterial,
   getRuleInfoAdCount,
   getRuleInfoAdCountGroup,
   getRuleInfoCampaignCount,
-  getTiltePackage,
-  getDeepLink,
+  getTiltePackage
 } from "#/views/marketing/creation/creation";
 import { DistributionMode, Platform } from "#/constants/enums";
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import { renderProjectTitle } from "#/utils/customName";
-import type { AccountTabData } from "#/views/marketing/creation/components/preview_area/previewAreaData";
+import type {
+  AccountTabData
+} from "#/views/marketing/creation/components/preview_area/previewAreaData";
+import { getDeliveryModeLabel, getExtensionLabel } from "./projectEnum";
+import type { PageViewItem } from "#/api/models/assert";
 
 /**
  * 获取预览表格数据（OPPO）
- * 按照规则配置生成 OppoTableData[]
+ * 按照规则配置生成 OppoCreationData[]
  */
-export function getPreviewTableData(creationInfo: OppoCreation): OppoTableData[] {
-  const adList: OppoTableData[] = [];
+export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationData[] {
+  const adList: OppoCreationData[] = [];
 
   creationInfo.accountInfo.forEach((account) => {
     const advertiserId = account.localAdvertiserId;
 
-    const tableData: OppoTableData = {
+    const tableData: OppoCreationData = {
       advertiserId,
       campaignList: [],
       getCampaignCount(): number {
@@ -43,45 +48,43 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoTableData[]
       getAdGroupCount(): number {
         let count = 0;
         this.campaignList.forEach((campaign) => {
-          count += campaign.adgroupList.length;
+          count += campaign.adGroupList.length;
         });
         return count;
       },
       getAdCount(): number {
         let count = 0;
         this.campaignList.forEach((campaign) => {
-          campaign.adgroupList.forEach((adgroup) => {
+          campaign.adGroupList.forEach((adgroup) => {
             count += adgroup.promotionList.length;
           });
         });
         return count;
-      },
+      }
     };
 
     // 获取各层级数量
     const campaignCount = getRuleInfoCampaignCount(
       Platform.OPPO,
       creationInfo,
-      [advertiserId],
+      [advertiserId]
     );
 
     const adGroupCount = getRuleInfoAdCountGroup(
       Platform.OPPO,
       creationInfo,
-      [advertiserId],
+      [advertiserId]
     );
 
     const adCount = getRuleInfoAdCount(
       Platform.OPPO,
       creationInfo,
-      [advertiserId],
+      [advertiserId]
     );
-
-    const creativeCount = creationInfo.ruleInfo.creativeCount || 1;
 
     // 遍历生成计划
     for (let campaignIdx = 0; campaignIdx < campaignCount; campaignIdx++) {
-      const adgroupList: OppoCampaign["adgroupList"] = [];
+      const adGroupList: OppoAdgroup[] = [];
 
       // 遍历生成广告组
       for (let adGroupIdx = 0; adGroupIdx < adGroupCount; adGroupIdx++) {
@@ -90,58 +93,74 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoTableData[]
           creationInfo.configData.audience.config.method,
           creationInfo.configData.audience.data,
           advertiserId,
-          adGroupIdx,
+          adGroupIdx
+        );
+
+        // 落地页
+        const pageView: PageViewItem = getLandingPage(
+          creationInfo.configData.landingPage.config.method,
+          creationInfo.configData.landingPage.data,
+          advertiserId,
         );
 
         const adgroupData = creationInfo.configData.adgroup;
 
-        const adgroup: OppoCampaign["adgroupList"][number] = {
+        const adgroup: OppoAdgroup = {
           getName(): string {
-            return this.name;
+            return this.adGroupName;
           },
-          adgroupId: "",
-          audienceInfo: {
-            targetedId: audience.mediaId || audience.id || "",
-            targetedName: audience.name || "",
-            targetedPackageTypeId: audience.id || "",
-          },
-          appPackageName: creationInfo.project.packageName,
-          rpkDeepLink: adgroupData.deepUrl,
-          webSiteUrl: adgroupData.pageUrl,
-          h5Code: "",
-          h5Type: null,
-          productUrlType: adgroupData.extensionFlow,
-          appletOriginId: adgroupData.appletId,
-          appletPath: adgroupData.appletPath,
-          industry1: "",
-          industry2: "",
-          advertiseQualificationId: "",
-          wechatFollow: 0,
-          startDate: adgroupData.beginTime,
-          endDate: adgroupData.endTime,
-          scheduleTime: adgroupData.timeSet,
-          chargeType: adgroupData.billingType,
-          cvType: String(adgroupData.ocpcType),
-          price: Number(adgroupData.price) || 0,
-          ocpxPrice: Number(adgroupData.ocpcPrice) || 0,
-          name: renderProjectTitle(
+          // OPPO 广告组字段
+          planId: "",
+          adGroupName: renderProjectTitle(
             adgroupData.adGroupName,
             adGroupIdx,
-            creationInfo.project.projectName,
+            creationInfo.project.projectName
           ),
-          dailyBudget: creationInfo.configData.campaign.dayBudget,
-          spentType: null,
-          retrieveType: 0,
-          ruleAudience: audience.name || "",
-          channelId: adgroupData.channelPkgId,
-          apkId: "",
-          secondCvType: adgroupData.deepOcpcType,
-          secondOcpxPrice: Number(adgroupData.deepOcpcPrice) || 0,
-          conversionFilterCycle: 0,
-          biddingStrategy: creationInfo.configData.campaign.deliveryMode,
-          subpackageId: 0,
-          builtInRpkDeepLink: adgroupData.deepUrl,
-          promotionList: [],
+          pageUrl: pageView.config["pageUrl"],
+          extensionType: creationInfo.configData.campaign.extensionType,
+          extensionFlow: adgroupData.extensionFlow,
+          flowScene: adgroupData.flowScene,
+          dayLimit: adgroupData.dayLimit,
+          beginTime: adgroupData.beginTime,
+          endTime: adgroupData.endTime,
+          billingType: adgroupData.billingType,
+          adSearchPremiumKwSaveDTOList: adgroupData.adSearchPremiumKwSaveDTOList || [],
+          appId: creationInfo.project.appId,
+          autoOpenFlag: adgroupData.autoOpenFlag,
+          deepOcpcPrice: adgroupData.deepOcpcPrice,
+          deepOcpcType: adgroupData.deepOcpcType,
+          deepUrl: adgroupData.deepUrl,
+          instantAppId: adgroupData.instantAppId,
+          instantAppUrl: adgroupData.instantAppUrl,
+          ocpcOptmType: adgroupData.ocpcOptmType,
+          ocpcPrice: adgroupData.ocpcPrice,
+          ocpcType: adgroupData.ocpcType,
+          pageId: adgroupData.pageId,
+          pageType: adgroupData.pageType,
+          price: Number(adgroupData.price) * 100 || 0,
+          smartExpandType: adgroupData.smartExpandType,
+          // 媒体定向的ID
+          targetId: audience.mediaId,
+          timeLimit: adgroupData.timeLimit,
+          timeSet: adgroupData.timeSet,
+          linkDeskFlag: adgroupData.linkDeskFlag,
+          appletType: adgroupData.appletType,
+          kwOcpcPrice: adgroupData.kwOcpcPrice,
+          kwDeepOcpcPrice: adgroupData.kwDeepOcpcPrice,
+          kwTargetROI: adgroupData.kwTargetROI,
+          channelPkgId: adgroupData.channelPkgId,
+          defaultSecondStage: adgroupData.defaultSecondStage,
+          targetROI: adgroupData.targetROI,
+          adsDpaProductDTO: adgroupData.adsDpaProductDTO,
+          advertiseType: adgroupData.advertiseType,
+          pushAppPageType: adgroupData.pushAppPageType,
+          ocpxOptimizeSwitch: adgroupData.ocpxOptimizeSwitch,
+          ocpxOptimizeType: adgroupData.ocpxOptimizeType,
+          extJson: adgroupData.extJson,
+          appletId: adgroupData.appletId,
+          appletPath: adgroupData.appletPath,
+          marketingObjectiveDTO: adgroupData.marketingObjectiveDTO,
+          promotionList: []
         };
 
         // 遍历生成广告
@@ -150,7 +169,7 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoTableData[]
           const materialList: Material[] = getMaterial(
             creationInfo.configData.material.config.method,
             creationInfo.configData.material.data,
-            advertiserId,
+            advertiserId
           );
 
           // 获取标题包
@@ -158,14 +177,14 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoTableData[]
             creationInfo.configData.titlePackage.config.method,
             creationInfo.configData.titlePackage.data,
             advertiserId,
-            adIdx,
+            adIdx
           );
 
           // 获取落地页
           const landingPageItem = getLandingPage(
             creationInfo.configData.landingPage.config.method,
             creationInfo.configData.landingPage.data,
-            advertiserId,
+            advertiserId
           );
 
           // 获取监测链接
@@ -173,82 +192,82 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoTableData[]
             creationInfo.configData.monitoringLink.config.method,
             creationInfo.configData.monitoringLink.data,
             advertiserId,
-            adIdx,
+            adIdx
           );
 
           // 获取 deepLink
           const deepLink = getDeepLink(
             creationInfo.configData.deepLinkList.deepLinkConfig.method,
             creationInfo.configData.deepLinkList.data,
-            advertiserId,
+            advertiserId
           );
+
+          //
 
           const promotionData = creationInfo.configData.promotion;
 
-          const promotion: OppoCampaign["adgroupList"][number]["promotionList"][number] = {
+
+          // 素材ID
+          const materialIdsList: Array<string> = [];
+          materialList.forEach(x => {
+            if (x.image) {
+              materialIdsList.push(...x.image.map(img => img.localMaterialId));
+            }
+            if (x.video) {
+              materialIdsList.push(...x.video.map(img => img.localMaterialId));
+            }
+          });
+
+          const promotion: OppoPromotion = {
+            materialIdsList: materialIdsList,
             getName(): string {
-              return this.name;
+              return this.adName;
             },
-            adgroupId: "",
-            name: renderProjectTitle(
+            // OPPO 广告字段
+            adGroupId: "",
+            adName: renderProjectTitle(
               promotionData.adName,
               adIdx,
-              creationInfo.project.projectName,
+              creationInfo.project.projectName
             ),
-            deepLink,
-            videoAttribution: 0,
-            pageUrl: landingPageItem?.id || "",
+            globalSpecId: promotionData.globalSpecId,
+            adSource: promotionData.adSource,
+            brandLogoImgId: promotionData.brandLogoImgId,
+            brandName: titlePackage.title,
+            buttonTxt: titlePackage.title,
+            copywriter: titlePackage.title,
+            copywriterId: promotionData.copywriterId,
+            downloadUrl: promotionData.downloadUrl,
+            dynamicCr: promotionData.dynamicCr,
+            exposeUrl: monitoringLink.exposureLink,
+            videoImgId: promotionData.videoImgId,
+            imgMatIds: promotionData.imgMatIds,
+            clickUrl: monitoringLink.clickLink,
             pageUrlName: landingPageItem?.name || "",
-            h5Code: "",
-            h5Type: 0,
-            generalSwitch: 0,
-            creativeList: [],
-            viewMonitorUrl: monitoringLink.exposureLink || promotionData.exposeUrl,
-            clickMonitorUrl: monitoringLink.clickLink || promotionData.clickUrl,
+            deepLink
           };
-
           // 遍历生成创意
-          for (let creativeIdx = 0; creativeIdx < creativeCount; creativeIdx++) {
-            // 获取创意素材ID列表
-            const materialIds = getMaterialIds(materialList, creativeIdx);
-
-            const creative: OppoCreative = {
-              placeType: promotionData.config.placeType,
-              materialNormId: promotionData.config.materialNormId,
-              virtualPositionId: promotionData.config.virtualPositionId,
-              title: titlePackage.title || "",
-              subTitle: "",
-              pushSubTitle: "",
-              imgsCode: "",
-              videoCode: "",
-              appName: creationInfo.project.projectName,
-              strongReminder: promotionData.config.strongReminder,
-              materialIdsList: materialIds,
-            };
-
-            promotion.creativeList.push(creative);
-          }
-
           adgroup.promotionList.push(promotion);
         }
 
-        adgroupList.push(adgroup);
+        adGroupList.push(adgroup);
       }
 
       const campaign: OppoCampaign = {
         getName(): string {
-          return this.name;
+          return "";
         },
-        campaignId: "",
-        name: renderProjectTitle(
+        // OPPO 计划字段
+        planName: renderProjectTitle(
           creationInfo.configData.campaign.planName,
           campaignIdx,
-          creationInfo.project.projectName,
+          creationInfo.project.projectName
         ),
-        adType: creationInfo.configData.campaign.extensionType,
-        mediaType: creationInfo.configData.campaign.extensionType,
-        dailyBudget: creationInfo.configData.campaign.dayBudget,
-        adgroupList,
+        extensionType: creationInfo.configData.campaign.extensionType,
+        dayLimit: creationInfo.configData.campaign.dayLimit,
+        dayBudget: creationInfo.configData.campaign.dayBudget,
+        deliveryMode: creationInfo.configData.campaign.deliveryMode,
+        adGroupList
       };
 
       tableData.campaignList.push(campaign);
@@ -264,12 +283,12 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoTableData[]
  * 将 getPreviewTableData 生成的数据转换为 PreviewArea 需要的格式
  */
 export function convertToPreviewData(
-  adList: OppoTableData[],
-  accountInfo: AccountInfo[],
+  adList: OppoCreationData[],
+  accountInfo: AccountInfo[]
 ): AccountTabData[] {
   return adList.map((item) => {
     const account = accountInfo.find(
-      (a) => a.localAdvertiserId === item.advertiserId,
+      (a) => a.localAdvertiserId === item.advertiserId
     );
 
     const flattenedRows = flattenData(item.campaignList);
@@ -280,7 +299,7 @@ export function convertToPreviewData(
       campaignCount: item.getCampaignCount(),
       adgroupCount: item.getAdGroupCount(),
       promotionCount: item.getAdCount(),
-      flattenedRows,
+      flattenedRows
     };
   });
 }
@@ -290,50 +309,41 @@ export function convertToPreviewData(
  */
 function flattenData(campaignList: OppoCampaign[]): any[] {
   const rows: any[] = [];
-
   campaignList.forEach((campaign, cIdx) => {
-    campaign.adgroupList.forEach((adgroup, gIdx) => {
+    campaign.adGroupList.forEach((adgroup, gIdx) => {
       adgroup.promotionList.forEach((promotion, pIdx) => {
-        promotion.creativeList.forEach((creative, _crIdx) => {
-          rows.push({
-            // 合并标识ID
-            rowCampaignId: `c_${cIdx}`,
-            rowGroupId: `c_${cIdx}_g_${gIdx}`,
-            rowPromoId: `c_${cIdx}_g_${gIdx}_p_${pIdx}`,
+        rows.push({
+          // 合并标识ID
+          rowCampaignId: `c_${cIdx}`,
+          rowGroupId: `c_${cIdx}_g_${gIdx}`,
+          rowPromoId: `c_${cIdx}_g_${gIdx}_p_${pIdx}`,
 
-            // 计划层级字段
-            campaignName: campaign.name,
-            campaignAdType: campaign.adType,
-            campaignMediaType: campaign.mediaType,
-            campaignBudget: campaign.dailyBudget,
+          // 计划层级字段
+          campaignName: campaign.planName,
+          campaignAdType: getExtensionLabel(campaign.extensionType),
+          dayLimit: campaign.dayLimit,
+          campaignBudget: campaign.dayBudget,
+          deliveryMode: getDeliveryModeLabel(campaign.deliveryMode),
 
-            // 广告组层级字段
-            adgroupName: adgroup.name,
-            groupPrice: adgroup.price,
-            groupOcpxPrice: adgroup.ocpxPrice,
-            groupStartDate: adgroup.startDate,
-            groupEndDate: adgroup.endDate,
-
-            // 广告层级字段
-            promotionName: promotion.name,
-            pageUrl: promotion.pageUrl,
-            pageUrlName: promotion.pageUrlName,
-            deepLink: promotion.deepLink,
-            viewMonitorUrl: promotion.viewMonitorUrl,
-            clickMonitorUrl: promotion.clickMonitorUrl,
-
-            // 创意层级字段
-            creativeTitle: creative.title,
-            creativeAppName: creative.appName,
-            displayMaterialIds: Array.isArray(creative.materialIdsList)
-              ? creative.materialIdsList.join(', ')
-              : '',
-          });
+          // 广告组层级字段
+          adgroupName: adgroup.adGroupName,
+          groupPrice: adgroup.price,
+          groupOcpxPrice: Number(adgroup.ocpcPrice) || 0,
+          groupStartDate: adgroup.beginTime,
+          groupEndDate: adgroup.endTime,
+          // 广告层级字段
+          promotionName: promotion.adName,
+          pageUrl: adgroup.pageUrl,
+          pageUrlName: promotion.pageUrlName || "",
+          deepLink: promotion.deepLink || "",
+          viewMonitorUrl: promotion.exposeUrl,
+          clickMonitorUrl: promotion.clickUrl,
+          // 创意层级字段
+          displayMaterialInfo: `素材${promotion.materialIdsList.length}个`
         });
       });
     });
   });
-
   return rows;
 }
 
@@ -344,7 +354,7 @@ function getMonitoringLink(
   method: string,
   data: Map<string, MonitoringLinkType[]>,
   advertiserId: string,
-  index: number,
+  index: number
 ): MonitoringLinkType {
   let dataList: MonitoringLinkType[] = [];
   if (method === DistributionMode.all) {
@@ -359,28 +369,7 @@ function getMonitoringLink(
       monitorLink: "",
       linkModeType: "",
       allocateType: "",
-      ocpxTaskId: "",
+      ocpxTaskId: ""
     }
-  );
-}
-
-/**
- * 获取素材ID列表
- */
-function getMaterialIds(
-  materialList: Material[],
-  index: number,
-): string[] {
-  if (!materialList || materialList.length === 0) {
-    return [];
-  }
-
-  const material = materialList[index % materialList.length];
-  if (!material) {
-    return [];
-  }
-
-  return [...(material.image || []), ...(material.video || [])].map(
-    (item) => item.localMaterialId,
   );
 }

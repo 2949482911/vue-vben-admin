@@ -74,6 +74,7 @@ const tableColumns = [
     <PreviewArea
       :table-columns="tableColumns"
       :table-data="previewData"
+      :show-empty="tableData.length === 0"
       :campaign-merge-fields="['campaignName']"
       :adgroup-merge-fields="['groupName']"
       :level-names="levelNames"

@@ -57,7 +57,8 @@ async function initCreationInfo() {
       projectId: "",
       projectName: "",
       icon: "",
-      packageName: ""
+      packageName: "",
+      appId: ''
     },
     accountInfo: [],
     configData: {

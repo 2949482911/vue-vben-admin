@@ -116,7 +116,10 @@ const [Form, formApi] = useVbenForm({
         placeholder: $t(`${T}.selectPlatformPlaceholder`),
         options: [
           { label: $t(`${T}.tencent`), value: "tencent" },
-          { label: $t(`${T}.bytedance`), value: "bytedance" }
+          { label: $t(`${T}.bytedance`), value: "bytedance" },
+          { label: $t(`${T}.oppo`), value: "oppo" },
+          { label: $t(`${T}.vivo`), value: "vivo" },
+          { label: $t(`${T}.huawei_store`), value: "huawei_store" },
         ],
         onChange: onPlatformChange
       }

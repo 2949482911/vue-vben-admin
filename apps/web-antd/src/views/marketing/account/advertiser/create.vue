@@ -287,7 +287,7 @@ const [Form, formApi] = useVbenForm({
       },
       defaultValue: 9,
       // 字段名
-      fieldName: 'putStatue',
+      fieldName: 'putStatus',
       label: `${$t('marketing.advertiser.columns.putStatue')}`,
     },
     {

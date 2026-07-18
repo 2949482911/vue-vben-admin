@@ -20,13 +20,12 @@ import type {
   OppoPromotionData,
 } from '#/views/marketing/creation/oppo/Oppo.types';
 import {
-  EXTENSION_SELECT,
+  // EXTENSION_SELECT,
   DAYLIMIT_SELECT,
   DELIVERMODE_SELECT,
-  FLOW_SELECT,
-  FLOWSCENE_SELECT,
+  // FLOW_SELECT,
+  // FLOWSCENE_SELECT,
   DEEP_CV_SELECT,
-  PAGE_TYPE_SELECT,
   SMART_EXPAND_SELECT,
   DAY_LIMIT_SELECT,
   TIME_LIMIT_SELECT,
@@ -40,8 +39,12 @@ import {
   OPTIMIZE_TYPE_SELECT,
   GLOBAL_SPECID_SELECT,
   BILLINGTYPE_SELECT,
-  fieldLabelMap,
-} from '#/views/marketing/creation/oppo/projectEnum';
+  fieldLabelMap, PAGE_TYPE_SELECT
+} from "#/views/marketing/creation/oppo/projectEnum";
+import { markRaw } from "vue";
+import TimeSelectionPeriod
+  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
+import { oppo_advertisementApi } from "#/api";
 
 const emit = defineEmits([
   'update:campaign',
@@ -97,11 +100,21 @@ const campaignFormFields = [
     rules: 'required',
   },
   {
-    component: 'Select',
+    component: 'ApiSelect',
     fieldName: 'extensionType',
-    componentProps: { options: EXTENSION_SELECT },
+    componentProps: {
+      options: [],
+      allowClear: true,
+      api: async () => {
+        return await oppo_advertisementApi.fetchOppoConfigList({
+          type: 'EXTENSION_TYPE',
+          advertiserId: creationInfo.accountInfo.map(x => x.localAdvertiserId),
+        })
+      },
+      valueField: 'value',
+      labelField: 'name',
+    },
     label: '推广目标',
-    defaultValue: 1,
     rules: 'required',
   },
   {
@@ -116,6 +129,13 @@ const campaignFormFields = [
     fieldName: 'dayBudget',
     label: '日预算',
     defaultValue: 0,
+    rules: "required",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["dayLimit"] === 1
+      },
+      triggerFields: ["dayLimit"]
+    }
   },
   {
     component: 'Select',
@@ -132,7 +152,7 @@ const campaignShowLabel: Record<string, string> = {
   planName: '计划名称',
   extensionType: '推广目标',
   dayLimit: '日预算限制',
-  dayBudget: '日预算（分）',
+  dayBudget: '日预算',
   deliveryMode: '竞价策略',
 };
 
@@ -144,31 +164,48 @@ const adgroupFormFields = [
     label: '广告组名称',
     rules: 'required',
   },
+
   {
-    component: 'Input',
-    fieldName: 'pageUrl',
-    label: 'H5落地页链接',
-    defaultValue: '',
-  },
-  {
-    component: 'Select',
-    fieldName: 'extensionType',
-    componentProps: { options: EXTENSION_SELECT },
-    label: '标的物类型',
-  },
-  {
-    component: 'Select',
+    component: 'ApiSelect',
     fieldName: 'extensionFlow',
-    componentProps: { options: FLOW_SELECT },
+    rules: "required",
+    componentProps: {
+      options: [],
+      allowClear: true,
+      api: async() => {
+        return await oppo_advertisementApi.fetchOppoConfigList({
+          type: 'EXTENSION_FLOW',
+          advertiserId: creationInfo.accountInfo.map(x => x.localAdvertiserId),
+          extensionType: creationInfo.configData.campaign.extensionType,
+        })
+      },
+      valueField: 'value',
+      labelField: 'name',
+    },
     label: '推广流量',
-    defaultValue: 1,
   },
   {
-    component: 'Select',
+    component: 'ApiSelect',
     fieldName: 'flowScene',
-    componentProps: { options: FLOWSCENE_SELECT },
+    rules: "required",
+    componentProps: (formValues: Record<string, any>) => ({
+      options: [],
+      api: async (params: any) => {
+        return await oppo_advertisementApi.fetchOppoConfigList(params);
+      },
+      params: {
+        type: 'FLOW_SCENE',
+        advertiserId: creationInfo.accountInfo.map(x => x.localAdvertiserId),
+        extensionType: creationInfo.configData.campaign.extensionType,
+        extensionFlow: formValues.extensionFlow,
+      },
+      valueField: 'value',
+      labelField: 'name',
+    }),
     label: '流量场景',
-    defaultValue: 1,
+    dependencies: {
+      triggerFields: ["extensionFlow"]
+    }
   },
   {
     component: 'Select',
@@ -178,22 +215,45 @@ const adgroupFormFields = [
     defaultValue: 0,
   },
   {
-    component: 'Input',
+    component: 'DatePicker',
     fieldName: 'beginTime',
     label: '推广开始时间',
     defaultValue: '',
+    componentProps: {
+      format: "YYYY-MM-DD",
+      valueFormat: "YYYY-MM-DD"
+    },
+    rules: "required",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue['dayLimit'] === 1
+      },
+      triggerFields: ['dayLimit']
+    }
   },
   {
-    component: 'Input',
+    component: 'DatePicker',
     fieldName: 'endTime',
     label: '推广结束时间',
     defaultValue: '',
+    componentProps: {
+      format: "YYYY-MM-DD",
+      valueFormat: "YYYY-MM-DD"
+    },
+    rules: "required",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue['dayLimit'] === 1
+      },
+      triggerFields: ['dayLimit']
+    }
   },
   {
     component: 'Select',
     fieldName: 'billingType',
     componentProps: { options: BILLINGTYPE_SELECT },
     label: '计费方式',
+    rules: "required",
     defaultValue: 1,
   },
   {
@@ -201,14 +261,17 @@ const adgroupFormFields = [
     fieldName: 'advertiseType',
     componentProps: { options: ADTYPE_SELECT },
     label: '广告类型',
+    rules: "required",
     defaultValue: 0,
+    dependencies: {
+      show: (currentValue: any) => {
+        // 信息流才会展示
+        return currentValue["flowScene"] === 6
+      },
+      triggerFields: ["flowScene"]
+    }
   },
-  {
-    component: 'Input',
-    fieldName: 'appId',
-    label: '应用ID',
-    defaultValue: '',
-  },
+
   {
     component: 'Select',
     fieldName: 'autoOpenFlag',
@@ -216,35 +279,55 @@ const adgroupFormFields = [
     label: '下载并打开',
     defaultValue: 0,
   },
+
   {
-    component: 'Input',
+    component: 'InputNumber',
+    fieldName: 'price',
+    label: '出价',
+    defaultValue: 0,
+    rules: "required",
+    dependencies: {
+      show:(currentValue: any) => {
+        // CPC 出价
+        return currentValue["billingType"] === 2 || currentValue["billingType"] === 5
+      },
+      triggerFields: ["billingType"]
+    }
+  },
+
+  {
+    component: 'InputNumber',
     fieldName: 'deepOcpcPrice',
-    label: '深度OCPC转化出价',
-    defaultValue: '',
+    label: '转化出价',
+    defaultValue: 0,
+    rules: "required",
+    dependencies: {
+      show: (currentValue: any) => {
+        // OCPC
+        return currentValue["billingType"] === 5
+      },
+      triggerFields: ["billingType"]
+    }
   },
   {
     component: 'Select',
     fieldName: 'deepOcpcType',
     componentProps: { options: DEEP_CV_SELECT },
-    label: '深度OCPC转化类型',
+    label: '转化类型',
     defaultValue: 0,
+    rules: "required",
+    dependencies: {
+      show: (currentValue: any) => {
+        // OCPC
+        return currentValue["billingType"] === 5
+      },
+      triggerFields: ["billingType"]
+    }
   },
   {
     component: 'Input',
     fieldName: 'deepUrl',
     label: '直达链接',
-    defaultValue: '',
-  },
-  {
-    component: 'Input',
-    fieldName: 'instantAppId',
-    label: '快应用ID',
-    defaultValue: '',
-  },
-  {
-    component: 'Input',
-    fieldName: 'instantAppUrl',
-    label: '快应用落地链接',
     defaultValue: '',
   },
   {
@@ -272,38 +355,22 @@ const adgroupFormFields = [
     componentProps: { options: DEEP_CV_SELECT },
     label: '目标转化类型',
     defaultValue: 0,
+    rules: "required",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["billingType"] === 5
+      },
+      triggerFields: ["billingType"]
+    }
   },
-  {
-    component: 'Input',
-    fieldName: 'pageId',
-    label: '落地页ID',
-    defaultValue: '',
-  },
-  {
-    component: 'Select',
-    fieldName: 'pageType',
-    componentProps: { options: PAGE_TYPE_SELECT },
-    label: '落地页建站类型',
-    defaultValue: 0,
-  },
-  {
-    component: 'Input',
-    fieldName: 'price',
-    label: '基础出价（单位：分）',
-    defaultValue: '',
-  },
+
+
   {
     component: 'Select',
     fieldName: 'smartExpandType',
     componentProps: { options: SMART_EXPAND_SELECT },
     label: '智能扩量',
     defaultValue: 0,
-  },
-  {
-    component: 'Input',
-    fieldName: 'targetId',
-    label: '定向ID',
-    defaultValue: '',
   },
   {
     component: 'Select',
@@ -313,17 +380,23 @@ const adgroupFormFields = [
     defaultValue: 0,
   },
   {
-    component: 'Input',
+    component: markRaw(TimeSelectionPeriod),
     fieldName: 'timeSet',
     label: '推广时段',
-    defaultValue: '',
+    rules: "required",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["timeLimit"] === 1
+      },
+      triggerFields: ["timeLimit"]
+    }
   },
   {
     component: 'Select',
     fieldName: 'linkDeskFlag',
     componentProps: { options: OPPO_QUICK_APP_SELECT },
     label: '打开快应用并加桌',
-    defaultValue: 0,
+    defaultValue: 1,
   },
   {
     component: 'Select',
@@ -361,25 +434,19 @@ const adgroupFormFields = [
     fieldName: 'defaultSecondStage',
     componentProps: { options: OPPO_FREE_ORDER_SELECT },
     label: '是否开启免一阶',
-    defaultValue: 0,
+    defaultValue: 1,
   },
   {
-    component: 'Input',
+    component: 'InputNumber',
     fieldName: 'targetROI',
     label: '目标ROI系数',
-    defaultValue: '',
-  },
-  {
-    component: 'Input',
-    fieldName: 'appletId',
-    label: '小程序ID',
-    defaultValue: '',
-  },
-  {
-    component: 'Input',
-    fieldName: 'appletPath',
-    label: '小程序Path',
-    defaultValue: '',
+    rules: "required",
+    dependencies: {
+      show: (currentValue: any) => {
+        return currentValue["ocpcType"] === 47
+      },
+      triggerFields: ["ocpcType"]
+    }
   },
   // adsDpaProductDTO 平铺字段
   {
@@ -402,13 +469,26 @@ const adgroupFormFields = [
     label: '商品ID列表',
     defaultValue: [],
   },
+
   {
-    component: 'Select',
-    fieldName: 'pushAppPageType',
-    componentProps: { options: APP_PAGE_SELECT },
-    label: '应用内页类型',
+    component: "Select",
+    fieldName: "pageType",
     defaultValue: 0,
+    componentProps: {
+      options: PAGE_TYPE_SELECT
+    },
+    dependencies: {
+      show: false,
+      triggerFields: ["*"]
+    }
   },
+  // {
+  //   component: 'Select',
+  //   fieldName: 'pushAppPageType',
+  //   componentProps: { options: APP_PAGE_SELECT },
+  //   label: '应用内页类型',
+  //   defaultValue: 0,
+  // },
   {
     component: 'Select',
     fieldName: 'ocpxOptimizeSwitch',
@@ -422,12 +502,6 @@ const adgroupFormFields = [
     componentProps: { options: OPTIMIZE_TYPE_SELECT },
     label: 'OCPX优化类型',
     defaultValue: 0,
-  },
-  {
-    component: 'Input',
-    fieldName: 'extJson',
-    label: '广告组拓展信息',
-    defaultValue: '',
   },
   // marketingObjectiveDTO 平铺字段
   {
@@ -481,118 +555,16 @@ const promotionFormFields = [
   },
   {
     component: 'Input',
-    fieldName: 'adSource',
-    label: '广告来源',
-    defaultValue: 0,
-  },
-  {
-    component: 'Input',
-    fieldName: 'brandLogoImgId',
-    label: '品牌背景Logo ID',
-    defaultValue: '',
-  },
-  {
-    component: 'Input',
     fieldName: 'brandName',
     label: '品牌名称',
+    rules: 'required',
     defaultValue: '',
   },
   {
     component: 'Input',
     fieldName: 'buttonTxt',
     label: '按钮文案',
-    defaultValue: '',
-  },
-  {
-    component: 'Input',
-    fieldName: 'copywriter',
-    label: '广告文案',
-    defaultValue: '',
-  },
-  {
-    component: 'Input',
-    fieldName: 'copywriterId',
-    label: '文案ID',
-    defaultValue: '',
-  },
-  {
-    component: 'Input',
-    fieldName: 'downloadUrl',
-    label: '下载监测链接',
-    defaultValue: '',
-  },
-  {
-    component: 'Select',
-    fieldName: 'dynamicCr',
-    componentProps: {
-      options: [
-        { label: '否', value: 0 },
-        { label: '是', value: 1 },
-      ],
-    },
-    label: '是否开启衍生',
-    defaultValue: 0,
-  },
-  {
-    component: 'Input',
-    fieldName: 'exposeUrl',
-    label: '曝光监测链接',
-    defaultValue: '',
-  },
-  {
-    component: 'Input',
-    fieldName: 'videoImgId',
-    label: '视频封面图ID',
-    defaultValue: '',
-  },
-  {
-    component: 'Select',
-    fieldName: 'imgMatIds',
-    componentProps: { options: [], mode: 'multiple', placeholder: '请选择图片素材' },
-    label: '图片素材ID列表',
-    defaultValue: [],
-  },
-  {
-    component: 'Input',
-    fieldName: 'clickUrl',
-    label: '点击链接',
-    defaultValue: '',
-  },
-  // config 平铺字段
-  {
-    component: 'Input',
-    fieldName: 'config_videoMaxCount',
-    label: '视频最大数量',
-    defaultValue: 0,
-  },
-  {
-    component: 'Input',
-    fieldName: 'config_imageMaxCount',
-    label: '图片最大数量',
-    defaultValue: 0,
-  },
-  {
-    component: 'Input',
-    fieldName: 'config_materialNormId',
-    label: '素材规格ID',
-    defaultValue: 0,
-  },
-  {
-    component: 'Input',
-    fieldName: 'config_placeType',
-    label: '版位类型',
-    defaultValue: 0,
-  },
-  {
-    component: 'Input',
-    fieldName: 'config_strongReminder',
-    label: '强提醒',
-    defaultValue: 0,
-  },
-  {
-    component: 'Input',
-    fieldName: 'config_virtualPositionId',
-    label: '虚拟版位ID',
+    rules: 'required',
     defaultValue: '',
   },
 ];

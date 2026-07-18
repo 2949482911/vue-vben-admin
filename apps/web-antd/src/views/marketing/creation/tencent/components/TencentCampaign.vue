@@ -14,8 +14,6 @@ import {
   Card,
   Descriptions,
   DescriptionsItem,
-  Divider,
-  Space
 } from "ant-design-vue";
 import AudiencePackageShow
   from "#/views/marketing/creation/components/audience_package/AudiencePackageShow.vue";
@@ -306,24 +304,24 @@ function openAudiencePackage() {
 .info-card {
   width: 100%;
   min-height: 300px; // 固定最小高度，防止内容被挤压
-  
+
   // Card 样式优化
   &.ant-card {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: box-shadow 0.3s ease;
-    
+
     &:hover {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
   }
-  
+
   .ant-card-head {
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     padding: 12px 16px;
     min-height: 57px; // Card 标题固定高度
   }
-  
+
   .ant-card-body {
     padding: 16px;
     height: 100%;

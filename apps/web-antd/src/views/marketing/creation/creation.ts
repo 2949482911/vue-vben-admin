@@ -41,7 +41,7 @@ export interface Project {
   packageName: string;
   icon: string;
   // 媒体APPID
-  // appId: string
+  appId: string
 }
 
 export interface AccountInfo {
@@ -406,14 +406,14 @@ export function getLandingPage(
   method: string,
   data: Map<string, Array<PageViewItem>>,
   advertiserId: string
-): PageViewItem | undefined {
+): PageViewItem {
   let dataList: Array<PageViewItem> = [];
   if (method === DistributionMode.all) {
     dataList = data.get("0") || [];
   } else {
     dataList = data.get(advertiserId) || [];
   }
-  return dataList[0];
+  return <PageViewItem>dataList[0] || {};
 }
 
 

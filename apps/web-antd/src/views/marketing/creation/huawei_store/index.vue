@@ -365,7 +365,8 @@ const creationInfo = ref<HuaWeiStoreCreation>({
     projectId: "",
     projectName: "",
     icon: "",
-    packageName: ""
+    packageName: "",
+    appId: ''
   },
   ruleInfo: {
     projectRuleKey: RuleKey.TARGET,

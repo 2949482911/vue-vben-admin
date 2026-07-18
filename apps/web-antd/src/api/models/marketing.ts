@@ -196,6 +196,7 @@ export interface ProjectItem extends BaseItem {
   description: string;
   icon: string;
   miniProgramId: string;
+  appId: string;
 }
 
 export interface CreateProjectRequest {
@@ -870,6 +871,16 @@ export interface oppo_modelMetadata {
   advertiserId: string[];
 }
 
+
+// 推广配置查询
+export interface OppoConfigList {
+  type?: string;
+  extensionType?: number;
+  extensionFlow?: number;
+  flowScene?: number;
+  advertiserId: Array<string>;
+}
+
 export interface PhoneSeriesItem {
   id: number;
   name: string;
@@ -899,4 +910,9 @@ export interface UnionAppsTag {
 export interface WeatherShowListType {
   weatherCode: string;
   weatherName: string;
+}
+
+
+export interface OppoAppInfoListRequest{
+
 }

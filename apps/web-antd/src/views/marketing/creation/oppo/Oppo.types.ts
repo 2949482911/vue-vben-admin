@@ -21,7 +21,7 @@ export const OPPO_VERSION = "0.1.0";
  * vivo 初始化对象
  */
 export interface OppoCreation extends PlatformCreation<OppoConfigData> {
-  configurationConfig: ConfigurationConfig
+  configurationConfig: ConfigurationConfig;
 }
 
 export interface OppoConfigData {
@@ -246,14 +246,13 @@ export interface OPPOPromotionConfig {
 }
 
 
+
 /**
- * oppo表格数据
+ * 批头列表数据
  */
-export interface OppoTableData {
+export interface OppoCreationData {
   advertiserId: string;
-  // 计划
   campaignList: Array<OppoCampaign>;
-  // 计划数量
   getCampaignCount: () => number;
   // 获取广组告数
   getAdGroupCount: () => number;
@@ -261,198 +260,165 @@ export interface OppoTableData {
   getAdCount: () => number;
 }
 
-// 计划
+/**提交审核批投当前账户扁平数组类型 */
 export interface OppoCampaign extends Campaign {
-  campaignId: string;
-  name: string;
-  adType: number;
-  mediaType: number;
-  dailyBudget: number;
-  adgroupList: Array<OppoAdgroup>;
+  // 计划名称
+  planName: string;
+  // 推广目标
+  extensionType: number;
+  //是否限制日预算
+  dayLimit: number;
+  // 日预算（单位：分）
+  dayBudget: number;
+  //  竞价策略
+  deliveryMode: number;
+  adGroupList: Array<OppoAdgroup>;
 }
+
 
 // 广告组
 export interface OppoAdgroup extends Adgroup {
-  adgroupId: string;
-  audienceInfo: any;
-  appPackageName: string;
-  rpkDeepLink: string;
-  webSiteUrl: string;
-  h5Code: string;
-  h5Type: number | null;
-  productUrlType: number;
-  appletOriginId: string;
-  appletPath: string;
-  industry1: string;
-  industry2: string;
-  advertiseQualificationId: string;
-  wechatFollow: number;
-  startDate: string;
-  endDate: string;
-  scheduleTime: string;
-  chargeType: number | null;
-  cvType: string;
+// 计划id
+  planId: string;
+  // 广告组名称
+  adGroupName: string;
+  // 广告h5落地页链接
+  pageUrl: string;
+  // 标的物类型
+  extensionType: number | null;
+  // 推广流量
+  extensionFlow: number;
+  // 流量场景
+  flowScene: number;
+  // 推广日限制
+  dayLimit: number;
+  // 推广开始时间
+  beginTime: string;
+  // 推广结束时间
+  endTime: string;
+  // 计费方式
+  billingType: number;
+  adSearchPremiumKwSaveDTOList: Array<OppoPremium>;
+  // 应用id
+  appId: string;
+  // 下载并打开
+  autoOpenFlag: number;
+  // 深度ocpc转化出价 竞价策略为最大转化的计划 该参数不需要传
+  deepOcpcPrice: string;
+  // 深度ocpc转换类型
+  deepOcpcType: number;
+  // 直达链接
+  deepUrl: string;
+  // 快应用id
+  instantAppId: string;
+  // 快应用落地链接
+  instantAppUrl: string;
+  // 出价类型
+  ocpcOptmType: number;
+  // 目标转化出价
+  ocpcPrice: string;
+  // 目标转化类型
+  ocpcType: number;
+  // 落地页id
+  pageId: string;
+  // 落地页建站类型
+  pageType: number;
+  // 基础出价（单位：分）竞价策略为最大转化的计划 该参数不需要传
   price: number;
-  ocpxPrice: number;
-  name: string;
-  dailyBudget: number;
-  spentType: number | null;
-  retrieveType: number;
-  ruleAudience: string;
-  channelId: string;
-  apkId: string;
-  secondCvType: number | null;
-  secondOcpxPrice: number;
-  conversionFilterCycle: number;
-  biddingStrategy: number;
-  subpackageId: number;
-  builtInRpkDeepLink: string;
-
-  // 广告
+  // 智能扩量
+  smartExpandType: number;
+  // 定向id
+  targetId: string;
+  // 推广时段限制
+  timeLimit: number;
+  // 推广时段
+  timeSet: string;
+  // 是否打开快应用并添加到桌面
+  linkDeskFlag: number;
+  // 小程序类型
+  appletType: number;
+  // 广告组 关键词、词包 目标转化出价（单位：分）
+  kwOcpcPrice: string;
+  // 广告组 关键词、词包 深度转化出价（单位：分）
+  kwDeepOcpcPrice: string;
+  // 广告组 关键词、词包 目标ROI系数 * 1000000, (0,10]
+  kwTargetROI: string;
+  // 渠道包
+  channelPkgId: string;
+  // 是否开启免一阶 1-开启，0-关闭
+  defaultSecondStage: number;
+  // 广告组目标ROI系数 * 1000000, (0,10] 竞价策略为最大转化的计划 该参数不需要传
+  targetROI: string;
+  adsDpaProductDTO: OppoProductAdgroupData;
+  // 广告类型
+  advertiseType: number;
+  //流量场景为通知栏时，应用内页的类型，默认值为0，表示不传应用内页，1：INTEND_ACTION，4：ACTIVITY，5：SCHEME_URL
+  // 备注：应用内页通过deepUrl参数传值
+  pushAppPageType: number;
+  // OCPX自动优化开关，0表示未开启，1表示开启
+  // 备注：需要和深度ocpc转换类型搭配使用
+  ocpxOptimizeSwitch: number;
+  // OCPX优化类型，默认值为0：表示不使用
+  // 可选项 1：七日留存，2：次留率（优选），3：14日LTV
+  // 备注：需要和ocpxOptimizeSwitch搭配使用，仅ocpxOptimizeSwitch=1时可以设置
+  ocpxOptimizeType: number;
+  // 广告组拓展信息
+  extJson: string;
+  // 小程序id
+  appletId: string;
+  // 小程序Path长度
+  appletPath: string;
+  // 营销目标商品
+  marketingObjectiveDTO: MarketingObjectiveDTO;
+  // 广告列表
   promotionList: Array<OppoPromotion>;
 }
 
-/**
- * 广告
- */
-export interface OppoPromotion extends Promotion {
-  adgroupId: string;
-  name: string;
-  deepLink: string;
-  videoAttribution: number;
-  pageUrl: string;
-  pageUrlName?: string;
-  h5Code: string;
-  h5Type: number;
-  generalSwitch: number;
-  creativeList: Array<OppoCreative>;
-  viewMonitorUrl: string;
-  clickMonitorUrl: string;
-  /** 提交状态（本地前端维护） */
-  state?: string;
-  /** 报错原因（本地前端维护） */
-  msg?: string;
-}
 
-/**
- * 创意
- */
-export interface OppoCreative {
-  placeType: number;
-  materialNormId: number;
-  virtualPositionId: string;
-  title: string;
-  subTitle: string;
-  pushSubTitle: string;
-  imgsCode: string;
-  videoCode: string;
-  appName: string;
-  strongReminder: number;
+export interface OppoPromotion extends Promotion {
+  // 广告组id
+  adGroupId: string;
+  // 广告组名称
+  adName: string;
+  // 统一规格id
+  globalSpecId: number;
+  // 广告来源
+  adSource: number;
+  // 品牌背景logo
+  brandLogoImgId: string;
+  // 品牌名称
+  brandName: string;
+  // 按钮文案
+  buttonTxt: string;
+  // 广告文案
+  copywriter: string;
+  // 文案id
+  copywriterId: string;
+  // 下载监测链接
+  downloadUrl: string;
+  // 是否开启了衍生 0否 1是
+  dynamicCr: number;
+  // 曝光监测链接
+  exposeUrl: string;
+  // 视频封面图
+  videoImgId: string;
+  // 图片素材id
+  imgMatIds: number[];
+  // 点击链接
+  clickUrl: string;
+  // 落地页名称（预览使用）
+  pageUrlName?: string;
+  // deepLink链接（预览使用）
+  deepLink?: string;
+
+  // 素材信息
   materialIdsList: Array<string>;
 }
 
-/**
- * 审核表格返回计划
- */
-export interface OppoCampaignResp extends BatchReturnBasics {
-  campaignId: string;
-}
-
-/**
- * 审核表格返回广告
- */
-export interface OppoAdGroupResp extends BatchReturnBasics {
-  adgroupId: string;
-  campaignId: string;
-}
-
-/**
- * 审核表格返回广告创意
- */
-export interface OppoPromotionResp extends BatchReturnBasics {
-  adgroupId: string;
-  campaignId: string;
-  promotionId: string;
-}
-
-export interface BatchReturnBasics {
-  code: number;
-  index: number;
-  message: string;
-  requestId: string;
-}
-
-/**广告资质类型 */
-export interface AdvertisingQualificationType {
-  advertiseQualificationId: string; // 资质ID: "385831"
-  appCnName: string; // 应用名称: "京东-又好又便宜"
-  productName: string; // 包名: "com.jingdong.app.mall"
-  industry1: number; // 一级行业分类ID
-  industry1Name: string; // 一级行业名称: "电商"
-  industry2: number; // 二级行业分类ID
-  industry2Name: string; // 二级行业名称: "综合电商平台"
-  state: number; // 状态: 1
-  createTime: string; // 创建时间
-  updateTime: string; // 更新时间
-  qualificationValidDate: string; // 有效期
-  productType: number; // 产品类型
-  // ... 其他可选字段
-  icpCaseNumber?: string;
-  icpDomainName?: string;
-  productDescription?: string;
-}
-
-/**渠道包类型 */
-export interface channelPackageInfo {
-  id: string;
-  apkId: string;
-  appId: string;
-  appName: string;
-  appPackage: string;
-  name: string;
-  version: string;
-  versionCode: string;
-  showState: number;
-  deleted: number;
-  createTime: string;
-  modifyTime: string;
-}
-
-/**提交审核批投当前账户扁平数组类型 */
-export interface CampaignData {
-  exposureLink?: string;
-  pageUrlName?: string;
-  clickLink?: string;
-  deepLink?: string;
-  pIdx?: number;
-  adGroupIdx: number;
-  advertiserId?: string;
-  campaignAdType?: number;
-  campaignBudget?: number;
-  campaignIdx: number;
-  campaignMediaType?: number;
-  campaignName?: string;
-  campaignState?: string;
-  creativeCount?: number;
-  displayCreativePushTitle?: string;
-  displayCreativeSubTitle?: string;
-  displayCreativeTitle?: string;
-  errorMsg?: string;
-  groupDailyBudget?: number;
-  groupName?: string;
-  groupOcpxPrice?: number | string;
-  groupPrice?: number;
-  promoName?: string;
-  rowCampaignId?: string;
-  rowGroupId?: string;
-  rowPromoId?: string;
-  submitIndex: number;
-  _X_ROW_KEY?: string;
-}
 
 /**批量修改操作 */
 interface UseOppoTableUpdateOptions {
-  tableData: Ref<OppoTableData[]>;
+  tableData: Ref<OppoCreationData[]>;
   activeAccountId: Ref<string>;
   gridApi: any;
   flattenFn: (campaignList: OppoCampaign[], advertiserId: string) => any[];
@@ -466,7 +432,7 @@ export function useOppoTableUpdate(options: UseOppoTableUpdateOptions) {
    * 核心更新方法：修改原始嵌套数据并同步刷新 UI
    * @param callback 具体的业务修改逻辑
    */
-  function handleUpdateOriginalData(callback: (accountData: OppoTableData) => void) {
+  function handleUpdateOriginalData(callback: (accountData: OppoCreationData) => void) {
     // 1. 找到当前操作的账户原始数据
     const currentAccountData = tableData.value.find(
       (item) => item.advertiserId === activeAccountId.value

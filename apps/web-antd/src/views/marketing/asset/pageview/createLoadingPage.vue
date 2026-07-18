@@ -5,6 +5,7 @@ import { message } from 'ant-design-vue';
 import { loadingPageApi } from '#/api';
 import { ref } from 'vue';
 import type { LandingPageData } from '#/api/models';
+import { $t } from "../../../../../../../packages/locales/src";
 
 const emit = defineEmits(['pageReload']);
 const newOrEdit = ref<boolean>(true);
@@ -93,8 +94,12 @@ const [Form, formApi] = useVbenForm({
         allowClear: true,
         options: [
           {
-            label: 'vivo',
+            label: `${$t('ocpx.platform.vivo')}`,
             value: 'vivo',
+          },
+          {
+            label: `${$t('ocpx.platform.oppo')}`,
+            value: 'oppo',
           },
         ],
         placeholder: '请选择',

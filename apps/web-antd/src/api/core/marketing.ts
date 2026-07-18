@@ -46,7 +46,7 @@ import type {
   NewLabelItemType,
   NewTargetedPackageType,
   oppo_modelMetadata,
-  oppo_regionalMetadata,
+  oppo_regionalMetadata, OppoAppInfoListRequest, OppoConfigList,
   PageResponse,
   PageResult,
   PlatformMatchRequest,
@@ -639,6 +639,22 @@ class oppoAdvertisement extends BaseApi {
   //联盟AppId\联盟App反向
   fetchOppoMetadataUapp(params: oppo_modelMetadata) {
     return requestClient.post(this.getServiceUrl("metadata_uapp"), params);
+  }
+
+  /**
+   * 获取推广配置
+   * @param data
+   */
+  fetchOppoConfigList(data: OppoConfigList) {
+    return requestClient.post(this.getServiceUrl("config_list"), data)
+  }
+
+  /**
+   * 获取app应用列表
+   * @param data
+   */
+  fetchOppoAppInfoList(data: OppoAppInfoListRequest) {
+    return requestClient.post(this.getServiceUrl("app_info"), data)
   }
 }
 

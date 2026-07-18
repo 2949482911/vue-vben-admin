@@ -38,9 +38,9 @@ const adgroupInfo = ref<OppoAdgroupData>({
   planId: '',
   adGroupName: '',
   pageUrl: '',
-  extensionType: null,
-  extensionFlow: 1,
-  flowScene: 1,
+  extensionType: 2,
+  extensionFlow: 2,
+  flowScene: 0,
   dayLimit: 0,
   beginTime: '',
   endTime: '',
@@ -57,7 +57,7 @@ const adgroupInfo = ref<OppoAdgroupData>({
   ocpcPrice: '',
   ocpcType: 0,
   pageId: '',
-  pageType: 0,
+  pageType: 1,
   price: '',
   smartExpandType: 0,
   targetId: '',
@@ -118,6 +118,9 @@ function openAudiencePackage() {
   audiencePackageModalApi.setData(audience);
   audiencePackageModalApi.open();
 }
+
+
+
 </script>
 
 <template>

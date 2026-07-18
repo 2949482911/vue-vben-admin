@@ -7,8 +7,8 @@ import type {
   OppoAdgroupData,
   OppoCampaignData,
   OppoCreation,
+  OppoCreationData,
   OppoPromotionData,
-  OppoTableData,
 } from "./Oppo.types";
 import { OPPO_VERSION } from "./Oppo.types";
 import { getPreviewTableData } from "./convertToPreviewData";
@@ -37,7 +37,7 @@ import OppoPreviewArea from "#/views/marketing/creation/oppo/components/OppoPrev
 
 const OPPO_MARKETING_TYPE = [{ label: "基础模板", value: "base_template" }];
 
-const adList = ref<OppoTableData[]>([]);
+const adList = ref<OppoCreationData[]>([]);
 
 const [CreateStrategyGroupModal, createStrategyGroupApi] = useVbenModal({
   connectedComponent: CreateStrategyGroup,
@@ -162,6 +162,7 @@ function submitCreateBatch() {
     message.error("请先配置预览区数据");
     return;
   }
+  console.log(adList.value);
   submitApi.open();
 }
 
@@ -186,7 +187,7 @@ async function initCreationInfo() {
     configData: {
       campaign: {
         planName: "",
-        extensionType: 1,
+        extensionType: 2,
         dayLimit: 0,
         dayBudget: 0,
         deliveryMode: 0
@@ -195,8 +196,8 @@ async function initCreationInfo() {
         planId: "",
         adGroupName: "",
         pageUrl: "",
-        extensionType: null,
-        extensionFlow: 1,
+        extensionType: 2,
+        extensionFlow: 0,
         flowScene: 1,
         dayLimit: 0,
         beginTime: "",
@@ -214,7 +215,7 @@ async function initCreationInfo() {
         ocpcPrice: "",
         ocpcType: 0,
         pageId: "",
-        pageType: 0,
+        pageType: 1,
         price: "",
         smartExpandType: 0,
         targetId: "",
@@ -305,7 +306,8 @@ async function initCreationInfo() {
       projectId: "",
       projectName: "",
       icon: "",
-      packageName: ""
+      packageName: "",
+      appId: ''
     },
     ruleInfo: {
       projectRuleKey: RuleKey.TARGET,
@@ -327,6 +329,9 @@ async function updateTemplate(changeVal: string) {
   creationInfo.value.configurationConfig.template = changeVal;
 }
 
+/**
+ * 复用oppo创编
+ */
 function updateReuse(oppoCreation: OppoCreation) {
   if (oppoCreation.configData) {
     const config = oppoCreation.configData;
@@ -342,10 +347,14 @@ function updateReuse(oppoCreation: OppoCreation) {
     if (config.monitoringLink && !(config.monitoringLink.data instanceof Map)) {
       config.monitoringLink.data = new Map(Object.entries(config.monitoringLink.data || {}));
     }
+    if (config.landingPage && !(config.landingPage.data instanceof Map)) {
+      config.landingPage.data = new Map(Object.entries(config.landingPage.data || {}));
+    }
   }
   creationInfo.value = oppoCreation;
 }
 
+// 创编对象
 const creationInfo = ref<OppoCreation>({
   monitoringLink: {
     clickLink: "",
@@ -357,14 +366,14 @@ const creationInfo = ref<OppoCreation>({
   },
   accountInfo: [],
   configData: {
-    campaign: { planName: "", extensionType: 1, dayLimit: 0, dayBudget: 0, deliveryMode: 0 },
+    campaign: { planName: "", extensionType: 2, dayLimit: 0, dayBudget: 0, deliveryMode: 0 },
     adgroup: {
       planId: "",
       adGroupName: "",
       pageUrl: "",
-      extensionType: null,
-      extensionFlow: 1,
-      flowScene: 1,
+      extensionType: 2,
+      extensionFlow: 0,
+      flowScene: 0,
       dayLimit: 0,
       beginTime: "",
       endTime: "",
@@ -381,7 +390,7 @@ const creationInfo = ref<OppoCreation>({
       ocpcPrice: "",
       ocpcType: 0,
       pageId: "",
-      pageType: 0,
+      pageType: 1,
       price: "",
       smartExpandType: 0,
       targetId: "",
@@ -451,7 +460,9 @@ const creationInfo = ref<OppoCreation>({
     platform: Platform.OPPO, template: "base_template"
   },
   platform: Platform.OPPO,
-  project: { projectId: "", projectName: "", icon: "", packageName: "" },
+  project: {
+    projectId: "", projectName: "", icon: "", packageName: "" , appId: ''
+  },
   ruleInfo: {
     projectRuleKey: RuleKey.TARGET,
     projectCount: 1,

@@ -665,7 +665,8 @@ const creationInfo = ref<TencentCreation>({
     projectId: "",
     projectName: "",
     icon: "",
-    packageName: ""
+    packageName: "",
+    appId: ''
   },
   ruleInfo: {
     projectRuleKey: RuleKey.TARGET,

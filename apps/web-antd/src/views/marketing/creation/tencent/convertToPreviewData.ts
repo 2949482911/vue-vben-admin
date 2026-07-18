@@ -4,6 +4,14 @@ import type {
 } from "#/views/marketing/creation/tencent/tencent";
 import type { AccountInfo } from "#/views/marketing/creation/creation";
 import type { AccountTabData } from "#/views/marketing/creation/components/preview_area/previewAreaData";
+import {
+  getMarketingGoalLabel,
+  getMarketingSubGoalLabel,
+  getOptimizationGoalLabel,
+  getConfiguredStatusLabel,
+  getCreativeDeliveryModeLabel,
+  getDynamicCreativeTypeLabel,
+} from "./tencent_enums";
 
 
 /**
@@ -44,20 +52,20 @@ function flattenData(campaignList: TencentCampaign[]): any[] {
 
         // 计划层级字段
         campaignName: campaign.adgroup_name,
-        marketingGoal: campaign.marketing_goal,
-        marketingSubGoal: campaign.marketing_sub_goal,
+        marketingGoal: getMarketingGoalLabel(campaign.marketing_goal),
+        marketingSubGoal: getMarketingSubGoalLabel(campaign.marketing_sub_goal),
         beginDate: campaign.begin_date,
         endDate: campaign.end_date,
         dailyBudget: campaign.daily_budget,
         bidAmount: campaign.bid_amount,
-        optimizationGoal: campaign.optimization_goal,
-        configuredStatus: campaign.configured_status,
+        optimizationGoal: getOptimizationGoalLabel(campaign.optimization_goal),
+        configuredStatus: getConfiguredStatusLabel(campaign.configured_status),
 
         // 广告组层级字段
         adgroupName: adgroup.dynamic_creative_name,
         creativeTemplateId: adgroup.creative_template_id,
-        deliveryMode: adgroup.delivery_mode,
-        dynamicCreativeType: adgroup.dynamic_creative_type,
+        deliveryMode: getCreativeDeliveryModeLabel(adgroup.delivery_mode),
+        dynamicCreativeType: getDynamicCreativeTypeLabel(adgroup.dynamic_creative_type),
         impressionTrackingUrl: adgroup.impression_tracking_url,
         clickTrackingUrl: adgroup.click_tracking_url,
 

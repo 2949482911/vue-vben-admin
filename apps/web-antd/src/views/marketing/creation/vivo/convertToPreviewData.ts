@@ -5,6 +5,7 @@ import type {
 } from '#/views/marketing/creation/vivo/vivo';
 import type { AccountInfo } from '#/views/marketing/creation/creation';
 import type { AccountTabData } from '#/views/marketing/creation/components/preview_area/previewAreaData';
+import { getMediaLabel, getAdTypeLabel } from './projectEnum';
 
 /**
  * 将vivo的原始预览数据转换为PreviewArea组件需要的格式
@@ -59,8 +60,8 @@ function flattenVivoData(campaignList: VivoCampaign[]): any[] {
           // 计划层级字段
           campaignName: campaign.name,
           campaignBudget: campaign.dailyBudget != -1 ? campaign.dailyBudget / 100000 : -1,
-          campaignMediaType: campaign.mediaType,
-          campaignAdType: campaign.adType,
+          campaignMediaType: getMediaLabel(campaign.mediaType),
+          campaignAdType: getAdTypeLabel(campaign.adType),
 
           // 广告组层级字段
           groupName: adgroup.name,

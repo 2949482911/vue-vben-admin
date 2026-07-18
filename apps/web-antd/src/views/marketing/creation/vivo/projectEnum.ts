@@ -550,3 +550,61 @@ export const FLOWSWITCH_SELECT = [
     value: 1,
   },
 ];
+
+// ======================== Label 辅助函数 ========================
+
+/** 根据 value 从 options 数组中查找对应的 label */
+function findLabel(options: Array<{ label: string; value: any }>, value: any): string {
+  const item = options.find((opt) => opt.value === value);
+  return item?.label ?? String(value ?? '');
+}
+
+export function getProjectLabel(value: any) { return findLabel(PROJRCT_SELECT, value); }
+export function getMediaLabel(value: any) { return findLabel(MEDIA_SELECT, value); }
+export function getAdTypeLabel(value: any) { return findLabel(ADTYPE_SELECT, value); }
+export function getNotificationTypeLabel(value: any) { return findLabel(NOTIFICATIONTYPE_SELECT, value); }
+export function getPromotionLabel(value: any) { return findLabel(PROMOTION_SELECT, value); }
+export function getConversionLabel(value: any) { return findLabel(CONVERSION_SELECT, value); }
+export function getDailyLimitLabel(value: any) { return findLabel(DAILYLIMIT_SELECT, value); }
+export function getDeleteFlagLabel(value: any) { return findLabel(DELETEFLAG_SELECT, value); }
+export function getIsTrafficLabel(value: any) { return findLabel(ISTRAFFIC_SELECT, value); }
+export function getPauseSignLabel(value: any) { return findLabel(PAUSESIGN_SELECT, value); }
+export function getPromotionLinkLabel(value: any) { return findLabel(PROMOTIONLINK_SELECT, value); }
+export function getCommodityUrlLabel(value: any) { return findLabel(COMMODITYURL_SELECT, value); }
+export function getVxFollowLabel(value: any) { return findLabel(VXFOLLOW_SELECT, value); }
+export function getBillingTypeLabel(value: any) { return findLabel(BILLINGTYPE_SELECT, value); }
+export function getBiddingStrategyLabel(value: any) { return findLabel(BIDDING_STRATEGY, value); }
+export function getDeliverLabel(value: any) { return findLabel(DELIVER_SELECT, value); }
+export function getRetrieveLabel(value: any) { return findLabel(RETRIEVE_SELECT, value); }
+export function getOrientationLabel(value: any) { return findLabel(ORIENTATION_SELECT, value); }
+export function getBidLabel(value: any) { return findLabel(BID_SELECT, value); }
+export function getDisplayFormLabel(value: any) { return findLabel(DISPLAYFORM_SELECT, value); }
+export function getAdReminderLabel(value: any) { return findLabel(ADREMINDER_SELECT, value); }
+export function getAttributionLabel(value: any) { return findLabel(ATTRIBUTION_SELECT, value); }
+export function getDetailPageLabel(value: any) { return findLabel(DETAILPAGE_SELECT, value); }
+export function getFlowSwitchLabel(value: any) { return findLabel(FLOWSWITCH_SELECT, value); }
+
+// ======================== 字段名 → Label 函数 Map ========================
+
+/** 按字段名获取对应的 Label 转换函数 */
+export const fieldLabelMap: Record<string, (value: any) => string> = {
+  // Campaign
+  mediaType: getMediaLabel,
+  adType: getAdTypeLabel,
+  // Adgroup
+  billingType: getBillingTypeLabel,
+  promotionLinkType: getPromotionLinkLabel,
+  commodityUrlType: getCommodityUrlLabel,
+  wechatFollow: getVxFollowLabel,
+  biddingStrategy: getBiddingStrategyLabel,
+  deliverType: getDeliverLabel,
+  retrieveType: getRetrieveLabel,
+  orientationType: getOrientationLabel,
+  bidType: getBidLabel,
+  adReminderType: getAdReminderLabel,
+  attributionType: getAttributionLabel,
+  detailPageType: getDetailPageLabel,
+  flowSwitchType: getFlowSwitchLabel,
+  // Promotion
+  displayForm: getDisplayFormLabel,
+};

@@ -280,6 +280,7 @@ async function initCreationInfo() {
       projectName: '',
       icon: '',
       packageName: '',
+      appId: ''
     },
     ruleInfo: {
       projectRuleKey: RuleKey.TARGET,

@@ -45,7 +45,7 @@ export interface AlbumItem extends BaseItem {
 export interface PageViewItem extends BaseItem {
   name: string;
   platform: string;
-  config: object;
+  config: Record<string, any>;
 }
 
 

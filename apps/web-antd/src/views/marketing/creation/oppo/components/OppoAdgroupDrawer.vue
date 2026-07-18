@@ -87,6 +87,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
     drawerApi.close();
   },
 });
+
+
+defineExpose({formApi})
 </script>
 
 <template>
