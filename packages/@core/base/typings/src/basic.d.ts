@@ -39,6 +39,7 @@ interface BasicMenu {
 }
 
 interface BasicUserInfo {
+  [key: string]: any;
   authName: string;
   /**
    * 头像
