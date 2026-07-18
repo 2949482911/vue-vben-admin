@@ -7,18 +7,17 @@ import type {
   UserItem
 } from '#/api/models/users';
 
-import {ref} from 'vue';
+import {computed, ref} from 'vue';
 
 import {useVbenDrawer} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import {useUserStore} from '@vben/stores';
 
-
 import {useVbenForm} from '#/adapter/form';
 import {dataRangeApi, orgApi, userApi} from '#/api';
 import {DATA_SCOPE} from '#/constants/locales';
 import type {MenuItem} from "#/api/models";
-import { trimObject } from '#/utils/trim';
+
 const emit = defineEmits(['pageReload']);
 
 const notice = ref<CreateDataRangeRequest | UpdateDataRangeRequest>({
@@ -131,7 +130,7 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'userIds',
       dependencies: {
         show: (val) => {
-          if (val.type == 2 || val.type == 4) {
+          if (val.type === 2 || val.type === 4) {
             userApi
               .fetchUserList({
                 page: 1,
@@ -213,16 +212,16 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
-    const params = trimObject(values);
     await (isUpdate.value
-      ? dataRangeApi.fetchUpdateDataRange(params as UpdateDataRangeRequest)
-      : dataRangeApi.fetchCreateDataRange(params as CreateDataRangeRequest));
+      ? dataRangeApi.fetchUpdateDataRange(values as UpdateDataRangeRequest)
+      : dataRangeApi.fetchCreateDataRange(values as CreateDataRangeRequest));
     await drawerApi.close();
   },
 });
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,
+
   onCancel() {
     drawerApi.close();
     isUpdate.value = false;
@@ -257,9 +256,9 @@ function handleSetFormValue(row: UpdateDataRangeRequest | CreateDataRangeRequest
   formApi.setValues(row);
 }
 
-const title: string = notice.value
-  ? `${$t('common.edit')}`
-  : `${$t('common.create')}`;
+const title = computed(() =>
+  isUpdate.value ? `${$t('common.edit')}` : `${$t('common.create')}`,
+);
 </script>
 <template>
   <Drawer :title="title">

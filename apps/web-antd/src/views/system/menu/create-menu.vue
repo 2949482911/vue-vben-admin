@@ -1,15 +1,13 @@
 <script lang="ts" setup name="CreateMenu">
 import type {CreateMenuRequest, MenuItem, UpdateMenuRequest} from '#/api/models/menu';
 
-import {ref} from 'vue';
+import {computed, ref} from 'vue';
 
 import {useVbenDrawer, z} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
-
 import {useVbenForm} from '#/adapter/form';
 import {menuApi} from '#/api';
-import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
@@ -28,6 +26,7 @@ const createObject = ref<CreateMenuRequest | UpdateMenuRequest>({
   hideInMenu: 0,
   hideInTab: false,
   icon: "",
+  id: "",
   iframeSrc: "",
   ignoreAccess: false,
   isInternal: 0,
@@ -569,16 +568,16 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
-    const params = trimObject(values);
     await (isUpdate.value
-      ? menuApi.fetchUpdateMenu(JSON.stringify(params))
-      : menuApi.fetchCreateMenu(JSON.stringify(params)));
+      ? menuApi.fetchUpdateMenu(JSON.stringify(values))
+      : menuApi.fetchCreateMenu(JSON.stringify(values)));
     await drawerApi.close();
   },
 });
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,
+
   onCancel() {
     drawerApi.close();
     isUpdate.value = false;
@@ -620,9 +619,9 @@ function handleSetFormValue(row) {
   formApi.setValues(row);
 }
 
-const title: string = createObject.value
-  ? `${$t('common.edit')}`
-  : `${$t('common.create')}`;
+const title = computed(() =>
+  isUpdate.value ? `${$t('common.edit')}` : `${$t('common.create')}`,
+);
 </script>
 <template>
   <Drawer :title="title">

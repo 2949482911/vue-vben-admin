@@ -3,18 +3,17 @@ import type {CreateRoleRequest, UpdateRoleRequest} from '#/api/models';
 import type {MenuItem} from '#/api/models/menu';
 import type {BasicRole} from '@vben-core/typings/src/basic';
 
-import {ref, onMounted} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 
 import {Tree, useVbenDrawer} from '@vben/common-ui';
 import {IconifyIcon} from '@vben/icons';
 import {$t} from '@vben/locales';
 
-
 import {useVbenForm} from '#/adapter/form';
 import {menuApi, roleApi} from '#/api';
 import {ROLE_TYPE_OPTIONS} from '#/constants/locales';
 import {useUserStore} from "@vben/stores";
-import { trimObject } from '#/utils/trim';
+
 const emit = defineEmits(['pageReload']);
 const userStore = useUserStore();
 
@@ -106,7 +105,7 @@ const [Form, formApi] = useVbenForm({
         treeData: menuData,
         checkable: true,
         multiple: true,
-        checkStrictly: true,
+        checkStrictly: false,
         fieldNames: {
           key: 'id',
           children: 'children',
@@ -123,10 +122,9 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
-    const params = trimObject(values);
     await (isUpdate.value
-      ? roleApi.fetchUpdateRole(params as UpdateRoleRequest)
-      : roleApi.fetchCreateRole(params as CreateRoleRequest));
+      ? roleApi.fetchUpdateRole(values as UpdateRoleRequest)
+      : roleApi.fetchCreateRole(values as CreateRoleRequest));
     await drawerApi.close();
   },
 });
@@ -208,34 +206,34 @@ onMounted(() => {
   }
 })
 
-const title: string = createObject.value
-  ? `${$t('common.edit')}`
-  : `${$t('common.create')}`;
+const title = computed(() =>
+  isUpdate.value ? `${$t('common.edit')}` : `${$t('common.create')}`,
+);
 </script>
 <template>
   <Drawer :title="title">
     <Form>
       <template #menuIds="slotProps">
-        <Tree
-          :tree-data="menuData"
-          :multiple="true"
-          bordered
-          :check-strictly="true"
-          :default-expanded-level="2"
-          v-bind="slotProps"
-          :get-node-class="getNodeClass"
-          value-field="id"
-          label-field="title"
-          icon-field="meta.icon"
-          :defaultValue="checkedKeys"
-          :autoCheckParent="true"
-        >
-          <template #node="{ value }">
-            <IconifyIcon v-if="value.icon" :icon="value.icon"/>
-            {{ $t(value.title) }}
-          </template>
-        </Tree>
-      </template>
-    </Form>
+          <Tree
+            :tree-data="menuData"
+            :multiple="true"
+            bordered
+            :check-strictly="false"
+            :default-expanded-level="2"
+            v-bind="slotProps"
+            :get-node-class="getNodeClass"
+            value-field="id"
+            label-field="title"
+            icon-field="meta.icon"
+            :defaultValue="checkedKeys"
+            :autoCheckParent="true"
+          >
+            <template #node="{ value }">
+              <IconifyIcon v-if="value.icon" :icon="value.icon"/>
+              {{ $t(value.title) }}
+            </template>
+          </Tree>
+        </template>
+      </Form>
   </Drawer>
 </template>

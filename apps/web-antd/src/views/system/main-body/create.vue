@@ -1,109 +1,94 @@
 <script lang="ts" setup name="CreateOrg">
-import type { MainBodyComboPageItem, MainBodyCreateRequest } from "#/api/models/main-body";
+import type { OrgCreateRequest } from '#/api/models/users';
 
-import { onMounted, ref } from "vue";
+import {computed, ref} from 'vue';
 
-import { useVbenDrawer } from "@vben/common-ui";
-import { $t } from "@vben/locales";
+import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import { Card, message } from "ant-design-vue";
+import { useVbenForm } from '#/adapter/form';
+import { mainBodyApi, orgApi, roleApi } from '#/api';
 
-import { useVbenForm } from "#/adapter/form";
-import { mainBodyApi, mainBodyComboApi } from "#/api";
+const emit = defineEmits(['pageReload']);
 
-const emit = defineEmits(["pageReload"]);
-
-const notice = ref<MainBodyCreateRequest>({
-  comboId: "", email: "", id: "", name: "", remark: ""
-});
+const notice = ref<OrgCreateRequest>({});
+const menuData = ref([]);
+const roleData = ref([]);
 const isUpdate = ref<Boolean>(false);
-
-// 套餐选项列表
-const comboOptions = ref<{ label: string; value: string }[]>([]);
-
-// 加载套餐选项
-async function loadComboOptions() {
-  try {
-    const res = await mainBodyComboApi.fetchMainBodyComboList({
-      name: "", type: "",
-      page: 1,
-      pageSize: 1000,
-      status: 1
-    });
-    comboOptions.value = res.items.map((item: MainBodyComboPageItem) => ({
-      label: item.name,
-      value: item.id
-    }));
-  } catch (err) {
-    console.error("加载套餐列表失败:", err);
-  }
-}
-
-onMounted(() => {
-  loadComboOptions();
-});
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
+    // 所有表单项
     componentProps: {
-      class: "w-full"
-    }
+      class: 'w-full',
+    },
   },
+  layout: 'horizontal',
   schema: [
     {
-      component: "Input",
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
       componentProps: {
-        placeholder: `${$t("common.input")}`
+        placeholder: `${$t('common.input')}`,
       },
-      fieldName: "id",
+      // 字段名
+      fieldName: 'id',
+      // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ["*"]
-      }
+        triggerFields: ['*'],
+      },
     },
     {
-      component: "Input",
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
       componentProps: {
-        placeholder: `${$t("common.input")}`
+        placeholder: `${$t('common.input')}`,
       },
-      fieldName: "name",
-      label: `${$t("system.mainbody.columns.name")}`,
-      rules: "required"
+      // 字段名
+      fieldName: 'name',
+      // 界面显示的label
+      label: `${$t('system.mainbody.columns.name')}`,
+      rules: 'required',
     },
+
     {
-      component: "Input",
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Input',
+      // 对应组件的参数
       componentProps: {
-        placeholder: `${$t("common.input")}`
+        placeholder: `${$t('common.input')}`,
       },
-      fieldName: "email",
-      label: `${$t("system.mainbody.columns.email")}`,
-      rules: "required"
+      // 字段名
+      fieldName: 'email',
+      // 界面显示的label
+      label: `${$t('system.mainbody.columns.email')}`,
+      rules: 'required',
     },
+
     {
-      component: "Textarea",
+      // 组件需要在 #/adapter.ts内注册，并加上类型
+      component: 'Textarea',
+      // 对应组件的参数
       componentProps: {
-        placeholder: `${$t("common.input")}`
+        placeholder: `${$t('common.input')}`,
       },
-      fieldName: "remark",
-      label: `${$t("system.mainbody.columns.remark")}`
+      // 字段名
+      fieldName: 'remark',
+      // 界面显示的label
+      label: `${$t('system.mainbody.columns.remark')}`,
     },
-    {
-      component: "Select",
-      componentProps: {
-        placeholder: "请选择套餐",
-        options: comboOptions,
-        allowClear: true,
-        showSearch: true,
-        filterOption: (inputValue: string, option: { label: string }) => {
-          return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        }
-      },
-      fieldName: "comboId",
-      label: "套餐",
-      rules: "required"
-    }
-  ]
+  ],
+  wrapperClass: 'grid-cols-1',
+  handleSubmit: async (values: Record<string, any>) => {
+    await (isUpdate.value
+      ? mainBodyApi.fetchMainUpdate(JSON.stringify(values))
+      : mainBodyApi.fetchMainCreate(JSON.stringify(values)));
+    await drawerApi.close();
+  },
 });
 
 const [Drawer, drawerApi] = useVbenDrawer({
@@ -117,49 +102,40 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (!result.valid) {
       return;
     }
-    const values = await formApi.getValues();
-    try {
-      if (isUpdate.value) {
-        // @ts-ignore
-        await mainBodyApi.fetchMainUpdate(values);
-        message.success("修改成功！");
-      } else {
-        // @ts-ignore
-        await mainBodyApi.fetchMainCreate(values);
-        message.success("创建成功！");
-      }
-      await drawerApi.close();
-      isUpdate.value = false;
-      emit("pageReload");
-    } catch (err) {
-      console.error("保存失败:", err);
-    }
+    await formApi.submitForm();
+    isUpdate.value = false;
+    emit('pageReload');
   },
-  async onOpenChange(isOpen: boolean) {
+  onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      // 重新加载套餐选项数据
-      await loadComboOptions();
-      // @ts-ignore
+      formApi.resetForm();
       notice.value = drawerApi.getData<Record<string, any>>();
       if (notice.value.id) {
         isUpdate.value = true;
         handleSetFormValue(notice.value);
       } else {
         isUpdate.value = false;
-        formApi.resetForm();
       }
+      orgApi.fetchOrgTree().then((res) => {
+        menuData.value = res;
+      });
+      roleApi.fetchRoleList({ page: 1000 }).then((res) => {
+        roleData.value = res.items;
+      });
     }
-  }
+  },
 });
 
-function handleSetFormValue(row: any) {
+function handleSetFormValue(row) {
   formApi.setValues(row);
 }
+
+const title = computed(() =>
+  isUpdate.value ? `${$t('common.edit')}` : `${$t('common.create')}`,
+);
 </script>
 <template>
-  <Drawer :title="isUpdate ? `${$t('common.edit')}` : `${$t('common.create')}`">
-    <Card>
-      <Form />
-    </Card>
+  <Drawer :title="title">
+    <Form />
   </Drawer>
 </template>

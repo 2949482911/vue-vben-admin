@@ -80,11 +80,6 @@ const formOptions: VbenFormProps = {
   schema: [
     {
       component: 'Input',
-      fieldName: 'id',
-      label: `id`,
-    },
-    {
-      component: 'Input',
       fieldName: 'nickname',
       label: `${$t('system.user.columns.nickname')}`,
     },
@@ -172,9 +167,8 @@ const gridOptions: VxeGridProps<UserItem> = {
       width: 'auto',
 
     },
-    ...TABLE_COMMON_COLUMNS as any,
+    ...TABLE_COMMON_COLUMNS,
   ],
-  height: 'auto',
   proxyConfig: {
     autoLoad: true,
     ajax: {
@@ -190,6 +184,7 @@ const gridOptions: VxeGridProps<UserItem> = {
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
+    range: true,
   },
   pagerConfig: {
     enabled: true,
@@ -198,6 +193,7 @@ const gridOptions: VxeGridProps<UserItem> = {
     custom: true,
     export: false,
     refresh: true,
+    search: true,
     zoom: true,
   },
 };
@@ -226,7 +222,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <ColPage  v-bind="props">
+    <ColPage auto-content-height v-bind="props">
       <template #left="{ isCollapsed, expand }">
         <div
           :style="{ minWidth: '200px' }"
@@ -239,8 +235,8 @@ onMounted(() => {
           />
         </div>
       </template>
-      <!-- <Card class="ml-2">s -->
-        <Page auto-content-height>
+      <Card class="ml-2">
+        <Page>
           <Grid>
             <template #roleIds="{ row }">
               <Tag
@@ -278,8 +274,9 @@ onMounted(() => {
             </template>
           </Grid>
         </Page>
-      <!-- </Card> -->
-      <CreateDrawer @page-reload="pageReload"/>
+      </Card>
     </ColPage>
+
+    <CreateDrawer @page-reload="pageReload"/>
   </div>
 </template>

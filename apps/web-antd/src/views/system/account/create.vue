@@ -1,16 +1,14 @@
 <script lang="ts" setup name="CreateOrg">
-import type { OrgCreateRequest,UpdateUserRequest,CreateUserRequest } from '#/api/models/users';
+import type { OrgCreateRequest } from '#/api/models/users';
 
-import { ref } from 'vue';
+import {computed, ref} from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 
-
 import { useVbenForm } from '#/adapter/form';
 import { dataRangeApi, orgApi, roleApi, userApi } from '#/api';
 import { SEX_SELECT } from '#/constants/locales';
-import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
@@ -198,10 +196,9 @@ const [Form, formApi] = useVbenForm({
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
-    const params = trimObject(values);
     await (isUpdate.value
-      ? userApi.fetchUpdateUser(JSON.stringify(params))
-      : userApi.fetchCreateUser(JSON.stringify(params)));
+      ? userApi.fetchUpdateUser(JSON.stringify(values))
+      : userApi.fetchCreateUser(JSON.stringify(values)));
     await drawerApi.close();
   },
 });
@@ -250,9 +247,9 @@ function handleSetFormValue(row) {
   formApi.setValues(row);
 }
 
-const title: string = notice.value
-  ? `${$t('common.edit')}`
-  : `${$t('common.create')}`;
+const title = computed(() =>
+  isUpdate.value ? `${$t('common.edit')}` : `${$t('common.create')}`,
+);
 </script>
 <template>
   <Drawer :title="title">
