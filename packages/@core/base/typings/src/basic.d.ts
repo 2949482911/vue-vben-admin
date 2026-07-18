@@ -60,6 +60,7 @@ interface MainBodyComboPrivilegeEntity {
 
 
 interface BasicUserInfo {
+  [key: string]: any;
   authName: string;
   /**
    * 头像
