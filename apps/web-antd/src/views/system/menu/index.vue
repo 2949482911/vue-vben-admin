@@ -6,7 +6,7 @@ import type {
   UpdateMenuRequest,
 } from '#/api/models/menu';
 
-import { Page, useVbenModal } from '@vben/common-ui';
+import { Page, useVbenDrawer } from '@vben/common-ui';
 import { IconifyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
 
@@ -20,19 +20,17 @@ import { BatchOptionsType } from '#/constants/locales';
 
 import CreateMenu from './create-menu.vue';
 
-const [CreateMenuModal, createMenuModalApi] = useVbenModal({
+const [CreateMenuDrawer, createMenuDrawerApi] = useVbenDrawer({
   connectedComponent: CreateMenu,
-  centered: true,
-  modal: true,
 });
 
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
-    createMenuModalApi.setData(row);
+    createMenuDrawerApi.setData(row);
   } else {
-    createMenuModalApi.setData({});
+    createMenuDrawerApi.setData({});
   }
-  createMenuModalApi.open();
+  createMenuDrawerApi.open();
 }
 
 function getMenuTypeOptions() {
@@ -231,7 +229,7 @@ const pageReload = () => {
         </template>
       </Grid>
     </Page>
-    <CreateMenuModal @page-reload="pageReload" />
+    <CreateMenuDrawer @page-reload="pageReload" />
   </div>
 </template>
 

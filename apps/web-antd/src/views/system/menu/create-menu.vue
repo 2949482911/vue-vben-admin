@@ -3,10 +3,9 @@ import type {CreateMenuRequest, MenuItem, UpdateMenuRequest} from '#/api/models/
 
 import {ref} from 'vue';
 
-import {useVbenModal, z} from '@vben/common-ui';
+import {useVbenDrawer, z} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
-import {Card} from 'ant-design-vue';
 
 import {useVbenForm} from '#/adapter/form';
 import {menuApi} from '#/api';
@@ -77,7 +76,7 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     // 所有表单项
     colon: true,
-    formItemClass: 'col-span-2 md:col-span-1',
+    formItemClass: '',
     componentProps: {
       class: 'w-full',
     },
@@ -92,7 +91,7 @@ const [Form, formApi] = useVbenForm({
       },
       defaultValue: 1,
       fieldName: 'type',
-      formItemClass: 'col-span-2 md:col-span-2',
+      formItemClass: '',
       label: $t('system.menu.columns.type'),
     },
     {
@@ -424,7 +423,7 @@ const [Form, formApi] = useVbenForm({
         },
       },
       fieldName: 'divider1',
-      formItemClass: 'col-span-2 md:col-span-2 pb-0',
+      formItemClass: 'pb-0',
       hideLabel: true,
       renderComponentContent() {
         return {
@@ -439,7 +438,7 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t('common.input')}`,
       },
       fieldName: 'hideInMenu',
-      formItemClass: 'col-span-3 items-baseline',
+      formItemClass: 'items-baseline',
       renderComponentContent() {
         return {default: () => `${$t('system.menu.columns.hideMenu')}`};
       },
@@ -462,7 +461,7 @@ const [Form, formApi] = useVbenForm({
           default: () => $t('system.menu.columns.keepAlive'),
         };
       },
-      formItemClass: 'col-span-3 items-baseline',
+      formItemClass: 'items-baseline',
       dependencies: {
         show: (values) => {
           return values.type === 1;
@@ -482,7 +481,7 @@ const [Form, formApi] = useVbenForm({
           default: () => $t('system.menu.columns.hideInBreadcrumb'),
         };
       },
-      formItemClass: 'col-span-3 items-baseline',
+      formItemClass: 'items-baseline',
       dependencies: {
         show: (values) => {
           return values.type === 1;
@@ -501,7 +500,7 @@ const [Form, formApi] = useVbenForm({
           default: () => $t('system.menu.columns.hideInTab'),
         };
       },
-      formItemClass: 'col-span-3 items-baseline',
+      formItemClass: 'items-baseline',
       dependencies: {
         show: (values) => {
           return values.type === 1;
@@ -520,7 +519,7 @@ const [Form, formApi] = useVbenForm({
           default: () => $t('system.menu.columns.ignoreAccess'),
         };
       },
-      formItemClass: 'col-span-3 items-baseline',
+      formItemClass: 'items-baseline',
       dependencies: {
         show: (values) => {
           return values.type === 1;
@@ -539,7 +538,7 @@ const [Form, formApi] = useVbenForm({
           default: () => $t('system.menu.columns.menuVisibleWithForbidden'),
         };
       },
-      formItemClass: 'col-span-3 items-baseline',
+      formItemClass: 'items-baseline',
       dependencies: {
         show: (values) => {
           return values.type === 1;
@@ -558,7 +557,7 @@ const [Form, formApi] = useVbenForm({
           default: () => $t('system.menu.columns.openInNewWindow'),
         };
       },
-      formItemClass: 'col-span-3 items-baseline',
+      formItemClass: 'items-baseline',
       dependencies: {
         show: (values) => {
           return values.type === 1;
@@ -568,21 +567,20 @@ const [Form, formApi] = useVbenForm({
     },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
-  wrapperClass: 'grid-cols-2 gap-x-4',
+  wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
     const params = trimObject(values);
     await (isUpdate.value
       ? menuApi.fetchUpdateMenu(JSON.stringify(params))
       : menuApi.fetchCreateMenu(JSON.stringify(params)));
-    await modalApi.close();
+    await drawerApi.close();
   },
 });
 
-const [Modal, modalApi] = useVbenModal({
-  fullscreen: true,
-  fullscreenButton: false,
+const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   onCancel() {
-    modalApi.close();
+    drawerApi.close();
     isUpdate.value = false;
   },
   async onConfirm() {
@@ -596,7 +594,8 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      createObject.value = modalApi.getData<Record<string, any>>();
+      formApi.resetForm();
+      createObject.value = drawerApi.getData<Record<string, any>>();
       if (createObject.value.id) {
         isUpdate.value = true;
         handleSetFormValue(createObject.value);
@@ -626,9 +625,7 @@ const title: string = createObject.value
   : `${$t('common.create')}`;
 </script>
 <template>
-  <Modal :title="title">
-    <Card>
-      <Form/>
-    </Card>
-  </Modal>
+  <Drawer :title="title">
+    <Form/>
+  </Drawer>
 </template>

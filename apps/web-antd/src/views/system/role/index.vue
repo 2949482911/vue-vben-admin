@@ -1,6 +1,6 @@
 <script lang="ts" setup name="RoleManager">
 import type {VbenFormProps} from '@vben/common-ui';
-import {Page, useVbenModal} from '@vben/common-ui';
+import {Page, useVbenDrawer} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
@@ -53,10 +53,8 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false,
 };
 
-const [CreateModal, createModalApi] = useVbenModal({
+const [CreateRoleDrawer, createRoleDrawerApi] = useVbenDrawer({
   connectedComponent: CreateRole,
-  centered: true,
-  modal: true,
 });
 
 /**
@@ -65,11 +63,11 @@ const [CreateModal, createModalApi] = useVbenModal({
  */
 function openCreateModal(row: RoleItem) {
   if (row.id) {
-    createModalApi.setData(row);
+    createRoleDrawerApi.setData(row);
   } else {
-    createModalApi.setData({});
+    createRoleDrawerApi.setData({});
   }
-  createModalApi.open();
+  createRoleDrawerApi.open();
 }
 
 function handlerDelete(id: string) {
@@ -179,6 +177,6 @@ function pageReload() {
       </template>
     </Grid>
 
-    <CreateModal @page-reload="pageReload"/>
+    <CreateRoleDrawer @page-reload="pageReload"/>
   </Page>
 </template>

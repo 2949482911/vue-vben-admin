@@ -36,6 +36,7 @@ const privilegeCodeOptions = [
 ];
 
 const [comboDrawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   async onCancel() {
     await formApi.resetForm();
     privileges.value = [];

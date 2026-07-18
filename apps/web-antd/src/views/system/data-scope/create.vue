@@ -9,11 +9,10 @@ import type {
 
 import {ref} from 'vue';
 
-import {useVbenModal} from '@vben/common-ui';
+import {useVbenDrawer} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 import {useUserStore} from '@vben/stores';
 
-import {Card} from 'ant-design-vue';
 
 import {useVbenForm} from '#/adapter/form';
 import {dataRangeApi, orgApi, userApi} from '#/api';
@@ -212,21 +211,20 @@ const [Form, formApi] = useVbenForm({
     },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
     const params = trimObject(values);
     await (isUpdate.value
       ? dataRangeApi.fetchUpdateDataRange(params as UpdateDataRangeRequest)
       : dataRangeApi.fetchCreateDataRange(params as CreateDataRangeRequest));
-    await modalApi.close();
+    await drawerApi.close();
   },
 });
 
-const [Modal, modalApi] = useVbenModal({
-  fullscreen: true,
-  fullscreenButton: false,
+const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   onCancel() {
-    modalApi.close();
+    drawerApi.close();
     isUpdate.value = false;
   },
   async onConfirm() {
@@ -240,7 +238,8 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      notice.value = modalApi.getData<Record<string, any>>() as UpdateDataRangeRequest | CreateDataRangeRequest;
+      formApi.resetForm();
+      notice.value = drawerApi.getData<Record<string, any>>() as UpdateDataRangeRequest | CreateDataRangeRequest;
       if (notice.value.id) {
         isUpdate.value = true;
         handleSetFormValue(notice.value);
@@ -263,9 +262,7 @@ const title: string = notice.value
   : `${$t('common.create')}`;
 </script>
 <template>
-  <Modal :title="title">
-    <Card>
-      <Form/>
-    </Card>
-  </Modal>
+  <Drawer :title="title">
+    <Form/>
+  </Drawer>
 </template>

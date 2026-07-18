@@ -5,11 +5,10 @@ import type {BasicRole} from '@vben-core/typings/src/basic';
 
 import {ref, onMounted} from 'vue';
 
-import {Tree, useVbenModal} from '@vben/common-ui';
+import {Tree, useVbenDrawer} from '@vben/common-ui';
 import {IconifyIcon} from '@vben/icons';
 import {$t} from '@vben/locales';
 
-import {Card} from 'ant-design-vue';
 
 import {useVbenForm} from '#/adapter/form';
 import {menuApi, roleApi} from '#/api';
@@ -107,7 +106,7 @@ const [Form, formApi] = useVbenForm({
         treeData: menuData,
         checkable: true,
         multiple: true,
-        checkStrictly: false,
+        checkStrictly: true,
         fieldNames: {
           key: 'id',
           children: 'children',
@@ -122,13 +121,13 @@ const [Form, formApi] = useVbenForm({
     },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
     const params = trimObject(values);
     await (isUpdate.value
       ? roleApi.fetchUpdateRole(params as UpdateRoleRequest)
       : roleApi.fetchCreateRole(params as CreateRoleRequest));
-    await modalApi.close();
+    await drawerApi.close();
   },
 });
 
@@ -142,11 +141,10 @@ function updateMenuTitle(menu: MenuItem) {
   });
 }
 
-const [Modal, modalApi] = useVbenModal({
-  fullscreen: true,
-  fullscreenButton: false,
+const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   onCancel() {
-    modalApi.close();
+    drawerApi.close();
     isUpdate.value = false;
     checkedKeys.value = [];
   },
@@ -161,7 +159,8 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      createObject.value = modalApi.getData<Record<string, any>>() as CreateRoleRequest | UpdateRoleRequest;
+      formApi.resetForm();
+      createObject.value = drawerApi.getData<Record<string, any>>() as CreateRoleRequest | UpdateRoleRequest;
       if (createObject.value.id) {
         isUpdate.value = true;
         checkedKeys.value = createObject.value.menuIds || [];
@@ -214,31 +213,29 @@ const title: string = createObject.value
   : `${$t('common.create')}`;
 </script>
 <template>
-  <Modal :title="title">
-    <Card>
-      <Form>
-        <template #menuIds="slotProps">
-          <Tree
-            :tree-data="menuData"
-            :multiple="true"
-            bordered
-            :check-strictly="false"
-            :default-expanded-level="2"
-            v-bind="slotProps"
-            :get-node-class="getNodeClass"
-            value-field="id"
-            label-field="title"
-            icon-field="meta.icon"
-            :defaultValue="checkedKeys"
-            :autoCheckParent="true"
-          >
-            <template #node="{ value }">
-              <IconifyIcon v-if="value.icon" :icon="value.icon"/>
-              {{ $t(value.title) }}
-            </template>
-          </Tree>
-        </template>
-      </Form>
-    </Card>
-  </Modal>
+  <Drawer :title="title">
+    <Form>
+      <template #menuIds="slotProps">
+        <Tree
+          :tree-data="menuData"
+          :multiple="true"
+          bordered
+          :check-strictly="true"
+          :default-expanded-level="2"
+          v-bind="slotProps"
+          :get-node-class="getNodeClass"
+          value-field="id"
+          label-field="title"
+          icon-field="meta.icon"
+          :defaultValue="checkedKeys"
+          :autoCheckParent="true"
+        >
+          <template #node="{ value }">
+            <IconifyIcon v-if="value.icon" :icon="value.icon"/>
+            {{ $t(value.title) }}
+          </template>
+        </Tree>
+      </template>
+    </Form>
+  </Drawer>
 </template>

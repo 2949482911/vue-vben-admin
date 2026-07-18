@@ -107,6 +107,7 @@ const [Form, formApi] = useVbenForm({
 });
 
 const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   onCancel() {
     drawerApi.close();
     isUpdate.value = false;
