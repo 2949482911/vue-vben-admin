@@ -7,7 +7,7 @@ import type {OrgItem, UserItem} from '#/api/models/users';
 
 import {onMounted, reactive, ref} from 'vue';
 
-import {ColPage, Page, useVbenModal} from '@vben/common-ui';
+import {ColPage, Page, useVbenDrawer} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
 import {Button, Card, Switch, Tag, Tree} from 'ant-design-vue';
@@ -48,21 +48,19 @@ async function handlerDelete(row: UserItem) {
   pageReload();
 }
 
-const [CreateModal, createModalApi] = useVbenModal({
+const [CreateDrawer, createDrawerApi] = useVbenDrawer({
   connectedComponent: Create,
-  centered: true,
-  modal: true,
 });
 
 const orgTreeData = ref<OrgItem[]>([]);
 
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
-    createModalApi.setData(row);
+    createDrawerApi.setData(row);
   } else {
-    createModalApi.setData({});
+    createDrawerApi.setData({});
   }
-  createModalApi.open();
+  createDrawerApi.open();
 }
 
 const props = reactive({
@@ -279,6 +277,6 @@ onMounted(() => {
       </Card>
     </ColPage>
 
-    <CreateModal @page-reload="pageReload"/>
+    <CreateDrawer @page-reload="pageReload"/>
   </div>
 </template>

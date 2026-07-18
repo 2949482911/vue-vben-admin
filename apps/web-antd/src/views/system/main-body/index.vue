@@ -5,7 +5,7 @@ import type {VxeGridProps} from '#/adapter/vxe-table';
 import type {MainBodyItem} from '#/api/models';
 import type {CreateMenuRequest, UpdateMenuRequest} from '#/api/models/menu';
 
-import {Page, useVbenModal} from '@vben/common-ui';
+import {Page, useVbenDrawer} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
 import {Button, Switch, Tag} from 'ant-design-vue';
@@ -20,19 +20,17 @@ import {
 
 import Create from './create.vue';
 
-const [CreateModal, createModalApi] = useVbenModal({
+const [CreateDrawer, createDrawerApi] = useVbenDrawer({
   connectedComponent: Create,
-  centered: true,
-  modal: true,
 });
 
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
   if (row) {
-    createModalApi.setData(row);
+    createDrawerApi.setData(row);
   } else {
-    createModalApi.setData({});
+    createDrawerApi.setData({});
   }
-  createModalApi.open();
+  createDrawerApi.open();
 }
 
 async function handlerState(row: MainBodyItem) {
@@ -169,6 +167,6 @@ const pageReload = () => {
         </template>
       </Grid>
     </Page>
-    <CreateModal @page-reload="pageReload"/>
+    <CreateDrawer @page-reload="pageReload"/>
   </div>
 </template>

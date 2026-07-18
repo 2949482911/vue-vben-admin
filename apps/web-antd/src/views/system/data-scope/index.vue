@@ -1,6 +1,6 @@
 <script lang="ts" setup name="DataRangeManager">
 import type {VbenFormProps} from '@vben/common-ui';
-import {Page, useVbenModal} from '@vben/common-ui';
+import {Page, useVbenDrawer} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
@@ -25,21 +25,19 @@ import {
 
 import Create from './create.vue';
 
-const [CreateModal, createModalApi] = useVbenModal({
+const [CreateDrawer, createDrawerApi] = useVbenDrawer({
   connectedComponent: Create,
-  centered: true,
-  modal: true,
 });
 
 const orgTreeData = ref<OrgItem[]>([]);
 
 function openBaseDrawer(row?: CreateDataRangeRequest | UpdateDataRangeRequest) {
   if (row) {
-    createModalApi.setData(row);
+    createDrawerApi.setData(row);
   } else {
-    createModalApi.setData({});
+    createDrawerApi.setData({});
   }
-  createModalApi.open();
+  createDrawerApi.open();
 }
 
 async function handlerState(row: DataRangeItem) {
@@ -196,6 +194,6 @@ onMounted(() => {
         </template>
       </Grid>
     </Page>
-    <CreateModal @page-reload="pageReload"/>
+    <CreateDrawer @page-reload="pageReload"/>
   </div>
 </template>

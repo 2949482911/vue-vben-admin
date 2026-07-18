@@ -3,13 +3,11 @@ import type {CreateRoleRequest, UpdateRoleRequest} from '#/api/models';
 import type {MenuItem} from '#/api/models/menu';
 import type {BasicRole} from '@vben-core/typings/src/basic';
 
-import {ref, onMounted} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 
-import {Tree, useVbenModal} from '@vben/common-ui';
+import {Tree, useVbenDrawer} from '@vben/common-ui';
 import {IconifyIcon} from '@vben/icons';
 import {$t} from '@vben/locales';
-
-import {Card} from 'ant-design-vue';
 
 import {useVbenForm} from '#/adapter/form';
 import {menuApi, roleApi} from '#/api';
@@ -122,12 +120,12 @@ const [Form, formApi] = useVbenForm({
     },
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
     await (isUpdate.value
       ? roleApi.fetchUpdateRole(values as UpdateRoleRequest)
       : roleApi.fetchCreateRole(values as CreateRoleRequest));
-    await modalApi.close();
+    await drawerApi.close();
   },
 });
 
@@ -141,11 +139,10 @@ function updateMenuTitle(menu: MenuItem) {
   });
 }
 
-const [Modal, modalApi] = useVbenModal({
-  fullscreen: true,
-  fullscreenButton: false,
+const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   onCancel() {
-    modalApi.close();
+    drawerApi.close();
     isUpdate.value = false;
     checkedKeys.value = [];
   },
@@ -160,7 +157,8 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      createObject.value = modalApi.getData<Record<string, any>>() as CreateRoleRequest | UpdateRoleRequest;
+      formApi.resetForm();
+      createObject.value = drawerApi.getData<Record<string, any>>() as CreateRoleRequest | UpdateRoleRequest;
       if (createObject.value.id) {
         isUpdate.value = true;
         checkedKeys.value = createObject.value.menuIds || [];
@@ -208,15 +206,14 @@ onMounted(() => {
   }
 })
 
-const title: string = createObject.value
-  ? `${$t('common.edit')}`
-  : `${$t('common.create')}`;
+const title = computed(() =>
+  isUpdate.value ? `${$t('common.edit')}` : `${$t('common.create')}`,
+);
 </script>
 <template>
-  <Modal :title="title">
-    <Card>
-      <Form>
-        <template #menuIds="slotProps">
+  <Drawer :title="title">
+    <Form>
+      <template #menuIds="slotProps">
           <Tree
             :tree-data="menuData"
             :multiple="true"
@@ -238,6 +235,5 @@ const title: string = createObject.value
           </Tree>
         </template>
       </Form>
-    </Card>
-  </Modal>
+  </Drawer>
 </template>
