@@ -176,7 +176,9 @@ function handleTransferChange(nextTargetKeys: string[]) {
 }
 
 function resetState() {
+  formApi.resetForm();
   targetKeys.value = [];
+  currentPlatform.value = '';
   accountDataSource.value = [];
 }
 

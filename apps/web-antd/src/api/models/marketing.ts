@@ -916,3 +916,25 @@ export interface WeatherShowListType {
 export interface OppoAppInfoListRequest{
 
 }
+
+
+/**
+ * 查询建站落地页
+ */
+export interface OppoSparkPageFRequest {
+  pageUrl: string;
+  pageType: number;
+  appId: string;
+
+}
+
+
+/**
+ * 落地页查询
+ */
+export interface OppoH5TemplateFRequest{
+  extensionFlow: number;
+  flowScene: number;
+  tid: number;
+  extensionType: number;
+}

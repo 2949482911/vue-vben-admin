@@ -13,11 +13,10 @@ const T = 'page.marketing.asset.pushTask';
 
 // ==================== 任务状态映射 ====================
 const TASK_STATUS_MAP: Record<number, { labelKey: string; color: string }> = {
-  0: { labelKey: `${T}.statusPending`, color: 'default' },
-  1: { labelKey: `${T}.statusProcessing`, color: 'processing' },
-  2: { labelKey: `${T}.statusCompleted`, color: 'success' },
-  3: { labelKey: `${T}.statusFailed`, color: 'error' },
-  4: { labelKey: `${T}.statusCancelled`, color: 'warning' },
+  1: { labelKey: `${T}.statusPending`, color: 'default' },
+  2: { labelKey: `${T}.statusProcessing`, color: 'processing' },
+  3: { labelKey: `${T}.statusCompleted`, color: 'success' },
+  4: { labelKey: `${T}.statusFailed`, color: 'error' },
 };
 
 const TASK_STATUS_OPTIONS = Object.entries(TASK_STATUS_MAP).map(

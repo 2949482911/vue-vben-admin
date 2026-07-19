@@ -123,6 +123,11 @@ function openPushMaterialDrawer() {
 // ==================== 推送任务记录 ====================
 const [PushTaskListDrawerModal, pushTaskListDrawerApi] = useVbenDrawer({
   connectedComponent: PushTaskListDrawer,
+  onOpenChange(isOpen: boolean) {
+    if (!isOpen) {
+      handleClearSelection();
+    }
+  }
 });
 
 function openPushTaskListDrawer() {

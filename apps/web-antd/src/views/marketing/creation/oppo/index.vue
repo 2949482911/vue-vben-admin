@@ -30,12 +30,20 @@ import type {
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import { Platform } from "#/constants/enums";
 import OppoBaseTemplate from "#/views/marketing/creation/oppo/components/base/base_template.vue";
+import QuickAppTemplate from "#/views/marketing/creation/oppo/components/quickapp/quick_template.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
 import OppoPreviewArea from "#/views/marketing/creation/oppo/components/OppoPreviewArea.vue";
 
-const OPPO_MARKETING_TYPE = [{ label: "基础模板", value: "base_template" }];
+const OPPO_MARKETING_TYPE = [
+  {
+    label: "基础模板", value: "base_template"
+  },
+  {
+    label: "快应用", value: "quick_template"
+  },
+];
 
 const adList = ref<OppoCreationData[]>([]);
 
@@ -352,6 +360,7 @@ function updateReuse(oppoCreation: OppoCreation) {
     }
   }
   creationInfo.value = oppoCreation;
+  template.value = creationInfo.value.configurationConfig.template ||  'base_template';
 }
 
 // 创编对象
@@ -523,6 +532,17 @@ function resetCreationInfo() {
           @update:audience-package="updateAudiencePackage"
           @update:landing-page="updateLandingPage"
         />
+        <QuickAppTemplate
+          v-if="template === 'quick_template'"
+          :creation-info="creationInfo"
+          @update:title-package="updateTitlePackage"
+          @update:update-material="updateMaterial"
+          @update:campaign="updateCampaign"
+          @update:adgroup="updateAdgroup"
+          @update:promotion="updatePromotion"
+          @update:audience-package="updateAudiencePackage"
+          @update:landing-page="updateLandingPage"
+        ></QuickAppTemplate>
       </Card>
 
       <Card class="header">

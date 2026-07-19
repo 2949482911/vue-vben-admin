@@ -47,6 +47,7 @@ import type {
   NewTargetedPackageType,
   oppo_modelMetadata,
   oppo_regionalMetadata, OppoAppInfoListRequest, OppoConfigList,
+  OppoH5TemplateFRequest, OppoSparkPageFRequest,
   PageResponse,
   PageResult,
   PlatformMatchRequest,
@@ -655,6 +656,21 @@ class oppoAdvertisement extends BaseApi {
    */
   fetchOppoAppInfoList(data: OppoAppInfoListRequest) {
     return requestClient.post(this.getServiceUrl("app_info"), data)
+  }
+
+  /**
+   * 落地页
+   */
+  fetchOppoSparkPage(data: OppoSparkPageFRequest) {
+    return requestClient.post(this.getServiceUrl("spark_page"), data)
+  }
+
+  /**
+   * 落地页H5模板
+   * @param data
+   */
+  fetchH5Template(data: OppoH5TemplateFRequest) {
+    return requestClient.post(this.getServiceUrl("h5_template"), data)
   }
 }
 
