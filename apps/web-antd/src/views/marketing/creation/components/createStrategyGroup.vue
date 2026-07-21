@@ -131,7 +131,7 @@ const [Form, formApi] = useVbenForm({
 
 const [Modal, modalApi] = useVbenModal({
   fullscreenButton: false,
-  closeOnPressEscape: false,
+  closeOnPressEscape: true,
   async onCancel() {
     await formApi.resetForm();
     objectRequest.value = {

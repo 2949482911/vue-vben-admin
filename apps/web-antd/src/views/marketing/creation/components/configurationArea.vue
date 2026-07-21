@@ -242,7 +242,6 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
           putStatue: 1,
           ...params,
         });
-        console.log(configurationConfig);
         setTimeout(() => {
           const grid = gridApi.grid;
           if (grid) {
@@ -260,6 +259,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
 };
 //媒体账户选择弹框
 const [Modal, modalApi] = useVbenModal({
+  closeOnPressEscape: true,
   contentClass: 'modalStyle',
   onConfirm: async () => {
     // 【关键】只有点击确定时，才把临时变量同步到页面显示的变量中

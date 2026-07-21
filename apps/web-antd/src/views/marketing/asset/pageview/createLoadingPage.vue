@@ -101,6 +101,10 @@ const [Form, formApi] = useVbenForm({
             label: `${$t('ocpx.platform.oppo')}`,
             value: 'oppo',
           },
+          {
+            label: `${$t('ocpx.platform.bytedance')}`,
+            value: 'bytedance',
+          },
         ],
         placeholder: '请选择',
       },

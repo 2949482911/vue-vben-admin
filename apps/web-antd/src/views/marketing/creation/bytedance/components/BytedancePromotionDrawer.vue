@@ -41,6 +41,15 @@ const [Drawer, drawerApi] = useVbenDrawer({
         native_setting_aweme_ids: ns.aweme_ids || [],
         native_setting_anchor_related_type: ns.anchor_related_type || 'OFF',
 
+        // 素材信息 产品信息
+        promotion_materials_product_info_titles: promotion.promotion_materials?.product_info?.titles || [],
+        promotion_materials_product_info_image_ids: promotion.promotion_materials?.product_info?.image_ids || [],
+        promotion_materials_product_info_selling_points: promotion.promotion_materials?.product_info?.selling_points || [],
+        // 行动号召
+        promotion_materials_call_to_action_buttons: promotion.promotion_materials?.call_to_action_buttons || [],
+        //智能生成行动号召按钮，开启后即对应的文案自动生成，可选项为OFF（默认）、
+        promotion_materials_intelligent_generation: promotion.promotion_materials?.intelligent_generation || '',
+
         // brand_info 平铺
         brand_info_yuntu_category_id: bi.yuntu_category_id || 0,
         brand_info_cdp_brand_id: bi.cdp_brand_id || 0,
@@ -70,6 +79,16 @@ const [Drawer, drawerApi] = useVbenDrawer({
         anchor_related_type: currentValues.native_setting_anchor_related_type || 'OFF',
       },
 
+      // 素材信息
+      promotion_materials: {
+        product_info: {
+          titles: currentValues.promotion_materials_product_info_titles || [],
+          image_ids: currentValues.promotion_materials_product_info_image_ids || [],
+          selling_points: currentValues.promotion_materials_product_info_selling_points || []
+        },
+        call_to_action_buttons: currentValues.promotion_materials_call_to_action_buttons || [],
+        intelligent_generation: currentValues.promotion_materials_intelligent_generation || 'OFF',
+      },
       // brand_info 还原
       brand_info: {
         yuntu_category_id: currentValues.brand_info_yuntu_category_id || 0,

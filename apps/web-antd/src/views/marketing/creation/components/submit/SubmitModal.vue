@@ -51,6 +51,7 @@ const uploadJson = async (data: any, subName: string) => {
 //  modal
 const [Modal, modalApi] = useVbenModal({
   closeOnClickModal: false,
+  closeOnPressEscape: true,
   onCancel() {
     formApi.resetForm();
     modalApi.close();

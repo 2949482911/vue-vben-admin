@@ -170,7 +170,6 @@ function submitCreateBatch() {
     message.error("请先配置预览区数据");
     return;
   }
-  console.log(adList.value);
   submitApi.open();
 }
 
@@ -271,14 +270,12 @@ async function initCreationInfo() {
         videoImgId: "",
         imgMatIds: [],
         clickUrl: "",
-        config: {
-          videoMaxCount: 0,
-          imageMaxCount: 0,
-          materialNormId: 0,
-          placeType: 0,
-          strongReminder: 0,
-          virtualPositionId: ""
-        }
+        exposeEndUrl: "",
+        playBeginUrl: "",
+        playEndUrl: "",
+        status: 0,
+        videoBgImgId: "",
+        videoMatIds: ""
       },
       material: {
         config: { method: RuleMethod.ALL },
@@ -439,14 +436,12 @@ const creationInfo = ref<OppoCreation>({
       videoImgId: "",
       imgMatIds: [],
       clickUrl: "",
-      config: {
-        videoMaxCount: 0,
-        imageMaxCount: 0,
-        materialNormId: 0,
-        placeType: 0,
-        strongReminder: 0,
-        virtualPositionId: ""
-      }
+      exposeEndUrl: "",
+      playBeginUrl: "",
+      playEndUrl: "",
+      status: 1,
+      videoBgImgId: "",
+      videoMatIds: ""
     },
     material: { config: { method: RuleMethod.ALL }, data: new Map<string, Material[]>() },
     audience: {

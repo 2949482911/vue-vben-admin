@@ -203,6 +203,7 @@ export interface MarketingObjectiveDTO {
  * 创意创建
  */
 export interface OppoPromotionData {
+  adPlanId?: number;
   // 广告组id
   adGroupId: string;
   // 广告组名称
@@ -233,16 +234,12 @@ export interface OppoPromotionData {
   imgMatIds: number[];
   // 点击链接
   clickUrl: string;
-  config: OPPOPromotionConfig;
-}
-
-export interface OPPOPromotionConfig {
-  videoMaxCount: number;
-  imageMaxCount: number;
-  materialNormId: number;
-  placeType: number;
-  strongReminder: number;
-  virtualPositionId: string;
+  status: number;
+  playEndUrl: string;
+  playBeginUrl: string;
+  exposeEndUrl: string;
+  videoBgImgId: string;
+  videoMatIds: string;
 }
 
 
@@ -376,6 +373,7 @@ export interface OppoAdgroup extends Adgroup {
 
 
 export interface OppoPromotion extends Promotion {
+  adPlanId?: number;
   // 广告组id
   adGroupId: string;
   // 广告组名称
@@ -410,9 +408,14 @@ export interface OppoPromotion extends Promotion {
   pageUrlName?: string;
   // deepLink链接（预览使用）
   deepLink?: string;
-
   // 素材信息
   materialIdsList: Array<string>;
+  status: number;
+  playEndUrl: string;
+  playBeginUrl: string;
+  exposeEndUrl: string;
+  videoBgImgId: string;
+  videoMatIds: string;
 }
 
 

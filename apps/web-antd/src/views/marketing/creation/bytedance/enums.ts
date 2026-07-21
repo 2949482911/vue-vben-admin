@@ -10,19 +10,37 @@ export const BYTEDANCE_MARKETING_TYPE = [
     label: '基础模板',
     value: 'base_template',
   },
+  {
+    label: "商品营销抖音号",
+    //
+    value: 'marketing_product_douyin_template'
+  }
 ];
 
 
-export enum CampaignOperation {
-  ENABLE = 'ENABLE',
-  DISABLE = 'DISABLE'
-}
+export const CampaignOperation  =[
+  {
+    label : '启用',
+    value: 'ENABLE'
+  },
+  {
+    label : '禁用',
+    value: 'DISABLE'
+  },
+]
 
 
-export enum DeliveryMode {
-  MANUAL = 'MANUAL',
-  PROCEDURAL = 'PROCEDURAL',
-}
+export const DeliveryMode = [
+  {
+    label: '手动投放',
+    value: 'MANUAL',
+  },
+  {
+    label: '自动投放',
+    value: 'PROCEDURAL',
+  },
+]
+
 
 /**
  * APP 应用
@@ -668,10 +686,10 @@ export const BytedanceCampaign_schedule_type = [
     label: '设置开始和结束日期',
     value: 'SCHEDULE_START_END',
   },
-  {
-    label: '7日稳投',
-    value: 'SCHEDULE_7_DAYS',
-  },
+  // {
+  //   label: '7日稳投',
+  //   value: 'SCHEDULE_7_DAYS',
+  // },
 ]
 
 

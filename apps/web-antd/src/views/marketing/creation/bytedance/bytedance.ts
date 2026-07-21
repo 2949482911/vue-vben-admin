@@ -1,8 +1,13 @@
 import type {
+  Adgroup,
   AudienceConfigData,
+  Campaign,
   ConfigurationConfig,
-  MaterialData, MonitoringLinkConfigData,
-  PlatformCreation, TitlePackageConfigData
+  MaterialData,
+  MonitoringLinkConfigData,
+  PageViewConfigData,
+  PlatformCreation,
+  TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 
 export const BYTEDANCE: string = "0.1";
@@ -24,6 +29,10 @@ export interface BytedanceConfigData {
   audience: AudienceConfigData;
   titlePackage: TitlePackageConfigData;
   monitoringLink: MonitoringLinkConfigData;
+  // 落地页配置
+  landingPage: PageViewConfigData;
+  // 抖音号配置
+
 }
 
 
@@ -181,19 +190,13 @@ export interface BytedancePromotionData {
   project_id: string;
   name: string;
   operation: string;
+  // 素材信息
+  promotion_materials: BytedancePromotion_promotion_materials,
 
-  // DPA素材
-  promotion_dpa_materials: BytedancePromotionDPAMaterials;
-
-
-  // 直播素材与营销素材组合
   materials_type: string;
   promotion_related_product: Array<BytedancePromotionPromotion_related_product>;
-  promotion_related_product_materials: Array<BytedancePromotionRelated_product_material>;
-
   // 原生单元设置
   native_setting: BytedancePromotionNativeSetting;
-
   // 创意设置
   source: string;
   is_comment_disable: string;
@@ -213,38 +216,91 @@ export interface BytedancePromotionData {
   // 七日内留存天数，单位：天取值范围[0.01，7.00]，仅支持最多2位小数。仅当满足以下条件时
   // 7d_retention 真实的字段名字
   sevend_retention: number;
-
-
   // 搜索流量
   auto_extend_traffic: string;
   keywords: Array<BytedancePromotionKeywords>;
 }
 
-export interface BytedancePromotionDPAMaterials {
+// export interface BytedancePromotionDPAMaterials {
+//   video_material_list: Array<BytedancePromotionVideo_material_list>;
+//   image_material_list: Array<BytedancePromotionImage_material_list>;
+//   params_type: string;
+//   external_url_field: string;
+//   external_url_material_list: Array<string>;
+//   external_url_params: string;
+//   web_url_material_list: Array<string>;
+//   open_url_type: string;
+//   open_url_field: string;
+//   open_url_params: string;
+//   open_url: string;
+//   product_info: BytedancePromotionProduct_info;
+//   call_to_action_buttons: Array<string>;
+//   dynamic_creative_switch: string;
+//   advanced_dc_settings: Array<string>;
+// }
+
+
+/**
+ * 素材信息
+ */
+export interface BytedancePromotion_promotion_materials {
+  // 本地视频ID
+  local_video_material_list: Array<string>;
+  // 本地图片ID
+  local_image_material_list: Array<string>;
+  // 素材信息
   video_material_list: Array<BytedancePromotionVideo_material_list>;
   image_material_list: Array<BytedancePromotionImage_material_list>;
+  title_material_list: Array<BytedancePromotionRelated_product_title>;
+
   params_type: string;
   external_url_field: string;
-  external_url_material_list: Array<string>;
   external_url_params: string;
-  web_url_material_list: Array<string>;
   open_url_type: string;
   open_url_field: string;
   open_url_params: string;
-  open_url: string;
   product_info: BytedancePromotionProduct_info;
-  call_to_action_buttons: Array<string>;
+  original_video_title: string;
+  playlet_series_url_list: Array<string>;
+  // 家装素材
+  decoration_material: BytetedancePromotion_material_decoration;
+  anchor_material_list: Array<BytedancePromotion_material_product_anchor>;
+  component_material_list: Array<BytedancePromotion_material_component>;
+  external_url_material_list: Array<string>;
+  mini_program_info: BytedancePromotion_material_mini_program;
+
+  open_url: string;
+  open_urls: Array<string>;
+  ulink: string;
+  ulink_type: string;
+  web_url_material_list: Array<string>;
+  blue_flow_material_recommend: string;
+  carousel_material_list: Array<BytedancePromotion_material_carousel>;
+  trial_play_material_list: Array<BytedancePromotion_material_trial_play>;
+  instant_play_material_list: Array<BytedancePromotion_material_instant_play>;
+
   dynamic_creative_switch: string;
   advanced_dc_settings: Array<string>;
+  call_to_action_buttons: Array<string>;
+  intelligent_generation: string;
+  plant_grass_search_word_material: Array<BytedancePromotion_material_plant_grass_search_word>;
+
 }
 
 
+/**
+ * 视频素材信息
+ */
 export interface BytedancePromotionVideo_material_list {
   video_id: string;
   video_cover_id: string;
   image_mode: string;
   video_template_type: string;
   video_task_ids: Array<string>;
+  item_id: string;
+  video_hp_visibility: string;
+  guide_video_id: string;
+
 }
 
 
@@ -273,7 +329,6 @@ export interface BytedancePromotionProduct_info {
   titles: Array<string>;
   image_ids: Array<string>;
   selling_points: Array<string>;
-
 }
 
 
@@ -326,137 +381,61 @@ export interface BytedancePromotionRelated_product_anchor {
   anchor_type: string;
 }
 
-// 直播素材与营销素材组合
-export interface BytedancePromotionRelated_product_material {
-  original_video_title: string;
-  video_material_list: Array<BytedancePromotionRelated_product_material_video>;
-  image_material_list: Array<BytedancePromotionRelated_product_material_image>;
-  text_abstract_list: Array<BytedancePromotionRelated_product_material_text_abstract>;
-  title_material_list: Array<BytedancePromotionRelated_product_material_title>;
-  playlet_series_url_list: Array<string>;
-  product_info: BytedancePromotionRelated_product_materialProduct_info;
-  decoration_material: BytetedancePromotionRelated_product_material_decoration;
-
-  anchor_material_list: Array<BytedancePromotionRelated_product_material_product_anchor>;
-  component_material_list: Array<BytedancePromotionRelated_product_material_component>;
-  external_url_material_list: Array<string>;
-  mini_program_info: BytedancePromotionRelated_product_material_mini_program;
-  open_url: string;
-  open_urls: Array<string>;
-  ulink: string;
-  ulink_type: string;
-  web_url_material_list: Array<string>;
-  blue_flow_material_recommend: string;
-  carousel_material_list: Array<BytedancePromotionRelated_product_material_carousel>;
-  trial_play_material_list: Array<BytedancePromotionRelated_product_material_trial_play>;
-  instant_play_material_list: Array<BytedancePromotionRelated_product_material_instant_play>;
-
-  dynamic_creative_switch: string;
-  advanced_dc_settings: Array<string>;
-  call_to_action_buttons: Array<string>;
-  intelligent_generation: string;
-  plant_grass_search_word_material: Array<BytedancePromotionRelated_product_material_plant_grass_search_word>;
-}
-
-
-export interface BytedancePromotionRelated_product_material_video {
-  image_mode: string;
-  video_id: string;
-  video_cover_id: string;
-  item_id: number;
-  video_hp_visibility: string;
-  guide_video_id: string;
-
-}
-
-
-export interface BytedancePromotionRelated_product_material_image {
-  image_mode: string;
-  images: Array<{
-    image_id: string;
-  }>;
-}
-
-
-export interface BytedancePromotionRelated_product_material_text_abstract {
-  abstract_text: string;
-  word_list: Array<number>;
-  bidword_list: Array<{
-    default_word: string;
-  }>;
-}
-
-
-export interface BytedancePromotionRelated_product_material_title {
-  title: string;
-  bidword_list: Array<{
-    default_word: string;
-
-  }>;
-  word_list: Array<number>;
-}
-
-
-export interface BytedancePromotionRelated_product_materialProduct_info {
-  titles: Array<string>;
-  image_ids: Array<string>;
-  selling_points: Array<string>;
-}
-
-
-export interface BytetedancePromotionRelated_product_material_decoration {
+export interface BytetedancePromotion_material_decoration {
   image_mode: string;
   activity_id: string;
 }
 
 
-export interface BytedancePromotionRelated_product_material_product_anchor {
+export interface BytedancePromotion_material_product_anchor {
   anchor_type: string;
   anchor_id: string;
 }
 
 
-export interface BytedancePromotionRelated_product_material_component {
+export interface BytedancePromotion_material_component {
   component_id: string;
 }
 
 
-export interface BytedancePromotionRelated_product_material_mini_program {
+export interface BytedancePromotion_material_mini_program {
   url: string;
   app_id: string;
   start_path: string;
   params: string;
   urls: Array<string>;
-  auto: Array<{
-    app_id: string;
-    start_path: string;
-    params: string;
-
-  }>;
+  auto: Array<BytedancePromotion_material_mini_program_auto>;
 }
 
+export interface BytedancePromotion_material_mini_program_auto {
+  app_id: string;
+  start_path: string;
+  params: string;
+}
 
-export interface BytedancePromotionRelated_product_material_carousel {
+export interface BytedancePromotion_material_carousel {
   carousel_id: string;
   item_id: number;
   video_hp_visibility: string;
 
 }
 
-export interface BytedancePromotionRelated_product_material_trial_play {
+export interface BytedancePromotion_material_trial_play {
   app_play_uri: string;
   guide_video_id: string;
 }
 
 
-export interface BytedancePromotionRelated_product_material_instant_play {
+export interface BytedancePromotion_material_instant_play {
   app_play_uri: string;
 }
 
-export interface BytedancePromotionRelated_product_material_plant_grass_search_word {
+export interface BytedancePromotion_material_plant_grass_search_word {
   search_word: string;
 }
 
+
+// 原生单元设置
 export interface BytedancePromotionNativeSetting {
   aweme_setting_type: string;
   aweme_id: string;
@@ -490,4 +469,138 @@ export interface BytedancePromotionKeywords {
   word: string;
   match_type: string;
   bid: number;
+}
+
+
+/**
+ * tabel data
+ */
+
+export interface BytedanceCreationData {
+  advertiserId: string;
+  campaignList: Array<BytedanceCampaign>;
+  getCampaignCount: () => number;
+  // 获取广组告数
+  getAdGroupCount: () => number;
+  // 获取广告数
+  getAdCount: () => number;
+}
+
+
+export interface BytedanceCampaign extends Campaign {
+  operation: string;
+  delivery_mode: string;
+  landing_type: string;
+  app_promotion_type: string;
+  marketing_goal: string;
+  ad_type: string;
+  delivery_type: string;
+  name: string;
+  budget_group_id: number;
+  aigc_dynamic_creative_switch: boolean;
+  star_task_id: number;
+  star_auto_material_addition_switch: string;
+  star_auto_delivery_switch: string;
+
+
+  // 搜索类关键词
+  keywords: Array<BytedanceCampaignKeyword>;
+  auto_extend_traffic: string;
+  related_product: BytedanceRelatedProduct;
+
+
+  // 营销产品与投放载体
+  download_url: string;
+  app_name: string;
+  download_type: string;
+  download_mode: string;
+  quick_app_id: string;
+  launch_type: string;
+  promotion_type: string;
+  open_url_type: string;
+  open_url_params: string;
+  open_url_field: string;
+  open_url: string;
+  ulink_url_type: string;
+  ulink_url: string;
+  subscribe_url: string;
+  asset_type: string;
+  multi_asset_type: string;
+  micro_promotion_type: string;
+  dpa_adtype: string;
+  micro_app_instance_id: number;
+  native_setting: BytedanceNativeSetting;
+
+
+  // 优化目标
+  optimize_goal: BytedanceOptimizeGoal;
+  value_optimized_type: string;
+  landing_page_stay_time: number;
+  yuntu_5a_brand_id: string;
+  yuntu_5a_brand_main_industry_id: string;
+
+  // 投放版位
+
+  delivery_range: BytedanceDeliveryRange;
+  // 用户定向
+  audience: object;
+  // 排期、预算、出价
+  delivery_setting: BytedanceDeliverySetting;
+  // 监测链接
+  track_url_setting: {
+    track_url_type: string;
+    track_url_group_id: number;
+    track_url: Array<string>;
+    action_track_url: Array<string>;
+    active_track_url: Array<string>;
+    video_play_effective_track_url: Array<string>;
+    video_play_done_track_url: Array<string>;
+    video_play_first_track_url: Array<string>;
+    send_type: string;
+  };
+
+  // 广告
+  promotionList: Array<BytedancePromotion>;
+}
+
+
+/**
+ * 广告信息
+ */
+export interface BytedancePromotion extends Adgroup {
+  project_id: string;
+  name: string;
+  operation: string;
+  // DPA素材
+  promotion_materials: BytedancePromotion_promotion_materials,
+
+  // 直播素材与营销素材组合
+  materials_type: string;
+  promotion_related_product: Array<BytedancePromotionPromotion_related_product>;
+  // 原生单元设置
+  native_setting: BytedancePromotionNativeSetting;
+
+  // 创意设置
+  source: string;
+  is_comment_disable: string;
+  ad_download_status: string;
+  brand_info: BytedancePromotionBrand_info;
+
+  // 单元预算与出价
+  budget_mode: string;
+  budget: number;
+  bid: number;
+  cpa_bid: number;
+  deep_cpabid: number;
+  roi_goal: number;
+  first_roi_goal: number;
+  union_bid_ratio: number;
+  shop_multi_roi_goals: Array<BytedancePromotion_shop_multi_roi_goals>;
+  // 七日内留存天数，单位：天取值范围[0.01，7.00]，仅支持最多2位小数。仅当满足以下条件时
+  // 7d_retention 真实的字段名字
+  sevend_retention: number;
+
+  // 搜索流量
+  auto_extend_traffic: string;
+  keywords: Array<BytedancePromotionKeywords>;
 }
