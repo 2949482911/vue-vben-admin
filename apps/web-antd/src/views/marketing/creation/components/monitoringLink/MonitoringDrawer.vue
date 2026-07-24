@@ -54,7 +54,7 @@ const currentOcpxValue = ref<{ monitorLink: string; ocpxTaskId?: string }>({
 
 // 当前编辑的链接对象（用于 v-model 双向绑定）
 const currentEditingLink = ref<MonitoringLinkType>({
-  allocateType: "",
+  allocateType: distributionMethod.value === RuleMethod.ACCOUNT ? "ACCOUNT" : "ALL",
   clickLink: "",
   exposureLink: "",
   linkModeType: "",
@@ -92,15 +92,34 @@ function syncToEditingLink() {
 
 // 从编辑对象同步回数据源
 function syncFromEditingLink() {
+  const newValue = { ...currentEditingLink.value };
   if (distributionMethod.value === RuleMethod.ACCOUNT) {
     const links = accountMonitoringLinks.value.get(currentAccountId.value);
     if (links && links.length > 0) {
-      Object.assign(links[0], currentEditingLink.value);
+      Object.assign(links[0], newValue);
     }
   } else {
     const links = localMonitoringLink.value.data.get("0");
     if (links && links.length > 0) {
-      Object.assign(links[0], currentEditingLink.value);
+      Object.assign(links[0], newValue);
+    }
+  }
+}
+
+// 手动输入更新处理
+function handleManualInputUpdate(val: MonitoringLinkType) {
+  currentEditingLink.value = { ...val };
+  syncFromEditingLink();
+}
+
+// OCPX 更新处理
+function handleOcpxUpdate(val: { monitorLink: string; ocpxTaskId?: string }) {
+  currentOcpxValue.value = { ...val };
+  const link = currentLink.value;
+  if (link) {
+    link.monitorLink = val.monitorLink || '';
+    if (val.ocpxTaskId) {
+      link.ocpxTaskId = val.ocpxTaskId;
     }
   }
 }
@@ -125,7 +144,9 @@ function initDefaultLinks() {
       currentAccountId.value = String(props?.accountInfo[0]?.localAdvertiserId);
     }
   } else {
-    if (!localMonitoringLink.value.data.has("0")) {
+    // 即使 key "0" 存在，如果数组为空也要重新初始化（父级传入空Map时会出现 key 存在但数组为空的情况）
+    const existing = localMonitoringLink.value.data.get("0");
+    if (!existing || existing.length === 0) {
       localMonitoringLink.value.data.set("0", [{
         clickLink: "",
         exposureLink: "",
@@ -258,6 +279,15 @@ const [Drawer, drawerApi] = useVbenDrawer({
         initDefaultLinks();
       }
 
+      // 数据恢复后，如果数据源为空则初始化默认值（第一次打开时父级传入空Map会走到这里）
+      const hasAnyData = distributionMethod.value === RuleMethod.ACCOUNT
+        ? accountMonitoringLinks.value.size > 0
+        : (localMonitoringLink.value.data.get("0") || []).length > 0;
+
+      if (!hasAnyData) {
+        initDefaultLinks();
+      }
+
       // 数据恢复后，同步到编辑对象
       syncToEditingLink();
     }
@@ -311,6 +341,20 @@ const [Drawer, drawerApi] = useVbenDrawer({
     await drawerApi.close();
   },
   onCancel() {
+    // 重置所有本地数据，避免下次打开时残留上次的输入
+    currentEditingLink.value = {
+      allocateType: distributionMethod.value === RuleMethod.ACCOUNT ? "ACCOUNT" : "ALL",
+      clickLink: "",
+      exposureLink: "",
+      linkModeType: "",
+      monitorLink: "",
+      ocpxTaskId: ""
+    };
+    currentOcpxValue.value = { monitorLink: "", ocpxTaskId: "" };
+    localMonitoringLink.value.data.clear();
+    accountMonitoringLinks.value.clear();
+    linkModeType.value = RuleMethod.MANUAL;
+    distributionMethod.value = RuleMethod.ALL;
     drawerApi.close();
   }
 });
@@ -349,22 +393,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
             v-if="linkModeType === RuleMethod.MANUAL"
             :key="currentAccountId"
             :model-value="currentEditingLink"
-            @update:model-value="val => {
-              currentEditingLink = val;
-              syncFromEditingLink();
-            }"
+            @update:model-value="handleManualInputUpdate"
           />
           <!-- OCPX 任务列表选择 -->
           <MonitoringOcpx
             v-if="linkModeType === RuleMethod.OCPX"
             :key="currentAccountId"
             :model-value="currentOcpxValue"
-            @update:model-value="val => {
-              currentOcpxValue = val;
-              if (currentLink) {
-                currentLink.monitorLink = val.monitorLink || '';
-              }
-            }"
+            @update:model-value="handleOcpxUpdate"
           />
         </TabPane>
       </Tabs>
@@ -375,21 +411,13 @@ const [Drawer, drawerApi] = useVbenDrawer({
         <MonitoringManualInput
           v-if="linkModeType === RuleMethod.MANUAL"
           :model-value="currentEditingLink"
-          @update:model-value="val => {
-            currentEditingLink = val;
-            syncFromEditingLink();
-          }"
+          @update:model-value="handleManualInputUpdate"
         />
         <!-- OCPX 任务列表选择 -->
         <MonitoringOcpx
           v-if="linkModeType === RuleMethod.OCPX"
           :model-value="currentOcpxValue"
-          @update:model-value="val => {
-            currentOcpxValue = val;
-            if (currentLink) {
-              currentLink.monitorLink = val.monitorLink || '';
-            }
-          }"
+          @update:model-value="handleOcpxUpdate"
         />
       </div>
     </Space>

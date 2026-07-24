@@ -153,8 +153,11 @@ watch(
 
 .info-card {
   width: 100%;
-  flex: 1; // 让Card高度自适应容器
-  min-height: 616px; // 固定最小高度，匹配营销单元（300px * 2 + 16px gap）
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
   // Card 样式优化
   &.ant-card {
@@ -167,15 +170,17 @@ watch(
     }
   }
 
-  .ant-card-head {
+  :deep(.ant-card-head) {
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     padding: 12px 16px;
     min-height: 57px; // Card 标题固定高度
   }
 
-  .ant-card-body {
+  :deep(.ant-card-body) {
     padding: 16px;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
   }
@@ -185,7 +190,6 @@ watch(
   flex: 1;
   overflow-y: auto;
   padding-bottom: 16px;
-  min-height: 150px; // 增大内容区域最小高度，确保有足够空间显示内容
 }
 
 .card-footer {
@@ -193,7 +197,7 @@ watch(
   justify-content: center; // 居中对齐
   padding-top: 16px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  margin-top: auto; // 自动推到底部
+  flex-shrink: 0;
 }
 
 .empty-alert {

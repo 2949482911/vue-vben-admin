@@ -846,16 +846,20 @@ const promotionShowLabel: Record<string, string> = {
 .equal-height-row {
   display: flex;
   align-items: stretch;
+  height: 612px;
 }
 
 .equal-height-col {
   display: flex;
+  min-height: 0;
 
   > * {
     width: 100%;
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
   }
 }
 </style>

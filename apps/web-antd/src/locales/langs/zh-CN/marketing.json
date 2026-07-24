@@ -27,7 +27,8 @@
       "proxy": "代理",
       "advertiser": "广告主",
       "personal": "个人",
-      "bm":"BM"
+      "bm":"广点通BM账户",
+      "admin": "账户管家"
     },
     "history": {
       "columns": {

@@ -323,13 +323,13 @@ export const AUTH_ACCOUNT_PLATFORM = [
     label: `${$t('ocpx.platform.tb')}`,
     value: 'tb',
   },
-  // {
-  //   label: '华为商店',
-  //   value: 'huawei_store',
-  // },
   {
-    label: '华为Ads',
+    label: `${$t('ocpx.platform.huawei')}`,
     value: 'huawei',
+  },
+  {
+    label: `${$t('ocpx.platform.bytedance')}`,
+    value: 'bytedance',
   },
 ];
 export const DEVELOPER_AUTH_ACCOUNT_PLATFORM = [

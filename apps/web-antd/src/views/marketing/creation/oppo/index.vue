@@ -135,6 +135,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 
 function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
   creationInfo.value.configData.monitoringLink = monitoringLink;
+  console.log(creationInfo.value.configData.monitoringLink);
 }
 
 function updateCampaign(campaign: OppoCampaignData) {
@@ -174,6 +175,7 @@ function submitCreateBatch() {
 }
 
 function createStrategyGroup() {
+  console.log(creationInfo.value);
   createStrategyGroupApi.setData(creationInfo.value);
   createStrategyGroupApi.open();
 }

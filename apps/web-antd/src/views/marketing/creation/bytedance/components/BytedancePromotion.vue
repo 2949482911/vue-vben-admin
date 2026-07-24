@@ -146,7 +146,10 @@ function openPromotionDrawer() {
 .info-card {
   width: 100%;
   height: 100%;
-  min-height: 616px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
   &.ant-card {
     border-radius: 8px;
@@ -158,15 +161,17 @@ function openPromotionDrawer() {
     }
   }
 
-  .ant-card-head {
+  :deep(.ant-card-head) {
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     padding: 12px 16px;
     min-height: 57px;
   }
 
-  .ant-card-body {
+  :deep(.ant-card-body) {
     padding: 16px;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
   }
@@ -176,7 +181,6 @@ function openPromotionDrawer() {
   flex: 1;
   overflow-y: auto;
   padding-bottom: 16px;
-  min-height: 150px;
 }
 
 .card-footer {
@@ -184,11 +188,11 @@ function openPromotionDrawer() {
   justify-content: center;
   padding-top: 16px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .info-descriptions {
-  .ant-descriptions-item-label {
+  :deep(.ant-descriptions-item-label) {
     font-weight: 500;
   }
 }

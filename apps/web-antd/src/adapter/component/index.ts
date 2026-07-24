@@ -90,6 +90,9 @@ const MetricFormulaEditor = defineAsyncComponent(
 const AdNameGen = defineAsyncComponent(
   () => import('#/views/marketing/creation/components/ad_name_gen/index.vue'),
 );
+const TextareaTags = defineAsyncComponent(
+  () => import('#/components/textarea_tags/TextareaTags.vue'),
+);
 const AutoComplete = defineAsyncComponent(
   () => import('ant-design-vue/es/auto-complete'),
 );
@@ -645,6 +648,7 @@ export type ComponentType =
   | 'lazyLoadSelect'
   | 'HybridSearchSelect'
   | 'AdNameGen'
+  | 'TextareaTags'
   | BaseFormComponentType;
 
 /**
@@ -654,6 +658,14 @@ export interface ComponentPropsMap {
   /**广告名字生成组件 Props */
   AdNameGen: {
     placeholderTags?: string[];
+    maxLength?: number;
+    placeholder?: string;
+    disabled?: boolean;
+  };
+  /**文本域标签组件 Props */
+  TextareaTags: {
+    maxCount?: number;
+    minLength?: number;
     maxLength?: number;
     placeholder?: string;
     disabled?: boolean;
@@ -701,6 +713,7 @@ async function initComponentAdapter() {
       visibleEvent: 'onVisibleChange',
     }),
     AdNameGen,
+    TextareaTags,
     ApiSelect: withDefaultPlaceholder(ApiComponent, 'select', {
       component: Select,
       loadingSlot: 'suffixIcon',

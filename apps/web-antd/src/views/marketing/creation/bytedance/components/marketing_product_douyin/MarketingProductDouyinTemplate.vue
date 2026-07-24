@@ -518,41 +518,28 @@ const promotionFormFields = [
     defaultValue: "ENABLE"
   },
   { component: "Input", fieldName: "source", label: "来源", rules: "required" },
-  {
-    component: "Select",
-    fieldName: "is_comment_disable",
-    label: "单元评论",
-    defaultValue: "OFF",
-    componentProps: {
-      options: [
-        {
-          label: "否",
-          value: "OFF"
-        },
-        {
-          label: "是",
-          value: "ON"
-        }
-      ]
-    }
-  },
-  // { component: "Input", fieldName: "project_id", label: "项目ID" },
 
   // 产品设置
   {
-    component: "Input",
+    component: "TextareaTags",
     fieldName: "promotion_materials_product_info_titles",
     rules: "required",
-    label: "产品名字"
+    label: "产品名字",
+    componentProps: {
+
+    },
   },
   {
     component: "Input",
     fieldName: "promotion_materials_product_info_image_ids",
     rules: "required",
-    label: "产品主图"
+    label: "产品主图",
+    componentProps: {
+
+    },
   },
   {
-    component: "Input",
+    component: "TextareaTags",
     fieldName: "promotion_materials_product_info_selling_points",
     rules: "required",
     label: "产品卖点"
@@ -561,7 +548,7 @@ const promotionFormFields = [
 
   // 行动号召
   {
-    component: "Input",
+    component: "TextareaTags",
     fieldName: "promotion_materials_call_to_action_buttons",
     rules: "required",
     label: "行动号召",
@@ -673,9 +660,9 @@ const promotionFormFields = [
 const promotionShowLabel: Record<string, string> = {
   name: "广告名称",
   operation: "状态",
-  budget_mode: "预算模式",
-  budget: "预算",
-  bid: "出价"
+  // budget_mode: "预算模式",
+  is_comment_disable: "单元评论",
+  source: '来源'
 };
 </script>
 
@@ -740,16 +727,20 @@ const promotionShowLabel: Record<string, string> = {
 .equal-height-row {
   display: flex;
   align-items: stretch;
+  height: 650px;
 }
 
 .equal-height-col {
   display: flex;
+  min-height: 0;
 
   > * {
     width: 100%;
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
   }
 }
 
@@ -758,6 +749,13 @@ const promotionShowLabel: Record<string, string> = {
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  height: auto;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+
+  > * {
+    flex: 1;
+    min-height: 0;
+  }
 }
 </style>

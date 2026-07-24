@@ -1,7 +1,7 @@
 <script setup lang="ts" name="PageViewSelector">
 // 落地页选择组件 - 供后续全媒体批投公用
 import type {AccountInfo, PageViewConfigData} from '#/views/marketing/creation/creation';
-import {Card, Alert, Space, Button, Divider} from 'ant-design-vue';
+import {Alert, Button, Card} from 'ant-design-vue';
 import {useVbenDrawer} from '@vben/common-ui';
 import {ref, computed, watch} from 'vue';
 import PageViewShow from '#/views/marketing/creation/components/pageview/PageViewShow.vue';
@@ -90,23 +90,22 @@ watch(
 </script>
 
 <template>
-  <div>
-    <Card title="落地页">
-      <template v-if="totalCount > 0">
-        <PageViewShow :landing-page="localPageView" :account-info="accountInfo" />
-        <Divider type="horizontal" />
-        <Space align="center" class="w-full justify-center">
-          <Button type="link" danger @click="handleClear">清空</Button>
-          <Button type="primary" @click="openPageViewDrawerModal">编辑</Button>
-        </Space>
-      </template>
-      <template v-else>
-        <Alert type="error" message="请选择落地页" show-icon />
-        <Divider type="horizontal" />
-        <Space align="center" class="w-full justify-center">
-          <Button type="primary" @click="openPageViewDrawerModal">添加</Button>
-        </Space>
-      </template>
+  <div class="page-view-selector-container">
+    <Card title="落地页" class="info-card">
+      <div class="card-content">
+        <template v-if="totalCount > 0">
+          <PageViewShow :landing-page="localPageView" :account-info="accountInfo" />
+        </template>
+        <template v-else>
+          <Alert type="error" message="请选择落地页" show-icon class="empty-alert" />
+        </template>
+      </div>
+      <div class="card-footer">
+        <Button v-if="totalCount > 0" type="link" danger @click="handleClear">清空</Button>
+        <Button type="primary" @click="openPageViewDrawerModal">
+          {{ totalCount > 0 ? '编辑' : '添加' }}
+        </Button>
+      </div>
     </Card>
 
     <PageViewDrawerComp :account-info="accountInfo" @update:page-view="updatePageView" />
@@ -114,4 +113,64 @@ watch(
 </template>
 
 <style scoped lang="scss">
+.page-view-selector-container {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.info-card {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &.ant-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+  }
+
+  :deep(.ant-card-head) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 12px 16px;
+    min-height: 57px;
+  }
+
+  :deep(.ant-card-body) {
+    padding: 16px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.card-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+.empty-alert {
+  margin: 8px 0;
+}
 </style>

@@ -127,7 +127,9 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 }
 
 function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
+  console.log(monitoringLink);
   creationInfo.value.configData.monitoringLink = monitoringLink;
+  console.log(creationInfo.value.configData.monitoringLink);
 }
 
 function updateCampaign(campaign: BytedanceCampaignData) {
@@ -168,6 +170,7 @@ function genPreviewTableData() {
 
 
 function createStrategyGroup() {
+  console.log(creationInfo.value);
   createStrategyGroupApi.setData(creationInfo.value);
   createStrategyGroupApi.open();
 }
@@ -436,8 +439,6 @@ const creationInfo = ref<BytedanceCreation>({
   },
   accountInfo: [],
   configData: {
-
-
     campaign: {
       operation: "ENABLE",
       delivery_mode: "MANUAL",
@@ -710,7 +711,7 @@ watch(() => creationInfo, (_) => {
 
       <Card class="header">
         <Function
-          :accountInfo="creationInfo.accountInfo"
+          :account-info="creationInfo.accountInfo"
           :monitoring-link="creationInfo.configData.monitoringLink"
           @update:monitoring-link="updateMonitoringLink"
           @gen:ad-list="genPreviewTableData"
