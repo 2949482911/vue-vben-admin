@@ -7,7 +7,7 @@ import { uploadToOss } from "#/utils/uploadToOss";
 import { useOssClient } from "#/views/marketing/asset/material/useOssClient";
 import { useUserStore } from "@vben/stores";
 import { creationTaskApi } from "#/api";
-
+import { ref } from "vue";
 
 // 传入的子组件数据
 const props = defineProps<{
@@ -17,8 +17,11 @@ const props = defineProps<{
 
 
 // result:getCreationTask 获取创编任务执行结果
-const emit = defineEmits(["result:getCreationTask"]);
+// result:error 提交异常
+const emit = defineEmits(["result:getCreationTask", "result:error"]);
 
+// 提交loading状态
+const submitting = ref(false);
 
 // // 上传json
 const uploadJson = async (data: any, subName: string) => {
@@ -53,11 +56,14 @@ const [Modal, modalApi] = useVbenModal({
   closeOnClickModal: false,
   closeOnPressEscape: true,
   onCancel() {
+    if (submitting.value) return;
     formApi.resetForm();
     modalApi.close();
   },
   async onConfirm() {
-    if (props.adList.length < 0) {
+    if (submitting.value) return;
+
+    if (props.adList.length === 0) {
       message.error("请先预览广告");
       return;
     }
@@ -65,33 +71,53 @@ const [Modal, modalApi] = useVbenModal({
     if (!validate.valid) {
       return;
     }
-    const values = await formApi.getValues();
-    const [creationUrl, tableUrl] = await Promise.all([
-      uploadJson(props.creationInfo, "creation"),
-      uploadJson(props.adList, "table")
-    ]);
-    // 提交的参数
-    const submitVals = {
-      name: values.name,
-      platform: props.creationInfo?.platform || "",
-      projectId: props.creationInfo?.project.projectId || "",
-      version: props.creationInfo?.version,
-      ruleType: values.ruleType,
-      configArea: creationUrl, //本地数据
-      fullParamsData: tableUrl, //上传表格
-      extraParams: props.creationInfo.configData.promotionType || {} // 附加参数
-    };
-    // 获取请求结果
-    const res = await creationTaskApi.fetchVivoSubmitReview(
-      submitVals
-    );
 
-    // 结果响应数据
-    if (res.taskId) {
-      emit("result:getCreationTask", res.taskId);
+    submitting.value = true;
+
+    try {
+      const values = await formApi.getValues();
+      const [creationUrl, tableUrl] = await Promise.all([
+        uploadJson(props.creationInfo, "creation"),
+        uploadJson(props.adList, "table")
+      ]);
+      // 提交的参数
+      const submitVals = {
+        name: values.name,
+        platform: props.creationInfo?.platform || "",
+        projectId: props.creationInfo?.project.projectId || "",
+        version: props.creationInfo?.version,
+        ruleType: values.ruleType,
+        configArea: creationUrl, //本地数据
+        fullParamsData: tableUrl, //上传表格
+        extraParams: props.creationInfo.configData.promotionType || {} // 附加参数
+      };
+      // 获取请求结果
+      const res = await creationTaskApi.fetchVivoSubmitReview(
+        submitVals
+      );
+
+      // 结果响应数据
+      if (res && res.taskId) {
+        message.success(`批投任务已提交成功，任务ID: ${res.taskId}`);
+        emit("result:getCreationTask", res.taskId);
+        modalApi.close();
+      } else {
+        message.warning("任务已提交，但未获取到任务ID，请检查任务列表");
+        emit("result:error", "提交响应缺少taskId");
+        modalApi.close();
+      }
+    } catch (error: any) {
+      const errMsg = error?.message || error?.msg || "批投任务提交失败，请稍后重试";
+      message.error(errMsg);
+      emit("result:error", error);
+    } finally {
+      submitting.value = false;
     }
-    // 上茶
-    modalApi.close();
+  },
+  onOpenChange(isOpen) {
+    if (isOpen) {
+      submitting.value = false;
+    }
   }
 });
 

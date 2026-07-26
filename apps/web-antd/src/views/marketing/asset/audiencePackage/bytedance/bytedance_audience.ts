@@ -1756,3 +1756,114 @@ export const Bytedance_launch_price = [
     value: "[11000]"
   }
 ]
+
+// ==================== 常规定向专用枚举 ====================
+
+/**
+ * 过滤已安装（常规定向）
+ * UNLIMITED 不限、FILTER 过滤、TARGETING 定向
+ */
+export const Bytedance_simple_hide_if_exists = [
+  {
+    label: '不限',
+    value: 'UNLIMITED'
+  },
+  {
+    label: '过滤',
+    value: 'FILTER'
+  },
+  {
+    label: '定向',
+    value: 'TARGETING'
+  },
+]
+
+/**
+ * 过滤抖音异常活跃用户（常规定向）
+ * ON 过滤、OFF 不过滤
+ */
+export const Bytedance_simple_filter_aweme_abnormal_active = [
+  {
+    label: '不过滤',
+    value: 'OFF'
+  },
+  {
+    label: '过滤',
+    value: 'ON'
+  },
+]
+
+/**
+ * 过滤自己的粉丝（常规定向）
+ * ON 过滤、OFF 不过滤
+ */
+export const Bytedance_simple_filter_own_aweme_fans = [
+  {
+    label: '不过滤',
+    value: 'OFF'
+  },
+  {
+    label: '过滤',
+    value: 'ON'
+  },
+]
+
+/**
+ * 地域匹配-商品所在城市（DPA）
+ * OFF 不启用、ON 启用
+ */
+export const Bytedance_dpa_city = [
+  {
+    label: '不启用',
+    value: 'OFF'
+  },
+  {
+    label: '启用',
+    value: 'ON'
+  },
+]
+
+/**
+ * 地域匹配-适地性服务（DPA）
+ * OFF 不启用、ON 启用
+ */
+export const Bytedance_dpa_lbs = [
+  {
+    label: '不启用',
+    value: 'OFF'
+  },
+  {
+    label: '启用',
+    value: 'ON'
+  },
+]
+
+/**
+ * RTA重定向开关（DPA）
+ * OFF 不启用、ON 启用
+ */
+export const Bytedance_dpa_rta_switch = [
+  {
+    label: '不启用',
+    value: 'OFF'
+  },
+  {
+    label: '启用',
+    value: 'ON'
+  },
+]
+
+/**
+ * RTA推荐逻辑（DPA）
+ * ONLY 仅RTA推荐商品、MORE 基于RTA推荐更多商品
+ */
+export const Bytedance_dpa_rta_recommend_type = [
+  {
+    label: '仅RTA推荐商品',
+    value: 'ONLY'
+  },
+  {
+    label: '基于RTA推荐更多商品',
+    value: 'MORE'
+  },
+]

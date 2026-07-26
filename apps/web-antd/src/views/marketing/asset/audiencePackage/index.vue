@@ -104,6 +104,12 @@ const gridOptions: VxeGridProps = {
       title: '平台',
       width: 'auto',
     },
+    // {
+    //   field: 'type',
+    //   title: '定向类型',
+    //   width: '100',
+    //   slots: { default: 'type' },
+    // },
     {
       field: 'name',
       title: '定向包名称',
@@ -168,6 +174,10 @@ function handlerState(_row: AdConfig) {}
   <div>
     <Page auto-content-height>
       <Grid>
+<!--        <template #type="{ row }">-->
+<!--          <span v-if="row.type === 'normal'">常规定向</span>-->
+<!--          <span v-else>媒体定向</span>-->
+<!--        </template>-->
         <template #status="{ row }">
           <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>

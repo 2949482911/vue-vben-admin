@@ -219,6 +219,12 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
           });
 
           const promotion: OppoPromotion = {
+            exposeEndUrl: "",
+            playBeginUrl: "",
+            playEndUrl: "",
+            status: 0,
+            videoBgImgId: "",
+            videoMatIds: "",
             materialIdsList: materialIdsList,
             getName(): string {
               return this.adName;
@@ -350,7 +356,7 @@ function flattenData(campaignList: OppoCampaign[]): any[] {
 /**
  * 获取监测链接
  */
-function getMonitoringLink(
+export function getMonitoringLink(
   method: string,
   data: Map<string, MonitoringLinkType[]>,
   advertiserId: string,

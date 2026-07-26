@@ -36,31 +36,46 @@ const [Drawer, drawerApi] = useVbenDrawer({
         ...promotion,
 
         // native_setting 平铺
-        native_setting_aweme_setting_type: ns.aweme_setting_type || '',
-        native_setting_aweme_id: ns.aweme_id || '',
-        native_setting_aweme_ids: ns.aweme_ids || [],
-        native_setting_anchor_related_type: ns.anchor_related_type || 'OFF',
+        native_setting_aweme_setting_type: ns.aweme_setting_type,
+        native_setting_aweme_id: ns.aweme_id,
+        native_setting_aweme_ids: ns.aweme_ids,
+        native_setting_anchor_related_type: ns.anchor_related_type,
 
         // 素材信息 产品信息
-        promotion_materials_product_info_titles: promotion.promotion_materials?.product_info?.titles || [],
-        promotion_materials_product_info_image_ids: promotion.promotion_materials?.product_info?.image_ids || [],
-        promotion_materials_product_info_selling_points: promotion.promotion_materials?.product_info?.selling_points || [],
+        promotion_materials_product_info_titles: promotion.promotion_materials?.product_info?.titles,
+        promotion_materials_product_info_image_ids: promotion.promotion_materials?.product_info?.image_ids,
+        promotion_materials_product_info_selling_points: promotion.promotion_materials?.product_info?.selling_points,
         // 行动号召
-        promotion_materials_call_to_action_buttons: promotion.promotion_materials?.call_to_action_buttons || [],
-        //智能生成行动号召按钮，开启后即对应的文案自动生成，可选项为OFF（默认）、
-        promotion_materials_intelligent_generation: promotion.promotion_materials?.intelligent_generation || '',
+        promotion_materials_call_to_action_buttons: promotion.promotion_materials?.call_to_action_buttons,
+        // 智能生成行动号召按钮
+        promotion_materials_intelligent_generation: promotion.promotion_materials?.intelligent_generation,
 
         // brand_info 平铺
-        brand_info_yuntu_category_id: bi.yuntu_category_id || 0,
-        brand_info_cdp_brand_id: bi.cdp_brand_id || 0,
-        brand_info_ecom_brand_id: bi.ecom_brand_id || 0,
-        brand_info_brand_name_id: bi.brand_name_id || 0,
-        brand_info_cdp_brand_name: bi.cdp_brand_name || '',
-        brand_info_sub_brand_names: bi.sub_brand_names || [],
-        brand_info_sub_brand_name_ids: bi.sub_brand_name_ids || [],
+        brand_info_yuntu_category_id: bi.yuntu_category_id,
+        brand_info_cdp_brand_id: bi.cdp_brand_id,
+        brand_info_ecom_brand_id: bi.ecom_brand_id,
+        brand_info_brand_name_id: bi.brand_name_id,
+        brand_info_cdp_brand_name: bi.cdp_brand_name,
+        brand_info_sub_brand_names: bi.sub_brand_names,
+        brand_info_sub_brand_name_ids: bi.sub_brand_name_ids,
       };
 
-      await formApi.setValues(flattenedData);
+      // 过滤 falsy 值：只在值有效时才传入表单，让 schema defaultValue 生效
+      const filteredData: Record<string, any> = {};
+      for (const [key, value] of Object.entries(flattenedData)) {
+        if (value) {
+          filteredData[key] = value;
+        }
+      }
+
+      // 移除嵌套对象字段（非表单平铺字段名）
+      const nestedKeys = [
+        'promotion_materials', 'promotion_related_product', 'native_setting',
+        'brand_info', 'keywords', 'shop_multi_roi_goals',
+      ];
+      nestedKeys.forEach((k) => delete filteredData[k]);
+
+      await formApi.setValues(filteredData);
     }
   },
   onConfirm: async () => {

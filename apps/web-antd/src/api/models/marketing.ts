@@ -575,8 +575,10 @@ export interface TargetedPackageTypeItem extends BaseItem {
   name: string;
   platform: string;
   platformAdvertiserId: string;
-  config: string;
+  config: object;
   remark: string;
+  // 定向类型: package=定向包, normal=常规定向
+  type?: string;
   // 媒体ID
   mediaId: string;
 }

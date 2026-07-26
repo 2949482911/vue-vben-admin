@@ -559,7 +559,12 @@ function resetCreationInfo() {
 
       <CreateStrategyGroupModal />
       <!--      提交审核-->
-      <SubmitModal :creation-info="creationInfo" :ad-list="adList" />
+      <SubmitModal
+        :creation-info="creationInfo"
+        :ad-list="adList"
+        @result:getCreationTask="(taskId: string) => { message.success(`任务已提交，任务ID: ${taskId}`); }"
+        @result:error="(err: any) => { console.error(err); }"
+      />
     </Page>
   </div>
 </template>

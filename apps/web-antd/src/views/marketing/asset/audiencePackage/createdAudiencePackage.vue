@@ -36,7 +36,7 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
     await drawerApi.close();
   },
   async onConfirm() {
-    let configData = {};
+    let configData: any = {};
     if (platformConfig.value === Platform.VIVO) {
       configData = await vivoAudienceRef.value.submitVivoConfig();
     } else if (platformConfig.value === Platform.OPPO) {
@@ -53,6 +53,7 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
       return;
     }
     const formValue = await formApi.getValues();
+    const { type = 'package', ...config } = configData;
     const formValueAll = {
       id: '',
       localAdvertiserId: localAdId.value,
@@ -60,7 +61,8 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
       platform: formValue.platform,
       platformAdvertiserId: formValue.platformAdvertiserId,
       remark: formValue.remark,
-      config: { ...configData },
+      type,
+      config: { ...config },
     };
     try {
       if (props.displayValue && props.displayValue.id) {

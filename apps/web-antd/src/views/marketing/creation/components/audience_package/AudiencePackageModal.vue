@@ -76,6 +76,12 @@ const gridOptions: VxeGridProps = {
       title: '定向包名称',
     },
     {
+      field: 'type',
+      title: '定向类型',
+      width: '100',
+      slots: { default: 'type' },
+    },
+    {
       field: 'platformAdvertiserName',
       title: '广告主名称',
     },
@@ -295,6 +301,10 @@ const handleAccountClick = async (account: AccountInfo) => {
         </div>
         <div class="flex-1 overflow-hidden min-w-0">
           <Grid>
+            <template #type="{ row }">
+              <span v-if="row.type === 'normal'">常规定向</span>
+              <span v-else>媒体定向</span>
+            </template>
             <template #status="{ row }">
               <Tag color="green" v-if="row.status === 1"> 启用</Tag>
               <Tag v-else color="red">不启用</Tag>

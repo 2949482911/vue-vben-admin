@@ -12,6 +12,7 @@ import type {
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 import type {
+  AwemeConfigData,
   BytedanceCampaignData,
   BytedanceCreation,
   BytedancePromotionData
@@ -25,6 +26,7 @@ import {
   BytedanceCampaign_delivery_type,
   BytedanceCampaign_download_mode,
   BytedanceCampaign_dpa_adtype,
+  BytedanceCampaign_external_action,
   BytedanceCampaign_landing_type,
   BytedanceCampaign_launch_type,
   BytedanceCampaign_marketing_goal,
@@ -46,6 +48,8 @@ import { markRaw } from "vue";
 import TimeSelectionPeriod
   from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
 import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
+import DpaProductButtonField from "../DpaProductButtonField.vue";
+import AwemeConfigCard from "../AwemeConfigCard.vue";
 
 const emit = defineEmits([
   "update:campaign",
@@ -53,7 +57,8 @@ const emit = defineEmits([
   "update:audiencePackage",
   "update:updateMaterial",
   "update:titlePackage",
-  "update:landingPage"
+  "update:landingPage",
+  "update:awemeConfig",
 ]);
 
 const { creationInfo } = defineProps({
@@ -85,6 +90,10 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 
 function updateLandingPage(landingPage: PageViewConfigData) {
   emit('update:landingPage', landingPage);
+}
+
+function updateAwemeConfig(awemeConfig: AwemeConfigData) {
+  emit('update:awemeConfig', awemeConfig);
 }
 
 // ==================== 项目表单字段 ====================
@@ -167,23 +176,14 @@ const campaignFormFields = [
   },
 
 
-  // 商品(related_product 平铺)
+  // 商品(related_product 平铺) - 隐藏字段，默认启用sDPA
   {
     component: "Select", fieldName: "related_product_setting", componentProps: {
       options: BytedanceCampaign_product_setting
-    }, label: "商品设置", defaultValue: "NO_MAP"
-  },
-  // 新增商品选择组件
-  {
-    component: "Input",
-    fieldName: "product",
-    label: "选择商品",
-    componentProps: () => ({}),
+    }, label: "商品设置", defaultValue: "SINGLE",
     dependencies: {
-      show: (currentValue: Record<string, any>) => {
-        return currentValue["related_product_setting"] === "SINGLE";
-      },
-      triggerFields: ["related_product_setting"]
+      show: false,
+      triggerFields: ["*"]
     }
   },
   {
@@ -206,6 +206,19 @@ const campaignFormFields = [
       show: false,
       triggerFields: ["*"]
     }
+  },
+  // DPA商品选择按钮 - 嵌入表单内，通过父传子(dpaContext + openDpaModal)通信
+  {
+    component: markRaw(DpaProductButtonField),
+    fieldName: 'dpa_product_button',
+    label: '投放商品',
+    componentProps: {}, // 由 BytedanceCampaignDrawer.onOpenChange 动态注入 dpaContext / openDpaModal
+    dependencies: {
+      show: (currentValue: Record<string, any>) => {
+        return currentValue["related_product_setting"] === "SINGLE";
+      },
+      triggerFields: ["related_product_setting"],
+    },
   },
   // 营销产品与投放载体 投放载体类型
   {
@@ -304,7 +317,8 @@ const campaignFormFields = [
     fieldName: "asset_type",
     componentProps: { options: BytedanceCampaign_asset_type },
     label: "资产类型",
-    defaultValue: "ORANGE",
+    // 自研落地页
+    defaultValue: "THIRDPARTY",
     dependencies: {
       show: false,
       triggerFields: ["*"]
@@ -328,7 +342,8 @@ const campaignFormFields = [
     dependencies: {
       show: false,
       triggerFields: ["*"]
-    }
+    },
+    defaultValue: "AWEME"
   },
   {
     component: "Select",
@@ -359,8 +374,39 @@ const campaignFormFields = [
     }
   },
 
-  { component: "Input", fieldName: "optimize_goal_external_action", label: "优化目标" },
-  { component: "Input", fieldName: "optimize_goal_deep_external_action", label: "深度优化目标" },
+  // 优化目标
+  {
+    component: "Select",
+    fieldName: "optimize_goal_external_action",
+    label: "优化目标",
+    rules: "required",
+    componentProps: {
+      options: BytedanceCampaign_external_action,
+      placeholder: "请选择优化目标",
+      allowClear: false,
+    },
+  },
+  // 深度优化目标
+  {
+    component: "Select",
+    fieldName: "optimize_goal_deep_external_action",
+    label: "深度优化目标",
+    componentProps: {
+      options: BytedanceCampaign_external_action,
+      placeholder: "请选择深度优化目标",
+      allowClear: false,
+    },
+  },
+  {
+    component: "Input",
+    fieldName: "_has_deep_goals",
+    label: "",
+    defaultValue: true,
+    dependencies: {
+      show: false,
+      triggerFields: ["*"],
+    },
+  },
   {
     component: "Select",
     fieldName: "delivery_setting_deep_bid_type",
@@ -573,13 +619,12 @@ const promotionFormFields = [
       ]
     }
   },
-
   // 素材类型
   // { component: "Input", fieldName: "materials_type", label: "素材类型" },
 
   // 原生单元设置(native_setting 平铺)
-  { component: "Input", fieldName: "native_setting_aweme_setting_type", label: "抖音号设置类型" },
-  { component: "Input", fieldName: "native_setting_aweme_id", label: "抖音号ID" },
+  // { component: "Input", fieldName: "native_setting_aweme_setting_type", label: "抖音号设置类型" },
+  // { component: "Input", fieldName: "native_setting_aweme_id", label: "抖音号ID" },
   // {
   //   component: "Select",
   //   fieldName: "native_setting_aweme_ids",
@@ -683,13 +728,21 @@ const promotionShowLabel: Record<string, string> = {
       </Col>
 
       <Col :span="6" class="equal-height-col">
-        <BytedancePromotion
-          :form-fields="promotionFormFields"
-          :promotion-show-label="promotionShowLabel"
-          :promotion="creationInfo?.configData.promotion"
-          :field-label-map="fieldLabelMap"
-          @update:promotion="updatePromotion"
-        />
+        <div class="combined-area">
+          <BytedancePromotion
+            :form-fields="promotionFormFields"
+            :promotion-show-label="promotionShowLabel"
+            :promotion="creationInfo?.configData.promotion"
+            :field-label-map="fieldLabelMap"
+            @update:promotion="updatePromotion"
+          />
+          <AwemeConfigCard
+            :aweme-config="creationInfo?.configData.awemeConfig"
+            :account-info="creationInfo.accountInfo"
+            @update:aweme-config="updateAwemeConfig"
+          />
+        </div>
+
       </Col>
 
       <Col :span="6" class="equal-height-col">
@@ -727,7 +780,7 @@ const promotionShowLabel: Record<string, string> = {
 .equal-height-row {
   display: flex;
   align-items: stretch;
-  height: 650px;
+  //height: 650px;
 }
 
 .equal-height-col {

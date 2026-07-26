@@ -228,6 +228,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     { title: '序号', type: 'seq', width: 50 },
     { field: 'id', title: '账户ID' },
     { field: 'advertiserName', title: '账户名称' },
+    { field: 'advertiserId', title: '广告主ID' },
     { field: 'companyName', title: '主体名称' },
   ],
   exportConfig: {},

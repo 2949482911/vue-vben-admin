@@ -223,19 +223,6 @@ const campaignFormFields = [
       options: BytedanceCampaign_product_setting
     }, label: "商品设置", defaultValue: "NO_MAP"
   },
-  // 新增商品选择组件
-  {
-    component: "Input",
-    fieldName: "product",
-    label: "选择商品",
-    componentProps: () => ({}),
-    dependencies: {
-      show: (currentValue: Record<string, any>) => {
-        return currentValue["related_product_setting"] === "SINGLE";
-      },
-      triggerFields: ["related_product_setting"]
-    }
-  },
   {
     component: "Input", fieldName: "related_product_platform_id", label: "商品平台ID",
     dependencies: {

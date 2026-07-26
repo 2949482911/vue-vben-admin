@@ -10,6 +10,7 @@ export interface AdConfig {
   localAdvertiserId: string;
   remark: string;
   status: number;
+  type?: string;
   createTime: string;
   createUsername: string;
   createdBy: string;

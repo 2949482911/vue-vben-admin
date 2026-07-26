@@ -10,3 +10,4 @@ export * from "./dashboard";
 export * from "./marketing";
 export * from "./ocpx";
 export * from "./adx";
+export * from "./bytedance";

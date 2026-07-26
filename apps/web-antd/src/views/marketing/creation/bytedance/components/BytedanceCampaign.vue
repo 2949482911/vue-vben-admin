@@ -25,7 +25,10 @@ const [CampaignDrawerModule, drawerApi] = useVbenDrawer({
   onOpenChange(isOpen) {
     if (!isOpen) {
       const campaignData = drawerApi.getData();
-      campaignInfo.value = campaignData as BytedanceCampaignData;
+      if (campaignData) {
+        // _dpaProductInfo 保留在 campaignInfo 中，用于编辑回显（策略组预设+项目覆盖）
+        campaignInfo.value = campaignData as BytedanceCampaignData;
+      }
       emit('update:campaign', campaignInfo.value);
     }
   },
@@ -133,11 +136,14 @@ function openAudiencePackage() {
     <div class="campaign-cards-wrapper">
       <Card title="项目" class="info-card">
         <div class="card-content">
-          <Descriptions title="基本信息" v-if="campaignInfo.name" :column="1" class="info-descriptions">
-            <DescriptionsItem v-for="(label, key) in campaignShowLabel" :key="key" :label="label">
-              {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
-            </DescriptionsItem>
-          </Descriptions>
+          <template v-if="campaignInfo.name">
+            <Descriptions title="基本信息" :column="1" class="info-descriptions">
+              <DescriptionsItem v-for="(label, key) in campaignShowLabel" :key="key" :label="label">
+                {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
+              </DescriptionsItem>
+            </Descriptions>
+          </template>
+
           <Alert v-else type="error" message="请先填写项目信息" class="empty-alert" />
         </div>
         <div class="card-footer">
@@ -159,7 +165,7 @@ function openAudiencePackage() {
       </Card>
     </div>
 
-    <CampaignDrawerModule :form-fields="formFields" />
+    <CampaignDrawerModule :form-fields="formFields" :account-info="accountInfo" />
 
     <AudiencePackage :account-info="accountInfo"
                      :platform="Platform.BYTEDANCE"

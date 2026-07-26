@@ -3,9 +3,10 @@ import type {
   BytedanceCreation,
   BytedanceCreationData,
   BytedancePromotion,
-  BytedancePromotion_promotion_materials
+  BytedancePromotion_promotion_materials,
+  AwemeConfigData,
 } from "./bytedance";
-import type { AccountInfo, Material } from "#/views/marketing/creation/creation";
+import  { type AccountInfo, getAudience, type Material } from "#/views/marketing/creation/creation";
 import {
   getMaterial,
   getRuleInfoAdCountGroup,
@@ -27,6 +28,28 @@ import {
   getMarketingGoalLabel,
   getPricingLabel
 } from "./enums";
+import { getMonitoringLink } from "#/views/marketing/creation/oppo/convertToPreviewData";
+
+/**
+ * 获取抖音号ID —— 根据分配规则从 awemeConfig 中读取
+ */
+function getAwemeId(
+  awemeConfig: AwemeConfigData,
+  advertiserId: string,
+  adIdx: number,
+): string {
+  const { method } = awemeConfig.config;
+  let key: string;
+  if (method === 'ALL_SAME' || method === 'PER_PROJECT') {
+    key = '0';
+  } else if (method === 'PER_ACCOUNT') {
+    key = advertiserId;
+  } else {
+    // PER_AD
+    key = `${advertiserId}-${adIdx}`;
+  }
+  return awemeConfig.data.get(key)?.[0]?.awemeId || '';
+}
 
 /**
  * 获取预览表格数据（巨量引擎）
@@ -172,10 +195,16 @@ export function getPreviewTableData(
           instant_play_material_list: [],
           dynamic_creative_switch: "",
           advanced_dc_settings: [],
-          call_to_action_buttons: [],
-          intelligent_generation: "",
+          call_to_action_buttons: promotionData.promotion_materials?.call_to_action_buttons || [],
+          intelligent_generation: promotionData.promotion_materials?.intelligent_generation || "",
           plant_grass_search_word_material: []
         };
+
+        const awemeId = getAwemeId(
+          creationInfo.configData.awemeConfig,
+          advertiserId,
+          pIdx,
+        );
 
         const promotion: BytedancePromotion = {
           getName(): string {
@@ -191,7 +220,10 @@ export function getPreviewTableData(
           promotion_materials: promotionMaterials,
           materials_type: promotionData.materials_type,
           promotion_related_product: promotionData.promotion_related_product,
-          native_setting: promotionData.native_setting,
+          native_setting: {
+            ...promotionData.native_setting,
+            aweme_id: awemeId || promotionData.native_setting?.aweme_id || '',
+          },
           source: promotionData.source,
           is_comment_disable: promotionData.is_comment_disable,
           ad_download_status: promotionData.ad_download_status,
@@ -212,6 +244,20 @@ export function getPreviewTableData(
 
         promotionList.push(promotion);
       }
+
+      const audience = getAudience(
+        creationInfo.configData.audience.config.method,
+        creationInfo.configData.audience.data, advertiserId, campaignIdx
+      )
+
+
+      // 获取监测链接
+      const monitoringLink = getMonitoringLink(
+        creationInfo.configData.monitoringLink.config.method,
+        creationInfo.configData.monitoringLink.data,
+        advertiserId,
+        campaignIdx,
+      );
 
       const campaign: BytedanceCampaign = {
         getName(): string {
@@ -263,12 +309,23 @@ export function getPreviewTableData(
         yuntu_5a_brand_id: campaignData.yuntu_5a_brand_id,
         yuntu_5a_brand_main_industry_id: campaignData.yuntu_5a_brand_main_industry_id,
         delivery_range: campaignData.delivery_range,
-        audience: campaignData.audience,
+        audience: audience.mediaId ? {
+          "audience_package_id": audience.mediaId
+        } : audience.config || {},
         delivery_setting: campaignData.delivery_setting,
-        track_url_setting: campaignData.track_url_setting,
+        track_url_setting: {
+          action_track_url: [monitoringLink.clickLink],
+          track_url: [monitoringLink.exposureLink],
+          active_track_url: [],
+          send_type: "",
+          track_url_group_id: 0,
+          track_url_type: "",
+          video_play_done_track_url: [],
+          video_play_effective_track_url: [],
+          video_play_first_track_url: []
+        },
         promotionList
       };
-
       tableData.campaignList.push(campaign);
     }
 
@@ -332,6 +389,12 @@ function flattenData(campaignList: BytedanceCampaign[]): any[] {
         campaignBudgetMode: getBudgetModeCampaignLabel(campaign.delivery_setting?.budget_mode),
         campaignPricing: getPricingLabel(campaign.delivery_setting?.pricing),
         campaignStatus: getCampaignOperationLabel(campaign.operation),
+
+        // 商品 & 优化目标
+        productId: campaign.related_product?.product_id || '',
+        optimizeGoal: campaign.optimize_goal?.external_action || '',
+        deepOptimizeGoal: campaign.optimize_goal?.deep_external_action || '',
+        roiGoal: campaign.delivery_setting?.roi_goal || '',
 
         // 广告层级字段
         promotionName: promotion.name,

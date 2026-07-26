@@ -20,6 +20,33 @@ export interface BytedanceCreation extends PlatformCreation<BytedanceConfigData>
 
 
 /**
+ * 抖音号分配规则
+ */
+export type AwemeDistributionRule = 'ALL_SAME' | 'PER_ACCOUNT' | 'PER_PROJECT' | 'PER_AD';
+
+/**
+ * 抖音号条目（存储在 Map 中）
+ */
+export interface AwemeMapping {
+  awemeId: string;
+  awemeName: string;
+}
+
+/**
+ * 抖音号配置 —— 与标题包/落地页统一的 { config, data: Map } 模式
+ *
+ * Map key 语义：
+ *   ALL_SAME / PER_PROJECT → key = '0'（全局一条）
+ *   PER_ACCOUNT            → key = advertiserId
+ *   PER_AD                 → key = `${advertiserId}-${adIdx}`
+ */
+export interface AwemeConfigData {
+  config: { method: AwemeDistributionRule };
+  data: Map<string, AwemeMapping[]>;
+}
+
+
+/**
  *  bytedance config data
  */
 export interface BytedanceConfigData {
@@ -32,7 +59,7 @@ export interface BytedanceConfigData {
   // 落地页配置
   landingPage: PageViewConfigData;
   // 抖音号配置
-
+  awemeConfig: AwemeConfigData;
 }
 
 

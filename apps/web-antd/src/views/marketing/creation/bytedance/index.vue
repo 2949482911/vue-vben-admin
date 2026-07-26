@@ -6,6 +6,7 @@ import { ref, watch } from "vue";
 import type { BytedanceCampaignData, BytedanceCreation, BytedanceCreationData, BytedancePromotionData } from "./bytedance";
 import { BYTEDANCE } from "./bytedance";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
+import type { AwemeConfigData } from "./bytedance";
 import type {
   AccountInfo,
   AudienceConfigData,
@@ -29,6 +30,8 @@ import BytedancePreviewArea
 import { getPreviewTableData } from "#/views/marketing/creation/bytedance/convertToPreviewData";
 import MarketingProductDouyinTemplate
   from "#/views/marketing/creation/bytedance/components/marketing_product_douyin/MarketingProductDouyinTemplate.vue";
+import MiniProgramDouyinTemplate
+  from "#/views/marketing/creation/bytedance/components/mini_program_douyin/MiniProgramDouyinTemplate.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
@@ -37,7 +40,28 @@ import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue
 // 提交弹窗
 const [SubmitModal, submitApi] = useVbenModal({
   connectedComponent: Submit,
+  onOpenChange(isOpen) {
+    if (!isOpen) {
+      // 弹窗关闭时重置
+    }
+  },
 });
+
+/**
+ * 提交成功回调 - 跳转到任务列表
+ */
+function handleTaskCreated(taskId: string) {
+  message.success(`任务已提交，任务ID: ${taskId}，可在任务列表中查看进度`);
+  // 跳转到任务列表页
+  // router.push({ name: 'CreationTask' });
+}
+
+/**
+ * 提交失败回调
+ */
+function handleTaskError(error: any) {
+  console.error('批投提交失败:', error);
+}
 
 
 /**
@@ -152,6 +176,10 @@ function updateLandingPage(landingPage: PageViewConfigData) {
   creationInfo.value.configData.landingPage = landingPage;
 }
 
+function updateAwemeConfig(awemeConfig: AwemeConfigData) {
+  creationInfo.value.configData.awemeConfig = awemeConfig;
+}
+
 function resetCreationInfo() {
   if (adList.value.length > 0) {
     adList.value = [];
@@ -165,12 +193,12 @@ function resetCreationInfo() {
  */
 function genPreviewTableData() {
   adList.value = getPreviewTableData(creationInfo.value);
+  console.log(adList.value);
 }
 
 
 
 function createStrategyGroup() {
-  console.log(creationInfo.value);
   createStrategyGroupApi.setData(creationInfo.value);
   createStrategyGroupApi.open();
 }
@@ -190,86 +218,86 @@ async function initCreationInfo() {
     accountInfo: [],
     configData: {
       campaign: {
-        operation: "ENABLE",
-        delivery_mode: "MANUAL",
-        landing_type: "APP",
-        app_promotion_type: "DOWNLOAD",
-        marketing_goal: "VIDEO_AND_IMAGE",
-        ad_type: "ALL",
-        delivery_type: "NORMAL",
+        operation: "",
+        delivery_mode: "",
+        landing_type: "",
+        app_promotion_type: "",
+        marketing_goal: "",
+        ad_type: "",
+        delivery_type: "",
         name: "",
         budget_group_id: 0,
         aigc_dynamic_creative_switch: false,
         star_task_id: 0,
-        star_auto_material_addition_switch: "OFF",
-        star_auto_delivery_switch: "OFF",
+        star_auto_material_addition_switch: "",
+        star_auto_delivery_switch: "",
         keywords: [],
-        auto_extend_traffic: "OFF",
+        auto_extend_traffic: "",
         related_product: {
-          product_setting: "NO_MAP",
+          product_setting: "",
           product_platform_id: "",
           product_id: "",
           unique_product_id: ""
         },
         download_url: "",
         app_name: "",
-        download_type: "DOWNLOAD_URL",
-        download_mode: "DEFAULT",
+        download_type: "",
+        download_mode: "",
         quick_app_id: "",
-        launch_type: "DIRECT_OPEN",
-        promotion_type: "LANDING_PAGE_LINK",
-        open_url_type: "NONE",
+        launch_type: "",
+        promotion_type: "",
+        open_url_type: "",
         open_url_params: "",
         open_url_field: "",
         open_url: "",
-        ulink_url_type: "UNIVERSAL_LINK",
+        ulink_url_type: "",
         ulink_url: "",
         subscribe_url: "",
-        asset_type: "ORANGE",
+        asset_type: "",
         multi_asset_type: "",
         micro_promotion_type: "",
-        dpa_adtype: "DPA_LINK",
+        dpa_adtype: "",
         micro_app_instance_id: 0,
         native_setting: { aweme_id: "" },
         optimize_goal: {
           asset_ids: [],
           external_action: "",
           game_addiction_id: "",
-          paid_switch: 2,
+          paid_switch: 0,
           deep_external_action: ""
         },
-        value_optimized_type: "OFF",
+        value_optimized_type: "",
         landing_page_stay_time: 0,
         yuntu_5a_brand_id: "",
         yuntu_5a_brand_main_industry_id: "",
         delivery_range: {
-          inventory_catalog: "MANUAL",
+          inventory_catalog: "",
           inventory_type: [],
-          union_video_type: "ORIGINAL_VIDEO"
+          union_video_type: ""
         },
         audience: {},
         delivery_setting: {
-          schedule_type: "SCHEDULE_FROM_NOW",
+          schedule_type: "",
           start_time: "",
           end_time: "",
           schedule_time: "",
           live_duration: 0,
-          filter_night_switch: "OFF",
-          deep_bid_type: "DEEP_BID_DEFAULT",
-          bid_type: "CUSTOM",
-          project_custom: "OFF",
+          filter_night_switch: "",
+          deep_bid_type: "",
+          bid_type: "",
+          project_custom: "",
           bid: 0,
-          budget_mode: "BUDGET_MODE_INFINITE",
+          budget_mode: "",
           budget: 0,
-          pricing: "PRICING_OCPM",
+          pricing: "",
           cpa_bid: 0,
           deep_cpabid: 0,
           roi_goal: 0,
-          layer_roi_switch: "OFF",
+          layer_roi_switch: "",
           first_roi_goal: 0,
           seven_roi_goal: 0,
-          budget_optimize_switch: "OFF",
-          search_continue_delivery: "OFF"
+          budget_optimize_switch: "",
+          search_continue_delivery: ""
         },
         track_url_setting: {
           track_url_type: "",
@@ -280,13 +308,13 @@ async function initCreationInfo() {
           video_play_effective_track_url: [],
           video_play_done_track_url: [],
           video_play_first_track_url: [],
-          send_type: "SERVER_SEND"
+          send_type: ""
         }
       },
       promotion: {
         project_id: "",
         name: "",
-        operation: "ENABLE",
+        operation: "",
         promotion_materials: {
           local_video_material_list: [],
           local_image_material_list: [],
@@ -332,16 +360,16 @@ async function initCreationInfo() {
           aweme_setting_type: "",
           aweme_id: "",
           aweme_ids: [],
-          anchor_related_type: "OFF"
+          anchor_related_type: ""
         },
         source: "",
-        is_comment_disable: "OFF",
-        ad_download_status: "OFF",
+        is_comment_disable: "",
+        ad_download_status: "",
         brand_info: {
           yuntu_category_id: 0, cdp_brand_id: 0, ecom_brand_id: 0,
           brand_name_id: 0, cdp_brand_name: "", sub_brand_names: [], sub_brand_name_ids: []
         },
-        budget_mode: "BUDGET_MODE_DAY",
+        budget_mode: "",
         budget: 0,
         bid: 0,
         cpa_bid: 0,
@@ -351,7 +379,7 @@ async function initCreationInfo() {
         union_bid_ratio: 0,
         shop_multi_roi_goals: [],
         sevend_retention: 0,
-        auto_extend_traffic: "OFF",
+        auto_extend_traffic: "",
         keywords: []
       },
       material: {
@@ -373,6 +401,8 @@ async function initCreationInfo() {
       },
       // 落地页
       landingPage: { config: { method: RuleMethod.ALL }, data: new Map() },
+      // 抖音号配置
+      awemeConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
     },
     configurationConfig: {
       platform: Platform.BYTEDANCE
@@ -403,6 +433,34 @@ async function updateTemplate(changeVal: string) {
   template.value = changeVal;
   await initCreationInfo();
   creationInfo.value.configurationConfig.template = changeVal;
+
+  // 模板专属默认值覆盖
+  if (changeVal === 'mini_program_douyin_template') {
+    const campaign = creationInfo.value.configData.campaign;
+    campaign.landing_type = 'MICRO_GAME';
+    campaign.micro_promotion_type = 'AWEME';
+    campaign.ad_type = 'ALL';
+    campaign.delivery_type = 'NORMAL';
+    // sDPA 单商品模式
+    campaign.related_product = {
+      product_setting: 'SINGLE',
+      product_platform_id: '',
+      product_id: '',
+      unique_product_id: '',
+    };
+    // 投放版位：自动投放→通投智选，手动投放→首选媒体
+    campaign.delivery_range.inventory_catalog =
+      campaign.delivery_mode === 'PROCEDURAL' ? 'UNIVERSAL_SMART' : 'MANUAL';
+    campaign.delivery_range.inventory_type = ['INVENTORY_AWEME_FEED'];
+    // MICRO_GAME 项目层级不支持 native_setting.aweme_id
+    campaign.native_setting = { aweme_id: '' };
+    // AWEME 类型不需要 micro_app_instance_id
+    campaign.micro_app_instance_id = 0;
+    // 自动投放时仅支持日预算
+    if (campaign.delivery_mode === 'PROCEDURAL') {
+      campaign.delivery_setting.budget_mode = 'BUDGET_MODE_DAY';
+    }
+  }
 }
 
 function updateReuse(creation: BytedanceCreation) {
@@ -423,6 +481,9 @@ function updateReuse(creation: BytedanceCreation) {
     if (config.landingPage && !(config.landingPage.data instanceof Map)) {
       config.landingPage.data = new Map(Object.entries(config.landingPage.data || {}));
     }
+    if (config.awemeConfig && config.awemeConfig.data && !(config.awemeConfig.data instanceof Map)) {
+      config.awemeConfig.data = new Map(Object.entries(config.awemeConfig.data || {}));
+    }
   }
   creationInfo.value = creation;
   template.value = creationInfo.value.configurationConfig.template ||  'base_template';
@@ -440,86 +501,86 @@ const creationInfo = ref<BytedanceCreation>({
   accountInfo: [],
   configData: {
     campaign: {
-      operation: "ENABLE",
-      delivery_mode: "MANUAL",
-      landing_type: "APP",
-      app_promotion_type: "DOWNLOAD",
-      marketing_goal: "VIDEO_AND_IMAGE",
-      ad_type: "ALL",
-      delivery_type: "NORMAL",
+      operation: "",
+      delivery_mode: "",
+      landing_type: "",
+      app_promotion_type: "",
+      marketing_goal: "",
+      ad_type: "",
+      delivery_type: "",
       name: "",
       budget_group_id: 0,
       aigc_dynamic_creative_switch: false,
       star_task_id: 0,
-      star_auto_material_addition_switch: "OFF",
-      star_auto_delivery_switch: "OFF",
+      star_auto_material_addition_switch: "",
+      star_auto_delivery_switch: "",
       keywords: [],
-      auto_extend_traffic: "OFF",
+      auto_extend_traffic: "",
       related_product: {
-        product_setting: "NO_MAP",
+        product_setting: "",
         product_platform_id: "",
         product_id: "",
         unique_product_id: ""
       },
       download_url: "",
       app_name: "",
-      download_type: "DOWNLOAD_URL",
-      download_mode: "DEFAULT",
+      download_type: "",
+      download_mode: "",
       quick_app_id: "",
-      launch_type: "DIRECT_OPEN",
-      promotion_type: "LANDING_PAGE_LINK",
-      open_url_type: "NONE",
+      launch_type: "",
+      promotion_type: "",
+      open_url_type: "",
       open_url_params: "",
       open_url_field: "",
       open_url: "",
-      ulink_url_type: "UNIVERSAL_LINK",
+      ulink_url_type: "",
       ulink_url: "",
       subscribe_url: "",
-      asset_type: "ORANGE",
+      asset_type: "",
       multi_asset_type: "",
       micro_promotion_type: "",
-      dpa_adtype: "DPA_LINK",
+      dpa_adtype: "",
       micro_app_instance_id: 0,
       native_setting: { aweme_id: "" },
       optimize_goal: {
         asset_ids: [],
         external_action: "",
         game_addiction_id: "",
-        paid_switch: 2,
+        paid_switch: 0,
         deep_external_action: ""
       },
-      value_optimized_type: "OFF",
+      value_optimized_type: "",
       landing_page_stay_time: 0,
       yuntu_5a_brand_id: "",
       yuntu_5a_brand_main_industry_id: "",
       delivery_range: {
-        inventory_catalog: "MANUAL",
+        inventory_catalog: "",
         inventory_type: [],
-        union_video_type: "ORIGINAL_VIDEO"
+        union_video_type: ""
       },
       audience: {},
       delivery_setting: {
-        schedule_type: "SCHEDULE_FROM_NOW",
+        schedule_type: "",
         start_time: "",
         end_time: "",
         schedule_time: "",
         live_duration: 0,
-        filter_night_switch: "OFF",
-        deep_bid_type: "DEEP_BID_DEFAULT",
-        bid_type: "CUSTOM",
-        project_custom: "OFF",
+        filter_night_switch: "",
+        deep_bid_type: "",
+        bid_type: "",
+        project_custom: "",
         bid: 0,
-        budget_mode: "BUDGET_MODE_INFINITE",
+        budget_mode: "",
         budget: 0,
-        pricing: "PRICING_OCPM",
+        pricing: "",
         cpa_bid: 0,
         deep_cpabid: 0,
         roi_goal: 0,
-        layer_roi_switch: "OFF",
+        layer_roi_switch: "",
         first_roi_goal: 0,
         seven_roi_goal: 0,
-        budget_optimize_switch: "OFF",
-        search_continue_delivery: "OFF"
+        budget_optimize_switch: "",
+        search_continue_delivery: ""
       },
       track_url_setting: {
         track_url_type: "",
@@ -530,13 +591,13 @@ const creationInfo = ref<BytedanceCreation>({
         video_play_effective_track_url: [],
         video_play_done_track_url: [],
         video_play_first_track_url: [],
-        send_type: "SERVER_SEND"
+        send_type: ""
       }
     },
     promotion: {
       project_id: "",
       name: "",
-      operation: "ENABLE",
+      operation: "",
       promotion_materials: {
         local_video_material_list: [],
         local_image_material_list: [],
@@ -582,16 +643,16 @@ const creationInfo = ref<BytedanceCreation>({
         aweme_setting_type: "",
         aweme_id: "",
         aweme_ids: [],
-        anchor_related_type: "OFF"
+        anchor_related_type: ""
       },
       source: "",
-      is_comment_disable: "OFF",
-      ad_download_status: "OFF",
+      is_comment_disable: "",
+      ad_download_status: "",
       brand_info: {
         yuntu_category_id: 0, cdp_brand_id: 0, ecom_brand_id: 0,
         brand_name_id: 0, cdp_brand_name: "", sub_brand_names: [], sub_brand_name_ids: []
       },
-      budget_mode: "BUDGET_MODE_DAY",
+      budget_mode: "",
       budget: 0,
       bid: 0,
       cpa_bid: 0,
@@ -601,7 +662,7 @@ const creationInfo = ref<BytedanceCreation>({
       union_bid_ratio: 0,
       shop_multi_roi_goals: [],
       sevend_retention: 0,
-      auto_extend_traffic: "OFF",
+      auto_extend_traffic: "",
       keywords: []
     },
     material: {
@@ -624,7 +685,9 @@ const creationInfo = ref<BytedanceCreation>({
     landingPage: {
       config: { method: RuleMethod.ALL },
       data: new Map()
-    }
+    },
+    // 抖音号配置
+    awemeConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
   },
   configurationConfig: {
     platform: Platform.BYTEDANCE,
@@ -663,6 +726,17 @@ watch(() => creationInfo, (_) => {
 <template>
   <div>
     <Page auto-content-height>
+
+
+      <Card class="header" title="模板选择">
+        <Select
+          class="w-[200px]"
+          :options="BYTEDANCE_MARKETING_TYPE"
+          :value="template"
+          @change="updateTemplate"
+        />
+      </Card>
+
       <Card class="header">
         <ConfigurationConfig
           :rule-info="creationInfo.ruleInfo"
@@ -675,15 +749,6 @@ watch(() => creationInfo, (_) => {
           @update:account-info="updateAccountInfo"
           @update:rule-info="updateRuleInfo"
           @update:reuse="updateReuse"
-        />
-      </Card>
-
-      <Card class="header">
-        <Select
-          class="w-[200px]"
-          :options="BYTEDANCE_MARKETING_TYPE"
-          :value="template"
-          @change="updateTemplate"
         />
       </Card>
 
@@ -706,6 +771,18 @@ watch(() => creationInfo, (_) => {
           @update:promotion="updatePromotion"
           @update:audience-package="updateAudiencePackage"
           @update:landing-page="updateLandingPage"
+          @update:aweme-config="updateAwemeConfig"
+        />
+        <MiniProgramDouyinTemplate
+          v-if="template === 'mini_program_douyin_template'"
+          :creation-info="creationInfo"
+          @update:title-package="updateTitlePackage"
+          @update:update-material="updateMaterial"
+          @update:campaign="updateCampaign"
+          @update:promotion="updatePromotion"
+          @update:audience-package="updateAudiencePackage"
+          @update:landing-page="updateLandingPage"
+          @update:aweme-config="updateAwemeConfig"
         />
       </Card>
 
@@ -729,7 +806,12 @@ watch(() => creationInfo, (_) => {
         />
       </Card>
 
-      <SubmitModal :creation-info="creationInfo" :ad-list="adList" />
+      <SubmitModal
+        :creation-info="creationInfo"
+        :ad-list="adList"
+        @result:getCreationTask="handleTaskCreated"
+        @result:error="handleTaskError"
+      />
     </Page>
   </div>
 </template>
