@@ -6,7 +6,12 @@ import type {
   BytedancePromotion_promotion_materials,
   AwemeConfigData,
 } from "./bytedance";
-import  { type AccountInfo, getAudience, type Material } from "#/views/marketing/creation/creation";
+import {
+  type AccountInfo,
+  getAudience,
+  getLandingPage,
+  type Material
+} from "#/views/marketing/creation/creation";
 import {
   getMaterial,
   getRuleInfoAdCountGroup,
@@ -132,6 +137,13 @@ export function getPreviewTableData(
         const videoIds = (material?.video || []).map((v) => v.localMaterialId);
         const imageIds = (material?.image || []).map((i) => i.localMaterialId);
 
+        // 落地页
+        const landingPageItem = getLandingPage(
+          creationInfo.configData.landingPage.config.method,
+          creationInfo.configData.landingPage.data,
+          advertiserId
+        );
+
         // 构建 promotion_materials 素材信息
         const promotionMaterials: BytedancePromotion_promotion_materials = {
           local_video_material_list: videoIds,
@@ -168,10 +180,12 @@ export function getPreviewTableData(
             product_selling_point_fields: promotionData.promotion_materials?.product_info?.product_selling_point_fields || [],
             titles: promotionData.promotion_materials?.product_info?.titles || [],
             image_ids: promotionData.promotion_materials?.product_info.image_ids || [],
-            selling_points: promotionData.promotion_materials?.product_info?.selling_points || []
+            selling_points: promotionData.promotion_materials?.product_info?.selling_points || [],
+            // 产品主图ID
+            local_material_image_ids: promotionData.promotion_materials.product_info.local_material_image_ids,
           },
           original_video_title: "",
-          playlet_series_url_list: [],
+          playlet_series_url_list: [landingPageItem.config.pageUrl],
           decoration_material: { activity_id: "", image_mode: "" },
           anchor_material_list: [],
           component_material_list: [],

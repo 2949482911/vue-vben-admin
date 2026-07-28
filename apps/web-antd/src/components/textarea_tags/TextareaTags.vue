@@ -5,6 +5,9 @@ import { CloseOutlined } from '@ant-design/icons-vue';
 
 const props = withDefaults(
   defineProps<{
+    /** 标准 v-model，兼容 useVbenForm */
+    modelValue?: string[];
+    /** 兼容旧版 value prop */
     value?: string[];
     /** 最大标签数量 */
     maxCount?: number;
@@ -16,6 +19,7 @@ const props = withDefaults(
     disabled?: boolean;
   }>(),
   {
+    modelValue: () => [],
     value: () => [],
     maxCount: Infinity,
     minLength: 0,
@@ -26,15 +30,24 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
+  'update:modelValue': [value: string[]];
   'update:value': [value: string[]];
 }>();
 
-const tags = ref<string[]>([...props.value]);
+/** 优先使用 modelValue（标准 v-model），回退到 value。始终返回数组 */
+const effectiveValue = computed<string[]>(() => {
+  const val = props.modelValue ?? props.value;
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string' && val) return [val];
+  return [];
+});
+
+const tags = ref<string[]>([...effectiveValue.value]);
 const inputValue = ref('');
 
 // 外部值同步
 watch(
-  () => props.value,
+  effectiveValue,
   (newVal) => {
     tags.value = [...(newVal || [])];
   },
@@ -45,7 +58,9 @@ const canAddMore = computed(() => tags.value.length < props.maxCount);
 const showInput = computed(() => !props.disabled && canAddMore);
 
 function emitUpdate() {
-  emit('update:value', [...tags.value]);
+  const values = [...tags.value];
+  emit('update:modelValue', values);
+  emit('update:value', values);
 }
 
 function addTag() {

@@ -149,11 +149,11 @@ const normalFields = [
   { component: 'Select', fieldName: 'device_brand', label: '设备品牌', defaultValue: [], componentProps: { options: Bytedance_device_brand, mode: 'multiple', placeholder: '请选择设备品牌' } },
   { component: 'Select', fieldName: 'launch_price', label: '设备价格', defaultValue: [], componentProps: { options: Bytedance_launch_price, mode: 'multiple', placeholder: '请选择设备价格' } },
   { component: 'Select', fieldName: 'auto_extend_targets', label: '智能定向', defaultValue: [], componentProps: { options: Bytedance_auto_extend_targets, mode: 'multiple', placeholder: '请选择智能定向' } },
-  { component: 'Select', fieldName: 'dpa_city', label: 'DPA地域匹配-商品所在城市', defaultValue: 'OFF', componentProps: { options: Bytedance_dpa_city } },
-  { component: 'Select', fieldName: 'dpa_lbs', label: 'DPA适地性服务', defaultValue: 'OFF', componentProps: { options: Bytedance_dpa_lbs } },
-  { component: 'Select', fieldName: 'dpa_rta_switch', label: 'DPA RTA重定向开关', defaultValue: 'OFF', componentProps: { options: Bytedance_dpa_rta_switch } },
-  { component: 'Input', fieldName: 'rta_id', label: 'RTA策略ID', componentProps: { placeholder: '请输入RTA策略ID' } },
-  { component: 'Select', fieldName: 'dpa_rta_recommend_type', label: 'RTA推荐逻辑', defaultValue: 'ONLY', componentProps: { options: Bytedance_dpa_rta_recommend_type } },
+  // { component: 'Select', fieldName: 'dpa_city', label: 'DPA地域匹配-商品所在城市', defaultValue: 'OFF', componentProps: { options: Bytedance_dpa_city } },
+  // { component: 'Select', fieldName: 'dpa_lbs', label: 'DPA适地性服务', defaultValue: 'OFF', componentProps: { options: Bytedance_dpa_lbs } },
+  // { component: 'Select', fieldName: 'dpa_rta_switch', label: 'DPA RTA重定向开关', defaultValue: 'OFF', componentProps: { options: Bytedance_dpa_rta_switch } },
+  // { component: 'Input', fieldName: 'rta_id', label: 'RTA策略ID', componentProps: { placeholder: '请输入RTA策略ID' } },
+  // { component: 'Select', fieldName: 'dpa_rta_recommend_type', label: 'RTA推荐逻辑', defaultValue: 'ONLY', componentProps: { options: Bytedance_dpa_rta_recommend_type } },
 ];
 
 // ==================== schema 注册表（含公共 select） ====================

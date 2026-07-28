@@ -53,7 +53,7 @@ const campaignInfo = ref<BytedanceCampaignData>({
   delivery_type: 'NORMAL',
   name: '',
   budget_group_id: 0,
-  aigc_dynamic_creative_switch: false,
+  aigc_dynamic_creative_switch: 'OFF',
   star_task_id: 0,
   star_auto_material_addition_switch: 'OFF',
   star_auto_delivery_switch: 'OFF',

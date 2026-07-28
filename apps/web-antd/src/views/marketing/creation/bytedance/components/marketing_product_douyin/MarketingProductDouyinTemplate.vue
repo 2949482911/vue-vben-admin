@@ -49,6 +49,7 @@ import TimeSelectionPeriod
   from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
 import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
 import DpaProductButtonField from "../DpaProductButtonField.vue";
+import ProductImageButtonField from "../ProductImageButtonField.vue";
 import AwemeConfigCard from "../AwemeConfigCard.vue";
 
 const emit = defineEmits([
@@ -171,8 +172,14 @@ const campaignFormFields = [
     component: "Switch",
     formItemClass: "w-[150px]",
     fieldName: "aigc_dynamic_creative_switch",
-    label: "AIGC动态创意开关", defaultValue: false,
-    help: "该功能仅支持行业白名单客户使用，如需使用可咨询对接销售/运营"
+    label: "AIGC动态创意开关", defaultValue: 'OFF',
+    help: "该功能仅支持行业白名单客户使用，如需使用可咨询对接销售/运营",
+    componentProps: {
+      checkedValue: 'ON',
+      unCheckedValue: 'OFF',
+      checkedChildren: 'ON',
+      unCheckedChildren: 'OFF',
+    },
   },
 
 
@@ -401,7 +408,7 @@ const campaignFormFields = [
     component: "Input",
     fieldName: "_has_deep_goals",
     label: "",
-    defaultValue: true,
+    defaultValue: 1,
     dependencies: {
       show: false,
       triggerFields: ["*"],
@@ -576,13 +583,12 @@ const promotionFormFields = [
     },
   },
   {
-    component: "Input",
-    fieldName: "promotion_materials_product_info_image_ids",
-    rules: "required",
-    label: "产品主图",
-    componentProps: {
-
-    },
+    component: markRaw(ProductImageButtonField),
+    fieldName: 'product_image_button',
+    label: '产品主图',
+    rules: 'required',
+    // v-model 由 form 系统绑定，componentProps 由 BytedancePromotionDrawer 动态注入 openProductImageModal
+    componentProps: {},
   },
   {
     component: "TextareaTags",

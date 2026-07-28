@@ -212,22 +212,26 @@ const [Drawer, drawerApi] = useVbenDrawer({
         activeTabs.value.clear();
         currentAnchor.value = ['group-0'];
 
+        // 兼容 Map 序列化为普通对象的情况（useVbenDrawer 内部 JSON 序列化会导致 Map → PlainObject）
+        const dataMap = data.data instanceof Map
+          ? data.data
+          : (data.data && typeof data.data === 'object'
+            ? new Map(Object.entries(data.data))
+            : new Map());
+
         // 根据分配方式初始化创意组数据
-        if (data.method === RuleMethod.ACCOUNT && data.data instanceof Map) {
+        if (data.method === RuleMethod.ACCOUNT) {
           // 按账户分配：从 data Map 中恢复各账户的创意组
           accountCreativeGroups.value.clear();
-          data.data.forEach((groups, accountId) => {
+          dataMap.forEach((groups, accountId) => {
             accountCreativeGroups.value.set(accountId, groups || []);
           });
           if (accountInfo.length > 0) {
             activeAccountId.value = String(accountInfo[0]?.localAdvertiserId);
           }
           // 全账户复用/平均分配：从 data 的 '0' key 恢复
-        } else if (data.data instanceof Map) {
-          creativeGroups.value = data.data.get('0') || [];
-        } else if (data.groups) {
-          // 兼容旧格式
-          creativeGroups.value = data.groups;
+        } else {
+          creativeGroups.value = dataMap.get('0') || [];
         }
 
         // 确保至少有一个创意组
@@ -332,11 +336,17 @@ function openMaterialSelector(index: number, type: 'video' | 'image') {
   }
   currentMaterialGroupIndex.value = index;
   currentMaterialType.value = type;
-  // 设置文件类型
+
+  // 当前组已选素材，传给 MaterialSelector 用于回显勾选状态
+  const preSelectedMaterials = (type === 'video' ? group.video : group.image) || [];
+
+  // 设置文件类型 + 预选素材
   materialSelectorApi.setData({
     materialType: type,
     // 当前组的下标
     currentMaterialGroupIndex: index,
+    maxCount,
+    preSelectedMaterials,
   });
   materialSelectorApi.open();
 }

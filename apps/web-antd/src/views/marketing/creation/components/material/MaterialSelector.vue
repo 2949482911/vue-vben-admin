@@ -48,6 +48,8 @@ const [Form, formApi] = useVbenForm({
 const loading = ref(false);
 const listData = ref<Array<MaterialItem>>([]);
 const selectedAssets = ref<Array<MaterialItem>>([]);
+/** 跨分页追踪所有已选素材 ID（含预选 + 新选），解决翻页后丢失选中状态的问题 */
+const selectedIds = ref<Set<string | number>>(new Set());
 const queryParam = ref({page: 1, pageSize: 20, total: 0});
 const albumId = ref<string>('');
 const treeData = ref<Array<AlbumItem>>([]);
@@ -86,7 +88,10 @@ async function fetchList() {
       name: formValues?.name || '',
     });
     listData.value = res.items.map((item: VivoMaterialLibrary) => {
-      const isPicked = selectedAssets.value.some((s) => s.id === item.id);
+      const isPicked = selectedIds.value.has(String(item.id));
+      if (isPicked && !selectedAssets.value.some((s) => s.id === item.id)) {
+        selectedAssets.value.push(item);
+      }
       return {...item, selected: isPicked};
     });
     queryParam.value.total = res.total;
@@ -101,30 +106,34 @@ function isVideo(fileName: string): boolean {
 }
 
 const isReachQuota = computed(() => {
-  return selectedAssets.value.length >= maxCount.value;
+  return selectedIds.value.size >= maxCount.value;
 });
 
 const isCheckAll = computed({
   get: () => {
     if (listData.value.length === 0) return false;
-    if (isReachQuota.value) return true;
+    if (selectedIds.value.size >= maxCount.value) return true;
     return listData.value.every((item) =>
-      selectedAssets.value.some((s) => s.id === item.id)
+      selectedIds.value.has(String(item.id))
     );
   },
   set: (val: boolean) => {
     if (val) {
-      let remaining = maxCount.value - selectedAssets.value.length;
+      let remaining = maxCount.value - selectedIds.value.size;
       if (remaining <= 0) return;
       listData.value.forEach((item) => {
-        const already = selectedAssets.value.some((s) => s.id === item.id);
+        const already = selectedIds.value.has(String(item.id));
         if (!already && remaining > 0) {
-          selectedAssets.value.push(item);
+          selectedIds.value.add(String(item.id));
+          if (!selectedAssets.value.some((s) => s.id === item.id)) {
+            selectedAssets.value.push(item);
+          }
           remaining--;
         }
       });
     } else {
-      const currentPageIds = listData.value.map((i) => i.id);
+      const currentPageIds = listData.value.map((i) => String(i.id));
+      currentPageIds.forEach((id) => selectedIds.value.delete(id));
       selectedAssets.value = selectedAssets.value.filter(
         (s) => !currentPageIds.includes(s.id)
       );
@@ -136,10 +145,12 @@ function handleSelect(item: VivoMaterialLibrary) {
   if (isReachQuota.value && !item.selected) return;
   item.selected = !item.selected;
   if (item.selected) {
+    selectedIds.value.add(String(item.id));
     if (!selectedAssets.value.some((s) => s.id === item.id)) {
       selectedAssets.value.push(item);
     }
   } else {
+    selectedIds.value.delete(String(item.id));
     selectedAssets.value = selectedAssets.value.filter((s) => s.id !== item.id);
   }
 }
@@ -162,6 +173,7 @@ async function search() {
 
 function clearSelection() {
   selectedAssets.value = [];
+  selectedIds.value = new Set();
   listData.value.forEach((item) => (item.selected = false));
 }
 
@@ -170,6 +182,7 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       selectedAssets.value = [];
+      selectedIds.value = new Set();
       listData.value = [];
       queryParam.value = {page: 1, pageSize: 20, total: 0};
       albumId.value = '';
@@ -179,19 +192,39 @@ const [Modal, modalApi] = useVbenModal({
         internalMaterialType.value = data.materialType ?? 'image';
         // 设置下标
         currentMaterialGroupIndex.value = data.currentMaterialGroupIndex ?? 0;
+
+        // 回显预选素材：preSelectedMaterials（完整对象）优于 preSelectedIds（仅ID）
+        if (data.preSelectedMaterials?.length) {
+          selectedAssets.value = data.preSelectedMaterials.map((m: any) => ({...m}));
+          data.preSelectedMaterials.forEach((m: any) => {
+            selectedIds.value.add(String(m.localMaterialId ?? m.id));
+          });
+        } else if (Array.isArray(data.preSelectedIds) && data.preSelectedIds.length) {
+          (data.preSelectedIds as (string | number)[]).forEach((id) => selectedIds.value.add(String(id)));
+        }
       }
       await fetchList();
     }
   },
   onCancel() {
     selectedAssets.value = [];
+    selectedIds.value = new Set();
     listData.value = [];
     modalApi.close();
   },
   async onConfirm() {
-    const selected = selectedAssets.value;
-    emit('update:material', selected, currentMaterialGroupIndex.value);
+    // 合并 selectedAssets + 未出现在当前页的预选 ID（补最小对象，确保跨页预选不丢失）
+    const result = [...selectedAssets.value];
+    const inResultIds = new Set(result.map((r) => String(r.id)));
+    for (const id of selectedIds.value) {
+      if (!inResultIds.has(String(id))) {
+        result.push({ id } as any);
+      }
+    }
+
+    emit('update:material', result, currentMaterialGroupIndex.value);
     selectedAssets.value = [];
+    selectedIds.value = new Set();
     listData.value = [];
     await modalApi.close();
   },
@@ -299,7 +332,7 @@ onMounted(async () => {
                           @change="handlePageChange"/>
             </div>
             <div class="flex items-center gap-3">
-              <span class="text-sm">已选素材: {{ selectedAssets.length }}/{{ maxCount }} <Button
+              <span class="text-sm">已选素材: {{ selectedIds.size }}/{{ maxCount }} <Button
                 type="link" size="small" @click="clearSelection">清空</Button></span>
               <Space>
                 <Checkbox :checked="isCheckAll" @change="onCheckAllChange">全选</Checkbox>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // 批投任务详情抽屉 - 通用组件，适配所有平台
 import { ref, watch, onBeforeUnmount, computed } from 'vue';
-import { Descriptions, Tag, Progress, Empty, Spin, Alert } from 'ant-design-vue';
+import { Descriptions, Tag, Progress, Empty, Alert } from 'ant-design-vue';
+import { Spinner } from '@vben/common-ui';
 import { creationTaskApi } from '#/api';
 import type { CreationTaskItem } from '#/api/models/marketing';
 
@@ -24,6 +25,7 @@ const statusMap: Record<number, { color: string; text: string }> = {
   2: { color: 'blue', text: '处理中' },
   3: { color: 'green', text: '已完成' },
   4: { color: 'red', text: '失败' },
+  5: { color: 'red', text: '超时' },
 };
 
 /** 计算任务进度百分比 */
@@ -184,7 +186,7 @@ function getCodeText(code: number) {
 <template>
   <div class="task-detail-drawer">
     <!-- 加载状态 -->
-    <Spin :spinning="loading" tip="加载中...">
+    <Spinner :spinning="loading" tip="加载中...">
       <!-- 错误提示 -->
       <Alert v-if="error" type="error" :message="error" show-icon class="mb-4" />
 
@@ -321,7 +323,7 @@ function getCodeText(code: number) {
           </table>
         </div>
       </div>
-    </Spin>
+    </Spinner>
   </div>
 </template>
 

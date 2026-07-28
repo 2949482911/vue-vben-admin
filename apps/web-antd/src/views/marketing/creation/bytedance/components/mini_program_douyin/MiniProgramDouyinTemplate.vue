@@ -30,6 +30,7 @@ import TitleSelector from "#/views/marketing/creation/components/title/TitleSele
 import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
 import AwemeConfigCard from "../AwemeConfigCard.vue";
 import DpaProductButtonField from "../DpaProductButtonField.vue";
+import ProductImageButtonField from "../ProductImageButtonField.vue";
 import TimeSelectionPeriod
   from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
 import type {
@@ -261,8 +262,10 @@ const campaignFormFields = [
     formItemClass: "w-[150px]",
     fieldName: "aigc_dynamic_creative_switch",
     componentProps: {
+      checkedValue: 'ON',
+      unCheckedValue: 'OFF',
       checkedChildren: 'ON',
-      unCheckedValue: 'OFF'
+      unCheckedChildren: 'OFF',
     },
     label: "AIGC动态创意开关",
     defaultValue: 'OFF',
@@ -291,13 +294,13 @@ const campaignFormFields = [
       placeholder: "请选择深度优化目标",
     }
   },
-  {
-    component: "Input",
-    fieldName: "_has_deep_goals",
-    label: "",
-    defaultValue: true,
-    dependencies: { show: false, triggerFields: ["*"] }
-  },
+  // {
+  //   component: "Input",
+  //   fieldName: "_has_deep_goals",
+  //   label: "",
+  //   defaultValue: false,
+  //   dependencies: { show: false, triggerFields: ["*"] }
+  // },
   {
     component: "Select",
     fieldName: "delivery_setting_deep_bid_type",
@@ -350,7 +353,7 @@ const campaignFormFields = [
     defaultValue: "CUSTOM"
   },
   {
-    component: "Input",
+    component: "InputNumber",
     fieldName: "delivery_setting_bid",
     label: "出价",
     defaultValue: 0,
@@ -386,7 +389,7 @@ const campaignFormFields = [
     defaultValue: "PRICING_OCPM"
   },
   {
-    component: "Input",
+    component: "InputNumber",
     fieldName: "delivery_setting_roi_goal",
     label: "ROI系数",
     defaultValue: 0,
@@ -454,10 +457,12 @@ const promotionFormFields = [
     label: "产品名字"
   },
   {
-    component: "Input",
-    fieldName: "promotion_materials_product_info_image_ids",
-    rules: "required",
-    label: "产品主图"
+    component: markRaw(ProductImageButtonField),
+    fieldName: 'product_image_button',
+    label: '产品主图',
+    rules: 'required',
+    // v-model 由 form 系统绑定，componentProps 由 BytedancePromotionDrawer 动态注入 openProductImageModal
+    componentProps: {},
   },
   {
     component: "TextareaTags",

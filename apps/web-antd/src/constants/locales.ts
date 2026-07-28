@@ -67,6 +67,10 @@ export const TASK_STATUS_SELECT = [
     label: '处理失败',
     value: 4,
   },
+  {
+    label: '处理超时',
+    value: 5,
+  },
 ];
 export const SEX_SELECT = [
   {

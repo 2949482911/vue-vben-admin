@@ -356,6 +356,8 @@ export interface BytedancePromotionProduct_info {
   titles: Array<string>;
   image_ids: Array<string>;
   selling_points: Array<string>;
+  // 本地产品主图
+  local_material_image_ids: Array<string>;
 }
 
 
