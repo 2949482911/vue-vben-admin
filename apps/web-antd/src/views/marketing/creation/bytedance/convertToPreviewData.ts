@@ -155,7 +155,7 @@ export function getPreviewTableData(
             video_template_type: "",
             video_task_ids: [],
             item_id: "",
-            video_hp_visibility: "",
+            video_hp_visibility: "HIDE_VIDEO_ON_HP",
             guide_video_id: ""
           })),
           image_material_list: (material?.image || []).map((i) => ({
@@ -182,7 +182,7 @@ export function getPreviewTableData(
             image_ids: promotionData.promotion_materials?.product_info.image_ids || [],
             selling_points: promotionData.promotion_materials?.product_info?.selling_points || [],
             // 产品主图ID
-            local_material_image_ids: promotionData.promotion_materials.product_info.local_material_image_ids,
+            local_material_image_ids: promotionData.promotion_materials?.product_info.image_ids,
           },
           original_video_title: "",
           playlet_series_url_list: [landingPageItem.config.pageUrl],

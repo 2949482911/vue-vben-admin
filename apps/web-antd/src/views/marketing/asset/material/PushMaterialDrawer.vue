@@ -153,7 +153,8 @@ async function loadAdvertiserList(platform: string) {
       page: 1,
       pageSize: 1000,
       advertiserRole: "",
-      platform
+      platform,
+      putStatue: 1
     });
     const items = res.items ?? [];
     accountDataSource.value = items.map((item: AdvertiserItem) => ({

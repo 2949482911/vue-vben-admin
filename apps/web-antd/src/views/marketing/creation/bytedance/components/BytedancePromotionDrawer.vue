@@ -39,7 +39,7 @@ function onProductImageSelected(selectedMaterials: Array<{ id: string; name: str
   const imageIds = selectedMaterials.map((m) => String(m.id));
   currentProductImageIds.value = imageIds;
   // 通过 formApi 更新 product_image_button 字段，触发 v-model → ProductImageButtonField 自动展示已选数量
-  formApi.setValues({ product_image_button: imageIds });
+  formApi.setValues({ product_image_button: imageIds,});
 }
 
 const [Form, formApi] = useVbenForm({
@@ -157,6 +157,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
           titles: currentValues.promotion_materials_product_info_titles || [],
           image_ids: Array.isArray(currentValues.product_image_button) ? currentValues.product_image_button : [],
           selling_points: currentValues.promotion_materials_product_info_selling_points || [],
+          local_material_image_ids: currentValues.promotion_materials_product_info_titles || [],
         },
         call_to_action_buttons: currentValues.promotion_materials_call_to_action_buttons || [],
         intelligent_generation: currentValues.promotion_materials_intelligent_generation || 'OFF',
