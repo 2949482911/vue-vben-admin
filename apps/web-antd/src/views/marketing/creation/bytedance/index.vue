@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Page, useVbenModal } from "@vben/common-ui";
-import { Card, message, Select } from "ant-design-vue";
+import { Card, Drawer, message, Select } from "ant-design-vue";
 import ConfigurationConfig from "../components/configurationArea.vue";
 import { ref, watch } from "vue";
 import type { BytedanceCampaignData, BytedanceCreation, BytedanceCreationData, BytedancePromotionData } from "./bytedance";
@@ -32,9 +32,12 @@ import MarketingProductDouyinTemplate
   from "#/views/marketing/creation/bytedance/components/marketing_product_douyin/MarketingProductDouyinTemplate.vue";
 import MiniProgramDouyinTemplate
   from "#/views/marketing/creation/bytedance/components/mini_program_douyin/MiniProgramDouyinTemplate.vue";
+import MiniProgramWechatTemplate
+  from "#/views/marketing/creation/bytedance/components/mini_program_wechat/MiniProgramWechatTemplate.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
+import BatchTaskResultDrawer from "#/views/marketing/creation/components/result/BatchTaskResultDrawer.vue";
 
 
 // 提交弹窗
@@ -47,20 +50,50 @@ const [SubmitModal, submitApi] = useVbenModal({
   },
 });
 
+// ==================== 批投任务结果跟踪 ====================
+/** 当前正在执行的批投任务信息 */
+const currentTask = ref<{ taskId: string; taskName: string; platform: string; projectId: string } | null>(null);
+/** 结果抽屉开关 */
+const resultDrawerOpen = ref(false);
+/** 是否有进行中的任务（控制工具栏「查看任务进度」按钮显隐） */
+const taskInProgress = ref(false);
+
 /**
- * 提交成功回调 - 跳转到任务列表
+ * 提交成功回调 - 自动打开结果抽屉
  */
-function handleTaskCreated(taskId: string) {
-  message.success(`任务已提交，任务ID: ${taskId}，可在任务列表中查看进度`);
-  // 跳转到任务列表页
-  // router.push({ name: 'CreationTask' });
+function handleTaskCreated(data: { taskId: string; taskName: string }) {
+  currentTask.value = {
+    taskId: data.taskId,
+    taskName: data.taskName,
+    platform: creationInfo.value.platform,
+    projectId: creationInfo.value.project.projectId,
+  };
+  taskInProgress.value = true;
+  resultDrawerOpen.value = true;
 }
 
 /**
- * 提交失败回调
+ * 查看任务进度（从工具栏按钮触发）
  */
-function handleTaskError(error: any) {
-  console.error('批投提交失败:', error);
+function viewTaskProgress() {
+  if (currentTask.value) {
+    resultDrawerOpen.value = true;
+  }
+}
+
+/**
+ * 抽屉关闭回调
+ */
+function onResultDrawerClose() {
+  resultDrawerOpen.value = false;
+}
+
+/**
+ * 任务完成回调（由 BatchTaskResultDrawer emit）
+ */
+function onTaskCompleted(_status: number) {
+  // 任务执行完毕，更新按钮状态
+  // 按钮在任务完成后仍然显示（用户可能需要查看结果），但不再标记为进行中
 }
 
 
@@ -72,7 +105,6 @@ function submitCreateBatch() {
     message.error("请先配置预览区数据");
     return;
   }
-  console.log(adList.value);
   submitApi.open();
 }
 
@@ -330,7 +362,8 @@ async function initCreationInfo() {
           product_info: {
             product_name_type: "", product_image_type: "", product_selling_point_type: "",
             product_name_fields: [], product_image_fields: [], product_selling_point_fields: [],
-            titles: [], image_ids: [], selling_points: []
+            titles: [], image_ids: [], selling_points: [],
+            local_material_image_ids: []
           },
           original_video_title: "",
           playlet_series_url_list: [],
@@ -613,7 +646,7 @@ const creationInfo = ref<BytedanceCreation>({
         product_info: {
           product_name_type: "", product_image_type: "", product_selling_point_type: "",
           product_name_fields: [], product_image_fields: [], product_selling_point_fields: [],
-          titles: [], image_ids: [], selling_points: []
+          titles: [], image_ids: [], selling_points: [], local_material_image_ids: []
         },
         original_video_title: "",
         playlet_series_url_list: [],
@@ -790,10 +823,12 @@ watch(() => creationInfo, (_) => {
         <Function
           :account-info="creationInfo.accountInfo"
           :monitoring-link="creationInfo.configData.monitoringLink"
+          :task-in-progress="taskInProgress"
           @update:monitoring-link="updateMonitoringLink"
           @gen:ad-list="genPreviewTableData"
           @save:create-strategy-group="createStrategyGroup"
           @submit:create-batch="submitCreateBatch"
+          @view:task-progress="viewTaskProgress"
         />
       </Card>
 
@@ -810,8 +845,25 @@ watch(() => creationInfo, (_) => {
         :creation-info="creationInfo"
         :ad-list="adList"
         @result:getCreationTask="handleTaskCreated"
-        @result:error="handleTaskError"
       />
+
+      <!-- 批投任务结果抽屉 -->
+      <Drawer
+        :open="resultDrawerOpen"
+        title="批投任务执行结果"
+        :width="800"
+        @close="onResultDrawerClose"
+        :destroyOnClose="false"
+      >
+        <BatchTaskResultDrawer
+          v-if="currentTask"
+          :task-id="currentTask.taskId"
+          :task-name="currentTask.taskName"
+          :platform="currentTask.platform"
+          :project-id="currentTask.projectId"
+          @task-completed="onTaskCompleted"
+        />
+      </Drawer>
     </Page>
   </div>
 </template>

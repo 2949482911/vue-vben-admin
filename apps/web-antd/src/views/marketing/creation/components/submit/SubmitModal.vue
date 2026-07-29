@@ -8,6 +8,7 @@ import { useOssClient } from "#/views/marketing/asset/material/useOssClient";
 import { useUserStore } from "@vben/stores";
 import { creationTaskApi } from "#/api";
 import { ref } from "vue";
+import { renderProjectTitle } from "#/utils/customName";
 
 // 传入的子组件数据
 const props = defineProps<{
@@ -81,15 +82,24 @@ const [Modal, modalApi] = useVbenModal({
         uploadJson(props.adList, "table")
       ]);
       // 提交的参数
+      const name = renderProjectTitle(values.name, 0,props.creationInfo.project.projectName || '');
+      const platform = props.creationInfo?.platform || '';
+
+      // 智擎版通过 extraParams.taskType=bytedance_std 区分提交接口
+      const extraParams: Record<string, any> = {};
+      if (platform === 'bytedance_std') {
+        extraParams.taskType = 'bytedance_std';
+      }
+
       const submitVals = {
-        name: values.name,
-        platform: props.creationInfo?.platform || "",
+        name:name,
+        platform,
         projectId: props.creationInfo?.project.projectId || "",
         version: props.creationInfo?.version,
         ruleType: values.ruleType,
         configArea: creationUrl, //本地数据
         fullParamsData: tableUrl, //上传表格
-        extraParams: props.creationInfo.configData.promotionType || {} // 附加参数
+        extraParams // 附加参数
       };
       // 获取请求结果
       const res = await creationTaskApi.fetchVivoSubmitReview(
@@ -99,7 +109,7 @@ const [Modal, modalApi] = useVbenModal({
       // 结果响应数据
       if (res && res.taskId) {
         message.success(`批投任务已提交成功，任务ID: ${res.taskId}`);
-        emit("result:getCreationTask", res.taskId);
+        emit("result:getCreationTask", { taskId: res.taskId, taskName: name });
         modalApi.close();
       } else {
         message.warning("任务已提交，但未获取到任务ID，请检查任务列表");
@@ -133,10 +143,19 @@ const [Form, formApi] = useVbenForm({
   // layout: "inline",
   schema: [
     {
-      component: "Input",
+      component: "AdNameGen",
       fieldName: "name",
       label: "任务名字",
-      rules: "required"
+      rules: "required",
+      defaultValue: "<产品名称>,<日期>",
+      componentProps: {
+        placeholderTags: [
+          '<产品名称>',
+          '<日期>',
+          '<时间>',
+          '<时分秒>',
+        ]
+      }
     },
 
     {

@@ -18,6 +18,14 @@ export const BYTEDANCE_MARKETING_TYPE = [
     label: '小程序抖音号推广',
     value: 'mini_program_douyin_template',
   },
+  {
+    label: '小程序微信小程序推广',
+    value: 'mini_program_wechat_template',
+  },
+  {
+    label: 'app推广模板',
+    value: 'app_template',
+  },
 ];
 
 

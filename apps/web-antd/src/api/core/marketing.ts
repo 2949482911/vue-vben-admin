@@ -9,7 +9,7 @@ import type {
   AdManagementType,
   AdReportRequest,
   AdReportResponse,
-  AdvertiserCostDetailType,
+  AdvertiserCostDetailType, AdvertiserCreateResultResponse,
   AdvertiserDeveloperBindRequest,
   AdvertiserItem,
   AdvertiserPageRequest,
@@ -453,7 +453,7 @@ class CreationTaskApi extends BaseApi {
 
   /**批投提交审核*/
   fetchVivoSubmitResult(params: { id: string }) {
-    return requestClient.get(this.getServiceUrl("create_result"), { params });
+    return requestClient.get<AdvertiserCreateResultResponse>(this.getServiceUrl("create_result"), { params });
   }
 }
 

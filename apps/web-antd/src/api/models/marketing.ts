@@ -940,3 +940,26 @@ export interface OppoH5TemplateFRequest{
   tid: number;
   extensionType: number;
 }
+
+
+/**
+ *
+ */
+export interface AdvertiserCreateResultResponse {
+  taskState: number;
+  taskStateName: string;
+  id: string;
+  commitAdvertiserCount: number;
+  commitCampaignCount: number;
+  successCampaignCount: number;
+  commitAdGroupCount: number;
+  successAdGroupCount: number;
+  commitPromotionCount: number;
+  successPromotionCount: number;
+  commitCreativeCount: number;
+  successCreativeCount: number;
+  campaignResp: Record<string, any>;
+  adGroupResp: Record<string, any>;
+  promotionResp: Record<string, any>;
+  creativeResp: Record<string, any>;
+}

@@ -8,7 +8,7 @@ import { ref, watch } from "vue";
 
 
 // 账户列表
-const { accountInfo, monitoringLink } = defineProps({
+const { accountInfo, monitoringLink, taskInProgress } = defineProps({
   accountInfo: {
     type: Array<AccountInfo>,
     default: () => []
@@ -16,10 +16,14 @@ const { accountInfo, monitoringLink } = defineProps({
   monitoringLink: {
     type: Object,
     default: () => ({})
-  }
+  },
+  taskInProgress: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits(["update:monitoringLink", "save:createStrategyGroup", "gen:adList", "submit:createBatch"]);
+const emit = defineEmits(["update:monitoringLink", "save:createStrategyGroup", "gen:adList", "submit:createBatch", "view:taskProgress"]);
 
 
 // 本地监测链接数据
@@ -118,6 +122,9 @@ function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
         <Button type="primary" @click="createStrategyGroup">保存策略组</Button>
         <Button type="primary" @click="genAdList">生成广告预览</Button>
         <Button type="primary" @click="submitCreateBatch">提交审核</Button>
+        <Button v-if="taskInProgress" style="background-color: #fa8c16; border-color: #fa8c16" type="primary" @click="emit('view:taskProgress')">
+          查看任务进度
+        </Button>
       </Space>
     </div>
 

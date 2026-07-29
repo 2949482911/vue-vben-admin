@@ -65,7 +65,8 @@
       "oppo": "Oppo Marketing",
       "huawei_store": "Huawei Store Marketing",
       "tencent": "Tencent Marketing",
-      "bytedance": "Bytedance Marketing"
+      "bytedance": "Bytedance Marketing",
+      "bytedance_std": "Bytedance Std Marketing"
     },
     "asset": {
       "title": "Asset",
