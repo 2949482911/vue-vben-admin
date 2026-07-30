@@ -7,14 +7,15 @@ export interface PageRequestParams {
 }
 
 export interface BaseItem {
-  id: string;
-  createTime: string;
-  updateTime: string;
-  createUsername: string;
-  updateUsername: string;
-  status: number;
-  createdBy: string;
-  updatedBy: string;
+  id?: string;
+  createTime?: string;
+  updateTime?: string;
+  createUsername?: string;
+  updateUsername?: string;
+  status?: number;
+  createdBy?: string;
+  updatedBy?: string;
+  del?: number;
   _X_ROW_KEY?: string;
 }
 

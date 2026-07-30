@@ -10,3 +10,6 @@ export * from "./ocpx"
 export * from "./marketing";
 export * from "./adx";
 export * from "./bytedance";
+export * from "./ai_hosting";
+export * from "./material_analysis";
+export * from "./ai_chat";

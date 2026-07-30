@@ -10,7 +10,8 @@
   "dashboard": {
     "title": "概览",
     "analytics": "分析页",
-    "workspace": "工作台"
+    "workspace": "工作台",
+    "unified": "数据看板"
   },
   "system": {
     "title": "系统",
@@ -86,7 +87,6 @@
         "oppo": "OPPO",
         "vivo": "VIVO",
         "huawei_store": "华为商店",
-
         "seq": "序号",
         "materialName": "素材名称",
         "materialId": "素材ID",
@@ -130,7 +130,14 @@
         "statusFailed": "失败",
         "statusCancelled": "已取消"
       }
-    }
+    },
+    "ai_hosting": {
+      "title": "Ai 智能托管",
+      "ai_hosting_task": "托管任务",
+      "ai_hosting_log": "执行日志"
+    },
+    "ai_copilot": "Ai投手",
+    "material_analysis": "素材分析"
   },
   "tools": {
     "title": "工具",

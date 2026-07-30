@@ -93,6 +93,20 @@ const formOptions: VbenFormProps = {
 
     {
       component: 'Select',
+      fieldName: 'metricType',
+      label: $t('marketing.metric.columns.metricType'),
+      componentProps: {
+        options: [
+          { label: $t('marketing.metric.metricType.atomic'), value: 1 },
+          { label: $t('marketing.metric.metricType.derive'), value: 2 },
+          { label: $t('marketing.metric.metricType.eventMetric'), value: 3 },
+          { label: $t('marketing.metric.metricType.platformMetric'), value: 4 },
+        ]
+      }
+    },
+
+    {
+      component: 'Select',
       componentProps: {
         allowClear: true,
         options: STATUS_SELECT,
@@ -156,19 +170,19 @@ const gridOptions: VxeGridProps<MetricItem> = {
     },
 
     {
-      field: 'implMethod', 
-      title: `${$t('marketing.metric.columns.implMethod')}`, 
+      field: 'implMethod',
+      title: `${$t('marketing.metric.columns.implMethod')}`,
       width: "auto"
     },
 
     {
-      field: 'isSystem', title: `${$t('marketing.metric.columns.isSystem')}`, 
+      field: 'isSystem', title: `${$t('marketing.metric.columns.isSystem')}`,
       width: "auto",
       slots: {default: 'isSystem'}
     },
 
     {
-      field: 'isCustom', title: `${$t('marketing.metric.columns.isCustom')}`, 
+      field: 'isCustom', title: `${$t('marketing.metric.columns.isCustom')}`,
       width: "auto",
       slots: {default: 'isCustom'}
     },
@@ -180,13 +194,13 @@ const gridOptions: VxeGridProps<MetricItem> = {
     },
 
     {
-      field: 'sort', 
-      title: `${$t('marketing.metric.columns.sort')}`, 
+      field: 'sort',
+      title: `${$t('marketing.metric.columns.sort')}`,
       width: "auto"
     },
     {
-      field: 'metricGroupName', 
-      title: `${$t('marketing.metric.columns.metricGroupName')}`, 
+      field: 'metricGroupName',
+      title: `${$t('marketing.metric.columns.metricGroupName')}`,
       width: "auto",
       slots: {default: 'metricGroup'}
     },

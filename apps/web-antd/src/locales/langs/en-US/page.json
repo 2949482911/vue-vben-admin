@@ -10,7 +10,8 @@
   "dashboard": {
     "title": "Dashboard",
     "analytics": "Analytics",
-    "workspace": "Workspace"
+    "workspace": "Workspace",
+    "unified": "Data Unified"
   },
   "system": {
     "title": "System",
@@ -129,7 +130,14 @@
         "statusFailed": "Failed",
         "statusCancelled": "Cancelled"
       }
-    }
+    },
+    "ai_hosting": {
+      "title": "AI Hosting",
+      "ai_hosting_task": "Ai Hosting Task",
+      "ai_hosting_log": "Ai Hosting Log"
+    },
+    "ai_copilot": "Ai Copilot",
+    "material_analysis": "Material Analysis"
   },
   "tools": {
     "title": "Tools",
