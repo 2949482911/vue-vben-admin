@@ -1,14 +1,16 @@
 import { BaseApi } from "#/api/core/baseapi";
-import {requestClient} from '#/api/request';
+import { requestClient } from "#/api/request";
 
 import type {
-  BytedanceAwemeAuthListRequest,
+  BytedanceAwemeAuthListRequest, BytedanceDpaClueProduct,
+  BytedanceDpaClueProductListRequest,
   BytedanceDpaProductAvailablesItem,
   BytedanceDpaProductAvailablesRequest,
   BytedanceDpaProductListItem,
   BytedanceDpaProductListRequest,
   BytedanceEventManagerOptimizedGoalGetGoal,
-  BytedanceOptimizedGoalRequest, BytedanceToolsAwemeAuthListList
+  BytedanceOptimizedGoalRequest,
+  BytedanceToolsAwemeAuthListList
 } from "#/api/models/bytedance";
 
 
@@ -47,6 +49,15 @@ class BytedanceAdvertisementApi extends BaseApi {
    */
   fetchDpaProductList(data: BytedanceDpaProductListRequest) {
     return requestClient.post<Array<BytedanceDpaProductListItem>>(this.getServiceUrl("dpa_product_list"), data);
+  }
+
+
+  /**
+   * 升级版商品获取
+   * @param data
+   */
+  fetchBytedanceDpaClueProduct(data: BytedanceDpaClueProductListRequest) {
+    return requestClient.post<Array<BytedanceDpaClueProduct>>(this.getServiceUrl("dpa_clue_product_list"), data);
   }
 }
 

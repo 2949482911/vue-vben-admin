@@ -118,7 +118,7 @@ export interface HostingTask extends BaseItem {
   /** 规则列表 */
   rules: HostingRule[];
   /** 任务状态 */
-  status: HostingStatus;
+  taskStatus: HostingStatus;
   /** 轮询间隔（分钟） */
   pollInterval: number;
   /** 统计信息 */
@@ -147,7 +147,7 @@ export interface HostingTaskStats {
 export interface HostingTaskQueryParams extends PageRequestParams {
   name?: string;
   platform?: string;
-  status?: HostingStatus;
+  taskStatus?: HostingStatus;
 }
 
 // ==================== 执行日志 ====================

@@ -42,6 +42,7 @@ export interface Project {
   icon: string;
   // 媒体APPID
   appId: string
+  downloadUrl?: string;
 }
 
 export interface AccountInfo {
@@ -414,6 +415,38 @@ export function getLandingPage(
     dataList = data.get(advertiserId) || [];
   }
   return <PageViewItem>dataList[0] || {};
+}
+
+
+/**
+ * 获取监测链接
+ * @param method 分配方式
+ * @param data 监测链接数据
+ * @param advertiserId 账户ID
+ * @param index 索引
+ */
+export function getMonitoringLink(
+  method: string,
+  data: Map<string, Array<MonitoringLinkType>>,
+  advertiserId: string,
+  index: number
+): MonitoringLinkType {
+  let dataList: Array<MonitoringLinkType> = [];
+  if (method === DistributionMode.all) {
+    dataList = data.get("0") || [];
+  } else {
+    dataList = data.get(advertiserId) || [];
+  }
+  return (
+    dataList[index % dataList.length] || {
+      clickLink: "",
+      exposureLink: "",
+      monitorLink: "",
+      linkModeType: "",
+      allocateType: "",
+      ocpxTaskId: "",
+    }
+  );
 }
 
 

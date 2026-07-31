@@ -23,7 +23,9 @@
       "advertiser": "Advertiser",
       "personal": "Personal",
       "admin": "Admin",
-      "bm": "Tencent BM Account"
+      "bm": "Tencent BM Account",
+      "bp_admin": "BM Admin",
+      "bp_operator": "BM OPERATOR"
     }
   },
   "developer": {
@@ -81,7 +83,8 @@
       "projectType": "Type",
       "icon": "Icon",
       "appId": "AppId",
-      "miniProgramId": "Mini Program Id"
+      "miniProgramId": "Mini Program Id",
+      "downloadUrl": "Download Url"
     },
     "projectType": {
       "wechat_mini_game": "Wechat Mini Game",

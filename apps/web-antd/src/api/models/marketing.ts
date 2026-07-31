@@ -197,6 +197,7 @@ export interface ProjectItem extends BaseItem {
   icon: string;
   miniProgramId: string;
   appId: string;
+  downloadUrl: string;
 }
 
 export interface CreateProjectRequest {
@@ -208,6 +209,7 @@ export interface CreateProjectRequest {
   icon: string;
   miniProgramId: string;
   appId: string;
+  downloadUrl: string;
 }
 
 export interface UpdateProjectRequest extends CreateProjectRequest {

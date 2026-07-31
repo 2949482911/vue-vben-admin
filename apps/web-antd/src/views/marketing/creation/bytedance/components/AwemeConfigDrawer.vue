@@ -68,7 +68,7 @@ function generateMappingRows(): MappingRow[] {
   if (method === 'PER_ACCOUNT') {
     return accountList.value.map((acc) => ({
       targetId: acc.localAdvertiserId,
-      targetName: acc.localAdvertiserName || acc.localAdvertiserId,
+      targetName: acc.localAdvertiserId || acc.localAdvertiserId,
       selectedAwemeId: undefined,
     }));
   }
@@ -76,7 +76,7 @@ function generateMappingRows(): MappingRow[] {
   return accountList.value.flatMap((acc) =>
     (acc.adGroupList || []).map((ag: any, agIdx: number) => ({
       targetId: `${acc.localAdvertiserId}-${agIdx}`,
-      targetName: `${acc.localAdvertiserName || acc.localAdvertiserId} - 广告${agIdx + 1}`,
+      targetName: `${acc.advertiserName || acc.localAdvertiserId} - 广告${agIdx + 1}`,
       selectedAwemeId: undefined,
     })),
   );

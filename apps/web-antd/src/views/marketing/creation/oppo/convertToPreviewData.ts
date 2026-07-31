@@ -15,6 +15,7 @@ import {
   getDeepLink,
   getLandingPage,
   getMaterial,
+  getMonitoringLink,
   getRuleInfoAdCount,
   getRuleInfoAdCountGroup,
   getRuleInfoCampaignCount,
@@ -353,29 +354,3 @@ function flattenData(campaignList: OppoCampaign[]): any[] {
   return rows;
 }
 
-/**
- * 获取监测链接
- */
-export function getMonitoringLink(
-  method: string,
-  data: Map<string, MonitoringLinkType[]>,
-  advertiserId: string,
-  index: number
-): MonitoringLinkType {
-  let dataList: MonitoringLinkType[] = [];
-  if (method === DistributionMode.all) {
-    dataList = data.get("0") || [];
-  } else {
-    dataList = data.get(advertiserId) || [];
-  }
-  return (
-    dataList[index % dataList.length] || {
-      clickLink: "",
-      exposureLink: "",
-      monitorLink: "",
-      linkModeType: "",
-      allocateType: "",
-      ocpxTaskId: ""
-    }
-  );
-}

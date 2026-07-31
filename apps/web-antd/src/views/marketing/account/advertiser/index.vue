@@ -288,6 +288,14 @@ const formOptions: VbenFormProps = {
             label: `${$t('marketing.advertiser.advertiserRole.admin')}`,
             value: 'admin',
           },
+          {
+            label: `${$t('marketing.advertiser.advertiserRole.bp_admin')}`,
+            value: 'bp_admin',
+          },
+          {
+            label: `${$t('marketing.advertiser.advertiserRole.bp_operator')}`,
+            value: 'bp_operator',
+          },
         ],
         placeholder: `${$t('common.choice')}`,
       },
@@ -710,7 +718,8 @@ async function loadAgentData(platform: string) {
               <Menu>
                 <MenuItem> 投放 </MenuItem>
                 <MenuItem
-                  v-if="row.advertiserRole === 'proxy' || row.advertiserRole === 'bm'"
+                  v-if="row.advertiserRole === 'proxy' || row.advertiserRole === 'bm'
+                  || row.advertiserRole === 'bp_admin' || row.advertiserRole==='admin'"
                   @click="openImportChildModal(row)"
                 >
                   {{ $t('core.import') }}

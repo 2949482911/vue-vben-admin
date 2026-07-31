@@ -28,7 +28,9 @@
       "advertiser": "广告主",
       "personal": "个人",
       "bm":"广点通BM账户",
-      "admin": "账户管家"
+      "admin": "账户管家",
+      "bp_admin": "升级版工作台管理员",
+      "bp_operator": "升级版工作台协作者"
     },
     "history": {
       "columns": {
@@ -120,7 +122,8 @@
       "projectType": "类型",
       "icon": "图标",
       "appId": "应用ID",
-      "miniProgramId": "小程序原始ID"
+      "miniProgramId": "小程序原始ID",
+      "downloadUrl": "下载地址"
     },
     "projectType": {
       "wechat_mini_game": "微信小游戏",

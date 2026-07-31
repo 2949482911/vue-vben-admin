@@ -26,7 +26,8 @@ const objectRequest = ref<CreateProjectRequest | UpdateProjectRequest>({
   name: "",
   packageName: "",
   projectType: ProjectType.ANDROID,
-  appId: ''
+  appId: '',
+  downloadUrl: '',
 });
 
 const isUpdate = ref<Boolean>(false);
@@ -166,6 +167,23 @@ const [Form, formApi] = useVbenForm({
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
+      label: `${$t('marketing.project.columns.downloadUrl')}`,
+      rules: 'required',
+      fieldName: "downloadUrl",
+      dependencies: {
+        show: (currentVal : Record<string, any> ) => {
+          return currentVal["projectType"] === ProjectType.ANDROID
+            || currentVal["projectType"] === ProjectType.IOS
+          || currentVal["projectType"] === ProjectType.HARMONY
+        },
+        triggerFields: ["projectType"]
+      }
+    },
+    {
+      component: "Input",
+      componentProps: {
+        placeholder: `${$t('common.input')}`,
+      },
       label: `${$t('marketing.project.columns.miniProgramId')}`,
       rules: "required",
       fieldName: "miniProgramId",
@@ -200,7 +218,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
       packageName: "",
       projectType: '',
       miniProgramId: "",
-      appId: ""
+      appId: "",
+      downloadUrl: ''
     };
     isUpdate.value = false;
     await drawerApi.close();

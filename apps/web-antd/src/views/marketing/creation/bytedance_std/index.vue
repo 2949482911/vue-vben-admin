@@ -31,7 +31,8 @@ import CreateStrategyGroup from "../components/createStrategyGroup.vue";
 import Submit from "../components/submit/SubmitModal.vue";
 import BatchTaskResultDrawer from "../components/result/BatchTaskResultDrawer.vue";
 
-import StdProjectTemplate from "./components/StdProjectTemplate.vue";
+import StdBaseTemplate from "./components/base_template/base_template.vue";
+import StdAppTemplate from "./components/app_template/AppTemplate.vue";
 import StdProjectPreviewArea from "./components/StdProjectPreviewArea.vue";
 import { getPreviewTableData } from "./convertToPreviewData";
 import type { StdCreation, StdCreationData, StdProjectData } from "./bytedance";
@@ -352,7 +353,8 @@ const creationInfo = ref<StdCreation>({
     projectName: "",
     icon: "",
     packageName: "",
-    appId: ""
+    appId: "",
+    downloadUrl: ""
   },
   ruleInfo: {
     projectRuleKey: RuleKey.TARGET,
@@ -393,6 +395,19 @@ const template = ref<string>("base_template");
 
 async function updateTemplate(changeVal: string) {
   template.value = changeVal;
+  creationInfo.value.configurationConfig.template = changeVal;
+
+  // 模板专属默认值覆盖
+  if (changeVal === 'app_template') {
+    const project = creationInfo.value.configData.project;
+    // App推广模板固定参数
+    project.landing_type = 'APP';
+    project.download_type = 'DOWNLOAD_URL';
+    project.download_mode = 'DEFAULT';
+    project.launch_type = 'DIRECT_OPEN';
+    project.promotion_type = 'LANDING_PAGE_LINK';
+    project.ulink_url_type = 'UNIVERSAL_LINK';
+  }
 }
 
 // 预览区数据
@@ -432,9 +447,19 @@ watch(() => creationInfo, (_) => {
         />
       </Card>
 
-      <!-- 智擎版统一模板（单层项目结构） -->
+      <!-- 模板区：通过 v-if 切换不同模板组件 -->
       <Card class="header">
-        <StdProjectTemplate
+        <StdBaseTemplate
+          v-if="template === 'base_template'"
+          :creation-info="creationInfo"
+          @update:project="updateProjectData"
+          @update:title-package="updateTitlePackage"
+          @update:update-material="updateMaterial"
+          @update:audience-package="updateAudiencePackage"
+          @update:landing-page="updateLandingPage"
+        />
+        <StdAppTemplate
+          v-if="template === 'app_template'"
           :creation-info="creationInfo"
           @update:project="updateProjectData"
           @update:title-package="updateTitlePackage"

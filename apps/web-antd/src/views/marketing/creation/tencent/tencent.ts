@@ -17,6 +17,7 @@ import {
   getRuleInfoAdCountGroup,
   getAudience,
   getMaterial,
+  getMonitoringLink,
   getTiltePackage
 } from "#/views/marketing/creation/creation";
 import {Platform} from "#/constants/enums";
@@ -685,31 +686,3 @@ function buildCreativeComponents(
   return [creativeComponent];
 }
 
-/**
- * 获取监测链接
- * @param method 分配方式
- * @param data 监测链接数据
- * @param advertiserId 账户ID
- * @param index 索引
- */
-function getMonitoringLink(
-  method: string,
-  data: Map<string, Array<MonitoringLinkType>>,
-  advertiserId: string,
-  index: number
-): MonitoringLinkType {
-  let dataList: Array<MonitoringLinkType> = [];
-  if (method === DistributionMode.all) {
-    dataList = data.get("0") || [];
-  } else {
-    dataList = data.get(advertiserId) || [];
-  }
-  return dataList[index % dataList.length] || {
-    clickLink: "",
-    exposureLink: "",
-    monitorLink: "",
-    linkModeType: "",
-    allocateType: "",
-    ocpxTaskId: ""
-  };
-}

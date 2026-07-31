@@ -11,6 +11,10 @@ export const BYTEDANCE_STD_MARKETING_TYPE = [
     label: '智擎标准项目',
     value: 'base_template',
   },
+  {
+    label: 'App推广模板',
+    value: 'app_template',
+  },
 ];
 
 // ==================== 从巨量引擎复用枚举 ====================
@@ -122,3 +126,16 @@ export {
   getDeliveryModeLabel,
   fieldLabelMap,
 } from '#/views/marketing/creation/bytedance/enums';
+
+
+
+export const BytedanceNativeType = [
+  {
+    label: '账户信息',
+    value: 'ACCOUNT'
+  },
+  {
+    label: '抖音号',
+    value: 'AWEME'
+  },
+]

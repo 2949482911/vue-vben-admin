@@ -11,7 +11,7 @@ import type { VxeGridProps } from '#/adapter/vxe-table';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { Button, message, Tag } from 'ant-design-vue';
 import { aiHostingApi } from '#/api/core';
-import { BatchOptionsType, PLATFORM } from '#/constants/locales';
+import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { trimObject } from '#/utils/trim';
 import type { HostingTask } from '#/api/models/ai_hosting';
 import type { BatchOptions } from '#/api/models/core';
@@ -51,7 +51,7 @@ function viewLog(row: HostingTask) {
 /** 暂停/恢复 */
 async function toggleStatus(row: HostingTask) {
   const action =
-    row.status === "running"
+    row.taskStatus === "running"
       ? BatchOptionsType.DISABLE
       : BatchOptionsType.Enable;
   await aiHostingApi.fetchBatchOptions({
@@ -95,7 +95,7 @@ const formOptions: VbenFormProps = {
         allowClear: true,
         options: HOSTING_STATUS_OPTIONS
       },
-      fieldName: "status",
+      fieldName: "taskStatus",
       label: "状态"
     }
   ],
@@ -123,6 +123,12 @@ const gridOptions: VxeGridProps<HostingTask> = {
       slots: { default: "rules" }
     },
     {
+      field: "taskStatus",
+      title: "任务状态",
+      width: 90,
+      slots: { default: "taskStatus" }
+    },
+    {
       field: "stats.todayExecCount",
       title: "今日执行",
       width: 90
@@ -132,26 +138,7 @@ const gridOptions: VxeGridProps<HostingTask> = {
       title: "管理计划数",
       width: 100
     },
-    {
-      field: "status",
-      title: "状态",
-      width: 100,
-      slots: { default: "status" }
-    },
-    { field: "createUsername", title: "创建人", width: 100 },
-    {
-      field: "createTime",
-      title: "创建时间",
-      width: 160,
-      formatter: "formatDateTime"
-    },
-    {
-      field: "options",
-      title: "操作",
-      fixed: "right",
-      width: 220,
-      slots: { default: "action" }
-    }
+    ...(TABLE_COMMON_COLUMNS as any),
   ],
   height: "auto",
   keepSource: true,
@@ -181,12 +168,12 @@ function pageReload() {
   <Page auto-content-height>
     <Grid>
       <!-- 表格状态列 -->
-      <template #status="{ row }">
+      <template #taskStatus="{ row }">
         <Tag
-          :color="HOSTING_STATUS_MAP[row.status]?.color || 'default'"
+          :color="HOSTING_STATUS_MAP[row.taskStatus]?.color || 'default'"
           :bordered="false"
         >
-          {{ HOSTING_STATUS_MAP[row.status]?.label || row.status }}
+          {{ HOSTING_STATUS_MAP[row.taskStatus]?.label || row.status }}
         </Tag>
       </template>
 
@@ -221,7 +208,7 @@ function pageReload() {
       <!-- 操作列 -->
       <template #action="{ row }">
         <Button type="link" size="small" @click="toggleStatus(row)">
-          {{ row.status === "running" ? "暂停" : "恢复" }}
+          {{ row.task_status === "running" ? "暂停" : "恢复" }}
         </Button>
         <Button type="link" size="small" @click="openCreateDrawer(row)">
           编辑

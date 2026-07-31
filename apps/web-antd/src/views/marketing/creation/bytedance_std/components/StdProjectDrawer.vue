@@ -2,48 +2,33 @@
 /**
  * 智擎版项目配置抽屉
  *
- * 单层结构：所有参数（基础信息、投放设置、出价预算、素材配置等）均在项目层级
- * 复用现有共享组件：素材选择器、标题包、定向包、落地页选择器
+ * 完全对齐 bytedance/BytedanceCampaignDrawer.vue 模式：
+ * - formFields 从 props 获取（不是从 getData 取）
+ * - onOpenChange: getData() 取 project 数据，setState({ schema: props.formFields })
+ * - 过滤 falsy 值，让 schema defaultValue 生效
+ * - 优化目标/深度优化目标在打开抽屉时远程请求，用 formApi 更新 schema 的 options
+ * - onConfirm: 还原嵌套对象，setData(project)
  */
-import { nextTick, reactive } from 'vue';
-import { message } from 'ant-design-vue';
+import { nextTick, reactive, ref } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
 import type { AccountInfo } from '#/views/marketing/creation/creation';
-import type { StdProjectData } from '#/views/marketing/creation/bytedance_std/bytedance';
-import { markRaw } from 'vue';
-import ProductImageButtonField
-  from '#/views/marketing/creation/bytedance/components/ProductImageButtonField.vue';
-import TimeSelectionPeriod
-  from '#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue';
-import {
-  BytedanceCampaign_ad_type,
-  BytedanceCampaign_bid_type,
-  BytedanceCampaign_deep_bid_type,
-  BytedanceCampaign_delivery_type,
-  BytedanceCampaign_external_action,
-  BytedanceCampaign_landing_type,
-  BytedanceCampaign_marketing_goal,
-  BytedanceCampaign_pricing,
-  BytedanceCampaign_product_setting,
-  BytedanceCampaign_schedule_type,
-  BytedanceCampgin_budget_mode,
-  BytedancePromotion_is_comment_disable,
-  BytedanceCampaign_aigc_dynamic_creative_switch,
-  CampaignOperation,
-  DeliveryMode,
-  BytedanceCampaign_landing_page_stay_time,
-  BytedancePromotion_anchor_related_type,
-} from '#/views/marketing/creation/bytedance_std/enums';
+import type { StdProjectData } from '../bytedance';
+import type { BytedanceEventManagerOptimizedGoalGetGoal } from '#/api/models/bytedance';
+import { bytedanceAdvertisementApi } from '#/api/core';
 
 const props = defineProps({
+  formFields: {
+    type: Array,
+    default: () => [],
+  },
   accountInfo: {
     type: Array as () => AccountInfo[],
     default: () => [],
   },
 });
 
-/** 产品主图选中上下文 */
+/** 产品主图选中上下文（供 ProductImageButtonField 使用） */
 const productImageContext = reactive<{ selectedIds: string[] }>({
   selectedIds: [],
 });
@@ -55,341 +40,106 @@ const [Form, formApi] = useVbenForm({
       class: 'w-full',
     },
   },
+  handleValuesChange: async (values: Record<string, any>) => {
+    // const { landing_type, ad_type, external_action } = values;
+
+    // // landing_type 或 ad_type 变了 → 重新请求优化目标，清空已选值
+    // if (
+    //   (landing_type && landing_type !== lastLandingType.value) ||
+    //   (ad_type && ad_type !== lastAdType.value)
+    // ) {
+    //   lastLandingType.value = landing_type;
+    //   lastAdType.value = ad_type;
+    //   await loadOptimizedGoals(landing_type, ad_type);
+    //   deepGoals.value = [];
+    //   await formApi.setFieldValue('external_action', undefined);
+    //   await formApi.setFieldValue('deep_external_action', undefined);
+    //   injectGoalOptions();
+    //   return;
+    // }
+    //
+    // // external_action 变了 → 更新深度优化目标列表，清空已选值
+    // if (external_action && external_action !== lastExternalAction.value) {
+    //   lastExternalAction.value = external_action;
+    //   updateDeepGoals(external_action);
+    //   await formApi.setFieldValue('deep_external_action', undefined);
+    //   injectGoalOptions();
+    // }
+  },
 });
 
-// ==================== 项目表单字段 ====================
-// 智擎版 API (std_project/create) 所有参数均在项目层级
-const projectFormFields = [
-  // -- 基本信息 --
-  { component: 'AdNameGen', fieldName: 'name', label: '项目名称', rules: 'required' },
-  {
-    component: 'Select',
-    fieldName: 'operation',
-    componentProps: { options: CampaignOperation },
-    label: '启停状态',
-    defaultValue: 'ENABLE',
-  },
-  {
-    component: 'Select',
-    fieldName: 'delivery_mode',
-    componentProps: { options: DeliveryMode },
-    label: '投放模式',
-    defaultValue: 'PROCEDURAL',
-  },
-  {
-    component: 'Select',
-    fieldName: 'landing_type',
-    componentProps: {
-      options: BytedanceCampaign_landing_type,
-      placeholder: '请选择营销目的',
-    },
-    label: '营销目的',
-    rules: 'required',
-    defaultValue: 'APP',
-  },
-  {
-    component: 'Select',
-    fieldName: 'marketing_goal',
-    componentProps: { options: BytedanceCampaign_marketing_goal },
-    label: '营销场景',
-    defaultValue: 'VIDEO_AND_IMAGE',
-  },
-  {
-    component: 'Select',
-    fieldName: 'ad_type',
-    componentProps: { options: BytedanceCampaign_ad_type },
-    label: '项目类型',
-    defaultValue: 'ALL',
-  },
-  {
-    component: 'Select',
-    fieldName: 'delivery_type',
-    componentProps: { options: BytedanceCampaign_delivery_type },
-    label: '投放类型',
-    defaultValue: 'NORMAL',
-  },
+// 上次值记录（用于级联判断）
+const lastLandingType = ref('');
+const lastAdType = ref('');
+const lastExternalAction = ref('');
 
-  // -- 优化目标 --
-  {
-    component: 'Select',
-    fieldName: 'external_action',
-    label: '转化目标',
-    rules: 'required',
-    componentProps: {
-      options: BytedanceCampaign_external_action,
-      placeholder: '请选择优化目标',
-    },
-  },
-  {
-    component: 'Select',
-    fieldName: 'deep_external_action',
-    label: '深度转化目标',
-    componentProps: {
-      options: BytedanceCampaign_external_action,
-      placeholder: '请选择深度优化目标',
-    },
-  },
-  {
-    component: 'Select',
-    fieldName: 'deep_bid_type',
-    componentProps: { options: BytedanceCampaign_deep_bid_type },
-    label: '深度优化方式',
-    defaultValue: 'DEEP_BID_DEFAULT',
-  },
+// ==================== 优化目标远程数据 ====================
 
-  // -- 商品设置 --
-  {
-    component: 'Select',
-    fieldName: 'related_product_setting',
-    componentProps: { options: BytedanceCampaign_product_setting },
-    label: '商品设置',
-    defaultValue: 'NO_MAP',
-  },
-  {
-    component: 'Input',
-    fieldName: 'related_product_platform_id',
-    label: '商品平台ID',
-  },
-  {
-    component: 'Input',
-    fieldName: 'related_product_id',
-    label: '商品ID',
-  },
-  {
-    component: 'Input',
-    fieldName: 'related_product_unique_id',
-    label: '升级版商品ID',
-  },
+/** 优化目标列表（接口返回） */
+const optimizedGoals = ref<BytedanceEventManagerOptimizedGoalGetGoal[]>([]);
 
-  // -- 排期 --
-  {
-    component: 'Select',
-    fieldName: 'schedule_type',
-    componentProps: { options: BytedanceCampaign_schedule_type },
-    label: '投放时间',
-    defaultValue: 'SCHEDULE_FROM_NOW',
-  },
-  {
-    component: 'DatePicker',
-    fieldName: 'start_time',
-    componentProps: { format: 'YYYY-MM-DD', valueFormat: 'YYYY-MM-DD' },
-    label: '开始时间',
-    dependencies: {
-      show: (cv: Record<string, any>) => cv['schedule_type'] === 'SCHEDULE_START_END',
-      triggerFields: ['schedule_type'],
-    },
-  },
-  {
-    component: 'DatePicker',
-    fieldName: 'end_time',
-    componentProps: { format: 'YYYY-MM-DD', valueFormat: 'YYYY-MM-DD' },
-    label: '结束时间',
-    dependencies: {
-      show: (cv: Record<string, any>) => cv['schedule_type'] === 'SCHEDULE_START_END',
-      triggerFields: ['schedule_type'],
-    },
-  },
-  {
-    component: markRaw(TimeSelectionPeriod),
-    fieldName: 'schedule_time',
-    label: '投放时段',
-    componentProps: {},
-  },
+/** 深度优化目标列表（从选中的优化目标的 deep_goals 中提取） */
+const deepGoals = ref<NonNullable<BytedanceEventManagerOptimizedGoalGetGoal['deep_goals']>>([]);
 
-  // -- 竞价策略与出价 --
-  {
-    component: 'Select',
-    fieldName: 'bid_type',
-    componentProps: { options: BytedanceCampaign_bid_type },
-    label: '竞价策略',
-    defaultValue: 'CUSTOM',
-  },
-  {
-    component: 'Select',
-    fieldName: 'pricing',
-    componentProps: { options: BytedanceCampaign_pricing },
-    label: '计费方式',
-    defaultValue: 'PRICING_OCPM',
-  },
+/** 请求优化目标列表 */
+async function loadOptimizedGoals(landingType: string, adType: string) {
+  const advertiserIds = props.accountInfo.map((a) => a.localAdvertiserId);
+  if (!advertiserIds.length || !landingType || !adType) {
+    optimizedGoals.value = [];
+    deepGoals.value = [];
+    return;
+  }
+  optimizedGoals.value = await bytedanceAdvertisementApi.fetchOptimizedGoalList({
+    advertiserId: advertiserIds,
+    landing_type: landingType,
+    ad_type: adType,
+    asset_type: 'APP',
+  });
+}
 
-  // -- 预算 --
-  {
-    component: 'Select',
-    fieldName: 'budget_mode',
-    componentProps: { options: BytedanceCampgin_budget_mode },
-    label: '预算模式',
-    defaultValue: 'BUDGET_MODE_DAY',
-  },
-  {
-    component: 'InputNumber',
-    fieldName: 'budget',
-    label: '预算',
-    defaultValue: 0,
-    dependencies: {
-      show: (cv: Record<string, any>) => cv['budget_mode'] !== 'BUDGET_MODE_INFINITE',
-      triggerFields: ['budget_mode'],
-    },
-  },
-  {
-    component: 'InputNumber',
-    fieldName: 'bid',
-    label: '出价',
-    defaultValue: 0,
-    rules: 'required',
-    help: '范围 0.2-999',
-  },
-  {
-    component: 'InputNumber',
-    fieldName: 'roi_goal',
-    label: 'ROI系数',
-    defaultValue: 0,
-    help: '深度优化方式为ROI时必填',
-  },
+/** 根据选中的优化目标更新深度优化目标列表 */
+function updateDeepGoals(externalAction: string) {
+  if (!externalAction) {
+    deepGoals.value = [];
+    return;
+  }
+  const matched = optimizedGoals.value.find((g) => g.external_action === externalAction);
+  deepGoals.value = matched?.deep_goals || [];
+}
 
-  // -- 落地页链接 --
-  {
-    component: 'Input',
-    fieldName: 'open_url',
-    label: '直达链接',
-  },
-  {
-    component: 'Input',
-    fieldName: 'ulink_url',
-    label: '备用链接',
-  },
-  {
-    component: 'Select',
-    fieldName: 'ulink_url_type',
-    componentProps: {
-      options: [
-        { label: 'Universal Link', value: 'UNIVERSAL_LINK' },
-        { label: 'AppLink', value: 'APPLINK' },
-      ],
-    },
-    label: '备用链接类型',
-  },
-  {
-    component: 'Select',
-    fieldName: 'landing_page_stay_time',
-    componentProps: { options: BytedanceCampaign_landing_page_stay_time },
-    label: '店铺停留时长',
-    help: '电商营销目的下',
-  },
+/** 将优化目标/深度目标 options 注入到 schema */
+function injectGoalOptions() {
+  const externalOptions = optimizedGoals.value.map((g) => ({
+    label: g.optimization_name,
+    value: g.external_action,
+  }));
+  const deepOptions = deepGoals.value.map((g) => ({
+    label: g.optimization_name,
+    value: g.deep_external_action,
+  }));
 
-  // -- 产品主图（产品信息） --
-  {
-    component: 'TextareaTags',
-    fieldName: 'project_materials_product_info_titles',
-    label: '产品名称',
-    help: '字数限制[1-20]',
-  },
-  {
-    component: markRaw(ProductImageButtonField),
-    fieldName: 'product_image_button',
-    label: '产品主图',
-    componentProps: {},
-  },
-  {
-    component: 'TextareaTags',
-    fieldName: 'project_materials_product_info_selling_points',
-    label: '产品卖点',
-    help: '字符限制[6-9]，个数[1,10]',
-  },
-  {
-    component: 'TextareaTags',
-    fieldName: 'project_materials_call_to_action_buttons',
-    label: '行动号召',
-    help: '字符限制[2-4]，个数[1,10]',
-  },
-
-  // -- 创意设置 --
-  {
-    component: 'Select',
-    fieldName: 'is_comment_disable',
-    componentProps: { options: BytedancePromotion_is_comment_disable },
-    label: '评论管理',
-    defaultValue: 'OFF',
-  },
-  {
-    component: 'Input',
-    fieldName: 'source',
-    label: '来源',
-  },
-  {
-    component: 'Select',
-    fieldName: 'anchor_related_type',
-    componentProps: { options: BytedancePromotion_anchor_related_type },
-    label: '原生锚点',
-    defaultValue: 'OFF',
-  },
-
-  // -- AIGC --
-  {
-    component: 'Switch',
-    formItemClass: 'w-[150px]',
-    fieldName: 'aigc_dynamic_creative_switch',
-    componentProps: {
-      checkedValue: 'ON',
-      unCheckedValue: 'OFF',
-      checkedChildren: 'ON',
-      unCheckedChildren: 'OFF',
-    },
-    label: 'AIGC动态素材',
-    defaultValue: 'OFF',
-  },
-
-  // -- 隐藏字段（保证参数完整）--
-  {
-    component: 'Input',
-    fieldName: 'search_continue_delivery',
-    defaultValue: 'OFF',
-    dependencies: { show: false, triggerFields: ['*'] },
-  },
-  {
-    component: 'Input',
-    fieldName: 'layer_roi_switch',
-    defaultValue: 'OFF',
-    dependencies: { show: false, triggerFields: ['*'] },
-  },
-  {
-    component: 'Input',
-    fieldName: 'auto_extend_traffic',
-    defaultValue: 'OFF',
-    dependencies: { show: false, triggerFields: ['*'] },
-  },
-  {
-    component: 'Input',
-    fieldName: 'star_auto_delivery_switch',
-    defaultValue: 'OFF',
-    dependencies: { show: false, triggerFields: ['*'] },
-  },
-  {
-    component: 'Input',
-    fieldName: 'star_auto_material_addition_switch',
-    defaultValue: 'OFF',
-    dependencies: { show: false, triggerFields: ['*'] },
-  },
-  {
-    component: 'Input',
-    fieldName: 'audience_type',
-    defaultValue: 'UNLIMITED',
-    dependencies: { show: false, triggerFields: ['*'] },
-  },
-  {
-    component: 'Input',
-    fieldName: 'native_type',
-    defaultValue: 'ACCOUNT',
-    dependencies: { show: false, triggerFields: ['*'] },
-  },
-  {
-    component: 'Input',
-    fieldName: 'ad_download_status',
-    defaultValue: 'OFF',
-    dependencies: { show: false, triggerFields: ['*'] },
-  },
-];
+  const newSchema = (props.formFields as any[]).map((f: any) => {
+    if (f.fieldName === 'external_action') {
+      return {
+        ...f,
+        component: 'Select',
+        componentProps: { options: externalOptions, placeholder: '请选择转化目标', allowClear: true, showSearch: true },
+      };
+    }
+    if (f.fieldName === 'deep_external_action') {
+      return {
+        ...f,
+        component: 'Select',
+        componentProps: { options: deepOptions, placeholder: '请选择深度转化目标', allowClear: true, showSearch: true },
+      };
+    }
+    return f;
+  });
+  formApi.setState({ schema: newSchema });
+}
 
 // ==================== Drawer 逻辑 ====================
+
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
   class: 'w-[35vw]',
@@ -397,11 +147,13 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
       const project = drawerApi.getData() as StdProjectData;
-      formApi.setState({ schema: projectFormFields });
+
+      // 用 props.formFields 设置 schema
+      formApi.setState({ schema: props.formFields });
       await nextTick();
 
       // 动态注入产品主图回调
-      const schemaWithImage = (projectFormFields as any[]).map((f: any) => {
+      const schemaWithImage = (props.formFields as any[]).map((f: any) => {
         if (f.fieldName === 'product_image_button') {
           return { ...f, componentProps: { productImageContext } };
         }
@@ -410,40 +162,57 @@ const [Drawer, drawerApi] = useVbenDrawer({
       formApi.setState({ schema: schemaWithImage });
       await nextTick();
 
-      // 平铺嵌套字段到表单
-      const flattened: Record<string, any> = {
+      // 平铺嵌套字段
+      const flattenedData = {
         ...project,
-        // related_product 平铺
         related_product_setting: project.related_product?.product_setting,
         related_product_platform_id: project.related_product?.product_platform_id,
         related_product_id: project.related_product?.product_id,
         related_product_unique_id: project.related_product?.unique_product_id,
-        // project_materials.product_info 平铺
         project_materials_product_info_titles:
           project.project_materials?.product_info?.titles,
         project_materials_product_info_selling_points:
           project.project_materials?.product_info?.selling_points,
         project_materials_call_to_action_buttons:
           project.project_materials?.call_to_action_buttons,
-        // 品牌信息平铺
         yuntu_category_id: project.brand_info?.yuntu_category_id,
         cdp_brand_id: project.brand_info?.cdp_brand_id,
         cdp_brand_name: project.brand_info?.cdp_brand_name,
       };
 
+      // 过滤 falsy 值：只在值有效时才传入表单，让 schema defaultValue 生效
+      const filteredData: Record<string, any> = {};
+      for (const [key, value] of Object.entries(flattenedData)) {
+        if (value) {
+          filteredData[key] = value;
+        }
+      }
+
+      // 移除嵌套对象字段
+      const nestedKeys = [
+        'related_product', 'project_materials', 'brand_info',
+        'keywords', 'star_task_id_list', 'track_url_setting',
+      ];
+      nestedKeys.forEach((k) => delete filteredData[k]);
+
       // 回显产品主图
       productImageContext.selectedIds =
         project.project_materials?.product_info?.image_ids || [];
 
-      // 过滤嵌套对象字段
-      const nestedKeys = [
-        'related_product', 'project_materials', 'brand_info',
-        'keywords', 'star_task_id_list', 'track_url_setting',
-        '_dpaProductInfo',
-      ];
-      nestedKeys.forEach((k) => delete flattened[k]);
+      await formApi.setValues(filteredData);
 
-      await formApi.setValues(flattened);
+      // 请求优化目标列表
+      await loadOptimizedGoals(filteredData.landing_type || 'APP', filteredData.ad_type || 'ALL');
+      // 回显深度优化目标
+      if (filteredData.external_action) {
+        updateDeepGoals(filteredData.external_action);
+      }
+      injectGoalOptions();
+
+      // 记录初始值，避免 onOpenChange 的 setValues 触发级联
+      lastLandingType.value = filteredData.landing_type || 'APP';
+      lastAdType.value = filteredData.ad_type || 'ALL';
+      lastExternalAction.value = filteredData.external_action || '';
     }
   },
   onConfirm: async () => {
@@ -454,7 +223,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
     const project: StdProjectData = {
       ...currentValues,
 
-      // related_product 还原
       related_product: {
         product_setting: currentValues.related_product_setting || 'NO_MAP',
         product_platform_id: currentValues.related_product_platform_id || '',
@@ -462,7 +230,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
         unique_product_id: currentValues.related_product_unique_id || '',
       },
 
-      // project_materials 还原
       project_materials: {
         local_video_material_list: [],
         local_image_material_list: [],
@@ -505,7 +272,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
         open_url_params: '',
       },
 
-      // brand_info 还原
       brand_info: {
         yuntu_category_id: 0,
         cdp_brand_id: 0,
@@ -516,7 +282,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
         sub_brand_name_ids: [],
       },
 
-      // track_url_setting 还原
       track_url_setting: {
         track_url_type: '',
         track_url_group_id: 0,
@@ -534,12 +299,18 @@ const [Drawer, drawerApi] = useVbenDrawer({
     };
 
     // 清理表单平铺字段
-    ['product_image_button', 'project_materials_product_info_titles',
+    [
+      'product_image_button',
+      'project_materials_product_info_titles',
       'project_materials_product_info_selling_points',
       'project_materials_call_to_action_buttons',
-      'related_product_setting', 'related_product_platform_id',
-      'related_product_id', 'related_product_unique_id',
-      'yuntu_category_id', 'cdp_brand_id', 'cdp_brand_name',
+      'related_product_setting',
+      'related_product_platform_id',
+      'related_product_id',
+      'related_product_unique_id',
+      'yuntu_category_id',
+      'cdp_brand_id',
+      'cdp_brand_name',
     ].forEach((key) => {
       delete (project as any)[key];
     });
@@ -561,7 +332,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
 <template>
   <div>
     <Drawer title="智擎项目配置">
-      <Form></Form>
+      <Form />
     </Drawer>
   </div>
 </template>

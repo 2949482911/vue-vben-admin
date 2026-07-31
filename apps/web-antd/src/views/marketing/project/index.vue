@@ -112,6 +112,11 @@ const gridOptions: VxeGridProps<ProjectItem> = {
         default : 'projectType'
       }
     },
+    {
+      field: 'downloadUrl',
+      title: `${$t('marketing.project.columns.downloadUrl')}`,
+      width: 'auto',
+      },
 
     {
       field: 'packageName',

@@ -78,7 +78,7 @@ export interface BytedanceCampaignData {
   delivery_type: string;
   name: string;
   budget_group_id: number;
-  aigc_dynamic_creative_switch: boolean;
+  aigc_dynamic_creative_switch: string;
   star_task_id: number;
   star_auto_material_addition_switch: string;
   star_auto_delivery_switch: string;

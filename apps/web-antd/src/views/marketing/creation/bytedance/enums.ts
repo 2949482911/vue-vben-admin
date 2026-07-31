@@ -697,10 +697,10 @@ export const BytedanceCampaign_schedule_type = [
     label: '设置开始和结束日期',
     value: 'SCHEDULE_START_END',
   },
-  // {
-  //   label: '7日稳投',
-  //   value: 'SCHEDULE_7_DAYS',
-  // },
+  {
+    label: '7日稳投',
+    value: 'SCHEDULE_7_DAYS',
+  },
 ]
 
 
@@ -719,19 +719,98 @@ export const BytedanceCampaign_filter_night_switch = [
 
 
 /**
- *
- * DEEP_BID_DEFAULT 不启用/首次付费，该值含义在不同场景下存在差异，建议您提前查询「获取可用深度优化方式」接口获取，可根据接口返回的deep_bid_type_name中文名区分实际含义
-DEEP_BID_PACING 自动优化（external_action=表单提交&&deep_external_action=回访_信息确认/有效获客/回访_加为好友|| external_action=支付_存在意向&&deep_external_action=正价课购买|| external_action=付费&&deep_external_action=正价课购买时，deep_bid_type支持自动优化）
-DEEP_BID_MIN自定义手动出价
-ROI_COEFFICIENTROI系数出价
-ROI_DIRECT_MAILROI直投（电商营销目的下）（landing_type=shop/app/DPA&&external_action=app内下单、app内付费&&deep_external_action为空时，支持ROI直投/不启用）
-BID_PER_ACTION 每次付费出价
-SOCIAL_ROIROI三出价
-FIRST_AND_SEVEN_PAY_ROI首日+7日付费ROI（landing_type=app&&external_action=app内付费时支持）
-PER_AND_SEVEN_PAY_ROI每次+7日付费ROI（landing_type=app&&external_action=app内付费时支持）
-BID_PER_ACTION每次付费出价，适用于每次付费的转化
-FORM_BID优选表单出价，白名单能力（landing_type=link、external_action=表单提交/多转化、deep_external_action为空、value_optimized_type目标优化类型=OFF不启用时，支持优选表单出价/不启用）
-PHONE_CONNECT_BID电话接通出价，（landing_type=link&&external_action=表单提交，deep_external_action=电话接通时，deep_bid_type仅支持PHONE_CONNECT_BID）
+
+ DEEP_BID_DEFAULT
+
+ 不启用，无深度优化
+
+ DEEP_BID_PACING
+
+ 自动优化（手动出价方式下）
+
+ DEEP_BID_MIN
+
+ 自定义双出价（手动出价方式下）
+
+ SMARTBID
+
+ 自动优化（自动出价方式下）
+
+ AUTO_MIN_SECOND_STAGE
+
+ 自定义双出价（自动出价方式下）
+
+ ROI_PACING
+
+ 自动优化
+
+ ROI_COEFFICIENT
+
+ ROI系数
+
+ ROI_DIRECT_MAIL
+
+ ROI系数出价（电商）
+
+ SOCIAL_ROI
+
+ ROI三出价
+
+ MIN_SECOND_STAGE
+
+ 两阶段优化
+
+ PACING_SECOND_STAGE
+
+ 动态两阶段
+
+ BID_PER_ACTION
+
+ 每次付费出价
+
+ DEEP_BID_TYPE_RETENTION_DAYS
+
+ 留存天数
+
+ FIRST_AND_SEVEN_PAY_ROI
+
+ 首日ROI+7日ROI
+
+ PER_AND_SEVEN_PAY_ROI
+
+ 每次付费+7日ROI
+
+ LOAN_ROI
+
+ ROI系数（授信ea&放款dea下）
+
+ AD_CONVERT_TYPE_IAAP_ROI
+
+ 综合ROI
+
+ SEVEN_ROI_COEFFICIENT
+
+ 7日ROI
+
+ IAAP_SEVEN_ROI_COEFFICIENT
+
+ 混合变现7日ROI
+
+ NET_ORDER
+
+ 净成交下单
+
+ NET_ORDER_ROI
+
+ 净成交ROI
+
+ LAYER_ROI
+
+ ROI分层系数
+
+ THIRTY_ROI_COEFFICIENT
+
+ 30日ROI
  */
 export const BytedanceCampaign_deep_bid_type = [
   {
@@ -754,10 +833,10 @@ export const BytedanceCampaign_deep_bid_type = [
     label: 'ROI直投（电商营销目的下）',
     value: 'ROI_DIRECT_MAIL',
   },
-  {
-    label: 'ROI付费出价',
-    value: 'BID_PER_ACTION',
-  },
+  // {
+  //   label: 'ROI付费出价',
+  //   value: 'BID_PER_ACTION',
+  // },
   {
     label: 'ROI三出价',
     value: 'SOCIAL_ROI',

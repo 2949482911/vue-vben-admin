@@ -161,7 +161,6 @@ function handleKeydown(e: KeyboardEvent) {
   padding: 8px 12px 28px;
   border: 1px solid #d9d9d9;
   border-radius: 6px;
-  background-color: #fff;
   cursor: text;
   transition: border-color 0.3s;
 

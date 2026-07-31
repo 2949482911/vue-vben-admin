@@ -2,33 +2,35 @@
 /**
  * 智擎版项目表单卡片
  *
- * 展示项目摘要信息，通过抽屉编辑项目配置
- * 集成定向包
+ * 完全对齐 bytedance/BytedanceCampaign.vue 模式：
+ * - 接收 formFields prop
+ * - 通过 :form-fields 传给 StdProjectDrawer（作为 prop，不是 setData）
+ * - openProjectDrawer 直接传 projectInfo.value 给 setData
+ * - drawer 关闭后取 getData() 回填
  */
 import type { AudienceConfigData } from '#/views/marketing/creation/creation';
-import type { StdProjectData } from '#/views/marketing/creation/bytedance_std/bytedance';
+import type { StdProjectData } from '../bytedance';
 import { ref, watch } from 'vue';
 import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import StdProjectDrawer from './StdProjectDrawer.vue';
 import AudiencePackageModal
   from '#/views/marketing/creation/components/audience_package/AudiencePackageModal.vue';
 import type { AccountInfo } from '#/views/marketing/creation/creation';
+import { Platform } from '#/constants/enums';
 import { Alert, Button, Card, Descriptions, DescriptionsItem } from 'ant-design-vue';
 import AudiencePackageShow
   from '#/views/marketing/creation/components/audience_package/AudiencePackageShow.vue';
 
-const emit = defineEmits([
-  'update:project',
-  'update:audiencePackage',
-]);
+const emit = defineEmits(['update:project', 'update:audiencePackage']);
 
-const props = defineProps({
-  project: {
-    type: Object as () => StdProjectData | null,
-    default: () => ({}),
-  },
+const { formFields, audience, project, accountInfo } = defineProps({
+  formFields: { type: Array, default: () => [] },
   audience: {
     type: Object as () => AudienceConfigData | null,
+    default: () => ({}),
+  },
+  project: {
+    type: Object as () => StdProjectData | null,
     default: () => ({}),
   },
   accountInfo: {
@@ -37,7 +39,6 @@ const props = defineProps({
   },
 });
 
-// -- 项目抽屉 --
 const [ProjectDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: StdProjectDrawer,
   onOpenChange(isOpen) {
@@ -51,55 +52,40 @@ const [ProjectDrawerModule, drawerApi] = useVbenDrawer({
   },
 });
 
-// -- 定向包弹窗 --
-const [AudiencePackage, audienceModalApi] = useVbenModal({
-  connectedComponent: AudiencePackageModal,
-});
-
-function openAudiencePackage() {
-  audienceModalApi.setData(props.audience);
-  audienceModalApi.open();
-}
-
-function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
-  emit('update:audiencePackage', audienceConfigData);
-}
-
-// -- 项目数据 --
 const projectInfo = ref<StdProjectData>({
-  operation: 'ENABLE',
+  operation: '',
   name: '',
-  ad_type: 'ALL',
-  landing_type: 'APP',
-  marketing_goal: 'VIDEO_AND_IMAGE',
-  app_promotion_type: 'DOWNLOAD',
-  delivery_mode: 'PROCEDURAL',
-  delivery_type: 'NORMAL',
-  native_type: 'ACCOUNT',
+  ad_type: '',
+  landing_type: '',
+  marketing_goal: '',
+  app_promotion_type: '',
+  delivery_mode: '',
+  delivery_type: '',
+  native_type: '',
   aweme_id: '',
   delivery_medium: '',
-  related_product: { product_setting: 'NO_MAP', product_platform_id: '', product_id: '', unique_product_id: '' },
+  related_product: { product_setting: '', product_platform_id: '', product_id: '', unique_product_id: '' },
   download_url: '',
   app_name: '',
-  download_type: 'DOWNLOAD_URL',
-  download_mode: 'DEFAULT',
+  download_type: '',
+  download_mode: '',
   quick_app_id: '',
-  launch_type: 'DIRECT_OPEN',
-  promotion_type: 'LANDING_PAGE_LINK',
+  launch_type: '',
+  promotion_type: '',
   subscribe_url: '',
   asset_id: 0,
   external_action: '',
   deep_external_action: '',
   game_addiction_id: '',
   paid_switch: 2,
-  deep_bid_type: 'DEEP_BID_DEFAULT',
-  value_optimized_type: 'OFF',
-  schedule_type: 'SCHEDULE_FROM_NOW',
+  deep_bid_type: '',
+  value_optimized_type: '',
+  schedule_type: '',
   start_time: '',
   end_time: '',
   schedule_time: '',
-  bid_type: 'CUSTOM',
-  budget_mode: 'BUDGET_MODE_DAY',
+  bid_type: '',
+  budget_mode: '',
   budget: 0,
   bid: 0,
   cpa_bid: 0,
@@ -107,14 +93,14 @@ const projectInfo = ref<StdProjectData>({
   roi_goal: 0,
   first_roi_goal: 0,
   seven_roi_goal: 0,
-  pricing: 'PRICING_OCPM',
-  layer_roi_switch: 'OFF',
-  search_continue_delivery: 'OFF',
+  pricing: '',
+  layer_roi_switch: '',
+  search_continue_delivery: '',
   landing_page_stay_time: 0,
   open_url: '',
   open_url_type: '',
   open_urls: [],
-  ulink_url_type: 'UNIVERSAL_LINK',
+  ulink_url_type: '',
   ulink_url: '',
   brand_info: {
     yuntu_category_id: 0, cdp_brand_id: 0, ecom_brand_id: 0,
@@ -145,7 +131,7 @@ const projectInfo = ref<StdProjectData>({
     dynamic_creative_switch: '',
     advanced_dc_settings: [],
     call_to_action_buttons: [],
-    intelligent_generation: 'OFF',
+    intelligent_generation: '',
     params_type: '',
     external_url_field: '',
     external_url_params: '',
@@ -153,21 +139,21 @@ const projectInfo = ref<StdProjectData>({
     open_url_field: '',
     open_url_params: '',
   },
-  audience_type: 'UNLIMITED',
+  audience_type: '',
   source: '',
-  is_comment_disable: 'OFF',
-  ad_download_status: 'OFF',
-  aigc_dynamic_creative_switch: 'OFF',
-  star_auto_material_addition_switch: 'OFF',
-  star_auto_delivery_switch: 'OFF',
+  is_comment_disable: '',
+  ad_download_status: '',
+  aigc_dynamic_creative_switch: '',
+  star_auto_material_addition_switch: '',
+  star_auto_delivery_switch: '',
   star_task_id_list: [],
   keywords: [],
-  auto_extend_traffic: 'OFF',
+  auto_extend_traffic: '',
   track_url_setting: {
     track_url_type: '', track_url_group_id: 0,
     track_url: [], action_track_url: [], active_track_url: [],
     video_play_effective_track_url: [], video_play_done_track_url: [], video_play_first_track_url: [],
-    send_type: 'SERVER_SEND',
+    send_type: '',
   },
   micro_promotion_type: '',
   micro_app_instance_id: 0,
@@ -178,7 +164,7 @@ const projectInfo = ref<StdProjectData>({
 });
 
 watch(
-  () => props.project,
+  () => project,
   (newProject) => {
     if (newProject) {
       projectInfo.value = { ...newProject };
@@ -191,12 +177,24 @@ function openProjectDrawer() {
   drawerApi.setData(projectInfo.value);
   drawerApi.open();
 }
+
+const [AudiencePackage, audiencePackageModalApi] = useVbenModal({
+  connectedComponent: AudiencePackageModal,
+});
+
+function openAudiencePackage() {
+  audiencePackageModalApi.setData(audience);
+  audiencePackageModalApi.open();
+}
+
+function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
+  emit('update:audiencePackage', audienceConfigData);
+}
 </script>
 
 <template>
   <div class="std-project-form-container">
     <div class="cards-wrapper">
-      <!-- 项目卡片 -->
       <Card title="智擎项目" class="info-card">
         <div class="card-content">
           <template v-if="projectInfo.name">
@@ -217,7 +215,6 @@ function openProjectDrawer() {
         </div>
       </Card>
 
-      <!-- 定向包卡片 -->
       <Card title="定向包" class="info-card">
         <div class="card-content">
           <AudiencePackageShow :audience="audience" />
@@ -230,11 +227,12 @@ function openProjectDrawer() {
       </Card>
     </div>
 
-    <ProjectDrawerModule :account-info="accountInfo" />
+    <!-- formFields 通过 prop 传给 Drawer，与 BytedanceCampaign 一致 -->
+    <ProjectDrawerModule :form-fields="formFields" :account-info="accountInfo" />
 
     <AudiencePackage
       :account-info="accountInfo"
-      platform="BYTEDANCE_STD"
+      :platform="Platform.BYTEDANCE"
       @update:orientation="updateAudiencePackage"
     />
   </div>

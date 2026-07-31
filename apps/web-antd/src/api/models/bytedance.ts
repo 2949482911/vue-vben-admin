@@ -26,7 +26,6 @@ export interface BytedanceEventManagerOptimizedDeepGoal {
 }
 
 
-
 export interface BytedanceAwemeAuthListRequest {
   advertiserId: Array<string>;
 }
@@ -51,7 +50,6 @@ export interface BytedanceToolsAwemeAuthListList {
   aweme_cancel_reason: string;
   note: string;
 }
-
 
 
 export interface BytedanceDpaProductAvailablesRequest {
@@ -197,4 +195,46 @@ export interface BytedanceDpaProductProfession {
   max_charge: number;
   min_charge: number;
   recommended_charge: number;
+}
+
+
+export interface BytedanceDpaClueProductListRequest {
+  advertiserId: Array<Number>;
+  filtering: {
+    product_ids?: Array<Number>;
+    category_ids?: Array<Number>;
+    product_name?: string;
+    audit_status?: Array<string>;
+    category_name: string;
+    completion_status: Array<string>;
+    product_id_or_name_search: string;
+    statuses: Array<string>;
+    rels: Array<string>;
+  };
+}
+
+/**
+ * 商品
+ */
+export interface BytedanceDpaClueProduct {
+  product_id: string;
+  name: string;
+  title: string;
+  outer_id: string;
+  description: string;
+  online_time: string;
+  offline_time: string;
+  image_url: string;
+  status: string;
+  audit_status: string;
+  completion_status: string;
+  images_url: Array<{ url: string }>;
+  videos: Array<{ url: string, template_id: string }>;
+  landing_info: {
+    target_url: string;
+    target_url_mobile: string;
+    target_url_android_app: string;
+    target_url_ios_app: string;
+    target_url_universal_link: string;
+  };
 }

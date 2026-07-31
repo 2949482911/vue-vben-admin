@@ -10,6 +10,7 @@ import {
   type AccountInfo,
   getAudience,
   getLandingPage,
+  getMonitoringLink,
   type Material
 } from "#/views/marketing/creation/creation";
 import {
@@ -33,7 +34,6 @@ import {
   getMarketingGoalLabel,
   getPricingLabel
 } from "./enums";
-import { getMonitoringLink } from "#/views/marketing/creation/oppo/convertToPreviewData";
 
 /**
  * 获取抖音号ID —— 根据分配规则从 awemeConfig 中读取
