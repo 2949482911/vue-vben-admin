@@ -1,6 +1,9 @@
 import type {
   Adgroup,
   AudienceConfigData,
+  AwemeConfigData,
+  AwemeDistributionRule,
+  AwemeMapping,
   Campaign,
   ConfigurationConfig,
   MaterialData,
@@ -10,39 +13,15 @@ import type {
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 
+// 抖音号类型已抽到公共模块 creation.ts，这里 re-export 保持旧引用可用
+export type { AwemeConfigData, AwemeDistributionRule, AwemeMapping } from "#/views/marketing/creation/creation";
+
 export const BYTEDANCE: string = "0.1";
 
 
 export interface BytedanceCreation extends PlatformCreation<BytedanceConfigData> {
   configurationConfig: ConfigurationConfig;
 
-}
-
-
-/**
- * 抖音号分配规则
- */
-export type AwemeDistributionRule = 'ALL_SAME' | 'PER_ACCOUNT' | 'PER_PROJECT' | 'PER_AD';
-
-/**
- * 抖音号条目（存储在 Map 中）
- */
-export interface AwemeMapping {
-  awemeId: string;
-  awemeName: string;
-}
-
-/**
- * 抖音号配置 —— 与标题包/落地页统一的 { config, data: Map } 模式
- *
- * Map key 语义：
- *   ALL_SAME / PER_PROJECT → key = '0'（全局一条）
- *   PER_ACCOUNT            → key = advertiserId
- *   PER_AD                 → key = `${advertiserId}-${adIdx}`
- */
-export interface AwemeConfigData {
-  config: { method: AwemeDistributionRule };
-  data: Map<string, AwemeMapping[]>;
 }
 
 
@@ -526,7 +505,7 @@ export interface BytedanceCampaign extends Campaign {
   delivery_type: string;
   name: string;
   budget_group_id: number;
-  aigc_dynamic_creative_switch: boolean;
+  aigc_dynamic_creative_switch: string;
   star_task_id: number;
   star_auto_material_addition_switch: string;
   star_auto_delivery_switch: string;

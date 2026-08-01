@@ -2,7 +2,7 @@
 // 抖音号配置展示组件 - 展示已选抖音号信息
 import { computed } from 'vue';
 import { Space, Tag } from 'ant-design-vue';
-import type { AwemeConfigData, AwemeDistributionRule } from '#/views/marketing/creation/bytedance/bytedance';
+import type { AwemeConfigData, AwemeDistributionRule } from '#/views/marketing/creation/creation';
 
 const { awemeConfig } = defineProps<{
   awemeConfig: AwemeConfigData;

@@ -1,17 +1,25 @@
 <script setup lang="ts" name="AwemeConfigCard">
-// 抖音号配置选择组件 —— 对标 PageViewSelector / TitleSelector 模式
-import type { AccountInfo } from '#/views/marketing/creation/creation';
-import type { AwemeConfigData, AwemeDistributionRule } from '#/views/marketing/creation/bytedance/bytedance';
+// 抖音号配置选择组件 —— 巨量通用（bytedance / bytedance_std 共用）
+// 支持 disabled 置灰：当项目投放身份不是抖音号（native_type != AWEME）时禁止配置
+import type { AccountInfo, AwemeConfigData, AwemeDistributionRule, AwemeMapping } from '#/views/marketing/creation/creation';
 import { Alert, Button, Card } from 'ant-design-vue';
 import { useVbenDrawer } from '@vben/common-ui';
-import { ref, computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import AwemeConfigShow from './AwemeConfigShow.vue';
 import AwemeConfigDrawer from './AwemeConfigDrawer.vue';
 
-const props = defineProps<{
-  awemeConfig: AwemeConfigData | null;
+const props = withDefaults(defineProps<{
+  /** 允许 undefined：复用旧策略组数据可能缺少该配置 */
+  awemeConfig?: AwemeConfigData | null;
   accountInfo: AccountInfo[];
-}>();
+  /** 是否置灰禁止配置（项目投放身份非抖音号时） */
+  disabled?: boolean;
+  /** 支持的分配方案，默认全部（智擎版仅传 ['PER_PROJECT', 'PER_ACCOUNT']） */
+  supportedRules?: AwemeDistributionRule[];
+}>(), {
+  disabled: false,
+  supportedRules: () => ['ALL_SAME', 'PER_ACCOUNT', 'PER_PROJECT', 'PER_AD'],
+});
 
 const emit = defineEmits(['update:awemeConfig']);
 
@@ -19,9 +27,18 @@ const [AwemeConfigDrawerComp, awemeDrawerApi] = useVbenDrawer({
   connectedComponent: AwemeConfigDrawer,
 });
 
+/** 默认分配方式（取当前配置中受支持的，否则用第一个受支持项） */
+const defaultMethod = computed<AwemeDistributionRule>(() => {
+  const current = props.awemeConfig?.config?.method;
+  if (!current) return props.supportedRules[0] || 'ALL_SAME';
+  return props.supportedRules.includes(current)
+    ? current
+    : props.supportedRules[0] || 'ALL_SAME';
+});
+
 /** 本地抖音号配置副本 */
 const localAwemeConfig = ref<AwemeConfigData>({
-  config: { method: (props.awemeConfig?.config?.method || 'ALL_SAME') as AwemeDistributionRule },
+  config: { method: defaultMethod.value },
   data: new Map(),
 });
 
@@ -58,9 +75,9 @@ function updateAwemeConfig(data: AwemeConfigData) {
 /** 清空 */
 function handleClear() {
   localAwemeConfig.value.data.clear();
-  localAwemeConfig.value.config.method = 'ALL_SAME';
+  localAwemeConfig.value.config.method = defaultMethod.value;
   emit('update:awemeConfig', {
-    config: { method: 'ALL_SAME' },
+    config: { method: defaultMethod.value },
     data: new Map(),
   });
 }
@@ -72,10 +89,10 @@ watch(
     if (newVal && newVal.data) {
       const dataMap = newVal.data instanceof Map
         ? newVal.data
-        : new Map(Object.entries(newVal.data || {}));
+        : new Map<string, AwemeMapping[]>(Object.entries(newVal.data || {}));
 
       localAwemeConfig.value = {
-        config: { ...newVal.config },
+        config: { method: defaultMethod.value },
         data: dataMap,
       };
     }
@@ -85,7 +102,7 @@ watch(
 </script>
 
 <template>
-  <div class="aweme-config-selector-container">
+  <div class="aweme-config-selector-container" :class="{ 'is-disabled': disabled }">
     <Card title="抖音号配置" class="info-card">
       <div class="card-content">
         <template v-if="totalCount > 0">
@@ -96,8 +113,8 @@ watch(
         </template>
       </div>
       <div class="card-footer">
-        <Button v-if="totalCount > 0" type="link" danger @click="handleClear">清空</Button>
-        <Button type="primary" @click="openDrawer">
+        <Button v-if="totalCount > 0" type="link" danger :disabled="disabled" @click="handleClear">清空</Button>
+        <Button type="primary" :disabled="disabled" @click="openDrawer">
           {{ totalCount > 0 ? '编辑' : '添加' }}
         </Button>
       </div>
@@ -105,6 +122,7 @@ watch(
 
     <AwemeConfigDrawerComp
       :account-info="accountInfo"
+      :supported-rules="supportedRules"
       @update:aweme-config="updateAwemeConfig"
     />
   </div>
@@ -117,6 +135,15 @@ watch(
   display: flex;
   flex-direction: column;
   min-height: 0;
+
+  &.is-disabled {
+    opacity: 0.5;
+    filter: grayscale(1);
+
+    .info-card {
+      pointer-events: none;
+    }
+  }
 }
 
 .info-card {

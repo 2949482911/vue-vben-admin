@@ -4,25 +4,38 @@ import { Empty, message, Radio, RadioGroup, Select, Space, Table } from 'ant-des
 import { useVbenDrawer } from '@vben/common-ui';
 import { bytedanceAdvertisementApi } from '#/api/core/bytedance';
 import type { BytedanceToolsAwemeAuthListList } from '#/api/models/bytedance';
-import type { AccountInfo } from '#/views/marketing/creation/creation';
-import type { AwemeConfigData, AwemeDistributionRule, AwemeMapping } from '#/views/marketing/creation/bytedance/bytedance';
+import type {
+  AccountInfo,
+  AwemeConfigData,
+  AwemeDistributionRule,
+  AwemeMapping,
+} from '#/views/marketing/creation/creation';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   accountInfo: AccountInfo[];
-}>();
+  /** 支持的分配方案（智擎版仅 ['PER_PROJECT', 'PER_ACCOUNT']） */
+  supportedRules?: AwemeDistributionRule[];
+}>(), {
+  supportedRules: () => ['ALL_SAME', 'PER_ACCOUNT', 'PER_PROJECT', 'PER_AD'],
+});
 
 const emit = defineEmits(['update:awemeConfig']);
 
-/** 分配规则选项 */
-const ruleOptions: Array<{ label: string; value: AwemeDistributionRule }> = [
-  { label: '所有广告用一个抖音号', value: 'ALL_SAME' },
-  { label: '每个账户选择一个抖音号', value: 'PER_ACCOUNT' },
-  { label: '每个项目一个抖音号', value: 'PER_PROJECT' },
-  { label: '每个广告一个抖音号', value: 'PER_AD' },
-];
+/** 分配规则选项（按 supportedRules 过滤） */
+const ruleOptions = computed<Array<{ label: string; value: AwemeDistributionRule }>>(() => {
+  const all: Array<{ label: string; value: AwemeDistributionRule }> = [
+    { label: '所有广告用一个抖音号', value: 'ALL_SAME' },
+    { label: '每个账户选择一个抖音号', value: 'PER_ACCOUNT' },
+    { label: '每个项目一个抖音号', value: 'PER_PROJECT' },
+    { label: '每个广告一个抖音号', value: 'PER_AD' },
+  ];
+  return all.filter((opt) => props.supportedRules.includes(opt.value));
+});
 
-/** 当前编辑的规则 */
-const localMethod = ref<AwemeDistributionRule>('ALL_SAME');
+/** 当前编辑的规则（若已有配置的规则不被支持，回退到第一个受支持项） */
+const localMethod = ref<AwemeDistributionRule>(
+  props.supportedRules[0] || 'ALL_SAME',
+);
 
 /** 单一选择模式（ALL_SAME / PER_PROJECT）的抖音号ID */
 const singleAwemeId = ref<string | undefined>(undefined);
@@ -74,7 +87,7 @@ function generateMappingRows(): MappingRow[] {
   }
   // PER_AD
   return accountList.value.flatMap((acc) =>
-    (acc.adGroupList || []).map((ag: any, agIdx: number) => ({
+    ((acc as any).adGroupList || []).map((_ag: any, agIdx: number) => ({
       targetId: `${acc.localAdvertiserId}-${agIdx}`,
       targetName: `${acc.advertiserName || acc.localAdvertiserId} - 广告${agIdx + 1}`,
       selectedAwemeId: undefined,
@@ -122,7 +135,10 @@ async function fetchAwemeList() {
 
 /** 恢复已有配置到编辑态 */
 function restoreConfig(config: AwemeConfigData) {
-  localMethod.value = config.config.method || 'ALL_SAME';
+  // 不支持原规则时回退到第一个受支持项
+  localMethod.value = props.supportedRules.includes(config.config.method)
+    ? config.config.method
+    : props.supportedRules[0] || 'ALL_SAME';
 
   if (localMethod.value === 'ALL_SAME' || localMethod.value === 'PER_PROJECT') {
     const items = config.data.get('0');
@@ -239,7 +255,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
           option-filter-prop="label"
           class="w-64"
           allow-clear
-          @change="applyToAll"
+          @change="(value: any) => applyToAll(value as string | undefined)"
         />
       </Space>
 

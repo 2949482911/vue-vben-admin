@@ -9,6 +9,7 @@ import type { VivoConfigData, VivoCreation } from "#/views/marketing/creation/vi
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import type { PageViewItem } from "#/api/models/assert";
 import type { HuaWeiStoreCreation } from "#/views/marketing/creation/huawei_store/huawei_store";
+import type { StdConfigData, StdCreation } from "#/views/marketing/creation/bytedance_std/bytedance";
 
 /**
  * 媒体基类
@@ -48,6 +49,31 @@ export interface Project {
 export interface AccountInfo {
   localAdvertiserId: string;
   advertiserName: string;
+}
+
+// ==================== 抖音号配置（巨量通用） ====================
+
+export type AwemeDistributionRule = 'ALL_SAME' | 'PER_ACCOUNT' | 'PER_PROJECT' | 'PER_AD';
+
+/**
+ * 抖音号条目（存储在 Map 中）
+ */
+export interface AwemeMapping {
+  awemeId: string;
+  awemeName: string;
+}
+
+/**
+ * 抖音号配置 —— 与标题包/落地页统一的 { config, data: Map } 模式
+ *
+ * Map key 语义：
+ *   ALL_SAME / PER_PROJECT → key = '0'（全局一条）
+ *   PER_ACCOUNT            → key = advertiserId
+ *   PER_AD                 → key = `${advertiserId}-${adIdx}`
+ */
+export interface AwemeConfigData {
+  config: { method: AwemeDistributionRule };
+  data: Map<string, AwemeMapping[]>;
 }
 
 export interface RuleInfo {
@@ -167,11 +193,14 @@ export interface FormFieldConfig {
  */
 export function getRuleInfoCampaignCount(
   platform: string,
-  creation: PlatformCreation<VivoConfigData | any>,
+  creation: PlatformCreation<VivoConfigData | StdConfigData | any>,
   localMaterialIds: Array<string>
 ): number {
   if (platform === Platform.VIVO) {
     creation = creation as VivoCreation;
+  }
+  if (platform === Platform.BYTEDANCE) {
+    creation = creation as StdCreation
   }
 
   let method: string = DistributionMode.all;

@@ -139,3 +139,45 @@ export const BytedanceNativeType = [
     value: 'AWEME'
   },
 ]
+
+
+/**
+ * WECHAT_APP：微信小程序
+ * BYTE_GAME：字节小游戏
+ * BYTE_APP：字节小程序
+ * ORANGE： 橙子落地页
+ * THIRDPARTY ：自研落地页
+ * ENTERPRISE ：企业号落地页
+ * AWEME 抖音号
+ */
+export const Bytedance_delivery_medium = [
+  {
+    label: '应用',
+    value: 'APP'
+  },
+  {
+    label: '微信小游戏',
+    value: 'WECHAT_GAME'
+  }, {
+    label: '微信小程序',
+    value: 'WECHAT_APP'
+  },{
+    label: '字节小游戏',
+    value: 'BYTE_GAME'
+  },{
+    label: '字节小程序',
+    value: 'BYTE_APP'
+  },{
+    label: '橙子落地页',
+    value: 'ORANGE'
+  },{
+    label: '自研落地页',
+    value: 'THIRDPARTY'
+  },{
+    label: '企业号落地页',
+    value: 'ENTERPRISE'
+  },{
+    label: '抖音号',
+    value: 'AWEME'
+  },
+]

@@ -123,6 +123,8 @@ function injectGoalOptions() {
       return {
         ...f,
         component: 'Select',
+        // 远程选项为空时（如未配置账户）不强制必填，避免校验拦截导致其他改动（如投放身份）无法保存
+        rules: externalOptions.length ? f.rules : undefined,
         componentProps: { options: externalOptions, placeholder: '请选择转化目标', allowClear: true, showSearch: true },
       };
     }
@@ -165,10 +167,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
       // 平铺嵌套字段
       const flattenedData = {
         ...project,
-        related_product_setting: project.related_product?.product_setting,
-        related_product_platform_id: project.related_product?.product_platform_id,
-        related_product_id: project.related_product?.product_id,
-        related_product_unique_id: project.related_product?.unique_product_id,
         project_materials_product_info_titles:
           project.project_materials?.product_info?.titles,
         project_materials_product_info_selling_points:
@@ -187,10 +185,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
           filteredData[key] = value;
         }
       }
-
       // 移除嵌套对象字段
       const nestedKeys = [
-        'related_product', 'project_materials', 'brand_info',
+        'project_materials', 'brand_info',
         'keywords', 'star_task_id_list', 'track_url_setting',
       ];
       nestedKeys.forEach((k) => delete filteredData[k]);
@@ -219,17 +216,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
     const isValidate = await formApi.validate();
     if (!isValidate.valid) return;
     const currentValues = await formApi.getValues();
-
     const project: StdProjectData = {
       ...currentValues,
-
-      related_product: {
-        product_setting: currentValues.related_product_setting || 'NO_MAP',
-        product_platform_id: currentValues.related_product_platform_id || '',
-        product_id: currentValues.related_product_id || '',
-        unique_product_id: currentValues.related_product_unique_id || '',
-      },
-
       project_materials: {
         local_video_material_list: [],
         local_image_material_list: [],
@@ -243,33 +231,32 @@ const [Drawer, drawerApi] = useVbenDrawer({
           titles: currentValues.project_materials_product_info_titles || [],
           image_ids: productImageContext.selectedIds || [],
           selling_points: currentValues.project_materials_product_info_selling_points || [],
-          local_material_image_ids: productImageContext.selectedIds || [],
+          local_material_image_ids: productImageContext.selectedIds || []
         },
-        anchor_related_type: currentValues.anchor_related_type || 'OFF',
+        anchor_related_type: currentValues.anchor_related_type || "OFF",
         anchor_material_list: [],
         component_material_list: [],
         external_url_material_list: [],
         web_url_material_list: [],
-        open_url: currentValues.open_url || '',
+        open_url: currentValues.open_url || "",
         open_urls: [],
-        ulink: currentValues.ulink_url || '',
-        ulink_type: currentValues.ulink_url_type || '',
+        ulink: currentValues.ulink_url || "",
+        ulink_type: currentValues.ulink_url_type || "",
         mini_program_info: {
-          app_id: '', start_path: '', params: '', url: '', urls: [], auto: [],
+          app_id: "", start_path: "", params: "", url: "", urls: [], auto: []
         },
         playlet_series_url_list: [],
-        original_video_title: '',
-        dynamic_creative_switch: '',
+        original_video_title: "",
+        dynamic_creative_switch: "",
         advanced_dc_settings: [],
-        call_to_action_buttons:
-          currentValues.project_materials_call_to_action_buttons || [],
-        intelligent_generation: 'OFF',
-        params_type: '',
-        external_url_field: '',
-        external_url_params: '',
-        open_url_type: '',
-        open_url_field: '',
-        open_url_params: '',
+        call_to_action_buttons: currentValues.project_materials_call_to_action_buttons || [],
+        intelligent_generation: "OFF",
+        params_type: "",
+        external_url_field: "",
+        external_url_params: "",
+        open_url_type: "",
+        open_url_field: "",
+        open_url_params: ""
       },
 
       brand_info: {
@@ -277,23 +264,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
         cdp_brand_id: 0,
         ecom_brand_id: 0,
         brand_name_id: 0,
-        cdp_brand_name: '',
+        cdp_brand_name: "",
         sub_brand_names: [],
-        sub_brand_name_ids: [],
+        sub_brand_name_ids: []
       },
-
-      track_url_setting: {
-        track_url_type: '',
-        track_url_group_id: 0,
-        track_url: [],
-        action_track_url: [],
-        active_track_url: [],
-        video_play_effective_track_url: [],
-        video_play_done_track_url: [],
-        video_play_first_track_url: [],
-        send_type: 'SERVER_SEND',
-      },
-
       keywords: [] as any,
       star_task_id_list: [] as number[],
     };
@@ -304,10 +278,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
       'project_materials_product_info_titles',
       'project_materials_product_info_selling_points',
       'project_materials_call_to_action_buttons',
-      'related_product_setting',
-      'related_product_platform_id',
-      'related_product_id',
-      'related_product_unique_id',
       'yuntu_category_id',
       'cdp_brand_id',
       'cdp_brand_name',

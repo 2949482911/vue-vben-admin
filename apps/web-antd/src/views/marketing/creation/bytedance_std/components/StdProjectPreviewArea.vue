@@ -68,21 +68,6 @@ const tableColumns: PreviewColumn[] = [
       :table-columns="tableColumns"
       :table-data="previewData"
       :show-empty="adList.length === 0"
-      :campaign-merge-fields="[
-        'projectName',
-        'marketingGoal',
-        'landingType',
-        'deliveryMode',
-        'productId',
-        'optimizeGoal',
-        'deepOptimizeGoal',
-        'roiGoal',
-        'projectBudget',
-        'projectBid',
-        'projectBudgetMode',
-        'projectPricing',
-        'projectStatus',
-      ]"
       :adgroup-merge-fields="[]"
       :level-names="levelNames"
     />

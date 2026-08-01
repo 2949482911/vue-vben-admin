@@ -34,6 +34,14 @@ const emit = defineEmits<{
   'update:value': [value: string[]];
 }>();
 
+/** 输入框 ref（模板中 ref="inputRef" 绑定，antd Input 运行时暴露 focus 方法） */
+const inputRef = ref<{ focus: () => void } | null>(null);
+
+/** 聚焦输入框（供外层容器点击时调用） */
+function focusInput() {
+  inputRef.value?.focus();
+}
+
 /** 优先使用 modelValue（标准 v-model），回退到 value。始终返回数组 */
 const effectiveValue = computed<string[]>(() => {
   const val = props.modelValue ?? props.value;
@@ -81,10 +89,7 @@ function removeTag(index: number) {
   emitUpdate();
   // 删除后聚焦输入框
   nextTick(() => {
-    const inputEl = document.querySelector<HTMLInputElement>(
-      '.textarea-tags-input input',
-    );
-    inputEl?.focus();
+    focusInput();
   });
 }
 
@@ -105,14 +110,7 @@ function handleKeydown(e: KeyboardEvent) {
   <div
     class="textarea-tags-wrapper"
     :class="{ 'is-disabled': disabled }"
-    @click="
-      () => {
-        const inputEl = document.querySelector<HTMLInputElement>(
-          '.textarea-tags-input input',
-        );
-        inputEl?.focus();
-      }
-    "
+    @click="focusInput"
   >
     <div class="textarea-tags-container">
       <TransitionGroup name="tag-item" tag="div" class="textarea-tags-list">

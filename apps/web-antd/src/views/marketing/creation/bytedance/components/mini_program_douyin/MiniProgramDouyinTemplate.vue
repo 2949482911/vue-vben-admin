@@ -28,7 +28,7 @@ import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
 import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
-import AwemeConfigCard from "../AwemeConfigCard.vue";
+import AwemeConfigCard from "../../../components/aweme/AwemeConfigCard.vue";
 import DpaProductButtonField from "../DpaProductButtonField.vue";
 import ProductImageButtonField from "../ProductImageButtonField.vue";
 import TimeSelectionPeriod

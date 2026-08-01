@@ -183,9 +183,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 }
 
 function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
-  console.log(monitoringLink);
   creationInfo.value.configData.monitoringLink = monitoringLink;
-  console.log(creationInfo.value.configData.monitoringLink);
 }
 
 function updateCampaign(campaign: BytedanceCampaignData) {
@@ -259,7 +257,7 @@ async function initCreationInfo() {
         delivery_type: "",
         name: "",
         budget_group_id: 0,
-        aigc_dynamic_creative_switch: false,
+        aigc_dynamic_creative_switch: "",
         star_task_id: 0,
         star_auto_material_addition_switch: "",
         star_auto_delivery_switch: "",

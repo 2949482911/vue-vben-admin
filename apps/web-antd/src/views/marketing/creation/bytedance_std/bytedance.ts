@@ -1,11 +1,12 @@
 import type {
   AudienceConfigData,
+  AwemeConfigData,
   ConfigurationConfig,
-  MaterialData,
+  MaterialData, MonitoringLinkConfigData,
   PageViewConfigData,
   PlatformCreation,
-  TitlePackageConfigData,
-} from '#/views/marketing/creation/creation';
+  TitlePackageConfigData
+} from "#/views/marketing/creation/creation";
 
 export const BYTEDANCE_STD: string = '0.1';
 
@@ -29,11 +30,14 @@ export interface StdConfigData {
   audience: AudienceConfigData;
   titlePackage: TitlePackageConfigData;
   landingPage: PageViewConfigData;
+  monitoringLink: MonitoringLinkConfigData;
+  // 抖音号配置（仅 App 模板 native_type=AWEME 时启用）
+  awemeConfig: AwemeConfigData;
 }
 
 /**
  * 智擎版标准项目数据
- * 
+ *
  * 对应 API std_project/create 参数，整合了原 campaign + promotion 的字段
  */
 export interface StdProjectData {
@@ -45,43 +49,26 @@ export interface StdProjectData {
   landing_type: string;
   marketing_goal: string;
   app_promotion_type: string;
-
-  // -- 投放设置 --
-  delivery_mode: string;
-  delivery_type: string;
-
-  // -- 投放载体 --
-  native_type: string;
-  aweme_id: string;
-  delivery_medium: string;
-
-  // -- 商品 --
-  related_product: StdRelatedProduct;
-
-  // -- 应用相关 --
-  download_url: string;
-  app_name: string;
-  download_type: string;
-  download_mode: string;
-  quick_app_id: string;
-  launch_type: string;
-  promotion_type: string;
-  subscribe_url: string;
-  asset_id: number;
-
-  // -- 优化目标 --
-  external_action: string;
-  deep_external_action: string;
   game_addiction_id: string;
-  paid_switch: number;
+  external_action: string;
+  unique_product_id: number;
+  delivery_medium: string;
+  native_type: string;
+  app_name: string;
+  product_platform_id: string;
+  subscribe_url: string;
+  download_url: string;
+  deep_external_action: string;
+  product_id: string;
+  asset_id: string;
   deep_bid_type: string;
-  value_optimized_type: string;
-
-  // -- 排期/预算/出价 --
+  aweme_id: string;
+  delivery_mode: string;
   schedule_type: string;
   start_time: string;
   end_time: string;
   schedule_time: string;
+  search_continue_delivery: string;
   bid_type: string;
   budget_mode: string;
   budget: number;
@@ -90,46 +77,33 @@ export interface StdProjectData {
   deep_cpabid: number;
   roi_goal: number;
   first_roi_goal: number;
-  seven_roi_goal: number;
   pricing: string;
-  layer_roi_switch: string;
-  search_continue_delivery: string;
-
-  // -- 落地页 --
-  landing_page_stay_time: number;
-  open_url: string;
-  open_url_type: string;
-  open_urls: string[];
-  ulink_url_type: string;
-  ulink_url: string;
-
-  // -- 品牌信息 --
-  brand_info: StdBrandInfo;
-
-  // -- 素材信息 --
-  project_materials: StdProjectMaterials;
-
-  // -- 定向 --
+  download_type: string;
+  launch_type: string;
+  download_mode: string;
   audience_type: string;
-
-  // -- 创意设置 --
-  source: string;
-  is_comment_disable: string;
-  ad_download_status: string;
-
-  // -- AIGC / 星广联投 --
-  aigc_dynamic_creative_switch: string;
-  star_auto_material_addition_switch: string;
-  star_auto_delivery_switch: string;
-  star_task_id_list: number[];
-
+  blue_flow_keyword_name: Array<string>;
+  // -- 监测链接 --
+  track_url_setting: StdTrackUrlSetting;
   // -- 关键词/搜索 --
   keywords: StdKeyword[];
   auto_extend_traffic: string;
-
-  // -- 监测链接 --
-  track_url_setting: StdTrackUrlSetting;
-
+  quick_app_id: string;
+  promotion_type: string;
+  star_task_id_list: number[];
+  is_comment_disable: string;
+  // -- AIGC / 星广联投 --
+  aigc_dynamic_creative_switch: string;
+  audience: Object;
+  project_materials: StdProjectMaterials;
+  brand_info: StdBrandInfo;
+  delivery_type: string;
+  multi_delivery_medium: string;
+  shop_platform: string;
+  live_duration: number;
+  seven_roi_goal: number;
+  layer_roi_switch: string;
+  landing_page_stay_time: number;
   // -- 其他 --
   micro_promotion_type: string;
   micro_app_instance_id: number;
@@ -294,24 +268,75 @@ export interface StdCreationData {
 /** 预览区项目（单层） */
 export interface StdProject {
   getName: () => string;
-  name: string;
+
   operation: string;
+  name: string;
+
+  // -- 基础参数 --
+  ad_type: string;
   landing_type: string;
   marketing_goal: string;
-  ad_type: string;
-  delivery_type: string;
-  delivery_mode: string;
+  app_promotion_type: string;
+  game_addiction_id: string;
   external_action: string;
+  unique_product_id: number;
+  delivery_medium: string;
+  native_type: string;
+  app_name: string;
+  product_platform_id: string;
+  subscribe_url: string;
+  download_url: string;
   deep_external_action: string;
+  product_id: string;
+  asset_id: string;
+  deep_bid_type: string;
+  aweme_id: string;
+  delivery_mode: string;
+  schedule_type: string;
+  start_time: string;
+  end_time: string;
+  schedule_time: string;
+  search_continue_delivery: string;
   bid_type: string;
   budget_mode: string;
   budget: number;
   bid: number;
-  pricing: string;
+  cpa_bid: number;
+  deep_cpabid: number;
   roi_goal: number;
-  schedule_type: string;
-  project_materials: StdProjectMaterials;
-  related_product: StdRelatedProduct;
+  first_roi_goal: number;
+  pricing: string;
+  download_type: string;
+  launch_type: string;
+  download_mode: string;
+  audience_type: string;
+  blue_flow_keyword_name: Array<string>;
+  // -- 监测链接 --
   track_url_setting: StdTrackUrlSetting;
-  audience: object;
+  // -- 关键词/搜索 --
+  keywords: StdKeyword[];
+  auto_extend_traffic: string;
+  quick_app_id: string;
+  promotion_type: string;
+  star_task_id_list: number[];
+  is_comment_disable: string;
+  // -- AIGC / 星广联投 --
+  aigc_dynamic_creative_switch: string;
+  audience: Object;
+  project_materials: StdProjectMaterials;
+  brand_info: StdBrandInfo;
+  delivery_type: string;
+  multi_delivery_medium: string;
+  shop_platform: string;
+  live_duration: number;
+  seven_roi_goal: number;
+  layer_roi_switch: string;
+  landing_page_stay_time: number;
+  // -- 其他 --
+  micro_promotion_type: string;
+  micro_app_instance_id: number;
+  dpa_adtype: string;
+  multi_asset_type: string;
+  asset_type: string;
+  instance_id: number;
 }

@@ -8,9 +8,11 @@
  * 参考 bytedance/MarketingProductDouyinTemplate.vue 模式
  */
 import { Col, Row } from "ant-design-vue";
-import { markRaw } from "vue";
+import { computed, markRaw } from "vue";
 
 import StdProjectForm from "../StdProjectForm.vue";
+import AwemeConfigCard
+  from "#/views/marketing/creation/components/aweme/AwemeConfigCard.vue";
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
@@ -21,6 +23,7 @@ import ProductImageButtonField
   from "#/views/marketing/creation/bytedance/components/ProductImageButtonField.vue";
 import type {
   AudienceConfigData,
+  AwemeConfigData,
   MaterialData,
   PageViewConfigData,
   TitlePackageConfigData
@@ -30,7 +33,8 @@ import type {
   StdProjectData
 } from "#/views/marketing/creation/bytedance_std/bytedance";
 import {
-  BytedanceCampaign_ad_type,
+  Bytedance_delivery_medium,
+  BytedanceCampaign_ad_type, BytedanceCampaign_app_promotion_type,
   BytedanceCampaign_bid_type,
   BytedanceCampaign_deep_bid_type,
   BytedanceCampaign_delivery_type,
@@ -42,7 +46,6 @@ import {
   BytedanceCampaign_launch_type,
   BytedanceCampaign_marketing_goal,
   BytedanceCampaign_pricing,
-  BytedanceCampaign_product_setting,
   BytedanceCampaign_promotion_type,
   BytedanceCampaign_schedule_type,
   BytedanceCampaign_ulink_url_type,
@@ -59,7 +62,8 @@ const emit = defineEmits([
   "update:audiencePackage",
   "update:updateMaterial",
   "update:titlePackage",
-  "update:landingPage"
+  "update:landingPage",
+  "update:awemeConfig"
 ]);
 
 const { creationInfo } = defineProps({
@@ -89,6 +93,13 @@ function updateLandingPage(landingPage: PageViewConfigData) {
   emit("update:landingPage", landingPage);
 }
 
+function updateAwemeConfig(awemeConfig: AwemeConfigData) {
+  emit("update:awemeConfig", awemeConfig);
+}
+
+/** 是否投放身份为抖音号（native_type=AWEME）—— 决定抖音号配置区是否可配置 */
+const isAweme = computed(() => creationInfo?.configData.project.native_type !== "AWEME");
+
 // ==================== App推广模板表单字段 ====================
 const projectFormFields = [
   // -- 基本信息 --
@@ -112,11 +123,25 @@ const projectFormFields = [
       triggerFields: ["*"]
     }
   },
+  {
+   component: "Select",
+   fieldName: "app_promotion_type",
+   componentProps: {
+     options: BytedanceCampaign_app_promotion_type
+   },
+    defaultValue: "DOWNLOAD",
+  },
+
+  {
+    component: "Select", fieldName: "delivery_medium",
+    componentProps: { options: Bytedance_delivery_medium },
+    label: "投放身份", rules: "required", defaultValue: "APP"
+  },
 
   {
     component: "Select", fieldName: "native_type",
     componentProps: { options: BytedanceNativeType },
-    label: "投放身份", rules: "required", defaultValue: "AWEME",
+    label: "投放身份", rules: "required", defaultValue: "AWEME"
   },
 
   {
@@ -141,17 +166,27 @@ const projectFormFields = [
 
   // -- 优化目标（options 由 StdProjectDrawer 远程请求后注入） --
   {
-    component: 'Select',
-    fieldName: 'external_action',
-    label: '转化目标',
-    rules: 'required',
-    componentProps: { options: BytedanceCampaign_external_action, placeholder: '请选择转化目标', allowClear: true, showSearch: true },
+    component: "Select",
+    fieldName: "external_action",
+    label: "转化目标",
+    rules: "required",
+    componentProps: {
+      options: BytedanceCampaign_external_action,
+      placeholder: "请选择转化目标",
+      allowClear: true,
+      showSearch: true
+    }
   },
   {
-    component: 'Select',
-    fieldName: 'deep_external_action',
-    label: '深度转化目标',
-    componentProps: { options: BytedanceCampaign_external_action, placeholder: '请选择深度转化目标', allowClear: true, showSearch: true },
+    component: "Select",
+    fieldName: "deep_external_action",
+    label: "深度转化目标",
+    componentProps: {
+      options: BytedanceCampaign_external_action,
+      placeholder: "请选择深度转化目标",
+      allowClear: true,
+      showSearch: true
+    }
   },
   {
     component: "Select", fieldName: "deep_bid_type",
@@ -163,17 +198,28 @@ const projectFormFields = [
   {
     component: "Select", fieldName: "download_type",
     componentProps: { options: BytedanceCampaign_download_type },
-    label: "下载类型", defaultValue: "DOWNLOAD_URL"
+    label: "下载类型", defaultValue: "DOWNLOAD_URL",
   },
   {
     component: "Select", fieldName: "download_mode",
     componentProps: { options: BytedanceCampaign_download_mode },
     label: "下载模式", defaultValue: "DEFAULT"
   },
-  { component: "Input", fieldName: "download_url", label: "下载链接" },
-  { component: "Input", fieldName: "app_name", label: "应用名称", dependencies: {
-    show: false, triggerFields: ["*"],
-    }, defaultValue: `${creationInfo.project.projectName}` },
+  {
+    component: "Input",
+    fieldName: "download_url",
+    label: "下载链接",
+    defaultValue: `${creationInfo.project.downloadUrl}`,
+    dependencies: {
+      show: false,
+      triggerFields: ["*"]
+    }
+  },
+  {
+    component: "Input", fieldName: "app_name", label: "应用名称", dependencies: {
+      show: false, triggerFields: ["*"]
+    }, defaultValue: `${creationInfo.project.projectName}`
+  },
   {
     component: "Select", fieldName: "launch_type",
     componentProps: { options: BytedanceCampaign_launch_type },
@@ -189,7 +235,7 @@ const projectFormFields = [
     component: "Input", fieldName: "subscribe_url",
     dependencies: {
       show: (currentVal: Record<string, any>) => {
-          return currentVal["app_promotion_type"] === "RESERVE"
+        return currentVal["app_promotion_type"] === "RESERVE";
       },
       triggerFields: ["*"]
     }
@@ -199,24 +245,13 @@ const projectFormFields = [
     component: "Input", fieldName: "download_url",
     dependencies: {
       show: (currentVal: Record<string, any>) => {
-        return currentVal["app_promotion_type"] === "DOWNLOAD"
+        return currentVal["app_promotion_type"] === "DOWNLOAD";
       },
       triggerFields: ["*"]
     }
   },
 
 
-
-
-  // -- 商品设置 --
-  {
-    component: "Select", fieldName: "related_product_setting",
-    componentProps: { options: BytedanceCampaign_product_setting },
-    label: "商品设置", defaultValue: "NO_MAP"
-  },
-  { component: "Input", fieldName: "related_product_platform_id", label: "商品平台ID", dependencies: {show: false, triggerFields: ["*"]} },
-  { component: "Input", fieldName: "related_product_id", label: "商品ID", dependencies: {show: false, triggerFields: ["*"]} },
-  { component: "Input", fieldName: "related_product_unique_id", label: "升级版商品ID", dependencies: {show: false, triggerFields: ["*"]} },
 
   // -- 排期 --
   {
@@ -351,7 +386,11 @@ const projectFormFields = [
     component: "Input",
     fieldName: "auto_extend_traffic",
     defaultValue: "OFF",
-    dependencies: { show: false, triggerFields: ["*"] }
+    label: "智能拓流",
+    dependencies: {  },
+    componentProps: {
+      options: BytedancePromotion_is_comment_disable
+    }
   },
   {
     component: "Input",
@@ -368,7 +407,7 @@ const projectFormFields = [
   {
     component: "Input",
     fieldName: "audience_type",
-    defaultValue: "UNLIMITED",
+    defaultValue: "CUSTOM",
     dependencies: { show: false, triggerFields: ["*"] }
   },
   {
@@ -383,16 +422,18 @@ const projectFormFields = [
 <template>
   <div class="std-app-template">
     <Row :gutter="16" class="equal-height-row">
-      <!-- 第1列：项目配置 + 定向包 -->
+      <!-- 第1列：项目配置 + 定向包 + 抖音号配置 -->
       <Col :span="8" class="equal-height-col">
-        <StdProjectForm
-          :project="creationInfo?.configData.project"
-          :audience="creationInfo?.configData.audience"
-          :account-info="creationInfo.accountInfo"
-          :form-fields="projectFormFields"
-          @update:project="updateProject"
-          @update:audience-package="updateAudiencePackage"
-        />
+        <div class="combined-area">
+          <StdProjectForm
+            :project="creationInfo?.configData.project"
+            :audience="creationInfo?.configData.audience"
+            :account-info="creationInfo.accountInfo"
+            :form-fields="projectFormFields"
+            @update:project="updateProject"
+            @update:audience-package="updateAudiencePackage"
+          />
+        </div>
       </Col>
 
       <!-- 第2列：创意组 -->
@@ -401,6 +442,14 @@ const projectFormFields = [
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData.material"
           @update:material="updateMaterial"
+        />
+
+        <AwemeConfigCard
+          :aweme-config="creationInfo?.configData.awemeConfig"
+          :account-info="creationInfo.accountInfo"
+          :disabled="isAweme"
+          :supported-rules="['PER_PROJECT', 'PER_ACCOUNT']"
+          @update:aweme-config="updateAwemeConfig"
         />
       </Col>
 
