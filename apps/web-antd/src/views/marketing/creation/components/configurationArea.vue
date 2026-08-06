@@ -374,6 +374,7 @@ function handleProjectChange(val: SelectValue) {
       icon: selectedProject.icon,
       packageName: selectedProject.packageName,
       appId: selectedProject.appId,
+      downloadUrl: selectedProject.downloadUrl,
     });
   }
 }

@@ -2,8 +2,6 @@ import type {
   Adgroup,
   AudienceConfigData,
   AwemeConfigData,
-  AwemeDistributionRule,
-  AwemeMapping,
   Campaign,
   ConfigurationConfig,
   MaterialData,
@@ -14,7 +12,9 @@ import type {
 } from "#/views/marketing/creation/creation";
 
 // 抖音号类型已抽到公共模块 creation.ts，这里 re-export 保持旧引用可用
-export type { AwemeConfigData, AwemeDistributionRule, AwemeMapping } from "#/views/marketing/creation/creation";
+export type {
+  AwemeConfigData, AwemeDistributionRule, AwemeMapping
+} from "#/views/marketing/creation/creation";
 
 export const BYTEDANCE: string = "0.1";
 

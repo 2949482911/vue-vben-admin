@@ -490,11 +490,16 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
       account.localAdvertiserId
     ]);
 
+    // 广告组/广告全局下标：跨计划累计，避免内层下标从 0 重置导致名字重复
+    let adGroupGlobalIdx = 0;
+
     // 遍历生成广告组
     for (let i = 0; i < campaignCount; i++) {
       const adgroupList: Array<VivoAdgroup> = [];
-      // 生成广告组
+      // 生成广告组（下标与外层关联：全局序号）
       for (let f = 0; f < adGroupCount; f++) {
+        const globalAdGroupIdx = adGroupGlobalIdx + f;
+
         const adgroup: VivoAdgroup = {
           getName(): string {
             return this.name;
@@ -505,7 +510,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
             creationInfo.configData.audience.config.method,
             creationInfo.configData.audience.data,
             account.localAdvertiserId,
-            f
+            globalAdGroupIdx
           ).config,
           rpkDeepLink: creationInfo.configData.adgroup.rpkDeepLink,
           webSiteUrl: creationInfo.configData.adgroup.webSiteUrl,
@@ -528,7 +533,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           price: creationInfo.configData.adgroup.price * 100_000,
           ocpxPrice: creationInfo.configData.adgroup.ocpxPrice * 100_000,
           name: renderProjectTitle(
-            creationInfo.configData.adgroup.name, f,
+            creationInfo.configData.adgroup.name, globalAdGroupIdx,
             creationInfo.project.projectName
           ),
           dailyBudget:
@@ -558,6 +563,9 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
         ]);
 
         for (let k = 0; k < adCount; k++) {
+          // 广告全局序号：与广告组全局序号关联
+          const globalAdIdx = globalAdGroupIdx * adCount + k;
+
           const materialList: Array<Material> = getMaterial(
             creationInfo.configData.material.config.method,
             creationInfo.configData.material.data,
@@ -567,7 +575,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
             creationInfo.configData.titlePackage.config.method,
             creationInfo.configData.titlePackage.data,
             account.localAdvertiserId,
-            k
+            globalAdIdx
           );
 
           const deepLink: string = getDeepLink(
@@ -599,8 +607,8 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
               videoCode: "",
               strongReminder: creationInfo.configData.promotion.config.strongReminder,
               materialIdsList: [
-                ...(materialList[k]?.image ?? []),
-                ...(materialList[k]?.video ?? [])
+                ...(materialList[globalAdIdx % materialList.length]?.image ?? []),
+                ...(materialList[globalAdIdx % materialList.length]?.video ?? [])
               ].map((item) => item.localMaterialId)
             });
           } else {
@@ -630,7 +638,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           // 广告
           adgroup.promotionList.push({
             adgroupId: "",
-            name: renderProjectTitle(creationInfo.configData.promotion.name, k, creationInfo.project.projectName),
+            name: renderProjectTitle(creationInfo.configData.promotion.name, globalAdIdx, creationInfo.project.projectName),
             deepLink,
             videoAttribution: creationInfo.configData.promotion.videoAttribution,
             // @ts-ignore
@@ -649,6 +657,9 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
         }
         // 必须在生成完该组下的所有广告后，再把 adgroup 推入 adgroupList
         adgroupList.push(adgroup);
+
+        // 外层累计本计划的广告组数，保证下一个计划的广告组/广告下标连续
+        adGroupGlobalIdx++;
       }
       // 广告组加到计划内
       tableData.campaignList.push({

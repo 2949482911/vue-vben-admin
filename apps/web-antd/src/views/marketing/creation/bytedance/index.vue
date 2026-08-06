@@ -220,8 +220,12 @@ function resetCreationInfo() {
 
 /**
  * gen ad list
+ * 点击生成广告预览即开启新一轮配置，清空上个任务进度信息并隐藏「查看任务进度」按钮
  */
 function genPreviewTableData() {
+  currentTask.value = null;
+  taskInProgress.value = false;
+  resultDrawerOpen.value = false;
   adList.value = getPreviewTableData(creationInfo.value);
   console.log(adList.value);
 }
@@ -541,7 +545,7 @@ const creationInfo = ref<BytedanceCreation>({
       delivery_type: "",
       name: "",
       budget_group_id: 0,
-      aigc_dynamic_creative_switch: false,
+      aigc_dynamic_creative_switch: "",
       star_task_id: 0,
       star_auto_material_addition_switch: "",
       star_auto_delivery_switch: "",

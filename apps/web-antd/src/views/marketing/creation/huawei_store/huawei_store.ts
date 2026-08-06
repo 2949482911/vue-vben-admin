@@ -283,18 +283,23 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
       [advertiserId]
     );
 
+    // 子任务（广告组）全局下标：跨任务累计，避免内层下标从 0 重置导致名字重复
+    let adGroupGlobalIdx = 0;
+
     // 遍历生成任务
     for (let campaignIdx = 0; campaignIdx < campaignCount; campaignIdx++) {
       const adGroupList: Array<HuaWeiStoreSubTask> = [];
 
-      // 遍历生成广告组（子任务）
+      // 遍历生成广告组（子任务，下标与外层关联：全局序号）
       for (let adGroupIdx = 0; adGroupIdx < adGroupCount; adGroupIdx++) {
+        const globalAdGroupIdx = adGroupGlobalIdx + adGroupIdx;
+
         // 构建子任务对象
         const audience: TargetedPackageTypeItem = getAudience(
           creationInfo.configData.audience.config.method,
           creationInfo.configData.audience.data,
           advertiserId,
-          adGroupIdx
+          globalAdGroupIdx
         );
         const adgroup: HuaWeiStoreSubTask = {
           getName: function(): string {
@@ -303,7 +308,7 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
           adgroupId: "",
           subTaskName: renderProjectTitle(
             creationInfo.configData.adgroup.subTaskName,
-            adGroupIdx,
+            globalAdGroupIdx,
             creationInfo.project.projectName
           ),
           subTaskPrice: creationInfo.configData.adgroup.subTaskPrice,
@@ -318,8 +323,10 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
           promotionList: []
         };
 
-        // 遍历生成广告
+        // 遍历生成广告（下标与广告组全局序号关联）
         for (let adIdx = 0; adIdx < adCount; adIdx++) {
+          const globalAdIdx = globalAdGroupIdx * adCount + adIdx;
+
           // 获取素材
           const materialList: Array<Material> = getMaterial(
             creationInfo.configData.material.config.method,
@@ -327,12 +334,12 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
             advertiserId
           );
 
-          // 获取标题包
+          // 获取标题包（按全局广告序号轮询）
           const titlePackage: TitlePackageItem = getTiltePackage(
             creationInfo.configData.titlePackage.config.method,
             creationInfo.configData.titlePackage.data,
             advertiserId,
-            adIdx
+            globalAdIdx
           );
 
           // 获取落地页（华为商店使用 PageViewItem）
@@ -347,7 +354,7 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
             creationInfo.configData.monitoringLink.config.method,
             creationInfo.configData.monitoringLink.data,
             advertiserId,
-            adIdx
+            globalAdIdx
           );
 
           // 构建广告对象
@@ -371,7 +378,7 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
             verticalScreenFloatPic: creationInfo.configData.promotion.verticalScreenFloatPic,
             crossScreenFloatPic: creationInfo.configData.promotion.crossScreenFloatPic,
             landingPageQualification: creationInfo.configData.promotion.landingPageQualification,
-            materialIdsList: getMaterialIds(materialList, adIdx),
+            materialIdsList: getMaterialIds(materialList, globalAdIdx),
             clickMonitorUrl: monitoringLink.clickLink,
             viewMonitorUrl: monitoringLink.exposureLink
           };
@@ -379,6 +386,8 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
           adgroup.promotionList.push(promotion);
         }
 
+        // 外层累计本任务的子任务数，保证下一个任务的子任务/广告下标连续
+        adGroupGlobalIdx++;
         adGroupList.push(adgroup);
       }
 

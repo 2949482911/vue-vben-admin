@@ -6,12 +6,14 @@
  * - 接收 creationInfo prop
  * - 定义自己的 projectFormFields
  * - 渲染布局（Row/Col）
- * - 通过 :form-fields 传给 StdProjectForm
+ * - 通过 :form-fields 传给 StdProject
  */
 import { Col, Row } from 'ant-design-vue';
 import { markRaw } from 'vue';
 
-import StdProjectForm from '../StdProjectForm.vue';
+import StdProject from '../StdProject.vue';
+import DpaProductButtonField
+  from '#/views/marketing/creation/bytedance/components/DpaProductButtonField.vue';
 import CreativeGroupSelector
   from '#/views/marketing/creation/components/creative/CreativeGroupSelector.vue';
 import TitleSelector
@@ -35,7 +37,7 @@ import {
   BytedanceCampaign_bid_type,
   BytedanceCampaign_deep_bid_type,
   BytedanceCampaign_delivery_type,
-  BytedanceCampaign_external_action,
+  // BytedanceCampaign_external_action,
   BytedanceCampaign_landing_type,
   BytedanceCampaign_marketing_goal,
   BytedanceCampaign_pricing,
@@ -143,6 +145,31 @@ const projectFormFields = [
   { component: 'Input', fieldName: 'related_product_platform_id', label: '商品平台ID' },
   { component: 'Input', fieldName: 'related_product_id', label: '商品ID' },
   { component: 'Input', fieldName: 'related_product_unique_id', label: '升级版商品ID' },
+  // 是否选择关联商品（控制 DPA 商品选择按钮显隐）
+  {
+    component: 'Select', fieldName: 'related_product_enabled',
+    componentProps: {
+      options: [
+        { label: '否', value: 'NO' },
+        { label: '是', value: 'YES' },
+      ],
+    },
+    label: '选择关联商品', defaultValue: 'NO',
+  },
+  // DPA商品选择按钮 — 由 StdProjectDrawer 动态注入 dpaContext / openDpaModal
+  {
+    component: markRaw(DpaProductButtonField),
+    fieldName: 'dpa_product_button',
+    label: '投放商品',
+    componentProps: {},
+    dependencies: {
+      show: (cv: Record<string, any>) => cv['related_product_enabled'] === 'YES',
+      triggerFields: ['related_product_enabled'],
+    },
+  },
+  // DPA 商品选择的隐藏字段（回调写入 product_id / product_platform_id）
+  { component: 'Input', fieldName: 'product_id', dependencies: { show: false, triggerFields: ['*'] } },
+  { component: 'Input', fieldName: 'product_platform_id', dependencies: { show: false, triggerFields: ['*'] } },
 
   // -- 排期 --
   {
@@ -250,7 +277,7 @@ const projectFormFields = [
     <Row :gutter="16" class="equal-height-row">
       <!-- 第1列：项目配置 + 定向包 -->
       <Col :span="8" class="equal-height-col">
-        <StdProjectForm
+        <StdProject
           :project="creationInfo?.configData.project"
           :audience="creationInfo?.configData.audience"
           :account-info="creationInfo.accountInfo"

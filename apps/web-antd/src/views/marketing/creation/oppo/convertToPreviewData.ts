@@ -83,18 +83,23 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
       [advertiserId]
     );
 
+    // 广告组/广告全局下标：跨计划累计，避免内层下标从 0 重置导致名字重复
+    let adGroupGlobalIdx = 0;
+
     // 遍历生成计划
     for (let campaignIdx = 0; campaignIdx < campaignCount; campaignIdx++) {
       const adGroupList: OppoAdgroup[] = [];
 
-      // 遍历生成广告组
+      // 遍历生成广告组（下标与外层关联：全局序号）
       for (let adGroupIdx = 0; adGroupIdx < adGroupCount; adGroupIdx++) {
+        const globalAdGroupIdx = adGroupGlobalIdx + adGroupIdx;
+
         // 获取定向包
         const audience: TargetedPackageTypeItem = getAudience(
           creationInfo.configData.audience.config.method,
           creationInfo.configData.audience.data,
           advertiserId,
-          adGroupIdx
+          globalAdGroupIdx
         );
 
         // 落地页
@@ -114,7 +119,7 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
           planId: "",
           adGroupName: renderProjectTitle(
             adgroupData.adGroupName,
-            adGroupIdx,
+            globalAdGroupIdx,
             creationInfo.project.projectName
           ),
           pageUrl: pageView.config["pageUrl"],
@@ -164,8 +169,10 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
           promotionList: []
         };
 
-        // 遍历生成广告
+        // 遍历生成广告（下标与广告组全局序号关联）
         for (let adIdx = 0; adIdx < adCount; adIdx++) {
+          const globalAdIdx = globalAdGroupIdx * adCount + adIdx;
+
           // 获取素材
           const materialList: Material[] = getMaterial(
             creationInfo.configData.material.config.method,
@@ -173,12 +180,12 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             advertiserId
           );
 
-          // 获取标题包
+          // 获取标题包（按全局广告序号轮询）
           const titlePackage: TitlePackageItem = getTiltePackage(
             creationInfo.configData.titlePackage.config.method,
             creationInfo.configData.titlePackage.data,
             advertiserId,
-            adIdx
+            globalAdIdx
           );
 
           // 获取落地页
@@ -193,7 +200,7 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             creationInfo.configData.monitoringLink.config.method,
             creationInfo.configData.monitoringLink.data,
             advertiserId,
-            adIdx
+            globalAdIdx
           );
 
           // 获取 deepLink
@@ -234,7 +241,7 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             adGroupId: "",
             adName: renderProjectTitle(
               promotionData.adName,
-              adIdx,
+              globalAdIdx,
               creationInfo.project.projectName
             ),
             globalSpecId: promotionData.globalSpecId,
@@ -253,10 +260,11 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             pageUrlName: landingPageItem?.name || "",
             deepLink
           };
-          // 遍历生成创意
           adgroup.promotionList.push(promotion);
         }
 
+        // 外层累计本计划的广告组数，保证下一个计划的广告组/广告下标连续
+        adGroupGlobalIdx++;
         adGroupList.push(adgroup);
       }
 

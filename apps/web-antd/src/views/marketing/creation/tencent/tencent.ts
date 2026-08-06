@@ -10,7 +10,6 @@ import type {
   TitlePackageConfigData,
   Material
 } from "#/views/marketing/creation/creation";
-import {DistributionMode} from "#/constants/enums";
 import {renderProjectTitle} from "#/utils/customName";
 import {
   getRuleInfoCampaignCount,
@@ -498,6 +497,9 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
       [advertiserId]
     );
 
+    // 广告组全局下标：跨计划累计，避免每个计划内下标从 0 重置导致名字重复
+    let adGroupGlobalIdx = 0;
+
     // 遍历生成计划
     for (let campaignIdx = 0; campaignIdx < campaignCount; campaignIdx++) {
       // 获取定向包（用于计划层级）
@@ -525,8 +527,10 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
         adGroupList: []
       };
 
-      // 遍历生成广告组
+      // 遍历生成广告组（下标与外层关联：全局序号）
       for (let adGroupIdx = 0; adGroupIdx < adGroupCount; adGroupIdx++) {
+        const globalAdGroupIdx = adGroupGlobalIdx + adGroupIdx;
+
         // 获取素材
         const materialList: Array<Material> = getMaterial(
           createInfo.configData.material.config.method,
@@ -534,12 +538,12 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
           advertiserId
         );
 
-        // 获取标题包
+        // 获取标题包（按全局广告组序号轮询）
         const titlePackage: TitlePackageItem = getTiltePackage(
           createInfo.configData.titlePackage.config.method,
           createInfo.configData.titlePackage.data,
           advertiserId,
-          adGroupIdx
+          globalAdGroupIdx
         );
 
         // 获取监测链接
@@ -547,7 +551,7 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
           createInfo.configData.monitoringLink.config.method,
           createInfo.configData.monitoringLink.data,
           advertiserId,
-          adGroupIdx
+          globalAdGroupIdx
         );
 
         // 构建广告组对象
@@ -559,7 +563,7 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
           adgroup_id: 0,
           dynamic_creative_name: renderProjectTitle(
             createInfo.configData.adgroup.dynamic_creative_name,
-            adGroupIdx,
+            globalAdGroupIdx,
             createInfo.project.projectName
           ),
           // 点击监测链接
@@ -569,12 +573,14 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
           // 处理创意组件
           creative_components: buildCreativeComponents(
             materialList,
-            adGroupIdx,
+            globalAdGroupIdx,
             titlePackage
           )
         };
         campaign.adGroupList.push(adgroup);
       }
+      // 外层累计本计划的广告组数，保证下一个计划的广告组下标连续
+      adGroupGlobalIdx += adGroupCount;
       tableData.campaignList.push(campaign);
     }
 

@@ -7,12 +7,12 @@
  *
  * 参考 bytedance/MarketingProductDouyinTemplate.vue 模式
  */
-import { Col, Row } from "ant-design-vue";
-import { computed, markRaw } from "vue";
+import { Col, message, Row } from "ant-design-vue";
+import { computed, markRaw, watch } from "vue";
 
-import StdProjectForm from "../StdProjectForm.vue";
-import AwemeConfigCard
-  from "#/views/marketing/creation/components/aweme/AwemeConfigCard.vue";
+import { bytedanceAdvertisementApi } from "#/api/core";
+import StdProject from "../StdProject.vue";
+import AwemeConfigCard from "#/views/marketing/creation/components/aweme/AwemeConfigCard.vue";
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
@@ -21,6 +21,8 @@ import TimeSelectionPeriod
   from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
 import ProductImageButtonField
   from "#/views/marketing/creation/bytedance/components/ProductImageButtonField.vue";
+import DpaProductButtonField
+  from "#/views/marketing/creation/bytedance/components/DpaProductButtonField.vue";
 import type {
   AudienceConfigData,
   AwemeConfigData,
@@ -33,8 +35,8 @@ import type {
   StdProjectData
 } from "#/views/marketing/creation/bytedance_std/bytedance";
 import {
-  Bytedance_delivery_medium,
-  BytedanceCampaign_ad_type, BytedanceCampaign_app_promotion_type,
+  BytedanceCampaign_ad_type,
+  BytedanceCampaign_app_promotion_type,
   BytedanceCampaign_bid_type,
   BytedanceCampaign_deep_bid_type,
   BytedanceCampaign_delivery_type,
@@ -43,7 +45,6 @@ import {
   BytedanceCampaign_external_action,
   BytedanceCampaign_landing_page_stay_time,
   BytedanceCampaign_landing_type,
-  BytedanceCampaign_launch_type,
   BytedanceCampaign_marketing_goal,
   BytedanceCampaign_pricing,
   BytedanceCampaign_promotion_type,
@@ -59,11 +60,11 @@ import {
 
 const emit = defineEmits([
   "update:project",
-  "update:audiencePackage",
   "update:updateMaterial",
   "update:titlePackage",
   "update:landingPage",
-  "update:awemeConfig"
+  "update:awemeConfig",
+  "update:audiencePackage"
 ]);
 
 const { creationInfo } = defineProps({
@@ -100,6 +101,35 @@ function updateAwemeConfig(awemeConfig: AwemeConfigData) {
 /** 是否投放身份为抖音号（native_type=AWEME）—— 决定抖音号配置区是否可配置 */
 const isAweme = computed(() => creationInfo?.configData.project.native_type !== "AWEME");
 
+// ==================== 资产ID自动匹配 ====================
+// app_name（应用名称）与资产列表中的 asset_name 匹配时，自动回填 asset_id
+watch(
+  () => [creationInfo?.configData.project?.app_name, creationInfo?.project?.projectName],
+  async ([appName, projectName]) => {
+    const matchName = appName || projectName;
+    // 无匹配名称或 asset_id 已存在时跳过
+    if (!matchName || creationInfo?.configData.project?.asset_id) return;
+    const advertiserIds = (creationInfo?.accountInfo || []).map((a) => a.localAdvertiserId);
+    if (!advertiserIds.length) return;
+    const assets = await bytedanceAdvertisementApi.fetchBytedanceAssertsList({
+      advertiserId: advertiserIds,
+      projectId: creationInfo?.project?.projectId || ""
+    });
+    if (!assets) {
+      message.error("当前账户无资产配置请先在巨量后台创建或共享资产")
+      return
+    }
+    const matched = assets[0];
+    if (matched && !creationInfo?.configData.project?.asset_id) {
+      emit("update:project", {
+        ...creationInfo?.configData.project,
+        asset_id: matched.asset_id
+      });
+    }
+  },
+  { immediate: true }
+);
+
 // ==================== App推广模板表单字段 ====================
 const projectFormFields = [
   // -- 基本信息 --
@@ -112,7 +142,11 @@ const projectFormFields = [
   {
     component: "Select", fieldName: "delivery_mode",
     componentProps: { options: DeliveryMode },
-    label: "投放模式", defaultValue: "PROCEDURAL"
+    label: "投放模式", defaultValue: "PROCEDURAL",
+    dependencies: {
+      show: false,
+      triggerFields: ["8"]
+    }
   },
   {
     component: "Select", fieldName: "landing_type",
@@ -124,19 +158,20 @@ const projectFormFields = [
     }
   },
   {
-   component: "Select",
-   fieldName: "app_promotion_type",
-   componentProps: {
-     options: BytedanceCampaign_app_promotion_type
-   },
-    defaultValue: "DOWNLOAD",
+    component: "Select",
+    fieldName: "app_promotion_type",
+    label: "子目标",
+    componentProps: {
+      options: BytedanceCampaign_app_promotion_type
+    },
+    defaultValue: "DOWNLOAD"
   },
 
-  {
-    component: "Select", fieldName: "delivery_medium",
-    componentProps: { options: Bytedance_delivery_medium },
-    label: "投放身份", rules: "required", defaultValue: "APP"
-  },
+  // {
+  //   component: "Select", fieldName: "delivery_medium",
+  //   componentProps: { options: Bytedance_delivery_medium },
+  //   label: "投放身份", rules: "required", defaultValue: "APP"
+  // },
 
   {
     component: "Select", fieldName: "native_type",
@@ -170,6 +205,7 @@ const projectFormFields = [
     fieldName: "external_action",
     label: "转化目标",
     rules: "required",
+    defaultValue: "AD_CONVERT_TYPE_ACTIVE",
     componentProps: {
       options: BytedanceCampaign_external_action,
       placeholder: "请选择转化目标",
@@ -186,19 +222,20 @@ const projectFormFields = [
       placeholder: "请选择深度转化目标",
       allowClear: true,
       showSearch: true
-    }
+    },
+    defaultValue: "AD_CONVERT_TYPE_NEXT_DAY_OPEN"
   },
   {
     component: "Select", fieldName: "deep_bid_type",
     componentProps: { options: BytedanceCampaign_deep_bid_type },
-    label: "深度优化方式", defaultValue: "DEEP_BID_DEFAULT"
+    label: "深度优化方式", defaultValue: "DEEP_BID_MIN"
   },
 
   // -- App下载设置（App模板特有） --
   {
     component: "Select", fieldName: "download_type",
     componentProps: { options: BytedanceCampaign_download_type },
-    label: "下载类型", defaultValue: "DOWNLOAD_URL",
+    label: "下载类型", defaultValue: "DOWNLOAD_URL"
   },
   {
     component: "Select", fieldName: "download_mode",
@@ -220,11 +257,11 @@ const projectFormFields = [
       show: false, triggerFields: ["*"]
     }, defaultValue: `${creationInfo.project.projectName}`
   },
-  {
-    component: "Select", fieldName: "launch_type",
-    componentProps: { options: BytedanceCampaign_launch_type },
-    label: "调起类型", defaultValue: "DIRECT_OPEN"
-  },
+  // {
+  //   component: "Select", fieldName: "launch_type",
+  //   componentProps: { options: BytedanceCampaign_launch_type },
+  //   label: "调起类型", defaultValue: "DIRECT_OPEN"
+  // },
   {
     component: "Select", fieldName: "promotion_type",
     componentProps: { options: BytedanceCampaign_promotion_type },
@@ -237,20 +274,64 @@ const projectFormFields = [
       show: (currentVal: Record<string, any>) => {
         return currentVal["app_promotion_type"] === "RESERVE";
       },
+      triggerFields: ["app_promotion_type"]
+    },
+    label: "预约链接"
+  },
+  {
+    component: "Select",
+    fieldName: "asset_id",
+    label: "资产ID",
+    dependencies: {
+      show: false,
       triggerFields: ["*"]
     }
+  },
+
+  // -- 商品选择 --
+  // 是否选择关联商品（控制 DPA 商品选择按钮显隐）
+  {
+    component: "Select", fieldName: "related_product_enabled",
+    componentProps: {
+      options: [
+        { label: "否", value: "NO" },
+        { label: "是", value: "YES" }
+      ]
+    },
+    label: "关联商品", defaultValue: "NO"
+  },
+  // DPA商品选择按钮 — 由 StdProjectDrawer 动态注入 dpaContext / openDpaModal
+  {
+    component: markRaw(DpaProductButtonField),
+    fieldName: "dpa_product_button",
+    label: "投放商品",
+    componentProps: {},
+    dependencies: {
+      show: (cv: Record<string, any>) => cv["related_product_enabled"] === "YES",
+      triggerFields: ["related_product_enabled"]
+    }
+  },
+
+  // 商品库信息
+  {
+    component: "Input",
+    fieldName: "product_id",
+    dependencies: {
+      show: false,
+      triggerFields: ["*"]
+    },
+    label: "商品ID"
   },
 
   {
-    component: "Input", fieldName: "download_url",
+    component: "Input",
+    fieldName: "product_platform_id",
     dependencies: {
-      show: (currentVal: Record<string, any>) => {
-        return currentVal["app_promotion_type"] === "DOWNLOAD";
-      },
+      show: false,
       triggerFields: ["*"]
-    }
+    },
+    label: "通用版商品库ID"
   },
-
 
 
   // -- 排期 --
@@ -312,8 +393,18 @@ const projectFormFields = [
     }
   },
   {
-    component: "InputNumber", fieldName: "bid",
-    label: "出价", defaultValue: 0, rules: "required", help: "范围 0.2-999"
+    component: "InputNumber",
+    fieldName: "cpa_bid",
+    label: "出价",
+    defaultValue: 0,
+    rules: "required", help: "范围 0.2-999"
+  },
+
+  {
+    component: "InputNumber",
+    fieldName: "deep_cpabid",
+    label: "深度出价",
+    defaultValue: 0,
   },
   {
     component: "InputNumber", fieldName: "roi_goal",
@@ -343,6 +434,7 @@ const projectFormFields = [
   {
     component: markRaw(ProductImageButtonField),
     fieldName: "product_image_button",
+    rules: "required",
     label: "产品主图"
   },
   {
@@ -362,7 +454,6 @@ const projectFormFields = [
     componentProps: { options: BytedancePromotion_is_comment_disable },
     label: "评论管理", defaultValue: "OFF"
   },
-  { component: "Input", fieldName: "source", label: "来源" },
   {
     component: "Select", fieldName: "anchor_related_type",
     componentProps: { options: BytedancePromotion_anchor_related_type },
@@ -387,7 +478,7 @@ const projectFormFields = [
     fieldName: "auto_extend_traffic",
     defaultValue: "OFF",
     label: "智能拓流",
-    dependencies: {  },
+    dependencies: {},
     componentProps: {
       options: BytedancePromotion_is_comment_disable
     }
@@ -405,10 +496,16 @@ const projectFormFields = [
     dependencies: { show: false, triggerFields: ["*"] }
   },
   {
-    component: "Input",
+    component: "Select",
     fieldName: "audience_type",
-    defaultValue: "CUSTOM",
-    dependencies: { show: false, triggerFields: ["*"] }
+    defaultValue: "UNLIMITED",
+    label: "定向包类型",
+    componentProps: {
+      options: [
+        {label: "不限", value: "UNLIMITED"},
+        {label: "自定义", value: "CUSTOM"},
+      ]
+    },
   },
   {
     component: "Input",
@@ -422,10 +519,10 @@ const projectFormFields = [
 <template>
   <div class="std-app-template">
     <Row :gutter="16" class="equal-height-row">
-      <!-- 第1列：项目配置 + 定向包 + 抖音号配置 -->
+      <!-- 第1列：项目配置 + 抖音号配置 -->
       <Col :span="8" class="equal-height-col">
         <div class="combined-area">
-          <StdProjectForm
+          <StdProject
             :project="creationInfo?.configData.project"
             :audience="creationInfo?.configData.audience"
             :account-info="creationInfo.accountInfo"

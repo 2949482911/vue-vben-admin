@@ -113,12 +113,6 @@ export interface StdProjectData {
   instance_id: number;
 }
 
-export interface StdRelatedProduct {
-  product_setting: string;
-  product_platform_id: string;
-  product_id: string;
-  unique_product_id: string;
-}
 
 export interface StdKeyword {
   word: string;
@@ -150,7 +144,7 @@ export interface StdProjectMaterials {
   carousel_material_list: StdCarouselMaterial[];
   trial_play_material_list: StdTrialPlayMaterial[];
   instant_play_material_list: StdInstantPlayMaterial[];
-
+  source: string;
   // 产品信息
   product_info: StdProductInfo;
 

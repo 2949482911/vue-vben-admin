@@ -14,6 +14,7 @@ import { renderProjectTitle } from "#/utils/customName";
 const props = defineProps<{
   creationInfo: any,
   adList: Array<any>,
+  extraParams?: Record<string, any>
 }>();
 
 
@@ -86,9 +87,9 @@ const [Modal, modalApi] = useVbenModal({
       const platform = props.creationInfo?.platform || '';
 
       // 智擎版通过 extraParams.taskType=bytedance_std 区分提交接口
-      const extraParams: Record<string, any> = {};
-      if (platform === 'bytedance_std') {
-        extraParams.taskType = 'bytedance_std';
+      let extraParams: Record<string, any> = {};
+      if (props.extraParams) {
+        extraParams = props.extraParams;
       }
 
       const submitVals = {

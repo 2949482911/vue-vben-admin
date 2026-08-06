@@ -29,7 +29,7 @@ import {
   getBudgetModeCampaignLabel,
   getBudgetModePromotionLabel,
   getCampaignOperationLabel,
-  getDeliveryModeLabel,
+  getDeliveryModeLabel, getExternalActionLabel,
   getLandingTypeLabel,
   getMarketingGoalLabel,
   getPricingLabel
@@ -112,12 +112,17 @@ export function getPreviewTableData(
     const campaignData = creationInfo.configData.campaign;
     const promotionData = creationInfo.configData.promotion;
 
+    // 广告全局下标：跨计划累计，避免每个计划内下标从 0 重置导致名字重复
+    let promotionGlobalIdx = 0;
+
     // 遍历生成项目
     for (let campaignIdx = 0; campaignIdx < campaignCount; campaignIdx++) {
       const promotionList: BytedancePromotion[] = [];
 
-      // 遍历生成广告
+      // 遍历生成广告（下标与外层关联：全局序号）
       for (let pIdx = 0; pIdx < promotionCount; pIdx++) {
+        const globalPIdx = promotionGlobalIdx + pIdx;
+
         // 获取素材
         const materialList: Material[] = getMaterial(
           creationInfo.configData.material.config.method,
@@ -125,15 +130,15 @@ export function getPreviewTableData(
           advertiserId
         );
 
-        // 获取标题包
+        // 获取标题包（按全局广告序号轮询）
         const titlePackage: TitlePackageItem = getTiltePackage(
           creationInfo.configData.titlePackage.config.method,
           creationInfo.configData.titlePackage.data,
           advertiserId,
-          pIdx
+          globalPIdx
         );
 
-        const material = materialList[pIdx % materialList.length];
+        const material = materialList[globalPIdx % materialList.length];
         const videoIds = (material?.video || []).map((v) => v.localMaterialId);
         const imageIds = (material?.image || []).map((i) => i.localMaterialId);
 
@@ -217,7 +222,7 @@ export function getPreviewTableData(
         const awemeId = getAwemeId(
           creationInfo.configData.awemeConfig,
           advertiserId,
-          pIdx,
+          globalPIdx,
         );
 
         const promotion: BytedancePromotion = {
@@ -227,7 +232,7 @@ export function getPreviewTableData(
           project_id: "",
           name: renderProjectTitle(
             promotionData.name,
-            pIdx,
+            globalPIdx,
             creationInfo.project.projectName
           ),
           operation: promotionData.operation,
@@ -258,6 +263,9 @@ export function getPreviewTableData(
 
         promotionList.push(promotion);
       }
+
+      // 外层累计本计划的广告数，保证下一个计划的广告下标连续
+      promotionGlobalIdx += promotionCount;
 
       const audience = getAudience(
         creationInfo.configData.audience.config.method,
@@ -406,8 +414,8 @@ function flattenData(campaignList: BytedanceCampaign[]): any[] {
 
         // 商品 & 优化目标
         productId: campaign.related_product?.product_id || '',
-        optimizeGoal: campaign.optimize_goal?.external_action || '',
-        deepOptimizeGoal: campaign.optimize_goal?.deep_external_action || '',
+        optimizeGoal: getExternalActionLabel(campaign.optimize_goal?.external_action) || '',
+        deepOptimizeGoal: getExternalActionLabel(campaign.optimize_goal?.deep_external_action )|| '',
         roiGoal: campaign.delivery_setting?.roi_goal || '',
 
         // 广告层级字段

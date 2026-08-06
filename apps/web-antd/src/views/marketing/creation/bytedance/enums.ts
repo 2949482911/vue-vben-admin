@@ -1184,7 +1184,7 @@ export const BytedanceCampaign_external_action = [
   { label: "分层表单", value: "AD_CONVERT_TYPE_FORM_DEEP" },
   { label: "激活且升级", value: "AD_CONVERT_TYPE_UPDATE_LEVEL" },
   { label: "激活且创建角色", value: "AD_CONVERT_TYPE_CREATE_GAMEROLE" },
-  { label: "激活且次留", value: "AD_CONVERT_TYPE_NEXT_DAY_OPEN" },
+  { label: "次留", value: "AD_CONVERT_TYPE_NEXT_DAY_OPEN" },
   { label: "无效线索", value: "AD_CONVERT_TYPE_INVALID_CLUE" },
   { label: "有意向客户", value: "AD_CONVERT_TYPE_INTENTION_CLUE" },
   { label: "高价值客户", value: "AD_CONVERT_TYPE_HIGH_VALUE_CLUE" },

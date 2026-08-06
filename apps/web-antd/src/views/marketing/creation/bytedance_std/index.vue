@@ -65,7 +65,7 @@ const currentTask = ref<{
   taskId: string;
   taskName: string;
   platform: string;
-  projectId: string
+  projectId: string;
 } | null>(null);
 const resultDrawerOpen = ref(false);
 const taskInProgress = ref(false);
@@ -193,6 +193,10 @@ function resetCreationInfo() {
 }
 
 function genPreviewTableData() {
+  // 点击生成广告预览即开启新一轮配置，清空上个任务进度信息并隐藏「查看任务进度」按钮
+  currentTask.value = null;
+  taskInProgress.value = false;
+  resultDrawerOpen.value = false;
   adList.value = getPreviewTableData(creationInfo.value);
   console.log(adList.value);
 }
@@ -274,6 +278,7 @@ const creationInfo = ref<StdCreation>({
       product_id: "",
       product_platform_id: "",
       project_materials: {
+        source:"",
         advanced_dc_settings: [],
         anchor_material_list: [],
         anchor_related_type: "",
@@ -532,6 +537,7 @@ watch(() => creationInfo, (_) => {
 
       <!-- 提交弹窗：extraParams 传递 taskType=bytedance_std -->
       <SubmitModal
+        :extra-params="{'taskType': 'bytedance_std'}"
         :creation-info="creationInfo"
         :ad-list="adList"
         @result:getCreationTask="handleTaskCreated"

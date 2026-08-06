@@ -10,11 +10,16 @@
  * - onConfirm: 还原嵌套对象，setData(project)
  */
 import { nextTick, reactive, ref } from 'vue';
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
+import MaterialSelector from '#/views/marketing/creation/components/material/MaterialSelector.vue';
+import DpaProductModal from '#/views/marketing/creation/bytedance/components/DpaProductModal.vue';
 import type { AccountInfo } from '#/views/marketing/creation/creation';
 import type { StdProjectData } from '../bytedance';
-import type { BytedanceEventManagerOptimizedGoalGetGoal } from '#/api/models/bytedance';
+import type {
+  BytedanceDpaProductListItem,
+  BytedanceEventManagerOptimizedGoalGetGoal,
+} from '#/api/models/bytedance';
 import { bytedanceAdvertisementApi } from '#/api/core';
 
 const props = defineProps({
@@ -26,11 +31,6 @@ const props = defineProps({
     type: Array as () => AccountInfo[],
     default: () => [],
   },
-});
-
-/** 产品主图选中上下文（供 ProductImageButtonField 使用） */
-const productImageContext = reactive<{ selectedIds: string[] }>({
-  selectedIds: [],
 });
 
 const [Form, formApi] = useVbenForm({
@@ -67,6 +67,83 @@ const [Form, formApi] = useVbenForm({
     // }
   },
 });
+
+// ==================== 产品主图选择器（对齐 BytedancePromotionDrawer） ====================
+
+/**
+ * 产品主图素材选择器模态框
+ * 仅选择图片、多选模式
+ */
+const [ProductImageModal, productImageModalApi] = useVbenModal({
+  connectedComponent: MaterialSelector,
+});
+
+/** 当前已选的产品主图 image_ids，用于回显到素材选择器 */
+const currentProductImageIds = ref<string[]>([]);
+
+/**
+ * 打开产品主图素材选择器
+ * 注入 materialType='image' 限制只选图片，preSelectedIds 回显已选素材
+ */
+function openProductImageModal() {
+  productImageModalApi.setData({
+    materialType: 'image',
+    preSelectedIds: currentProductImageIds.value,
+  });
+  productImageModalApi.open();
+}
+
+/**
+ * 素材选择器确认回调：接收选中的图片素材，更新表单 v-model 绑定的 product_image_button 字段
+ */
+function onProductImageSelected(selectedMaterials: Array<{ id: string; name: string }>, _groupIndex?: number) {
+  const imageIds = selectedMaterials.map((m) => String(m.id));
+  currentProductImageIds.value = imageIds;
+  // 通过 formApi 更新 product_image_button 字段，触发 v-model → ProductImageButtonField 自动展示已选数量
+  formApi.setValues({ product_image_button: imageIds });
+}
+
+// ==================== DPA 商品选择（对齐 BytedanceCampaignDrawer） ====================
+
+/** 已选中的 DPA 商品信息（响应式对象，通过 schema.componentProps 注入到 DpaProductButtonField） */
+const dpaContext = reactive<{ selectedProduct: BytedanceDpaProductListItem | null }>({
+  selectedProduct: null,
+});
+
+/** DPA 商品选择弹窗 */
+const [DpaProductModalModule, dpaModalApi] = useVbenModal({
+  connectedComponent: DpaProductModal,
+  onOpenChange(isOpen) {
+    if (!isOpen) {
+      const data = dpaModalApi.getData();
+      if (data?.selectedProduct !== undefined) {
+        dpaContext.selectedProduct = data.selectedProduct;
+        if (data.selectedProduct) {
+          // 智擎版：回调设置到顶层 product_id（商品ID）/ product_platform_id（商品库ID）
+          formApi.setValues({
+            product_id: String(data.selectedProduct.product_id),
+            product_platform_id: String(data.selectedProduct.platform_id),
+          });
+        } else {
+          formApi.setValues({
+            product_id: '',
+            product_platform_id: '',
+          });
+        }
+      }
+    }
+  },
+});
+
+/** 打开 DPA 商品选择弹窗 */
+function openDpaModal() {
+  dpaModalApi.setData({
+    advertiserIds: props.accountInfo.map((a) => a.localAdvertiserId),
+    initialProduct: dpaContext.selectedProduct,
+    selectedProduct: undefined,
+  });
+  dpaModalApi.open();
+}
 
 // 上次值记录（用于级联判断）
 const lastLandingType = ref('');
@@ -154,10 +231,13 @@ const [Drawer, drawerApi] = useVbenDrawer({
       formApi.setState({ schema: props.formFields });
       await nextTick();
 
-      // 动态注入产品主图回调
+      // 动态注入产品主图/DPA商品选择回调
       const schemaWithImage = (props.formFields as any[]).map((f: any) => {
         if (f.fieldName === 'product_image_button') {
-          return { ...f, componentProps: { productImageContext } };
+          return { ...f, componentProps: { openProductImageModal } };
+        }
+        if (f.fieldName === 'dpa_product_button') {
+          return { ...f, componentProps: { dpaContext, openDpaModal } };
         }
         return f;
       });
@@ -167,6 +247,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
       // 平铺嵌套字段
       const flattenedData = {
         ...project,
+        // 产品主图：通过 v-model 的 product_image_button 字段管理（防御非数组值）
+        product_image_button: Array.isArray(project.project_materials?.product_info?.image_ids)
+          ? project.project_materials.product_info.image_ids
+          : [],
         project_materials_product_info_titles:
           project.project_materials?.product_info?.titles,
         project_materials_product_info_selling_points:
@@ -176,6 +260,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         yuntu_category_id: project.brand_info?.yuntu_category_id,
         cdp_brand_id: project.brand_info?.cdp_brand_id,
         cdp_brand_name: project.brand_info?.cdp_brand_name,
+        project_materials_source: project.project_materials.source
       };
 
       // 过滤 falsy 值：只在值有效时才传入表单，让 schema defaultValue 生效
@@ -192,9 +277,21 @@ const [Drawer, drawerApi] = useVbenDrawer({
       ];
       nestedKeys.forEach((k) => delete filteredData[k]);
 
-      // 回显产品主图
-      productImageContext.selectedIds =
-        project.project_materials?.product_info?.image_ids || [];
+      // 同步当前已选主图 ID，用于打开素材选择器时回显（防御非数组值）
+      const rawImageIds = project.project_materials?.product_info?.image_ids;
+      currentProductImageIds.value = Array.isArray(rawImageIds) ? rawImageIds.map(String) : [];
+
+      // 回显 DPA 已选商品（数据仅存 ID，名称等信息无法恢复）
+      if (project.product_id) {
+        dpaContext.selectedProduct = {
+          product_id: Number(project.product_id) || 0,
+          platform_id: Number(project.product_platform_id) || 0,
+          name: '',
+          title: '',
+        } as unknown as BytedanceDpaProductListItem;
+      } else {
+        dpaContext.selectedProduct = null;
+      }
 
       await formApi.setValues(filteredData);
 
@@ -216,9 +313,11 @@ const [Drawer, drawerApi] = useVbenDrawer({
     const isValidate = await formApi.validate();
     if (!isValidate.valid) return;
     const currentValues = await formApi.getValues();
+    // @ts-ignore
     const project: StdProjectData = {
       ...currentValues,
       project_materials: {
+        source: currentValues.project_materials_source,
         local_video_material_list: [],
         local_image_material_list: [],
         video_material_list: [],
@@ -229,9 +328,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
         instant_play_material_list: [],
         product_info: {
           titles: currentValues.project_materials_product_info_titles || [],
-          image_ids: productImageContext.selectedIds || [],
+          // 产品主图：v-model 的 product_image_button 字段即 image_ids
+          image_ids: Array.isArray(currentValues.product_image_button)
+            ? currentValues.product_image_button
+            : [],
           selling_points: currentValues.project_materials_product_info_selling_points || [],
-          local_material_image_ids: productImageContext.selectedIds || []
+          local_material_image_ids: Array.isArray(currentValues.product_image_button)
+            ? currentValues.product_image_button
+            : []
         },
         anchor_related_type: currentValues.anchor_related_type || "OFF",
         anchor_material_list: [],
@@ -304,5 +408,11 @@ const [Drawer, drawerApi] = useVbenDrawer({
     <Drawer title="智擎项目配置">
       <Form />
     </Drawer>
+
+    <!-- 产品主图素材选择器 -->
+    <ProductImageModal @update:material="onProductImageSelected" />
+
+    <!-- DPA 商品选择弹窗 -->
+    <DpaProductModalModule />
   </div>
 </template>

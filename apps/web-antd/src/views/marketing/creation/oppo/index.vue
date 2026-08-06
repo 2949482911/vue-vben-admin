@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Page, useVbenModal } from "@vben/common-ui";
-import { Card, message, Select } from "ant-design-vue";
+import { Card, Drawer, message, Select } from "ant-design-vue";
 import ConfigurationConfig from "../components/configurationArea.vue";
 import { ref, watch } from "vue";
 import type {
@@ -34,6 +34,8 @@ import QuickAppTemplate from "#/views/marketing/creation/oppo/components/quickap
 import Function from "#/views/marketing/creation/components/Function.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
+import BatchTaskResultDrawer
+  from "#/views/marketing/creation/components/result/BatchTaskResultDrawer.vue";
 import OppoPreviewArea from "#/views/marketing/creation/oppo/components/OppoPreviewArea.vue";
 
 const OPPO_MARKETING_TYPE = [
@@ -162,7 +164,56 @@ function updateLandingPage(landingPage: PageViewConfigData) {
   creationInfo.value.configData.landingPage = landingPage;
 }
 
+// ==================== 批投任务结果跟踪 ====================
+/** 当前正在执行的批投任务信息 */
+const currentTask = ref<{ taskId: string; taskName: string; platform: string; projectId: string } | null>(null);
+/** 结果抽屉开关 */
+const resultDrawerOpen = ref(false);
+/** 是否有进行中的任务（控制工具栏「查看任务进度」按钮显隐） */
+const taskInProgress = ref(false);
+
+/**
+ * 提交成功回调 - 自动打开结果抽屉
+ */
+function handleTaskCreated(data: { taskId: string; taskName: string }) {
+  currentTask.value = {
+    taskId: data.taskId,
+    taskName: data.taskName,
+    platform: creationInfo.value.platform,
+    projectId: creationInfo.value.project.projectId,
+  };
+  taskInProgress.value = true;
+  resultDrawerOpen.value = true;
+}
+
+/**
+ * 查看任务进度（从工具栏按钮触发）
+ */
+function viewTaskProgress() {
+  if (currentTask.value) {
+    resultDrawerOpen.value = true;
+  }
+}
+
+/**
+ * 抽屉关闭回调
+ */
+function onResultDrawerClose() {
+  resultDrawerOpen.value = false;
+}
+
+/**
+ * 任务完成回调（由 BatchTaskResultDrawer emit）
+ */
+function onTaskCompleted(_status: number) {
+  // 任务执行完毕，按钮在任务完成后仍然显示（用户可能需要查看结果），但不再标记为进行中
+}
+
 function genPreviewTableData() {
+  // 点击生成广告预览即开启新一轮配置，清空上个任务进度信息并隐藏「查看任务进度」按钮
+  currentTask.value = null;
+  taskInProgress.value = false;
+  resultDrawerOpen.value = false;
   adList.value = getPreviewTableData(creationInfo.value);
 }
 
@@ -546,10 +597,12 @@ function resetCreationInfo() {
         <Function
           :account-info="creationInfo.accountInfo"
           :monitoring-link="creationInfo.configData.monitoringLink"
+          :task-in-progress="taskInProgress"
           @update:monitoring-link="updateMonitoringLink"
           @save:create-strategy-group="createStrategyGroup"
           @gen:ad-list="genPreviewTableData"
           @submit:create-batch="submitCreateBatch"
+          @view:task-progress="viewTaskProgress"
         />
       </Card>
 
@@ -562,9 +615,27 @@ function resetCreationInfo() {
       <SubmitModal
         :creation-info="creationInfo"
         :ad-list="adList"
-        @result:getCreationTask="(taskId: string) => { message.success(`任务已提交，任务ID: ${taskId}`); }"
+        @result:getCreationTask="handleTaskCreated"
         @result:error="(err: any) => { console.error(err); }"
       />
+
+      <!-- 批投任务结果抽屉 -->
+      <Drawer
+        :open="resultDrawerOpen"
+        title="批投任务执行结果"
+        :width="800"
+        @close="onResultDrawerClose"
+        :destroyOnClose="false"
+      >
+        <BatchTaskResultDrawer
+          v-if="currentTask"
+          :task-id="currentTask.taskId"
+          :task-name="currentTask.taskName"
+          :platform="currentTask.platform"
+          :project-id="currentTask.projectId"
+          @task-completed="onTaskCompleted"
+        />
+      </Drawer>
     </Page>
   </div>
 </template>

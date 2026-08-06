@@ -101,22 +101,11 @@ export function getPreviewTableData(
       );
       // 构建 project_materials
       const materials: StdProjectMaterials = {
+        source: projectData.project_materials.source,
         local_video_material_list: videoIds,
         local_image_material_list: imageIds,
-        video_material_list: (material?.video || []).map((v) => ({
-          video_id: v.localMaterialId,
-          video_cover_id: "",
-          image_mode: "",
-          video_template_type: "",
-          video_task_ids: [],
-          item_id: "",
-          video_hp_visibility: "HIDE_VIDEO_ON_HP",
-          guide_video_id: ""
-        })),
-        image_material_list: (material?.image || []).map((i) => ({
-          image_mode: "",
-          image_id: i.localMaterialId
-        })),
+        video_material_list: [],
+        image_material_list: [],
         title_material_list: titlePackage?.title
           ? [{ title: titlePackage.title, word_list: [] }]
           : [],
@@ -129,10 +118,10 @@ export function getPreviewTableData(
           selling_points: projectData.project_materials?.product_info?.selling_points || [],
           local_material_image_ids: projectData.project_materials?.product_info?.image_ids || []
         },
-        anchor_related_type: projectData.project_materials?.anchor_related_type || "OFF",
+        anchor_related_type: projectData.project_materials?.anchor_related_type,
         anchor_material_list: projectData.project_materials?.anchor_material_list || [],
         component_material_list: projectData.project_materials?.component_material_list || [],
-        external_url_material_list: [landingPageItem.config?.pageUrl || ""],
+        external_url_material_list: landingPageItem.config?.pageUrl ? [landingPageItem.config?.pageUrl] : [],
         web_url_material_list: projectData.project_materials?.web_url_material_list || [],
         open_url: projectData.project_materials?.open_url || "",
         open_urls: projectData.project_materials?.open_urls || [],
@@ -146,7 +135,7 @@ export function getPreviewTableData(
         dynamic_creative_switch: "",
         advanced_dc_settings: [],
         call_to_action_buttons: projectData.project_materials?.call_to_action_buttons || [],
-        intelligent_generation: projectData.project_materials?.intelligent_generation || "OFF",
+        intelligent_generation: projectData.project_materials?.intelligent_generation,
         params_type: "",
         external_url_field: "",
         external_url_params: "",
@@ -162,11 +151,12 @@ export function getPreviewTableData(
         pIdx
       );
 
+      //@ts-ignore
       const project: StdProject = {
         aigc_dynamic_creative_switch: "",
-        app_name: creationInfo.configData.project.app_name,
+        app_name: creationInfo.project.projectName,
         app_promotion_type: projectData.app_promotion_type,
-        asset_id: projectData.asset_id,
+        asset_id: creationInfo.configData.project.asset_id,
         asset_type: projectData.asset_type,
         audience_type: projectData.audience_type,
         auto_extend_traffic: projectData.auto_extend_traffic,
@@ -179,7 +169,7 @@ export function getPreviewTableData(
         delivery_medium: projectData.delivery_medium,
         download_mode: projectData.download_mode,
         download_type: projectData.download_type,
-        download_url: projectData.download_url,
+        download_url: creationInfo.project.downloadUrl || '',
         dpa_adtype: projectData.dpa_adtype,
         end_time: projectData.end_time,
         first_roi_goal: projectData.first_roi_goal,
@@ -188,7 +178,7 @@ export function getPreviewTableData(
         is_comment_disable: projectData.is_comment_disable,
         keywords: projectData.keywords,
         landing_page_stay_time: projectData.landing_page_stay_time,
-        launch_type: projectData.launch_type,
+        // launch_type: projectData.launch_type,
         layer_roi_switch: projectData.layer_roi_switch,
         live_duration: projectData.live_duration,
         micro_app_instance_id: projectData.micro_app_instance_id,
@@ -236,7 +226,7 @@ export function getPreviewTableData(
         track_url_setting: {
           action_track_url: [monitoringLink.clickLink],
           active_track_url: [],
-          send_type: "SERVER_SEND",
+          send_type: "",
           track_url: [monitoringLink.exposureLink],
           track_url_group_id: 0,
           track_url_type: "",
@@ -314,7 +304,7 @@ function flattenData(projectList: StdProject[]): any[] {
       projectStatus: getCampaignOperationLabel(project.operation),
 
       // 商品
-      // productId: project.related_product?.product_id || "",
+      productId: project?.product_id || "",
 
       // 素材信息
       displayMaterialInfo: `图片 ${imageCount}个, 视频 ${videoCount}个`,

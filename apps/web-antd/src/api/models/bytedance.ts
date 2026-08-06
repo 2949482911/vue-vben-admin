@@ -238,3 +238,25 @@ export interface BytedanceDpaClueProduct {
     target_url_universal_link: string;
   };
 }
+
+
+/**
+ * 巨量资产请求
+ */
+export interface BytedanceAssetsRequest {
+  advertiserId: Array<string>;
+  projectId: string;
+}
+
+/**
+ * 资产列表
+ */
+export interface BytedanceEventAllAssetsList {
+  asset_type: string;
+  asset_id: string;
+  asset_name: string;
+  share_type: string;
+  create_time: string;
+  modify_time: string;
+  app_force_info: string;
+}
