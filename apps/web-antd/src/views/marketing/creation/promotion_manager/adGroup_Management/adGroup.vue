@@ -4,8 +4,12 @@ import type { AdGroupItem } from '#/api/models';
 import { trimObject } from '#/utils/trim';
 import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
+import { $t } from '#/locales';
 import { Button, message } from 'ant-design-vue';
 import { buildApiFilters } from '../ad_management_filtering';
+import { AD_MANAGEMENT_PLATFORM_OPTIONS } from '../platformOptions';
+import BatchOperationDrawer from '../components/BatchOperationDrawer.vue';
+import BatchOperationDropdown from '../components/BatchOperationDropdown.vue';
 import adGroup_drawer from './adGroup_drawer.vue';
 
 const [AdGroupDrawer, adGroupDrawerApi] = useVbenDrawer({
@@ -18,6 +22,25 @@ async function viewDetails(row: AdGroupItem) {
   adGroupDrawerApi.open();
 }
 
+// 批量操作抽屉
+const [BatchOperationDrawerModule, batchOperationDrawerApi] = useVbenDrawer({
+  connectedComponent: BatchOperationDrawer,
+});
+
+function openBatchOperation(operationType: string) {
+  const rows = gridApi.grid.getCheckboxRecords() as AdGroupItem[];
+  if (rows.length === 0) {
+    message.warning($t('marketing.promotionManager.tips.selectRow'));
+    return;
+  }
+  batchOperationDrawerApi.setData({
+    operationType,
+    rows,
+    level: 'adgroup',
+  });
+  batchOperationDrawerApi.open();
+}
+
 const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
@@ -25,16 +48,10 @@ const formOptions: VbenFormProps = {
       component: 'Select',
       componentProps: {
         placeholder: '请选择',
-        options: [
-          {
-            label: 'vivo',
-            value: 'vivo',
-          },
-          {
-            label: 'oppo',
-            value: 'oppo',
-          },
-        ],
+        options: AD_MANAGEMENT_PLATFORM_OPTIONS,
+        allowClear: true,
+        showSearch: true,
+        mode: 'multiple',
       },
       fieldName: 'platform',
       label: '平台',
@@ -50,6 +67,7 @@ const formOptions: VbenFormProps = {
       componentProps: (formValues: Record<string, any>) => {
         const platform = formValues.platform;
         return {
+          mode: 'multiple',
           allowClear: true,
           showSearch: true,
           placeholder: '请选择账户',
@@ -234,6 +252,7 @@ defineExpose({ adGroup_pageReload });
     <Page auto-content-height>
       <Grid>
         <template #toolbar-tools>
+          <BatchOperationDropdown level="adgroup" @open="openBatchOperation" />
           <Button type="primary" @click="handleCustomExport"> 导出 </Button>
         </template>
         <template #action="{ row }">
@@ -242,6 +261,7 @@ defineExpose({ adGroup_pageReload });
       </Grid>
     </Page>
     <AdGroupDrawer class="w-[40%]" />
+    <BatchOperationDrawerModule @page-reload="adGroup_pageReload" />
   </div>
 </template>
 

@@ -45,6 +45,9 @@
     "title": "Marketing",
     "project": "Project",
     "platformAdvertiserLabel": "Advertiser Label",
+    "task_center": {
+      "title": "Task Center"
+    },
     "account": {
       "title": "Account",
       "advertiser": "Advertiser",

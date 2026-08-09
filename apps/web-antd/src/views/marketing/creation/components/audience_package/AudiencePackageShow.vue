@@ -44,6 +44,11 @@ function getMethodLabel(method: string): string {
             </div>
           </ListItem>
         </List>
+
+
+        <div class="card-footer">
+
+        </div>
       </Card>
     </template>
     <Alert v-else type="error" message="请选择定向包"></Alert>

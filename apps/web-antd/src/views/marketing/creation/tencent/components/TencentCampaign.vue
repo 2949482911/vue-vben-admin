@@ -1,10 +1,8 @@
 <script setup lang="ts" name="TencentCampaign">
 import type { AudienceConfigData } from "#/views/marketing/creation/creation";
-import AudiencePackageModal
-  from "#/views/marketing/creation/components/audience_package/AudiencePackageModal.vue";
 import { ref, watch } from "vue";
 import type { TencentCampaignData } from "#/views/marketing/creation/tencent/tencent";
-import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
+import { useVbenDrawer } from "@vben/common-ui";
 import TencentCampaignDrawer from "./TencentCampaignDrawer.vue";
 import { Platform } from "#/constants/enums";
 import type { AccountInfo } from "#/views/marketing/creation/creation";
@@ -15,8 +13,8 @@ import {
   Descriptions,
   DescriptionsItem,
 } from "ant-design-vue";
-import AudiencePackageShow
-  from "#/views/marketing/creation/components/audience_package/AudiencePackageShow.vue";
+import AudiencePackageSelector
+  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
 
 /**
  * update:campaign 更新计划信息
@@ -231,18 +229,6 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
   emit("update:audiencePackage", audienceConfigData);
 }
 
-
-//----------选择定向包-----------
-const [AudiencePackage, audiencePackageModalApi] = useVbenModal({
-  connectedComponent: AudiencePackageModal
-});
-
-
-function openAudiencePackage() {
-  audiencePackageModalApi.setData(audience);
-  audiencePackageModalApi.open();
-}
-
 </script>
 
 <template>
@@ -265,24 +251,15 @@ function openAudiencePackage() {
         </div>
       </Card>
 
-      <Card title="定向包" class="info-card">
-        <div class="card-content">
-          <AudiencePackageShow :audience="audience" />
-        </div>
-        <div class="card-footer">
-          <Button primary danger @click="openAudiencePackage">
-            添加定向包
-          </Button>
-        </div>
-      </Card>
+      <AudiencePackageSelector
+        :audience="audience"
+        :account-info="accountInfo"
+        :platform="Platform.TENCENT"
+        @update:audience="updateAudiencePackage"
+      />
     </div>
 
     <CampaignDrawerModule :form-fields="formFields" />
-
-    <AudiencePackage :account-info="accountInfo"
-                     :platform="Platform.TENCENT"
-                     @update:orientation="updateAudiencePackage"
-    />
   </div>
 </template>
 

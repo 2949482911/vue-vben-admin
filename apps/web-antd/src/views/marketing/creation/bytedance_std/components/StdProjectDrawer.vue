@@ -274,6 +274,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       const nestedKeys = [
         'project_materials', 'brand_info',
         'keywords', 'star_task_id_list', 'track_url_setting',
+        '_dpaProductInfo',
       ];
       nestedKeys.forEach((k) => delete filteredData[k]);
 
@@ -281,8 +282,11 @@ const [Drawer, drawerApi] = useVbenDrawer({
       const rawImageIds = project.project_materials?.product_info?.image_ids;
       currentProductImageIds.value = Array.isArray(rawImageIds) ? rawImageIds.map(String) : [];
 
-      // 回显 DPA 已选商品（数据仅存 ID，名称等信息无法恢复）
-      if (project.product_id) {
+      // 回显 DPA 已选商品：优先使用保存的完整商品信息 _dpaProductInfo，
+      // 旧数据/策略组预设无该字段时，用 product_id 兜底（名称等信息无法恢复）
+      if (project._dpaProductInfo) {
+        dpaContext.selectedProduct = project._dpaProductInfo;
+      } else if (project.product_id) {
         dpaContext.selectedProduct = {
           product_id: Number(project.product_id) || 0,
           platform_id: Number(project.product_platform_id) || 0,
@@ -316,6 +320,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
     // @ts-ignore
     const project: StdProjectData = {
       ...currentValues,
+      // DPA 商品完整信息（仅前端编辑回显用，不传给 API）
+      _dpaProductInfo: dpaContext.selectedProduct,
       project_materials: {
         source: currentValues.project_materials_source,
         local_video_material_list: [],

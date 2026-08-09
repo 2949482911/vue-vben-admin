@@ -2,15 +2,13 @@
 import {ref, watch} from 'vue';
 import {Card, Divider, Descriptions, DescriptionsItem, Alert, Button, Space} from 'ant-design-vue';
 import type {HuaWeiStoreAdgroupData} from "#/views/marketing/creation/huawei_store/huawei_store";
-import {useVbenDrawer, useVbenModal} from '@vben/common-ui';
+import {useVbenDrawer} from '@vben/common-ui';
 import HuaweiStoreSubTaskDrawer
   from "#/views/marketing/creation/huawei_store/components/HuaweiStoreSubTaskDrawer.vue";
-import AudiencePackageModal
-  from "#/views/marketing/creation/components/audience_package/AudiencePackageModal.vue";
 import type {AccountInfo, AudienceConfigData} from "#/views/marketing/creation/creation";
 import {Platform} from "#/constants/enums";
-import AudiencePackageShow
-  from "#/views/marketing/creation/components/audience_package/AudiencePackageShow.vue";
+import AudiencePackageSelector
+  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
 
 const emit = defineEmits(["update:adgroup", "update:audiencePackage"])
 
@@ -38,11 +36,6 @@ const {formFields, subTaskShowLabel, accountInfo, audience, adgroup, fieldLabelM
     default: null
   },
   fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
-});
-
-//----------选择定向包-----------
-const [AudiencePackage, audiencePackageModalApi] = useVbenModal({
-  connectedComponent: AudiencePackageModal,
 });
 
 // 广告组编辑弹窗
@@ -91,12 +84,6 @@ function openAdgroupDrawer() {
 
 // 定向包
 
-function openAudiencePackage() {
-  audiencePackageModalApi.setData(audience);
-  audiencePackageModalApi.open();
-}
-
-
 /**
  * 更新定向包
  */
@@ -126,23 +113,15 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
         </div>
       </Card>
 
-      <Card title="定向包" class="info-card">
-        <div class="card-content">
-          <AudiencePackageShow :audience="audience" />
-        </div>
-        <div class="card-footer">
-          <Button primary danger @click="openAudiencePackage">
-            添加定向包
-          </Button>
-        </div>
-      </Card>
+      <AudiencePackageSelector
+        :audience="audience"
+        :account-info="accountInfo"
+        :platform="Platform.HUAWEI_STORE"
+        @update:audience="updateAudiencePackage"
+      />
     </div>
 
     <AdgroupDrawerModule :form-fields="formFields"></AdgroupDrawerModule>
-    <AudiencePackage :account-info="accountInfo"
-                     :platform="Platform.HUAWEI_STORE"
-                     @update:orientation="updateAudiencePackage"
-    ></AudiencePackage>
   </div>
 </template>
 

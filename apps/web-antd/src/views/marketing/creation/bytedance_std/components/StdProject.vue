@@ -11,14 +11,12 @@
 import type { AccountInfo, AudienceConfigData } from "#/views/marketing/creation/creation";
 import type { StdProjectData } from "../bytedance";
 import { computed, ref, watch } from "vue";
-import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
+import { useVbenDrawer } from "@vben/common-ui";
 import StdProjectDrawer from "./StdProjectDrawer.vue";
-import AudiencePackageModal
-  from "#/views/marketing/creation/components/audience_package/AudiencePackageModal.vue";
 import { Platform } from "#/constants/enums";
 import { Alert, Button, Card, Descriptions, DescriptionsItem } from "ant-design-vue";
-import AudiencePackageShow
-  from "#/views/marketing/creation/components/audience_package/AudiencePackageShow.vue";
+import AudiencePackageSelector
+  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
 
 const emit = defineEmits(["update:project", "update:audiencePackage"]);
 
@@ -181,15 +179,6 @@ function openProjectDrawer() {
   drawerApi.open();
 }
 
-const [AudiencePackage, audiencePackageModalApi] = useVbenModal({
-  connectedComponent: AudiencePackageModal
-});
-
-function openAudiencePackage() {
-  audiencePackageModalApi.setData(audience);
-  audiencePackageModalApi.open();
-}
-
 function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
   emit("update:audiencePackage", audienceConfigData);
 }
@@ -222,26 +211,17 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
         </div>
       </Card>
 
-      <Card title="定向包" class="info-card">
-        <div class="card-content">
-          <AudiencePackageShow :audience="audience" />
-        </div>
-        <div class="card-footer">
-          <Button primary danger @click="openAudiencePackage" :disabled="isAudience">
-            添加定向包
-          </Button>
-        </div>
-      </Card>
+      <AudiencePackageSelector
+        :audience="audience"
+        :account-info="accountInfo"
+        :platform="Platform.BYTEDANCE"
+        :disabled="isAudience"
+        @update:audience="updateAudiencePackage"
+      />
     </div>
 
     <!-- formFields 通过 prop 传给 Drawer，与 BytedanceCampaign 一致 -->
     <ProjectDrawerModule :form-fields="formFields" :account-info="accountInfo" />
-
-    <AudiencePackage
-      :account-info="accountInfo"
-      :platform="Platform.BYTEDANCE"
-      @update:orientation="updateAudiencePackage"
-    />
   </div>
 </template>
 

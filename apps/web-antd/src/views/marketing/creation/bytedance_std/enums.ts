@@ -36,7 +36,6 @@ export {
   BytedanceCampaign_blue_flow_package_setting,
   BytedanceCampaign_product_setting,
   BytedanceCampaign_download_mode,
-  BytedanceCampaign_download_type,
   BytedanceCampaign_launch_type,
   BytedanceCampaign_promotion_type,
   BytedanceCampaign_open_url_type,
@@ -179,5 +178,25 @@ export const Bytedance_delivery_medium = [
   },{
     label: '抖音号',
     value: 'AWEME'
+  },
+]
+
+
+/**
+ * DOWNLOAD_URL 直接下载、EXTERNAL_URL 落地页下载
+ * EXTERNAL_URL 落地页调起、QUICK_APP_URL 直接调起
+ */
+export const BytedanceCampaign_download_type = [
+  {
+    label: '直接下载',
+    value: 'DOWNLOAD_URL',
+  },
+  {
+    label: '落地页下载',
+    value: 'EXTERNAL_URL',
+  },
+  {
+    label: '直接调起',
+    value: 'QUICK_APP_URL',
   },
 ]

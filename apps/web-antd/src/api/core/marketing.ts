@@ -52,10 +52,16 @@ import type {
   PageResult,
   PlatformMatchRequest,
   ProjectPageRequest,
+  PromotionUpdateRequest,
   ReportSubscriptionItem,
   ReportTemplate,
   StrategyGropType,
   SystemMetricPageRequest,
+  TaskBatchCenterDetailPageRequest,
+  TaskBatchCenterDetailItem,
+  TaskBatchCenterItem,
+  TaskBatchCenterListPageRequest,
+  TaskBatchCenterProgressResponse,
   templateListType,
   TitlePackItem,
   UpdateAdvertiserRequest,
@@ -609,6 +615,11 @@ class AdManagementApi extends BaseApi {
   fetchAdExport(params: AdManagementType) {
     return requestClient.post(this.getServiceUrl("export"), params);
   }
+
+  //创建批量操作任务（异步执行，返回批次ID）
+  fetchCreateBatch(params: PromotionUpdateRequest) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
+  }
 }
 
 export const aManagementApi = new AdManagementApi("/platform/promotion");
@@ -711,3 +722,27 @@ class MaterialPushApi extends BaseApi {
 
 
 export const materialPushApi: MaterialPushApi = new MaterialPushApi('/platform/material_push');
+
+/**
+ * 营销-任务中心
+ */
+class TaskCenterApi extends BaseApi {
+  /**任务中心列表（分页）*/
+  fetchGetTaskBatchCenterList(params: TaskBatchCenterListPageRequest) {
+    return requestClient.get<TaskBatchCenterItem[]>(this.getServiceUrl("list"), { params });
+  }
+
+  /**任务中心详情列表（分页，需传主任务taskId）*/
+  fetchGetTaskBatchCenterDetailList(params: TaskBatchCenterDetailPageRequest) {
+    return requestClient.get<TaskBatchCenterDetailItem[]>(this.getServiceUrl("detail"), { params });
+  }
+
+  /**任务进度详情（主表 + 子表明细）*/
+  fetchGetTaskProgress(taskId: string | number) {
+    return requestClient.get<TaskBatchCenterProgressResponse>(this.getServiceUrl("progress"), {
+      params: { taskId }
+    });
+  }
+}
+
+export const taskCenterApi = new TaskCenterApi("/platform/task_center");

@@ -1,10 +1,8 @@
 <script setup lang="ts" name="BytedanceCampaign">
 import type { AudienceConfigData } from '#/views/marketing/creation/creation';
-import AudiencePackageModal
-  from '#/views/marketing/creation/components/audience_package/AudiencePackageModal.vue';
 import { ref, watch } from 'vue';
 import type { BytedanceCampaignData } from '#/views/marketing/creation/bytedance/bytedance';
-import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
+import { useVbenDrawer } from '@vben/common-ui';
 import BytedanceCampaignDrawer from './BytedanceCampaignDrawer.vue';
 import { Platform } from '#/constants/enums';
 import type { AccountInfo } from '#/views/marketing/creation/creation';
@@ -15,8 +13,8 @@ import {
   Descriptions,
   DescriptionsItem,
 } from 'ant-design-vue';
-import AudiencePackageShow
-  from '#/views/marketing/creation/components/audience_package/AudiencePackageShow.vue';
+import AudiencePackageSelector
+  from '#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue';
 
 const emit = defineEmits(['update:campaign', 'update:audiencePackage']);
 
@@ -120,15 +118,6 @@ function openCampaignDrawer() {
 function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
   emit('update:audiencePackage', audienceConfigData);
 }
-
-const [AudiencePackage, audiencePackageModalApi] = useVbenModal({
-  connectedComponent: AudiencePackageModal,
-});
-
-function openAudiencePackage() {
-  audiencePackageModalApi.setData(audience);
-  audiencePackageModalApi.open();
-}
 </script>
 
 <template>
@@ -153,24 +142,15 @@ function openAudiencePackage() {
         </div>
       </Card>
 
-      <Card title="定向包" class="info-card">
-        <div class="card-content">
-          <AudiencePackageShow :audience="audience" />
-        </div>
-        <div class="card-footer">
-          <Button primary danger @click="openAudiencePackage">
-            添加定向包
-          </Button>
-        </div>
-      </Card>
+      <AudiencePackageSelector
+        :audience="audience"
+        :account-info="accountInfo"
+        :platform="Platform.BYTEDANCE"
+        @update:audience="updateAudiencePackage"
+      />
     </div>
 
     <CampaignDrawerModule :form-fields="formFields" :account-info="accountInfo" />
-
-    <AudiencePackage :account-info="accountInfo"
-                     :platform="Platform.BYTEDANCE"
-                     @update:orientation="updateAudiencePackage"
-    />
   </div>
 </template>
 

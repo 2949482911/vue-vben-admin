@@ -171,5 +171,107 @@
       "remark": "备注",
       "status": "状态"
     }
+  },
+  "taskCenter": {
+    "columns": {
+      "taskId": "任务ID",
+      "name": "任务名称",
+      "optionType": "操作类型",
+      "totalCount": "提交数量",
+      "successCount": "成功数量",
+      "failedCount": "失败数量",
+      "pendingCount": "待处理数量",
+      "taskStatus": "任务状态",
+      "progress": "进度",
+      "startTime": "开始时间",
+      "endTime": "结束时间",
+      "action": "操作",
+      "id": "ID",
+      "taskType": "任务类型",
+      "platform": "媒体",
+      "level": "层级",
+      "targetIds": "目标ID",
+      "requestParams": "请求参数",
+      "result": "执行结果",
+      "createTime": "记录时间",
+      "code": "响应码",
+      "message": "消息",
+      "requestId": "请求ID"
+    },
+    "optionType": {
+      "campaignBatchStart": "批量开启计划",
+      "deleteCampaign": "删除计划",
+      "deletePromotion": "删除广告",
+      "updateProjectStatus": "更新项目状态",
+      "updateProjectBudget": "更新项目预算",
+      "updateProjectRoi": "更新项目ROI"
+    },
+    "taskStatus": {
+      "pending": "待处理",
+      "processing": "处理中",
+      "completed": "已完成",
+      "failed": "失败"
+    },
+    "level": {
+      "campaign": "计划",
+      "adgroup": "广告组",
+      "promotion": "广告"
+    },
+    "result": {
+      "success": "成功",
+      "failed": "失败"
+    },
+    "viewDetail": "查看详情",
+    "detailTitle": "任务详情"
+  },
+  "promotionManager": {
+    "batchOperation": "批量操作",
+    "confirmDelete": "确认删除",
+    "selectedRows": "选中的数据",
+    "notImplemented": "该批量操作功能正在开发中，敬请期待",
+    "columns": {
+      "taskName": "任务名称",
+      "optionType": "操作类型",
+      "optStatus": "操作状态",
+      "budgetMode": "预算类型",
+      "budget": "预算金额",
+      "roiGoal": "ROI目标",
+      "campaignId": "计划ID",
+      "campaignName": "计划名称",
+      "platform": "平台"
+    },
+    "optionTypes": {
+      "updateStatus": "批量启停",
+      "updateBudget": "批量改预算",
+      "updateRoi": "批量改ROI",
+      "deleteCampaign": "批量删除计划",
+      "deletePromotion": "批量删除广告"
+    },
+    "status": {
+      "enable": "启用",
+      "disable": "暂停"
+    },
+    "budgetMode": {
+      "day": "日预算",
+      "total": "总预算",
+      "infinite": "不限"
+    },
+    "progress": {
+      "fetchError": "获取任务进度失败",
+      "submittedCount": "提交数量",
+      "successCount": "成功数量",
+      "failedCount": "失败数量",
+      "pendingCount": "待处理数量",
+      "resultDetail": "处理结果明细",
+      "success": "成功",
+      "failed": "失败"
+    },
+    "tips": {
+      "selectRow": "请先勾选需要操作的数据",
+      "selectOptionType": "请选择操作类型",
+      "submitSuccess": "批量操作已提交",
+      "taskId": "任务ID",
+      "selectedCount": "已选 {count} 条"
+    }
   }
 }

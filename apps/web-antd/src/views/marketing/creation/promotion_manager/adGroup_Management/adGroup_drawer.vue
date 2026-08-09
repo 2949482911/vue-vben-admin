@@ -13,6 +13,7 @@ const isTimeRendered = ref(false);
 const scheduleTimeValue = ref('1'.repeat(336));
 
 const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       // 1. 进来先强制卸载时间组件，清空可能残存的历史脏状态

@@ -5,6 +5,7 @@ import { useVbenForm } from '#/adapter/form';
 import { getAdFormSchema } from './public_adFormItem';
 
 const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const data = drawerApi.getData();

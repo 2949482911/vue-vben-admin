@@ -43,7 +43,6 @@ import {
   BytedanceCampaign_download_mode,
   BytedanceCampaign_download_type,
   BytedanceCampaign_external_action,
-  BytedanceCampaign_landing_page_stay_time,
   BytedanceCampaign_landing_type,
   BytedanceCampaign_marketing_goal,
   BytedanceCampaign_pricing,
@@ -100,6 +99,9 @@ function updateAwemeConfig(awemeConfig: AwemeConfigData) {
 
 /** 是否投放身份为抖音号（native_type=AWEME）—— 决定抖音号配置区是否可配置 */
 const isAweme = computed(() => creationInfo?.configData.project.native_type !== "AWEME");
+// 落地页选择
+const isPageView = computed(() => creationInfo.configData.project.download_type !== 'EXTERNAL_URL')
+
 
 // ==================== 资产ID自动匹配 ====================
 // app_name（应用名称）与资产列表中的 asset_name 匹配时，自动回填 asset_id
@@ -116,8 +118,8 @@ watch(
       projectId: creationInfo?.project?.projectId || ""
     });
     if (!assets) {
-      message.error("当前账户无资产配置请先在巨量后台创建或共享资产")
-      return
+      message.error("当前账户无资产配置请先在巨量后台创建或共享资产");
+      return;
     }
     const matched = assets[0];
     if (matched && !creationInfo?.configData.project?.asset_id) {
@@ -196,7 +198,11 @@ const projectFormFields = [
   {
     component: "Select", fieldName: "delivery_type",
     componentProps: { options: BytedanceCampaign_delivery_type },
-    label: "投放类型", defaultValue: "NORMAL"
+    label: "投放类型", defaultValue: "NORMAL",
+    dependencies: {
+      show: false,
+      triggerFields: ["*"]
+    }
   },
 
   // -- 优化目标（options 由 StdProjectDrawer 远程请求后注入） --
@@ -235,7 +241,7 @@ const projectFormFields = [
   {
     component: "Select", fieldName: "download_type",
     componentProps: { options: BytedanceCampaign_download_type },
-    label: "下载类型", defaultValue: "DOWNLOAD_URL"
+    label: "下载方式", defaultValue: "DOWNLOAD_URL"
   },
   {
     component: "Select", fieldName: "download_mode",
@@ -404,7 +410,7 @@ const projectFormFields = [
     component: "InputNumber",
     fieldName: "deep_cpabid",
     label: "深度出价",
-    defaultValue: 0,
+    defaultValue: 0
   },
   {
     component: "InputNumber", fieldName: "roi_goal",
@@ -412,17 +418,33 @@ const projectFormFields = [
   },
 
   // -- 落地页链接（App模板特有） --
-  { component: "Input", fieldName: "open_url", label: "直达链接" },
-  { component: "Input", fieldName: "ulink_url", label: "备用链接" },
+  {
+    component: "Input", fieldName: "open_url", label: "直达链接", dependencies: {
+      show: (currentVal: Record<string, any>) => {
+        return currentVal["app_promotion_type"] === "LAUNCH";
+      },
+      triggerFields: ["app_promotion_type"]
+    }
+  },
+  {
+    component: "Input", fieldName: "ulink_url", label: "备用链接",
+    dependencies: {
+      show: (currentVal: Record<string, any>) => {
+        return currentVal["app_promotion_type"] === "LAUNCH";
+      },
+      triggerFields: ["app_promotion_type"]
+    }
+  },
   {
     component: "Select", fieldName: "ulink_url_type",
     componentProps: { options: BytedanceCampaign_ulink_url_type },
-    label: "备用链接类型", defaultValue: "UNIVERSAL_LINK"
-  },
-  {
-    component: "Select", fieldName: "landing_page_stay_time",
-    componentProps: { options: BytedanceCampaign_landing_page_stay_time },
-    label: "店铺停留时长"
+    label: "备用链接类型", defaultValue: "UNIVERSAL_LINK",
+    dependencies: {
+      show: (currentVal: Record<string, any>) => {
+        return currentVal["app_promotion_type"] === "LAUNCH";
+      },
+      triggerFields: ["app_promotion_type"]
+    }
   },
 
   // -- 产品主图（App模板特有） --
@@ -502,10 +524,10 @@ const projectFormFields = [
     label: "定向包类型",
     componentProps: {
       options: [
-        {label: "不限", value: "UNLIMITED"},
-        {label: "自定义", value: "CUSTOM"},
+        { label: "不限", value: "UNLIMITED" },
+        { label: "自定义", value: "CUSTOM" }
       ]
-    },
+    }
   },
   {
     component: "Input",
@@ -554,6 +576,7 @@ const projectFormFields = [
       <Col :span="8" class="equal-height-col">
         <div class="combined-area">
           <PageViewSelector
+            :disabled="isPageView"
             :page-view="creationInfo.configData.landingPage"
             :account-info="creationInfo.accountInfo"
             @update:page-view="updateLandingPage"

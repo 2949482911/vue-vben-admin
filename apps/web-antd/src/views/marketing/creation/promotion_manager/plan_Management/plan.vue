@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { advertiserApi, aManagementApi } from '#/api';
-import type { CampaignItem } from '#/api/models';
-import { trimObject } from '#/utils/trim';
-import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { Button, message } from 'ant-design-vue';
-import { buildApiFilters } from '../ad_management_filtering';
-import plan_drawer from './plan_drawer.vue';
+import { advertiserApi, aManagementApi } from "#/api";
+import type { CampaignItem } from "#/api/models";
+import { trimObject } from "#/utils/trim";
+import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { $t } from "#/locales";
+import { Button, message, Space } from "ant-design-vue";
+import { buildApiFilters } from "../ad_management_filtering";
+import { AD_MANAGEMENT_PLATFORM_OPTIONS } from "../platformOptions";
+import BatchOperationDrawer from "../components/BatchOperationDrawer.vue";
+import BatchOperationDropdown from "../components/BatchOperationDropdown.vue";
+import plan_drawer from "./plan_drawer.vue";
 
 const [PlanDrawer, planDrawerApi] = useVbenDrawer({
   // 连接抽离的组件
-  connectedComponent: plan_drawer,
+  connectedComponent: plan_drawer
 });
 
 async function viewDetails(row: CampaignItem) {
@@ -18,40 +22,53 @@ async function viewDetails(row: CampaignItem) {
   planDrawerApi.open();
 }
 
+// 批量操作抽屉
+const [BatchOperationDrawerModule, batchOperationDrawerApi] = useVbenDrawer({
+  connectedComponent: BatchOperationDrawer,
+});
+
+function openBatchOperation(operationType: string) {
+  const rows = gridApi.grid.getCheckboxRecords() as CampaignItem[];
+  if (rows.length === 0) {
+    message.warning($t('marketing.promotionManager.tips.selectRow'));
+    return;
+  }
+  batchOperationDrawerApi.setData({
+    operationType,
+    rows,
+    level: "campaign"
+  });
+  batchOperationDrawerApi.open();
+}
+
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
-        placeholder: '请选择',
-        options: [
-          {
-            label: 'vivo',
-            value: 'vivo',
-          },
-          {
-            label: 'oppo',
-            value: 'oppo',
-          },
-        ],
+        placeholder: "请选择",
+        options: AD_MANAGEMENT_PLATFORM_OPTIONS,
+        allowClear: true,
+        showSearch: true,
+        mode: 'multiple',
       },
-      fieldName: 'platform',
-      label: '平台',
+      fieldName: "platform",
+      label: "平台"
     },
     {
-      component: 'ApiSelect',
+      component: "ApiSelect",
       dependencies: {
-        triggerFields: ['platform'],
+        triggerFields: ["platform"],
         trigger: (_values, { setFieldValue }) => {
-          setFieldValue('platform_account_id', undefined);
-        },
+          setFieldValue("platform_account_id", undefined);
+        }
       },
       componentProps: (formValues: Record<string, any>) => {
         const platform = formValues.platform;
         return {
           allowClear: true,
           showSearch: true,
-          placeholder: '请选择账户',
+          placeholder: "请选择账户",
           api: async (params: any) => {
             return await advertiserApi.fetchAdvertiserList(params);
           },
@@ -62,82 +79,83 @@ const formOptions: VbenFormProps = {
           params: {
             page: 1,
             pageSize: 10000,
-            platform: platform,
+            platform: platform
           },
-          valueField: 'advertiserId',
-          labelField: 'advertiserName',
-          resultField: 'items',
+          valueField: "advertiserId",
+          labelField: "advertiserName",
+          resultField: "items",
+          mode: 'multiple',
         };
       },
-      fieldName: 'platform_account_id',
-      label: '账户名称',
+      fieldName: "platform_account_id",
+      label: "账户名称"
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: '请输入',
+        placeholder: "请输入"
       },
-      fieldName: 'campaignName',
-      label: '计划名称',
+      fieldName: "campaignName",
+      label: "计划名称"
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: '请输入',
+        placeholder: "请输入"
       },
-      fieldName: 'campaignId',
-      label: '计划ID',
-    },
+      fieldName: "campaignId",
+      label: "计划ID"
+    }
   ],
   showCollapseButton: true,
-  submitOnEnter: false,
+  submitOnEnter: false
 };
 
 const gridOptions: VxeGridProps = {
   border: true,
   checkboxConfig: {
     highlight: true,
-    labelField: 'name',
+    labelField: "name"
   },
   columns: [
-    { title: '序号', type: 'seq', width: 50 },
+    { title: "序号", type: "checkbox", fixed: "left", width: "auto" },
     {
-      field: 'platform',
-      title: '平台',
+      field: "platform",
+      title: "平台"
     },
     {
-      field: 'advertiserId',
-      title: '账户ID',
+      field: "advertiserId",
+      title: "账户ID"
     },
     {
-      field: 'campaignName',
-      title: '计划名称',
+      field: "campaignName",
+      title: "计划名称"
     },
     {
-      field: 'campaignId',
-      title: '计划ID',
+      field: "campaignId",
+      title: "计划ID"
     },
     {
-      field: 'state',
-      title: 'state',
+      field: "state",
+      title: "state"
     },
     {
-      field: 'deleted',
-      title: 'deleted',
+      field: "deleted",
+      title: "deleted"
     },
     {
-      field: 'campaignCreateTime',
-      title: '计划创建时间',
+      field: "campaignCreateTime",
+      title: "计划创建时间"
     },
     {
-      field: 'options',
-      title: '操作',
-      fixed: 'right',
-      slots: { default: 'action' },
-      width: 'auto',
-    },
+      field: "options",
+      title: "操作",
+      fixed: "right",
+      slots: { default: "action" },
+      width: "auto"
+    }
   ],
-  height: 'auto',
+  height: "auto",
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
@@ -148,48 +166,48 @@ const gridOptions: VxeGridProps = {
           platform: 1,
           campaignId: 1,
           campaignName: 3,
-          platform_account_id: 1,
+          platform_account_id: 1
         };
 
         const filters = buildApiFilters(params, filterMap);
         const requestPayload: any = {
           page: page.currentPage,
           pageSize: page.pageSize,
-          level: 'campaign',
+          level: "campaign"
         };
 
         if (filters.length > 0) requestPayload.filters = filters;
 
         return await aManagementApi.fetchAdManagementList(requestPayload);
-      },
-    },
-  },
+      }
+    }
+  }
 };
 
 async function handleCustomExport() {
   const formValues = await gridApi.formApi.getValues();
 
   if (!formValues?.platform) {
-    message.warning('请先在搜索条件中选择“平台”筛选再进行下载！');
+    message.warning("请先在搜索条件中选择“平台”筛选再进行下载！");
     return;
   }
   const filterMap = {
     platform: 1,
     campaignId: 1,
     campaignName: 3,
-    platform_account_id: 1,
+    platform_account_id: 1
   };
 
   const filters = buildApiFilters(formValues, filterMap);
   const requestPayload: any = {
-    level: 'campaign',
+    level: "campaign"
   };
   if (filters.length > 0) requestPayload.filters = filters;
   try {
     await aManagementApi.fetchAdExport(requestPayload);
-    message.success('导出任务已提交！请前往「下载中心」查看并下载文件。');
+    message.success("导出任务已提交！请前往「下载中心」查看并下载文件。");
   } catch (err) {
-    console.log(err, 'err');
+    console.log(err, "err");
   }
 }
 
@@ -207,14 +225,18 @@ defineExpose({ plan_pageReload });
     <Page auto-content-height>
       <Grid>
         <template #toolbar-tools>
-          <Button type="primary" @click="handleCustomExport"> 导出 </Button>
+          <Space>
+            <BatchOperationDropdown level="campaign" @open="openBatchOperation" />
+            <Button type="primary" @click="handleCustomExport"> 导出</Button>
+          </Space>
         </template>
         <template #action="{ row }">
-          <Button type="link" @click="viewDetails(row)"> 详情 </Button>
+          <Button type="link" @click="viewDetails(row)"> 详情</Button>
         </template>
       </Grid>
     </Page>
     <PlanDrawer class="w-[40%]" />
+    <BatchOperationDrawerModule @page-reload="plan_pageReload" />
   </div>
 </template>
 

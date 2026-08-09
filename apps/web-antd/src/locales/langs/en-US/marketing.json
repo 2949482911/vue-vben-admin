@@ -105,5 +105,107 @@
       "quck_game": "Quck Game",
       "web_h5": "Web H5"
     }
+  },
+  "taskCenter": {
+    "columns": {
+      "taskId": "Task Id",
+      "name": "Task Name",
+      "optionType": "Option Type",
+      "totalCount": "Total Count",
+      "successCount": "Success Count",
+      "failedCount": "Failed Count",
+      "pendingCount": "Pending Count",
+      "taskStatus": "Task Status",
+      "progress": "Progress",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "action": "Action",
+      "id": "Id",
+      "taskType": "Task Type",
+      "platform": "Platform",
+      "level": "Level",
+      "targetIds": "Target Ids",
+      "requestParams": "Request Params",
+      "result": "Result",
+      "createTime": "Create Time",
+      "code": "Code",
+      "message": "Message",
+      "requestId": "RequestId"
+    },
+    "optionType": {
+      "campaignBatchStart": "Batch Start Campaign",
+      "deleteCampaign": "Delete Campaign",
+      "deletePromotion": "Delete Promotion",
+      "updateProjectStatus": "Update Project Status",
+      "updateProjectBudget": "Update Project Budget",
+      "updateProjectRoi": "Update Project ROI"
+    },
+    "taskStatus": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "level": {
+      "campaign": "Campaign",
+      "adgroup": "Ad Group",
+      "promotion": "Promotion"
+    },
+    "result": {
+      "success": "Success",
+      "failed": "Failed"
+    },
+    "viewDetail": "View Detail",
+    "detailTitle": "Task Detail"
+  },
+  "promotionManager": {
+    "batchOperation": "Batch Operation",
+    "confirmDelete": "Confirm Delete",
+    "selectedRows": "Selected Data",
+    "notImplemented": "This batch operation is under development, stay tuned",
+    "columns": {
+      "taskName": "Task Name",
+      "optionType": "Option Type",
+      "optStatus": "Operation Status",
+      "budgetMode": "Budget Mode",
+      "budget": "Budget",
+      "roiGoal": "ROI Goal",
+      "campaignId": "Campaign Id",
+      "campaignName": "Campaign Name",
+      "platform": "Platform"
+    },
+    "optionTypes": {
+      "updateStatus": "Batch Start/Stop",
+      "updateBudget": "Update Budget",
+      "updateRoi": "Update ROI",
+      "deleteCampaign": "Delete Campaign",
+      "deletePromotion": "Delete Promotion"
+    },
+    "status": {
+      "enable": "Enable",
+      "disable": "Disable"
+    },
+    "budgetMode": {
+      "day": "Daily Budget",
+      "total": "Total Budget",
+      "infinite": "Unlimited"
+    },
+    "progress": {
+      "fetchError": "Failed to get task progress",
+      "submittedCount": "Submitted",
+      "successCount": "Success",
+      "failedCount": "Failed",
+      "pendingCount": "Pending",
+      "resultDetail": "Result Details",
+      "success": "Success",
+      "failed": "Failed"
+    },
+    "tips": {
+      "selectRow": "Please select rows first",
+      "selectOptionType": "Please select option type",
+      "submitSuccess": "Batch operation submitted",
+      "taskId": "Task Id",
+      "selectedCount": "{count} selected"
+    }
   }
 }

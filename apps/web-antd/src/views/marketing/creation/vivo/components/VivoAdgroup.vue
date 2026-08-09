@@ -9,12 +9,9 @@ import type { AudienceConfigData, AccountInfo } from '#/views/marketing/creation
 import { useVbenDrawer } from '@vben/common-ui';
 import VivoAdgroupDrawer from './VivoAdgroupDrawer.vue';
 import { Alert, Button, Card, Descriptions, DescriptionsItem, message } from "ant-design-vue";
-import AudiencePackageModal
-  from '#/views/marketing/creation/components/audience_package/AudiencePackageModal.vue';
-import { useVbenModal } from '@vben/common-ui';
-import AudiencePackageShow
-  from '#/views/marketing/creation/components/audience_package/AudiencePackageShow.vue';
 import { Platform } from '#/constants/enums';
+import AudiencePackageSelector
+  from '#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue';
 
 /**
  * update:adgroup 更新广告组信息
@@ -185,18 +182,6 @@ function openAdgroupDrawer() {
 }
 
 //----------选择定向包-----------
-const [AudiencePackage, audiencePackageModalApi] = useVbenModal({
-  connectedComponent: AudiencePackageModal
-});
-
-function openAudiencePackage() {
-  if (!campaign.name) {
-    return;
-  }
-  audiencePackageModalApi.setData(audience);
-  audiencePackageModalApi.open();
-}
-
 function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
   emit('update:audiencePackage', audienceConfigData);
 }
@@ -230,23 +215,16 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
         </div>
       </Card>
 
-      <Card title="定向包" class="info-card">
-        <div class="card-content">
-          <AudiencePackageShow :audience="audience" />
-        </div>
-        <div class="card-footer">
-          <Button primary @click="openAudiencePackage">添加定向包</Button>
-        </div>
-      </Card>
+      <AudiencePackageSelector
+        :audience="audience"
+        :account-info="accountInfo"
+        :platform="Platform.VIVO"
+        :disabled="!campaign.name"
+        @update:audience="updateAudiencePackage"
+      />
     </div>
 
     <AdgroupDrawerModule :form-fields="formFields" />
-
-    <AudiencePackage
-      :account-info="accountInfo"
-      :platform="Platform.VIVO"
-      @update:orientation="updateAudiencePackage"
-    />
   </div>
 </template>
 

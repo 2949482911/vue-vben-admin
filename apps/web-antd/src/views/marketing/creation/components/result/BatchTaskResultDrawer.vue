@@ -11,7 +11,7 @@
  * 组件内部自动轮询 fetchVivoSubmitResult，任务完成后自动停止轮询。
  */
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { Alert, Descriptions, Empty, Progress, Tag } from 'ant-design-vue';
+import { Alert, Descriptions, Empty, Progress, Tag, Card } from 'ant-design-vue';
 import { Spinner } from '@vben/common-ui';
 import { creationTaskApi } from '#/api';
 
@@ -259,30 +259,31 @@ function formatTime(val?: string) {
       <Alert v-if="error" type="error" :message="error" show-icon class="mb-4" />
 
       <!-- 任务基本信息 -->
-      <Descriptions :column="2" size="small" bordered class="mb-4">
-        <Descriptions.Item label="任务ID">{{ taskId }}</Descriptions.Item>
-        <Descriptions.Item label="任务名称">{{ taskName || '-' }}</Descriptions.Item>
-        <Descriptions.Item label="所属平台">{{ platform || '-' }}</Descriptions.Item>
-        <Descriptions.Item label="项目ID">{{ projectId || '-' }}</Descriptions.Item>
-        <Descriptions.Item label="任务状态">
-          <Tag :color="statusMap[taskStatus]?.color">
-            {{ statusMap[taskStatus]?.text || '未知' }}
-          </Tag>
-        </Descriptions.Item>
-        <Descriptions.Item label="开始时间">
-          {{ formatTime(taskResult?.startTime) }}
-        </Descriptions.Item>
-        <Descriptions.Item label="结束时间">
-          {{ formatTime(taskResult?.endTime) }}
-        </Descriptions.Item>
-        <Descriptions.Item label="提交账户数">
-          {{ taskResult?.commitAdvertiserCount || 0 }}
-        </Descriptions.Item>
-      </Descriptions>
+      <Card title="任务信息" size="small" class="result-card">
+        <Descriptions :column="2" size="small" bordered>
+          <Descriptions.Item label="任务ID">{{ taskId }}</Descriptions.Item>
+          <Descriptions.Item label="任务名称">{{ taskName || '-' }}</Descriptions.Item>
+          <Descriptions.Item label="所属平台">{{ platform || '-' }}</Descriptions.Item>
+          <Descriptions.Item label="项目ID">{{ projectId || '-' }}</Descriptions.Item>
+          <Descriptions.Item label="任务状态">
+            <Tag :color="statusMap[taskStatus]?.color">
+              {{ statusMap[taskStatus]?.text || '未知' }}
+            </Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="开始时间">
+            {{ formatTime(taskResult?.startTime) }}
+          </Descriptions.Item>
+          <Descriptions.Item label="结束时间">
+            {{ formatTime(taskResult?.endTime) }}
+          </Descriptions.Item>
+          <Descriptions.Item label="提交账户数">
+            {{ taskResult?.commitAdvertiserCount || 0 }}
+          </Descriptions.Item>
+        </Descriptions>
+      </Card>
 
       <!-- 进度概览 -->
-      <div class="mb-4 rounded-md bg-gray-50 p-4 dark:bg-gray-800">
-        <div class="mb-2 text-sm font-medium">任务执行进度</div>
+      <Card title="任务执行进度" size="small" class="result-card">
         <Progress
           :percent="progressPercent"
           :status="taskStatus === 4 ? 'exception' : taskStatus === 3 ? 'success' : 'active'"
@@ -305,14 +306,13 @@ function formatTime(val?: string) {
             / {{ creativeStat.commit }}
           </div>
         </div>
-      </div>
+      </Card>
 
       <!-- 执行详情 -->
       <Empty v-if="taskResult && !hasResults && !loading" description="暂无执行结果数据" />
 
       <!-- 计划层结果 -->
-      <div v-if="campaignRows.length" class="mb-4">
-        <div class="mb-2 text-sm font-medium">计划（广告组）创建结果</div>
+      <Card v-if="campaignRows.length" title="计划创建结果" size="small" class="result-card">
         <div class="overflow-x-auto">
           <table class="min-w-full border text-xs">
             <thead class="bg-gray-50 dark:bg-gray-700">
@@ -337,11 +337,10 @@ function formatTime(val?: string) {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       <!-- 广告组层结果 -->
-      <div v-if="adGroupRows.length" class="mb-4">
-        <div class="mb-2 text-sm font-medium">广告组创建结果</div>
+      <Card v-if="adGroupRows.length" title="广告组创建结果" size="small" class="result-card">
         <div class="overflow-x-auto">
           <table class="min-w-full border text-xs">
             <thead class="bg-gray-50 dark:bg-gray-700">
@@ -368,11 +367,10 @@ function formatTime(val?: string) {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
 
       <!-- 广告/推广层结果 -->
-      <div v-if="promotionRows.length" class="mb-4">
-        <div class="mb-2 text-sm font-medium">广告（推广）创建结果</div>
+      <Card v-if="promotionRows.length" title="广告（推广）创建结果" size="small" class="result-card">
         <div class="overflow-x-auto">
           <table class="min-w-full border text-xs">
             <thead class="bg-gray-50 dark:bg-gray-700">
@@ -399,13 +397,34 @@ function formatTime(val?: string) {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </Spinner>
   </div>
 </template>
 
 <style scoped lang="scss">
 .batch-task-result-drawer {
+  // 各展示区域 Card：统一间距与圆角阴影，避免挤在一起
+  .result-card {
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    :deep(.ant-card-head) {
+      padding: 10px 16px;
+      min-height: auto;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    :deep(.ant-card-body) {
+      padding: 16px;
+    }
+  }
+
   :deep(.ant-descriptions-item-label) {
     width: 100px;
   }

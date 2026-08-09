@@ -1,11 +1,11 @@
 <script setup lang="ts" name="OppoAdgroup">
 import { ref, watch } from 'vue';
 import type { OppoAdgroupData } from '#/views/marketing/creation/oppo/Oppo.types';
-import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
+import { useVbenDrawer } from '@vben/common-ui';
 import OppoAdgroupDrawer from './OppoAdgroupDrawer.vue';
 import { Alert, Button, Card, Descriptions, DescriptionsItem } from 'ant-design-vue';
-import AudiencePackageModal from '#/views/marketing/creation/components/audience_package/AudiencePackageModal.vue';
-import AudiencePackageShow from '#/views/marketing/creation/components/audience_package/AudiencePackageShow.vue';
+import AudiencePackageSelector
+  from '#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue';
 import type {
   AccountInfo,
   AudienceConfigData,
@@ -106,21 +106,9 @@ function openAdgroupDrawer() {
 }
 
 // ---------- 选择定向包 ----------
-const [AudiencePackage, audiencePackageModalApi] = useVbenModal({
-  connectedComponent: AudiencePackageModal,
-});
-
 function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
   emit('update:audiencePackage', audienceConfigData);
 }
-
-function openAudiencePackage() {
-  audiencePackageModalApi.setData(audience);
-  audiencePackageModalApi.open();
-}
-
-
-
 </script>
 
 <template>
@@ -156,25 +144,15 @@ function openAudiencePackage() {
         </div>
       </Card>
 
-      <Card title="定向包" class="info-card">
-        <div class="card-content">
-          <AudiencePackageShow :audience="audience" />
-        </div>
-        <div class="card-footer">
-          <Button primary danger @click="openAudiencePackage">
-            添加定向包
-          </Button>
-        </div>
-      </Card>
+      <AudiencePackageSelector
+        :audience="audience"
+        :account-info="accountInfo"
+        :platform="Platform.OPPO"
+        @update:audience="updateAudiencePackage"
+      />
     </div>
 
     <AdgroupDrawerModule :form-fields="formFields" />
-
-    <AudiencePackage
-      :account-info="accountInfo"
-      :platform="Platform.OPPO"
-      @update:orientation="updateAudiencePackage"
-    />
   </div>
 </template>
 

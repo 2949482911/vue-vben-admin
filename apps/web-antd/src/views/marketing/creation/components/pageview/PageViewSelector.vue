@@ -1,27 +1,30 @@
 <script setup lang="ts" name="PageViewSelector">
 // 落地页选择组件 - 供后续全媒体批投公用
-import type {AccountInfo, PageViewConfigData} from '#/views/marketing/creation/creation';
-import {Alert, Button, Card} from 'ant-design-vue';
-import {useVbenDrawer} from '@vben/common-ui';
-import {ref, computed, watch} from 'vue';
-import PageViewShow from '#/views/marketing/creation/components/pageview/PageViewShow.vue';
-import PageViewDrawer from '#/views/marketing/creation/components/pageview/PageViewDrawer.vue';
+import type { AccountInfo, PageViewConfigData } from "#/views/marketing/creation/creation";
+import { Alert, Button, Card } from "ant-design-vue";
+import { useVbenDrawer } from "@vben/common-ui";
+import { computed, ref, watch } from "vue";
+import PageViewShow from "#/views/marketing/creation/components/pageview/PageViewShow.vue";
+import PageViewDrawer from "#/views/marketing/creation/components/pageview/PageViewDrawer.vue";
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   pageView: PageViewConfigData | null;
   accountInfo: AccountInfo[];
-}>();
+  disabled?: boolean;
+}>(), {
+  disabled: false
+});
 
-const emit = defineEmits(['update:pageView']);
+const emit = defineEmits(["update:pageView"]);
 
 const [PageViewDrawerComp, pageViewDrawerApi] = useVbenDrawer({
-  connectedComponent: PageViewDrawer,
+  connectedComponent: PageViewDrawer
 });
 
 // 本地落地页数据
 const localPageView = ref<PageViewConfigData>({
-  config: {method: props.pageView?.config?.method || 'ALL'},
-  data: new Map(),
+  config: { method: props.pageView?.config?.method || "ALL" },
+  data: new Map()
 });
 
 // 计算总落地页数量
@@ -36,8 +39,8 @@ const totalCount = computed(() => {
 // 打开抽屉
 function openPageViewDrawerModal() {
   pageViewDrawerApi.setData({
-    config: {method: localPageView.value.config.method},
-    data: new Map(localPageView.value.data),
+    config: { method: localPageView.value.config.method },
+    data: new Map(localPageView.value.data)
   });
   pageViewDrawerApi.open();
 }
@@ -47,12 +50,12 @@ function openPageViewDrawerModal() {
  */
 function updatePageView(data: PageViewConfigData) {
   localPageView.value = {
-    config: {...data.config},
-    data: new Map(data.data),
+    config: { ...data.config },
+    data: new Map(data.data)
   };
-  emit('update:pageView', {
-    config: {...localPageView.value.config},
-    data: new Map(localPageView.value.data),
+  emit("update:pageView", {
+    config: { ...localPageView.value.config },
+    data: new Map(localPageView.value.data)
   });
 }
 
@@ -61,10 +64,10 @@ function updatePageView(data: PageViewConfigData) {
  */
 function handleClear() {
   localPageView.value.data.clear();
-  localPageView.value.config.method = 'ALL';
-  emit('update:pageView', {
-    config: {...localPageView.value.config},
-    data: new Map(),
+  localPageView.value.config.method = "ALL";
+  emit("update:pageView", {
+    config: { ...localPageView.value.config },
+    data: new Map()
   });
 }
 
@@ -80,17 +83,17 @@ watch(
 
       localPageView.value = {
         ...newPageView,
-        config: {...newPageView.config},
-        data: dataMap,
+        config: { ...newPageView.config },
+        data: dataMap
       };
     }
   },
-  {immediate: true, deep: true},
+  { immediate: true, deep: true }
 );
 </script>
 
 <template>
-  <div class="page-view-selector-container">
+  <div class="page-view-selector-container" :class="{'is-disabled': disabled }">
     <Card title="落地页" class="info-card">
       <div class="card-content">
         <template v-if="totalCount > 0">
@@ -103,7 +106,7 @@ watch(
       <div class="card-footer">
         <Button v-if="totalCount > 0" type="link" danger @click="handleClear">清空</Button>
         <Button type="primary" @click="openPageViewDrawerModal">
-          {{ totalCount > 0 ? '编辑' : '添加' }}
+          {{ totalCount > 0 ? "编辑" : "添加" }}
         </Button>
       </div>
     </Card>
@@ -119,6 +122,15 @@ watch(
   display: flex;
   flex-direction: column;
   min-height: 0;
+
+  &.is-disabled {
+    opacity: 0.5;
+    filter: grayscale(1);
+
+    .info-card {
+      pointer-events: none;
+    }
+  }
 }
 
 .info-card {

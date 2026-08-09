@@ -5,6 +5,7 @@ import { useVbenForm } from '#/adapter/form';
 import { getPlanFormSchema } from './public_planFormItem';
 
 const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const data = drawerApi.getData();

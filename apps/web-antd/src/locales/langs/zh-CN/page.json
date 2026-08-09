@@ -45,6 +45,9 @@
     "title": "营销",
     "project": "项目",
     "platformAdvertiserLabel": "账户标签",
+    "task_center": {
+      "title": "任务中心"
+    },
     "account": {
       "title": "账户",
       "advertiser": "广告主",

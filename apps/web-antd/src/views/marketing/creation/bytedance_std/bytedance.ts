@@ -7,6 +7,7 @@ import type {
   PlatformCreation,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
+import type { BytedanceDpaProductListItem } from "#/api/models/bytedance";
 
 export const BYTEDANCE_STD: string = '0.1';
 
@@ -111,6 +112,8 @@ export interface StdProjectData {
   multi_asset_type: string;
   asset_type: string;
   instance_id: number;
+  /** DPA 已选商品完整信息（仅前端编辑回显用，不传给 API） */
+  _dpaProductInfo?: BytedanceDpaProductListItem | null;
 }
 
 

@@ -625,6 +625,105 @@ export interface CreationTaskItem extends BaseItem {
   taskStatus?: Number;
 }
 
+/**
+ * 任务中心-列表请求参数
+ */
+export interface TaskBatchCenterListPageRequest extends PageRequestParams {
+  /** 任务名称模糊搜索 */
+  name?: string;
+  /** 操作类型 */
+  optionType?: string;
+  /** 任务状态: 1待处理 2处理中 3已完成 4失败 */
+  taskStatus?: number;
+}
+
+/**
+ * 任务中心-详情请求参数
+ */
+export interface TaskBatchCenterDetailPageRequest extends PageRequestParams {
+  /** 主任务ID */
+  taskId: number;
+}
+
+/**
+ * 任务中心-任务列表项
+ */
+export interface TaskBatchCenterItem extends BaseItem {
+  /** 任务名称 */
+  name?: string;
+  /** 操作类型 */
+  optionType?: string;
+  /** 提交数量 */
+  totalCount?: number;
+  /** 成功数量 */
+  successCount?: number;
+  /** 失败数量 */
+  failedCount?: number;
+  /** 待处理数量 */
+  pendingCount?: number;
+  /** 任务状态: 1待处理 2处理中 3已完成 4失败 */
+  taskStatus?: number;
+  /** 任务状态名称 */
+  taskStatusName?: string;
+  /** 进度百分比 */
+  progressPercent?: number;
+  /** 开始时间 */
+  startTime?: string;
+  /** 结束时间 */
+  endTime?: string;
+}
+
+/**
+ * 任务中心-任务详情项
+ */
+export interface TaskBatchCenterDetailItem {
+  id?: number;
+  /** 任务类型 */
+  optionType: string;
+  /** 媒体 */
+  platform: string;
+  /** 目标ID数组 */
+  targetIds?: string[];
+  /** 请求参数 */
+  requestParams?: Record<string, any>;
+  /** 执行结果: SUCCESS/FAILED */
+  result: string;
+  /** 记录时间 */
+  createTime?: string;
+}
+
+/**
+ * 任务中心-任务进度详情（主表 + 子表明细）
+ */
+export interface TaskBatchCenterProgressResponse {
+  /** 任务ID */
+  taskId?: number;
+  /** 任务名称 */
+  name?: string;
+  /** 操作类型 */
+  optionType?: string;
+  /** 任务状态: 1待处理 2处理中 3已完成 4失败 */
+  taskStatus?: number;
+  /** 任务状态名称 */
+  taskStatusName?: string;
+  /** 提交数量 */
+  totalCount?: number;
+  /** 成功数量 */
+  successCount?: number;
+  /** 失败数量 */
+  failedCount?: number;
+  /** 待处理数量 */
+  pendingCount?: number;
+  /** 进度百分比 */
+  progressPercent?: number;
+  /** 开始时间 */
+  startTime?: string;
+  /** 结束时间 */
+  endTime?: string;
+  /** 明细列表 */
+  items?: TaskBatchCenterDetailItem[];
+}
+
 // 账户标签
 export interface LabelItem extends BaseItem {
   name?: string;
@@ -827,6 +926,35 @@ export interface PromotionItem {
   promotionId: string;
   promotionName: string;
   state: number;
+}
+
+/**
+ * 广告批量操作-条目
+ */
+export interface PromotionUpdateItemRequest {
+  /** 广告主ID */
+  advertiserId: string;
+  /** 平台 */
+  platform: string;
+  /** 层级: campaign/adgroup/promotion */
+  level?: string;
+  /** 目标参数数组，根据实际操作传递不同字段 */
+  target: Record<string, any>[];
+}
+
+/**
+ * 广告批量操作-请求参数
+ */
+export interface PromotionUpdateRequest {
+  /** 任务名称（任务中心展示用） */
+  name?: string;
+  /** 操作类型: campaign_batch_start/delete_campaign/delete_promotion/update_project_status/update_project_budget/update_project_roi */
+  optionType: string;
+  /** 更新项 */
+  items: PromotionUpdateItemRequest[];
+  /**
+   *
+   */
 }
 
 export interface Vivo_campaignDetailItem extends public_campaignDetailItem {
