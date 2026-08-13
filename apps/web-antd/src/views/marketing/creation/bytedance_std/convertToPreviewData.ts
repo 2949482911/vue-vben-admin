@@ -1,4 +1,11 @@
-import type { StdCreation, StdCreationData, StdProject, StdProjectMaterials } from "./bytedance";
+import type {
+  ProductConfigData,
+  ProductDataMapping,
+  StdCreation,
+  StdCreationData,
+  StdProject,
+  StdProjectMaterials
+} from "./bytedance";
 import {
   type AccountInfo,
   type AwemeConfigData,
@@ -37,6 +44,19 @@ function getAwemeId(
   if (!awemeConfig?.data) return '';
   const key = awemeConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
   return awemeConfig.data.get(key)?.[0]?.awemeId || '';
+}
+
+/**
+ * 获取产品配置 —— 按分配规则取对应产品映射
+ * Map key：PER_ACCOUNT → advertiserId；ALL_SAME / PER_PROJECT → '0'
+ */
+function getProductConfig(
+  productConfig: ProductConfigData | undefined,
+  advertiserId: string,
+): ProductDataMapping | null {
+  if (!productConfig?.data) return null;
+  const key = productConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
+  return productConfig.data.get(key)?.[0] || null;
 }
 
 /**
@@ -99,6 +119,11 @@ export function getPreviewTableData(
         advertiserId,
         pIdx
       );
+      // 产品配置（按分配规则取值，未配置时回退到项目里手动填写的产品信息）
+      const product = getProductConfig(
+        creationInfo.configData.productConfig,
+        advertiserId,
+      );
       // 构建 project_materials
       const materials: StdProjectMaterials = {
         source: projectData.project_materials.source,
@@ -113,10 +138,10 @@ export function getPreviewTableData(
         trial_play_material_list: [],
         instant_play_material_list: [],
         product_info: {
-          titles: projectData.project_materials?.product_info?.titles || [],
-          image_ids: projectData.project_materials?.product_info?.image_ids || [],
-          selling_points: projectData.project_materials?.product_info?.selling_points || [],
-          local_material_image_ids: projectData.project_materials?.product_info?.image_ids || []
+          titles: product?.titles||[],
+          image_ids: product?.image_button || [],
+          selling_points: product?.selling_points || [],
+          local_material_image_ids: product?.image_button || []
         },
         anchor_related_type: projectData.project_materials?.anchor_related_type,
         anchor_material_list: projectData.project_materials?.anchor_material_list || [],
@@ -134,7 +159,7 @@ export function getPreviewTableData(
         original_video_title: "",
         dynamic_creative_switch: "",
         advanced_dc_settings: [],
-        call_to_action_buttons: projectData.project_materials?.call_to_action_buttons || [],
+        call_to_action_buttons: product?.action_buttons || projectData.project_materials?.call_to_action_buttons || [],
         intelligent_generation: projectData.project_materials?.intelligent_generation,
         params_type: "",
         external_url_field: "",

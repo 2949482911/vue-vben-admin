@@ -38,7 +38,12 @@ import StdBaseTemplate from "./components/base_template/base_template.vue";
 import StdAppTemplate from "./components/app_template/AppTemplate.vue";
 import StdProjectPreviewArea from "./components/StdProjectPreviewArea.vue";
 import { getPreviewTableData } from "./convertToPreviewData";
-import type { StdCreation, StdCreationData, StdProjectData } from "./bytedance";
+import type {
+  ProductConfigData,
+  StdCreation,
+  StdCreationData,
+  StdProjectData
+} from "./bytedance";
 import { BYTEDANCE_STD } from "./bytedance";
 import { BYTEDANCE_STD_MARKETING_TYPE } from "#/views/marketing/creation/bytedance_std/enums";
 
@@ -185,6 +190,10 @@ function updateAwemeConfig(awemeConfig: AwemeConfigData) {
   creationInfo.value.configData.awemeConfig = awemeConfig;
 }
 
+function updateProductConfig(productConfig: ProductConfigData) {
+  creationInfo.value.configData.productConfig = productConfig;
+}
+
 function resetCreationInfo() {
   if (adList.value.length > 0) {
     adList.value = [];
@@ -198,7 +207,6 @@ function genPreviewTableData() {
   taskInProgress.value = false;
   resultDrawerOpen.value = false;
   adList.value = getPreviewTableData(creationInfo.value);
-  console.log(adList.value);
 }
 
 function createStrategyGroup() {
@@ -368,7 +376,9 @@ const creationInfo = ref<StdCreation>({
       data: new Map<string, Array<MonitoringLinkType>>()
     },
     // 抖音号配置（智擎版仅支持按项目/按账户分配）
-    awemeConfig: { config: { method: 'PER_ACCOUNT' }, data: new Map() }
+    awemeConfig: { config: { method: 'PER_ACCOUNT' }, data: new Map() },
+    // 产品配置（统一配置/按账户配置/按项目配置）
+    productConfig: { config: { method: 'ALL_SAME' }, data: new Map() }
 
   },
   configurationConfig: {
@@ -422,6 +432,13 @@ function updateReuse(creation: StdCreation) {
     // 旧数据可能缺少 awemeConfig，补默认值避免下游 prop 校验告警
     if (!config.awemeConfig) {
       config.awemeConfig = { config: { method: 'PER_ACCOUNT' }, data: new Map() };
+    }
+    if (config.productConfig && config.productConfig.data && !(config.productConfig.data instanceof Map)) {
+      config.productConfig.data = new Map(Object.entries(config.productConfig.data || {}));
+    }
+    // 旧数据可能缺少 productConfig，补默认值避免下游 prop 校验告警
+    if (!config.productConfig) {
+      config.productConfig = { config: { method: 'ALL_SAME' }, data: new Map() };
     }
   }
   creationInfo.value = creation;
@@ -493,21 +510,25 @@ watch(() => creationInfo, (_) => {
         <StdBaseTemplate
           v-if="template === 'base_template'"
           :creation-info="creationInfo"
+          :product-config="creationInfo.configData.productConfig"
           @update:project="updateProjectData"
           @update:title-package="updateTitlePackage"
           @update:update-material="updateMaterial"
           @update:audience-package="updateAudiencePackage"
           @update:landing-page="updateLandingPage"
+          @update:product-config="updateProductConfig"
         />
         <StdAppTemplate
           v-if="template === 'app_template'"
           :creation-info="creationInfo"
+          :product-config="creationInfo.configData.productConfig"
           @update:project="updateProjectData"
           @update:title-package="updateTitlePackage"
           @update:update-material="updateMaterial"
           @update:audience-package="updateAudiencePackage"
           @update:landing-page="updateLandingPage"
           @update:aweme-config="updateAwemeConfig"
+          @update:product-config="updateProductConfig"
         />
       </Card>
 

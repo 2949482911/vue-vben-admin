@@ -12,6 +12,7 @@ import { computed, markRaw, watch } from "vue";
 
 import { bytedanceAdvertisementApi } from "#/api/core";
 import StdProject from "../StdProject.vue";
+import ProductConfigCard from "../product/ProductConfigCard.vue";
 import AwemeConfigCard from "#/views/marketing/creation/components/aweme/AwemeConfigCard.vue";
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
@@ -19,8 +20,6 @@ import TitleSelector from "#/views/marketing/creation/components/title/TitleSele
 import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
 import TimeSelectionPeriod
   from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
-import ProductImageButtonField
-  from "#/views/marketing/creation/bytedance/components/ProductImageButtonField.vue";
 import DpaProductButtonField
   from "#/views/marketing/creation/bytedance/components/DpaProductButtonField.vue";
 import type {
@@ -32,7 +31,8 @@ import type {
 } from "#/views/marketing/creation/creation";
 import type {
   StdCreation,
-  StdProjectData
+  StdProjectData,
+  ProductConfigData
 } from "#/views/marketing/creation/bytedance_std/bytedance";
 import {
   BytedanceCampaign_ad_type,
@@ -54,7 +54,8 @@ import {
   BytedancePromotion_anchor_related_type,
   BytedancePromotion_is_comment_disable,
   CampaignOperation,
-  DeliveryMode
+  DeliveryMode,
+  fieldLabelMap
 } from "#/views/marketing/creation/bytedance_std/enums";
 
 const emit = defineEmits([
@@ -63,13 +64,18 @@ const emit = defineEmits([
   "update:titlePackage",
   "update:landingPage",
   "update:awemeConfig",
-  "update:audiencePackage"
+  "update:audiencePackage",
+  "update:productConfig"
 ]);
 
-const { creationInfo } = defineProps({
+const { creationInfo, productConfig } = defineProps({
   creationInfo: {
     type: Object as () => StdCreation,
     default: () => ({})
+  },
+  productConfig: {
+    type: Object as () => ProductConfigData | null,
+    default: null
   }
 });
 
@@ -95,6 +101,10 @@ function updateLandingPage(landingPage: PageViewConfigData) {
 
 function updateAwemeConfig(awemeConfig: AwemeConfigData) {
   emit("update:awemeConfig", awemeConfig);
+}
+
+function updateProductConfig(data: ProductConfigData) {
+  emit("update:productConfig", data);
 }
 
 /** 是否投放身份为抖音号（native_type=AWEME）—— 决定抖音号配置区是否可配置 */
@@ -448,27 +458,27 @@ const projectFormFields = [
   },
 
   // -- 产品主图（App模板特有） --
-  {
-    component: "TextareaTags",
-    fieldName: "project_materials_product_info_titles",
-    label: "产品名称", help: "字数限制[1-20]"
-  },
-  {
-    component: markRaw(ProductImageButtonField),
-    fieldName: "product_image_button",
-    rules: "required",
-    label: "产品主图"
-  },
-  {
-    component: "TextareaTags",
-    fieldName: "project_materials_product_info_selling_points",
-    label: "产品卖点", help: "字符限制[6-9]，个数[1,10]"
-  },
-  {
-    component: "TextareaTags",
-    fieldName: "project_materials_call_to_action_buttons",
-    label: "行动号召", help: "字符限制[2-4]，个数[1,10]"
-  },
+  // {
+  //   component: "TextareaTags",
+  //   fieldName: "project_materials_product_info_titles",
+  //   label: "产品名称", help: "字数限制[1-20]"
+  // },
+  // {
+  //   component: markRaw(ProductImageButtonField),
+  //   fieldName: "product_image_button",
+  //   rules: "required",
+  //   label: "产品主图"
+  // },
+  // {
+  //   component: "TextareaTags",
+  //   fieldName: "project_materials_product_info_selling_points",
+  //   label: "产品卖点", help: "字符限制[6-9]，个数[1,10]"
+  // },
+  // {
+  //   component: "TextareaTags",
+  //   fieldName: "project_materials_call_to_action_buttons",
+  //   label: "行动号召", help: "字符限制[2-4]，个数[1,10]"
+  // },
 
   // -- 创意设置 --
   {
@@ -536,6 +546,19 @@ const projectFormFields = [
     dependencies: { show: false, triggerFields: ["*"] }
   }
 ];
+
+
+/**
+ * 展示label
+ */
+const campaignShowLabel: Record<string, string> = {
+  name: "项目名称",
+  landing_type: "推广目的",
+  marketing_goal: "营销场景",
+  ad_type: "广告类型",
+  delivery_type: "投放类型",
+}
+
 </script>
 
 <template>
@@ -549,19 +572,28 @@ const projectFormFields = [
             :audience="creationInfo?.configData.audience"
             :account-info="creationInfo.accountInfo"
             :form-fields="projectFormFields"
+            :campaign-show-label="campaignShowLabel"
+            :field-label-map="fieldLabelMap"
             @update:project="updateProject"
             @update:audience-package="updateAudiencePackage"
           />
         </div>
       </Col>
 
-      <!-- 第2列：创意组 -->
+      <!-- 第2列：产品配置 + 创意组 -->
       <Col :span="8" class="equal-height-col">
-        <CreativeGroupSelector
-          :account-info="creationInfo.accountInfo"
-          :material="creationInfo.configData.material"
-          @update:material="updateMaterial"
-        />
+        <div class="combined-area">
+          <ProductConfigCard
+            :product-config="productConfig"
+            :account-info="creationInfo.accountInfo"
+            @update:product-config="updateProductConfig"
+          />
+          <CreativeGroupSelector
+            :account-info="creationInfo.accountInfo"
+            :material="creationInfo.configData.material"
+            @update:material="updateMaterial"
+          />
+        </div>
 
         <AwemeConfigCard
           :aweme-config="creationInfo?.configData.awemeConfig"

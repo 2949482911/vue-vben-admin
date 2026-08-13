@@ -20,7 +20,7 @@ import AudiencePackageSelector
 
 const emit = defineEmits(["update:project", "update:audiencePackage"]);
 
-const { formFields, audience, project, accountInfo } = defineProps({
+const { formFields, audience, project, accountInfo, campaignShowLabel, fieldLabelMap } = defineProps({
   formFields: { type: Array, default: () => [] },
   audience: {
     type: Object as () => AudienceConfigData | null,
@@ -33,6 +33,16 @@ const { formFields, audience, project, accountInfo } = defineProps({
   accountInfo: {
     type: Array as () => AccountInfo[],
     default: () => []
+  },
+  /** 项目基本信息展示字段映射（父组件传入，内部循环展示） */
+  campaignShowLabel: {
+    type: Object as () => Record<string, string>,
+    default: () => ({})
+  },
+  /** 枚举值 → 文案转换函数映射（来自智擎 enums） */
+  fieldLabelMap: {
+    type: Object as () => Record<string, (value: any) => string>,
+    default: () => ({})
   }
 });
 
@@ -182,6 +192,11 @@ function openProjectDrawer() {
 function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
   emit("update:audiencePackage", audienceConfigData);
 }
+
+/** 按字段名安全取值（campaignShowLabel 循环展示用） */
+function getFieldValue(key: string): any {
+  return (projectInfo.value as any)[key];
+}
 </script>
 
 <template>
@@ -191,13 +206,15 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
         <div class="card-content">
           <template v-if="projectInfo.name">
             <Descriptions title="基本信息" :column="1" class="info-descriptions">
-              <DescriptionsItem label="项目名称">{{ projectInfo.name }}</DescriptionsItem>
-              <DescriptionsItem label="营销目的">{{ projectInfo.landing_type }}</DescriptionsItem>
-              <DescriptionsItem label="营销场景">{{ projectInfo.marketing_goal }}</DescriptionsItem>
-              <DescriptionsItem label="投放模式">
-                {{ projectInfo.delivery_mode === "PROCEDURAL" ? "自动投放" : "手动投放" }}
-              </DescriptionsItem>
-              <DescriptionsItem label="状态">{{ projectInfo.operation === "ENABLE" ? "启用" : "停用"
+              <DescriptionsItem
+                v-for="(label, key) in campaignShowLabel"
+                :key="key"
+                :label="label"
+              >
+                {{
+                  fieldLabelMap[key]
+                    ? fieldLabelMap[key](getFieldValue(key))
+                    : getFieldValue(key)
                 }}
               </DescriptionsItem>
             </Descriptions>

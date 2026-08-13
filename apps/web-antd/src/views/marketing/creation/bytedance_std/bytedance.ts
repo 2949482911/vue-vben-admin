@@ -2,14 +2,15 @@ import type {
   AudienceConfigData,
   AwemeConfigData,
   ConfigurationConfig,
-  MaterialData, MonitoringLinkConfigData,
+  MaterialData,
+  MonitoringLinkConfigData,
   PageViewConfigData,
   PlatformCreation,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 import type { BytedanceDpaProductListItem } from "#/api/models/bytedance";
 
-export const BYTEDANCE_STD: string = '0.1';
+export const BYTEDANCE_STD: string = "0.2";
 
 /**
  * 巨量智擎版批投创建数据
@@ -34,6 +35,32 @@ export interface StdConfigData {
   monitoringLink: MonitoringLinkConfigData;
   // 抖音号配置（仅 App 模板 native_type=AWEME 时启用）
   awemeConfig: AwemeConfigData;
+  // 产品信息配置
+  productConfig: ProductConfigData;
+}
+
+
+export type ProductConfigRule = "ALL_SAME" | "PER_ACCOUNT" | "PER_PROJECT";
+
+/**
+ * 产品配置
+ */
+export interface ProductConfigData {
+  config: {
+    method: ProductConfigRule
+  },
+  data: Map<string, ProductDataMapping[]>;
+}
+
+
+/**
+ * 产品映射配置
+ */
+export interface ProductDataMapping {
+  selling_points: Array<string>;
+  action_buttons: Array<string>;
+  titles: Array<string>;
+  image_button: Array<string>;
 }
 
 /**

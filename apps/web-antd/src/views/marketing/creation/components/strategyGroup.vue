@@ -1,14 +1,33 @@
 <script lang="ts" setup>
-import { Button, message } from 'ant-design-vue';
-import { useVbenModal, type VbenFormProps } from '@vben/common-ui';
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { strategyGropApi, projectApi } from '#/api/core';
-import type { StrategyGropType } from '#/api/models';
-import { $t } from '@vben/locales';
-import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from '#/constants/locales';
-import { trimObject } from '#/utils/trim';
-import CreateObjectRequestComp from './createStrategyGroup.vue'; //新增|修改弹窗
-import { VIVO_VERSION } from '../vivo/vivo';
+import { Button, message } from "ant-design-vue";
+import { useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { projectApi, strategyGropApi } from "#/api/core";
+import type { StrategyGropType } from "#/api/models";
+import { $t } from "@vben/locales";
+import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { trimObject } from "#/utils/trim";
+import CreateObjectRequestComp from "./createStrategyGroup.vue"; //新增|修改弹窗
+import { VIVO_VERSION } from "../vivo/vivo";
+
+import { Platform } from "#/constants/enums";
+import { BYTEDANCE_STD } from "#/views/marketing/creation/bytedance_std/bytedance";
+import { OPPO_VERSION } from "#/views/marketing/creation/oppo/Oppo.types";
+import { HUAWEI_STORE } from "#/views/marketing/creation/huawei_store/huawei_store";
+
+
+function getLasterVersion(platform: string, version: string): boolean {
+  if (platform === Platform.VIVO) {
+    return version !== VIVO_VERSION;
+  } else if (platform === Platform.BYTEDANCE) {
+    return version !== BYTEDANCE_STD;
+  } else if (platform === Platform.OPPO) {
+    return version !== OPPO_VERSION;
+  } else if (platform !== Platform.HUAWEI_STORE) {
+    return version !== HUAWEI_STORE;
+  }
+  return false;
+}
 
 // 组件 Props 类型定义
 interface Props {
@@ -16,52 +35,53 @@ interface Props {
   platform?: string;
   config?: Object;
 }
+
 const props = defineProps<Props>();
 // 定义要传递给父组件的事件
-const emit = defineEmits(['update:reuse']);
+const emit = defineEmits(["update:reuse"]);
 
 const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
-      component: 'Input',
-      fieldName: 'name',
-      label: '名称',
+      component: "Input",
+      fieldName: "name",
+      label: "名称"
     },
     {
-      component: 'ApiSelect',
+      component: "ApiSelect",
       defaultValue: props.projectId,
       componentProps: {
-        valueField: 'id',
-        labelField: 'name',
-        resultField: 'items',
+        valueField: "id",
+        labelField: "name",
+        resultField: "items",
         api: async () => {
           return await projectApi.fetchProjectList({ page: 1, pageSize: 1000 });
-        },
+        }
       },
-      fieldName: 'projectId',
-      label: '项目',
+      fieldName: "projectId",
+      label: "项目"
     },
     {
-      component: 'Select',
-      defaultValue: props.platform ?? 'vivo',
+      component: "Select",
+      defaultValue: props.platform ?? "vivo",
       componentProps: {
         allowClear: true,
         options: PLATFORM,
-        placeholder: `${$t('common.choice')}`,
-        disabled: true,
+        placeholder: `${$t("common.choice")}`,
+        disabled: true
       },
-      fieldName: 'platform',
-      label: '平台',
-    },
+      fieldName: "platform",
+      label: "平台"
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
   // 按下回车时是否提交表单
-  submitOnEnter: false,
+  submitOnEnter: false
 };
 const modifiedColumns = (TABLE_COMMON_COLUMNS as any[]).map((col) => {
-  if (col.field === 'status') {
+  if (col.field === "status") {
     return { ...col, width: 180 };
   }
   return col;
@@ -69,26 +89,26 @@ const modifiedColumns = (TABLE_COMMON_COLUMNS as any[]).map((col) => {
 
 const gridOptions: VxeGridProps<StrategyGropType> = {
   border: true,
-  height: '500px',
+  height: "500px",
   toolbarConfig: {},
   data: [],
   columns: [
     {
-      field: 'name',
+      field: "name",
       title: `名称`,
-      width: 'auto',
+      width: "auto"
     },
     {
-      field: 'platform',
+      field: "platform",
       title: `平台`,
-      width: 'auto',
+      width: "auto"
     },
     {
-      field: 'projectName',
+      field: "projectName",
       title: `项目`,
-      width: 'auto',
+      width: "auto"
     },
-    ...modifiedColumns,
+    ...modifiedColumns
   ],
   keepSource: true,
   proxyConfig: {
@@ -98,11 +118,11 @@ const gridOptions: VxeGridProps<StrategyGropType> = {
         return await strategyGropApi.fetchGetStrategyGrop({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
-      },
-    },
-  },
+      }
+    }
+  }
 };
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
@@ -117,7 +137,7 @@ const [Modal, modalApi] = useVbenModal({});
  * @param row
  */
 function reuseStrategyGroup(row: StrategyGropType) {
-  emit('update:reuse', row.configObj);
+  emit("update:reuse", row.configObj);
   modalApi.close();
 }
 
@@ -125,19 +145,20 @@ async function deleteStrategyGroup(row: StrategyGropType) {
   const params = {
     type: BatchOptionsType.Delete,
     targetIds: [row.id],
-    values: {},
+    values: {}
   };
   await strategyGropApi.fetchBatchStrategyGrop(params);
-  message.success('删除成功');
+  message.success("删除成功");
   pageReload();
 }
+
 /**
  * 创建弹窗
  */
 const [CreateObjectModal, createObjectApi] = useVbenModal({
   connectedComponent: CreateObjectRequestComp,
   centered: true,
-  modal: true,
+  modal: true
 });
 
 function openCreateModal(row: StrategyGropType) {
@@ -154,25 +175,30 @@ function openCreateModal(row: StrategyGropType) {
     <Modal title="选择策略组" class="w-[73.2%]">
       <Grid>
         <template #status="{ row }">
-          {{ row.version !== VIVO_VERSION ? '版本已迭代，旧版本不可用' : '最新版本' }}
+          <div>
+            {{
+              getLasterVersion(row.platform, row.version) ? "版本已迭代，旧版本不可用" : "最新版本"
+            }}
+          </div>
+
         </template>
         <template #action="{ row }">
           <Button
             type="link"
             @click="openCreateModal(row)"
-            :disabled="row.version !== VIVO_VERSION"
+            :disabled="getLasterVersion(row.platform, row.version)"
           >
-            {{ $t('common.edit') }}
+            {{ $t("common.edit") }}
           </Button>
           <Button
             type="link"
             @click="reuseStrategyGroup(row)"
-            :disabled="row.version !== VIVO_VERSION"
+            :disabled="getLasterVersion(row.platform, row.version)"
           >
             复用
           </Button>
           <Button type="link" danger @click="deleteStrategyGroup(row)">
-            {{ $t('common.delete') }}
+            {{ $t("common.delete") }}
           </Button>
         </template>
         <!-- <template #toolbar-tools>

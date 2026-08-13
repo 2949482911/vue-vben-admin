@@ -16,7 +16,7 @@ export type {
   AwemeConfigData, AwemeDistributionRule, AwemeMapping
 } from "#/views/marketing/creation/creation";
 
-export const BYTEDANCE: string = "0.1";
+export const BYTEDANCE: string = "0.2";
 
 
 export interface BytedanceCreation extends PlatformCreation<BytedanceConfigData> {

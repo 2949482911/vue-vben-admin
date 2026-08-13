@@ -1,28 +1,28 @@
 <script setup lang="ts" name="CreateStrategyGroup">
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { ref } from 'vue';
-import { useVbenForm } from '#/adapter/form';
-import type { StrategyGropType, UpdateStrategyGropType } from '#/api/models';
-import { strategyGropApi, projectApi } from '#/api/core';
-import { PLATFORM } from '#/constants/locales';
-import { trimObject } from '#/utils/trim';
-import { useOssClient } from '#/views/marketing/asset/material/useOssClient';
-import { uploadToOss } from '#/utils/uploadToOss';
-import { useUserStore } from '@vben/stores';
-import { message } from 'ant-design-vue';
-import { VIVO_VERSION } from '../vivo/vivo';
+import { Page, useVbenModal } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+import { ref } from "vue";
+import { useVbenForm } from "#/adapter/form";
+import type { StrategyGropType, UpdateStrategyGropType } from "#/api/models";
+import { projectApi, strategyGropApi } from "#/api/core";
+import { PLATFORM } from "#/constants/locales";
+import { trimObject } from "#/utils/trim";
+import { useOssClient } from "#/views/marketing/asset/material/useOssClient";
+import { uploadToOss } from "#/utils/uploadToOss";
+import { useUserStore } from "@vben/stores";
+import { message } from "ant-design-vue";
+import type { PlatformCreation } from "#/views/marketing/creation/creation";
 
-const emit = defineEmits(['pageReload']);
-const configUrl = ref<string>('');
+const emit = defineEmits(["pageReload"]);
+const configUrl = ref<string>("");
 
 const objectRequest = ref<StrategyGropType>(<StrategyGropType>{
-  config: '',
-  projectId: '',
-  name: '',
-  platform: '',
-  id: '',
-  version: '',
+  config: "",
+  projectId: "",
+  name: "",
+  platform: "",
+  id: "",
+  version: ""
 });
 
 const isUpdate = ref<Boolean>(false);
@@ -32,101 +32,112 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     // 所有表单项
     componentProps: {
-      class: 'w-full',
-    },
+      class: "w-full"
+    }
   },
-  layout: 'horizontal',
+  layout: "horizontal",
   handleSubmit: async (formVal: Record<string, any>) => {
     const params = trimObject(formVal);
     try {
       await (isUpdate.value
         ? strategyGropApi.fetchUpdateStrategyGrop(<UpdateStrategyGropType>{
-            id: params.id,
-            name: params.name,
-            projectId: params.projectId,
-            platform: params.platform,
-            config: params.config,
-            version: VIVO_VERSION,
-          })
+          id: params.id,
+          name: params.name,
+          projectId: params.projectId,
+          platform: params.platform,
+          config: params.config,
+          version: params.version
+        })
         : strategyGropApi.fetchNewStrategyGrop(<StrategyGropType>{
-            name: params.name,
-            projectId: params.projectId,
-            platform: params.platform,
-            config: params.config,
-            version: VIVO_VERSION,
-          }));
-      message.success('保存策略组成功');
+          name: params.name,
+          projectId: params.projectId,
+          platform: params.platform,
+          config: params.config,
+          version: params.version
+        }));
+      message.success("保存策略组成功");
     } catch (err) {
       console.log(err);
-      message.error('保存策略组失败');
+      message.error("保存策略组失败");
     }
   },
   schema: [
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
+      component: "Input",
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
       // 字段名
-      fieldName: 'id',
+      fieldName: "id",
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ['*'],
-      },
+        triggerFields: ["*"]
+      }
     },
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
+      component: "Input",
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
       // 字段名
-      fieldName: 'name',
-      label: '名称',
-      rules: 'required',
+      fieldName: "name",
+      label: "名称",
+      rules: "required"
     },
     {
-      component: 'Select',
-      defaultValue: 'vivo',
+      component: "Select",
+      defaultValue: "vivo",
       componentProps: {
         allowClear: true,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`,
         options: PLATFORM,
-        disabled: true,
+        disabled: true
       },
-      rules: 'required',
+      rules: "required",
       // 字段名
-      fieldName: 'platform',
-      label: '平台',
+      fieldName: "platform",
+      label: "平台"
     },
     {
-      component: 'ApiSelect',
+      component: "Input",
+      defaultValue: "0.1",
+      rules: "required",
+      label: "版本",
+      fieldName: "version",
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
+    },
+    {
+      component: "ApiSelect",
       componentProps: {
         showSearch: true,
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
         params: {
           page: 1,
-          pageSize: 1000,
+          pageSize: 1000
         },
-        valueField: 'id',
-        labelField: 'name',
-        resultField: 'items',
+        valueField: "id",
+        labelField: "name",
+        resultField: "items",
         api: async (params: any) => {
           return await projectApi.fetchProjectList(params);
-        },
+        }
       },
-      fieldName: 'projectId',
-      label: `${$t('marketing.advertiser.columns.projectId')}`,
-      rules: 'required',
-    },
-  ],
+      fieldName: "projectId",
+      label: `${$t("marketing.advertiser.columns.projectId")}`,
+      rules: "required"
+    }
+  ]
 });
 
 const [Modal, modalApi] = useVbenModal({
@@ -135,12 +146,12 @@ const [Modal, modalApi] = useVbenModal({
   async onCancel() {
     await formApi.resetForm();
     objectRequest.value = {
-      config: '',
-      projectId: '',
-      name: '',
-      id: '',
-      platform: '',
-      version: '',
+      config: "",
+      projectId: "",
+      name: "",
+      id: "",
+      platform: "",
+      version: ""
     } as StrategyGropType;
     isUpdate.value = false;
     await modalApi.close();
@@ -152,14 +163,17 @@ const [Modal, modalApi] = useVbenModal({
     }
     await formApi.submitForm();
     isUpdate.value = false;
-    emit('pageReload');
+    emit("pageReload");
     await modalApi.close();
   },
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
+
       objectRequest.value = modalApi.getData();
-      configUrl.value = await uploadJson(objectRequest.value, 'strategyGroup');
-      formApi.setFieldValue('config', configUrl.value);
+      const creation = modalApi.getData() as PlatformCreation;
+      configUrl.value = await uploadJson(objectRequest.value, "strategyGroup");
+      formApi.setFieldValue("config", configUrl.value);
+      formApi.setFieldValue("version",  creation.version)
       handleSetFormValue(objectRequest.value);
       if (objectRequest.value.id) {
         isUpdate.value = true;
@@ -167,7 +181,7 @@ const [Modal, modalApi] = useVbenModal({
     } else {
       isUpdate.value = false;
     }
-  },
+  }
 });
 const uploadJson = async (data: any, subName: string) => {
   const client = await useOssClient();
@@ -182,15 +196,16 @@ const uploadJson = async (data: any, subName: string) => {
         return Object.fromEntries(value.entries());
       }
       return value;
-    }),
+    })
   );
   const jsonString = JSON.stringify(cloneData, null, 2);
   const fileName = `${timestamp}_${subName}.json`;
   const objectKey = `${mainId}/json/batchInvestment/${fileName}`;
-  const file = new File([jsonString], fileName, { type: 'application/json' });
+  const file = new File([jsonString], fileName, { type: "application/json" });
   const result = await uploadToOss(client, file, objectKey);
   return result.url; // 返回 OSS 路径
 };
+
 function handleSetFormValue(row: UpdateStrategyGropType) {
   formApi.setValues(row);
 }

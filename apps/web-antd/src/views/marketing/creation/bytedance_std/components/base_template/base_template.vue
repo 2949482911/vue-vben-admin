@@ -12,6 +12,8 @@ import { Col, Row } from 'ant-design-vue';
 import { markRaw } from 'vue';
 
 import StdProject from '../StdProject.vue';
+import ProductConfigCard
+  from '../product/ProductConfigCard.vue';
 import DpaProductButtonField
   from '#/views/marketing/creation/bytedance/components/DpaProductButtonField.vue';
 import CreativeGroupSelector
@@ -29,6 +31,7 @@ import type {
   TitlePackageConfigData,
 } from '#/views/marketing/creation/creation';
 import type {
+  ProductConfigData,
   StdCreation,
   StdProjectData,
 } from '#/views/marketing/creation/bytedance_std/bytedance';
@@ -44,10 +47,11 @@ import {
   BytedanceCampaign_product_setting,
   BytedanceCampaign_schedule_type,
   BytedanceCampgin_budget_mode,
-  BytedancePromotion_is_comment_disable,
   BytedancePromotion_anchor_related_type,
+  BytedancePromotion_is_comment_disable,
   CampaignOperation,
   DeliveryMode,
+  fieldLabelMap,
 } from '#/views/marketing/creation/bytedance_std/enums';
 
 const emit = defineEmits([
@@ -56,12 +60,17 @@ const emit = defineEmits([
   'update:updateMaterial',
   'update:titlePackage',
   'update:landingPage',
+  'update:productConfig',
 ]);
 
-const { creationInfo } = defineProps({
+const { creationInfo, productConfig } = defineProps({
   creationInfo: {
     type: Object as () => StdCreation,
     default: () => ({}),
+  },
+  productConfig: {
+    type: Object as () => ProductConfigData | null,
+    default: null,
   },
 });
 
@@ -80,6 +89,18 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 function updateLandingPage(landingPage: PageViewConfigData) {
   emit('update:landingPage', landingPage);
 }
+function updateProductConfig(data: ProductConfigData) {
+  emit('update:productConfig', data);
+}
+
+/** 项目基本信息展示字段（父传子给 StdProject 循环展示） */
+const campaignShowLabel: Record<string, string> = {
+  name: '项目名称',
+  landing_type: '推广目的',
+  marketing_goal: '营销场景',
+  ad_type: '广告类型',
+  delivery_type: '投放类型',
+};
 
 // ==================== 基础模板表单字段 ====================
 const projectFormFields = [
@@ -282,18 +303,27 @@ const projectFormFields = [
           :audience="creationInfo?.configData.audience"
           :account-info="creationInfo.accountInfo"
           :form-fields="projectFormFields"
+          :campaign-show-label="campaignShowLabel"
+          :field-label-map="fieldLabelMap"
           @update:project="updateProject"
           @update:audience-package="updateAudiencePackage"
         />
       </Col>
 
-      <!-- 第2列：创意组 -->
+      <!-- 第2列：产品配置 + 创意组 -->
       <Col :span="8" class="equal-height-col">
-        <CreativeGroupSelector
-          :account-info="creationInfo.accountInfo"
-          :material="creationInfo.configData.material"
-          @update:material="updateMaterial"
-        />
+        <div class="combined-area">
+          <ProductConfigCard
+            :product-config="productConfig"
+            :account-info="creationInfo.accountInfo"
+            @update:product-config="updateProductConfig"
+          />
+          <CreativeGroupSelector
+            :account-info="creationInfo.accountInfo"
+            :material="creationInfo.configData.material"
+            @update:material="updateMaterial"
+          />
+        </div>
       </Col>
 
       <!-- 第3列：落地页 + 标题包 -->

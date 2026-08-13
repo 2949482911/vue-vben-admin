@@ -12,6 +12,7 @@ export interface AdvertiserPageRequest extends PageRequestParams {
   platform?: string;
   putStatue?: number;
   advertiserRole: string;
+  projectId?: string;
 }
 
 /**

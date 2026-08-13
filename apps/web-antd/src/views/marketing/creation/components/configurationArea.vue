@@ -241,6 +241,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
           pageSize: page.pageSize,
           platform: configurationConfig.platform,
           putStatue: 1,
+          projectId: project.projectId,
           ...params,
         });
         setTimeout(() => {
