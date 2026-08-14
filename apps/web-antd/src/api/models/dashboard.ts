@@ -1,4 +1,4 @@
-import type { PageRequestParams } from '#/api/models/core';
+import type { PageRequestParams } from "#/api/models/core";
 
 // ==================== BPM 待办任务（原有，保持不变） ====================
 
@@ -138,21 +138,21 @@ export interface MaterialRankItem {
  * 告警类型
  */
 export type AlertType =
-  | 'over_cost'        // 超成本
-  | 'empty_spend'      // 空耗
-  | 'budget_limit'     // 预算撞线
-  | 'material_decline' // 素材衰退
-  | 'account_anomaly'; // 账户异常
+  | "over_cost"        // 超成本
+  | "empty_spend"      // 空耗
+  | "budget_limit"     // 预算撞线
+  | "material_decline" // 素材衰退
+  | "account_anomaly"; // 账户异常
 
 /**
  * 告警级别
  */
-export type AlertLevel = 'info' | 'warning' | 'error';
+export type AlertLevel = "info" | "warning" | "error";
 
 /**
  * 告警状态
  */
-export type AlertStatus = 'unread' | 'read' | 'resolved';
+export type AlertStatus = "unread" | "read" | "resolved";
 
 /**
  * 告警数据项
@@ -205,3 +205,30 @@ export interface AlertListResponse {
 }
 
 
+/**
+ * page index report request
+ */
+export interface PageIndexReportRequest {
+  // 支持 cost_report, traffic_report_day, traffic_report_month , traffic_report_count
+  reportType: string;
+}
+
+
+/**
+ * 分页index 报表响应值
+ */
+export interface PageIndexReportResponse {
+  summary: Array<{
+    AdActivate?: number,
+    AdCost?: number,
+    AdPayOneTimeAmount?: number,
+    AdRegister?: number,
+  }>;
+  items: Array<{
+    AdActivate?: number,
+    AdCost?: number,
+    AdPayOneTimeAmount?: number,
+    AdRegister?: number,
+  }>;
+  cname: Record<string, string>
+}

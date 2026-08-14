@@ -1,57 +1,75 @@
 <script lang="ts" setup>
-import type { EchartsUIType } from '@vben/plugins/echarts';
+import type { EchartsUIType } from "@vben/plugins/echarts";
+import { EchartsUI, useEcharts } from "@vben/plugins/echarts";
 
-import { onMounted, ref } from 'vue';
-
-import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
+import { onMounted, ref } from "vue";
+import { dashboardApi } from "#/api";
+import type { PageIndexReportResponse } from "#/api/models";
 
 const chartRef = ref<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
 
-onMounted(() => {
-  renderEcharts({
+// 日流量加载
+
+const respData = ref<PageIndexReportResponse>({
+  cname: {}, items: [], summary: []
+});
+
+async function getTraffic_report_day() {
+  respData.value = await dashboardApi.fetchPageIndexReport({
+    reportType: "traffic_report_day"
+  });
+}
+
+
+onMounted(async () => {
+  await getTraffic_report_day();
+  const xLine: Array<string> = [];
+  const AdClick: Array<any> = []
+  const AdShow: Array<any>  = []
+  respData.value.items.forEach(x => {
+    xLine.push(x["hour"]);
+    AdClick.push(x["AdClick"]);
+    AdShow.push(x["AdShow"]);
+  })
+  await renderEcharts({
     grid: {
       bottom: 0,
       containLabel: true,
-      left: '1%',
-      right: '1%',
-      top: '2 %',
+      left: "1%",
+      right: "1%",
+      top: "2 %"
     },
     series: [
       {
         areaStyle: {},
-        data: [
-          111, 2000, 6000, 16_000, 33_333, 55_555, 64_000, 33_333, 18_000,
-          36_000, 70_000, 42_444, 23_222, 13_000, 8000, 4000, 1200, 333, 222,
-          111,
-        ],
+        data: AdClick,
         itemStyle: {
-          color: '#5ab1ef',
+          color: "#5ab1ef",
         },
         smooth: true,
-        type: 'line',
+        type: "line",
+        name: '点击量'
       },
       {
         areaStyle: {},
-        data: [
-          33, 66, 88, 333, 3333, 6200, 20_000, 3000, 1200, 13_000, 22_000,
-          11_000, 2221, 1201, 390, 198, 60, 30, 22, 11,
-        ],
+        data: AdShow,
         itemStyle: {
-          color: '#019680',
+          color: "#019680"
         },
         smooth: true,
-        type: 'line',
-      },
+        type: "line",
+        name: '曝光'
+      }
     ],
     tooltip: {
       axisPointer: {
         lineStyle: {
-          color: '#019680',
-          width: 1,
-        },
+          color: "#019680",
+          width: 1
+        }
       },
-      trigger: 'axis',
+      trigger: "axis"
     },
     // xAxis: {
     //   axisTick: {
@@ -63,32 +81,31 @@ onMounted(() => {
     // },
     xAxis: {
       axisTick: {
-        show: false,
+        show: false
       },
       boundaryGap: false,
-      data: Array.from({ length: 18 }).map((_item, index) => `${index + 6}:00`),
+      data: xLine.map((_item) => `${_item }:00`),
       splitLine: {
         lineStyle: {
-          type: 'solid',
-          width: 1,
+          type: "solid",
+          width: 1
         },
-        show: true,
+        show: true
       },
-      type: 'category',
+      type: "category"
     },
     yAxis: [
       {
         axisTick: {
-          show: false,
+          show: false
         },
-        max: 80_000,
         splitArea: {
-          show: true,
+          show: true
         },
         splitNumber: 4,
-        type: 'value',
-      },
-    ],
+        type: "value"
+      }
+    ]
   });
 });
 </script>

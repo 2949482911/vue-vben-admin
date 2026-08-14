@@ -1,41 +1,43 @@
-import { requestClient } from '#/api/request';
-import { BaseApi } from '#/api/core/baseapi';
+import { requestClient } from "#/api/request";
+import { BaseApi } from "#/api/core/baseapi";
 import type {
+  AccountTopItem,
+  AlertListResponse,
+  AlertQueryParams,
+  DashboardQueryParams,
+  MaterialRankItem,
+  OverviewMetrics,
+  PageIndexReportRequest,
+  PageIndexReportResponse,
+  PlatformCompareItem,
   RepresentativeItem,
   RepresentativeSearchParams,
-  DashboardQueryParams,
-  OverviewMetrics,
-  TrendDataPoint,
-  PlatformCompareItem,
-  AccountTopItem,
-  MaterialRankItem,
-  AlertQueryParams,
-  AlertListResponse,
-} from '#/api/models';
+  TrendDataPoint
+} from "#/api/models";
 
 // ==================== BPM 待办任务（原有，保持不变） ====================
 
 class TaskApi extends BaseApi {
   fetchRepresentative(
-    params: RepresentativeSearchParams,
+    params: RepresentativeSearchParams
   ): Promise<RepresentativeItem[]> {
     return requestClient.get<RepresentativeItem[]>(
-      this.getServiceUrl('representative'),
-      {params},
+      this.getServiceUrl("representative"),
+      { params }
     );
   }
 
   fetchDoneRepresentative(
-    params: RepresentativeSearchParams,
+    params: RepresentativeSearchParams
   ): Promise<RepresentativeItem[]> {
     return requestClient.get<RepresentativeItem[]>(
-      this.getServiceUrl('done_representative'),
-      {params},
+      this.getServiceUrl("done_representative"),
+      { params }
     );
   }
 }
 
-export const taskApi: TaskApi = new TaskApi('/sys/task');
+export const taskApi: TaskApi = new TaskApi("/sys/task");
 
 // ==================== 统一数据看板（新增） ====================
 
@@ -54,64 +56,71 @@ export const taskApi: TaskApi = new TaskApi('/sys/task');
 class DashboardDataApi extends BaseApi {
   /** 核心指标概览 */
   fetchOverview(
-    data: DashboardQueryParams,
+    data: DashboardQueryParams
   ): Promise<OverviewMetrics> {
     return requestClient.post<OverviewMetrics>(
-      this.getServiceUrl('dashboard/overviewew'),
-      data,
+      this.getServiceUrl("dashboard/overviewew"),
+      data
     );
   }
 
   /** 消耗趋势（按天） */
   fetchTrend(
-    data: DashboardQueryParams,
+    data: DashboardQueryParams
   ): Promise<TrendDataPoint[]> {
     return requestClient.post<TrendDataPoint[]>(
-      this.getServiceUrl('dashboard/trend'),
+      this.getServiceUrl("dashboard/trend"),
       data
     );
   }
 
   /** 平台对比 */
   fetchPlatformCompare(
-    data: DashboardQueryParams,
+    data: DashboardQueryParams
   ): Promise<PlatformCompareItem[]> {
     return requestClient.post<PlatformCompareItem[]>(
-      this.getServiceUrl('dashboard/platform_compare'),
+      this.getServiceUrl("dashboard/platform_compare"),
       data
     );
   }
 
   /** 账户排行 Top N */
   fetchAccountTop(
-    data: DashboardQueryParams & { topN?: number },
+    data: DashboardQueryParams & { topN?: number }
   ): Promise<AccountTopItem[]> {
     return requestClient.post<AccountTopItem[]>(
-      this.getServiceUrl('dashboard/account_top'),
-      data,
+      this.getServiceUrl("dashboard/account_top"),
+      data
     );
   }
 
   /** 素材排行 Top N */
   fetchMaterialRank(
-    params: DashboardQueryParams & { topN?: number },
+    params: DashboardQueryParams & { topN?: number }
   ): Promise<MaterialRankItem[]> {
     return requestClient.get<MaterialRankItem[]>(
-      this.getServiceUrl('dashboard/material_rank'),
-      { params },
+      this.getServiceUrl("dashboard/material_rank"),
+      { params }
     );
   }
 
   /** 告警列表 */
   fetchAlerts(
-    params: AlertQueryParams,
+    params: AlertQueryParams
   ): Promise<AlertListResponse> {
     return requestClient.get<AlertListResponse>(
-      this.getServiceUrl('dashboard/alerts'),
-      { params },
+      this.getServiceUrl("dashboard/alerts"),
+      { params }
     );
+  }
+
+  /**
+   * 首页数据
+   */
+  fetchPageIndexReport(data: PageIndexReportRequest) {
+    return requestClient.post<PageIndexReportResponse>(this.getServiceUrl("page_index_report"), data);
   }
 }
 
 export const dashboardApi: DashboardDataApi =
-  new DashboardDataApi('/platform/report');
+  new DashboardDataApi("/platform/report");

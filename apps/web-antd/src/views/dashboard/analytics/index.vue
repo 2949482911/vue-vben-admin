@@ -1,65 +1,83 @@
 <script lang="ts" setup>
-import type { AnalysisOverviewItem } from '@vben/common-ui';
-import type { TabOption } from '@vben/types';
+import type { AnalysisOverviewItem } from "@vben/common-ui";
+import { AnalysisChartCard, AnalysisChartsTabs, AnalysisOverview } from "@vben/common-ui";
+import type { TabOption } from "@vben/types";
+import { SvgBellIcon, SvgCakeIcon, SvgCardIcon, SvgDownloadIcon } from "@vben/icons";
+import { onMounted, ref } from "vue";
 
-import {
-  AnalysisChartCard,
-  AnalysisChartsTabs,
-  AnalysisOverview,
-} from '@vben/common-ui';
-import {
-  SvgBellIcon,
-  SvgCakeIcon,
-  SvgCardIcon,
-  SvgDownloadIcon,
-} from '@vben/icons';
+import AnalyticsTrends from "./analytics-trends.vue";
+import AnalyticsVisitsData from "./analytics-visits-data.vue";
+import AnalyticsVisitsSales from "./analytics-visits-sales.vue";
+import AnalyticsVisitsSource from "./analytics-visits-source.vue";
+import AnalyticsVisits from "./analytics-visits.vue";
+import { dashboardApi } from "#/api";
+import type { PageIndexReportResponse } from "#/api/models";
 
-import AnalyticsTrends from './analytics-trends.vue';
-import AnalyticsVisitsData from './analytics-visits-data.vue';
-import AnalyticsVisitsSales from './analytics-visits-sales.vue';
-import AnalyticsVisitsSource from './analytics-visits-source.vue';
-import AnalyticsVisits from './analytics-visits.vue';
+const respData = ref<PageIndexReportResponse>({
+  cname: {}, items: [], summary: []
+});
 
-const overviewItems: AnalysisOverviewItem[] = [
-  {
-    icon: SvgCardIcon,
-    title: '用户量',
-    totalTitle: '总用户量',
-    totalValue: 120_000,
-    value: 2000,
-  },
-  {
-    icon: SvgCakeIcon,
-    title: '访问量',
-    totalTitle: '总访问量',
-    totalValue: 500_000,
-    value: 20_000,
-  },
-  {
-    icon: SvgDownloadIcon,
-    title: '下载量',
-    totalTitle: '总下载量',
-    totalValue: 120_000,
-    value: 8000,
-  },
-  {
-    icon: SvgBellIcon,
-    title: '使用量',
-    totalTitle: '总使用量',
-    totalValue: 50_000,
-    value: 5000,
-  },
-];
+async function getCostReport() {
+  respData.value = await dashboardApi.fetchPageIndexReport({
+    reportType: "cost_report"
+  });
+}
+
+
+const overviewItems = ref<AnalysisOverviewItem[]>([]);
+
+async function initOverviewItems() {
+  if (respData.value.summary) {
+    const summary = respData.value.summary[0] || {};
+    overviewItems.value = [
+      {
+        icon: SvgCardIcon,
+        title: `${respData.value.cname["AdRegister"]}`,
+        totalTitle: `${respData.value.cname["AdRegister"]}`,
+        totalValue: summary.AdRegister || 0,
+        value: summary.AdRegister
+      },
+      {
+        icon: SvgCakeIcon,
+        title: `${respData.value.cname["AdCost"]}`,
+        totalTitle: `${respData.value.cname["AdCost"]}`,
+        totalValue: summary.AdCost || 0,
+        value: summary.AdCost
+      },
+      {
+        icon: SvgDownloadIcon,
+        title: `${respData.value.cname["AdActivate"]}`,
+        totalTitle: `${respData.value.cname["AdActivate"]}`,
+        totalValue: summary.AdActivate || 0,
+        value: summary.AdActivate
+      },
+      {
+        icon: SvgBellIcon,
+        title: `${respData.value.cname["AdPayOneTimeAmount"]}`,
+        totalTitle: "总使用量",
+        totalValue: summary.AdPayOneTimeAmount || 0,
+        value: summary.AdPayOneTimeAmount
+      }
+    ];
+  }
+}
+
+onMounted(async () => {
+  await getCostReport();
+  await initOverviewItems();
+});
+//
+
 
 const chartTabs: TabOption[] = [
   {
-    label: '流量趋势',
-    value: 'trends',
+    label: "流量趋势",
+    value: "trends"
   },
   {
-    label: '月访问量',
-    value: 'visits',
-  },
+    label: "月访问量",
+    value: "visits"
+  }
 ];
 </script>
 
