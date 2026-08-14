@@ -16,8 +16,6 @@ import {
   Bytedance_device_brand,
   Bytedance_device_type,
   Bytedance_district,
-  Bytedance_dpa_city,
-  Bytedance_dpa_lbs,
   Bytedance_dpa_rta_recommend_type,
   Bytedance_dpa_rta_switch,
   Bytedance_filter_aweme_abnormal_active,
@@ -39,6 +37,20 @@ import {
   Bytedance_simple_filter_own_aweme_fans,
   Bytedance_simple_hide_if_exists,
   Bytedance_superior_popularity_type,
+  // ===== 智擎版 =====
+  BytedanceStd_age,
+  BytedanceStd_android_osv,
+  BytedanceStd_auto_extend_targets,
+  BytedanceStd_district,
+  BytedanceStd_filter_own_aweme_fans,
+  BytedanceStd_gender,
+  BytedanceStd_harmony_osv,
+  BytedanceStd_hide_if_converted,
+  BytedanceStd_hide_if_exists,
+  BytedanceStd_ios_osv,
+  BytedanceStd_launch_price,
+  BytedanceStd_region_recommend,
+  BytedanceStd_smart_extend,
 } from './bytedance_audience';
 
 // ==================== 定向类型 select（schema 公共字段） ====================
@@ -51,6 +63,7 @@ const typeSelectField = {
     options: [
       { label: '媒体定向', value: 'package' },
       { label: '常规定向', value: 'normal' },
+      { label: '智擎版', value: 'std' },
     ],
     onChange: (value: string) => {
       handleTypeChange(value);
@@ -156,10 +169,51 @@ const normalFields = [
   // { component: 'Select', fieldName: 'dpa_rta_recommend_type', label: 'RTA推荐逻辑', defaultValue: 'ONLY', componentProps: { options: Bytedance_dpa_rta_recommend_type } },
 ];
 
+// ==================== 智擎版 schema 字段 ====================
+const stdFields = [
+  { component: 'Select', fieldName: 'gender', label: '性别定向', defaultValue: 'GENDER_UNLIMITED', componentProps: { options: BytedanceStd_gender, placeholder: '请选择性别定向' } },
+  { component: 'Select', fieldName: 'age', label: '年龄定向', defaultValue: [], componentProps: { options: BytedanceStd_age, mode: 'multiple', placeholder: '请选择年龄定向' } },
+  { component: 'Select', fieldName: 'district', label: '地域定向', defaultValue: 'NONE', componentProps: { options: BytedanceStd_district, placeholder: '请选择地域定向' } },
+  { component: 'Input', fieldName: 'region_version', label: '行政区域版本号', defaultValue: '2.3.2', componentProps: { placeholder: '仅允许 2.3.2 版本号' } },
+  { component: 'Select', fieldName: 'city', label: '地域省市/区县', defaultValue: [], componentProps: { options: [], mode: 'multiple', filterOption: true, showSearch: true, placeholder: '请选择地域省市/区县' } },
+  { component: 'Select', fieldName: 'location_type', label: '位置类型', defaultValue: 'ALL', componentProps: { options: Bytedance_location_type, placeholder: '请选择位置类型' } },
+  { component: 'Input', fieldName: 'geolocation', label: '地域地图位置', defaultValue: [], componentProps: { placeholder: 'JSON数组格式: [{"radius":0,"name":"","long":0,"lat":0}]' } },
+  { component: 'Select', fieldName: 'region_recommend', label: '地域智能放量', defaultValue: 'OFF', componentProps: { options: BytedanceStd_region_recommend, placeholder: '请选择地域智能放量' } },
+  { component: 'Select', fieldName: 'android_osv', label: '最低安卓版本', defaultValue: 'NONE', componentProps: { options: BytedanceStd_android_osv, placeholder: '请选择最低安卓版本' } },
+  { component: 'Select', fieldName: 'ios_osv', label: '最低IOS版本', defaultValue: 'NONE', componentProps: { options: BytedanceStd_ios_osv, placeholder: '请选择最低IOS版本' } },
+  { component: 'Select', fieldName: 'harmony_osv', label: '最低鸿蒙版本', defaultValue: 'NONE', componentProps: { options: BytedanceStd_harmony_osv, placeholder: '请选择最低鸿蒙版本' } },
+  { component: 'Select', fieldName: 'hide_if_converted', label: '过滤已转化用户', defaultValue: 'NO_EXCLUDE', componentProps: { options: BytedanceStd_hide_if_converted, placeholder: '请选择过滤已转化用户' } },
+  { component: 'Select', fieldName: 'hide_if_exists', label: '过滤已安装', defaultValue: 'UNLIMITED', componentProps: { options: BytedanceStd_hide_if_exists, placeholder: '请选择过滤已安装' } },
+  { component: 'Select', fieldName: 'retargeting_tags_include', label: '定向人群包', defaultValue: [], componentProps: { options: [], mode: 'multiple', filterOption: true, showSearch: true, placeholder: '请选择定向人群包' } },
+  { component: 'Select', fieldName: 'retargeting_tags_exclude', label: '排除人群包', defaultValue: [], componentProps: { options: [], mode: 'multiple', filterOption: true, showSearch: true, placeholder: '请选择排除人群包' } },
+  { component: 'Select', fieldName: 'converted_time_duration', label: '过滤时间范围', defaultValue: 'NONE', componentProps: { options: Bytedance_converted_time_duration, placeholder: '请选择过滤时间范围' } },
+  { component: 'Select', fieldName: 'platform', label: '应用类型', defaultValue: [], componentProps: { options: Bytedance_platform, mode: 'multiple', placeholder: '请选择应用类型' } },
+  { component: 'Select', fieldName: 'interest_action_mode', label: '行为兴趣', defaultValue: 'UNLIMITED', componentProps: { options: Bytedance_interest_action_mode, placeholder: '请选择行为兴趣' } },
+  { component: 'Select', fieldName: 'interest_categories', label: '兴趣类目词', defaultValue: [], componentProps: { options: [], mode: 'multiple', filterOption: true, showSearch: true, placeholder: '请选择兴趣类目词' } },
+  { component: 'Select', fieldName: 'interest_words', label: '兴趣关键词', defaultValue: [], componentProps: { options: [], mode: 'multiple', filterOption: true, showSearch: true, placeholder: '请选择兴趣关键词' } },
+  { component: 'Select', fieldName: 'action_days', label: '用户行为天数', defaultValue: 7, componentProps: { options: Bytedance_action_days, placeholder: '请选择用户行为天数' } },
+  { component: 'Select', fieldName: 'action_categories', label: '行为类目词', defaultValue: [], componentProps: { options: [], mode: 'multiple', filterOption: true, showSearch: true, placeholder: '请选择行为类目词' } },
+  { component: 'Select', fieldName: 'action_words', label: '行为关键词', defaultValue: [], componentProps: { options: [], mode: 'multiple', filterOption: true, showSearch: true, placeholder: '请选择行为关键词' } },
+  { component: 'Select', fieldName: 'filter_own_aweme_fans', label: '过滤自己的粉丝', defaultValue: 'OFF', componentProps: { options: BytedanceStd_filter_own_aweme_fans, placeholder: '请选择过滤自己的粉丝' } },
+  { component: 'Select', fieldName: 'ac', label: '网络类型', defaultValue: [], componentProps: { options: Bytedance_ac, mode: 'multiple', placeholder: '请选择网络类型' } },
+  { component: 'Select', fieldName: 'launch_price', label: '手机价格', defaultValue: '', componentProps: { options: BytedanceStd_launch_price, placeholder: '请选择手机价格区间（须为500的整数）' } },
+  { component: 'Select', fieldName: 'smart_extend', label: '智能拓展', defaultValue: 'OFF', componentProps: { options: BytedanceStd_smart_extend, placeholder: '请选择智能拓展' } },
+  { component: 'Select', fieldName: 'device_brand', label: '设备品牌', defaultValue: [], componentProps: { options: Bytedance_device_brand, mode: 'multiple', placeholder: '请选择设备品牌' } },
+  { component: 'Select', fieldName: 'device_type', label: '设备类型', defaultValue: [], componentProps: { options: Bytedance_device_type, mode: 'multiple', placeholder: '请选择设备类型' } },
+  { component: 'Select', fieldName: 'superior_popularity_type', label: '优质媒体', defaultValue: 'NONE', componentProps: { options: Bytedance_superior_popularity_type, placeholder: '请选择优质媒体' } },
+  { component: 'Select', fieldName: 'flow_package', label: '定向流量包', defaultValue: [], componentProps: { options: [], mode: 'multiple', filterOption: true, showSearch: true, placeholder: '请选择定向流量包' } },
+  { component: 'Select', fieldName: 'exclude_flow_package', label: '排除流量包', defaultValue: [], componentProps: { options: [], mode: 'multiple', filterOption: true, showSearch: true, placeholder: '请选择排除流量包' } },
+  { component: 'Select', fieldName: 'auto_extend_targets', label: '智能定向', defaultValue: [], componentProps: { options: BytedanceStd_auto_extend_targets, mode: 'multiple', placeholder: '请选择智能定向' } },
+  { component: 'Select', fieldName: 'dpa_rta_switch', label: 'RTA重定向开关', defaultValue: 'OFF', componentProps: { options: Bytedance_dpa_rta_switch, placeholder: '请选择RTA重定向开关' } },
+  { component: 'InputNumber', fieldName: 'rta_id', label: 'RTA策略ID', defaultValue: undefined, componentProps: { placeholder: '请输入RTA策略ID' } },
+  { component: 'Select', fieldName: 'dpa_rta_recommend_type', label: 'RTA推荐类型', defaultValue: 'ONLY', componentProps: { options: Bytedance_dpa_rta_recommend_type, placeholder: '请选择RTA推荐类型' } },
+];
+
 // ==================== schema 注册表（含公共 select） ====================
 const audienceSchemaMap = new Map<string, Array<any>>();
 audienceSchemaMap.set('package', [typeSelectField, ...packageFields]);
 audienceSchemaMap.set('normal', [typeSelectField, ...normalFields]);
+audienceSchemaMap.set('std', [typeSelectField, ...stdFields]);
 
 // ==================== 单个 Form 实例 ====================
 const [Form, formApi] = useVbenForm({

@@ -1867,3 +1867,266 @@ export const Bytedance_dpa_rta_recommend_type = [
     value: 'MORE'
   },
 ]
+
+// ==================== 巨量智擎版 定向包（audience_type = 'std'） ====================
+
+/**
+ * 智擎版定向包配置
+ */
+export interface BytedanceStdAudience {
+  gender: string;
+  age: string[];
+  district: string;
+  geolocation: Array<{
+    radius: number;
+    name: string;
+    long: number;
+    lat: number;
+  }>;
+  region_version: string;
+  city: number[];
+  location_type: string;
+  region_recommend: string;
+  android_osv: string;
+  ios_osv: string;
+  harmony_osv: string;
+  hide_if_converted: string;
+  hide_if_exists: string;
+  retargeting_tags_include: number[];
+  retargeting_tags_exclude: number[];
+  converted_time_duration: string;
+  platform: string[];
+  interest_action_mode: string;
+  interest_categories: number[];
+  interest_words: number[];
+  action_days: number;
+  action_categories: number[];
+  action_words: number[];
+  filter_own_aweme_fans: string;
+  ac: string[];
+  launch_price: number[];
+  smart_extend: string;
+  device_brand: string[];
+  device_type: string[];
+  superior_popularity_type: string;
+  flow_package: number[];
+  exclude_flow_package: number[];
+  auto_extend_targets: string[];
+  dpa_rta_switch: string;
+  rta_id: number;
+  dpa_rta_recommend_type: string;
+}
+
+/**
+ * 性别定向（智擎版）
+ * GENDER_FEMALE 女性 / GENDER_MALE 男性 / GENDER_UNLIMITED 不限
+ */
+export const BytedanceStd_gender = [
+  { label: '不限', value: 'GENDER_UNLIMITED' },
+  { label: '女性', value: 'GENDER_FEMALE' },
+  { label: '男性', value: 'GENDER_MALE' },
+]
+
+/**
+ * 年龄定向（智擎版）
+ */
+export const BytedanceStd_age = [
+  { label: '18-19岁', value: 'AGE_BETWEEN_18_19' },
+  { label: '18-23岁', value: 'AGE_BETWEEN_18_23' },
+  { label: '20-23岁', value: 'AGE_BETWEEN_20_23' },
+  { label: '24-30岁', value: 'AGE_BETWEEN_24_30' },
+  { label: '31-35岁', value: 'AGE_BETWEEN_31_35' },
+  { label: '31-40岁', value: 'AGE_BETWEEN_31_40' },
+  { label: '36-40岁', value: 'AGE_BETWEEN_36_40' },
+  { label: '41-45岁', value: 'AGE_BETWEEN_41_45' },
+  { label: '41-49岁', value: 'AGE_BETWEEN_41_49' },
+  { label: '46-50岁', value: 'AGE_BETWEEN_46_50' },
+  { label: '51-55岁', value: 'AGE_BETWEEN_51_55' },
+  { label: '56-59岁', value: 'AGE_BETWEEN_56_59' },
+  { label: '大于等于50岁', value: 'AGE_ABOVE_50' },
+  { label: '60岁以上', value: 'AGE_ABOVE_60' },
+]
+
+/**
+ * 地域定向（智擎版）
+ * NONE 不限 / BUSINESS_DISTRICT 商圈 / OVERSEA 海外区域 / REGION 行政区域
+ */
+export const BytedanceStd_district = [
+  { label: '不限', value: 'NONE' },
+  { label: '商圈', value: 'BUSINESS_DISTRICT' },
+  { label: '海外区域', value: 'OVERSEA' },
+  { label: '行政区域', value: 'REGION' },
+]
+
+/**
+ * 地域智能放量定向（智擎版）
+ * OFF 关闭 / ON 开启
+ */
+export const BytedanceStd_region_recommend = [
+  { label: '关闭', value: 'OFF' },
+  { label: '开启', value: 'ON' },
+]
+
+/**
+ * 过滤已转化用户（智擎版）
+ * NO_EXCLUDE 不限制 / ADVERTISER 投放账户 / APP 应用 / CUSTOMER 客户
+ * GLOBAL_APP 全渠道应用 / ORGANIZATION 旧版工作台组织 / PROJECT 项目 / PROMOTION 单元
+ */
+export const BytedanceStd_hide_if_converted = [
+  { label: '不限制', value: 'NO_EXCLUDE' },
+  { label: '投放账户', value: 'ADVERTISER' },
+  { label: '应用', value: 'APP' },
+  { label: '客户', value: 'CUSTOMER' },
+  { label: '全渠道应用', value: 'GLOBAL_APP' },
+  { label: '旧版巨量引擎工作台组织', value: 'ORGANIZATION' },
+  { label: '项目', value: 'PROJECT' },
+  { label: '单元', value: 'PROMOTION' },
+]
+
+/**
+ * 过滤已安装（智擎版）
+ * FILTER 过滤 / TARGETING 定向 / UNLIMITED 不限
+ */
+export const BytedanceStd_hide_if_exists = [
+  { label: '不限', value: 'UNLIMITED' },
+  { label: '过滤', value: 'FILTER' },
+  { label: '定向', value: 'TARGETING' },
+]
+
+/**
+ * 过滤自己的粉丝（智擎版）
+ * OFF 不过滤 / ON 过滤
+ */
+export const BytedanceStd_filter_own_aweme_fans = [
+  { label: '不过滤', value: 'OFF' },
+  { label: '过滤', value: 'ON' },
+]
+
+/**
+ * 智能拓展（智擎版）
+ * OFF 不启用 / ON 启用
+ */
+export const BytedanceStd_smart_extend = [
+  { label: '不启用', value: 'OFF' },
+  { label: '启用', value: 'ON' },
+]
+
+/**
+ * 最低安卓版本（智擎版）
+ * 支持 2.0~11.0，NONE 不限
+ */
+export const BytedanceStd_android_osv = [
+  { label: '不限', value: 'NONE' },
+  { label: '2.0', value: '2.0' },
+  { label: '2.1', value: '2.1' },
+  { label: '2.2', value: '2.2' },
+  { label: '2.3', value: '2.3' },
+  { label: '3.0', value: '3.0' },
+  { label: '3.1', value: '3.1' },
+  { label: '3.2', value: '3.2' },
+  { label: '4.0', value: '4.0' },
+  { label: '4.1', value: '4.1' },
+  { label: '4.2', value: '4.2' },
+  { label: '4.3', value: '4.3' },
+  { label: '4.4', value: '4.4' },
+  { label: '4.5', value: '4.5' },
+  { label: '5.0', value: '5.0' },
+  { label: '6.0', value: '6.0' },
+  { label: '7.0', value: '7.0' },
+  { label: '7.1', value: '7.1' },
+  { label: '8.0', value: '8.0' },
+  { label: '8.1', value: '8.1' },
+  { label: '9.0', value: '9.0' },
+  { label: '10.0', value: '10.0' },
+  { label: '10.1', value: '10.1' },
+  { label: '11.0', value: '11.0' },
+]
+
+/**
+ * 最低 IOS 版本号（智擎版）
+ * 支持 4.0~14.0，NONE 不限
+ */
+export const BytedanceStd_ios_osv = [
+  { label: '不限', value: 'NONE' },
+  { label: '4.0', value: '4.0' },
+  { label: '4.1', value: '4.1' },
+  { label: '4.2', value: '4.2' },
+  { label: '4.3', value: '4.3' },
+  { label: '5.0', value: '5.0' },
+  { label: '5.1', value: '5.1' },
+  { label: '6.0', value: '6.0' },
+  { label: '7.0', value: '7.0' },
+  { label: '7.1', value: '7.1' },
+  { label: '8.0', value: '8.0' },
+  { label: '8.1', value: '8.1' },
+  { label: '8.2', value: '8.2' },
+  { label: '9.0', value: '9.0' },
+  { label: '9.1', value: '9.1' },
+  { label: '9.2', value: '9.2' },
+  { label: '9.3', value: '9.3' },
+  { label: '10.1', value: '10.1' },
+  { label: '10.2', value: '10.2' },
+  { label: '10.3', value: '10.3' },
+  { label: '11.0', value: '11.0' },
+  { label: '11.1', value: '11.1' },
+  { label: '11.2', value: '11.2' },
+  { label: '11.3', value: '11.3' },
+  { label: '11.4', value: '11.4' },
+  { label: '12.0', value: '12.0' },
+  { label: '12.1', value: '12.1' },
+  { label: '12.2', value: '12.2' },
+  { label: '12.3', value: '12.3' },
+  { label: '12.4', value: '12.4' },
+  { label: '13.0', value: '13.0' },
+  { label: '13.1', value: '13.1' },
+  { label: '13.2', value: '13.2' },
+  { label: '13.3', value: '13.3' },
+  { label: '14.0', value: '14.0' },
+]
+
+/**
+ * 最低鸿蒙版本号（智擎版）
+ * 支持 5.0，NONE 不限
+ */
+export const BytedanceStd_harmony_osv = [
+  { label: '不限', value: 'NONE' },
+  { label: '5.0', value: '5.0' },
+]
+
+/**
+ * 手机价格区间（智擎版）
+ * 传入价格区间，最高传入 11000（表示 1w 以上），价格须为 500 的整数
+ */
+export const BytedanceStd_launch_price = [
+  { label: '500元以下', value: '[0, 500]' },
+  { label: '500-1000元', value: '[500, 1000]' },
+  { label: '1000-1500元', value: '[1000, 1500]' },
+  { label: '1500-2000元', value: '[1500, 2000]' },
+  { label: '2000-2500元', value: '[2000, 2500]' },
+  { label: '2500-3000元', value: '[2500, 3000]' },
+  { label: '3000-3500元', value: '[3000, 3500]' },
+  { label: '3500-4000元', value: '[3500, 4000]'},
+  { label: '4000-4500元', value: '[4000, 4500]' },
+  { label: '4500-5000元', value: '[4500, 5000]' },
+  { label: '5000-6000元', value: '[5000, 6000]' },
+  { label: '6000-7000元', value: '[6000, 7000]' },
+  { label: '7000-8000元', value: '[7000, 8000]' },
+  { label: '8000-9000元', value: '[8000, 9000]' },
+  { label: '9000-10000元', value: '[9000, 10000]' },
+  { label: '10000元以上', value: '[10000, 11000]' },
+]
+
+/**
+ * 智能定向（智擎版，自动扩展定向）
+ * AD_TAG 广告标签 / AGE 年龄 / CUSTOM_AUDIENCE 自定义人群 / GENDER 性别
+ * INTEREST_ACTION 行为兴趣 / INTEREST_TAG 兴趣标签 / REGION 地域
+ */
+export const BytedanceStd_auto_extend_targets = [
+  { label: '广告标签', value: 'AD_TAG' },
+  { label: '年龄', value: 'AGE' },
+  { label: '自定义人群', value: 'CUSTOM_AUDIENCE' },
+  { label: '性别', value: 'GENDER' },
+  { label: '行为兴趣', value: 'INTEREST_ACTION' },
+  { label: '兴趣标签', value: 'INTEREST_TAG' },
+  { label: '地域', value: 'REGION' },
+]

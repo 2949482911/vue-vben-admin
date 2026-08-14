@@ -382,7 +382,7 @@ const creationInfo = ref<StdCreation>({
 
   },
   configurationConfig: {
-    platform: Platform.BYTEDANCE,
+    platform: Platform.BYTEDANCE_STD,
     template: "base_template"
   },
   platform: Platform.BYTEDANCE,

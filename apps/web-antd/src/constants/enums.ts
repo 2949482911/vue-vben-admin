@@ -4,6 +4,7 @@
 export enum Platform {
   ALIPAY = 'alipay',
   BYTEDANCE = 'bytedance',
+  BYTEDANCE_STD = 'bytedance_std',
   HUAWEI = 'huawei',
   JD = 'jd',
   JDKJ = 'jdkj', // 京东科技

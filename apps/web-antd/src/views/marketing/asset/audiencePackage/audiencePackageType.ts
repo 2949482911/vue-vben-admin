@@ -103,6 +103,52 @@ export interface AdBytedanceConfig extends AdConfig {
   };
 }
 
+export interface AdBytedanceStdConfig extends AdConfig {
+  config?: {
+    gender?: string;
+    age?: string[];
+    district?: string;
+    geolocation?: Array<{
+      radius: number;
+      name: string;
+      long: number;
+      lat: number;
+    }>;
+    region_version?: string;
+    city?: number[];
+    location_type?: string;
+    region_recommend?: string;
+    android_osv?: string;
+    ios_osv?: string;
+    harmony_osv?: string;
+    hide_if_converted?: string;
+    hide_if_exists?: string;
+    retargeting_tags_include?: number[];
+    retargeting_tags_exclude?: number[];
+    converted_time_duration?: string;
+    platform?: string[];
+    interest_action_mode?: string;
+    interest_categories?: number[];
+    interest_words?: number[];
+    action_days?: number;
+    action_categories?: number[];
+    action_words?: number[];
+    filter_own_aweme_fans?: string;
+    ac?: string[];
+    launch_price?: number[];
+    smart_extend?: string;
+    device_brand?: string[];
+    device_type?: string[];
+    superior_popularity_type?: string;
+    flow_package?: number[];
+    exclude_flow_package?: number[];
+    auto_extend_targets?: string[];
+    dpa_rta_switch?: string;
+    rta_id?: number;
+    dpa_rta_recommend_type?: string;
+  };
+}
+
 export interface AdOppoConfig extends AdConfig {
   config?: {
     delStatus: number;
