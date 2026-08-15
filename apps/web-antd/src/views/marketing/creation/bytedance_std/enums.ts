@@ -123,7 +123,9 @@ export {
   getExternalActionLabel,
   getCampaignOperationLabel,
   getDeliveryModeLabel,
+  getDeepExternalActionLabel,
   fieldLabelMap,
+  BytedanceCampaign_deep_external_action
 } from '#/views/marketing/creation/bytedance/enums';
 
 

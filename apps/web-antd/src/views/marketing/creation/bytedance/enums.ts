@@ -1303,10 +1303,28 @@ export const BytedanceCampaign_external_action = [
   { label: "人群种草", value: "AD_CONVERT_TYPE_PLANTING_GRASS" },
   { label: "引流电商种草", value: "AD_CONVERT_ADD_TO_CART" },
   { label: "付费ROI-30日", value: "AD_CONVERT_TYPE_PURCHASE_ROI_THIRTY" },
-  { label: "变现ROI-30日", value: "AD_CONVERT_TYPE_LTV_ROI_THIRTY" }
+  { label: "变现ROI-30日", value: "AD_CONVERT_TYPE_LTV_ROI_THIRTY" },
+  { label: "留存天数", value: "AD_CONVERT_TYPE_RETENTION_DAYS"}
 ]
 
 
+/**
+ * 深度优化目标
+ */
+export const BytedanceCampaign_deep_external_action = [
+  { label: "留存天数", value: "AD_CONVERT_TYPE_RETENTION_DAYS"},
+  { label: "注册", value: "AD_CONVERT_TYPE_ACTIVE_REGISTER"},
+  { label: "次留", value: "AD_CONVERT_TYPE_NEXT_DAY_OPEN"},
+  { label: "变现ROI", value: "AD_CONVERT_TYPE_LT_ROI"},
+  { label: "付费ROI", value: "AD_CONVERT_TYPE_PURCHASE_ROI"},
+  { label: "关键行为", value: "AD_CONVERT_TYPE_GAME_ADDICTION"},
+  { label: "7D留存", value: "AD_CONVERT_TYPE_RETENTION_7D"},
+  { label: "ARPU", value: "AD_CONVERT_TYPE_ARPU0"},
+  { label: "电话接通", value: "AD_CONVERT_TYPE_PHONE_CONNECT"},
+  { label: "首日ROI+7日ROI", value: "IAAP_ROI_24H_AND_7D"},
+  { label: "RTA双出价", value: "RTA_DOUBLE_BID"},
+  { label: "变现ROI - 7日", value: "AD_CONVERT_TYPE_LTV_ROI_SEVEN"},
+]
 
 
 // ======================== Label 辅助函数 ========================
@@ -1378,6 +1396,9 @@ const DELIVERY_MODE_OPTIONS = [
   { label: '自动', value: 'PROCEDURAL' },
 ];
 export function getDeliveryModeLabel(value: any) { return findLabel(DELIVERY_MODE_OPTIONS, value); }
+export function getDeepExternalActionLabel(value: any ) {
+  return findLabel(BytedanceCampaign_deep_external_action, value)
+}
 
 export const fieldLabelMap: Record<string, (value: any) => string> = {
   // Campaign level (project)
@@ -1435,5 +1456,6 @@ export const fieldLabelMap: Record<string, (value: any) => string> = {
   shop_platform: getShopPlatformLabel,
   match_type: getMatchTypeLabel,
   external_action: getExternalActionLabel,
-  deep_external_action: getExternalActionLabel,
+  deep_external_action: getDeepExternalActionLabel,
+
 };

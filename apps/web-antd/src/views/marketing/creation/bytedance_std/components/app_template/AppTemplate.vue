@@ -55,7 +55,8 @@ import {
   BytedancePromotion_is_comment_disable,
   CampaignOperation,
   DeliveryMode,
-  fieldLabelMap
+  fieldLabelMap,
+  BytedanceCampaign_deep_external_action
 } from "#/views/marketing/creation/bytedance_std/enums";
 
 const emit = defineEmits([
@@ -120,9 +121,13 @@ watch(
   async ([appName, projectName]) => {
     const matchName = appName || projectName;
     // 无匹配名称或 asset_id 已存在时跳过
-    if (!matchName || creationInfo?.configData.project?.asset_id) return;
+    if (!matchName) {
+      return
+    }
     const advertiserIds = (creationInfo?.accountInfo || []).map((a) => a.localAdvertiserId);
-    if (!advertiserIds.length) return;
+    if (!advertiserIds.length) {
+      return
+    };
     const assets = await bytedanceAdvertisementApi.fetchBytedanceAssertsList({
       advertiserId: advertiserIds,
       projectId: creationInfo?.project?.projectId || ""
@@ -132,7 +137,7 @@ watch(
       return;
     }
     const matched = assets[0];
-    if (matched && !creationInfo?.configData.project?.asset_id) {
+    if (matched) {
       emit("update:project", {
         ...creationInfo?.configData.project,
         asset_id: matched.asset_id
@@ -234,7 +239,7 @@ const projectFormFields = [
     fieldName: "deep_external_action",
     label: "深度转化目标",
     componentProps: {
-      options: BytedanceCampaign_external_action,
+      options: BytedanceCampaign_deep_external_action,
       placeholder: "请选择深度转化目标",
       allowClear: true,
       showSearch: true

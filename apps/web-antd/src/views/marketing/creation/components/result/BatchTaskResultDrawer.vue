@@ -27,12 +27,18 @@ const props = withDefaults(
     projectId?: string;
     /** 轮询间隔（毫秒），默认 3000 */
     pollInterval?: number;
+    showCampaign?: boolean;
+    showAdGroup?: boolean;
+    showPromotion?: boolean;
   }>(),
   {
     taskName: '',
     platform: '',
     projectId: '',
     pollInterval: 3000,
+    showCampaign: true,
+    showAdGroup: true,
+    showPromotion: true,
   },
 );
 
@@ -312,7 +318,7 @@ function formatTime(val?: string) {
       <Empty v-if="taskResult && !hasResults && !loading" description="暂无执行结果数据" />
 
       <!-- 计划层结果 -->
-      <Card v-if="campaignRows.length" title="计划创建结果" size="small" class="result-card">
+      <Card v-if="campaignRows.length && showCampaign" title="计划创建结果" size="small" class="result-card">
         <div class="overflow-x-auto">
           <table class="min-w-full border text-xs">
             <thead class="bg-gray-50 dark:bg-gray-700">
@@ -340,7 +346,7 @@ function formatTime(val?: string) {
       </Card>
 
       <!-- 广告组层结果 -->
-      <Card v-if="adGroupRows.length" title="广告组创建结果" size="small" class="result-card">
+      <Card v-if="adGroupRows.length && showAdGroup" title="广告组创建结果" size="small" class="result-card">
         <div class="overflow-x-auto">
           <table class="min-w-full border text-xs">
             <thead class="bg-gray-50 dark:bg-gray-700">
@@ -370,7 +376,7 @@ function formatTime(val?: string) {
       </Card>
 
       <!-- 广告/推广层结果 -->
-      <Card v-if="promotionRows.length" title="广告（推广）创建结果" size="small" class="result-card">
+      <Card v-if="promotionRows.length && showPromotion" title="广告（推广）创建结果" size="small" class="result-card">
         <div class="overflow-x-auto">
           <table class="min-w-full border text-xs">
             <thead class="bg-gray-50 dark:bg-gray-700">

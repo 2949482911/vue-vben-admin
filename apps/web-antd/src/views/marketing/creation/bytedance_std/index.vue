@@ -207,6 +207,7 @@ function genPreviewTableData() {
   taskInProgress.value = false;
   resultDrawerOpen.value = false;
   adList.value = getPreviewTableData(creationInfo.value);
+  console.log(adList.value);
 }
 
 function createStrategyGroup() {
@@ -382,7 +383,7 @@ const creationInfo = ref<StdCreation>({
 
   },
   configurationConfig: {
-    platform: Platform.BYTEDANCE_STD,
+    platform: Platform.BYTEDANCE,
     template: "base_template"
   },
   platform: Platform.BYTEDANCE,
@@ -579,6 +580,8 @@ watch(() => creationInfo, (_) => {
           :platform="currentTask.platform"
           :project-id="currentTask.projectId"
           @task-completed="onTaskCompleted"
+          :show-ad-group="false"
+          :show-promotion="false"
         />
       </Drawer>
     </Page>
