@@ -37,6 +37,18 @@ export interface StdConfigData {
   awemeConfig: AwemeConfigData;
   // 产品信息配置
   productConfig: ProductConfigData;
+  // 投放商品配置
+  dpaProductConfig: DpaProductConfigData;
+}
+
+// 支持统一账户配置和统一配置
+export type DpaProductConfigRule = "ALL_SAME" | "PER_ACCOUNT";
+
+export interface DpaProductConfigData{
+  config: {
+    method: DpaProductConfigRule
+  },
+  data: Map<string, BytedanceDpaProductListItem[]>;
 }
 
 

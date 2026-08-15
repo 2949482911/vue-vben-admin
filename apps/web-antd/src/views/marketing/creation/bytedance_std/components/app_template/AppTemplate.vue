@@ -20,8 +20,7 @@ import TitleSelector from "#/views/marketing/creation/components/title/TitleSele
 import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
 import TimeSelectionPeriod
   from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
-import DpaProductButtonField
-  from "#/views/marketing/creation/bytedance/components/DpaProductButtonField.vue";
+import DpaProductConfigCard from "../product/DpaProductConfigCard.vue";
 import type {
   AudienceConfigData,
   AwemeConfigData,
@@ -30,15 +29,17 @@ import type {
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 import type {
+  DpaProductConfigData,
+  ProductConfigData,
   StdCreation,
-  StdProjectData,
-  ProductConfigData
+  StdProjectData
 } from "#/views/marketing/creation/bytedance_std/bytedance";
 import {
   BytedanceCampaign_ad_type,
   BytedanceCampaign_app_promotion_type,
   BytedanceCampaign_bid_type,
   BytedanceCampaign_deep_bid_type,
+  BytedanceCampaign_deep_external_action,
   BytedanceCampaign_delivery_type,
   BytedanceCampaign_download_mode,
   BytedanceCampaign_download_type,
@@ -55,8 +56,7 @@ import {
   BytedancePromotion_is_comment_disable,
   CampaignOperation,
   DeliveryMode,
-  fieldLabelMap,
-  BytedanceCampaign_deep_external_action
+  fieldLabelMap
 } from "#/views/marketing/creation/bytedance_std/enums";
 
 const emit = defineEmits([
@@ -66,16 +66,21 @@ const emit = defineEmits([
   "update:landingPage",
   "update:awemeConfig",
   "update:audiencePackage",
-  "update:productConfig"
+  "update:productConfig",
+  "update:dpaProductConfig"
 ]);
 
-const { creationInfo, productConfig } = defineProps({
+const { creationInfo, productConfig, dpaProductConfig } = defineProps({
   creationInfo: {
     type: Object as () => StdCreation,
     default: () => ({})
   },
   productConfig: {
     type: Object as () => ProductConfigData | null,
+    default: null
+  },
+  dpaProductConfig: {
+    type: Object as () => DpaProductConfigData | null,
     default: null
   }
 });
@@ -108,10 +113,14 @@ function updateProductConfig(data: ProductConfigData) {
   emit("update:productConfig", data);
 }
 
+function updateDpaProductConfig(data: DpaProductConfigData) {
+  emit("update:dpaProductConfig", data);
+}
+
 /** 是否投放身份为抖音号（native_type=AWEME）—— 决定抖音号配置区是否可配置 */
 const isAweme = computed(() => creationInfo?.configData.project.native_type !== "AWEME");
 // 落地页选择
-const isPageView = computed(() => creationInfo.configData.project.download_type !== 'EXTERNAL_URL')
+const isPageView = computed(() => creationInfo.configData.project.download_type !== "EXTERNAL_URL");
 
 
 // ==================== 资产ID自动匹配 ====================
@@ -122,12 +131,13 @@ watch(
     const matchName = appName || projectName;
     // 无匹配名称或 asset_id 已存在时跳过
     if (!matchName) {
-      return
+      return;
     }
     const advertiserIds = (creationInfo?.accountInfo || []).map((a) => a.localAdvertiserId);
     if (!advertiserIds.length) {
-      return
-    };
+      return;
+    }
+    ;
     const assets = await bytedanceAdvertisementApi.fetchBytedanceAssertsList({
       advertiserId: advertiserIds,
       projectId: creationInfo?.project?.projectId || ""
@@ -321,12 +331,10 @@ const projectFormFields = [
     },
     label: "关联商品", defaultValue: "NO"
   },
-  // DPA商品选择按钮 — 由 StdProjectDrawer 动态注入 dpaContext / openDpaModal
+  // 关联商品后的投放商品展示（值由 StdProjectDrawer 按分配规则计算注入，配置入口在配置区卡片）
   {
-    component: markRaw(DpaProductButtonField),
-    fieldName: "dpa_product_button",
-    label: "投放商品",
-    componentProps: {},
+    component: "Input", fieldName: "dpa_product_display", label: "投放商品",
+    componentProps: { disabled: true, placeholder: "请先在配置区配置投放商品" },
     dependencies: {
       show: (cv: Record<string, any>) => cv["related_product_enabled"] === "YES",
       triggerFields: ["related_product_enabled"]
@@ -561,8 +569,8 @@ const campaignShowLabel: Record<string, string> = {
   landing_type: "推广目的",
   marketing_goal: "营销场景",
   ad_type: "广告类型",
-  delivery_type: "投放类型",
-}
+  delivery_type: "投放类型"
+};
 
 </script>
 
@@ -579,6 +587,7 @@ const campaignShowLabel: Record<string, string> = {
             :form-fields="projectFormFields"
             :campaign-show-label="campaignShowLabel"
             :field-label-map="fieldLabelMap"
+            :dpa-product-config="dpaProductConfig"
             @update:project="updateProject"
             @update:audience-package="updateAudiencePackage"
           />
@@ -598,15 +607,14 @@ const campaignShowLabel: Record<string, string> = {
             :material="creationInfo.configData.material"
             @update:material="updateMaterial"
           />
+          <AwemeConfigCard
+            :aweme-config="creationInfo?.configData.awemeConfig"
+            :account-info="creationInfo.accountInfo"
+            :disabled="isAweme"
+            :supported-rules="['PER_PROJECT', 'PER_ACCOUNT']"
+            @update:aweme-config="updateAwemeConfig"
+          />
         </div>
-
-        <AwemeConfigCard
-          :aweme-config="creationInfo?.configData.awemeConfig"
-          :account-info="creationInfo.accountInfo"
-          :disabled="isAweme"
-          :supported-rules="['PER_PROJECT', 'PER_ACCOUNT']"
-          @update:aweme-config="updateAwemeConfig"
-        />
       </Col>
 
       <!-- 第3列：落地页 + 标题包 -->
@@ -623,6 +631,11 @@ const campaignShowLabel: Record<string, string> = {
             :account-info="creationInfo.accountInfo"
             @update:title-package="updateTitlePackage"
           />
+          <DpaProductConfigCard
+            :dpa-product-config="dpaProductConfig"
+            :account-info="creationInfo.accountInfo"
+            @update:dpa-product-config="updateDpaProductConfig"
+          />
         </div>
       </Col>
     </Row>
@@ -637,7 +650,7 @@ const campaignShowLabel: Record<string, string> = {
 .equal-height-row {
   display: flex;
   align-items: stretch;
-  height: 650px;
+  height: 750px;
 }
 
 .equal-height-col {

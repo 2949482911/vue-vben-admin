@@ -9,7 +9,7 @@
  * - drawer 关闭后取 getData() 回填
  */
 import type { AccountInfo, AudienceConfigData } from "#/views/marketing/creation/creation";
-import type { StdProjectData } from "../bytedance";
+import type { DpaProductConfigData, StdProjectData } from "../bytedance";
 import { computed, ref, watch } from "vue";
 import { useVbenDrawer } from "@vben/common-ui";
 import StdProjectDrawer from "./StdProjectDrawer.vue";
@@ -20,7 +20,7 @@ import AudiencePackageSelector
 
 const emit = defineEmits(["update:project", "update:audiencePackage"]);
 
-const { formFields, audience, project, accountInfo, campaignShowLabel, fieldLabelMap } = defineProps({
+const { formFields, audience, project, accountInfo, campaignShowLabel, fieldLabelMap, dpaProductConfig } = defineProps({
   formFields: { type: Array, default: () => [] },
   audience: {
     type: Object as () => AudienceConfigData | null,
@@ -43,6 +43,11 @@ const { formFields, audience, project, accountInfo, campaignShowLabel, fieldLabe
   fieldLabelMap: {
     type: Object as () => Record<string, (value: any) => string>,
     default: () => ({})
+  },
+  /** 投放商品配置（分配规则 + 各账户/统一商品），透传给项目编辑抽屉 */
+  dpaProductConfig: {
+    type: Object as () => DpaProductConfigData | null,
+    default: null
   }
 });
 
@@ -238,7 +243,7 @@ function getFieldValue(key: string): any {
     </div>
 
     <!-- formFields 通过 prop 传给 Drawer，与 BytedanceCampaign 一致 -->
-    <ProjectDrawerModule :form-fields="formFields" :account-info="accountInfo" />
+    <ProjectDrawerModule :form-fields="formFields" :account-info="accountInfo" :dpa-product-config="dpaProductConfig" />
   </div>
 </template>
 

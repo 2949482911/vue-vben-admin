@@ -9,13 +9,12 @@
  * - 优化目标/深度优化目标在打开抽屉时远程请求，用 formApi 更新 schema 的 options
  * - onConfirm: 还原嵌套对象，setData(project)
  */
-import { nextTick, reactive, ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
 import MaterialSelector from '#/views/marketing/creation/components/material/MaterialSelector.vue';
-import DpaProductModal from '#/views/marketing/creation/bytedance/components/DpaProductModal.vue';
 import type { AccountInfo } from '#/views/marketing/creation/creation';
-import type { StdProjectData } from '../bytedance';
+import type { DpaProductConfigData, StdProjectData } from '../bytedance';
 import type {
   BytedanceDpaProductListItem,
   BytedanceEventManagerOptimizedGoalGetGoal,
@@ -30,6 +29,11 @@ const props = defineProps({
   accountInfo: {
     type: Array as () => AccountInfo[],
     default: () => [],
+  },
+  /** 投放商品配置（分配规则 + 各账户/统一商品），注入给 DpaProductButtonField 自带弹窗 */
+  dpaProductConfig: {
+    type: Object as () => DpaProductConfigData | null,
+    default: null,
   },
 });
 
@@ -103,46 +107,28 @@ function onProductImageSelected(selectedMaterials: Array<{ id: string; name: str
   formApi.setValues({ product_image_button: imageIds });
 }
 
-// ==================== DPA 商品选择（对齐 BytedanceCampaignDrawer） ====================
+// ==================== 投放商品展示（配置入口在配置区 DpaProductConfigCard） ====================
 
-/** 已选中的 DPA 商品信息（响应式对象，通过 schema.componentProps 注入到 DpaProductButtonField） */
-const dpaContext = reactive<{ selectedProduct: BytedanceDpaProductListItem | null }>({
-  selectedProduct: null,
-});
+/** 按分配规则计算生效的投放商品（用于项目内只读展示） */
+function getEffectiveDpaProduct(): BytedanceDpaProductListItem | null {
+  const cfg = props.dpaProductConfig;
+  if (!cfg?.data || cfg.data.size === 0) return null;
+  // 统一配置 → key '0'
+  if (cfg.config.method !== 'PER_ACCOUNT') {
+    return cfg.data.get('0')?.[0] || null;
+  }
+  // 按账户配置 → 取第一个有配置的账户商品
+  for (const [, list] of cfg.data) {
+    if (list?.[0]) return list[0];
+  }
+  return null;
+}
 
-/** DPA 商品选择弹窗 */
-const [DpaProductModalModule, dpaModalApi] = useVbenModal({
-  connectedComponent: DpaProductModal,
-  onOpenChange(isOpen) {
-    if (!isOpen) {
-      const data = dpaModalApi.getData();
-      if (data?.selectedProduct !== undefined) {
-        dpaContext.selectedProduct = data.selectedProduct;
-        if (data.selectedProduct) {
-          // 智擎版：回调设置到顶层 product_id（商品ID）/ product_platform_id（商品库ID）
-          formApi.setValues({
-            product_id: String(data.selectedProduct.product_id),
-            product_platform_id: String(data.selectedProduct.platform_id),
-          });
-        } else {
-          formApi.setValues({
-            product_id: '',
-            product_platform_id: '',
-          });
-        }
-      }
-    }
-  },
-});
-
-/** 打开 DPA 商品选择弹窗 */
-function openDpaModal() {
-  dpaModalApi.setData({
-    advertiserIds: props.accountInfo.map((a) => a.localAdvertiserId),
-    initialProduct: dpaContext.selectedProduct,
-    selectedProduct: undefined,
-  });
-  dpaModalApi.open();
+/** 生效投放商品的展示文案 */
+function getEffectiveDpaProductName(): string {
+  const product = getEffectiveDpaProduct();
+  if (!product) return '';
+  return product.name || product.title || `商品ID:${product.product_id}`;
 }
 
 // 上次值记录（用于级联判断）
@@ -231,13 +217,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
       formApi.setState({ schema: props.formFields });
       await nextTick();
 
-      // 动态注入产品主图/DPA商品选择回调
+      // 动态注入产品主图回调
       const schemaWithImage = (props.formFields as any[]).map((f: any) => {
         if (f.fieldName === 'product_image_button') {
           return { ...f, componentProps: { openProductImageModal } };
-        }
-        if (f.fieldName === 'dpa_product_button') {
-          return { ...f, componentProps: { dpaContext, openDpaModal } };
         }
         return f;
       });
@@ -247,6 +230,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
       // 平铺嵌套字段
       const flattenedData = {
         ...project,
+        // 按分配规则计算投放商品展示值（配置入口在配置区卡片）
+        dpa_product_display: getEffectiveDpaProductName(),
         // 产品主图：通过 v-model 的 product_image_button 字段管理（防御非数组值）
         product_image_button: Array.isArray(project.project_materials?.product_info?.image_ids)
           ? project.project_materials.product_info.image_ids
@@ -282,21 +267,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
       const rawImageIds = project.project_materials?.product_info?.image_ids;
       currentProductImageIds.value = Array.isArray(rawImageIds) ? rawImageIds.map(String) : [];
 
-      // 回显 DPA 已选商品：优先使用保存的完整商品信息 _dpaProductInfo，
-      // 旧数据/策略组预设无该字段时，用 product_id 兜底（名称等信息无法恢复）
-      if (project._dpaProductInfo) {
-        dpaContext.selectedProduct = project._dpaProductInfo;
-      } else if (project.product_id) {
-        dpaContext.selectedProduct = {
-          product_id: Number(project.product_id) || 0,
-          platform_id: Number(project.product_platform_id) || 0,
-          name: '',
-          title: '',
-        } as unknown as BytedanceDpaProductListItem;
-      } else {
-        dpaContext.selectedProduct = null;
-      }
-
       await formApi.setValues(filteredData);
 
       // 请求优化目标列表
@@ -320,8 +290,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
     // @ts-ignore
     const project: StdProjectData = {
       ...currentValues,
-      // DPA 商品完整信息（仅前端编辑回显用，不传给 API）
-      _dpaProductInfo: dpaContext.selectedProduct,
       project_materials: {
         source: currentValues.project_materials_source,
         local_video_material_list: [],
@@ -417,8 +385,5 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
     <!-- 产品主图素材选择器 -->
     <ProductImageModal @update:material="onProductImageSelected" />
-
-    <!-- DPA 商品选择弹窗 -->
-    <DpaProductModalModule />
   </div>
 </template>

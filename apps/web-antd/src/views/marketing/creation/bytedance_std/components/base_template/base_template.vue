@@ -14,8 +14,8 @@ import { markRaw } from 'vue';
 import StdProject from '../StdProject.vue';
 import ProductConfigCard
   from '../product/ProductConfigCard.vue';
-import DpaProductButtonField
-  from '#/views/marketing/creation/bytedance/components/DpaProductButtonField.vue';
+import DpaProductConfigCard
+  from '../product/DpaProductConfigCard.vue';
 import CreativeGroupSelector
   from '#/views/marketing/creation/components/creative/CreativeGroupSelector.vue';
 import TitleSelector
@@ -34,6 +34,7 @@ import type {
   ProductConfigData,
   StdCreation,
   StdProjectData,
+  DpaProductConfigData,
 } from '#/views/marketing/creation/bytedance_std/bytedance';
 import {
   BytedanceCampaign_ad_type,
@@ -61,15 +62,20 @@ const emit = defineEmits([
   'update:titlePackage',
   'update:landingPage',
   'update:productConfig',
+  'update:dpaProductConfig',
 ]);
 
-const { creationInfo, productConfig } = defineProps({
+const { creationInfo, productConfig, dpaProductConfig } = defineProps({
   creationInfo: {
     type: Object as () => StdCreation,
     default: () => ({}),
   },
   productConfig: {
     type: Object as () => ProductConfigData | null,
+    default: null,
+  },
+  dpaProductConfig: {
+    type: Object as () => DpaProductConfigData | null,
     default: null,
   },
 });
@@ -91,6 +97,9 @@ function updateLandingPage(landingPage: PageViewConfigData) {
 }
 function updateProductConfig(data: ProductConfigData) {
   emit('update:productConfig', data);
+}
+function updateDpaProductConfig(data: DpaProductConfigData) {
+  emit('update:dpaProductConfig', data);
 }
 
 /** 项目基本信息展示字段（父传子给 StdProject 循环展示） */
@@ -177,18 +186,16 @@ const projectFormFields = [
     },
     label: '选择关联商品', defaultValue: 'NO',
   },
-  // DPA商品选择按钮 — 由 StdProjectDrawer 动态注入 dpaContext / openDpaModal
+  // 关联商品后的投放商品展示（值由 StdProjectDrawer 按分配规则计算注入，配置入口在配置区卡片）
   {
-    component: markRaw(DpaProductButtonField),
-    fieldName: 'dpa_product_button',
-    label: '投放商品',
-    componentProps: {},
+    component: 'Input', fieldName: 'dpa_product_display', label: '投放商品',
+    componentProps: { disabled: true, placeholder: '请先在配置区配置投放商品' },
     dependencies: {
       show: (cv: Record<string, any>) => cv['related_product_enabled'] === 'YES',
       triggerFields: ['related_product_enabled'],
     },
   },
-  // DPA 商品选择的隐藏字段（回调写入 product_id / product_platform_id）
+  // DPA 商品选择的隐藏字段（按分配规则回填 product_id / product_platform_id）
   { component: 'Input', fieldName: 'product_id', dependencies: { show: false, triggerFields: ['*'] } },
   { component: 'Input', fieldName: 'product_platform_id', dependencies: { show: false, triggerFields: ['*'] } },
 
@@ -305,6 +312,7 @@ const projectFormFields = [
           :form-fields="projectFormFields"
           :campaign-show-label="campaignShowLabel"
           :field-label-map="fieldLabelMap"
+          :dpa-product-config="dpaProductConfig"
           @update:project="updateProject"
           @update:audience-package="updateAudiencePackage"
         />
@@ -317,6 +325,11 @@ const projectFormFields = [
             :product-config="productConfig"
             :account-info="creationInfo.accountInfo"
             @update:product-config="updateProductConfig"
+          />
+          <DpaProductConfigCard
+            :dpa-product-config="dpaProductConfig"
+            :account-info="creationInfo.accountInfo"
+            @update:dpa-product-config="updateDpaProductConfig"
           />
           <CreativeGroupSelector
             :account-info="creationInfo.accountInfo"

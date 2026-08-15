@@ -39,6 +39,7 @@ import StdAppTemplate from "./components/app_template/AppTemplate.vue";
 import StdProjectPreviewArea from "./components/StdProjectPreviewArea.vue";
 import { getPreviewTableData } from "./convertToPreviewData";
 import type {
+  DpaProductConfigData,
   ProductConfigData,
   StdCreation,
   StdCreationData,
@@ -192,6 +193,10 @@ function updateAwemeConfig(awemeConfig: AwemeConfigData) {
 
 function updateProductConfig(productConfig: ProductConfigData) {
   creationInfo.value.configData.productConfig = productConfig;
+}
+
+function updateDpaProductConfig(data: DpaProductConfigData) {
+  creationInfo.value.configData.dpaProductConfig = data;
 }
 
 function resetCreationInfo() {
@@ -379,7 +384,12 @@ const creationInfo = ref<StdCreation>({
     // 抖音号配置（智擎版仅支持按项目/按账户分配）
     awemeConfig: { config: { method: 'PER_ACCOUNT' }, data: new Map() },
     // 产品配置（统一配置/按账户配置/按项目配置）
-    productConfig: { config: { method: 'ALL_SAME' }, data: new Map() }
+    productConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
+    // 投放的商品配置
+    dpaProductConfig: {
+      config: { method: 'ALL_SAME' }, data: new Map()
+    }
+
 
   },
   configurationConfig: {
@@ -440,6 +450,13 @@ function updateReuse(creation: StdCreation) {
     // 旧数据可能缺少 productConfig，补默认值避免下游 prop 校验告警
     if (!config.productConfig) {
       config.productConfig = { config: { method: 'ALL_SAME' }, data: new Map() };
+    }
+    // 投放商品配置（dpaProductConfig）Map 反序列化 + 补默认值
+    if (config.dpaProductConfig && config.dpaProductConfig.data && !(config.dpaProductConfig.data instanceof Map)) {
+      config.dpaProductConfig.data = new Map(Object.entries(config.dpaProductConfig.data || {}));
+    }
+    if (!config.dpaProductConfig) {
+      config.dpaProductConfig = { config: { method: 'ALL_SAME' }, data: new Map() };
     }
   }
   creationInfo.value = creation;
@@ -512,17 +529,20 @@ watch(() => creationInfo, (_) => {
           v-if="template === 'base_template'"
           :creation-info="creationInfo"
           :product-config="creationInfo.configData.productConfig"
+          :dpa-product-config="creationInfo.configData.dpaProductConfig"
           @update:project="updateProjectData"
           @update:title-package="updateTitlePackage"
           @update:update-material="updateMaterial"
           @update:audience-package="updateAudiencePackage"
           @update:landing-page="updateLandingPage"
           @update:product-config="updateProductConfig"
+          @update:dpa-product-config="updateDpaProductConfig"
         />
         <StdAppTemplate
           v-if="template === 'app_template'"
           :creation-info="creationInfo"
           :product-config="creationInfo.configData.productConfig"
+          :dpa-product-config="creationInfo.configData.dpaProductConfig"
           @update:project="updateProjectData"
           @update:title-package="updateTitlePackage"
           @update:update-material="updateMaterial"
@@ -530,6 +550,7 @@ watch(() => creationInfo, (_) => {
           @update:landing-page="updateLandingPage"
           @update:aweme-config="updateAwemeConfig"
           @update:product-config="updateProductConfig"
+          @update:dpa-product-config="updateDpaProductConfig"
         />
       </Card>
 

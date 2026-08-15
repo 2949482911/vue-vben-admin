@@ -1,4 +1,5 @@
 import type {
+  DpaProductConfigData,
   ProductConfigData,
   ProductDataMapping,
   StdCreation,
@@ -23,6 +24,7 @@ import type {
 import { Platform } from "#/constants/enums";
 import { renderProjectTitle } from "#/utils/customName";
 import type { TitlePackageItem } from "#/api/models";
+import type { BytedanceDpaProductListItem } from "#/api/models/bytedance";
 import {
   getBudgetModeCampaignLabel,
   getCampaignOperationLabel,
@@ -57,6 +59,19 @@ function getProductConfig(
   if (!productConfig?.data) return null;
   const key = productConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
   return productConfig.data.get(key)?.[0] || null;
+}
+
+/**
+ * 获取投放商品 —— 按分配规则取对应商品
+ * Map key：PER_ACCOUNT → advertiserId；ALL_SAME → '0'
+ */
+function getDpaProduct(
+  dpaProductConfig: DpaProductConfigData | undefined,
+  advertiserId: string,
+): BytedanceDpaProductListItem | null {
+  if (!dpaProductConfig?.data) return null;
+  const key = dpaProductConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
+  return dpaProductConfig.data.get(key)?.[0] || null;
 }
 
 /**
@@ -122,6 +137,11 @@ export function getPreviewTableData(
       // 产品配置（按分配规则取值，未配置时回退到项目里手动填写的产品信息）
       const product = getProductConfig(
         creationInfo.configData.productConfig,
+        advertiserId,
+      );
+      // 投放商品（按分配规则取值，未配置时回退到项目表单里手动选择的商品）
+      const dpaProduct = getDpaProduct(
+        creationInfo.configData.dpaProductConfig,
         advertiserId,
       );
       // 构建 project_materials
@@ -211,8 +231,8 @@ export function getPreviewTableData(
         multi_asset_type: projectData.multi_asset_type,
         multi_delivery_medium: projectData.multi_delivery_medium,
         native_type: projectData.native_type,
-        product_id: projectData.product_id,
-        product_platform_id: projectData.product_platform_id,
+        product_id: dpaProduct ? String(dpaProduct.product_id) : projectData.product_id,
+        product_platform_id: dpaProduct ? String(dpaProduct.platform_id) : projectData.product_platform_id,
         promotion_type: projectData.promotion_type,
         quick_app_id: projectData.quick_app_id,
         schedule_time: projectData.schedule_time,
