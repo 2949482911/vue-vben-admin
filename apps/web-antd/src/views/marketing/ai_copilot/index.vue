@@ -2,12 +2,15 @@
 /**
  * AI 投手对话助手
  *
- * 左侧会话列表 + 右侧对话区
- * 全部使用 AntD Card 组件布局，不自定义背景色
+ * 布局：左侧会话列表（Card + List） + 右侧聊天区（标题栏 / 消息流 / 输入区）
+ * 组件：全部使用 ant-design-vue（Button/Input/List/Avatar/Card/Spin/Empty/Tag/Modal/Tooltip）
+ * 图标：统一使用 <template #icon> 插槽写法
+ * 样式：仅使用项目自身语义色（bg-background/bg-muted/border-border/text-muted-foreground 等），dark 模式自动适配
  */
-import { nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { Page } from '@vben/common-ui';
 import {
+  Avatar,
   Button,
   Card,
   Empty,
@@ -15,71 +18,134 @@ import {
   List,
   ListItem,
   message,
+  Modal,
   Spin,
   Tag,
+  Tooltip,
 } from 'ant-design-vue';
 import {
-  PlusOutlined,
   DeleteOutlined,
+  PlusOutlined,
   RobotOutlined,
-  UserOutlined,
+  SearchOutlined,
   SendOutlined,
-  CheckCircleOutlined,
+  UserOutlined,
 } from '@ant-design/icons-vue';
 import { aiChatApi } from '#/api/core';
 import type {
   ChatSession,
   ChatMessage,
-  ChatSuggestion,
 } from '#/api/models/ai_chat';
+
+// ==================== 平台文案 ====================
+
+const PLATFORM_MAP: Record<string, string> = {
+  bytedance: '巨量',
+  oppo: 'OPPO',
+  tencent: '腾讯',
+  vivo: 'VIVO',
+  huawei: '华为',
+  rednote: '小红书',
+};
+
+function platformText(p?: string): string {
+  return (p && PLATFORM_MAP[p]) || p || '';
+}
 
 // ==================== 会话管理 ====================
 
 const sessions = ref<ChatSession[]>([]);
 const currentSessionId = ref<string>('');
 const loadingSessions = ref(false);
+const sessionKeyword = ref('');
 
-async function loadSessions() {
+async function loadSessions(keyword?: string) {
   loadingSessions.value = true;
   try {
-    const res = await aiChatApi.fetchSessions({ page: 1, pageSize: 50 });
+    const res = await aiChatApi.fetchSessions({
+      page: 1,
+      pageSize: 50,
+      keyword: keyword ?? sessionKeyword.value,
+    });
     sessions.value = res.items || [];
+    // 当前会话被过滤掉时，自动切到第一条
+    if (
+      currentSessionId.value &&
+      !sessions.value.some((s) => s.id === currentSessionId.value)
+    ) {
+      currentSessionId.value = '';
+      messages.value = [];
+    }
     if (sessions.value.length > 0 && !currentSessionId.value) {
-      await selectSession(sessions.value[0].id);
+      const firstId = sessions.value[0]?.id;
+      if (firstId) {
+        await selectSession(firstId);
+      }
     }
   } finally {
     loadingSessions.value = false;
   }
 }
 
+async function handleSearch() {
+  await loadSessions();
+}
+
 async function createSession() {
   try {
     const session = await aiChatApi.fetchCreateSession({});
     sessions.value.unshift(session);
-    await selectSession(session.id);
+    if (session.id) {
+      await selectSession(session.id);
+    }
+    sessionKeyword.value = '';
   } catch {
     message.error('创建会话失败');
   }
 }
 
 async function deleteSession(id: string) {
-  try {
-    await aiChatApi.fetchDeleteSession(id);
-    sessions.value = sessions.value.filter((s) => s.id !== id);
-    if (currentSessionId.value === id) {
-      currentSessionId.value = '';
-      messages.value = [];
-    }
-    message.success('已删除');
-  } catch {
-    message.error('删除失败');
-  }
+  Modal.confirm({
+    title: '删除会话',
+    content: '删除后该会话及消息将不可恢复，确定删除吗？',
+    okText: '删除',
+    okType: 'danger',
+    cancelText: '取消',
+    async onOk() {
+      try {
+        await aiChatApi.fetchDeleteSession(id);
+        sessions.value = sessions.value.filter((s) => s.id !== id);
+        if (currentSessionId.value === id) {
+          currentSessionId.value = '';
+          messages.value = [];
+        }
+        message.success('已删除');
+        // 删除后自动切到第一条会话
+        if (sessions.value.length > 0) {
+          const firstId = sessions.value[0]?.id;
+          if (firstId) {
+            await selectSession(firstId);
+          }
+        }
+      } catch {
+        message.error('删除失败');
+      }
+    },
+  });
 }
 
 async function selectSession(id: string) {
   currentSessionId.value = id;
   await loadMessages(id);
 }
+
+// ==================== 计算属性 ====================
+
+/** 当前会话标题 */
+const currentSessionTitle = computed(() => {
+  const session = sessions.value.find((s) => s.id === currentSessionId.value);
+  return session?.title || (currentSessionId.value ? '对话中' : 'AI 投放助手');
+});
 
 // ==================== 消息管理 ====================
 
@@ -110,59 +176,53 @@ async function sendMessage() {
     return;
   }
 
+  const sessionId = currentSessionId.value;
+  const now = Date.now();
   const userMsg: ChatMessage = {
-    id: `temp_${Date.now()}`,
-    sessionId: currentSessionId.value,
+    id: `temp_user_${now}`,
+    sessionId,
     role: 'user',
     content,
     createTime: new Date().toISOString(),
   };
-  messages.value.push(userMsg);
+  const aiMsgPlaceholder: ChatMessage = {
+    id: `temp_ai_${now}`,
+    sessionId,
+    role: 'assistant',
+    content: '',
+    createTime: new Date().toISOString(),
+  };
+
+  messages.value.push(userMsg, aiMsgPlaceholder);
   inputValue.value = '';
   sending.value = true;
   await scrollToBottom();
 
   try {
-    const aiMsgPlaceholder: ChatMessage = {
-      id: `temp_ai_${Date.now()}`,
-      sessionId: currentSessionId.value,
-      role: 'assistant',
-      content: '',
-      createTime: new Date().toISOString(),
-    };
-    messages.value.push(aiMsgPlaceholder);
-    await scrollToBottom();
-
-    const aiReply = await aiChatApi.fetchSend({
-      sessionId: currentSessionId.value,
-      content,
-    });
-
+    const aiReply = await aiChatApi.fetchSend({ sessionId, content });
     const idx = messages.value.findIndex((m) => m.id === aiMsgPlaceholder.id);
     if (idx >= 0) {
       messages.value[idx] = aiReply;
     } else {
       messages.value.push(aiReply);
     }
+    // 刷新会话列表：消息数/最后时间/标题变化
+    const session = sessions.value.find((s) => s.id === sessionId);
+    if (session) {
+      session.messageCount = (session.messageCount || 0) + 2;
+      session.lastMessageAt = new Date().toISOString();
+      if (session.title === '新对话') {
+        session.title = content.slice(0, 20);
+      }
+    }
     await scrollToBottom();
   } catch {
     messages.value = messages.value.filter(
-      (m) => m.id !== `temp_ai_${Date.now()}`,
+      (m) => m.id !== aiMsgPlaceholder.id,
     );
     message.error('AI 回复失败，请重试');
   } finally {
     sending.value = false;
-  }
-}
-
-/** 执行操作建议 */
-async function executeSuggestion(_msgId: string, suggestion: ChatSuggestion) {
-  try {
-    await aiChatApi.fetchExecuteSuggestion(suggestion);
-    suggestion.executed = true;
-    message.success(`已执行：${suggestion.title}`);
-  } catch {
-    message.error('执行失败');
   }
 }
 
@@ -175,18 +235,55 @@ async function scrollToBottom() {
   }
 }
 
-function formatTime(time: string): string {
+/** 格式化时间：今天显示 HH:mm，跨天显示 MM-DD */
+function formatTime(time?: string): string {
   if (!time) return '';
   const d = new Date(time);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const now = new Date();
+  const sameDay =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+  const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  if (sameDay) return hm;
+  return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${hm}`;
 }
 
+/** 执行记录序号（v-for 索引兼容 string/number） */
+function recordIndex(i: number | string): number {
+  return Number(i) + 1;
+}
+
+/** 风险等级样式 */
 function riskColor(level: string): string {
   return level === 'high' ? 'red' : level === 'medium' ? 'orange' : 'green';
 }
 
 function riskText(level: string): string {
   return level === 'high' ? '高风险' : level === 'medium' ? '中风险' : '低风险';
+}
+
+/** 执行记录状态文案 */
+function recordStatusText(status: string): string {
+  const map: Record<string, string> = {
+    success: '成功',
+    failed: '失败',
+    pending: '执行中',
+    pending_approval: '待审批',
+    skipped: '已跳过',
+  };
+  return map[status] || status || '';
+}
+
+function recordStatusColor(status: string): string {
+  const map: Record<string, string> = {
+    success: 'green',
+    failed: 'red',
+    pending: 'blue',
+    pending_approval: 'orange',
+    skipped: 'default',
+  };
+  return map[status] || 'default';
 }
 
 function onKeyup(e: KeyboardEvent) {
@@ -210,22 +307,35 @@ onMounted(() => {
 
 <template>
   <Page auto-content-height>
-    <div class="flex h-full gap-4">
+    <div class="chat-layout">
       <!-- 左侧：会话列表 -->
-      <Card class="session-card" :bordered="false">
-        <template #title>对话会话</template>
+      <Card class="session-panel" :bordered="false">
+        <template #title>
+          <span class="text-sm font-medium">对话会话</span>
+        </template>
         <template #extra>
           <Button
             type="primary"
             size="small"
-            :icon="PlusOutlined"
             @click="createSession"
           >
+            <template #icon><PlusOutlined /></template>
             新建
           </Button>
         </template>
 
         <Spin :spinning="loadingSessions">
+          <Input
+            v-model:value="sessionKeyword"
+            placeholder="搜索标题/平台/账户"
+            allow-clear
+            size="small"
+            class="mb-3"
+            @change="handleSearch"
+            @pressEnter="handleSearch"
+          >
+            <template #prefix><SearchOutlined /></template>
+          </Input>
           <List
             v-if="sessions.length > 0"
             :data-source="sessions"
@@ -234,27 +344,39 @@ onMounted(() => {
           >
             <template #renderItem="{ item }">
               <ListItem
-                class="cursor-pointer"
-                :class="{ 'bg-primary/10': item.id === currentSessionId }"
+                class="session-item"
+                :class="{ 'session-active': item.id === currentSessionId }"
                 @click="selectSession(item.id)"
               >
                 <div class="flex-1 min-w-0">
-                  <div class="truncate text-sm">
-                    {{ item.title || '新对话' }}
+                  <div class="flex items-center gap-1.5">
+                    <span class="truncate text-sm font-medium">
+                      {{ item.title || '新对话' }}
+                    </span>
+                    <Tag
+                      v-if="platformText(item.platform)"
+                      color="blue"
+                      :bordered="false"
+                      size="small"
+                    >
+                      {{ platformText(item.platform) }}
+                    </Tag>
                   </div>
-                  <div class="flex gap-2 text-xs opacity-45 mt-1">
-                    <span>{{ item.messageCount }} 条消息</span>
+                  <div class="session-meta">
+                    <span>{{ item.messageCount || 0 }} 条消息</span>
                     <span>{{ formatTime(item.lastMessageAt) }}</span>
                   </div>
                 </div>
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  @click.stop="deleteSession(item.id)"
-                >
-                  <template #icon><DeleteOutlined /></template>
-                </Button>
+                <Tooltip title="删除会话">
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    @click.stop="deleteSession(item.id)"
+                  >
+                    <template #icon><DeleteOutlined /></template>
+                  </Button>
+                </Tooltip>
               </ListItem>
             </template>
           </List>
@@ -262,85 +384,138 @@ onMounted(() => {
         </Spin>
       </Card>
 
-      <!-- 右侧：对话区 -->
-      <Card class="chat-card flex-1" :bordered="false">
-        <!-- 消息流 -->
-        <div ref="chatScrollRef" class="flex-1 overflow-y-auto p-4">
-          <Empty
-            v-if="messages.length === 0 && !loadingMessages"
-            description="开始与 AI 投手对话"
-            class="mt-20"
-          />
-          <Spin :spinning="loadingMessages" />
+      <!-- 右侧：聊天区 -->
+      <Card class="chat-panel" :bordered="false">
+        <!-- 标题栏 -->
+        <template #title>
+          <div class="flex items-center gap-2">
+            <Avatar
+              :size="26"
+              class="bg-primary text-primary-foreground"
+            >
+              <template #icon><RobotOutlined /></template>
+            </Avatar>
+            <span class="text-sm font-medium">
+              {{ currentSessionTitle }}
+            </span>
+          </div>
+        </template>
 
-          <!-- 快捷提问（空会话时展示） -->
+        <!-- 消息流 -->
+        <div ref="chatScrollRef" class="chat-scroll bg-background-deep">
+          <!-- 空状态 + 快捷提问 -->
           <div
             v-if="messages.length === 0 && !loadingMessages"
-            class="flex flex-wrap gap-2 justify-center mt-6"
+            class="chat-empty"
           >
-            <Button
-              v-for="prompt in quickPrompts"
-              :key="prompt"
-              size="small"
-              @click="inputValue = prompt; sendMessage()"
-            >
-              {{ prompt }}
-            </Button>
+            <Avatar :size="56" class="bg-primary text-primary-foreground">
+              <template #icon>
+                <RobotOutlined style="font-size: 28px" />
+              </template>
+            </Avatar>
+            <div class="text-base font-medium mt-4">
+              你好，我是 AI 投放助手
+            </div>
+            <div class="text-xs text-muted-foreground mt-1">
+              可以问我投放数据、计划状态、优化建议等问题
+            </div>
+            <div class="quick-prompts">
+              <Button
+                v-for="prompt in quickPrompts"
+                :key="prompt"
+                class="quick-btn"
+                @click="inputValue = prompt; sendMessage()"
+              >
+                {{ prompt }}
+              </Button>
+            </div>
           </div>
+
+          <Spin :spinning="loadingMessages" />
 
           <!-- 消息列表 -->
           <div
             v-for="msg in messages"
             :key="msg.id"
-            class="flex gap-3 mb-5"
-            :class="msg.role === 'user' ? 'flex-row-reverse' : ''"
+            class="chat-msg"
+            :class="msg.role === 'user' ? 'chat-msg-user' : 'chat-msg-ai'"
           >
             <!-- 头像 -->
-            <div
-              class="flex items-center justify-center w-9 h-9 rounded-full shrink-0 text-white text-base"
-              :class="msg.role === 'user' ? 'bg-primary' : ''"
-              :style="
+            <Avatar
+              :size="32"
+              class="chat-avatar"
+              :class="
                 msg.role === 'assistant'
-                  ? 'background-color: #52c41a'
-                  : ''
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
               "
             >
-              <RobotOutlined v-if="msg.role === 'assistant'" />
-              <UserOutlined v-else />
-            </div>
+              <template #icon>
+                <RobotOutlined v-if="msg.role === 'assistant'" />
+                <UserOutlined v-else />
+              </template>
+            </Avatar>
 
-            <!-- 消息内容 -->
-            <div
-              class="flex flex-col gap-1.5 max-w-[70%]"
-              :class="msg.role === 'user' ? 'items-end' : ''"
-            >
-              <!-- 消息气泡 -->
+            <!-- 内容列 -->
+            <div class="chat-body">
+              <!-- 气泡 -->
               <div
-                class="px-4 py-2.5 rounded-lg text-sm leading-relaxed break-words"
+                class="chat-bubble"
                 :class="
                   msg.role === 'user'
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-background border border-border'
                 "
               >
                 <span
                   v-if="msg.role === 'assistant' && !msg.content && sending"
-                  class="italic opacity-45"
+                  class="chat-thinking"
                 >
-                  AI 正在分析...
+                  AI 正在思考
+                  <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
                 </span>
                 <span v-else>{{ msg.content }}</span>
               </div>
 
+              <!-- 执行记录（dataSnapshot.records） -->
+              <Card
+                v-if="
+                  msg.dataSnapshot && msg.dataSnapshot.records
+                    && msg.dataSnapshot.records.length > 0
+                "
+                size="small"
+                class="exec-card"
+              >
+                <template #title>
+                  <span class="text-xs text-muted-foreground">执行记录</span>
+                </template>
+                <div
+                  v-for="(rec, i) in msg.dataSnapshot.records"
+                  :key="i"
+                  class="flex items-center gap-2 py-1 text-xs"
+                >
+                  <span class="text-muted-foreground">{{ recordIndex(i) }}.</span>
+                  <span class="flex-1">{{ rec.stepName || rec.toolName }}</span>
+                  <Tag
+                    :color="recordStatusColor(rec.status)"
+                    :bordered="false"
+                    size="small"
+                  >
+                    {{ recordStatusText(rec.status) }}
+                  </Tag>
+                </div>
+              </Card>
+
               <!-- 操作建议卡片 -->
               <div
                 v-if="msg.suggestions && msg.suggestions.length > 0"
-                class="flex flex-col gap-2 w-full"
+                class="suggestion-list"
               >
                 <Card
                   v-for="s in msg.suggestions"
                   :key="s.id"
                   size="small"
+                  class="suggestion-card"
                 >
                   <div class="flex items-center gap-2 mb-1.5">
                     <Tag
@@ -354,26 +529,18 @@ onMounted(() => {
                       {{ s.title }}
                     </span>
                   </div>
-                  <div class="text-xs opacity-45 leading-relaxed mb-2">
+                  <div class="text-xs text-muted-foreground leading-relaxed mb-2">
                     {{ s.description }}
                   </div>
                   <div class="flex justify-end">
-                    <Button
-                      v-if="!s.executed"
-                      type="primary"
-                      size="small"
-                      @click="executeSuggestion(msg.id, s)"
-                    >
-                      执行
-                    </Button>
-                    <Tag v-else color="green" :bordered="false" size="small">
-                      <CheckCircleOutlined /> 已执行
-                    </Tag>
+                    <span class="text-xs text-muted-foreground">
+                      执行能力后端开放中，敬请期待
+                    </span>
                   </div>
                 </Card>
               </div>
 
-              <div class="text-xs opacity-35">
+              <div class="chat-time">
                 {{ formatTime(msg.createTime) }}
               </div>
             </div>
@@ -381,7 +548,7 @@ onMounted(() => {
         </div>
 
         <!-- 输入区 -->
-        <div class="flex gap-2 px-4 py-3 border-t border-gray-100">
+        <div class="chat-input border-t border-border bg-background">
           <Input.TextArea
             v-model:value="inputValue"
             placeholder="输入你的问题，如：今天巨量的消耗情况如何？帮我关停ROI低于0.5的计划"
@@ -391,11 +558,12 @@ onMounted(() => {
           />
           <Button
             type="primary"
-            :icon="SendOutlined"
             :loading="sending"
             :disabled="!inputValue.trim()"
             @click="sendMessage"
-          />
+          >
+            <template #icon><SendOutlined /></template>
+          </Button>
         </div>
       </Card>
     </div>
@@ -403,27 +571,198 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-.session-card {
-  width: 280px;
-  flex-shrink: 0;
-
-  :deep(.ant-card-body) {
-    padding: 0;
-    overflow-y: auto;
-    max-height: calc(100vh - 220px);
-  }
-}
-
-.chat-card {
+.chat-layout {
   display: flex;
-  flex-direction: column;
+  gap: 16px;
+  height: 100%;
 
-  :deep(.ant-card-body) {
+  // 左侧会话列表
+  .session-panel {
+    width: 300px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
+
+    :deep(.ant-card-body) {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      max-height: calc(100vh - 220px);
+    }
+
+    .session-item {
+      border-radius: 8px;
+      cursor: pointer;
+      padding: 10px 8px;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: hsl(var(--muted));
+      }
+
+      &.session-active {
+        background: hsl(var(--primary));
+
+        .truncate,
+        .session-meta,
+        .ant-tag {
+          color: hsl(var(--primary-foreground));
+        }
+      }
+    }
+
+    .session-meta {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: 12px;
+      color: hsl(var(--muted-foreground));
+    }
+  }
+
+  // 右侧聊天区
+  .chat-panel {
     flex: 1;
-    padding: 0;
-    overflow: hidden;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+
+    :deep(.ant-card-body) {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    // 消息滚动区
+    .chat-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+
+      .chat-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 60px 0 30px;
+
+        .quick-prompts {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: center;
+          margin-top: 28px;
+          max-width: 560px;
+
+          .quick-btn {
+            border-radius: 16px;
+          }
+        }
+      }
+
+      // 单条消息
+      .chat-msg {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+
+        &.chat-msg-user {
+          flex-direction: row-reverse;
+
+          .chat-body {
+            align-items: flex-end;
+          }
+
+          .chat-bubble {
+            border-top-right-radius: 4px;
+          }
+        }
+
+        &.chat-msg-ai {
+          .chat-bubble {
+            border-top-left-radius: 4px;
+          }
+        }
+
+        .chat-avatar {
+          flex-shrink: 0;
+        }
+
+        .chat-body {
+          max-width: 72%;
+          display: flex;
+          flex-direction: column;
+
+          .chat-bubble {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+          }
+
+          .chat-thinking {
+            font-style: italic;
+            color: hsl(var(--muted-foreground));
+
+            .dot {
+              animation: blink 1.4s infinite both;
+
+              &:nth-child(2) {
+                animation-delay: 0.2s;
+              }
+
+              &:nth-child(3) {
+                animation-delay: 0.4s;
+              }
+            }
+          }
+
+          .chat-time {
+            margin-top: 6px;
+            font-size: 12px;
+            color: hsl(var(--muted-foreground));
+          }
+        }
+      }
+
+      @keyframes blink {
+        0%,
+        80%,
+        100% {
+          opacity: 0;
+        }
+        40% {
+          opacity: 1;
+        }
+      }
+    }
+
+    // 执行记录/建议卡片
+    .exec-card,
+    .suggestion-card {
+      margin-top: 8px;
+
+      :deep(.ant-card-body) {
+        padding: 10px 12px;
+      }
+    }
+
+    .suggestion-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    // 输入区
+    .chat-input {
+      display: flex;
+      gap: 12px;
+      padding: 14px 16px;
+    }
   }
 }
 </style>

@@ -5,28 +5,26 @@ import type {
   ChatMessage,
   CreateSessionRequest,
   SendMessageRequest,
-  ChatSuggestion,
 } from '#/api/models/ai_chat';
 import type { PageResponse } from '#/api/models/marketing';
 
 /**
  * AI 投手对话助手 API
  *
- * 后端服务前缀：/platform/ai_chat
- * 需要后端配合实现以下接口：
- * - GET  /platform/ai_chat/sessions          会话列表
- * - POST /platform/ai_chat/session/create     创建会话
- * - POST /platform/ai_chat/session/delete     删除会话
- * - GET  /platform/ai_chat/messages           消息历史
- * - POST /platform/ai_chat/send               发送消息（非流式）
- * - GET  /platform/ai_chat/stream             流式对话（SSE）
- * - POST /platform/ai_chat/suggestion/execute 执行操作建议
+ * 后端服务前缀：/platform/ai_chat（turbo 模块 aichat 包）
+ * 已实现接口：
+ * - GET  /ai_chat/sessions          会话列表（分页）
+ * - POST /ai_chat/session/create     创建会话
+ * - POST /ai_chat/session/delete     删除会话（软删）
+ * - GET  /ai_chat/messages           消息历史
+ * - POST /ai_chat/send               发送消息（非流式，返回 AI 回复）
  */
 class AiChatApi extends BaseApi {
   /** 会话列表 */
   fetchSessions(params: {
     page?: number;
     pageSize?: number;
+    keyword?: string;
   }): Promise<PageResponse<ChatSession>> {
     return requestClient.get<PageResponse<ChatSession>>(
       this.getServiceUrl('sessions'),
@@ -63,25 +61,6 @@ class AiChatApi extends BaseApi {
       this.getServiceUrl('send'),
       data,
     );
-  }
-
-  /**
-   * 流式对话（SSE）
-   *
-   * 后端需实现 SSE 端点，返回 StreamEvent 格式的事件流
-   * 前端通过 EventSource 或 fetch + ReadableStream 消费
-   */
-  fetchStreamUrl(sessionId: string, content: string): string {
-    const params = new URLSearchParams({
-      sessionId,
-      content,
-    });
-    return `${this.serviceUrl}/stream?${params.toString()}`;
-  }
-
-  /** 执行操作建议 */
-  fetchExecuteSuggestion(suggestion: ChatSuggestion) {
-    return requestClient.post(this.getServiceUrl('suggestion/execute'), suggestion);
   }
 }
 

@@ -19,7 +19,7 @@ export interface ChatMessage extends BaseItem {
   content: string;
   /** AI 返回的操作建议（如果有） */
   suggestions?: ChatSuggestion[];
-  /** 关联的投放数据快照（如果有） */
+  /** 关联的投放数据快照/执行记录（如果有） */
   dataSnapshot?: Record<string, any>;
 }
 
@@ -30,7 +30,7 @@ export interface ChatSuggestion {
   /** 建议ID */
   id: string;
   /** 建议类型 */
-  type: 'pause_ad' | 'adjust_bid' | 'adjust_budget' | 'create_ad' | 'view_report' | 'alert';
+  type: string;
   /** 建议标题 */
   title: string;
   /** 建议描述 */
@@ -78,29 +78,6 @@ export interface SendMessageRequest {
   sessionId: string;
   /** 用户消息 */
   content: string;
-  /** 上下文消息（用于流式对话） */
+  /** 上下文消息（可选，缺省时后端取会话历史） */
   context?: ChatMessage[];
-}
-
-// ==================== 流式响应 ====================
-
-/**
- * 流式响应事件类型
- */
-export type StreamEventType = 'message' | 'suggestion' | 'data' | 'done' | 'error';
-
-/**
- * 流式响应事件
- */
-export interface StreamEvent {
-  /** 事件类型 */
-  type: StreamEventType;
-  /** 文本内容（message 类型） */
-  content?: string;
-  /** 操作建议（suggestion 类型） */
-  suggestion?: ChatSuggestion;
-  /** 数据快照（data 类型） */
-  data?: Record<string, any>;
-  /** 错误信息（error 类型） */
-  error?: string;
 }
