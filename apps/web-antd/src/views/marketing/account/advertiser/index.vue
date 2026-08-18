@@ -267,6 +267,7 @@ const formOptions: VbenFormProps = {
       component: 'Select',
       componentProps: {
         allowClear: true,
+        mode: 'multiple',
         options: [
           {
             label: `${$t('marketing.advertiser.advertiserRole.proxy')}`,

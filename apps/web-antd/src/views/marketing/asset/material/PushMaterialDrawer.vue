@@ -5,7 +5,7 @@ import { useVbenForm } from "#/adapter/form";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { advertiserApi, materialPushApi } from "#/api/core";
 import { useUserStore } from "@vben/stores";
-import type { AdvertiserItem } from "#/api/models/marketing";
+import type { AdvertiserItem, AdvertiserPageRequest } from "#/api/models/marketing";
 import type { MaterialItem } from "#/api/models/assert";
 import { Empty, message, Spin, Transfer } from "ant-design-vue";
 import { computed, ref, watch } from "vue";
@@ -123,6 +123,24 @@ const [Form, formApi] = useVbenForm({
         ],
         onChange: onPlatformChange
       }
+    },
+    // 巨量引擎支持选择推送到组织或账户
+    {
+      component: "RadioGroup",
+      fieldName: "pushTargetType",
+      label: $t(`${T}.pushTargetType`),
+      defaultValue: "account",
+      componentProps: {
+        options: [
+          { label: $t(`${T}.pushToOrganization`), value: "organization" },
+          { label: $t(`${T}.pushToAccount`), value: "account" }
+        ],
+        onChange: onPushTargetTypeChange
+      },
+      dependencies: {
+        triggerFields: ["platform"],
+        if: (values: Record<string, any>) => values.platform === "bytedance"
+      }
     }
   ]
 });
@@ -145,18 +163,32 @@ function onPlatformChange(platform: string) {
   }
 }
 
+async function onPushTargetTypeChange() {
+  if (!currentPlatform.value) return;
+  targetKeys.value = [];
+  await loadAdvertiserList(currentPlatform.value);
+}
+
 async function loadAdvertiserList(platform: string) {
   if (!platform) return;
   accountLoading.value = true;
   try {
-    const res = await advertiserApi.fetchAdvertiserList({
+    const values = await formApi.getValues();
+    // 巨量引擎推送到组织时，仅查询角色为 bp_admin 的账户；否则正常查询投放中的账户
+    const isOrganization =
+      platform === "bytedance" && values.pushTargetType === "organization";
+    const params: AdvertiserPageRequest = {
       page: 1,
       pageSize: 1000,
-      advertiserRole: "",
       platform,
-      putStatue: 1
-    });
+      advertiserRole: isOrganization ? ["bp_admin"] : []
+    };
+    if (!isOrganization) {
+      params.putStatue = 1;
+    }
+    const res = await advertiserApi.fetchAdvertiserList(params);
     const items = res.items ?? [];
+    //@ts-ignore
     accountDataSource.value = items.map((item: AdvertiserItem) => ({
       key: item.id,
       title: item.advertiserName || item.advertiserId || item.id,
@@ -200,6 +232,7 @@ async function handleSubmit() {
     await materialPushApi.fetchMaterialPush({
       name: taskName,
       platform: platform,
+      //@ts-ignore
       materialIds: (props.materials ?? []).map((m) => m.id),
       advertiserIds: targetKeys.value
     });
