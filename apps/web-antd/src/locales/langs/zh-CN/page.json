@@ -59,7 +59,8 @@
       "metric": "指标",
       "adreportdata": "广告效果数据",
       "metricGroup": "指标组",
-      "subscribe": "报表订阅"
+      "subscribe": "报表订阅",
+      "materialReport": "素材报表"
     },
     "creation": {
       "title": "创编",

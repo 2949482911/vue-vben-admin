@@ -54,13 +54,18 @@
       "isCustom": "Custom",
       "calculateSort": "Calculate Sort",
       "sort": "sort",
-      "platform": "Platform"
+      "platform": "Platform",
+      "reportType": "Report Metric"
     },
     "metricType": {
       "atomic": "Atomic Metric",
       "derive": "Derive Metric",
       "eventMetric": "Event Metric",
       "platformMetric": "Platform Metric"
+    },
+    "reportType": {
+      "ad": "Ad",
+      "material": "Material"
     }
   },
   "report": {

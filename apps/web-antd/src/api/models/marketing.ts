@@ -127,6 +127,7 @@ export interface CreateSystemMetric {
   id?: string;
   ename: string;
   cname: string;
+  reportType: string;
   description: string;
   metricType: number;
   formula: string;
@@ -146,6 +147,7 @@ export interface SystemMetricPageRequest extends PageRequestParams {
 
 export interface MetricPageRequest {
   metricGroupId: string;
+  reportType: string;
 }
 
 export interface MetricItem extends BaseItem {
@@ -161,8 +163,11 @@ export interface MetricItem extends BaseItem {
   isSystem: boolean;
   isCustom: boolean;
   calculateSort: number;
+  reportType: string;
   sort: number;
   platform: string;
+  metricGroupName: string;
+
 }
 
 export interface PlatformMetricMap {
@@ -813,6 +818,7 @@ export interface UpdateStrategyGropType extends StrategyGropType {
 export interface MetricGroupType extends BaseItem {
   name: string;
   description: string;
+  isChecked?: boolean;
 }
 
 export interface MetricGroupPageRequest extends BaseItem {

@@ -1,25 +1,26 @@
 <script setup lang="ts" name="SelectMetricModal">
-import { Page, useVbenModal } from '@vben/common-ui';
-import { onMounted, ref, reactive, watch, nextTick, computed } from 'vue';
-import { metricApi } from '#/api';
-import type { MetricItem, CreateSystemMetric, MetricGroupType } from '#/api/models';
+import { useVbenModal } from "@vben/common-ui";
+import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
+import { metricApi } from "#/api";
+import type { CreateSystemMetric, MetricGroupType, MetricItem } from "#/api/models";
 import {
-  Checkbox,
-  Divider,
-  CheckboxGroup,
-  Space,
-  InputSearch,
   Button,
+  Checkbox,
+  CheckboxGroup,
+  Divider,
+  InputSearch,
   message,
-  RadioGroup,
   Radio,
-} from 'ant-design-vue';
-import { ReloadOutlined, ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons-vue';
-import { $t } from '@vben/locales';
-import { useVbenForm } from '#/adapter/form';
-import { trimObject } from '#/utils/trim';
-import { metricGroupApi } from '#/api/core';
-const emit = defineEmits(['confirmMetric']);
+  RadioGroup,
+  Space
+} from "ant-design-vue";
+import { ArrowDownOutlined, ArrowUpOutlined, ReloadOutlined } from "@ant-design/icons-vue";
+import { $t } from "@vben/locales";
+import { useVbenForm } from "#/adapter/form";
+import { trimObject } from "#/utils/trim";
+import { metricGroupApi } from "#/api/core";
+
+const emit = defineEmits(["confirmMetric"]);
 const isDataLoading = ref<Boolean>(false);
 // 指标类目列表
 const metricGropList = ref<MetricGroupType[]>([]);
@@ -27,16 +28,18 @@ const metricGropList = ref<MetricGroupType[]>([]);
 const props = defineProps<{
   selectedMetrics: string[];
   decimalPoint?: number;
+  /** 报表类型：ad=广告报表，material=素材报表 */
+  reportType?: string;
 }>();
 
 // 搜索关键字
-const indicatorValue = ref('');
+const indicatorValue = ref("");
 
 // checkbox 状态
 const state = reactive({
   indeterminate: true,
   checkAll: false,
-  checkedList: [] as string[],
+  checkedList: [] as string[]
 });
 // 原始指标列表（不动）
 const metricList = ref<MetricItem[]>([]);
@@ -54,57 +57,58 @@ const visibleMetricIds = computed(() => {
 // 实际用于展示的 checkbox options
 const checkboxOptionTypeList = ref<{ label: string; value: string }[]>([]);
 const decimalPoint = ref<number>(4);
+
 // Modal
 function validateFormula(formula: string): boolean {
   if (!formula) {
-    message.warning('公式不能为空');
+    message.warning("公式不能为空");
     return false;
   }
 
   // 1. 括号匹配检查
   let stack = 0;
   for (let i = 0; i < formula.length; i++) {
-    if (formula[i] === '(') stack++;
-    if (formula[i] === ')') stack--;
+    if (formula[i] === "(") stack++;
+    if (formula[i] === ")") stack--;
     if (stack < 0) {
-      message.error('括号不匹配');
+      message.error("括号不匹配");
       return false;
     }
   }
   if (stack !== 0) {
-    message.error('括号不匹配');
+    message.error("括号不匹配");
     return false;
   }
 
   // 2. 检查是否包含非法字符（只允许字母数字下划线、运算符、括号、小数点、空格）
   const validCharsRegex = /^[a-zA-Z0-9_+\-*/()\s.]+$/;
   if (!validCharsRegex.test(formula)) {
-    message.error('公式包含非法字符');
+    message.error("公式包含非法字符");
     return false;
   }
 
   // 3. 检查连续运算符（如 ++、-- 等）
   if (/[+\-*/]{2,}/.test(formula)) {
-    message.error('公式不能包含连续的运算符');
+    message.error("公式不能包含连续的运算符");
     return false;
   }
 
   // 4. 检查运算符位置（不能开头结尾）
   if (/^[+\-*/]/.test(formula) || /[+\-*/]$/.test(formula)) {
-    message.error('公式不能以运算符开头或结尾');
+    message.error("公式不能以运算符开头或结尾");
     return false;
   }
 
   // 5. 检查是否至少包含一个运算符（派生指标必须由多个指标运算组成）
   if (!/[+\-*/]/.test(formula)) {
-    message.error('公式必须包含至少一个运算符');
+    message.error("公式必须包含至少一个运算符");
     return false;
   }
 
   return true;
 }
 
-const formulaForSubmit = ref<string>(''); // 存储无花括号英文公式用于提交
+const formulaForSubmit = ref<string>(""); // 存储无花括号英文公式用于提交
 const [Modal, modalApi] = useVbenModal({
   fullscreen: false,
   fullscreenButton: false,
@@ -113,14 +117,14 @@ const [Modal, modalApi] = useVbenModal({
     await modalApi.close();
   },
   async onConfirm() {
-    emit('confirmMetric', state.checkedList, decimalPoint.value);
+    emit("confirmMetric", state.checkedList, decimalPoint.value);
     await modalApi.close();
   },
   async onOpenChange(isOpen) {
     if (isOpen) {
       const res = await metricGroupApi.fetchGetMetricGroupList({
         page: 1,
-        pageSize: 1000,
+        pageSize: 1000
       });
       metricGropList.value = res.items;
       nextTick(() => {
@@ -128,7 +132,7 @@ const [Modal, modalApi] = useVbenModal({
         decimalPoint.value = props.decimalPoint ?? 4;
       });
     }
-  },
+  }
 });
 const [MetricModal, metricModalApi] = useVbenModal({
   fullscreen: false,
@@ -143,39 +147,39 @@ const [MetricModal, metricModalApi] = useVbenModal({
     try {
       await formApi.submitForm(); // 如果校验失败，这里会抛出错误
       await metricModalApi.close();
-      getMetricList();
+      await getMetricList();
     } catch (error) {
       // 校验失败或提交失败，弹窗保持打开，错误已通过 message 提示
-      console.error('提交失败', error);
+      console.error("提交失败", error);
     }
   },
   async onOpenChange(isOpen) {
     if (isOpen) {
     }
-  },
+  }
 });
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
-    componentProps: { class: 'w-full' },
+    componentProps: { class: "w-full" }
   },
-  layout: 'horizontal',
+  layout: "horizontal",
   handleSubmit: async (formVal: Record<string, any>) => {
     const result = await formApi.validate();
-    if (!result.valid) throw new Error('表单验证失败');
+    if (!result.valid) throw new Error("表单验证失败");
     const formValues = { ...formVal };
-    let finalFormula = '';
+    let finalFormula = "";
     if (formulaForSubmit.value) {
       finalFormula = formulaForSubmit.value;
     } else if (formValues.formula) {
-      finalFormula = formValues.formula.replace(/[{}]/g, '');
+      finalFormula = formValues.formula.replace(/[{}]/g, "");
     }
     if (!finalFormula) {
-      message.warning('请输入公式');
-      throw new Error('公式为空');
+      message.warning("请输入公式");
+      throw new Error("公式为空");
     }
     if (!validateFormula(finalFormula)) {
-      throw new Error('公式不合法');
+      throw new Error("公式不合法");
     }
     formValues.formula = finalFormula;
     const params = trimObject(formValues);
@@ -183,56 +187,58 @@ const [Form, formApi] = useVbenForm({
   },
   schema: [
     {
-      component: 'Input',
-      componentProps: { placeholder: $t('common.input') },
-      fieldName: 'id',
-      dependencies: { show: false, triggerFields: ['*'] },
+      component: "Input",
+      componentProps: { placeholder: $t("common.input") },
+      fieldName: "id",
+      dependencies: { show: false, triggerFields: ["*"] }
     },
     {
-      component: 'Input',
-      componentProps: { placeholder: $t('common.input') },
-      fieldName: 'ename',
-      label: $t('marketing.metric.columns.ename'),
-      rules: 'required',
+      component: "Input",
+      componentProps: { placeholder: $t("common.input") },
+      fieldName: "ename",
+      label: $t("marketing.metric.columns.ename"),
+      rules: "required"
     },
     {
-      component: 'Input',
-      componentProps: { placeholder: $t('common.input') },
-      fieldName: 'cname',
-      label: $t('marketing.metric.columns.cname'),
-      rules: 'required',
+      component: "Input",
+      componentProps: { placeholder: $t("common.input") },
+      fieldName: "cname",
+      label: $t("marketing.metric.columns.cname"),
+      rules: "required"
     },
     {
-      component: 'Input',
-      componentProps: { placeholder: $t('common.input') },
+      component: "Input",
+      componentProps: { placeholder: $t("common.input") },
       defaultValue: 2,
-      fieldName: 'metricType',
-      dependencies: { show: false, triggerFields: ['*'] },
+      fieldName: "metricType",
+      dependencies: { show: false, triggerFields: ["*"] }
     },
     {
-      component: 'Textarea',
-      componentProps: { placeholder: $t('common.input') },
-      fieldName: 'description',
-      label: $t('marketing.metric.columns.description'),
-      rules: 'required',
+      component: "Textarea",
+      componentProps: { placeholder: $t("common.input") },
+      fieldName: "description",
+      label: $t("marketing.metric.columns.description"),
+      rules: "required"
     },
     {
-      component: 'MetricFormulaEditor', // 自定义组件
-      fieldName: 'formula', // 直接绑定到 formula 字段
-      label: $t('marketing.metric.columns.rule'),
+      component: "MetricFormulaEditor", // 自定义组件
+      fieldName: "formula", // 直接绑定到 formula 字段
+      label: $t("marketing.metric.columns.rule"),
       componentProps: {
-        onConfirm: handleFormulaConfirm,
-      },
-    },
-  ],
+        onConfirm: handleFormulaConfirm
+      }
+    }
+  ]
 });
-function handleFormulaConfirm(val) {
+
+function handleFormulaConfirm(val: any) {
   formulaForSubmit.value = val;
 }
+
 // 拉取指标
 async function getMetricList(metricGroupId?: string) {
   isDataLoading.value = true;
-  const dataList: any = await metricApi.fetchMetric({ metricGroupId: metricGroupId });
+  const dataList: any = await metricApi.fetchMetric({ metricGroupId: metricGroupId, reportType: props.reportType ?? "ad" });
   metricList.value = dataList;
   updateCheckboxOptions(dataList);
   isDataLoading.value = false;
@@ -240,15 +246,18 @@ async function getMetricList(metricGroupId?: string) {
 
 // 根据列表更新 checkbox options
 function updateCheckboxOptions(list: MetricItem[]) {
+  //@ts-ignore
   checkboxOptionTypeList.value = list.map((item) => ({
     label: item.cname,
-    value: item.id,
-  }));
+    value: item.id
+  })) ;
 }
+
 function clearAll() {
   selectdMetricList.value = [];
   state.checkedList = [];
 }
+
 // 实时搜索（核心）
 watch(indicatorValue, (keyword) => {
   const searchText = keyword.trim().toLowerCase();
@@ -258,7 +267,7 @@ watch(indicatorValue, (keyword) => {
     return;
   }
   const filteredList = metricList.value.filter((item) =>
-    item.cname.toLowerCase().includes(searchText),
+    item.cname.toLowerCase().includes(searchText)
   );
   updateCheckboxOptions(filteredList);
 });
@@ -282,7 +291,7 @@ watch(
       .filter((item) => val.includes(item.id))
       .map((item) => item);
   },
-  { deep: true },
+  { deep: true }
 );
 
 // 全选
@@ -315,18 +324,19 @@ const handleClick = (row: MetricGroupType) => {
   const targetId = row.id;
   if (targetId) {
     isClickAll.value = false;
+    //@ts-ignore
     currentItem.value = row;
     getMetricList(row.id);
     metricGropList.value = list.map((item) => ({
       ...item,
-      isChecked: item.id === targetId,
+      isChecked: item.id === targetId
     }));
   } else {
     getMetricList();
     isClickAll.value = true;
     metricGropList.value = list.map((item) => ({
       ...item,
-      isChecked: false,
+      isChecked: false
     }));
   }
 };
@@ -335,9 +345,12 @@ const handleDragStart = (index: number) => {
   dragIndex.value = index;
 };
 
+
 const handleDrop = (dropIndex: number) => {
   const newList: MetricItem[] = [...selectdMetricList.value];
+  //@ts-ignore
   const temp = newList[dragIndex.value];
+  //@ts-ignore
   newList[dragIndex.value] = newList[dropIndex];
   newList[dropIndex] = temp;
   selectdMetricList.value = newList;
@@ -385,7 +398,7 @@ onMounted(() => {
             :indeterminate="state.indeterminate"
             @change="onCheckAllChange"
           >
-            {{ $t('core.checkAll') }}
+            {{ $t("core.checkAll") }}
           </Checkbox>
 
           <Divider />
@@ -415,7 +428,7 @@ onMounted(() => {
             type="link"
             class="insertMetric flex items-center mt-1"
             @click="handleInsertMetric"
-            v-if="currentItem?.name.includes('自定义')"
+            v-if="currentItem?.ename.includes('自定义')"
           >
             <template #icon><span class="icon-[mdi--plus] w-5 h-5"></span></template>
             自定义指标
@@ -479,10 +492,9 @@ onMounted(() => {
 
       &-item {
         margin: 5px auto;
-        font-family:
-          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-          'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-          'Noto Color Emoji';
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+        'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
         font-size: 14px;
         line-height: 30px;
         cursor: pointer;
@@ -535,10 +547,9 @@ onMounted(() => {
       background: hsl(var(--border));
 
       &-left {
-        font-family:
-          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-          'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-          'Noto Color Emoji';
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+        'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
         font-size: 14px;
       }
 
@@ -570,10 +581,9 @@ onMounted(() => {
         margin-right: 8px;
         margin-bottom: 12px;
         margin-left: 8px;
-        font-family:
-          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-          'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-          'Noto Color Emoji';
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+        'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
         font-size: 14px;
         line-height: 36px;
         cursor: move;

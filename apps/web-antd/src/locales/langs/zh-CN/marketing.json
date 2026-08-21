@@ -73,14 +73,18 @@
       "sort": "顺序",
       "platform": "平台",
       "rule": "规则",
-      "metricGroupName":"指标类目"
+      "metricGroupName":"指标类目",
+      "reportType": "报表类型"
     },
     "metricType": {
       "atomic": "原子指标",
       "derive": "派生指标",
       "eventMetric": "事件指标",
       "platformMetric": "媒体指标"
-
+    },
+    "reportType": {
+      "ad": "Ad",
+      "material": "Material"
     }
   },
   "metricGroup": {

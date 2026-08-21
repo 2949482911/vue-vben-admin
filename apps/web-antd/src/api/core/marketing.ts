@@ -268,6 +268,11 @@ class ReportApi extends BaseApi {
     return requestClient.post<AdReportResponse>(this.getServiceUrl("adreport"), params);
   }
 
+  /**素材报表 */
+  fetchMaterialReport(params: AdReportRequest) {
+    return requestClient.post<AdReportResponse>(this.getServiceUrl("material_report"), params);
+  }
+
   /**广告效果数据-计划、广告、广告组、创意联动下拉 */
   fetchAdLinkage(params: PlatformMatchRequest) {
     return requestClient.post(this.getServiceUrl("stat_select"), params);

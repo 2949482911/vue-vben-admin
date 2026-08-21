@@ -59,7 +59,8 @@
       "metric": "Metric",
       "adreportdata": "Ad Report Data",
       "metricGroup": "Metric Group",
-      "subscribe": "Report Subscribe"
+      "subscribe": "Report Subscribe",
+      "materialReport": "Material Report"
     },
     "creation": {
       "title": "Creation and composition",
