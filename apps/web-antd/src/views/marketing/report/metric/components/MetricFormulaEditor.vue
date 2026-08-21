@@ -7,6 +7,7 @@ import type { MetricItem } from '#/api/models';
 const props = defineProps<{
   value?: string;
   onConfirm?: (formula: string) => void;
+  reportType?: string;
 }>();
 const metricList = ref<MetricItem[]>([])
 const editorRef = ref<HTMLDivElement>();
@@ -25,8 +26,8 @@ const filteredMetricList = computed(() => {
     return metricList.value;
   }
   const kw = searchKeyword.value.toLowerCase().trim();
-  return metricList.value.filter(item => 
-    item.cname.toLowerCase().includes(kw) || 
+  return metricList.value.filter(item =>
+    item.cname.toLowerCase().includes(kw) ||
     item.ename.toLowerCase().includes(kw)
   );
 });
@@ -35,9 +36,19 @@ const operators = ['+', '-', '*', '/', '(', ')'];
 const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.'];
 // 加载指标列表
 const loadMetricList = async () => {
-  const data = await metricApi.fetchMetric() as MetricItem[];
+  const data = await metricApi.fetchMetric({
+    reportType: props.reportType || 'ad'
+  }) as MetricItem[];
   metricList.value = data;
 };
+
+// 切换报表类型时重新加载指标列表，保证搜索列表与 reportType 一致
+watch(() => props.reportType, async (newType) => {
+  if (newType) {
+    searchKeyword.value = '';
+    await loadMetricList();
+  }
+});
 // 渲染公式
 // 渲染内容（根据公式字符串和当前指标列表）
 const renderContent = (formula: string) => {
@@ -474,7 +485,7 @@ onMounted(async () => {
       flex-direction: column;
       justify-content: space-around;
       gap: 10px;
-      
+
       .insertMetric {
         color: hsl(var(--primary));
         cursor: pointer;

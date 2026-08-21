@@ -184,12 +184,15 @@ const [Form, formApi] = useVbenForm({
       component: "MetricFormulaEditor", // 自定义组件
       fieldName: "formula", // 直接绑定到 formula 字段
       label: $t("marketing.metric.columns.formula"),
-      componentProps: {
-        onConfirm: handleFormulaConfirm
+      componentProps: (currentValue: Record<string, any>) => {
+        return {
+          onConfirm: handleFormulaConfirm,
+          reportType: currentValue["reportType"]
+        }
       },
       dependencies: {
         show: async () => (await formApi.getValues()).metricType === 2,
-        triggerFields: ["metricType"]
+        triggerFields: ["metricType", "reportType"]
       }
     }
   ],

@@ -400,6 +400,7 @@ async function handleFormReset() {
     id: '',
     name: '',
     remark: '',
+    type: 'material'
   };
   if (abortController) {
     abortController.abort();
@@ -438,6 +439,7 @@ async function handleUseTemplate(row: TemplateDto) {
       id: row.id,
       name: row.name,
       remark: row.remark,
+      type: 'material'
     };
   }
   currentDecimalPoint.value = row.template.decimalPoint;

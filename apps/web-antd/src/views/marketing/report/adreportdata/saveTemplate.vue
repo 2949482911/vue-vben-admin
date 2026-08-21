@@ -26,12 +26,12 @@ const [Form, formApi] = useVbenForm({
       isUpdate.value ? await reportTemplateApi.fetchUpdateTemplate({
         id: formVal.id,
         name: formVal.name,
-        type: 'base',
+        type: formVal.type,
         remark: formVal.remark,
         template: props.searchData,
       }) : await reportTemplateApi.fetchReportTemplate({
         name: formVal.name,
-        type: 'base',
+        type: formVal.type,
         remark: formVal.remark,
         template: props.searchData,
       });
@@ -49,6 +49,15 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'Input',
       fieldName: 'id',
+      dependencies: {
+        show: false,
+        triggerFields: ['*'],
+      }
+    },
+    {
+      component: 'Input',
+      fieldName: 'type',
+      defaultValue: 'base',
       dependencies: {
         show: false,
         triggerFields: ['*'],
@@ -82,6 +91,7 @@ const [Modal, modalApi] = useVbenModal({
         await formApi.setFieldValue('name',data.name);
         await formApi.setFieldValue('remark',data.remark);
         await formApi.setFieldValue('id',data.id);
+        await formApi.setFieldValue('type', data.type)
       } else {
         isUpdate.value = false;
         formApi.resetForm();
@@ -117,5 +127,5 @@ const emit = defineEmits<{
 
 
 <style lang="scss" scoped>
-  
+
 </style>

@@ -146,8 +146,8 @@ export interface SystemMetricPageRequest extends PageRequestParams {
 }
 
 export interface MetricPageRequest {
-  metricGroupId: string;
-  reportType: string;
+  metricGroupId?: string;
+  reportType?: string;
 }
 
 export interface MetricItem extends BaseItem {
