@@ -1,4 +1,4 @@
-<script setup lang="ts" name="SelectMetricModal">
+<script setup lang="ts" name="ReportTemplateSaveModal">
 import { useVbenModal } from '@vben/common-ui';
 import { reportTemplateApi } from '#/api';
 import { useVbenForm } from '#/adapter/form';
@@ -7,9 +7,13 @@ import { message } from 'ant-design-vue';
 import { ref } from 'vue';
 
 // 子组件接收父组件传过来搜索的数据模板
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   searchData: searchDataFilter;
-}>();
+  /** 模板类型：base=基础(广告)报表，material=素材报表 */
+  type?: string;
+}>(), {
+  type: 'base',
+});
 const isUpdate = ref(false);
 const [Form, formApi] = useVbenForm({
   // 所有表单项共用，可单独在表单内覆盖
@@ -26,12 +30,12 @@ const [Form, formApi] = useVbenForm({
       isUpdate.value ? await reportTemplateApi.fetchUpdateTemplate({
         id: formVal.id,
         name: formVal.name,
-        type: formVal.type,
+        type: props.type,
         remark: formVal.remark,
         template: props.searchData,
       }) : await reportTemplateApi.fetchReportTemplate({
         name: formVal.name,
-        type: formVal.type,
+        type: props.type,
         remark: formVal.remark,
         template: props.searchData,
       });
@@ -49,15 +53,6 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'Input',
       fieldName: 'id',
-      dependencies: {
-        show: false,
-        triggerFields: ['*'],
-      }
-    },
-    {
-      component: 'Input',
-      fieldName: 'type',
-      defaultValue: 'base',
       dependencies: {
         show: false,
         triggerFields: ['*'],
@@ -91,13 +86,13 @@ const [Modal, modalApi] = useVbenModal({
         await formApi.setFieldValue('name',data.name);
         await formApi.setFieldValue('remark',data.remark);
         await formApi.setFieldValue('id',data.id);
-        await formApi.setFieldValue('type', data.type)
       } else {
         isUpdate.value = false;
         formApi.resetForm();
       }
     } else {
-      isUpdate.value = false;    }
+      isUpdate.value = false;
+    }
   },
   async onCancel() {
     isUpdate.value = false;
@@ -124,8 +119,3 @@ const emit = defineEmits<{
     </Modal>
   </div>
 </template>
-
-
-<style lang="scss" scoped>
-
-</style>

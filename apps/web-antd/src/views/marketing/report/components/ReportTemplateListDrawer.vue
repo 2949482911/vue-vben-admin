@@ -1,11 +1,18 @@
 <script lang="ts" setup>
 import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { useVbenVxeGrid, type VxeGridProps } from '@vben/plugins/vxe-table';
-import { Button, message, InputSearch } from 'ant-design-vue';
+import { Button, message, InputSearch, Tag } from 'ant-design-vue';
 import { reportTemplateApi } from '#/api';
 import { nextTick, ref } from 'vue';
 import type { TemplateDto } from "#/api/models";
-import SubscribeModal from './subscribeModal.vue'
+import SubscribeModal from '../adreportdata/subscribeModal.vue'
+
+const props = withDefaults(defineProps<{
+  /** 模板类型：base=基础(广告)报表，material=素材报表 */
+  type?: string;
+}>(), {
+  type: 'base',
+});
 
 const [Drawer, drawerApi] = useVbenDrawer({
   onCancel() {
@@ -37,8 +44,8 @@ const gridOptions: VxeGridProps = {
   border: true,
   columns: [
     { title: '', type: 'checkbox', width: 50 },
-    // { title: '序号', type: 'seq', width: 50 },
     { field: 'name', title: '报表名称' },
+    { field: 'type', title: '报表类型', width: 110, slots: {default: 'type'}},
     { field: 'remark', title: '备注' },
     { field: 'options', title: '操作', fixed: 'right', slots: {default: 'action'}},
   ],
@@ -56,6 +63,7 @@ const gridOptions: VxeGridProps = {
         return await reportTemplateApi.fetchGetTemplateList({
           page: page.currentPage,
           pageSize: page.pageSize,
+          type: props.type,
           ...args
         });
       },
@@ -126,6 +134,11 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridEvents, gridOptions});
           <Button class="mr-2" type="primary" @click="del()" danger>
             删除
           </Button>
+        </template>
+        <template #type="{ row }">
+          <Tag :color="row.type === 'material' ? 'blue' : 'default'">
+            {{ row.type === 'material' ? '素材报表' : '广告报表' }}
+          </Tag>
         </template>
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">

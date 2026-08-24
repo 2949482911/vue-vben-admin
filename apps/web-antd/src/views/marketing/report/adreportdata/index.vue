@@ -8,8 +8,8 @@ import SelectMetricModal from './selectmetric.vue';
 import type { AdReportRequest, ReportFilter, searchDataFilter, TemplateDto } from '#/api/models';
 import { reportApi, projectApi } from '#/api';
 import type { ProjectItem } from '../../account/advertiser/advertiser';
-import SaveTemplateModal from './saveTemplate.vue';
-import TemplateListDrawer from './templateList.vue';
+import SaveTemplateModal from '../components/ReportTemplateSaveModal.vue';
+import TemplateListDrawer from '../components/ReportTemplateListDrawer.vue';
 import AdReportFilterForm from '../components/AdReportFilterForm.vue';
 import { usePreferences } from '@vben/preferences';
 const { isDark } = usePreferences();
@@ -606,8 +606,8 @@ const isShowActions = ref(true);
       :selectedMetrics="currentQueryMetric"
       :decimalPoint="currentDecimalPoint"
     />
-    <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData" />
-    <TemplateDrawer @useTemplate="handleUseTemplate" />
+    <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData" type="base" />
+    <TemplateDrawer @useTemplate="handleUseTemplate" type="base" />
   </div>
 </template>
 

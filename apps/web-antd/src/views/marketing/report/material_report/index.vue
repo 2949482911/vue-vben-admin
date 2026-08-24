@@ -7,8 +7,8 @@ import { Button } from 'ant-design-vue';
 import SelectMetricModal from '../adreportdata/selectmetric.vue';
 import type { AdReportRequest, ReportFilter, searchDataFilter, TemplateDto } from '#/api/models';
 import { reportApi } from '#/api';
-import SaveTemplateModal from '../adreportdata/saveTemplate.vue';
-import TemplateListDrawer from '../adreportdata/templateList.vue';
+import SaveTemplateModal from '../components/ReportTemplateSaveModal.vue';
+import TemplateListDrawer from '../components/ReportTemplateListDrawer.vue';
 import MaterialReportFilterForm from './MaterialReportFilterForm.vue';
 import { usePreferences } from '@vben/preferences';
 const { isDark } = usePreferences();
@@ -584,8 +584,8 @@ const isShowActions = ref(true);
       :decimalPoint="currentDecimalPoint"
       :reportType="'material'"
     />
-    <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData" />
-    <TemplateDrawer @useTemplate="handleUseTemplate" />
+    <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData" type="material" />
+    <TemplateDrawer @useTemplate="handleUseTemplate" type="material" />
   </div>
 </template>
 
