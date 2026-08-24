@@ -541,6 +541,11 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.aps')}`,
     value: 'aps',
   },
+
+  {
+    label: `${$t('ocpx.platform.xyanw')}`,
+    value: 'xyanw',
+  },
 ];
 
 // 匹配下拉
