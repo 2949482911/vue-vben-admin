@@ -24,13 +24,13 @@ async function viewDetails(row: CampaignItem) {
 
 // 批量操作抽屉
 const [BatchOperationDrawerModule, batchOperationDrawerApi] = useVbenDrawer({
-  connectedComponent: BatchOperationDrawer,
+  connectedComponent: BatchOperationDrawer
 });
 
 function openBatchOperation(operationType: string) {
   const rows = gridApi.grid.getCheckboxRecords() as CampaignItem[];
   if (rows.length === 0) {
-    message.warning($t('marketing.promotionManager.tips.selectRow'));
+    message.warning($t("marketing.promotionManager.tips.selectRow"));
     return;
   }
   batchOperationDrawerApi.setData({
@@ -50,7 +50,7 @@ const formOptions: VbenFormProps = {
         options: AD_MANAGEMENT_PLATFORM_OPTIONS,
         allowClear: true,
         showSearch: true,
-        mode: 'multiple',
+        mode: "multiple"
       },
       fieldName: "platform",
       label: "平台"
@@ -84,7 +84,7 @@ const formOptions: VbenFormProps = {
           valueField: "advertiserId",
           labelField: "advertiserName",
           resultField: "items",
-          mode: 'multiple',
+          mode: "multiple"
         };
       },
       fieldName: "platform_account_id",
@@ -147,6 +147,28 @@ const gridOptions: VxeGridProps = {
       field: "campaignCreateTime",
       title: "计划创建时间"
     },
+    {
+      field: "AdCost",
+      title: "消耗"
+    },
+
+    {
+      field: "AdClick",
+      title: "点击"
+    },
+    {
+      field: "AdShow",
+      title: "曝光"
+    },
+    {
+      field: "AdCtr",
+      title: "点击率"
+    },
+    {
+      field: "AdEcpM",
+      title: "ECPM"
+    },
+
     {
       field: "options",
       title: "操作",

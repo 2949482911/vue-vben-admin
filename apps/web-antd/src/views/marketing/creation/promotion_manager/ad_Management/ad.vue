@@ -5,7 +5,7 @@ import { trimObject } from "#/utils/trim";
 import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { $t } from "#/locales";
-import { Button, message } from "ant-design-vue";
+import { Button, message, Space } from "ant-design-vue";
 import { buildApiFilters } from "../ad_management_filtering";
 import { AD_MANAGEMENT_PLATFORM_OPTIONS } from "../platformOptions";
 import BatchOperationDrawer from "../components/BatchOperationDrawer.vue";
@@ -173,6 +173,27 @@ const gridOptions: VxeGridProps = {
       title: "广告创建时间"
     },
     {
+      field: "AdCost",
+      title: "消耗"
+    },
+
+    {
+      field: "AdClick",
+      title: "点击"
+    },
+    {
+      field: "AdShow",
+      title: "曝光"
+    },
+    {
+      field: "AdCtr",
+      title: "点击率"
+    },
+    {
+      field: "AdEcpM",
+      title: "ECPM"
+    },
+    {
       field: "options",
       title: "操作",
       fixed: "right",
@@ -254,8 +275,10 @@ defineExpose({ ad_pageReload });
     <Page auto-content-height>
       <Grid>
         <template #toolbar-tools>
-          <BatchOperationDropdown level="promotion" @open="openBatchOperation" />
-          <Button type="primary" @click="handleCustomExport"> 导出</Button>
+          <Space>
+            <BatchOperationDropdown level="promotion" @open="openBatchOperation" />
+            <Button type="primary" @click="handleCustomExport"> 导出</Button>
+          </Space>
         </template>
         <template #action="{ row }">
           <Button type="link" @click="viewDetails(row)"> 详情</Button>

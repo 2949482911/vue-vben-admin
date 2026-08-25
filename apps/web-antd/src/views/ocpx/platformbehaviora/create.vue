@@ -1935,6 +1935,33 @@ platformConfigForm.set(Platform.XYANW, [
     // 界面显示的label
     label: `prefix`,
     rules: "required"
+  },
+  {
+    // 媒体配置表单
+    component: "Input",
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t("common.input")}`
+    },
+    // 字段名
+    fieldName: "media_id",
+    // 界面显示的label
+    label: `media_id`,
+    rules: "required"
+  },
+  {
+    // 媒体配置表单
+    component: "Input",
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t("common.input")}`
+    },
+    defaultValue: "app",
+    // 字段名
+    fieldName: "platform",
+    // 界面显示的label
+    label: `platform`,
+    rules: "required"
   }
 ]);
 
