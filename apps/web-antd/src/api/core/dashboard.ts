@@ -96,21 +96,21 @@ class DashboardDataApi extends BaseApi {
 
   /** 素材排行 Top N */
   fetchMaterialRank(
-    params: DashboardQueryParams & { topN?: number }
+    data: DashboardQueryParams & { topN?: number }
   ): Promise<MaterialRankItem[]> {
-    return requestClient.get<MaterialRankItem[]>(
+    return requestClient.post<MaterialRankItem[]>(
       this.getServiceUrl("dashboard/material_rank"),
-      { params }
+      data,
     );
   }
 
   /** 告警列表 */
   fetchAlerts(
-    params: AlertQueryParams
+    data: AlertQueryParams
   ): Promise<AlertListResponse> {
-    return requestClient.get<AlertListResponse>(
+    return requestClient.post<AlertListResponse>(
       this.getServiceUrl("dashboard/alerts"),
-      { params }
+      data
     );
   }
 

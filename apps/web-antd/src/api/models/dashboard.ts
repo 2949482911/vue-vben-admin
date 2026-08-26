@@ -117,21 +117,21 @@ export interface AccountTopItem {
  */
 export interface MaterialRankItem {
   /** 素材ID */
-  materialId: string;
+  creativeId: string;
   /** 素材名称 */
-  materialName: string;
+  creativeName: string;
   /** 素材类型：video / image */
   materialType: string;
   /** 缩略图URL */
   thumbnailUrl: string;
   /** 消耗 */
-  spend: number;
+  adMaterialCost: number;
   /** 点击率（百分比） */
-  ctr: number;
+  adMaterialCtr: number;
   /** 转化率（百分比） */
-  cvr: number;
+  adMaterialCvr: number;
   /** ROI */
-  roi: number;
+  adMaterialRoi: number;
 }
 
 /**

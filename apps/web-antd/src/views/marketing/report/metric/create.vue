@@ -82,27 +82,27 @@ const [Form, formApi] = useVbenForm({
   },
   schema: [
     {
-      component: "Input",
+      component: "VbenInput",
       componentProps: { placeholder: $t("common.input") },
       fieldName: "id",
       dependencies: { show: false, triggerFields: ["*"] }
     },
     {
-      component: "Input",
+      component: "VbenInput",
       componentProps: { placeholder: $t("common.input") },
       fieldName: "ename",
       label: $t("marketing.metric.columns.ename"),
       rules: "required"
     },
     {
-      component: "Input",
+      component: "VbenInput",
       componentProps: { placeholder: $t("common.input") },
       fieldName: "cname",
       label: $t("marketing.metric.columns.cname"),
       rules: "required"
     },
     {
-      component: "Select",
+      component: "VbenSelect",
       componentProps: {
         placeholder: $t("common.input"),
         options: [
@@ -119,10 +119,9 @@ const [Form, formApi] = useVbenForm({
       componentProps: { placeholder: $t("common.input") },
       fieldName: "description",
       label: $t("marketing.metric.columns.description"),
-      rules: "required"
     },
     {
-      component: "Select",
+      component: "VbenSelect",
       componentProps: {
         placeholder: $t("common.input"),
         onSelect: (value: number) => {
@@ -148,7 +147,7 @@ const [Form, formApi] = useVbenForm({
       label: $t("marketing.metric.columns.metricType")
     },
     {
-      component: "Select",
+      component: "VbenSelect",
       componentProps: {
         placeholder: $t("common.input"),
         options: ACTIVE_PLATFORM
@@ -162,7 +161,7 @@ const [Form, formApi] = useVbenForm({
       }
     },
     {
-      component: "Input",
+      component: "VbenInput",
       componentProps: { placeholder: $t("common.input") },
       rules: "required",
       fieldName: "implMethod",

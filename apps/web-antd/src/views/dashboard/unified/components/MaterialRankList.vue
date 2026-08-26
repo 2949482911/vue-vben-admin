@@ -4,9 +4,9 @@
  *
  * 展示消耗 Top N 的素材及其 CTR/CVR/ROI
  */
-import { Card, List, ListItem, Tag, Empty } from 'ant-design-vue';
-import { VideoCameraOutlined, FileImageOutlined } from '@ant-design/icons-vue';
-import type { MaterialRankItem } from '#/api/models';
+import { Card, Empty, List, ListItem, Tag } from "ant-design-vue";
+import { FileImageOutlined, VideoCameraOutlined } from "@ant-design/icons-vue";
+import type { MaterialRankItem } from "#/api/models";
 
 defineProps<{
   /** 素材排行数据 */
@@ -17,15 +17,15 @@ defineProps<{
 
 // 格式化金额
 function formatMoney(cents: number): string {
-  return `¥${(cents / 100).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}`;
+  return `¥${(cents / 100).toLocaleString("zh-CN", { minimumFractionDigits: 2 })}`;
 }
 
 // ROI 颜色
 function roiColor(roi: number): string {
-  if (roi >= 1.5) return 'green';
-  if (roi >= 1) return 'blue';
-  if (roi >= 0.5) return 'orange';
-  return 'red';
+  if (roi >= 1.5) return "green";
+  if (roi >= 1) return "blue";
+  if (roi >= 0.5) return "orange";
+  return "red";
 }
 </script>
 
@@ -60,15 +60,15 @@ function roiColor(roi: number): string {
               {{ item.materialName }}
             </div>
             <div class="material-metrics">
-              <span>消耗 {{ formatMoney(item.spend) }}</span>
-              <span>CTR {{ item.ctr.toFixed(1) }}%</span>
-              <span>CVR {{ item.cvr.toFixed(1) }}%</span>
+              <span>消耗 {{ formatMoney(item.adMaterialCost) }}</span>
+              <span>CTR {{ item.adMaterialCtr }}%</span>
+              <span>CVR {{ item.adMaterialCvr }}%</span>
             </div>
           </div>
 
           <!-- ROI -->
           <Tag :color="roiColor(item.roi)" :bordered="false" class="roi-tag">
-            ROI {{ item.roi.toFixed(2) }}
+            ROI {{ item.adMaterialRoi }}
           </Tag>
         </ListItem>
       </template>

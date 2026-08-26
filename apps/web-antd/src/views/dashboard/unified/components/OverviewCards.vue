@@ -45,6 +45,7 @@ function formatPercent(val: number): string {
 }
 
 // 环比变化渲染
+// @ts-ignore
 const changes: Array<Number> = computed(() => {
   if (!props.data) return [
     0, 0, 0, 0
