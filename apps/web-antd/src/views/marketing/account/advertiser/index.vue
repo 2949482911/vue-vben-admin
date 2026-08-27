@@ -720,7 +720,7 @@ async function loadAgentData(platform: string) {
                 <MenuItem> 投放 </MenuItem>
                 <MenuItem
                   v-if="row.advertiserRole === 'proxy' || row.advertiserRole === 'bm'
-                  || row.advertiserRole === 'bp_admin' || row.advertiserRole==='admin'"
+                  || row.advertiserRole === 'bp_admin' || row.advertiserRole==='admin' || row.advertiserRole === 'operator'"
                   @click="openImportChildModal(row)"
                 >
                   {{ $t('core.import') }}
