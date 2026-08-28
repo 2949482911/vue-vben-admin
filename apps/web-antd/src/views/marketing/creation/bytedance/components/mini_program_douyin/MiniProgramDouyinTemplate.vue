@@ -262,13 +262,13 @@ const campaignFormFields = [
     formItemClass: "w-[150px]",
     fieldName: "aigc_dynamic_creative_switch",
     componentProps: {
-      checkedValue: 'ON',
-      unCheckedValue: 'OFF',
-      checkedChildren: 'ON',
-      unCheckedChildren: 'OFF',
+      checkedValue: "ON",
+      unCheckedValue: "OFF",
+      checkedChildren: "ON",
+      unCheckedChildren: "OFF"
     },
     label: "AIGC动态创意开关",
-    defaultValue: 'OFF',
+    defaultValue: "OFF",
     help: "该功能仅支持行业白名单客户使用"
   },
 
@@ -281,7 +281,7 @@ const campaignFormFields = [
     defaultValue: "AD_CONVERT_TYPE_ACTIVE",
     componentProps: {
       options: BytedanceCampaign_external_action,
-      placeholder: "请选择优化目标",
+      placeholder: "请选择优化目标"
     }
   },
   {
@@ -292,6 +292,7 @@ const campaignFormFields = [
     componentProps: {
       options: BytedanceCampaign_external_action,
       placeholder: "请选择深度优化目标",
+      allowClear: true
     }
   },
   // {
@@ -304,7 +305,7 @@ const campaignFormFields = [
   {
     component: "Select",
     fieldName: "delivery_setting_deep_bid_type",
-    componentProps: { options: BytedanceCampaign_deep_bid_type },
+    componentProps: { options: BytedanceCampaign_deep_bid_type, allowClear: true },
     label: "深度优化方式",
     defaultValue: "ROI_COEFFICIENT"
   },
@@ -458,11 +459,11 @@ const promotionFormFields = [
   },
   {
     component: markRaw(ProductImageButtonField),
-    fieldName: 'product_image_button',
-    label: '产品主图',
-    rules: 'required',
+    fieldName: "product_image_button",
+    label: "产品主图",
+    rules: "required",
     // v-model 由 form 系统绑定，componentProps 由 BytedancePromotionDrawer 动态注入 openProductImageModal
-    componentProps: {},
+    componentProps: {}
   },
   {
     component: "TextareaTags",

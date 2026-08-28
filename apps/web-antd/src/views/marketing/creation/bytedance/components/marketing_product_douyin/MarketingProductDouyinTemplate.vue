@@ -401,7 +401,7 @@ const campaignFormFields = [
     componentProps: {
       options: BytedanceCampaign_external_action,
       placeholder: "请选择深度优化目标",
-      allowClear: false,
+      allowClear: true,
     },
   },
   {
@@ -417,7 +417,9 @@ const campaignFormFields = [
   {
     component: "Select",
     fieldName: "delivery_setting_deep_bid_type",
-    componentProps: { options: BytedanceCampaign_deep_bid_type },
+    componentProps: {
+      options: BytedanceCampaign_deep_bid_type, allowClear: true,
+    },
     label: "深度优化方式",
     defaultValue: "DEEP_BID_DEFAULT"
   },
