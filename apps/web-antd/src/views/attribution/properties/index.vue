@@ -86,7 +86,9 @@ const formOptions: VbenFormProps = {
     }
   ],
   showCollapseButton: true,
-  submitOnEnter: false
+  submitOnEnter: true,
+  compact: true,
+  collapsed: true,
 };
 
 const gridOptions: VxeGridProps<EventAttributeItem> = {
@@ -127,13 +129,13 @@ const gridOptions: VxeGridProps<EventAttributeItem> = {
     {
       field: "isRequired",
       title: `${$t("attribution.properties.isRequired")}`,
-      width: "auto",  
+      width: "auto",
       slots: { default: "isRequired" }
     },
     {
       field: "isSystem",
       title: `${$t("attribution.properties.isSystem")}`,
-      width: "auto",  
+      width: "auto",
       slots: { default: "isSystem" }
     },
     {

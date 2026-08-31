@@ -131,7 +131,7 @@ async function aGenerationOptions(platform: string) {
 // 优化4：提取列生成逻辑，使用缓存
 function generateColumns(columnsKeys: string[]) {
   // 检查缓存是否有效
-  if (cachedColumns.value.length > 0 && 
+  if (cachedColumns.value.length > 0 &&
       JSON.stringify(cachedColumns.value.map(c => c.field)) === JSON.stringify(['seq', ...columnsKeys])) {
     return cachedColumns.value;
   }
@@ -184,10 +184,10 @@ function debounce(fn: Function, delay: number) {
 async function init(args?: any) {
   // 防止重复请求
   if (isLoading.value) return;
-  
+
   isLoading.value = true;
   gridApi.setLoading(true);
-  
+
   try {
     const res = await advertiserApi.fetchAdvertiserCostDetail(args);
     const items = res.items.map((item: any, i: number) => ({
@@ -196,16 +196,16 @@ async function init(args?: any) {
     }));
 
     fullData.value = items;
-    
+
     // 使用 nextTick 分批更新，避免阻塞 UI
     await nextTick();
-    
+
     // 更新分页数据
     await setData(items);
 
     // 生成或获取缓存的列配置
     const newColumns = generateColumns(res.columns);
-    
+
     // 批量更新表格配置，减少重绘次数
     gridApi.setGridOptions({
       columns: newColumns,
@@ -217,8 +217,8 @@ async function init(args?: any) {
         pageSizes: [500, 800, 1000],
       },
       exportConfig: {
-        ...gridOptions.exportConfig, 
-        data: fullData.value,        
+        ...gridOptions.exportConfig,
+        data: fullData.value,
       },
     });
   } finally {
@@ -231,7 +231,7 @@ async function init(args?: any) {
 const handlePageChange = (params: { currentPage: number; pageSize: number }) => {
   // 清除之前的定时器
   if (pageTimer) clearTimeout(pageTimer);
-  
+
   pageTimer = setTimeout(() => {
     // 使用 requestAnimationFrame 优化滚动性能
     requestAnimationFrame(() => {
@@ -254,7 +254,7 @@ const handlePageChange = (params: { currentPage: number; pageSize: number }) => 
 const handleFormSubmit = async (values: any) => {
   // 清除之前的定时器
   if (searchTimer) clearTimeout(searchTimer);
-  
+
   searchTimer = setTimeout(async () => {
     pager.currentPage = 1;
     await init(values);
@@ -267,7 +267,7 @@ const handleFormReset = async () => {
   // 清除定时器
   if (searchTimer) clearTimeout(searchTimer);
   if (pageTimer) clearTimeout(pageTimer);
-  
+
   await gridApi.formApi.resetForm();
   gridApi.setGridOptions({
     pagerConfig: {
@@ -441,9 +441,11 @@ const formOptions: VbenFormProps = {
     },
   ],
   showCollapseButton: false,
-  submitOnEnter: false,
   handleSubmit: handleFormSubmit,
   handleReset: handleFormReset,
+  submitOnEnter: true,
+  compact: true,
+  collapsed: true,
 }
 
 const gridOptions: VxeGridProps<AdvertiserItem> = {
@@ -528,7 +530,7 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  
+
   // 优化16：减少重绘
   .vxe-cell {
     line-height: 1.5;

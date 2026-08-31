@@ -1,131 +1,130 @@
 <script lang="ts" setup>
-import type {VbenFormProps} from '@vben/common-ui';
+import type { VbenFormProps } from "@vben/common-ui";
+import { Page, useVbenDrawer } from "@vben/common-ui";
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import type {ReportSubscriptionItem, UpdateSubscribeType} from '#/api/models/marketing';
-import { PLATFORM, DIMS } from "#/constants/locales";
-import { Page, useVbenDrawer} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import type { VxeGridProps } from "#/adapter/vxe-table";
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
+import type { ReportSubscriptionItem, UpdateSubscribeType } from "#/api/models/marketing";
+import { PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { $t } from "@vben/locales";
 
-import { Switch, Button, message } from 'ant-design-vue';
-import { trimObject } from '#/utils/trim';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { subscribeApi, reportApi } from '#/api';
-import {
-  TASK_STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-  BatchOptionsType
-} from '#/constants/locales';
-import {RuleType} from "#/constants/enums";
-import CreateObjectRequestComp from './create.vue';//新增|修改弹窗
-import { formatDateTime } from "@vben/utils";
+import { Button, message, Switch } from "ant-design-vue";
+import { trimObject } from "#/utils/trim";
+import { reportApi, subscribeApi } from "#/api";
+import CreateObjectRequestComp from "./create.vue"; //新增|修改弹窗
 const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
-      component: 'Input',
-      fieldName: 'id',
-      label: `${$t('marketing.report.subscribe.id')}`,
+      component: "Input",
+      fieldName: "id",
+      label: `${$t("marketing.report.subscribe.id")}`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         options: PLATFORM
       },
-      fieldName: 'platform',
-      label: `${$t('marketing.report.subscribe.platform')}`,
+      fieldName: "platform",
+      label: `${$t("marketing.report.subscribe.platform")}`
     },
     {
-      component: 'Input',
-      fieldName: 'name',
-      label: `${$t('marketing.report.subscribe.name')}`,
+      component: "Input",
+      fieldName: "name",
+      label: `${$t("marketing.report.subscribe.name")}`
     }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
   // 按下回车时是否提交表单
-  submitOnEnter: false,
+  submitOnEnter: true,
+  compact: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<ReportSubscriptionItem> = {
   columns: [
     {
-      field: 'name',
-      title: `${$t('marketing.report.subscribe.name')}`,
-      width: 'auto',
+      field: "name",
+      title: `${$t("marketing.report.subscribe.name")}`,
+      width: "auto"
     },
     {
-      field: 'platform',
-      title: `${$t('marketing.report.subscribe.platform')}`,
-      width: 'auto',
+      field: "platform",
+      title: `${$t("marketing.report.subscribe.platform")}`,
+      width: "auto"
     },
     {
-      field: 'subscribeDateTimeRange',
-      title: `${$t('marketing.report.subscribe.subscribeDateTimeRange')}`,
-      width: 'auto',
+      field: "subscribeDateTimeRange",
+      title: `${$t("marketing.report.subscribe.subscribeDateTimeRange")}`,
+      width: "auto"
     },
     ...TABLE_COMMON_COLUMNS as any
   ],
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         const params = trimObject(args);
-        const res =  await subscribeApi.fetchGetSubscribe({
+        const res = await subscribeApi.fetchGetSubscribe({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
         const newRes = res.items.map((item: UpdateSubscribeType) => {
           return {
             ...item,
-            platform: item?.config?.platform.join(','),
-            subscribeDateTimeRange: `${item.subscribeDateTimeRange[0]}~${item.subscribeDateTimeRange[1]}`,
-            
-          }
-        })
-        res.items = newRes
-        return res
-      },
-    },
+            platform: item?.config?.platform.join(","),
+            subscribeDateTimeRange: `${item.subscribeDateTimeRange[0]}~${item.subscribeDateTimeRange[1]}`
+
+          };
+        });
+        res.items = newRes;
+        return res;
+      }
+    }
   },
   checkboxConfig: {
     highlight: true,
-    labelField: 'id',
+    labelField: "id"
   },
   pagerConfig: {
-    enabled: true,
+    enabled: true
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    zoom: true,
-  },
+    zoom: true
+  }
 };
+
 function pageReload() {
   gridApi.reload();
 }
+
 async function handlerState(row: UpdateSubscribeType) {
-  let type = 'disable';
-  if(row.status === 9 ) {
-    type = 'enable'
+  let type = "disable";
+  if (row.status === 9) {
+    type = "enable";
   }
   const params = {
-    targetIds:[row?.id],
+    targetIds: [row?.id],
     type,
-    values:{}
-  }
-  await subscribeApi.fetchBatchSubscribe(params)
-  message.success('修改成功')
-  pageReload()
+    values: {}
+  };
+  await subscribeApi.fetchBatchSubscribe(params);
+  message.success("修改成功");
+  pageReload();
 }
+
 /**
  * 创建弹窗
  */
 const [CreateObjectDrawer, createObjectApi] = useVbenDrawer({
   connectedComponent: CreateObjectRequestComp
 });
+
 function openCreateDrawer(row?: UpdateSubscribeType) {
   if (row?.id) {
     createObjectApi.setData(row);
@@ -134,25 +133,28 @@ function openCreateDrawer(row?: UpdateSubscribeType) {
   }
   createObjectApi.open();
 }
-async function handlerDelete(row: UpdateSubscribeType){
+
+async function handlerDelete(row: UpdateSubscribeType) {
   const params = {
-    targetIds:[row?.id],
-    type: 'delete',
-    values:{}
-  }
-  await subscribeApi.fetchBatchSubscribe(params)
-  message.success('删除成功')
-  pageReload()
+    targetIds: [row?.id],
+    type: "delete",
+    values: {}
+  };
+  await subscribeApi.fetchBatchSubscribe(params);
+  message.success("删除成功");
+  pageReload();
 }
+
 async function handleTestDescribe(row: UpdateSubscribeType) {
   try {
     await reportApi.fetchTestReport(row.id);
-    message.success('发送成功')
+    message.success("发送成功");
   } catch (error) {
-    message.success('发送失败')
+    message.success("发送失败");
   }
 }
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 </script>
 
@@ -161,26 +163,26 @@ const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
     <Page>
       <Grid>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>
         <template #toolbar-tools>
           <Button class="mr-2" type="primary" @click="() => openCreateDrawer()">
-            {{ $t('common.create') }}
+            {{ $t("common.create") }}
           </Button>
-          </template>
-          <template #action="{ row }">
+        </template>
+        <template #action="{ row }">
           <Button type="link" @click="openCreateDrawer(row)">
-            {{ $t('common.edit') }}
+            {{ $t("common.edit") }}
           </Button>
           <Button type="link" @click="handlerDelete(row)">
-            {{ $t('common.delete') }}
+            {{ $t("common.delete") }}
           </Button>
           <Button type="link" @click="handleTestDescribe(row)">
             测试
           </Button>
-          </template>
+        </template>
       </Grid>
     </Page>
-    <CreateObjectDrawer @page-reload="pageReload"/>
+    <CreateObjectDrawer @page-reload="pageReload" />
   </div>
 </template>

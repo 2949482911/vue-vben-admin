@@ -235,7 +235,6 @@ const projectSelectOptions = computed(() =>
 );
 
 const formOptions: VbenFormProps = {
-  // 默认展开
   schema: [
     {
       component: 'Input',
@@ -308,6 +307,25 @@ const formOptions: VbenFormProps = {
       component: 'Input',
       fieldName: 'advertiserName',
       label: `${$t('marketing.developer.columns.name')}`,
+    },
+
+
+    {
+      component: 'Select',
+      fieldName: 'authStatus',
+      label: `${$t('marketing.advertiser.columns.authStatus')}`,
+      componentProps: {
+        options: [
+          {
+            value: 1,
+            label: `${$t('marketing.advertiser.authStatus.auth')}`,
+          },
+          {
+            value: 9,
+            label: `${$t('marketing.advertiser.authStatus.authExp')}`,
+          }
+        ]
+      }
     },
 
     {
@@ -442,7 +460,9 @@ const formOptions: VbenFormProps = {
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
   // 按下回车时是否提交表单
-  submitOnEnter: false,
+  submitOnEnter: true,
+  compact: true,
+  collapsed: true,
 };
 
 const gridOptions: VxeGridProps<AdvertiserItem> = {
@@ -536,6 +556,12 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
       title: `${$t('marketing.advertiser.columns.putStatue')}`,
       width: 'auto',
       slots: { default: 'putStatue' },
+    },
+    {
+      field: 'authStatusName',
+      title: `${$t('marketing.advertiser.columns.authStatus')}`,
+      width: 'auto',
+      slots: { default: 'authStatus' },
     },
 
     {
@@ -693,6 +719,11 @@ async function loadAgentData(platform: string) {
 
         <template #platformStatus="{ row }">
           <Tag color="green">{{ row.platformStatus }}</Tag>
+        </template>
+
+        <template #authStatus="{ row }">
+          <Tag color="green" v-if="row.authStatus === 1">{{ row.authStatusName }}</Tag>
+          <Tag color="error" v-else>{{  row.authStatusName }}</Tag>
         </template>
 
         <template #platformAuditState="{ row }">

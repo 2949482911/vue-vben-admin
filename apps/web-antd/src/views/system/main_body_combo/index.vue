@@ -61,7 +61,9 @@ const formOptions: VbenFormProps = {
     }
   ],
   showCollapseButton: false,
-  submitOnEnter: false
+  submitOnEnter: true,
+  compact: true,
+  collapsed: true,
 };
 
 const gridOptions: VxeGridProps = {

@@ -16,7 +16,12 @@
       "dailyBudget": "Daily Budget",
       "companyName": "Company",
       "platformAuditState": "Audit State",
-      "projectId": "Project"
+      "tagName": "Tags",
+      "orgName": "Dept",
+      "hourlyState": "Hourly State",
+      "accessToken": "Access Token",
+      "projectId": "Project",
+      "authStatus": "Auth Status"
     },
     "advertiserRole": {
       "proxy": "Agent",
@@ -26,6 +31,10 @@
       "bm": "Tencent BM Account",
       "bp_admin": "BM Admin",
       "bp_operator": "BM OPERATOR"
+    },
+    "authStatus": {
+      "auth": "Auth",
+      "authExp": "Auth Exp"
     }
   },
   "developer": {

@@ -34,7 +34,6 @@ async function loadAdvertiserOptions(platform?: string) {
     putStatue: 1,
     page: 1,
     pageSize: 100000,
-    advertiserRole: '',
   });
 
   advertiserOption.value = res.items.map((item) => ({
@@ -85,7 +84,9 @@ const formOptions: VbenFormProps = {
   // 控制表单是否显示折叠按钮
   showCollapseButton: false,
   // 按下回车时是否提交表单
-  submitOnEnter: false,
+  submitOnEnter: true,
+  compact: true,
+  collapsed: true,
 };
 
 const gridOptions: VxeGridProps = {

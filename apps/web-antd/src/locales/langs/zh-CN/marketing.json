@@ -21,7 +21,12 @@
       "tagName": "标签",
       "orgName": "部门",
       "hourlyState": "分时状态",
-      "accessToken": "账户TOKEN"
+      "accessToken": "账户TOKEN",
+      "authStatus": "授权状态"
+    },
+    "authStatus": {
+      "auth": "生效中",
+      "authExp": "已失效"
     },
     "advertiserRole": {
       "proxy": "代理",

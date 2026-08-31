@@ -1,51 +1,47 @@
 <script lang="ts" setup name="AccountManager">
 
-import type {VxeGridProps, VxeGridListeners} from '#/adapter/vxe-table';
-import type {DownloadCenterItem} from '#/api/models/tools';
-import type {VbenFormProps} from '@vben/common-ui';
-import { Page, useVbenDrawer} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import { useVbenForm } from '#/adapter/form';
-import { Switch, Tag, Button } from 'ant-design-vue';
-import dayjs from 'dayjs';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { downloadCenterApi } from '#/api/core/tools';
-import {
-  TASK_STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
-import { trimObject } from '#/utils/trim';
-import type { ExportRTADataItem } from "#/api/models/tools";
+import type { VxeGridProps } from "#/adapter/vxe-table";
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
+import type { DownloadCenterItem, ExportRTADataItem } from "#/api/models/tools";
+import type { VbenFormProps } from "@vben/common-ui";
+import { Page, useVbenDrawer } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+import { useVbenForm } from "#/adapter/form";
+import { Button, Switch, Tag } from "ant-design-vue";
+import { downloadCenterApi } from "#/api/core/tools";
+import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { trimObject } from "#/utils/trim";
+
 const gridOptions: VxeGridProps<DownloadCenterItem> = {
   columns: [
     {
-      field: 'name',
-      title: `${$t('tools.downcenter.columns.name')}`,
-      width: 'auto',
+      field: "name",
+      title: `${$t("tools.downcenter.columns.name")}`,
+      width: "auto"
     },
     {
-      field: 'type',
-      title: `${$t('tools.downcenter.columns.type')}`,
-      width: 'auto',
+      field: "type",
+      title: `${$t("tools.downcenter.columns.type")}`,
+      width: "auto"
     },
     {
-      field: 'downloadUrl',
-      title: `${$t('tools.downcenter.columns.downloadUrl')}`,
-      slots: { default: 'downloadUrl' },
-      width: 'auto',
+      field: "downloadUrl",
+      title: `${$t("tools.downcenter.columns.downloadUrl")}`,
+      slots: { default: "downloadUrl" },
+      width: "auto"
     },
     {
-      field: 'taskState',
-      title: `${$t('tools.downcenter.columns.taskState')}`,
-      slots: { default: 'taskState' },
-      width: 'auto',
+      field: "taskState",
+      title: `${$t("tools.downcenter.columns.taskState")}`,
+      slots: { default: "taskState" },
+      width: "auto"
     },
     {
-      field: 'message',
-      title: '原因',
-      width: 'auto',
+      field: "message",
+      title: "原因",
+      width: "auto"
     },
-    ...(TABLE_COMMON_COLUMNS as any),
+    ...(TABLE_COMMON_COLUMNS as any)
   ],
   proxyConfig: {
     autoLoad: true,
@@ -55,74 +51,76 @@ const gridOptions: VxeGridProps<DownloadCenterItem> = {
         return await downloadCenterApi.fetchDownloadList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
-      },
-    },
+      }
+    }
   },
   checkboxConfig: {
     highlight: true,
-    labelField: 'id',
+    labelField: "id"
   },
   pagerConfig: {
-    enabled: true,
+    enabled: true
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    zoom: true,
-  },
+    zoom: true
+  }
 };
 
 const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
-      component: 'Input',
-      fieldName: 'id',
-      label: `id`,
+      component: "Input",
+      fieldName: "id",
+      label: `id`
     },
     {
-      component: 'Input',
-      fieldName: 'name',
-      label: `${$t('tools.downcenter.columns.name')}`,
+      component: "Input",
+      fieldName: "name",
+      label: `${$t("tools.downcenter.columns.name")}`
     },
     {
-      component: 'Input',
-      fieldName: 'type',
-      label: `${$t('tools.downcenter.columns.type')}`,
+      component: "Input",
+      fieldName: "type",
+      label: `${$t("tools.downcenter.columns.type")}`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: [
-          { label: $t('common.pending'), value: 0 },
-          { label: $t('common.processing'), value: 1 },
-          { label: $t('common.completed'), value: 2 },
-          { label: $t('common.failed'), value: 3 },
+          { label: $t("common.pending"), value: 0 },
+          { label: $t("common.processing"), value: 1 },
+          { label: $t("common.completed"), value: 2 },
+          { label: $t("common.failed"), value: 3 }
         ],
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'taskState',
-      label: `${$t('tools.downcenter.columns.taskState')}`,
-    },
+      fieldName: "taskState",
+      label: `${$t("tools.downcenter.columns.taskState")}`
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
   // 按下回车时是否提交表单
-  submitOnEnter: false,
+  submitOnEnter: true,
+  compact: true,
+  collapsed: true,
 };
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
     componentProps: {
-      class: 'w-full',
-    },
+      class: "w-full"
+    }
   },
-  layout: 'horizontal',
+  layout: "horizontal",
   handleSubmit: async (formVal: Record<string, any>) => {
     // const params = trimObject(formVal);
     const params = formVal;
@@ -130,60 +128,60 @@ const [Form, formApi] = useVbenForm({
   },
   schema: [
     {
-      component: 'Select',
-      fieldName: 'type',
+      component: "Select",
+      fieldName: "type",
       label: `任务类型`,
       componentProps: {
         options: [
           {
-            label: 'rta',
-            value: 'rta',
+            label: "rta",
+            value: "rta"
           }
-        ],
+        ]
       },
-      rules: 'required'
+      rules: "required"
     },
     {
-      component: 'RangePicker',
+      component: "RangePicker",
       componentProps: {
-        placeholder: [`${$t('common.select')}`, `${$t('common.select')}`],
-        format: 'YYYY-MM-DD HH:mm:ss',
-        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        placeholder: [`${$t("common.select")}`, `${$t("common.select")}`],
+        format: "YYYY-MM-DD HH:mm:ss",
+        valueFormat: "YYYY-MM-DD HH:mm:ss",
         showTime: true
       },
-      fieldName: 'timeRange',
-      label: '创建日期',
-      rules: 'required',
+      fieldName: "timeRange",
+      label: "创建日期",
+      rules: "required"
     },
     {
-      component: 'Select',
-      fieldName: 'fromMediaType',
+      component: "Select",
+      fieldName: "fromMediaType",
       label: `来源媒体`,
-      rules: 'required',
+      rules: "required",
       componentProps: {
         options: [
           {
-            label: 'VIVO',
-            value: 'vivo',
+            label: "VIVO",
+            value: "vivo"
           }
-        ],
-      },
+        ]
+      }
     },
     {
-      component: 'Select',
-      fieldName: 'toMediaType',
+      component: "Select",
+      fieldName: "toMediaType",
       label: `去向媒体`,
-      rules: 'required',
+      rules: "required",
       componentProps: {
         options: [
           {
-            label: '喜马拉雅',
-            value: 'xmly',
+            label: "喜马拉雅",
+            value: "xmly"
           }
-        ],
-      },
+        ]
+      }
     }
-  ],
+  ]
 });
 // 导出rta数据抽屉
 const [Drawer, drawerApi] = useVbenDrawer({
@@ -193,13 +191,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   async onConfirm() {
     const result = await formApi.validate();
-    if(!result.valid) return;
+    if (!result.valid) return;
     await formApi.submitForm();
     await drawerApi.close();
-  },
+  }
 });
+
 function exportRTAData() {
-  drawerApi.open()
+  drawerApi.open();
 }
 </script>
 
@@ -212,13 +211,14 @@ function exportRTAData() {
         </template>
 
         <template #downloadUrl="{ row }">
-          <a class="downloadLink" :class="{'disabled-link': !row.downloadUrl}" :href="row.downloadUrl" :download="row.name">点击下载</a>
+          <a class="downloadLink" :class="{'disabled-link': !row.downloadUrl}"
+             :href="row.downloadUrl" :download="row.name">点击下载</a>
         </template>
         <template #taskState="{ row }">
-          <Tag v-if="row.taskState === 0" color="orange">{{ $t('common.pending') }}</Tag>
-          <Tag v-if="row.taskState === 1" color="blue">{{ $t('common.processing') }}</Tag>
-          <Tag v-if="row.taskState === 2" color="green">{{ $t('common.completed') }}</Tag>
-          <Tag v-if="row.taskState === 3" color="red">{{ $t('common.failed') }}</Tag>
+          <Tag v-if="row.taskState === 0" color="orange">{{ $t("common.pending") }}</Tag>
+          <Tag v-if="row.taskState === 1" color="blue">{{ $t("common.processing") }}</Tag>
+          <Tag v-if="row.taskState === 2" color="green">{{ $t("common.completed") }}</Tag>
+          <Tag v-if="row.taskState === 3" color="red">{{ $t("common.failed") }}</Tag>
         </template>
         <template #toolbar-tools>
           <Button type="primary" @click="exportRTAData">

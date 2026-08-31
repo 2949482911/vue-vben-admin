@@ -66,7 +66,9 @@ const formOptions: VbenFormProps = {
     },
   ],
   showCollapseButton: true,
-  submitOnEnter: false,
+  submitOnEnter: true,
+  compact: true,
+  collapsed: true,
 };
 
 const gridOptions: VxeGridProps<AttributionConfigItem> = {
@@ -116,7 +118,7 @@ const gridOptions: VxeGridProps<AttributionConfigItem> = {
     {
       field: "isDefault",
       title: `${$t("attribution.attributionConfig.isDefault")}`,
-      width: "auto",  
+      width: "auto",
       slots: { default: "isDefault" },
     },
     {

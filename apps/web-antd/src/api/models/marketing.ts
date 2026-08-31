@@ -42,6 +42,8 @@ export interface AdvertiserItem extends BaseItem {
   accessToken: string;
   hourlyState: number;
   tagName: string;
+  authStatus: number;
+  authStatusName: string;
 }
 
 // 拉取历史列表
