@@ -54,7 +54,9 @@ const formOptions: VbenFormProps = {
     },
   ],
   showCollapseButton: true,
-  submitOnEnter: false,
+  submitOnEnter: true,
+  compact: true,
+  collapsed: true,
 };
 
 // 任务详情抽屉
