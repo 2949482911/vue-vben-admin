@@ -19,11 +19,14 @@ import {
   ListItem,
   message,
   Modal,
+  Progress,
   Spin,
   Tag,
   Tooltip,
 } from 'ant-design-vue';
 import {
+  CheckOutlined,
+  CloseOutlined,
   DeleteOutlined,
   PlusOutlined,
   RobotOutlined,
@@ -35,6 +38,8 @@ import { aiChatApi } from '#/api/core';
 import type {
   ChatSession,
   ChatMessage,
+  ChatSuggestion,
+  ToolRecord,
 } from '#/api/models/ai_chat';
 
 // ==================== 平台文案 ====================
@@ -300,6 +305,68 @@ const quickPrompts = [
   '推荐一些优化建议',
 ];
 
+// ==================== 建议审批 ====================
+
+/** 正在执行的建议 ID（防止重复点击） */
+const executingSuggestionId = ref<string>('');
+
+/** 执行进度百分比 */
+function execProgress(ds?: any): number {
+  if (!ds?.records?.length) return 0;
+  if (!ds.totalSteps) return 0;
+  return Math.round(((ds.successSteps || 0) / ds.totalSteps) * 100);
+}
+
+/** 执行进度状态 */
+function execProgressStatus(ds?: any): 'active' | 'success' | 'exception' {
+  if (!ds?.records?.length) return 'active';
+  const failed = ds.records.filter((r: ToolRecord) => r.status === 'failed').length;
+  if (failed > 0) return 'exception';
+  return 'success';
+}
+
+/** 确认执行建议 */
+async function handleConfirmSuggestion(msg: ChatMessage, suggestion: ChatSuggestion) {
+  if (executingSuggestionId.value) return;
+  executingSuggestionId.value = suggestion.id;
+  try {
+    const res = await aiChatApi.fetchExecuteSuggestion({
+      messageId: msg.id!,
+      suggestionId: suggestion.id,
+      action: 'confirm',
+    });
+    // 更新本地建议状态
+    suggestion.executed = true;
+    suggestion.status = 'executed';
+    suggestion.execResult = res.message;
+    message.success(res.message || '执行成功');
+  } catch {
+    message.error('执行失败，请重试');
+  } finally {
+    executingSuggestionId.value = '';
+  }
+}
+
+/** 取消建议 */
+async function handleCancelSuggestion(msg: ChatMessage, suggestion: ChatSuggestion) {
+  if (executingSuggestionId.value) return;
+  executingSuggestionId.value = suggestion.id;
+  try {
+    await aiChatApi.fetchExecuteSuggestion({
+      messageId: msg.id!,
+      suggestionId: suggestion.id,
+      action: 'cancel',
+    });
+    suggestion.executed = false;
+    suggestion.status = 'cancelled';
+    message.info('已取消该建议');
+  } catch {
+    message.error('取消失败，请重试');
+  } finally {
+    executingSuggestionId.value = '';
+  }
+}
+
 onMounted(() => {
   loadSessions();
 });
@@ -487,15 +554,31 @@ onMounted(() => {
                 class="exec-card"
               >
                 <template #title>
-                  <span class="text-xs text-muted-foreground">执行记录</span>
+                  <div class="flex items-center justify-between w-full">
+                    <span class="text-xs text-muted-foreground">执行记录</span>
+                    <span class="text-xs text-muted-foreground">
+                      {{ msg.dataSnapshot.successSteps || 0 }}/{{ msg.dataSnapshot.totalSteps || msg.dataSnapshot.records.length }} 步
+                    </span>
+                  </div>
                 </template>
+                <!-- 进度条 -->
+                <Progress
+                  :percent="execProgress(msg.dataSnapshot)"
+                  :status="execProgressStatus(msg.dataSnapshot)"
+                  :show-info="false"
+                  size="small"
+                  class="mb-2"
+                />
                 <div
                   v-for="(rec, i) in msg.dataSnapshot.records"
                   :key="i"
-                  class="flex items-center gap-2 py-1 text-xs"
+                  class="exec-record"
                 >
                   <span class="text-muted-foreground">{{ recordIndex(i) }}.</span>
-                  <span class="flex-1">{{ rec.stepName || rec.toolName }}</span>
+                  <span class="exec-record-name">{{ rec.stepName || rec.toolName }}</span>
+                  <span v-if="rec.duration" class="exec-record-dur">
+                    {{ rec.duration }}ms
+                  </span>
                   <Tag
                     :color="recordStatusColor(rec.status)"
                     :bordered="false"
@@ -528,14 +611,67 @@ onMounted(() => {
                     <span class="text-sm font-medium">
                       {{ s.title }}
                     </span>
+                    <!-- 已执行/已取消状态 -->
+                    <Tag
+                      v-if="s.status === 'executed'"
+                      color="green"
+                      :bordered="false"
+                      size="small"
+                    >
+                      已执行
+                    </Tag>
+                    <Tag
+                      v-else-if="s.status === 'cancelled'"
+                      color="default"
+                      :bordered="false"
+                      size="small"
+                    >
+                      已取消
+                    </Tag>
+                    <Tag
+                      v-else-if="s.status === 'failed'"
+                      color="red"
+                      :bordered="false"
+                      size="small"
+                    >
+                      执行失败
+                    </Tag>
                   </div>
                   <div class="text-xs text-muted-foreground leading-relaxed mb-2">
                     {{ s.description }}
                   </div>
-                  <div class="flex justify-end">
-                    <span class="text-xs text-muted-foreground">
-                      执行能力后端开放中，敬请期待
-                    </span>
+                  <!-- 执行结果 -->
+                  <div
+                    v-if="s.execResult"
+                    class="text-xs text-muted-foreground bg-muted rounded px-2 py-1.5 mb-2"
+                  >
+                    {{ s.execResult }}
+                  </div>
+                  <!-- 审批按钮（未执行时显示） -->
+                  <div
+                    v-if="!s.executed && s.status !== 'cancelled' && s.status !== 'executed'"
+                    class="flex justify-end gap-2"
+                  >
+                    <Button
+                      size="small"
+                      :loading="executingSuggestionId === s.id"
+                      :disabled="!!executingSuggestionId"
+                      @click="handleCancelSuggestion(msg, s)"
+                    >
+                      <template #icon><CloseOutlined /></template>
+                      取消
+                    </Button>
+                    <Button
+                      type="primary"
+                      size="small"
+                      danger
+                      :loading="executingSuggestionId === s.id"
+                      :disabled="!!executingSuggestionId"
+                      @click="handleConfirmSuggestion(msg, s)"
+                    >
+                      <template #icon><CheckOutlined /></template>
+                      确认执行
+                    </Button>
                   </div>
                 </Card>
               </div>
@@ -747,6 +883,29 @@ onMounted(() => {
 
       :deep(.ant-card-body) {
         padding: 10px 12px;
+      }
+    }
+
+    // 执行记录条目
+    .exec-record {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+      font-size: 12px;
+
+      .exec-record-name {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .exec-record-dur {
+        flex-shrink: 0;
+        color: hsl(var(--muted-foreground));
+        font-size: 11px;
       }
     }
 

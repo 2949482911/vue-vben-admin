@@ -5,6 +5,8 @@ import type {
   ChatMessage,
   CreateSessionRequest,
   SendMessageRequest,
+  SuggestionExecuteRequest,
+  SuggestionExecuteResponse,
 } from '#/api/models/ai_chat';
 import type { PageResponse } from '#/api/models/marketing';
 
@@ -13,11 +15,12 @@ import type { PageResponse } from '#/api/models/marketing';
  *
  * 后端服务前缀：/platform/ai_chat（turbo 模块 aichat 包）
  * 已实现接口：
- * - GET  /ai_chat/sessions          会话列表（分页）
- * - POST /ai_chat/session/create     创建会话
- * - POST /ai_chat/session/delete     删除会话（软删）
- * - GET  /ai_chat/messages           消息历史
- * - POST /ai_chat/send               发送消息（非流式，返回 AI 回复）
+ * - GET  /ai_chat/sessions            会话列表（分页）
+ * - POST /ai_chat/session/create       创建会话
+ * - POST /ai_chat/session/delete       删除会话（软删）
+ * - GET  /ai_chat/messages            消息历史
+ * - POST /ai_chat/send                 发送消息（非流式，返回 AI 回复）
+ * - POST /ai_chat/suggestion/execute   审批执行建议（确认/取消）
  */
 class AiChatApi extends BaseApi {
   /** 会话列表 */
@@ -59,6 +62,14 @@ class AiChatApi extends BaseApi {
   fetchSend(data: SendMessageRequest) {
     return requestClient.post<ChatMessage>(
       this.getServiceUrl('send'),
+      data,
+    );
+  }
+
+  /** 审批执行建议（确认/取消） */
+  fetchExecuteSuggestion(data: SuggestionExecuteRequest) {
+    return requestClient.post<SuggestionExecuteResponse>(
+      this.getServiceUrl('suggestion/execute'),
       data,
     );
   }

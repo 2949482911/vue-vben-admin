@@ -14,6 +14,7 @@ import { Empty } from 'ant-design-vue';
 import { computed, ref } from 'vue';
 
 import DeleteCampaignOperation from './operations/DeleteCampaignOperation.vue';
+import DeletePromotionOperation from './operations/DeletePromotionOperation.vue';
 
 // ==================== 操作类型元信息 ====================
 /** 操作类型 → i18n key（标题） */
@@ -80,6 +81,12 @@ function handleTaskCompleted() {
       <!-- 根据操作类型动态渲染对应操作组件 -->
       <DeleteCampaignOperation
         v-if="operationType === 'delete_campaign'"
+        :rows="selectedRows"
+        @task-completed="handleTaskCompleted"
+      />
+
+      <DeletePromotionOperation
+        v-else-if="operationType === 'delete_promotion'"
         :rows="selectedRows"
         @task-completed="handleTaskCompleted"
       />
