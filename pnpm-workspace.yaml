@@ -98,6 +98,7 @@ catalog:
   '@vueuse/core': ^14.4.0
   '@vueuse/integrations': ^14.3.0
   '@vueuse/motion': ^3.0.3
+  '@ant-design/icons-vue':  ^7.0.1
   ant-design-vue: ^4.2.6
   antdv-next: ^1.4.5
   archiver: ^8.0.0
@@ -211,6 +212,10 @@ catalog:
   yaml-eslint-parser: ^2.1.0
   zod: ^4.4.3
   zod-defaults: ^0.2.3
+  ali-oss: ^6.23.0
+  spark-md5: ^3.0.2
+  exceljs: ^4.4.0
+  vxe-table-plugin-export-xlsx: "^4.0.7"
 
 allowBuilds:
   '@parcel/watcher': true
