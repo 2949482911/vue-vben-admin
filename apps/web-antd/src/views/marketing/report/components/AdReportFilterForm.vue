@@ -18,7 +18,7 @@ interface Props {
   content?: string;
   onConfirm?: (values: any) => void;
   onCancel?: () => void;
-  resetKey?: number; // 
+  resetKey?: number; //
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -45,7 +45,7 @@ const emits = defineEmits<{
   reset: [];
   'update:values': [values: any];
 }>();
-
+// @ts-ignore
 const selectPlatform = ref<string>(null);
 const {
   planOptions,
@@ -81,7 +81,7 @@ const filterCriteria = ref();
 async function resetFormToDefault() {
   // 1. 重置标准表单字段
   await formApi.resetForm();
-  
+
   // 2. 显式清空所有自定义字段（防止组件内部状态残留）
   await formApi.setFieldValue('advertiserId', []);   // HybridSearchSelect 清空
   await formApi.setFieldValue('projectId', []);   // HybridSearchSelect 清空
@@ -91,10 +91,10 @@ async function resetFormToDefault() {
   await formApi.setFieldValue('creative_id', []);      // 创意
   await formApi.setFieldValue('queryMetric', []);
   await formApi.setFieldValue('advertiserTagId', []);
-  
+
   // 3. 重置联动选项的加载状态（清空已缓存的选项列表）
   await resetLoadedMap(); // 确保此函数内部将 planOptions.value 等置为 []
-  
+
   // 4. 重新设置默认值
   await formApi.setFieldValue('dateTimeRange', [
     dayjs().subtract(6, 'day').format('YYYY-MM-DD'),
@@ -165,6 +165,7 @@ const formOptions: VbenFormProps = {
         initialApi: async () => {
           const formData = await formApi.getValues();
           selectPlatform.value = formData.platform?.join(',');
+          // @ts-ignore
           const res = await advertiserApi.fetchAdvertiserList({
             page: 1,
             pageSize: 1000,
@@ -180,6 +181,7 @@ const formOptions: VbenFormProps = {
           return res;
         },
         remoteApi: async (params: any) => {
+          // @ts-ignore
           const res = await advertiserApi.fetchAdvertiserList({
             page: 1,
             pageSize: 1000,
@@ -385,14 +387,14 @@ watch(
       await resetFormToDefault();
       return;
     }
-    
+
     // 有值时才回显
     await nextTick();
     const valuesToSet = { ...newVal };
     if (newVal.subscribeDateTimeRange && !newVal.dateTimeRange) {
       valuesToSet.dateTimeRange = newVal.subscribeDateTimeRange;
     }
-    
+
     // 设置表单值
     await formApi.setValues(valuesToSet);
     if (newVal.platform && newVal.platform.length > 0) {

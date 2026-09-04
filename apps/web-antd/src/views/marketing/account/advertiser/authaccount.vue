@@ -1,13 +1,13 @@
 <script setup lang="ts" name="AuthAccount">
-import {useVbenModal} from '@vben/common-ui';
-import {useVbenForm} from '#/adapter/form';
-import {$t} from "@vben/locales";
-import {AUTH_ACCOUNT_PLATFORM} from "#/constants/locales";
-import {Platform} from "#/constants/enums";
-import {advertiserApi, developerApi} from "#/api/core";
-import {onMounted, ref} from "vue";
+import { useVbenModal } from "@vben/common-ui";
+import { useVbenForm } from "#/adapter/form";
+import { $t } from "@vben/locales";
+import { AUTH_ACCOUNT_PLATFORM } from "#/constants/locales";
+import { Platform } from "#/constants/enums";
+import { advertiserApi, developerApi } from "#/api/core";
+import { onMounted, ref } from "vue";
 
-import {Alert} from 'ant-design-vue';
+import { Alert } from "ant-design-vue";
 
 interface DeveloperOption {
   label: string;
@@ -27,12 +27,12 @@ async function aGenerationOptions(platform: string) {
   const res = await developerApi.fetchDeveloperList({
     platform,
     page: 1,
-    pageSize: 200,
+    pageSize: 200
   });
 
   aGenerationOption.value = res.items.map((item) => ({
     label: item.name,
-    value: item.id,
+    value: item.id
   }));
 }
 
@@ -41,35 +41,35 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     // 所有表单项
     componentProps: {
-      class: 'w-full',
-    },
+      class: "w-full"
+    }
   },
-  layout: 'horizontal',
+  layout: "horizontal",
   schema: [
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Select',
+      component: "Select",
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`,
         options: AUTH_ACCOUNT_PLATFORM,
         onSelect: async (value: string) => {
-          await handlerAuthUrl(value, '');
+          await handlerAuthUrl(value, "");
           await aGenerationOptions(value);
         }
       },
       // 字段名
-      fieldName: 'platform',
+      fieldName: "platform",
       defaultValue: Platform.VIVO,
       // 界面显示的label
-      label: `${$t('ocpx.platform.title')}`,
-      rules: 'required',
+      label: `${$t("ocpx.platform.title")}`,
+      rules: "required"
     },
 
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
-        placeholder: `${$t('common.select')}`,
+        placeholder: `${$t("common.select")}`,
         showSearch: true,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
@@ -80,47 +80,47 @@ const [Form, formApi] = useVbenForm({
           await handlerAuthUrl(formVal["platform"], developerId);
         }
       },
-      fieldName: 'developerId',
+      fieldName: "developerId",
       // 界面显示的label
-      label: `${$t('marketing.developer.title')}`,
+      label: `${$t("marketing.developer.title")}`
     },
 
     {
-      component: 'RadioGroup',
+      component: "RadioGroup",
       defaultValue: 1,
       componentProps: {
         options: [
           {
             "label": "自主授权",
-            "value": 1,
+            "value": 1
           },
           {
             "label": "邀请他人授权",
-            "value": 2,
+            "value": 2
           }
         ]
       },
-      fieldName: 'field1',
-      rules: 'required',
-      label: `${$t('marketing.advertiser.authType')}`,
+      fieldName: "field1",
+      rules: "required",
+      label: `${$t("marketing.advertiser.authType")}`
     },
     {
-      component: 'Textarea',
+      component: "Textarea",
       componentProps: {
         readonly: true,
         rows: 12,
         disabled: true
       },
-      fieldName: 'authUrl',
-      label: `${$t('marketing.advertiser.authUrl')}`,
+      fieldName: "authUrl",
+      label: `${$t("marketing.advertiser.authUrl")}`,
       dependencies: {
         show: value => {
-          return value.field1 === 2
+          return value.field1 === 2;
         },
-        triggerFields: ['field1']
+        triggerFields: ["field1"]
       }
     }
-  ],
+  ]
 });
 
 
@@ -130,14 +130,14 @@ const [Form, formApi] = useVbenForm({
  * @param developerId
  */
 async function handlerAuthUrl(platform: string, developerId?: string) {
-  const url = await advertiserApi.fetchAuthUrl({platform: platform, developerId: developerId})
-  await formApi.setFieldValue("authUrl", url)
+  const url = await advertiserApi.fetchAuthUrl({ platform: platform, developerId: developerId });
+  await formApi.setFieldValue("authUrl", url);
 }
 
 
 onMounted(() => {
   handlerAuthUrl(Platform.VIVO);
-})
+});
 
 
 const [Modal, modalApi] = useVbenModal({
@@ -148,9 +148,9 @@ const [Modal, modalApi] = useVbenModal({
   },
 
   async onConfirm() {
-    const authUrl = await formApi.getValues()
+    const authUrl = await formApi.getValues();
     if (authUrl["field1"] === 1) {
-      window.open(authUrl["authUrl"], '_blank');
+      window.open(authUrl["authUrl"], "_blank");
     }
     await modalApi.close();
   },
@@ -166,13 +166,11 @@ const [Modal, modalApi] = useVbenModal({
 </script>
 
 <template>
-  <div>
-    <Modal>
-      <Form></Form>
+  <Modal>
+    <Form></Form>
 
-      <Alert type="warning" message="授权链接生成后，将于15分钟后失效，请尽快使用"></Alert>
-    </Modal>
-  </div>
+    <Alert type="warning" message="授权链接生成后，将于15分钟后失效，请尽快使用"></Alert>
+  </Modal>
 </template>
 
 <style scoped>

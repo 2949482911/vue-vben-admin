@@ -33,11 +33,13 @@ function openCreateModal(row?: ProjectItem) {
 async function handlerState(row: ProjectItem) {
   await (row.status == 1
     ? projectApi.fetchBatchOptions({
+      // @ts-ignore
       targetIds: [row.id],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>()
     })
     : projectApi.fetchBatchOptions({
+      // @ts-ignore
       targetIds: [row.id],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
@@ -209,7 +211,7 @@ function getProjectTypeLabel(value: string): string {
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page>
     <Grid>
       <template #action="{ row }">
         <Button type="link" @click="openCreateModal(row)">
@@ -253,9 +255,9 @@ function getProjectTypeLabel(value: string): string {
         </Button>
       </template>
     </Grid>
-    <CreateObjectDrawer @page-reload="pageReload" />
-    <BatchOperationModal @page-reload="pageReload" />
-  </Page>
 
+  </Page>
+  <CreateObjectDrawer @page-reload="pageReload" />
+  <BatchOperationModal @page-reload="pageReload" />
 
 </template>

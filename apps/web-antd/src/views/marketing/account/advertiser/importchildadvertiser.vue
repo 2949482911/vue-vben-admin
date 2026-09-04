@@ -192,7 +192,7 @@ const gridEvents = {
       !item.exist
     );
       selectedRowKeys.value = isAddList.map((item:AdvertiserItem) => item.advertiserId);
-    } 
+    }
     if(!selectedRowKeys.value.length) {
       isSlect.value = true
       message.warning("无可新增数据")

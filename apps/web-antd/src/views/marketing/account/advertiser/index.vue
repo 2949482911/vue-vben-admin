@@ -86,7 +86,7 @@ const [ImportChildAdvertiserModal, improtChildApi] = useVbenModal({
 async function exportAllData() {
   const params = trimObject(await gridApi.formApi.getValues());
   await advertiserApi.fetchExportAllData(params);
-  message.success("导出成功，请前往下载中心查看");
+  await message.success("导出成功，请前往下载中心查看");
 }
 
 async function cancelBatchOptions(opType: string) {
@@ -471,18 +471,6 @@ const formOptions: VbenFormProps = {
 };
 
 const gridOptions: VxeGridProps<AdvertiserItem> = {
-  border: true,
-  checkboxConfig: {
-    highlight: true,
-    labelField: "id"
-    // reserve: true,
-  },
-  toolbarConfig: {
-    custom: true,
-    export: true,
-    refresh: true,
-    zoom: true
-  },
   columns: [
     {
       field: "platform",
@@ -639,12 +627,6 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
 
     ...(TABLE_COMMON_COLUMNS as any)
   ],
-  keepSource: true,
-  pagerConfig: {},
-  exportConfig: {
-    filename: "",
-    types: ["csv", "xlsx", "xls"]
-  },
   proxyConfig: {
     ajax: {
       query: async ({ page }, args) => {
@@ -656,10 +638,25 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
         });
       }
     }
+  },
+  exportConfig: {
+    filename: "",
+    types: ["csv", "xlsx", "xls"]
+  },
+  pagerConfig: {
+    enabled: true
+  },
+  checkboxConfig: {
+    highlight: true,
+    labelField: "id"
+  },
+  height: "auto",
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    zoom: true
   }
-  // rowConfig: {
-  //   keyField: 'id',
-  // },
 };
 // 勾选的数组
 const selectedRows = ref<AdvertiserItem[]>([]);
@@ -694,8 +691,10 @@ async function loadAgentData(platform: string) {
     page: 1,
     pageSize: 1000,
     platform: platform,
+    // @ts-ignore
     advertiserRole: "proxy"
   });
+  // @ts-ignore
   agentData.value = res.items.map((item: AdvertiserItem) => ({
     label: `${item.advertiserName}-${item.advertiserId}`,
     value: item.id
@@ -814,22 +813,16 @@ async function loadAgentData(platform: string) {
         </Button>
       </template>
     </Grid>
-    <CreateObjectModal @page-reload="pageReload" />
-    <AuthAccountModal />
-    <BatchOperationModal @page-reload="pageReload" />
-    <ImportModal @page-reload="pageReload" />
-    <ImportChildAdvertiserModal
-      @page-reload="pageReload"
-      :projectOptions="projectOptions"
-      :roleType="roleType"
-    />
-    <HistoryModal />
   </Page>
 
+  <CreateObjectModal @page-reload="pageReload" />
+  <AuthAccountModal />
+  <BatchOperationModal @page-reload="pageReload" />
+  <ImportModal @page-reload="pageReload" />
+  <ImportChildAdvertiserModal
+    @page-reload="pageReload"
+    :projectOptions="projectOptions"
+    :roleType="roleType"
+  />
+  <HistoryModal />
 </template>
-
-<style scoped lang="scss">
-:deep(.importBtn) {
-  border-radius: 50% !important;
-}
-</style>

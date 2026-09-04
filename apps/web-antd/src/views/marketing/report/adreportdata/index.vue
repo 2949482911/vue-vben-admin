@@ -508,7 +508,6 @@ async function openSaveTemplateModalModal() {
 const gridOptions: VxeGridProps = {
   showFooter: true,
   border: true,
-  height: "100%",
   keepSource: true,
   columns: [],
   data: [],
@@ -579,7 +578,7 @@ const isShowActions = ref(true);
 
 <template>
   <Page content-class="p-5">
-    <div class="search-content" :class="{ isLight: isLight }">
+    <divÒ :class="{ isLight: isLight }">
       <AdReportFilterForm
         ref="filterFormRef"
         :wrapperClass="wrapperClass"
@@ -588,7 +587,7 @@ const isShowActions = ref(true);
         @submit="handleFormSubmit"
         @reset="handleFormReset"
       />
-    </div>
+    </divÒ>
     <div style="height: calc(100% - 202px)">
       <Grid>
         <template #toolbar-tools>
@@ -616,13 +615,5 @@ const isShowActions = ref(true);
 </template>
 
 <style scoped lang="scss">
-.search-content {
-  padding: 20px 10px 0 0;
-  margin-bottom: 10px;
-  border-radius: 8px 8px 0 0;
-}
 
-.isLight {
-  background: #fff;
-}
 </style>

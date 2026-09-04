@@ -177,9 +177,14 @@ const gridOptions: VxeGridProps<CreationTaskItem> = {
   pagerConfig: {
     enabled: true
   },
+  exportConfig: {
+    filename: "",
+    types: ["csv", "xlsx", "xls"]
+  },
+  height: "auto",
   toolbarConfig: {
     custom: true,
-    export: false,
+    export: true,
     refresh: true,
     zoom: true
   }
@@ -213,7 +218,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page>
     <Grid>
       <template #status="{ row }">
         <Tag v-if="row.taskStatus === 1" color="orange">待处理</Tag>
