@@ -38,7 +38,6 @@ const gridOptions: VxeGridProps<RowType> = {
     { field: 'url', title: `${$t('system.operator.columns.url')}` },
     ...TABLE_COMMON_COLUMNS as any,
   ],
-  height: 'auto',
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
@@ -62,8 +61,7 @@ function pageReload() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
+    <Page content-class="p-5">
       <Grid>
         <!--        <template #action="{ row }">-->
         <!--          <Button type="link" @click="openBaseDrawer(row)">{{$t('common.edit')}}</Button>-->
@@ -74,5 +72,4 @@ function pageReload() {
         <!--        </template>-->
       </Grid>
     </Page>
-  </div>
 </template>

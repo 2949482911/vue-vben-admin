@@ -279,7 +279,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page>
+  <Page content-class="p-5">
     <Loading  :spinning="loading">
       <Space direction="vertical" :size="16" class="w-full">
         <!-- 第一块：筛选条件 -->

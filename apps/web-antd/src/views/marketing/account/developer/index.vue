@@ -1,29 +1,29 @@
 <script lang="ts" setup name="DeveloperManager">
-import type {VbenFormProps} from '@vben/common-ui';
-import {Page, useVbenModal} from '@vben/common-ui';
+import type { VbenFormProps } from "@vben/common-ui";
+import { Page, useVbenModal } from "@vben/common-ui";
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import type {DeveloperItem,} from '#/api/models';
-import {$t} from '@vben/locales';
+import type { VxeGridProps } from "#/adapter/vxe-table";
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
+import type { DeveloperItem } from "#/api/models";
+import { $t } from "@vben/locales";
 
-import {Button, Switch} from 'ant-design-vue';
-import {developerApi} from '#/api/core';
+import { Button, Switch } from "ant-design-vue";
+import { developerApi } from "#/api/core";
 import {
-  DEVELOPER_AUTH_ACCOUNT_PLATFORM,
   BatchOptionsType,
+  DEVELOPER_AUTH_ACCOUNT_PLATFORM,
   STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
+  TABLE_COMMON_COLUMNS
+} from "#/constants/locales";
 
-import CreateObjectRequestComp from './create.vue';
-import { trimObject } from '#/utils/trim';
+import CreateObjectRequestComp from "./create.vue";
+import { trimObject } from "#/utils/trim";
 
 
 const [CreateObjectModal, createObjectApi] = useVbenModal({
   connectedComponent: CreateObjectRequestComp,
   centered: true,
-  modal: true,
+  modal: true
 });
 
 function openCreateModal(
@@ -42,12 +42,12 @@ async function handlerState(row: DeveloperItem) {
     ? developerApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.DISABLE,
-      values: new Map<string, any>(),
+      values: new Map<string, any>()
     })
     : developerApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.Enable,
-      values: new Map<string, any>(),
+      values: new Map<string, any>()
     }));
   pageReload();
 }
@@ -56,7 +56,7 @@ async function handlerDelete(row: DeveloperItem) {
   await developerApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
-    values: new Map<string, any>(),
+    values: new Map<string, any>()
 
   });
   pageReload();
@@ -66,109 +66,108 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
-      component: 'Input',
-      fieldName: 'id',
-      label: `id`,
+      component: "Input",
+      fieldName: "id",
+      label: `id`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: DEVELOPER_AUTH_ACCOUNT_PLATFORM,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'platform',
-      label: `${$t('ocpx.platform.title')}`,
+      fieldName: "platform",
+      label: `${$t("ocpx.platform.title")}`
     },
     {
-      component: 'Input',
-      fieldName: 'name',
-      label: `${$t('marketing.developer.columns.name')}`,
+      component: "Input",
+      fieldName: "name",
+      label: `${$t("marketing.developer.columns.name")}`
     },
     {
-      component: 'DatePicker',
-      fieldName: 'datePicker',
-      label: 'Date',
+      component: "DatePicker",
+      fieldName: "datePicker",
+      label: "Date"
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: STATUS_SELECT,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'status',
-      label: `${$t('core.columns.status')}`,
-    },
+      fieldName: "status",
+      label: `${$t("core.columns.status")}`
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
   // 按下回车时是否提交表单
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<DeveloperItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
-    labelField: 'id',
+    labelField: "id"
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    zoom: true,
+    zoom: true
   },
   columns: [
     {
-      field: 'platform',
-      title: `${$t('marketing.developer.columns.platform')}`,
+      field: "platform",
+      title: `${$t("marketing.developer.columns.platform")}`,
       width: "auto"
     },
     {
-      field: 'name', title: `${$t('marketing.developer.columns.name')}`, width: "auto"
+      field: "name", title: `${$t("marketing.developer.columns.name")}`, width: "auto"
     },
     {
-      field: 'apiKey',
-      title: `${$t('marketing.developer.columns.apiKey')}`,
-      width: "auto"
-
-    },
-    {
-      field: 'apiSecret',
-      title: `${$t('marketing.developer.columns.apiSecret')}`,
+      field: "apiKey",
+      title: `${$t("marketing.developer.columns.apiKey")}`,
       width: "auto"
 
     },
     {
-      field: 'remark', title: `${$t('marketing.developer.columns.remark')}`, width: "auto"
+      field: "apiSecret",
+      title: `${$t("marketing.developer.columns.apiSecret")}`,
+      width: "auto"
+
     },
     {
-      field: 'authCount', title: `${$t('marketing.developer.columns.authCount')}`, width: "auto"
+      field: "remark", title: `${$t("marketing.developer.columns.remark")}`, width: "auto"
+    },
+    {
+      field: "authCount", title: `${$t("marketing.developer.columns.authCount")}`, width: "auto"
     },
 
-    ...TABLE_COMMON_COLUMNS as any,
+    ...TABLE_COMMON_COLUMNS as any
   ],
-  height: 'auto',
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         const params = trimObject(args);
         return await developerApi.fetchDeveloperList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
-      },
-    },
-  },
+      }
+    }
+  }
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 function pageReload() {
   gridApi.reload();
@@ -176,28 +175,26 @@ function pageReload() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #action="{ row }">
-          <Button type="link" @click="openCreateModal(row)">
-            {{ $t('common.edit') }}
-          </Button>
-          <Button type="link" @click="handlerDelete(row)">
-            {{ $t('common.delete') }}
-          </Button>
-        </template>
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
-        </template>
+  <Page content-class="p-5">
+    <Grid>
+      <template #action="{ row }">
+        <Button type="link" @click="openCreateModal(row)">
+          {{ $t("common.edit") }}
+        </Button>
+        <Button type="link" @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+      </template>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
 
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
-            {{ $t('common.create') }}
-          </Button>
-        </template>
-      </Grid>
-    </Page>
-    <CreateObjectModal @page-reload="pageReload"/>
-  </div>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
+          {{ $t("common.create") }}
+        </Button>
+      </template>
+    </Grid>
+  </Page>
+  <CreateObjectModal @page-reload="pageReload" />
 </template>

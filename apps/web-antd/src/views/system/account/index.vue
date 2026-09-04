@@ -1,39 +1,37 @@
 <script lang="ts" setup name="AccountManager">
-import type {VbenFormProps} from '@vben/common-ui';
+import type { VbenFormProps } from "@vben/common-ui";
+import { ColPage, Page, useVbenDrawer } from "@vben/common-ui";
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import type {CreateMenuRequest, UpdateMenuRequest} from '#/api/models/menu';
-import type {OrgItem, UserItem} from '#/api/models/users';
+import type { VxeGridProps } from "#/adapter/vxe-table";
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
+import type { CreateMenuRequest, UpdateMenuRequest } from "#/api/models/menu";
+import type { OrgItem, UserItem } from "#/api/models/users";
 
-import {onMounted, reactive, ref} from 'vue';
+import { onMounted, reactive, ref } from "vue";
+import { $t } from "@vben/locales";
 
-import {ColPage, Page, useVbenDrawer} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-
-import {Button, Card, Switch, Tag, Tree} from 'ant-design-vue';
-
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {orgApi, userApi} from '#/api';
+import { Button, Card, Switch, Tag, Tree } from "ant-design-vue";
+import { orgApi, userApi } from "#/api";
 import {
   BatchOptionsType,
   SEX_SELECT,
   STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
+  TABLE_COMMON_COLUMNS
+} from "#/constants/locales";
 
-import Create from './create.vue';
+import Create from "./create.vue";
 
 async function handleState(row: UserItem) {
   await (row.status == 1
     ? userApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.DISABLE,
-      values: new Map<string, any>(),
+      values: new Map<string, any>()
     })
     : userApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.Enable,
-      values: new Map<string, any>(),
+      values: new Map<string, any>()
 
     }));
   pageReload();
@@ -43,13 +41,13 @@ async function handlerDelete(row: UserItem) {
   await userApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
-    values: new Map<string, any>(),
+    values: new Map<string, any>()
   });
   pageReload();
 }
 
 const [CreateDrawer, createDrawerApi] = useVbenDrawer({
-  connectedComponent: Create,
+  connectedComponent: Create
 });
 
 const orgTreeData = ref<OrgItem[]>([]);
@@ -72,135 +70,135 @@ const props = reactive({
   resizable: true,
   rightWidth: 80,
   splitHandle: false,
-  splitLine: false,
+  splitLine: false
 });
 
 const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
-      component: 'Input',
-      fieldName: 'nickname',
-      label: `${$t('system.user.columns.nickname')}`,
+      component: "Input",
+      fieldName: "nickname",
+      label: `${$t("system.user.columns.nickname")}`
     },
     {
-      component: 'Input',
-      fieldName: 'authName',
-      label: `${$t('system.user.columns.authName')}`,
+      component: "Input",
+      fieldName: "authName",
+      label: `${$t("system.user.columns.authName")}`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: STATUS_SELECT,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'status',
-      label: `${$t('core.columns.status')}`,
+      fieldName: "status",
+      label: `${$t("core.columns.status")}`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: SEX_SELECT,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'sex',
-      label: `${$t('system.user.columns.sex')}`,
-    },
+      fieldName: "sex",
+      label: `${$t("system.user.columns.sex")}`
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
   // 按下回车时是否提交表单
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<UserItem> = {
   columns: [
     {
-      field: 'avatar',
-      title: `${$t('system.user.columns.avatar')}`,
-      width: 'auto',
+      field: "avatar",
+      title: `${$t("system.user.columns.avatar")}`,
+      width: "auto"
     },
     {
-      field: 'nickname',
-      title: `${$t('system.user.columns.nickname')}`,
-      width: 'auto',
-
-    },
-    {
-      field: 'authName',
-      title: `${$t('system.user.columns.authName')}`,
-      width: 'auto',
+      field: "nickname",
+      title: `${$t("system.user.columns.nickname")}`,
+      width: "auto"
 
     },
     {
-      field: 'phone',
-      title: `${$t('system.user.columns.phone')}`,
-      width: 'auto',
+      field: "authName",
+      title: `${$t("system.user.columns.authName")}`,
+      width: "auto"
 
     },
     {
-      field: 'qq',
-      title: `${$t('system.user.columns.qq')}`,
-      width: 'auto',
+      field: "phone",
+      title: `${$t("system.user.columns.phone")}`,
+      width: "auto"
 
     },
     {
-      field: 'email',
-      title: `${$t('system.user.columns.email')}`,
-      width: 'auto',
+      field: "qq",
+      title: `${$t("system.user.columns.qq")}`,
+      width: "auto"
 
     },
     {
-      field: 'sex',
-      title: `${$t('system.user.columns.sex')}`,
-      slots: {default: 'sex'},
-      width: 'auto',
+      field: "email",
+      title: `${$t("system.user.columns.email")}`,
+      width: "auto"
+
+    },
+    {
+      field: "sex",
+      title: `${$t("system.user.columns.sex")}`,
+      slots: { default: "sex" },
+      width: "auto"
 
     },
 
     {
-      field: 'roleIds',
-      title: `${$t('system.user.columns.roleIds')}`,
-      slots: {default: 'roleIds'},
-      width: 'auto',
+      field: "roleIds",
+      title: `${$t("system.user.columns.roleIds")}`,
+      slots: { default: "roleIds" },
+      width: "auto"
 
     },
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS
   ],
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         return await userApi.fetchUserList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...args
         });
-      },
-    },
+      }
+    }
   },
   checkboxConfig: {
     highlight: true,
-    labelField: 'id',
-    range: true,
+    labelField: "id",
+    range: true
   },
   pagerConfig: {
-    enabled: true,
+    enabled: true
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
     search: true,
-    zoom: true,
-  },
+    zoom: true
+  }
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 const pageReload = () => {
   gridApi.reload();
@@ -211,8 +209,8 @@ const pageReload = () => {
  * @param selectedKeys 选中的节点ID
  * @param node 当前节点
  */
-function handlerOrgPageList(selectedKeys: string[], {node}) {
-  gridApi.reload({orgId: node.id});
+function handlerOrgPageList(selectedKeys: string[], { node }) {
+  gridApi.reload({ orgId: node.id });
 }
 
 onMounted(() => {
@@ -223,8 +221,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <ColPage auto-content-height v-bind="props">
+  <Page content-class="p-5">
+    <ColPage v-bind="props">
       <template #left="{ isCollapsed, expand }">
         <div
           :style="{ minWidth: '200px' }"
@@ -252,33 +250,32 @@ onMounted(() => {
             </template>
 
             <template #status="{ row }">
-              <Switch :checked="row.status == 1" @click="handleState(row)"/>
+              <Switch :checked="row.status == 1" @click="handleState(row)" />
             </template>
 
             <template #sex="{ row }">
-              <Tag v-if="row.sex === 1" color="red">{{ $t('common.boy') }}</Tag>
-              <Tag v-else color="green">{{ $t('common.girl') }}</Tag>
+              <Tag v-if="row.sex === 1" color="red">{{ $t("common.boy") }}</Tag>
+              <Tag v-else color="green">{{ $t("common.girl") }}</Tag>
             </template>
 
             <template #action="{ row }">
               <Button type="link" @click="openBaseDrawer(row)">
-                {{ $t('common.edit') }}
+                {{ $t("common.edit") }}
               </Button>
               <Button type="link" @click="handlerDelete(row)">
-                {{ $t('common.delete') }}
+                {{ $t("common.delete") }}
               </Button>
             </template>
 
             <template #toolbar-tools>
               <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
-                {{ $t('common.create') }}
+                {{ $t("common.create") }}
               </Button>
             </template>
           </Grid>
         </Page>
       </Card>
+      <CreateDrawer @page-reload="pageReload" />
     </ColPage>
-
-    <CreateDrawer @page-reload="pageReload"/>
-  </div>
+  </Page>
 </template>

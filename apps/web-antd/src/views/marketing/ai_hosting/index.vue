@@ -165,7 +165,7 @@ function pageReload() {
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page content-class="p-5">
     <Grid>
       <!-- 表格状态列 -->
       <template #taskStatus="{ row }">

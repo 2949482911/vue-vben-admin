@@ -10,7 +10,6 @@ import { computed, ref } from 'vue';
 import type { ReportFilter } from '#/api/models';
 import BatchOperationDropdown from '../../../promotion_manager/components/BatchOperationDropdown.vue';
 import BatchOperationDrawer from '../../../promotion_manager/components/BatchOperationDrawer.vue';
-
 const props = defineProps<{
   /** campaign=项目, adgroup=广告 */
   level: 'campaign' | 'adgroup';
@@ -140,9 +139,14 @@ const gridOptions: VxeGridProps = {
   checkboxConfig: { highlight: true },
   columns: [],
   data: [],
-  height: 'auto',
   keepSource: true,
   pagerConfig: { enabled: true, pageSizes: [20, 50, 100, 200] },
+  toolbarConfig: {
+    custom: true,
+    export: true,
+    refresh: true,
+    zoom: true
+  },
   proxyConfig: {
     ajax: {
       query: async ({ page }, args) => {
@@ -230,13 +234,13 @@ async function handleExport() {
     level: props.level,
     filters: buildFilters(values ?? {}),
   });
-  message.success('导出任务已提交！请前往「下载中心」查看并下载文件。');
+  await message.success('导出任务已提交！请前往「下载中心」查看并下载文件。');
 }
 </script>
 
 <template>
   <div class="level-list">
-    <Page auto-content-height>
+    <Page>
       <Grid>
         <template #toolbar-tools>
           <Space>

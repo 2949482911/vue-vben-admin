@@ -666,7 +666,7 @@ const creationInfo = ref<TencentCreation>({
     projectName: "",
     icon: "",
     packageName: "",
-    appId: ''
+    appId: ""
   },
   ruleInfo: {
     projectRuleKey: RuleKey.TARGET,
@@ -698,72 +698,70 @@ function resetCreationInfo() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Card class="header">
-        <ConfigurationConfig
-          :rule-info="creationInfo.ruleInfo"
-          :configuration-config="creationInfo.configurationConfig"
-          :account-info="creationInfo.accountInfo"
-          :project="creationInfo.project"
-          :rule-configuration="tencentRuleConfiguration"
-          :rule-options="tencentRuleOptions"
-          @update:accountInfo="updateAccountInfo"
-          @update:productInfo="updateProject"
-          @update:ruleInfo="updateRuleInfo"
-          @update:reuse="updateReuse"
-        />
-      </Card>
+  <Page>
+    <Card class="header">
+      <ConfigurationConfig
+        :rule-info="creationInfo.ruleInfo"
+        :configuration-config="creationInfo.configurationConfig"
+        :account-info="creationInfo.accountInfo"
+        :project="creationInfo.project"
+        :rule-configuration="tencentRuleConfiguration"
+        :rule-options="tencentRuleOptions"
+        @update:accountInfo="updateAccountInfo"
+        @update:productInfo="updateProject"
+        @update:ruleInfo="updateRuleInfo"
+        @update:reuse="updateReuse"
+      />
+    </Card>
 
-      <Card class="header">
-        <Select class='w-[200px]' :options="TENCENT_MARKETING_TYPE" :value="template"
-                @change="updateTemplate"></Select>
-      </Card>
+    <Card class="header">
+      <Select class='w-[200px]' :options="TENCENT_MARKETING_TYPE" :value="template"
+              @change="updateTemplate"></Select>
+    </Card>
 
-      <Card class="header">
-        <TencentBaseTemplate
-          v-if="template === 'base_template'"
-          :creation-info="creationInfo"
-          @update:title-package="updateTitlePackage"
-          @update:update-material="updateMaterial"
-          @update:campaign="updateCampaign"
-          @update:adgroup="updateAdgroup"
-          @update:audience-package="updateAudiencePackage"
-        />
+    <Card class="header">
+      <TencentBaseTemplate
+        v-if="template === 'base_template'"
+        :creation-info="creationInfo"
+        @update:title-package="updateTitlePackage"
+        @update:update-material="updateMaterial"
+        @update:campaign="updateCampaign"
+        @update:adgroup="updateAdgroup"
+        @update:audience-package="updateAudiencePackage"
+      />
 
-        <TencentMiniGameTemplate
-          v-else-if="template === 'wechat_mini_game'"
-          ref="TencentMiniGameTemplateRef"
-          :creation-info="creationInfo"
-          @update:title-package="updateTitlePackage"
-          @update:update-material="updateMaterial"
-          @update:campaign="updateCampaign"
-          @update:adgroup="updateAdgroup"
-          @update:audience-package="updateAudiencePackage"
-        />
-      </Card>
+      <TencentMiniGameTemplate
+        v-else-if="template === 'wechat_mini_game'"
+        ref="TencentMiniGameTemplateRef"
+        :creation-info="creationInfo"
+        @update:title-package="updateTitlePackage"
+        @update:update-material="updateMaterial"
+        @update:campaign="updateCampaign"
+        @update:adgroup="updateAdgroup"
+        @update:audience-package="updateAudiencePackage"
+      />
+    </Card>
 
-      <!--监测链接组-->
-      <Card class="header">
-        <Function
-          :accountInfo="creationInfo.accountInfo"
-          :monitoring-link="creationInfo.configData.monitoringLink"
-          @update:monitoring-link="updateMonitoringLink"
-          @save:create-strategy-group="createStrategyGroup"
-          @gen:ad-list="genPreviewTableData"
-          @submit:create-batch="submitCreateBatch"
-        />
-      </Card>
+    <!--监测链接组-->
+    <Card class="header">
+      <Function
+        :accountInfo="creationInfo.accountInfo"
+        :monitoring-link="creationInfo.configData.monitoringLink"
+        @update:monitoring-link="updateMonitoringLink"
+        @save:create-strategy-group="createStrategyGroup"
+        @gen:ad-list="genPreviewTableData"
+        @submit:create-batch="submitCreateBatch"
+      />
+    </Card>
 
 
-      <Card title="预览区" class="header">
-        <TencentPreviewArea :ad-list="adList"
-                            :account-info="creationInfo.accountInfo"></TencentPreviewArea>
-      </Card>
+    <Card title="预览区" class="header">
+      <TencentPreviewArea :ad-list="adList"
+                          :account-info="creationInfo.accountInfo"></TencentPreviewArea>
+    </Card>
 
-      <CreateStrategyGroupModal />
-    </Page>
-  </div>
+    <CreateStrategyGroupModal />
+  </Page>
 </template>
 
 <style scoped lang="scss">

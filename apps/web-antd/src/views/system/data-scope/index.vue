@@ -1,32 +1,32 @@
 <script lang="ts" setup name="DataRangeManager">
-import type {VbenFormProps} from '@vben/common-ui';
-import {Page, useVbenDrawer} from '@vben/common-ui';
+import type { VbenFormProps } from "@vben/common-ui";
+import { Page, useVbenDrawer } from "@vben/common-ui";
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import type { VxeGridProps } from "#/adapter/vxe-table";
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import type {
   CreateDataRangeRequest,
   DataRangeItem,
   OrgItem,
   UpdateDataRangeRequest
-} from '#/api/models/users';
+} from "#/api/models/users";
 
-import {onMounted, ref} from 'vue';
-import {$t} from '@vben/locales';
+import { onMounted, ref } from "vue";
+import { $t } from "@vben/locales";
 
-import {Button, Switch, Tag} from 'ant-design-vue';
-import {dataRangeApi, orgApi} from '#/api';
+import { Button, Switch, Tag } from "ant-design-vue";
+import { dataRangeApi, orgApi } from "#/api";
 import {
   BatchOptionsType,
   DATA_SCOPE,
   STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
+  TABLE_COMMON_COLUMNS
+} from "#/constants/locales";
 
-import Create from './create.vue';
+import Create from "./create.vue";
 
 const [CreateDrawer, createDrawerApi] = useVbenDrawer({
-  connectedComponent: Create,
+  connectedComponent: Create
 });
 
 const orgTreeData = ref<OrgItem[]>([]);
@@ -45,12 +45,12 @@ async function handlerState(row: DataRangeItem) {
     ? dataRangeApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.DISABLE,
-      values: new Map<string, any>(),
+      values: new Map<string, any>()
     })
     : dataRangeApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.Enable,
-      values: new Map<string, any>(),
+      values: new Map<string, any>()
 
     }));
   pageReload();
@@ -60,7 +60,7 @@ async function handlerDelete(id: string) {
   await dataRangeApi.fetchBatchOptions({
     targetIds: [id],
     type: BatchOptionsType.Delete,
-    values: new Map<string, any>(),
+    values: new Map<string, any>()
 
   });
   pageReload();
@@ -70,87 +70,87 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
-      component: 'Input',
-      fieldName: 'id',
-      label: `id`,
+      component: "Input",
+      fieldName: "id",
+      label: `id`
     },
     {
-      component: 'Input',
-      fieldName: 'name',
-      label: `${$t('system.user.columns.nickname')}`,
+      component: "Input",
+      fieldName: "name",
+      label: `${$t("system.user.columns.nickname")}`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: STATUS_SELECT,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'status',
-      label: `${$t('core.columns.status')}`,
-    },
+      fieldName: "status",
+      label: `${$t("core.columns.status")}`
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
   // 按下回车时是否提交表单
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<DataRangeItem> = {
   columns: [
     {
-      field: 'name',
-      title: `${$t('system.data_scope.columns.name')}`,
-      width: 'auto',
+      field: "name",
+      title: `${$t("system.data_scope.columns.name")}`,
+      width: "auto"
     },
     {
-      field: 'type',
-      title: `${$t('system.data_scope.columns.type')}`,
-      slots: {default: 'type'},
-      width: 'auto',
+      field: "type",
+      title: `${$t("system.data_scope.columns.type")}`,
+      slots: { default: "type" },
+      width: "auto"
     },
     {
-      field: 'code',
-      title: `${$t('system.data_scope.columns.code')}`,
-      width: 'auto',
+      field: "code",
+      title: `${$t("system.data_scope.columns.code")}`,
+      width: "auto"
     },
     {
-      field: 'remark',
-      title: `${$t('system.data_scope.columns.remark')}`,
-      width: 'auto',
+      field: "remark",
+      title: `${$t("system.data_scope.columns.remark")}`,
+      width: "auto"
     },
-    ...TABLE_COMMON_COLUMNS as any,
+    ...TABLE_COMMON_COLUMNS as any
   ],
   checkboxConfig: {
     highlight: true,
-    labelField: 'id',
+    labelField: "id"
   },
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         return await dataRangeApi.fetchDataRangeList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...args
         });
-      },
-    },
+      }
+    }
   },
   pagerConfig: {
-    enabled: true,
+    enabled: true
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    zoom: true,
-  },
+    zoom: true
+  }
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 const pageReload = () => {
   gridApi.reload();
@@ -164,41 +164,39 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <Page>
-      <Grid>
-        <template #status="{ row }">
-          <Switch :checked="row.status == 1" @click="handlerState(row)"/>
-        </template>
+  <Page content-class="p-5">
+    <Grid>
+      <template #status="{ row }">
+        <Switch :checked="row.status == 1" @click="handlerState(row)" />
+      </template>
 
-        <template #type="{ row }">
-          <Tag>
-            {{ DATA_SCOPE.filter((x) => x.value == row.type)[0].label }}
-          </Tag>
-        </template>
+      <template #type="{ row }">
+        <Tag>
+          {{ DATA_SCOPE.filter((x) => x.value == row.type)[0].label }}
+        </Tag>
+      </template>
 
-        <template #sex="{ row }">
-          <Tag v-if="row.sex == 1">{{ $t('common.boy') }}</Tag>
-          <Tag v-else>{{ $t('common.girl') }}</Tag>
-        </template>
+      <template #sex="{ row }">
+        <Tag v-if="row.sex == 1">{{ $t("common.boy") }}</Tag>
+        <Tag v-else>{{ $t("common.girl") }}</Tag>
+      </template>
 
-        <template #action="{ row }">
-          <Button type="link" @click="openBaseDrawer(row)">
-            {{ $t('common.edit') }}
-          </Button>
+      <template #action="{ row }">
+        <Button type="link" @click="openBaseDrawer(row)">
+          {{ $t("common.edit") }}
+        </Button>
 
-          <Button type="link" @click="handlerDelete(row.id)">
-            {{ $t('common.delete') }}
-          </Button>
-        </template>
+        <Button type="link" @click="handlerDelete(row.id)">
+          {{ $t("common.delete") }}
+        </Button>
+      </template>
 
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
-            {{ $t('common.create') }}
-          </Button>
-        </template>
-      </Grid>
-    </Page>
-    <CreateDrawer @page-reload="pageReload"/>
-  </div>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
+          {{ $t("common.create") }}
+        </Button>
+      </template>
+    </Grid>
+  </Page>
+  <CreateDrawer @page-reload="pageReload" />
 </template>

@@ -110,7 +110,7 @@ const formOptions: VbenFormProps = {
   // 按下回车时是否提交表单
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 const [Form, formApi] = useVbenForm({
@@ -203,35 +203,33 @@ function exportRTAData() {
 </script>
 
 <template>
-  <div>
-    <Page>
-      <Grid>
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" />
-        </template>
+  <Page content-class="p-5">
+    <Grid>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" />
+      </template>
 
-        <template #downloadUrl="{ row }">
-          <a class="downloadLink" :class="{'disabled-link': !row.downloadUrl}"
-             :href="row.downloadUrl" :download="row.name">点击下载</a>
-        </template>
-        <template #taskState="{ row }">
-          <Tag v-if="row.taskState === 0" color="orange">{{ $t("common.pending") }}</Tag>
-          <Tag v-if="row.taskState === 1" color="blue">{{ $t("common.processing") }}</Tag>
-          <Tag v-if="row.taskState === 2" color="green">{{ $t("common.completed") }}</Tag>
-          <Tag v-if="row.taskState === 3" color="red">{{ $t("common.failed") }}</Tag>
-        </template>
-        <template #toolbar-tools>
-          <Button type="primary" @click="exportRTAData">
-            导出
-          </Button>
-        </template>
-      </Grid>
-      <Drawer class="w-[40%]" title="数据导出">
-        <Form>
-        </Form>
-      </Drawer>
-    </Page>
-  </div>
+      <template #downloadUrl="{ row }">
+        <a class="downloadLink" :class="{'disabled-link': !row.downloadUrl}"
+           :href="row.downloadUrl" :download="row.name">点击下载</a>
+      </template>
+      <template #taskState="{ row }">
+        <Tag v-if="row.taskState === 0" color="orange">{{ $t("common.pending") }}</Tag>
+        <Tag v-if="row.taskState === 1" color="blue">{{ $t("common.processing") }}</Tag>
+        <Tag v-if="row.taskState === 2" color="green">{{ $t("common.completed") }}</Tag>
+        <Tag v-if="row.taskState === 3" color="red">{{ $t("common.failed") }}</Tag>
+      </template>
+      <template #toolbar-tools>
+        <Button type="primary" @click="exportRTAData">
+          导出
+        </Button>
+      </template>
+    </Grid>
+    <Drawer class="w-[40%]" title="数据导出">
+      <Form>
+      </Form>
+    </Drawer>
+  </Page>
 </template>
 <style lang="scss" scoped>
 .downloadLink {

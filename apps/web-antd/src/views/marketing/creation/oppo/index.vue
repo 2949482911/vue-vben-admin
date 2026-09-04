@@ -8,7 +8,7 @@ import type {
   OppoCampaignData,
   OppoCreation,
   OppoCreationData,
-  OppoPromotionData,
+  OppoPromotionData
 } from "./Oppo.types";
 import { OPPO_VERSION } from "./Oppo.types";
 import { getPreviewTableData } from "./convertToPreviewData";
@@ -30,7 +30,8 @@ import type {
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import { Platform } from "#/constants/enums";
 import OppoBaseTemplate from "#/views/marketing/creation/oppo/components/base/base_template.vue";
-import QuickAppTemplate from "#/views/marketing/creation/oppo/components/quickapp/quick_template.vue";
+import QuickAppTemplate
+  from "#/views/marketing/creation/oppo/components/quickapp/quick_template.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
@@ -44,7 +45,7 @@ const OPPO_MARKETING_TYPE = [
   },
   {
     label: "快应用", value: "quick_template"
-  },
+  }
 ];
 
 const adList = ref<OppoCreationData[]>([]);
@@ -58,7 +59,7 @@ const [CreateStrategyGroupModal, createStrategyGroupApi] = useVbenModal({
 
 // 提交弹窗
 const [SubmitModal, submitApi] = useVbenModal({
-  connectedComponent: Submit,
+  connectedComponent: Submit
 });
 
 /**
@@ -113,9 +114,9 @@ const oppoRuleOptions: RuleOptions = {
     { title: "指定数量", desc: "手动指定广告数量", key: "custom" }
   ],
   creativeRules: [
-    { title: '无', desc: '无', key: 'none' },
-    { title: '根据创意组生成', desc: '创意数量与创意组数量相等', key: 'creative_group' },
-    { title: '指定数量', desc: '手动指定每个广告的创意数量', key: 'custom' },
+    { title: "无", desc: "无", key: "none" },
+    { title: "根据创意组生成", desc: "创意数量与创意组数量相等", key: "creative_group" },
+    { title: "指定数量", desc: "手动指定每个广告的创意数量", key: "custom" }
   ]
 };
 
@@ -166,7 +167,12 @@ function updateLandingPage(landingPage: PageViewConfigData) {
 
 // ==================== 批投任务结果跟踪 ====================
 /** 当前正在执行的批投任务信息 */
-const currentTask = ref<{ taskId: string; taskName: string; platform: string; projectId: string } | null>(null);
+const currentTask = ref<{
+  taskId: string;
+  taskName: string;
+  platform: string;
+  projectId: string
+} | null>(null);
 /** 结果抽屉开关 */
 const resultDrawerOpen = ref(false);
 /** 是否有进行中的任务（控制工具栏「查看任务进度」按钮显隐） */
@@ -180,7 +186,7 @@ function handleTaskCreated(data: { taskId: string; taskName: string }) {
     taskId: data.taskId,
     taskName: data.taskName,
     platform: creationInfo.value.platform,
-    projectId: creationInfo.value.project.projectId,
+    projectId: creationInfo.value.project.projectId
   };
   taskInProgress.value = true;
   resultDrawerOpen.value = true;
@@ -354,7 +360,7 @@ async function initCreationInfo() {
       deepLinkList: {
         deepLinkConfig: { method: RuleMethod.ALL },
         data: new Map()
-      },
+      }
     },
     configurationConfig: {
       platform: Platform.OPPO
@@ -365,7 +371,7 @@ async function initCreationInfo() {
       projectName: "",
       icon: "",
       packageName: "",
-      appId: ''
+      appId: ""
     },
     ruleInfo: {
       projectRuleKey: RuleKey.TARGET,
@@ -410,7 +416,7 @@ function updateReuse(oppoCreation: OppoCreation) {
     }
   }
   creationInfo.value = oppoCreation;
-  template.value = creationInfo.value.configurationConfig.template ||  'base_template';
+  template.value = creationInfo.value.configurationConfig.template || "base_template";
 }
 
 // 创编对象
@@ -511,14 +517,14 @@ const creationInfo = ref<OppoCreation>({
       data: new Map<string, Array<MonitoringLinkType>>()
     },
     landingPage: { config: { method: RuleMethod.ALL }, data: new Map() },
-    deepLinkList: { deepLinkConfig: { method: RuleMethod.ALL }, data: new Map() },
+    deepLinkList: { deepLinkConfig: { method: RuleMethod.ALL }, data: new Map() }
   },
   configurationConfig: {
     platform: Platform.OPPO, template: "base_template"
   },
   platform: Platform.OPPO,
   project: {
-    projectId: "", projectName: "", icon: "", packageName: "" , appId: ''
+    projectId: "", projectName: "", icon: "", packageName: "", appId: ""
   },
   ruleInfo: {
     projectRuleKey: RuleKey.TARGET,
@@ -546,98 +552,96 @@ function resetCreationInfo() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Card class="header">
-        <ConfigurationConfig
-          :rule-info="creationInfo.ruleInfo"
-          :configuration-config="creationInfo.configurationConfig"
-          :account-info="creationInfo.accountInfo"
-          :project="creationInfo.project"
-          :rule-configuration="oppoRuleConfiguration"
-          :rule-options="oppoRuleOptions"
-          @update:accountInfo="updateAccountInfo"
-          @update:productInfo="updateProject"
-          @update:ruleInfo="updateRuleInfo"
-          @update:reuse="updateReuse"
-        />
-      </Card>
-
-      <Card class="header">
-        <Select class="w-[200px]" :options="OPPO_MARKETING_TYPE" :value="template"
-                @change="updateTemplate" />
-      </Card>
-
-      <Card class="header">
-        <OppoBaseTemplate
-          v-if="template === 'base_template'"
-          :creation-info="creationInfo"
-          @update:title-package="updateTitlePackage"
-          @update:update-material="updateMaterial"
-          @update:campaign="updateCampaign"
-          @update:adgroup="updateAdgroup"
-          @update:promotion="updatePromotion"
-          @update:audience-package="updateAudiencePackage"
-          @update:landing-page="updateLandingPage"
-        />
-        <QuickAppTemplate
-          v-if="template === 'quick_template'"
-          :creation-info="creationInfo"
-          @update:title-package="updateTitlePackage"
-          @update:update-material="updateMaterial"
-          @update:campaign="updateCampaign"
-          @update:adgroup="updateAdgroup"
-          @update:promotion="updatePromotion"
-          @update:audience-package="updateAudiencePackage"
-          @update:landing-page="updateLandingPage"
-        ></QuickAppTemplate>
-      </Card>
-
-      <Card class="header">
-        <Function
-          :account-info="creationInfo.accountInfo"
-          :monitoring-link="creationInfo.configData.monitoringLink"
-          :task-in-progress="taskInProgress"
-          @update:monitoring-link="updateMonitoringLink"
-          @save:create-strategy-group="createStrategyGroup"
-          @gen:ad-list="genPreviewTableData"
-          @submit:create-batch="submitCreateBatch"
-          @view:task-progress="viewTaskProgress"
-        />
-      </Card>
-
-      <Card class="header" title="预览区">
-        <OppoPreviewArea :ad-list="adList" :account-info="creationInfo.accountInfo" />
-      </Card>
-
-      <CreateStrategyGroupModal />
-      <!--      提交审核-->
-      <SubmitModal
-        :creation-info="creationInfo"
-        :ad-list="adList"
-        @result:getCreationTask="handleTaskCreated"
-        @result:error="(err: any) => { console.error(err); }"
+  <Page>
+    <Card class="header">
+      <ConfigurationConfig
+        :rule-info="creationInfo.ruleInfo"
+        :configuration-config="creationInfo.configurationConfig"
+        :account-info="creationInfo.accountInfo"
+        :project="creationInfo.project"
+        :rule-configuration="oppoRuleConfiguration"
+        :rule-options="oppoRuleOptions"
+        @update:accountInfo="updateAccountInfo"
+        @update:productInfo="updateProject"
+        @update:ruleInfo="updateRuleInfo"
+        @update:reuse="updateReuse"
       />
+    </Card>
 
-      <!-- 批投任务结果抽屉 -->
-      <Drawer
-        :open="resultDrawerOpen"
-        title="批投任务执行结果"
-        :width="800"
-        @close="onResultDrawerClose"
-        :destroyOnClose="false"
-      >
-        <BatchTaskResultDrawer
-          v-if="currentTask"
-          :task-id="currentTask.taskId"
-          :task-name="currentTask.taskName"
-          :platform="currentTask.platform"
-          :project-id="currentTask.projectId"
-          @task-completed="onTaskCompleted"
-        />
-      </Drawer>
-    </Page>
-  </div>
+    <Card class="header">
+      <Select class="w-[200px]" :options="OPPO_MARKETING_TYPE" :value="template"
+              @change="updateTemplate" />
+    </Card>
+
+    <Card class="header">
+      <OppoBaseTemplate
+        v-if="template === 'base_template'"
+        :creation-info="creationInfo"
+        @update:title-package="updateTitlePackage"
+        @update:update-material="updateMaterial"
+        @update:campaign="updateCampaign"
+        @update:adgroup="updateAdgroup"
+        @update:promotion="updatePromotion"
+        @update:audience-package="updateAudiencePackage"
+        @update:landing-page="updateLandingPage"
+      />
+      <QuickAppTemplate
+        v-if="template === 'quick_template'"
+        :creation-info="creationInfo"
+        @update:title-package="updateTitlePackage"
+        @update:update-material="updateMaterial"
+        @update:campaign="updateCampaign"
+        @update:adgroup="updateAdgroup"
+        @update:promotion="updatePromotion"
+        @update:audience-package="updateAudiencePackage"
+        @update:landing-page="updateLandingPage"
+      ></QuickAppTemplate>
+    </Card>
+
+    <Card class="header">
+      <Function
+        :account-info="creationInfo.accountInfo"
+        :monitoring-link="creationInfo.configData.monitoringLink"
+        :task-in-progress="taskInProgress"
+        @update:monitoring-link="updateMonitoringLink"
+        @save:create-strategy-group="createStrategyGroup"
+        @gen:ad-list="genPreviewTableData"
+        @submit:create-batch="submitCreateBatch"
+        @view:task-progress="viewTaskProgress"
+      />
+    </Card>
+
+    <Card class="header" title="预览区">
+      <OppoPreviewArea :ad-list="adList" :account-info="creationInfo.accountInfo" />
+    </Card>
+
+    <CreateStrategyGroupModal />
+    <!--      提交审核-->
+    <SubmitModal
+      :creation-info="creationInfo"
+      :ad-list="adList"
+      @result:getCreationTask="handleTaskCreated"
+      @result:error="(err: any) => { console.error(err); }"
+    />
+
+    <!-- 批投任务结果抽屉 -->
+    <Drawer
+      :open="resultDrawerOpen"
+      title="批投任务执行结果"
+      :width="800"
+      @close="onResultDrawerClose"
+      :destroyOnClose="false"
+    >
+      <BatchTaskResultDrawer
+        v-if="currentTask"
+        :task-id="currentTask.taskId"
+        :task-name="currentTask.taskName"
+        :platform="currentTask.platform"
+        :project-id="currentTask.projectId"
+        @task-completed="onTaskCompleted"
+      />
+    </Drawer>
+  </Page>
 </template>
 
 <style scoped lang="scss">

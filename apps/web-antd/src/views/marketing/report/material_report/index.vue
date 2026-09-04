@@ -550,8 +550,7 @@ const isShowActions = ref(true);
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
+    <Page content-class="p-5">
       <div class="search-content" :class="{ isLight: isLight }">
         <MaterialReportFilterForm
           ref="filterFormRef"
@@ -577,16 +576,16 @@ const isShowActions = ref(true);
           </template>
         </Grid>
       </div>
+      <SelectMetricModalModal
+        @confirmMetric="reloadFromStart"
+        :selectedMetrics="currentQueryMetric"
+        :decimalPoint="currentDecimalPoint"
+        :reportType="'material'"
+      />
+      <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData" type="material" />
+      <TemplateDrawer @useTemplate="handleUseTemplate" type="material" />
     </Page>
-    <SelectMetricModalModal
-      @confirmMetric="reloadFromStart"
-      :selectedMetrics="currentQueryMetric"
-      :decimalPoint="currentDecimalPoint"
-      :reportType="'material'"
-    />
-    <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData" type="material" />
-    <TemplateDrawer @useTemplate="handleUseTemplate" type="material" />
-  </div>
+
 </template>
 
 <style scoped lang="scss">

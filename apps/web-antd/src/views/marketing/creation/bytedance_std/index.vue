@@ -292,7 +292,7 @@ const creationInfo = ref<StdCreation>({
       product_id: "",
       product_platform_id: "",
       project_materials: {
-        source:"",
+        source: "",
         advanced_dc_settings: [],
         anchor_material_list: [],
         anchor_related_type: "",
@@ -382,12 +382,12 @@ const creationInfo = ref<StdCreation>({
       data: new Map<string, Array<MonitoringLinkType>>()
     },
     // 抖音号配置（智擎版仅支持按项目/按账户分配）
-    awemeConfig: { config: { method: 'PER_ACCOUNT' }, data: new Map() },
+    awemeConfig: { config: { method: "PER_ACCOUNT" }, data: new Map() },
     // 产品配置（统一配置/按账户配置/按项目配置）
-    productConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
+    productConfig: { config: { method: "ALL_SAME" }, data: new Map() },
     // 投放的商品配置
     dpaProductConfig: {
-      config: { method: 'ALL_SAME' }, data: new Map()
+      config: { method: "ALL_SAME" }, data: new Map()
     }
 
 
@@ -442,21 +442,21 @@ function updateReuse(creation: StdCreation) {
     }
     // 旧数据可能缺少 awemeConfig，补默认值避免下游 prop 校验告警
     if (!config.awemeConfig) {
-      config.awemeConfig = { config: { method: 'PER_ACCOUNT' }, data: new Map() };
+      config.awemeConfig = { config: { method: "PER_ACCOUNT" }, data: new Map() };
     }
     if (config.productConfig && config.productConfig.data && !(config.productConfig.data instanceof Map)) {
       config.productConfig.data = new Map(Object.entries(config.productConfig.data || {}));
     }
     // 旧数据可能缺少 productConfig，补默认值避免下游 prop 校验告警
     if (!config.productConfig) {
-      config.productConfig = { config: { method: 'ALL_SAME' }, data: new Map() };
+      config.productConfig = { config: { method: "ALL_SAME" }, data: new Map() };
     }
     // 投放商品配置（dpaProductConfig）Map 反序列化 + 补默认值
     if (config.dpaProductConfig && config.dpaProductConfig.data && !(config.dpaProductConfig.data instanceof Map)) {
       config.dpaProductConfig.data = new Map(Object.entries(config.dpaProductConfig.data || {}));
     }
     if (!config.dpaProductConfig) {
-      config.dpaProductConfig = { config: { method: 'ALL_SAME' }, data: new Map() };
+      config.dpaProductConfig = { config: { method: "ALL_SAME" }, data: new Map() };
     }
   }
   creationInfo.value = creation;
@@ -495,118 +495,116 @@ watch(() => creationInfo, (_) => {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
+  <Page content-class="p-5">
 
-      <Card class="header" title="模板选择">
-        <Select
-          class="w-[200px]"
-          :options="BYTEDANCE_STD_MARKETING_TYPE"
-          :value="template"
-          @change="updateTemplate"
-        />
-      </Card>
-
-      <!-- 配置区：账户、产品、规则 -->
-      <Card class="header">
-        <ConfigurationConfig
-          :rule-info="creationInfo.ruleInfo"
-          :configuration-config="creationInfo.configurationConfig"
-          :account-info="creationInfo.accountInfo"
-          :project="creationInfo.project"
-          :rule-configuration="bytedanceStdRuleConfiguration"
-          :rule-options="bytedanceStdRuleOptions"
-          @update:product-info="updateProject"
-          @update:account-info="updateAccountInfo"
-          @update:rule-info="updateRuleInfo"
-          @update:reuse="updateReuse"
-        />
-      </Card>
-
-      <!-- 模板区：通过 v-if 切换不同模板组件 -->
-      <Card class="header">
-        <StdBaseTemplate
-          v-if="template === 'base_template'"
-          :creation-info="creationInfo"
-          :product-config="creationInfo.configData.productConfig"
-          :dpa-product-config="creationInfo.configData.dpaProductConfig"
-          @update:project="updateProjectData"
-          @update:title-package="updateTitlePackage"
-          @update:update-material="updateMaterial"
-          @update:audience-package="updateAudiencePackage"
-          @update:landing-page="updateLandingPage"
-          @update:product-config="updateProductConfig"
-          @update:dpa-product-config="updateDpaProductConfig"
-        />
-        <StdAppTemplate
-          v-if="template === 'app_template'"
-          :creation-info="creationInfo"
-          :product-config="creationInfo.configData.productConfig"
-          :dpa-product-config="creationInfo.configData.dpaProductConfig"
-          @update:project="updateProjectData"
-          @update:title-package="updateTitlePackage"
-          @update:update-material="updateMaterial"
-          @update:audience-package="updateAudiencePackage"
-          @update:landing-page="updateLandingPage"
-          @update:aweme-config="updateAwemeConfig"
-          @update:product-config="updateProductConfig"
-          @update:dpa-product-config="updateDpaProductConfig"
-        />
-      </Card>
-
-      <!-- 工具栏 -->
-      <Card class="header">
-        <Function
-          :account-info="creationInfo.accountInfo"
-          :task-in-progress="taskInProgress"
-          :monitoring-link="creationInfo.configData.monitoringLink"
-          @gen:ad-list="genPreviewTableData"
-          @save:create-strategy-group="createStrategyGroup"
-          @submit:create-batch="submitCreateBatch"
-          @view:task-progress="viewTaskProgress"
-          @update:monitoring-link="updateMonitoringLink"
-        />
-      </Card>
-
-      <CreateStrategyGroupModal />
-
-      <!-- 预览区 -->
-      <Card class="header" title="预览区">
-        <StdProjectPreviewArea
-          :ad-list="adList"
-          :account-info="creationInfo.accountInfo"
-        />
-      </Card>
-
-      <!-- 提交弹窗：extraParams 传递 taskType=bytedance_std -->
-      <SubmitModal
-        :extra-params="{'taskType': 'bytedance_std'}"
-        :creation-info="creationInfo"
-        :ad-list="adList"
-        @result:getCreationTask="handleTaskCreated"
+    <Card class="header" title="模板选择">
+      <Select
+        class="w-[200px]"
+        :options="BYTEDANCE_STD_MARKETING_TYPE"
+        :value="template"
+        @change="updateTemplate"
       />
+    </Card>
 
-      <!-- 批投任务结果抽屉 -->
-      <Drawer
-        :open="resultDrawerOpen"
-        title="批投任务执行结果"
-        :width="800"
-        @close="onResultDrawerClose"
-        :destroyOnClose="false"
-      >
-        <BatchTaskResultDrawer
-          v-if="currentTask"
-          :task-id="currentTask.taskId"
-          :task-name="currentTask.taskName"
-          :platform="currentTask.platform"
-          :project-id="currentTask.projectId"
-          @task-completed="onTaskCompleted"
-          :show-ad-group="false"
-          :show-promotion="false"
-        />
-      </Drawer>
-    </Page>
-  </div>
+    <!-- 配置区：账户、产品、规则 -->
+    <Card class="header">
+      <ConfigurationConfig
+        :rule-info="creationInfo.ruleInfo"
+        :configuration-config="creationInfo.configurationConfig"
+        :account-info="creationInfo.accountInfo"
+        :project="creationInfo.project"
+        :rule-configuration="bytedanceStdRuleConfiguration"
+        :rule-options="bytedanceStdRuleOptions"
+        @update:product-info="updateProject"
+        @update:account-info="updateAccountInfo"
+        @update:rule-info="updateRuleInfo"
+        @update:reuse="updateReuse"
+      />
+    </Card>
+
+    <!-- 模板区：通过 v-if 切换不同模板组件 -->
+    <Card class="header">
+      <StdBaseTemplate
+        v-if="template === 'base_template'"
+        :creation-info="creationInfo"
+        :product-config="creationInfo.configData.productConfig"
+        :dpa-product-config="creationInfo.configData.dpaProductConfig"
+        @update:project="updateProjectData"
+        @update:title-package="updateTitlePackage"
+        @update:update-material="updateMaterial"
+        @update:audience-package="updateAudiencePackage"
+        @update:landing-page="updateLandingPage"
+        @update:product-config="updateProductConfig"
+        @update:dpa-product-config="updateDpaProductConfig"
+      />
+      <StdAppTemplate
+        v-if="template === 'app_template'"
+        :creation-info="creationInfo"
+        :product-config="creationInfo.configData.productConfig"
+        :dpa-product-config="creationInfo.configData.dpaProductConfig"
+        @update:project="updateProjectData"
+        @update:title-package="updateTitlePackage"
+        @update:update-material="updateMaterial"
+        @update:audience-package="updateAudiencePackage"
+        @update:landing-page="updateLandingPage"
+        @update:aweme-config="updateAwemeConfig"
+        @update:product-config="updateProductConfig"
+        @update:dpa-product-config="updateDpaProductConfig"
+      />
+    </Card>
+
+    <!-- 工具栏 -->
+    <Card class="header">
+      <Function
+        :account-info="creationInfo.accountInfo"
+        :task-in-progress="taskInProgress"
+        :monitoring-link="creationInfo.configData.monitoringLink"
+        @gen:ad-list="genPreviewTableData"
+        @save:create-strategy-group="createStrategyGroup"
+        @submit:create-batch="submitCreateBatch"
+        @view:task-progress="viewTaskProgress"
+        @update:monitoring-link="updateMonitoringLink"
+      />
+    </Card>
+
+    <CreateStrategyGroupModal />
+
+    <!-- 预览区 -->
+    <Card class="header" title="预览区">
+      <StdProjectPreviewArea
+        :ad-list="adList"
+        :account-info="creationInfo.accountInfo"
+      />
+    </Card>
+
+    <!-- 提交弹窗：extraParams 传递 taskType=bytedance_std -->
+    <SubmitModal
+      :extra-params="{'taskType': 'bytedance_std'}"
+      :creation-info="creationInfo"
+      :ad-list="adList"
+      @result:getCreationTask="handleTaskCreated"
+    />
+
+    <!-- 批投任务结果抽屉 -->
+    <Drawer
+      :open="resultDrawerOpen"
+      title="批投任务执行结果"
+      :width="800"
+      @close="onResultDrawerClose"
+      :destroyOnClose="false"
+    >
+      <BatchTaskResultDrawer
+        v-if="currentTask"
+        :task-id="currentTask.taskId"
+        :task-name="currentTask.taskName"
+        :platform="currentTask.platform"
+        :project-id="currentTask.projectId"
+        @task-completed="onTaskCompleted"
+        :show-ad-group="false"
+        :show-promotion="false"
+      />
+    </Drawer>
+  </Page>
 </template>
 
 <style scoped lang="scss">

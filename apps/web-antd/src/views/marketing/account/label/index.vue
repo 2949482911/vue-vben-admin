@@ -1,96 +1,96 @@
 <script setup lang="ts">
-import type {LabelItem} from '#/api/models/marketing'
-import { Page, useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import { Button, message, Tag, Switch } from 'ant-design-vue';
-import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS, STATUS_SELECT, BatchOptionsType} from '#/constants/locales';
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { accountLabelApi } from '#/api';
-import { trimObject } from '#/utils/trim';
-import CreatedLabel from './createdLabel.vue';
+import type { LabelItem } from "#/api/models/marketing";
+import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+import { Button, message, Switch } from "ant-design-vue";
+import { BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { accountLabelApi } from "#/api";
+import { trimObject } from "#/utils/trim";
+import CreatedLabel from "./createdLabel.vue";
 
 const [CreatedLabelModule, modalApi] = useVbenModal({
   // 连接抽离的组件
   connectedComponent: CreatedLabel,
-    centered: true,
-    modal: true,
+  centered: true,
+  modal: true
 });
 
 const gridOptions: VxeGridProps<LabelItem> = {
   columns: [
     {
-      field: 'name',
-      title: `${$t('marketing.accountLabel.columns.name')}`,
-      width: 'auto',
+      field: "name",
+      title: `${$t("marketing.accountLabel.columns.name")}`,
+      width: "auto"
     },
     {
-      field: 'remark',
-      title: `${$t('marketing.accountLabel.columns.remark')}`,
-      width: 'auto',
+      field: "remark",
+      title: `${$t("marketing.accountLabel.columns.remark")}`,
+      width: "auto"
     },
-    ...TABLE_COMMON_COLUMNS as any,
+    ...TABLE_COMMON_COLUMNS as any
   ],
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         const params = trimObject(args);
         return await accountLabelApi.fetchGetAccountLabelList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
-      },
-    },
+      }
+    }
   },
   checkboxConfig: {
     highlight: true,
-    labelField: 'id',
+    labelField: "id"
   },
   pagerConfig: {
-    enabled: true,
+    enabled: true
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    zoom: true,
-  },
+    zoom: true
+  }
 };
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: 'Input',
-      fieldName: 'id',
-      label: `id`,
+      component: "Input",
+      fieldName: "id",
+      label: `id`
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
         allowClear: true,
-        placeholder: '请输入',
+        placeholder: "请输入"
       },
-      fieldName: 'name',
-      label: '标签名字',
+      fieldName: "name",
+      label: "标签名字"
     },
     {
       component: "Select",
       componentProps: {
         allowClear: true,
-        options:STATUS_SELECT,
-        placeholder: '请选择',
+        options: STATUS_SELECT,
+        placeholder: "请选择"
       },
-      fieldName: 'status',
-      label: '状态',
-    },
+      fieldName: "status",
+      label: "状态"
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: false,
   // 按下回车时是否提交表单
-  submitOnEnter: false,
-}
+  submitOnEnter: false
+};
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 function openCreateModal(
   row?: LabelItem
@@ -109,21 +109,22 @@ function openCreateModal(
 async function handlerDelete(data: LabelItem | LabelItem[]) {
   const rows = Array.isArray(data) ? data : [data];
   if (rows.length === 0) {
-    return message.warning('请选择需要删除的数据！');
+    return message.warning("请选择需要删除的数据！");
   }
   const rowIds = rows.map((item) => item.id);
   try {
     await accountLabelApi.fetchBatchOptions({
       targetIds: rowIds,
-      type: 'delete',
+      type: "delete"
     });
-    message.success('删除成功');
-    await pageReload();
-    gridApi.grid.clearCheckboxRow(); 
+    await message.success("删除成功");
+    pageReload();
+    gridApi.grid.clearCheckboxRow();
   } catch (err) {
-    console.error('删除失败:', err);
+    console.error("删除失败:", err);
   }
 }
+
 /**
  * 批量删除按钮点击事件
  */
@@ -131,49 +132,49 @@ function handlerDeleteAll() {
   const selectedRecords = gridApi.grid.getCheckboxRecords();
   handlerDelete(selectedRecords);
 }
+
 function pageReload() {
   gridApi.reload();
 }
+
 async function handlerState(row: LabelItem) {
   await (row.status === 1
     ? accountLabelApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.DISABLE,
-      values: new Map<string, any>(),
+      values: new Map<string, any>()
     })
     : accountLabelApi.fetchBatchOptions({
       targetIds: [row.id],
       type: BatchOptionsType.Enable,
-      values: new Map<string, any>(),
+      values: new Map<string, any>()
     }));
   pageReload();
 }
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
-        </template>
+  <Page content-class="p-5">
+    <Grid>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
 
-        <template #action="{ row }">
-          <Button type="link" @click="openCreateModal(row)">
-            {{ $t('common.edit') }}
-          </Button>
-          <Button type="link" danger @click="handlerDelete(row)">
-            {{ $t('common.delete') }}
-          </Button>
-        </template>
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="() => openCreateModal()">新增</Button>
-          <Button type="primary" danger @click="handlerDeleteAll">删除</Button>
-        </template>
-      </Grid>
-    </Page>
-    <CreatedLabelModule @page-reload="pageReload"/>
-  </div>
+      <template #action="{ row }">
+        <Button type="link" @click="openCreateModal(row)">
+          {{ $t("common.edit") }}
+        </Button>
+        <Button type="link" danger @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+      </template>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="() => openCreateModal()">新增</Button>
+        <Button type="primary" danger @click="handlerDeleteAll">删除</Button>
+      </template>
+    </Grid>
+    <CreatedLabelModule @page-reload="pageReload" />
+  </Page>
 </template>
 
 <style scoped lang="scss">

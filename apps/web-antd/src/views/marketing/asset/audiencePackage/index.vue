@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { trimObject } from '#/utils/trim';
-import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from '#/constants/locales';
-import { Button, message, Switch } from 'ant-design-vue';
-import { advertiserApi, targetedPackageApi } from '#/api';
-import type { AdConfig } from './audiencePackageType';
-import CreatedAudiencePackage from './createdAudiencePackage.vue';
-import { onMounted, ref } from 'vue';
+import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { trimObject } from "#/utils/trim";
+import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { Button, message, Switch } from "ant-design-vue";
+import { advertiserApi, targetedPackageApi } from "#/api";
+import type { AdConfig } from "./audiencePackageType";
+import CreatedAudiencePackage from "./createdAudiencePackage.vue";
+import { onMounted, ref } from "vue";
 
 const [CreatedAudiencePackageModule, drawerApi] = useVbenDrawer({
-  connectedComponent: CreatedAudiencePackage,
+  connectedComponent: CreatedAudiencePackage
 });
 
 function openDrawer() {
@@ -26,84 +26,86 @@ interface DeveloperOption {
   label: string;
   value: string;
 }
+
 const advertiserOption = ref<DeveloperOption[]>([]);
+
 async function loadAdvertiserOptions(platform?: string) {
   advertiserOption.value = [];
   const res = await advertiserApi.fetchAdvertiserList({
     platform,
     putStatue: 1,
     page: 1,
-    pageSize: 100000,
+    pageSize: 100000
   });
 
   advertiserOption.value = res.items.map((item) => ({
     label: item.advertiserName,
-    value: item.advertiserId,
+    value: item.advertiserId
   }));
 }
 
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: ACTIVE_PLATFORM,
-        placeholder: '请选择',
+        placeholder: "请选择",
         onChange: async (val: string) => {
           await loadAdvertiserOptions(val);
-        },
+        }
       },
-      fieldName: 'platform',
-      label: '平台',
+      fieldName: "platform",
+      label: "平台"
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
         allowClear: true,
-        placeholder: '请输入',
+        placeholder: "请输入"
       },
-      fieldName: 'name',
-      label: '定向包名称',
+      fieldName: "name",
+      label: "定向包名称"
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         showSearch: true,
-        placeholder: '请选择',
+        placeholder: "请选择",
         options: advertiserOption,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
+        }
       },
-      fieldName: 'platformAdvertiserId',
-      label: '广告主名称',
-    },
+      fieldName: "platformAdvertiserId",
+      label: "广告主名称"
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: false,
   // 按下回车时是否提交表单
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps = {
   border: true,
   checkboxConfig: {
-    highlight: true,
+    highlight: true
   },
   toolbarConfig: {
     custom: true,
     refresh: true,
-    zoom: true,
+    zoom: true
   },
   columns: [
     {
-      field: 'platform',
-      title: '平台',
-      width: 'auto',
+      field: "platform",
+      title: "平台",
+      width: "auto"
     },
     // {
     //   field: 'type',
@@ -112,23 +114,22 @@ const gridOptions: VxeGridProps = {
     //   slots: { default: 'type' },
     // },
     {
-      field: 'name',
-      title: '定向包名称',
-      width: 'auto',
+      field: "name",
+      title: "定向包名称",
+      width: "auto"
     },
     {
-      field: 'platformAdvertiserName',
-      title: '广告主名称',
-      width: 'auto',
+      field: "platformAdvertiserName",
+      title: "广告主名称",
+      width: "auto"
     },
     {
-      field: 'remark',
-      title: '备注',
-      width: 'auto',
+      field: "remark",
+      title: "备注",
+      width: "auto"
     },
-    ...(TABLE_COMMON_COLUMNS as any),
+    ...(TABLE_COMMON_COLUMNS as any)
   ],
-  height: 'auto',
   pagerConfig: {},
   proxyConfig: {
     ajax: {
@@ -137,14 +138,15 @@ const gridOptions: VxeGridProps = {
         return await targetedPackageApi.fetchGetTitleTargetedPackage({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
-      },
-    },
-  },
+      }
+    }
+  }
 };
 
 const displayValue = ref<AdConfig>();
+
 async function handlerEdit(row: AdConfig) {
   openDrawer();
   displayValue.value = { ...row };
@@ -154,12 +156,12 @@ async function handlerDelete(row: AdConfig) {
   try {
     await targetedPackageApi.fetchDelTargetedPackage({
       targetIds: [row.id],
-      type: 'delete',
+      type: "delete"
     });
-    message.success('删除成功');
+    message.success("删除成功");
     pageReload();
   } catch (err) {
-    console.error('删除失败:', err);
+    console.error("删除失败:", err);
   }
 }
 
@@ -168,33 +170,33 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 function pageReload() {
   gridApi.reload();
 }
-function handlerState(_row: AdConfig) {}
+
+function handlerState(_row: AdConfig) {
+}
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-<!--        <template #type="{ row }">-->
-<!--          <span v-if="row.type === 'normal'">常规定向</span>-->
-<!--          <span v-else>媒体定向</span>-->
-<!--        </template>-->
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
-        </template>
-        <template #action="{ row }">
-          <Button type="link" @click="handlerEdit(row)">编辑</Button>
-          <Button type="link" danger @click="handlerDelete(row)">
-            {{ $t('common.delete') }}
-          </Button>
-        </template>
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openDrawer">新建定向包</Button>
-        </template>
-      </Grid>
-    </Page>
+  <Page content-class="p-5">
+    <Grid>
+      <!--        <template #type="{ row }">-->
+      <!--          <span v-if="row.type === 'normal'">常规定向</span>-->
+      <!--          <span v-else>媒体定向</span>-->
+      <!--        </template>-->
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
+      <template #action="{ row }">
+        <Button type="link" @click="handlerEdit(row)">编辑</Button>
+        <Button type="link" danger @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+      </template>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="openDrawer">新建定向包</Button>
+      </template>
+    </Grid>
     <CreatedAudiencePackageModule @page-reload="pageReload" :displayValue="displayValue" />
-  </div>
+  </Page>
 </template>
 
 <style scoped lang="scss"></style>

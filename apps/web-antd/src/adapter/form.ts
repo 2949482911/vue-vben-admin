@@ -21,6 +21,7 @@ async function initSetupVbenForm() {
         Radio: 'checked',
         Switch: 'checked',
         Upload: 'fileList',
+        Tree: 'checkedKeys',
       },
     },
     rules: {

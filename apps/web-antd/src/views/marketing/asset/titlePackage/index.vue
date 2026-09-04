@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { Page, useVbenModal, type VbenFormProps } from '@vben/common-ui';
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { projectApi, titlePackApi } from '#/api';
-import { trimObject } from '#/utils/trim';
-import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from '#/constants/locales';
-import { Button, message, Switch } from 'ant-design-vue';
-import type { TitlePackItem } from './titlePackageType';
-import CreatedTitlePackage from './createdTitlePackage.vue';
-import { $t } from '#/locales';
+import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { projectApi, titlePackApi } from "#/api";
+import { trimObject } from "#/utils/trim";
+import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { Button, message, Switch } from "ant-design-vue";
+import type { TitlePackItem } from "./titlePackageType";
+import CreatedTitlePackage from "./createdTitlePackage.vue";
+import { $t } from "#/locales";
 
 const [CreatedTitlePackageModule, modalApi] = useVbenModal({
   // 连接抽离的组件
   connectedComponent: CreatedTitlePackage,
   centered: true,
-  modal: true,
+  modal: true
 });
 
 function openModal() {
@@ -23,30 +23,30 @@ function openModal() {
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: ACTIVE_PLATFORM,
-        placeholder: '请选择',
+        placeholder: "请选择"
       },
-      fieldName: 'platform',
-      label: '平台',
+      fieldName: "platform",
+      label: "平台"
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
         allowClear: true,
-        placeholder: '请输入',
+        placeholder: "请输入"
       },
-      fieldName: 'title',
-      label: '标题名字',
+      fieldName: "title",
+      label: "标题名字"
     },
     {
-      component: 'ApiSelect',
+      component: "ApiSelect",
       componentProps: {
         allowClear: true,
         showSearch: true,
-        placeholder: '请选择',
+        placeholder: "请选择",
         api: async (params: any) => {
           return await projectApi.fetchProjectList(params);
         },
@@ -55,53 +55,53 @@ const formOptions: VbenFormProps = {
         },
         params: {
           page: 1,
-          pageSize: 1000,
+          pageSize: 1000
         },
-        valueField: 'id',
-        labelField: 'name',
-        resultField: 'items',
+        valueField: "id",
+        labelField: "name",
+        resultField: "items"
       },
-      fieldName: 'projectId',
-      label: '产品',
-    },
+      fieldName: "projectId",
+      label: "产品"
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: false,
   // 按下回车时是否提交表单
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps = {
   border: true,
   checkboxConfig: {
-    highlight: true,
+    highlight: true
   },
   toolbarConfig: {
     custom: true,
     refresh: true,
-    zoom: true,
+    zoom: true
   },
   columns: [
     {
-      field: 'title',
-      title: '标题',
-      width: 'auto',
+      field: "title",
+      title: "标题",
+      width: "auto"
     },
     {
-      field: 'projectName',
-      title: '绑定产品',
-      width: 'auto',
+      field: "projectName",
+      title: "绑定产品",
+      width: "auto"
     },
     {
-      field: 'platform',
-      title: '平台',
-      width: 'auto',
+      field: "platform",
+      title: "平台",
+      width: "auto"
     },
-    ...(TABLE_COMMON_COLUMNS as any),
+    ...(TABLE_COMMON_COLUMNS as any)
   ],
-  height: 'auto',
+  height: "auto",
   pagerConfig: {},
   proxyConfig: {
     ajax: {
@@ -110,11 +110,11 @@ const gridOptions: VxeGridProps = {
         return await titlePackApi.fetchGetTitlePack({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
-      },
-    },
-  },
+      }
+    }
+  }
 };
 
 /**
@@ -123,19 +123,19 @@ const gridOptions: VxeGridProps = {
 async function handlerDelete(data: TitlePackItem | TitlePackItem[]) {
   const rows = Array.isArray(data) ? data : [data];
   if (rows.length === 0) {
-    return message.warning('请选择需要删除的数据！');
+    return message.warning("请选择需要删除的数据！");
   }
   const rowIds = rows.map((item) => item.id);
   try {
     await titlePackApi.fetchDelTitlePack({
       targetIds: rowIds,
-      type: 'delete',
+      type: "delete"
     });
-    message.success('删除成功');
+    message.success("删除成功");
     await pageReload();
     gridApi.grid.clearCheckboxRow();
   } catch (err) {
-    console.error('删除失败:', err);
+    console.error("删除失败:", err);
   }
 }
 
@@ -152,29 +152,29 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 function pageReload() {
   gridApi.reload();
 }
-function handlerState(_row: TitlePackItem) {}
+
+function handlerState(_row: TitlePackItem) {
+}
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
-        </template>
-        <template #action="{ row }">
-          <Button type="link" danger @click="handlerDelete(row)">
-            {{ $t('common.delete') }}
-          </Button>
-        </template>
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openModal">新建标题包</Button>
-          <Button type="primary" danger @click="handlerDeleteAll">删除</Button>
-        </template>
-      </Grid>
-    </Page>
+  <Page content-class="p-5">
+    <Grid>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
+      <template #action="{ row }">
+        <Button type="link" danger @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+      </template>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="openModal">新建标题包</Button>
+        <Button type="primary" danger @click="handlerDeleteAll">删除</Button>
+      </template>
+    </Grid>
     <CreatedTitlePackageModule @page-reload="pageReload" />
-  </div>
+  </Page>
 </template>
 
 <style scoped lang="scss"></style>

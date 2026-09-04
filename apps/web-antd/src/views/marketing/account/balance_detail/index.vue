@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import type {VbenFormProps} from '@vben/common-ui';
-import {Page} from '@vben/common-ui';
-import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
-import {$t} from '@vben/locales';
+import type { VbenFormProps } from "@vben/common-ui";
+import { Page } from "@vben/common-ui";
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { $t } from "@vben/locales";
 import {
   BALACE_DETAIL_PLATFORM,
   CONSUMPTION_DETAIL_DIMENSION,
   CONSUMPTION_DETAIL_DIMENSION_HUAWEI
-} from '#/constants/locales';
-import dayjs from 'dayjs';
-import {onMounted, ref, nextTick} from 'vue';
-import {advertiserApi, developerApi} from '#/api';
-import type {AdvertiserItem} from '#/api/models';
-import {useClientPagination} from '#/utils/pagination';
-import {Platform} from "#/constants/enums";
+} from "#/constants/locales";
+import dayjs from "dayjs";
+import { nextTick, onMounted, ref } from "vue";
+import { advertiserApi, developerApi } from "#/api";
+import type { AdvertiserItem } from "#/api/models";
+import { useClientPagination } from "#/utils/pagination";
+import { Platform } from "#/constants/enums";
 
 const {
   pager,
   setData,
   getPageData,
-  onPageChange,
+  onPageChange
 } = useClientPagination<any>((loading) => {
   gridApi.setLoading(loading);
 });
@@ -35,23 +35,23 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null;
 let pageTimer: ReturnType<typeof setTimeout> | null = null;
 
 const defaultQueryParams = {
-  platform: 'huawei_store',
+  platform: "huawei_store",
   dateTime: [
-    dayjs().subtract(6, 'day').format('YYYY-MM-DD'),
-    dayjs().format('YYYY-MM-DD'),
+    dayjs().subtract(6, "day").format("YYYY-MM-DD"),
+    dayjs().format("YYYY-MM-DD")
   ],
   developerId: [],
   advertiserId: [],
-  dims: ['day'],
-  huwaweiAppIdList: [],
+  dims: ["day"],
+  huwaweiAppIdList: []
 };
 
 onMounted(() => {
-  loadAdCompanyOptions('huawei_store');
-  loadAdvertiserOptions('huawei_store');
-  aGenerationOptions('huawei_store')
-  appNameOptions('huawei_store')
-  init(defaultQueryParams)
+  loadAdCompanyOptions("huawei_store");
+  loadAdvertiserOptions("huawei_store");
+  aGenerationOptions("huawei_store");
+  appNameOptions("huawei_store");
+  init(defaultQueryParams);
 });
 
 interface DeveloperOption {
@@ -64,10 +64,10 @@ interface AdvertiserApp {
   appId: string;
 }
 
-const developerOption = ref<DeveloperOption[]>([])
-const adCompanyOption = ref<string[]>([])
-const aGenerationOption = ref<DeveloperOption[]>([])
-const appNameOption = ref<DeveloperOption[]>([])
+const developerOption = ref<DeveloperOption[]>([]);
+const adCompanyOption = ref<string[]>([]);
+const aGenerationOption = ref<DeveloperOption[]>([]);
+const appNameOption = ref<DeveloperOption[]>([]);
 
 async function loadAdvertiserOptions(platform: string) {
   developerOption.value = [];
@@ -77,12 +77,12 @@ async function loadAdvertiserOptions(platform: string) {
     platform,
     putStatue: 1,
     page: 1,
-    pageSize: 100000,
+    pageSize: 100000
   });
 
   developerOption.value = res.items.map((item) => ({
     label: `${item.advertiserName}-${item.advertiserId}`,
-    value: item.advertiserId,
+    value: item.advertiserId
   }));
 }
 
@@ -91,11 +91,11 @@ async function loadAdCompanyOptions(platform: string) {
   if (!platform) return;
 
   const res = await advertiserApi.fetchAdCompanyOptions({
-    platform,
+    platform
   });
   adCompanyOption.value = res.companyList.map((item: string) => ({
     label: item,
-    value: item,
+    value: item
   }));
 }
 
@@ -104,11 +104,11 @@ async function appNameOptions(platform: string) {
   if (!platform) return;
 
   const res: AdvertiserApp[] = await advertiserApi.fetchAdvertiserAppOptions({
-    platform,
+    platform
   });
   appNameOption.value = res.map((item) => ({
     label: item.name,
-    value: item.appId,
+    value: item.appId
   }));
 }
 
@@ -119,12 +119,12 @@ async function aGenerationOptions(platform: string) {
   const res = await developerApi.fetchDeveloperList({
     platform,
     page: 1,
-    pageSize: 200,
+    pageSize: 200
   });
 
   aGenerationOption.value = res.items.map((item) => ({
     label: `${item.name}-${item.id}`,
-    value: item.id,
+    value: item.id
   }));
 }
 
@@ -132,37 +132,37 @@ async function aGenerationOptions(platform: string) {
 function generateColumns(columnsKeys: string[]) {
   // 检查缓存是否有效
   if (cachedColumns.value.length > 0 &&
-      JSON.stringify(cachedColumns.value.map(c => c.field)) === JSON.stringify(['seq', ...columnsKeys])) {
+    JSON.stringify(cachedColumns.value.map(c => c.field)) === JSON.stringify(["seq", ...columnsKeys])) {
     return cachedColumns.value;
   }
 
   const newColumns = [
-    { title: '序号', field: 'seq', width: 100, fixed: 'left' },
+    { title: "序号", field: "seq", width: 100, fixed: "left" },
     ...columnsKeys.map((key: string) => {
       const isFixedLeft = fixedLeftKeys.includes(key);
       const columnConfig: any = {
         field: key,
         title: key,
-        width: 'auto',
+        width: "auto",
         sortable: true,
-        ...(isFixedLeft ? { fixed: 'left' } : {}),
+        ...(isFixedLeft ? { fixed: "left" } : {})
       };
 
-      if (key === '推广产品') {
-        columnConfig.slots = { default: '推广产品' };
+      if (key === "推广产品") {
+        columnConfig.slots = { default: "推广产品" };
         columnConfig.exportMethod = ({ row }: any) => {
-          if (!row || !row['推广产品']) return '';
-          if (Array.isArray(row['推广产品'])) {
-            return row['推广产品']
+          if (!row || !row["推广产品"]) return "";
+          if (Array.isArray(row["推广产品"])) {
+            return row["推广产品"]
               .map((item: any) => item?.product_name?.trim())
               .filter(Boolean)
-              .join('、');
+              .join("、");
           }
-          return String(row['推广产品'] || '');
+          return String(row["推广产品"] || "");
         };
       }
       return columnConfig;
-    }),
+    })
   ];
 
   cachedColumns.value = newColumns;
@@ -192,7 +192,7 @@ async function init(args?: any) {
     const res = await advertiserApi.fetchAdvertiserCostDetail(args);
     const items = res.items.map((item: any, i: number) => ({
       ...item,
-      seq: i + 1,
+      seq: i + 1
     }));
 
     fullData.value = items;
@@ -214,12 +214,12 @@ async function init(args?: any) {
         total: pager.total,
         currentPage: pager.currentPage,
         pageSize: pager.pageSize,
-        pageSizes: [500, 800, 1000],
+        pageSizes: [500, 800, 1000]
       },
       exportConfig: {
         ...gridOptions.exportConfig,
-        data: fullData.value,
-      },
+        data: fullData.value
+      }
     });
   } finally {
     isLoading.value = false;
@@ -242,8 +242,8 @@ const handlePageChange = (params: { currentPage: number; pageSize: number }) => 
           total: pager.total,
           currentPage: pager.currentPage,
           pageSize: pager.pageSize,
-          pageSizes: [500, 800, 1000],
-        },
+          pageSizes: [500, 800, 1000]
+        }
       });
     });
     pageTimer = null;
@@ -273,41 +273,41 @@ const handleFormReset = async () => {
     pagerConfig: {
       total: 0,
       currentPage: 1,
-      pageSize: 500,
-    },
+      pageSize: 500
+    }
   });
   await init(defaultQueryParams);
 };
 
-const fixedLeftKeys = ['APPID', 'day', '开发者ID', '账户ID', '公司名称', '账户名字'];
+const fixedLeftKeys = ["APPID", "day", "开发者ID", "账户ID", "公司名称", "账户名字"];
 
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: 'RangePicker',
+      component: "RangePicker",
       defaultValue: [
-        dayjs().subtract(6, 'day').format('YYYY-MM-DD'),
-        dayjs().format('YYYY-MM-DD'),
+        dayjs().subtract(6, "day").format("YYYY-MM-DD"),
+        dayjs().format("YYYY-MM-DD")
       ],
       componentProps: {
-        placeholder: [`${$t('common.select')}`, `${$t('common.select')}`],
-        format: ['YYYY-MM-DD', 'YYYY-MM-DD'],
-        valueFormat: 'YYYY-MM-DD',
+        placeholder: [`${$t("common.select")}`, `${$t("common.select")}`],
+        format: ["YYYY-MM-DD", "YYYY-MM-DD"],
+        valueFormat: "YYYY-MM-DD",
         disabledDate: (current: any) => {
-          return current && current > dayjs().endOf('day');
-        },
+          return current && current > dayjs().endOf("day");
+        }
       },
-      rules: 'required',
-      fieldName: 'dateTime',
-      label: '时间',
+      rules: "required",
+      fieldName: "dateTime",
+      label: "时间"
     },
     {
-      component: 'Select',
+      component: "Select",
       defaultValue: Platform.HUAWEI_STORE,
       componentProps: {
         allowClear: true,
         options: BALACE_DETAIL_PLATFORM,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`,
         onChange: async (val: string) => {
           if (val === Platform.HUAWEI_STORE) {
             await loadAdCompanyOptions(val);
@@ -315,162 +315,161 @@ const formOptions: VbenFormProps = {
             await aGenerationOptions(val);
           }
           await loadAdvertiserOptions(val);
-        },
+        }
       },
-      rules: 'required',
-      fieldName: 'platform',
-      label: `${$t('ocpx.platform.title')}`,
+      rules: "required",
+      fieldName: "platform",
+      label: `${$t("ocpx.platform.title")}`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
-        mode: 'multiple',
+        mode: "multiple",
         maxTagCount: 1,
         options: aGenerationOption,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'developerId',
-      label: '一代主体',
+      fieldName: "developerId",
+      label: "一代主体",
       dependencies: {
         show: (value) => {
           return value.platform === Platform.HUAWEI_STORE;
         },
-        triggerFields: ['platform']
+        triggerFields: ["platform"]
       }
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
-        mode: 'multiple',
+        mode: "multiple",
         maxTagCount: 1,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`,
         options: developerOption,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
+        }
       },
-      fieldName: 'advertiserId',
-      label: '账户名字',
+      fieldName: "advertiserId",
+      label: "账户名字",
       dependencies: {
         show: (value) => {
           return value.platform === Platform.HUAWEI_STORE;
         },
-        triggerFields: ['platform']
+        triggerFields: ["platform"]
       }
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
-        mode: 'multiple',
-        placeholder: `${$t('common.choice')}`,
+        mode: "multiple",
+        placeholder: `${$t("common.choice")}`,
         options: adCompanyOption,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
+        }
       },
-      fieldName: 'companyNames',
-      label: '公司名字',
+      fieldName: "companyNames",
+      label: "公司名字",
       dependencies: {
         show: (value) => {
           return value.platform === Platform.HUAWEI_STORE;
         },
-        triggerFields: ['platform']
+        triggerFields: ["platform"]
       }
     },
     {
-      component: 'Select',
-      defaultValue: ['day'],
+      component: "Select",
+      defaultValue: ["day"],
       componentProps: {
         allowClear: true,
-        mode: 'multiple',
+        mode: "multiple",
         maxTagCount: 1,
         options: CONSUMPTION_DETAIL_DIMENSION,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      rules: 'required',
-      fieldName: 'dims',
-      label: '维度',
+      rules: "required",
+      fieldName: "dims",
+      label: "维度",
       dependencies: {
         show: (value) => {
           return value.platform === Platform.HUAWEI_STORE;
         },
-        triggerFields: ['platform']
+        triggerFields: ["platform"]
       }
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
-        mode: 'multiple',
+        mode: "multiple",
         options: appNameOption,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
-        },
+        }
       },
-      fieldName: 'huwaweiAppIdList',
-      label: 'appName',
+      fieldName: "huwaweiAppIdList",
+      label: "appName",
       dependencies: {
         show: (value) => {
           return value.platform === Platform.HUAWEI_STORE;
         },
-        triggerFields: ['platform']
+        triggerFields: ["platform"]
       }
     },
     {
-      component: 'Select',
-      defaultValue: ['day'],
+      component: "Select",
+      defaultValue: ["day"],
       componentProps: {
         allowClear: true,
-        mode: 'multiple',
+        mode: "multiple",
         options: CONSUMPTION_DETAIL_DIMENSION_HUAWEI,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      rules: 'required',
-      fieldName: 'dims',
-      label: '维度',
+      rules: "required",
+      fieldName: "dims",
+      label: "维度",
       dependencies: {
         show: (value) => {
           return value.platform === Platform.HUAWEI;
         },
-        triggerFields: ['platform']
+        triggerFields: ["platform"]
       }
-    },
+    }
   ],
   showCollapseButton: false,
   handleSubmit: handleFormSubmit,
   handleReset: handleFormReset,
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
-}
+  collapsed: true
+};
 
 const gridOptions: VxeGridProps<AdvertiserItem> = {
   border: true,
   checkboxConfig: {
-    highlight: true,
+    highlight: true
   },
   toolbarConfig: {
     custom: true,
     export: true,
     refresh: true,
-    zoom: true,
+    zoom: true
   },
   columns: [],
-  height: 'auto',
   keepSource: true,
   pagerConfig: {
     pageSize: 500,
-    pageSizes: [500, 800, 1000],
+    pageSizes: [500, 800, 1000]
   },
   exportConfig: {
-    filename: '',
+    filename: "",
     types: ["csv", "xlsx"],
-    modes: ['all'],
-    original: true,
+    modes: ["all"],
+    original: true
   },
   proxyConfig: undefined,
   // 优化10：虚拟滚动配置优化
@@ -485,32 +484,32 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   // 优化13：优化渲染性能
   rowConfig: {
     useKey: true, // 使用 key 优化渲染
-    isHover: false, // 禁用 hover 效果
-  },
+    isHover: false // 禁用 hover 效果
+  }
 };
 
 const gridEvents = {
-  pageChange: handlePageChange,
+  pageChange: handlePageChange
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions, gridEvents});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents });
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #toolbar-tools></template>
-        <template #推广产品="{row}">
-          <div class="app-list">
-            <div class="app-item" v-for="app in row['推广产品']" :key="app.appId">
-              <div class="app-name">{{ app.product_name }}</div>
-            </div>
+
+  <Page content-class="p-5">
+    <Grid>
+      <template #toolbar-tools></template>
+      <template #推广产品="{row}">
+        <div class="app-list">
+          <div class="app-item" v-for="app in row['推广产品']" :key="app.appId">
+            <div class="app-name">{{ app.product_name }}</div>
           </div>
-        </template>
-      </Grid>
-    </Page>
-  </div>
+        </div>
+      </template>
+    </Grid>
+  </Page>
+
 </template>
 
 <style scoped lang="scss">

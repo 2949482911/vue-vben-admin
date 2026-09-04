@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { loadingPageApi } from '#/api';
-import { TABLE_COMMON_COLUMNS } from '#/constants/locales';
-import { trimObject } from '#/utils/trim';
-import { Page, useVbenModal, type VbenFormProps } from '@vben/common-ui';
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { Button, message, Switch } from 'ant-design-vue';
-import CreateLoadingPage from './createLoadingPage.vue';
-import type { LandingPageData } from '#/api/models';
+import { loadingPageApi } from "#/api";
+import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { trimObject } from "#/utils/trim";
+import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { Button, message, Switch } from "ant-design-vue";
+import CreateLoadingPage from "./createLoadingPage.vue";
+import type { LandingPageData } from "#/api/models";
 
 const [CreateLoadingPageModule, createLoadingPageApi] = useVbenModal({
   connectedComponent: CreateLoadingPage,
   centered: true,
-  modal: true,
+  modal: true
 });
 
 async function openModal(val?: LandingPageData) {
@@ -26,67 +26,67 @@ async function openModal(val?: LandingPageData) {
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: [
           {
-            label: 'vivo',
-            value: 'vivo',
-          },
+            label: "vivo",
+            value: "vivo"
+          }
         ],
-        placeholder: '请选择',
+        placeholder: "请选择"
       },
-      fieldName: 'platform',
-      label: '平台',
+      fieldName: "platform",
+      label: "平台"
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
         allowClear: true,
-        placeholder: '请输入',
+        placeholder: "请输入"
       },
-      fieldName: 'name',
-      label: '名称',
-    },
+      fieldName: "name",
+      label: "名称"
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: false,
   // 按下回车时是否提交表单
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 const gridOptions: VxeGridProps = {
   border: true,
   checkboxConfig: {
-    highlight: true,
+    highlight: true
   },
   toolbarConfig: {
     custom: true,
     refresh: true,
-    zoom: true,
+    zoom: true
   },
   columns: [
     {
-      field: 'name',
-      title: '名称',
-      width: 'auto',
+      field: "name",
+      title: "名称",
+      width: "auto"
     },
     {
-      field: 'platform',
-      title: '平台',
-      width: 'auto',
+      field: "platform",
+      title: "平台",
+      width: "auto"
     },
     {
-      field: 'pageUrl',
-      title: '详情页地址',
-      width: 'auto',
-      slots: { default: 'pageUrl' },
+      field: "pageUrl",
+      title: "详情页地址",
+      width: "auto",
+      slots: { default: "pageUrl" }
     },
-    ...(TABLE_COMMON_COLUMNS as any),
+    ...(TABLE_COMMON_COLUMNS as any)
   ],
-  height: 'auto',
+  height: "auto",
   pagerConfig: {},
   proxyConfig: {
     ajax: {
@@ -95,11 +95,11 @@ const gridOptions: VxeGridProps = {
         return await loadingPageApi.fetchGetLoadingPage({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
-      },
-    },
-  },
+      }
+    }
+  }
 };
 
 async function delLoadingPage() {
@@ -108,44 +108,44 @@ async function delLoadingPage() {
   try {
     loadingPageApi.fetchDelLoadingPage({
       targetIds: ids,
-      type: 'delete',
+      type: "delete"
     });
     pageReload();
-    message.success('删除成功！');
+    message.success("删除成功！");
   } catch (err) {
-    console.log(err, 'err');
+    console.log(err, "err");
   }
 }
 
 function pageReload() {
   gridApi.reload();
 }
+
 function handlerState(row: LandingPageData) {
 }
+
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #pageUrl="{ row }">
-          {{ row.config.pageUrl }}
-        </template>
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
-        </template>
-        <template #action="{ row }">
-          <Button type="link" @click="openModal(row)"> 编辑 </Button>
-        </template>
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openModal()">新建落地页</Button>
-          <Button class="mr-2" type="primary" danger @click="delLoadingPage">删除</Button>
-        </template>
-      </Grid>
-    </Page>
-    <CreateLoadingPageModule @page-reload="pageReload" />
-  </div>
+  <Page content-class="p-5">
+    <Grid>
+      <template #pageUrl="{ row }">
+        {{ row.config.pageUrl }}
+      </template>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
+      <template #action="{ row }">
+        <Button type="link" @click="openModal(row)"> 编辑</Button>
+      </template>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="openModal()">新建落地页</Button>
+        <Button class="mr-2" type="primary" danger @click="delLoadingPage">删除</Button>
+      </template>
+    </Grid>
+  </Page>
+  <CreateLoadingPageModule @page-reload="pageReload" />
 </template>
 
 <style scoped lang="scss"></style>

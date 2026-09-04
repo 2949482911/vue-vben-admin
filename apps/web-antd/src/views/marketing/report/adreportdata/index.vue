@@ -1,17 +1,18 @@
 <script setup lang="ts" name="AdReportDataManager">
-import { ref, reactive, computed, onMounted } from 'vue';
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { Button } from 'ant-design-vue';
-import SelectMetricModal from './selectmetric.vue';
-import type { AdReportRequest, ReportFilter, searchDataFilter, TemplateDto } from '#/api/models';
-import { reportApi, projectApi } from '#/api';
-import type { ProjectItem } from '../../account/advertiser/advertiser';
-import SaveTemplateModal from '../components/ReportTemplateSaveModal.vue';
-import TemplateListDrawer from '../components/ReportTemplateListDrawer.vue';
-import AdReportFilterForm from '../components/AdReportFilterForm.vue';
-import { usePreferences } from '@vben/preferences';
+import { computed, onMounted, reactive, ref } from "vue";
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+import { Button } from "ant-design-vue";
+import SelectMetricModal from "./selectmetric.vue";
+import type { AdReportRequest, ReportFilter, searchDataFilter, TemplateDto } from "#/api/models";
+import { projectApi, reportApi } from "#/api";
+import type { ProjectItem } from "../../account/advertiser/advertiser";
+import SaveTemplateModal from "../components/ReportTemplateSaveModal.vue";
+import TemplateListDrawer from "../components/ReportTemplateListDrawer.vue";
+import AdReportFilterForm from "../components/AdReportFilterForm.vue";
+import { usePreferences } from "@vben/preferences";
+
 const { isDark } = usePreferences();
 const isLight = computed(() => {
   return !isDark.value;
@@ -22,7 +23,7 @@ const filterFormRef = ref();
 
 /* ---------------- 模板抽屉 ---------------- */
 const [TemplateDrawer, drawerApi] = useVbenDrawer({
-  connectedComponent: TemplateListDrawer,
+  connectedComponent: TemplateListDrawer
 });
 
 function openTemplateListModalModal() {
@@ -38,7 +39,7 @@ let pendingRequest: any = null;
 
 /* ---------------- 指标弹窗 ---------------- */
 const [SelectMetricModalModal, selectMetricModalApi] = useVbenModal({
-  connectedComponent: SelectMetricModal,
+  connectedComponent: SelectMetricModal
 });
 
 async function openPlatformMetricMapDetailModal() {
@@ -50,18 +51,18 @@ const searchData = ref<searchDataFilter>({
   advertiserId: [],
   dims: [],
   platform: [],
-  projectId: '',
+  projectId: "",
   queryMetric: [],
   decimalPoint: 4,
-  dateTimeRange: ['', ''],
+  dateTimeRange: ["", ""],
   campaign_id: [],
   adgroup_id: [],
   promotion_id: [],
-  creative_id: [],
+  creative_id: []
 });
 
 const [SaveTemplateModalModal, sveTemplateModalApi] = useVbenModal({
-  connectedComponent: SaveTemplateModal,
+  connectedComponent: SaveTemplateModal
 });
 
 async function handleTemplateSaved() {
@@ -78,7 +79,7 @@ const tableFooter = ref({}); // 表尾单独存储
 const pager = reactive({
   currentPage: 1,
   pageSize: 500,
-  total: 0,
+  total: 0
 });
 
 // 优化2：缓存列配置，避免重复构建
@@ -101,7 +102,7 @@ async function init(args?: any, columnOrder?: string[]) {
 
     // 添加超时控制
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('请求超时')), 30000);
+      setTimeout(() => reject(new Error("请求超时")), 30000);
     });
 
     const requestPromise = reportApi.fetchAdReport(args);
@@ -109,19 +110,19 @@ async function init(args?: any, columnOrder?: string[]) {
 
     // 使用 requestIdleCallback 处理大数据，避免阻塞UI
     await new Promise((resolve) => {
-      if ('requestIdleCallback' in window) {
+      if ("requestIdleCallback" in window) {
         requestIdleCallback(
           () => {
             const items = res.items.map((item: any, index: number) => ({
               ...item,
-              seq: index + 1,
+              seq: index + 1
             }));
             allData.value = items;
             allDataOrigin.value = [...items]; // 备份原始数据
             pager.total = items.length;
             resolve(true);
           },
-          { timeout: 100 },
+          { timeout: 100 }
         );
       } else {
         setTimeout(() => {
@@ -142,8 +143,8 @@ async function init(args?: any, columnOrder?: string[]) {
     // 重置排序状态
     await resetSortState();
   } catch (error: any) {
-    if (error.name !== 'AbortError') {
-      console.error('请求失败:', error);
+    if (error.name !== "AbortError") {
+      console.error("请求失败:", error);
     }
   } finally {
     gridApi.setLoading(false);
@@ -157,15 +158,15 @@ async function resetSortState() {
   // 仅通过 setGridOptions 清除 sortConfig 状态
   await gridApi.setGridOptions({
     sortConfig: {
-      remote: true,
-    },
+      remote: true
+    }
   });
 }
 
 /*  优化4：分离表头更新和数据更新  */
 function updateTableStructure(columns: string[], footData: any, columnOrder?: string[]) {
   // 使用缓存避免重复构建（有自定义顺序时跳过缓存）
-  const cacheKey = columns.join(',');
+  const cacheKey = columns.join(",");
   if (!columnOrder && cachedColumns && cachedColumns.key === cacheKey) {
     tableColumns.value = cachedColumns.columns;
   } else {
@@ -175,9 +176,9 @@ function updateTableStructure(columns: string[], footData: any, columnOrder?: st
       columnDefMap.set(key, {
         field: key,
         title: key,
-        width: 'auto',
+        width: "auto",
         sortable: true,
-        showOverflow: true,
+        showOverflow: true
       });
     });
 
@@ -192,8 +193,8 @@ function updateTableStructure(columns: string[], footData: any, columnOrder?: st
     }
 
     const newColumns: any[] = [
-      { title: '序号', field: 'seq', width: 80, fixed: 'left', sortable: true },
-      ...orderedKeys.map((key) => columnDefMap.get(key)!),
+      { title: "序号", field: "seq", width: 80, fixed: "left", sortable: true },
+      ...orderedKeys.map((key) => columnDefMap.get(key)!)
     ];
 
     if (!columnOrder) {
@@ -202,12 +203,12 @@ function updateTableStructure(columns: string[], footData: any, columnOrder?: st
     tableColumns.value = newColumns as any;
   }
 
-  tableFooter.value = { seq: '合计：', ...footData };
+  tableFooter.value = { seq: "合计：", ...footData };
 
   // 批量更新grid配置，减少重绘次数
   gridApi.setGridOptions({
     columns: tableColumns.value,
-    footerData: [tableFooter.value],
+    footerData: [tableFooter.value]
   });
 }
 
@@ -234,8 +235,8 @@ function updateCurrentPageData() {
         total: pager.total,
         currentPage: pager.currentPage,
         pageSize: pager.pageSize,
-        pageSizes: [500, 800, 1000, 2000],
-      },
+        pageSizes: [500, 800, 1000, 2000]
+      }
     });
 
     pendingUpdate = null;
@@ -252,7 +253,7 @@ const gridEvents = {
   },
 
   async sortChange({ column, property, order }: any) {
-    console.log(column, 'column');
+    console.log(column, "column");
 
     if (!property) return;
 
@@ -278,36 +279,38 @@ const gridEvents = {
 
       await gridApi.setGridOptions({
         sortConfig: {
-          remote: true,
-        },
+          remote: true
+        }
       });
       // 更新导出数据
       updateExportData();
     } catch (error) {
-      console.error('排序失败:', error);
+      console.error("排序失败:", error);
     } finally {
       gridApi.setLoading(false);
     }
-  },
+  }
 };
+
 // 更新导出配置的数据源为当前全量数据（已排序）
 function updateExportData() {
   gridApi.setGridOptions({
     exportConfig: {
       ...gridOptions.exportConfig,
-      data: allData.value,
-    },
+      data: allData.value
+    }
   });
 }
+
 // 通用排序函数
-function sortDataByField(data: any[], field: string, order: 'asc' | 'desc'): any[] {
+function sortDataByField(data: any[], field: string, order: "asc" | "desc"): any[] {
   return [...data].sort((a, b) => {
     let aVal = a[field];
     let bVal = b[field];
 
     // 处理 null/undefined 值
-    if (aVal == null) aVal = '';
-    if (bVal == null) bVal = '';
+    if (aVal == null) aVal = "";
+    if (bVal == null) bVal = "";
 
     // 判断是否为数字（包括字符串形式的数字）
     const isNumber = !isNaN(Number(aVal)) && !isNaN(Number(bVal));
@@ -322,10 +325,10 @@ function sortDataByField(data: any[], field: string, order: 'asc' | 'desc'): any
       // 字符串比较
       const aStr = String(aVal).toLowerCase();
       const bStr = String(bVal).toLowerCase();
-      result = aStr.localeCompare(bStr, 'zh-CN');
+      result = aStr.localeCompare(bStr, "zh-CN");
     }
 
-    return order === 'asc' ? result : -result;
+    return order === "asc" ? result : -result;
   });
 }
 
@@ -335,7 +338,7 @@ const projectOptions = ref<ProjectItem[]>([]);
 onMounted(async () => {
   const res = await projectApi.fetchProjectList({
     page: 1,
-    pageSize: 1000,
+    pageSize: 1000
   });
   projectOptions.value = res.items;
 });
@@ -358,21 +361,21 @@ function buildReportParams(values: any): AdReportRequest {
     adgroup_id,
     promotion_id,
     creative_id,
-    advertiserTagId,
+    advertiserTagId
   } = values;
 
   const normalizeArray = (val?: string | string[]) =>
     val ? (Array.isArray(val) ? val : [val]) : undefined;
 
   const filters: ReportFilter[] = [
-    ...(makeFilter('platform', platform) ?? []),
-    ...(makeFilter('platform_account_id', advertiserId) ?? []),
-    ...(makeFilter('projectId', normalizeArray(projectId)) ?? []),
-    ...(makeFilter('campaign_id', normalizeArray(campaign_id)) ?? []),
-    ...(makeFilter('adgroup_id', normalizeArray(adgroup_id)) ?? []),
-    ...(makeFilter('promotion_id', normalizeArray(promotion_id)) ?? []),
-    ...(makeFilter('creative_id', normalizeArray(creative_id)) ?? []),
-    ...(makeFilter('advertiserTagId', normalizeArray(advertiserTagId)) ?? []),
+    ...(makeFilter("platform", platform) ?? []),
+    ...(makeFilter("platform_account_id", advertiserId) ?? []),
+    ...(makeFilter("projectId", normalizeArray(projectId)) ?? []),
+    ...(makeFilter("campaign_id", normalizeArray(campaign_id)) ?? []),
+    ...(makeFilter("adgroup_id", normalizeArray(adgroup_id)) ?? []),
+    ...(makeFilter("promotion_id", normalizeArray(promotion_id)) ?? []),
+    ...(makeFilter("creative_id", normalizeArray(creative_id)) ?? []),
+    ...(makeFilter("advertiserTagId", normalizeArray(advertiserTagId)) ?? [])
   ];
 
   return {
@@ -380,7 +383,7 @@ function buildReportParams(values: any): AdReportRequest {
     dims,
     queryMetric,
     decimalPoint: decimalPoint.value,
-    filters: filters.length ? filters : undefined,
+    filters: filters.length ? filters : undefined
   };
 }
 
@@ -396,7 +399,7 @@ async function handleFormSubmit(values: any) {
   if (savedOrder && savedOrder.length > 0) {
     const gridCols = gridApi.grid?.getColumns() ?? [];
     const currentOrder = gridCols
-      .filter((col: any) => col.field && col.field !== 'seq')
+      .filter((col: any) => col.field && col.field !== "seq")
       .map((col: any) => col.field);
     const same =
       currentOrder.length === savedOrder.length &&
@@ -410,12 +413,12 @@ async function handleFormSubmit(values: any) {
 }
 
 async function handleFormReset() {
-  btnText.value = '新增模板';
+  btnText.value = "新增模板";
   tmplateData.value = {
-    id: '',
-    name: '',
-    remark: '',
-    type: 'base'
+    id: "",
+    name: "",
+    remark: "",
+    type: "base"
   };
   if (abortController) {
     abortController.abort();
@@ -438,23 +441,25 @@ async function handleFormReset() {
       total: 0,
       currentPage: 1,
       pageSize: pager.pageSize,
-      pageSizes: [500, 800, 1000],
-    },
+      pageSizes: [500, 800, 1000]
+    }
   });
   updateExportData();
 }
-const btnText = ref('新增模板');
+
+const btnText = ref("新增模板");
+
 async function handleUseTemplate(row: TemplateDto) {
   if (pendingRequest) {
     pendingRequest = null;
   }
-  btnText.value = '编辑模板';
+  btnText.value = "编辑模板";
   if (row.id) {
     tmplateData.value = {
       id: row.id,
       name: row.name,
       remark: row.remark,
-      type: 'base'
+      type: "base"
     };
   }
   currentDecimalPoint.value = row.template.decimalPoint;
@@ -475,8 +480,8 @@ async function handleUseTemplate(row: TemplateDto) {
 function reloadFromStart(metricIds: string[], newDecimalPoint: number) {
   decimalPoint.value = newDecimalPoint;
   currentDecimalPoint.value = newDecimalPoint;
-  filterFormRef.value?.setFieldValue('queryMetric', metricIds);
-  console.log('reloadFromStart', decimalPoint.value);
+  filterFormRef.value?.setFieldValue("queryMetric", metricIds);
+  console.log("reloadFromStart", decimalPoint.value);
   currentQueryMetric.value = metricIds;
 }
 
@@ -487,10 +492,10 @@ async function openSaveTemplateModalModal() {
   // 读取当前列顺序（排除固定的"序号"列）
   const currentColumns = gridApi.grid?.getColumns() ?? [];
   searchData.value.columnOrder = currentColumns
-    .filter((col: any) => col.field && col.field !== 'seq')
+    .filter((col: any) => col.field && col.field !== "seq")
     .map((col: any) => col.field);
 
-  console.log('searchData', searchData.value);
+  console.log("searchData", searchData.value);
   if (tmplateData.value.id) {
     sveTemplateModalApi.setData(tmplateData.value);
   } else {
@@ -503,7 +508,7 @@ async function openSaveTemplateModalModal() {
 const gridOptions: VxeGridProps = {
   showFooter: true,
   border: true,
-  height: '100%',
+  height: "100%",
   keepSource: true,
   columns: [],
   data: [],
@@ -514,25 +519,25 @@ const gridOptions: VxeGridProps = {
     refreshOptions: {
       query: async () => {
         await filterFormRef.value?.submitForm();
-      },
+      }
     },
-    zoom: true,
+    zoom: true
   },
   exportConfig: {
-    filename: '',
-    types: ['csv', 'xlsx'],
-    modes: ['all'],
-    original: true,
+    filename: "",
+    types: ["csv", "xlsx"],
+    modes: ["all"],
+    original: true
   },
   pagerConfig: {
     enabled: true,
     total: pager.total,
     pageSize: pager.pageSize,
     currentPage: pager.currentPage,
-    pageSizes: [500, 800, 1000, 2000],
+    pageSizes: [500, 800, 1000, 2000]
   },
   proxyConfig: {
-    enabled: false, // 确保关闭代理配置，使用手动控制
+    enabled: false // 确保关闭代理配置，使用手动控制
   },
   footerData: [],
   // 开启虚拟滚动，提升大数据渲染性能
@@ -542,65 +547,63 @@ const gridOptions: VxeGridProps = {
   rowConfig: {
     isHover: false,
     useKey: true,
-    keyField: 'seq',
+    keyField: "seq"
   },
   // 启用远程排序模式（手动控制排序）
   sortConfig: {
     remote: true,
-    multiple: false, // 单列排序
-  },
+    multiple: false // 单列排序
+  }
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({
   gridOptions,
-  gridEvents,
+  gridEvents
 });
 
 // 在 onMounted 中初始化数据
 onMounted(async () => {
   const res = await projectApi.fetchProjectList({
     page: 1,
-    pageSize: 1000,
+    pageSize: 1000
   });
   projectOptions.value = res.items;
 
   handleFormReset();
 });
 
-const wrapperClass = ref('grid-cols-1 md:grid-cols-2 lg:grid-cols-3');
-const content = ref('搜索');
+const wrapperClass = ref("grid-cols-1 md:grid-cols-2 lg:grid-cols-3");
+const content = ref("搜索");
 const isShowActions = ref(true);
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <div class="search-content" :class="{ isLight: isLight }">
-        <AdReportFilterForm
-          ref="filterFormRef"
-          :wrapperClass="wrapperClass"
-          :isShowActions="isShowActions"
-          :content="content"
-          @submit="handleFormSubmit"
-          @reset="handleFormReset"
-        />
-      </div>
-      <div style="height: calc(100% - 202px)">
-        <Grid>
-          <template #toolbar-tools>
-            <Button class="mr-2" type="primary" @click="openSaveTemplateModalModal">
-              {{ btnText }}
-            </Button>
-            <Button class="mr-2" type="primary" @click="openTemplateListModalModal">
-              报表模板
-            </Button>
-            <Button type="primary" @click="openPlatformMetricMapDetailModal" danger>
-              {{ $t('core.metric') }}
-            </Button>
-          </template>
-        </Grid>
-      </div>
-    </Page>
+  <Page content-class="p-5">
+    <div class="search-content" :class="{ isLight: isLight }">
+      <AdReportFilterForm
+        ref="filterFormRef"
+        :wrapperClass="wrapperClass"
+        :isShowActions="isShowActions"
+        :content="content"
+        @submit="handleFormSubmit"
+        @reset="handleFormReset"
+      />
+    </div>
+    <div style="height: calc(100% - 202px)">
+      <Grid>
+        <template #toolbar-tools>
+          <Button class="mr-2" type="primary" @click="openSaveTemplateModalModal">
+            {{ btnText }}
+          </Button>
+          <Button class="mr-2" type="primary" @click="openTemplateListModalModal">
+            报表模板
+          </Button>
+          <Button type="primary" @click="openPlatformMetricMapDetailModal" danger>
+            {{ $t("core.metric") }}
+          </Button>
+        </template>
+      </Grid>
+    </div>
     <SelectMetricModalModal
       @confirmMetric="reloadFromStart"
       :selectedMetrics="currentQueryMetric"
@@ -608,7 +611,8 @@ const isShowActions = ref(true);
     />
     <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData" type="base" />
     <TemplateDrawer @useTemplate="handleUseTemplate" type="base" />
-  </div>
+  </Page>
+
 </template>
 
 <style scoped lang="scss">

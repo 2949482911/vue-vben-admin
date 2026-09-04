@@ -1,15 +1,13 @@
 <script lang="ts" setup name="PlatformCallbackManager">
 import type { VbenFormProps } from "@vben/common-ui";
+import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
 
 import type { VxeGridProps } from "#/adapter/vxe-table";
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import type { OcpxTaskItem } from "#/api/models";
-
-import { Page, useVbenModal } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 
 import { Button, Dropdown, Menu, MenuItem, Switch, Tag } from "ant-design-vue";
-
-import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import { ocpxTaskApi } from "#/api/core/ocpx";
 import {
   BatchOptionsType,
@@ -27,7 +25,6 @@ import CreateObjectRequestComp from "./create.vue";
 import DataStatistics from "./dataStatistics.vue";
 import DataExportModal from "./dataExport.vue";
 import { trimObject } from "#/utils/trim";
-import { useVbenDrawer } from "@vben/common-ui";
 
 const [ClickMonitorModal, clickMonitorApi] = useVbenModal({
   connectedComponent: ClickMonitor,
@@ -230,7 +227,7 @@ const formOptions: VbenFormProps = {
   // 按下回车时是否提交表单
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<OcpxTaskItem> = {
@@ -296,7 +293,7 @@ const gridOptions: VxeGridProps<OcpxTaskItem> = {
 
     ...TABLE_COMMON_COLUMNS as any
   ],
-  height: "auto",
+
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
@@ -322,73 +319,71 @@ function pageReload() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #taskState="{ row }">
-          <Tag color="green">
-            {{
-              STATUS_SELECT.find((x) => x.value === row.taskState)?.label
-            }}
-          </Tag>
-        </template>
+  <Page content-class="p-5">
+    <Grid>
+      <template #taskState="{ row }">
+        <Tag color="green">
+          {{
+            STATUS_SELECT.find((x) => x.value === row.taskState)?.label
+          }}
+        </Tag>
+      </template>
 
-        <template #hadClick="{row}">
-          <Tag color="green" v-if="row.hadClick">{{ $t("core.had") }}</Tag>
-          <Tag v-else color="red">{{ $t("core.empty") }}</Tag>
-        </template>
+      <template #hadClick="{row}">
+        <Tag color="green" v-if="row.hadClick">{{ $t("core.had") }}</Tag>
+        <Tag v-else color="red">{{ $t("core.empty") }}</Tag>
+      </template>
 
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
-        </template>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
 
-        <template #action="{ row }">
-          <Button type="link" @click="openCreateModal(row)">
-            {{ $t("common.edit") }}
+      <template #action="{ row }">
+        <Button type="link" @click="openCreateModal(row)">
+          {{ $t("common.edit") }}
+        </Button>
+        <Button type="link" @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+
+        <Dropdown>
+          <Button type="link">
+            {{ $t("core.more") }}
           </Button>
-          <Button type="link" @click="handlerDelete(row)">
-            {{ $t("common.delete") }}
-          </Button>
+          <template #overlay>
+            <Menu>
+              <MenuItem @click="openClickMonitor(row)">
+                {{ $t("core.clickmonitor") }}
+              </MenuItem>
+              <MenuItem @click="openBehavioracallbackrecord(row)">
+                {{ $t("core.behavioracallbackrecord") }}
+              </MenuItem>
+              <MenuItem @click="openCallbackRecord(row)">
+                {{ $t("core.callbackRecord") }}
+              </MenuItem>
+              <MenuItem @click="openBehaviorRecord(row)">
+                {{ $t("core.behaviorRecord") }}
+              </MenuItem>
+              <MenuItem @click="openClickRecord(row)">
+                {{ $t("core.clickRecord") }}
+              </MenuItem>
+              <MenuItem @click="openDataStatistics(row)">
+                {{ $t("core.data_statistics") }}
+              </MenuItem>
+              <MenuItem @click="openExportModal(row)">
+                {{ $t("core.data_export") }}
+              </MenuItem>
+            </Menu>
+          </template>
+        </Dropdown>
+      </template>
 
-          <Dropdown>
-            <Button type="link">
-              {{ $t("core.more") }}
-            </Button>
-            <template #overlay>
-              <Menu>
-                <MenuItem @click="openClickMonitor(row)">
-                  {{ $t("core.clickmonitor") }}
-                </MenuItem>
-                <MenuItem @click="openBehavioracallbackrecord(row)">
-                  {{ $t("core.behavioracallbackrecord") }}
-                </MenuItem>
-                <MenuItem @click="openCallbackRecord(row)">
-                  {{ $t("core.callbackRecord") }}
-                </MenuItem>
-                <MenuItem @click="openBehaviorRecord(row)">
-                  {{ $t("core.behaviorRecord") }}
-                </MenuItem>
-                <MenuItem @click="openClickRecord(row)">
-                  {{ $t("core.clickRecord") }}
-                </MenuItem>
-                <MenuItem @click="openDataStatistics(row)">
-                  {{ $t("core.data_statistics") }}
-                </MenuItem>
-                <MenuItem @click="openExportModal(row)">
-                  {{ $t("core.data_export") }}
-                </MenuItem>
-              </Menu>
-            </template>
-          </Dropdown>
-        </template>
-
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
-            {{ $t("common.create") }}
-          </Button>
-        </template>
-      </Grid>
-    </Page>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
+          {{ $t("common.create") }}
+        </Button>
+      </template>
+    </Grid>
     <CreateObjectModal @page-reload="pageReload" />
     <ClickMonitorModal />
     <CallbackrecordModel />
@@ -397,5 +392,6 @@ function pageReload() {
     <Drawer />
     <ExportModal />
     <ClickRecordModel />
-  </div>
+  </Page>
+
 </template>

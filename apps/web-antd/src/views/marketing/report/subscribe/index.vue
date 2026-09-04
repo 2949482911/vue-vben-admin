@@ -159,30 +159,28 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
 <template>
-  <div>
-    <Page>
-      <Grid>
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
-        </template>
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="() => openCreateDrawer()">
-            {{ $t("common.create") }}
-          </Button>
-        </template>
-        <template #action="{ row }">
-          <Button type="link" @click="openCreateDrawer(row)">
-            {{ $t("common.edit") }}
-          </Button>
-          <Button type="link" @click="handlerDelete(row)">
-            {{ $t("common.delete") }}
-          </Button>
-          <Button type="link" @click="handleTestDescribe(row)">
-            测试
-          </Button>
-        </template>
-      </Grid>
-    </Page>
+  <Page content-class="p-5">
+    <Grid>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="() => openCreateDrawer()">
+          {{ $t("common.create") }}
+        </Button>
+      </template>
+      <template #action="{ row }">
+        <Button type="link" @click="openCreateDrawer(row)">
+          {{ $t("common.edit") }}
+        </Button>
+        <Button type="link" @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+        <Button type="link" @click="handleTestDescribe(row)">
+          测试
+        </Button>
+      </template>
+    </Grid>
     <CreateObjectDrawer @page-reload="pageReload" />
-  </div>
+  </Page>
 </template>

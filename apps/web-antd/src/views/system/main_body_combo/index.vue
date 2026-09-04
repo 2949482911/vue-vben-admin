@@ -63,7 +63,7 @@ const formOptions: VbenFormProps = {
   showCollapseButton: false,
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps = {
@@ -112,7 +112,6 @@ const gridOptions: VxeGridProps = {
     },
     ...(TABLE_COMMON_COLUMNS as any)
   ],
-  height: "auto",
   pagerConfig: {},
   proxyConfig: {
     ajax: {
@@ -164,41 +163,40 @@ async function handlerState(row: MainBodyComboPageItem) {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #type="{ row }">
-          <Tag v-if="row.type === 'trial'" color="blue">试用套餐</Tag>
-          <Tag v-else-if="row.type === 'standard'" color="green">标准套餐</Tag>
-          <Tag v-else-if="row.type === 'premium'" color="orange">高级套餐</Tag>
-          <Tag v-else-if="row.type === 'enterprise'" color="purple">企业套餐</Tag>
-          <Tag v-else color="default">{{ row.type }}</Tag>
-        </template>
-        <template #price="{ row }">
-          ¥{{ row.price }}
-        </template>
-        <template #isDefault="{ row }">
-          <Tag v-if="row.isDefault" color="success">默认</Tag>
-          <Tag v-else color="default">否</Tag>
-        </template>
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
-        </template>
-        <template #action="{ row }">
-          <Button type="link" @click="openDrawer(row)">编辑</Button>
-          <Button type="link" danger @click="handlerDelete(row)">
-            删除
-          </Button>
-        </template>
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openDrawer()">
-            新建套餐
-          </Button>
-        </template>
-      </Grid>
-    </Page>
+  <Page content-class="p-5">
+    <Grid>
+      <template #type="{ row }">
+        <Tag v-if="row.type === 'trial'" color="blue">试用套餐</Tag>
+        <Tag v-else-if="row.type === 'standard'" color="green">标准套餐</Tag>
+        <Tag v-else-if="row.type === 'premium'" color="orange">高级套餐</Tag>
+        <Tag v-else-if="row.type === 'enterprise'" color="purple">企业套餐</Tag>
+        <Tag v-else color="default">{{ row.type }}</Tag>
+      </template>
+      <template #price="{ row }">
+        ¥{{ row.price }}
+      </template>
+      <template #isDefault="{ row }">
+        <Tag v-if="row.isDefault" color="success">默认</Tag>
+        <Tag v-else color="default">否</Tag>
+      </template>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
+      <template #action="{ row }">
+        <Button type="link" @click="openDrawer(row)">编辑</Button>
+        <Button type="link" danger @click="handlerDelete(row)">
+          删除
+        </Button>
+      </template>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="openDrawer()">
+          新建套餐
+        </Button>
+      </template>
+    </Grid>
     <CreateDrawerModule @page-reload="pageReload" />
-  </div>
+  </Page>
+
 </template>
 
 <style scoped lang="scss"></style>

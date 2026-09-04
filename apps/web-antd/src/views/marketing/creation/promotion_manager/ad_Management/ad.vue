@@ -274,7 +274,7 @@ defineExpose({ ad_pageReload });
 
 <template>
   <div>
-    <Page auto-content-height>
+    <Page>
       <Grid>
         <template #toolbar-tools>
           <Space>

@@ -759,8 +759,7 @@ watch(() => creationInfo, (_) => {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
+    <Page >
 
 
       <Card class="header" title="模板选择">
@@ -867,7 +866,6 @@ watch(() => creationInfo, (_) => {
         />
       </Drawer>
     </Page>
-  </div>
 </template>
 
 <style scoped lang="scss">

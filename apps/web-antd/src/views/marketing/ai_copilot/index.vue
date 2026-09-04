@@ -373,7 +373,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page content-class="p-5">
     <div class="chat-layout">
       <!-- 左侧：会话列表 -->
       <Card class="session-panel" :bordered="false">

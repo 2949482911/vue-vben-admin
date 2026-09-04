@@ -179,7 +179,6 @@ const gridOptions: VxeGridProps = {
       width: "auto"
     }
   ],
-  height: "auto",
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
@@ -246,7 +245,7 @@ defineExpose({ plan_pageReload });
 
 <template>
   <div>
-    <Page auto-content-height>
+    <Page>
       <Grid>
         <template #toolbar-tools>
           <Space>
@@ -263,5 +262,3 @@ defineExpose({ plan_pageReload });
     <BatchOperationDrawerModule @page-reload="plan_pageReload" />
   </div>
 </template>
-
-<style scoped lang="scss"></style>

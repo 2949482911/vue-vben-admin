@@ -222,7 +222,6 @@ const gridOptions: VxeGridProps<MetricItem> = {
 
     ...TABLE_COMMON_COLUMNS as any
   ],
-  height: "auto",
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
@@ -329,8 +328,7 @@ async function batchBindMetricGroup() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
+    <Page content-class="p-5">
       <Grid>
         <template #action="{ row }">
           <Button type="link" @click="openCreateModal(row)">
@@ -392,11 +390,11 @@ async function batchBindMetricGroup() {
 
         </template>
       </Grid>
+      <CreateObjectModal @page-reload="pageReload" />
+      <PlatformMetricMapDetailModal />
+      <BindModal>
+        <BindForm />
+      </BindModal>
     </Page>
-    <CreateObjectModal @page-reload="pageReload" />
-    <PlatformMetricMapDetailModal />
-    <BindModal>
-      <BindForm />
-    </BindModal>
-  </div>
+
 </template>

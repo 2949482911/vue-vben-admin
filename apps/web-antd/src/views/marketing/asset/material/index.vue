@@ -209,7 +209,7 @@ async function deleteFolder(folder: MaterialLibraryFolderType) {
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page content-class="p-5">
     <Row class="materialRow" :gutter="{ xs: 8, sm: 16, md: 16 }">
       <Col class="leftCol" :span="6">
         <Card style="width: 100%">

@@ -1,27 +1,21 @@
 <script lang="ts" setup name="MainBodyManager">
-import type {VbenFormProps} from '@vben/common-ui';
+import type { VbenFormProps } from "@vben/common-ui";
+import { Page, useVbenDrawer } from "@vben/common-ui";
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import type {MainBodyItem} from '#/api/models';
-import type {CreateMenuRequest, UpdateMenuRequest} from '#/api/models/menu';
+import type { VxeGridProps } from "#/adapter/vxe-table";
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
+import type { MainBodyItem } from "#/api/models";
+import type { CreateMenuRequest, UpdateMenuRequest } from "#/api/models/menu";
+import { $t } from "@vben/locales";
 
-import {Page, useVbenDrawer} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { Button, Switch, Tag } from "ant-design-vue";
+import { mainBodyApi } from "#/api";
+import { BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 
-import {Button, Switch, Tag} from 'ant-design-vue';
-
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {mainBodyApi} from '#/api';
-import {
-  BatchOptionsType,
-  STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
-
-import Create from './create.vue';
+import Create from "./create.vue";
 
 const [CreateDrawer, createDrawerApi] = useVbenDrawer({
-  connectedComponent: Create,
+  connectedComponent: Create
 });
 
 function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
@@ -52,7 +46,7 @@ async function handlerState(row: MainBodyItem) {
 async function handlerDelete(row: MainBodyItem) {
   await mainBodyApi.fetchBatchOptions({
     targetIds: [row.id],
-    type: BatchOptionsType.Delete,
+    type: BatchOptionsType.Delete
   });
   pageReload();
 }
@@ -61,79 +55,77 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
-      component: 'Input',
-      fieldName: 'name',
-      label: `${$t('system.mainbody.columns.name')}`,
+      component: "Input",
+      fieldName: "name",
+      label: `${$t("system.mainbody.columns.name")}`
     },
 
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: STATUS_SELECT,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'status',
-      label: `${$t('core.columns.status')}`,
-    },
+      fieldName: "status",
+      label: `${$t("core.columns.status")}`
+    }
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
   // 按下回车时是否提交表单
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<MainBodyItem> = {
   columns: [
     {
-      field: 'name',
-      title: `${$t('system.mainbody.columns.name')}`,
-      width: 'auto',
+      field: "name",
+      title: `${$t("system.mainbody.columns.name")}`,
+      width: "auto"
     },
     {
-      field: 'email',
-      title: `${$t('system.mainbody.columns.email')}`,
-      width: 'auto',
+      field: "email",
+      title: `${$t("system.mainbody.columns.email")}`,
+      width: "auto"
     },
     {
-      field: 'remark',
-      title: `${$t('system.mainbody.columns.remark')}`,
-      width: 'auto',
+      field: "remark",
+      title: `${$t("system.mainbody.columns.remark")}`,
+      width: "auto"
     },
-    ...TABLE_COMMON_COLUMNS,
+    ...TABLE_COMMON_COLUMNS
   ],
   checkboxConfig: {
     highlight: true,
-    labelField: 'id',
-    range: true,
+    labelField: "id"
   },
   proxyConfig: {
     autoLoad: true,
     ajax: {
-      query: async ({page}, args) => {
+      query: async ({ page }, args) => {
         return await mainBodyApi.fetchMainList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...args,
+          ...args
         });
-      },
-    },
+      }
+    }
   },
   pagerConfig: {
-    enabled: true,
+    enabled: true
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    search: true,
-    zoom: true,
-  },
+    zoom: true
+  }
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({formOptions, gridOptions});
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 
 const pageReload = () => {
   gridApi.reload();
@@ -141,34 +133,32 @@ const pageReload = () => {
 </script>
 
 <template>
-  <div>
-    <Page>
-      <Grid>
-        <template #status="{ row }">
-          <Switch :checked="row.status == 1" @click="handlerState(row)"/>
-        </template>
+  <Page content-class="p-5">
+    <Grid>
+      <template #status="{ row }">
+        <Switch :checked="row.status == 1" @click="handlerState(row)" />
+      </template>
 
-        <template #sex="{ row }">
-          <Tag v-if="row.sex == 1">{{ $t('common.boy') }}</Tag>
-          <Tag v-else>{{ $t('common.girl') }}</Tag>
-        </template>
+      <template #sex="{ row }">
+        <Tag v-if="row.sex == 1">{{ $t("common.boy") }}</Tag>
+        <Tag v-else>{{ $t("common.girl") }}</Tag>
+      </template>
 
-        <template #action="{ row }">
-          <Button type="link" @click="openBaseDrawer(row)">
-            {{ $t('common.edit') }}
-          </Button>
-          <Button type="link" @click="handlerDelete(row)">
-            {{ $t('common.delete') }}
-          </Button>
-        </template>
+      <template #action="{ row }">
+        <Button type="link" @click="openBaseDrawer(row)">
+          {{ $t("common.edit") }}
+        </Button>
+        <Button type="link" @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+      </template>
 
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
-            {{ $t('common.create') }}
-          </Button>
-        </template>
-      </Grid>
-    </Page>
-    <CreateDrawer @page-reload="pageReload"/>
-  </div>
+      <template #toolbar-tools>
+        <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
+          {{ $t("common.create") }}
+        </Button>
+      </template>
+    </Grid>
+    <CreateDrawer @page-reload="pageReload" />
+  </Page>
 </template>

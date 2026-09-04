@@ -190,7 +190,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page content-class="p-5">
     <!-- 概览统计 -->
     <MaterialOverviewCard
       :data="overviewData"

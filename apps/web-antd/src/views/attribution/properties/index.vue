@@ -16,7 +16,7 @@ import {
   ATTRIBUTE_CATEGORY_OPTIONS,
   ATTRIBUTE_TYPE_OPTIONS,
   getAttributeCategoryLabel,
-  getAttributeTypeLabel,
+  getAttributeTypeLabel
 } from "#/views/attribution/properties/enums";
 
 const [CreateAttributeDrawer, createAttributeApi] = useVbenDrawer({
@@ -88,7 +88,7 @@ const formOptions: VbenFormProps = {
   showCollapseButton: true,
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<EventAttributeItem> = {
@@ -150,7 +150,6 @@ const gridOptions: VxeGridProps<EventAttributeItem> = {
     },
     ...(TABLE_COMMON_COLUMNS as any)
   ],
-  height: "auto",
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
@@ -175,50 +174,49 @@ function pageReload() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #action="{ row }">
-          <Button type="link" @click="openCreateDrawer(row)">
-            {{ $t("common.edit") }}
-          </Button>
-          <Button type="link" @click="handlerDelete(row)">
-            {{ $t("common.delete") }}
-          </Button>
-        </template>
+  <Page content-class="p-5">
+    <Grid>
+      <template #action="{ row }">
+        <Button type="link" @click="openCreateDrawer(row)">
+          {{ $t("common.edit") }}
+        </Button>
+        <Button type="link" @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+      </template>
 
-        <template #type="{ row }">
-          <Tag>{{ getAttributeTypeLabel(row.type) }}</Tag>
-        </template>
+      <template #type="{ row }">
+        <Tag>{{ getAttributeTypeLabel(row.type) }}</Tag>
+      </template>
 
-        <template #category="{ row }">
-          <Tag color="blue">{{ getAttributeCategoryLabel(row.category) }}</Tag>
-        </template>
+      <template #category="{ row }">
+        <Tag color="blue">{{ getAttributeCategoryLabel(row.category) }}</Tag>
+      </template>
 
-        <template #isRequired="{ row }">
-          <Tag :color="row.isRequired ? 'red' : 'default'">
-            {{ row.isRequired ? $t("common.yes") : $t("common.no") }}
-          </Tag>
-        </template>
+      <template #isRequired="{ row }">
+        <Tag :color="row.isRequired ? 'red' : 'default'">
+          {{ row.isRequired ? $t("common.yes") : $t("common.no") }}
+        </Tag>
+      </template>
 
-        <template #isSystem="{ row }">
-          <Tag :color="row.isSystem ? 'orange' : 'default'">
-            {{ row.isSystem ? $t("common.yes") : $t("common.no") }}
-          </Tag>
-        </template>
+      <template #isSystem="{ row }">
+        <Tag :color="row.isSystem ? 'orange' : 'default'">
+          {{ row.isSystem ? $t("common.yes") : $t("common.no") }}
+        </Tag>
+      </template>
 
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
-        </template>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
 
-        <template #toolbar-tools>
-          <Button type="primary" @click="() => openCreateDrawer()">
-            {{ $t("common.create") }}
-          </Button>
-        </template>
-      </Grid>
-    </Page>
-
+      <template #toolbar-tools>
+        <Button type="primary" @click="() => openCreateDrawer()">
+          {{ $t("common.create") }}
+        </Button>
+      </template>
+    </Grid>
     <CreateAttributeDrawer @page-reload="pageReload" />
-  </div>
+
+  </Page>
+
 </template>

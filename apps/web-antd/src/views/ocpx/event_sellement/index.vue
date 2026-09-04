@@ -168,8 +168,8 @@ function pageReload() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
+
+  <Page content-class="p-5">
       <Grid>
 
         <template #status="{ row }">
@@ -194,5 +194,5 @@ function pageReload() {
       </Grid>
     </Page>
     <CreateObjectModal @page-reload="pageReload"/>
-  </div>
+
 </template>

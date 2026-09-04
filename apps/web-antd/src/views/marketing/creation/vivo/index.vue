@@ -596,7 +596,7 @@ function submitCreateBatch() {
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page>
     <!-- 配置区 -->
     <Card class="header">
       <ConfigurationConfig

@@ -1,8 +1,8 @@
 import type {BaseItem, PageRequestParams} from "#/api/models/core";
 
 export interface RoleSearchParams extends PageRequestParams{
-  name: string;
-  roleType: number;
+  name?: string;
+  roleType?: number;
 }
 
 export interface RoleItem extends BaseItem{

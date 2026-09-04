@@ -457,8 +457,7 @@ function resetCreationInfo() {
 
 
 <template>
-  <div>
-    <Page auto-content-height>
+    <Page >
       <Card class="header">
         <ConfigurationConfig
           :rule-info="creationInfo.ruleInfo"
@@ -539,7 +538,6 @@ function resetCreationInfo() {
         />
       </Drawer>
     </Page>
-  </div>
 </template>
 
 <style scoped lang="scss">

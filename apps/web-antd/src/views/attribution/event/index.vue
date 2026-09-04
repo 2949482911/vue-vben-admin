@@ -1,22 +1,26 @@
 <script lang="ts" setup name="AttributionEvents">
-import { useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
-import { Page } from '@vben/common-ui';
+import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import type { EventConfigItem } from '#/api/models/attribution';
-import { $t } from '@vben/locales';
+import type { VxeGridProps } from "#/adapter/vxe-table";
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
+import type { EventConfigItem } from "#/api/models/attribution";
+import { $t } from "@vben/locales";
 
-import { Button, Switch, Tag } from 'ant-design-vue';
-import { eventConfigApi } from '#/api/core/attribution';
-import { BatchOptionsType, TABLE_COMMON_COLUMNS } from '#/constants/locales';
+import { Button, Switch, Tag } from "ant-design-vue";
+import { eventConfigApi } from "#/api/core/attribution";
+import { BatchOptionsType, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 
-import CreateEvent from './create.vue';
-import { trimObject } from '#/utils/trim';
-import { getEventCategoryLabel, getEventTypeLabel, EVENT_TYPE_OPTIONS, EVENT_CATEGORY_OPTIONS } from './enums';
+import CreateEvent from "./create.vue";
+import { trimObject } from "#/utils/trim";
+import {
+  EVENT_CATEGORY_OPTIONS,
+  EVENT_TYPE_OPTIONS,
+  getEventCategoryLabel,
+  getEventTypeLabel
+} from "./enums";
 
 const [CreateEventDrawer, createEventApi] = useVbenDrawer({
-  connectedComponent: CreateEvent,
+  connectedComponent: CreateEvent
 });
 
 function openCreateDrawer(row?: EventConfigItem) {
@@ -33,7 +37,7 @@ async function handlerState(row: EventConfigItem) {
   await eventConfigApi.fetchBatchOptions({
     targetIds: [row.id],
     type: row.status === 1 ? BatchOptionsType.DISABLE : BatchOptionsType.Enable,
-    values: {},
+    values: {}
   });
   pageReload();
 }
@@ -43,7 +47,7 @@ async function handlerDelete(row: EventConfigItem) {
   await eventConfigApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
-    values: {},
+    values: {}
   });
   pageReload();
 }
@@ -51,114 +55,114 @@ async function handlerDelete(row: EventConfigItem) {
 const formOptions: VbenFormProps = {
   schema: [
     {
-      component: 'Input',
-      fieldName: 'eventName',
-      label: `${$t('attribution.eventConfig.eventName')}`,
+      component: "Input",
+      fieldName: "eventName",
+      label: `${$t("attribution.eventConfig.eventName")}`
     },
     {
-      component: 'Input',
-      fieldName: 'eventDisplayName',
-      label: `${$t('attribution.eventConfig.eventDisplayName')}`,
+      component: "Input",
+      fieldName: "eventDisplayName",
+      label: `${$t("attribution.eventConfig.eventDisplayName")}`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: EVENT_TYPE_OPTIONS,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'eventType',
-      label: `${$t('attribution.eventConfig.eventType')}`,
+      fieldName: "eventType",
+      label: `${$t("attribution.eventConfig.eventType")}`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: EVENT_CATEGORY_OPTIONS,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'eventCategory',
-      label: `${$t('attribution.eventConfig.eventCategory')}`,
-    },
+      fieldName: "eventCategory",
+      label: `${$t("attribution.eventConfig.eventCategory")}`
+    }
   ],
   showCollapseButton: true,
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<EventConfigItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
-    labelField: 'id',
+    labelField: "id"
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    zoom: true,
+    zoom: true
   },
   columns: [
     {
-      field: 'eventName',
-      title: `${$t('attribution.eventConfig.eventName')}`,
-      width: 'auto',
+      field: "eventName",
+      title: `${$t("attribution.eventConfig.eventName")}`,
+      width: "auto"
     },
     {
-      field: 'eventDisplayName',
-      title: `${$t('attribution.eventConfig.eventDisplayName')}`,
-      width: 'auto',
+      field: "eventDisplayName",
+      title: `${$t("attribution.eventConfig.eventDisplayName")}`,
+      width: "auto"
     },
     {
-      field: 'eventType',
-      title: `${$t('attribution.eventConfig.eventType')}`,
-      width: 'auto',
-      slots: { default: 'eventType' },
+      field: "eventType",
+      title: `${$t("attribution.eventConfig.eventType")}`,
+      width: "auto",
+      slots: { default: "eventType" }
     },
     {
-      field: 'eventCategory',
-      title: `${$t('attribution.eventConfig.eventCategory')}`,
-           width: 'auto',
-      slots: { default: 'eventCategory' },
+      field: "eventCategory",
+      title: `${$t("attribution.eventConfig.eventCategory")}`,
+      width: "auto",
+      slots: { default: "eventCategory" }
     },
     {
-      field: 'eventValueType',
-      title: `${$t('attribution.eventConfig.eventValueType')}`,
-      width: 'auto',
+      field: "eventValueType",
+      title: `${$t("attribution.eventConfig.eventValueType")}`,
+      width: "auto"
     },
     {
-      field: 'isCallbackEvent',
-      title: `${$t('attribution.eventConfig.isCallbackEvent')}`,
-      width: 'auto',
-      slots: { default: 'isCallbackEvent' },
+      field: "isCallbackEvent",
+      title: `${$t("attribution.eventConfig.isCallbackEvent")}`,
+      width: "auto",
+      slots: { default: "isCallbackEvent" }
     },
     {
-      field: 'isAttributionEvent',
-      title: `${$t('attribution.eventConfig.isAttributionEvent')}`,
-      width: 'auto',
-      slots: { default: 'isAttributionEvent' },
+      field: "isAttributionEvent",
+      title: `${$t("attribution.eventConfig.isAttributionEvent")}`,
+      width: "auto",
+      slots: { default: "isAttributionEvent" }
     },
     {
-      field: 'isSystem',
-      title: `${$t('attribution.eventConfig.isSystem')}`,
-      width: 'auto',
-      slots: { default: 'isSystem' },
+      field: "isSystem",
+      title: `${$t("attribution.eventConfig.isSystem")}`,
+      width: "auto",
+      slots: { default: "isSystem" }
     },
     {
-      field: 'sortOrder',
-      title: `${$t('attribution.eventConfig.sortOrder')}`,
-      width: 'auto',
+      field: "sortOrder",
+      title: `${$t("attribution.eventConfig.sortOrder")}`,
+      width: "auto"
     },
     {
-      field: 'attributeIds',
-      title: `${$t('attribution.eventConfig.attributeIds')}`,
-      width: 'auto',
-      formatter: ({ cellValue }) => (cellValue as any[])?.length ?? 0,
+      field: "attributeIds",
+      title: `${$t("attribution.eventConfig.attributeIds")}`,
+      width: "auto",
+      formatter: ({ cellValue }) => (cellValue as any[])?.length ?? 0
     },
-    ...(TABLE_COMMON_COLUMNS as any),
+    ...(TABLE_COMMON_COLUMNS as any)
   ],
-  height: 'auto',
+  height: "auto",
   keepSource: true,
   pagerConfig: {},
   proxyConfig: {
@@ -168,11 +172,11 @@ const gridOptions: VxeGridProps<EventConfigItem> = {
         return await eventConfigApi.fetchGetEventConfigList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
-      },
-    },
-  },
+      }
+    }
+  }
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
@@ -183,56 +187,54 @@ function pageReload() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #action="{ row }">
-          <Button type="link" @click="openCreateDrawer(row)">
-            {{ $t('common.edit') }}
-          </Button>
-          <Button type="link" @click="handlerDelete(row)">
-            {{ $t('common.delete') }}
-          </Button>
-        </template>
+  <Page content-class="p-5">
+    <Grid>
+      <template #action="{ row }">
+        <Button type="link" @click="openCreateDrawer(row)">
+          {{ $t("common.edit") }}
+        </Button>
+        <Button type="link" @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+      </template>
 
-        <template #eventType="{ row }">
-          <Tag>{{ getEventTypeLabel(row.eventType) }}</Tag>
-        </template>
+      <template #eventType="{ row }">
+        <Tag>{{ getEventTypeLabel(row.eventType) }}</Tag>
+      </template>
 
-        <template #eventCategory="{ row }">
-          <Tag color="blue">{{ getEventCategoryLabel(row.eventCategory) }}</Tag>
-        </template>
+      <template #eventCategory="{ row }">
+        <Tag color="blue">{{ getEventCategoryLabel(row.eventCategory) }}</Tag>
+      </template>
 
-        <template #isCallbackEvent="{ row }">
-          <Tag :color="row.isCallbackEvent ? 'green' : 'default'">
-            {{ row.isCallbackEvent ? $t('common.yes') : $t('common.no') }}
-          </Tag>
-        </template>
+      <template #isCallbackEvent="{ row }">
+        <Tag :color="row.isCallbackEvent ? 'green' : 'default'">
+          {{ row.isCallbackEvent ? $t("common.yes") : $t("common.no") }}
+        </Tag>
+      </template>
 
-        <template #isAttributionEvent="{ row }">
-          <Tag :color="row.isAttributionEvent ? 'purple' : 'default'">
-            {{ row.isAttributionEvent ? $t('common.yes') : $t('common.no') }}
-          </Tag>
-        </template>
+      <template #isAttributionEvent="{ row }">
+        <Tag :color="row.isAttributionEvent ? 'purple' : 'default'">
+          {{ row.isAttributionEvent ? $t("common.yes") : $t("common.no") }}
+        </Tag>
+      </template>
 
-        <template #isSystem="{ row }">
-          <Tag :color="row.isSystem ? 'orange' : 'default'">
-            {{ row.isSystem ? $t('common.yes') : $t('common.no') }}
-          </Tag>
-        </template>
+      <template #isSystem="{ row }">
+        <Tag :color="row.isSystem ? 'orange' : 'default'">
+          {{ row.isSystem ? $t("common.yes") : $t("common.no") }}
+        </Tag>
+      </template>
 
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
-        </template>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
 
-        <template #toolbar-tools>
-          <Button type="primary" @click="() => openCreateDrawer()">
-            {{ $t('common.create') }}
-          </Button>
-        </template>
-      </Grid>
-    </Page>
-
+      <template #toolbar-tools>
+        <Button type="primary" @click="() => openCreateDrawer()">
+          {{ $t("common.create") }}
+        </Button>
+      </template>
+    </Grid>
     <CreateEventDrawer @page-reload="pageReload" />
-  </div>
+  </Page>
+
 </template>

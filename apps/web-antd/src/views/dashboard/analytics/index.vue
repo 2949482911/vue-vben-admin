@@ -26,6 +26,12 @@ async function getCostReport() {
 
 const overviewItems = ref<AnalysisOverviewItem[]>([]);
 
+// 后端汇总字段可能是字符串数字（如 "0"），数字滚动组件需要 number，统一转数值
+function toNumber(value: unknown): number {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? num : 0;
+}
+
 async function initOverviewItems() {
   if (respData.value.summary) {
     const summary = respData.value.summary[0] || {};
@@ -34,29 +40,29 @@ async function initOverviewItems() {
         icon: SvgCardIcon,
         title: `${respData.value.cname["AdRegister"]}`,
         totalTitle: `${respData.value.cname["AdRegister"]}`,
-        totalValue: summary.AdRegister || 0,
-        value: summary.AdRegister
+        totalValue: toNumber(summary.AdRegister),
+        value: toNumber(summary.AdRegister)
       },
       {
         icon: SvgCakeIcon,
         title: `${respData.value.cname["AdCost"]}`,
         totalTitle: `${respData.value.cname["AdCost"]}`,
-        totalValue: summary.AdCost || 0,
-        value: summary.AdCost
+        totalValue: toNumber(summary.AdCost),
+        value: toNumber(summary.AdCost)
       },
       {
         icon: SvgDownloadIcon,
         title: `${respData.value.cname["AdActivate"]}`,
         totalTitle: `${respData.value.cname["AdActivate"]}`,
-        totalValue: summary.AdActivate || 0,
-        value: summary.AdActivate
+        totalValue: toNumber(summary.AdActivate),
+        value: toNumber(summary.AdActivate)
       },
       {
         icon: SvgBellIcon,
         title: `${respData.value.cname["AdPayOneTimeAmount"]}`,
         totalTitle: "总使用量",
-        totalValue: summary.AdPayOneTimeAmount || 0,
-        value: summary.AdPayOneTimeAmount
+        totalValue: toNumber(summary.AdPayOneTimeAmount),
+        value: toNumber(summary.AdPayOneTimeAmount)
       }
     ];
   }

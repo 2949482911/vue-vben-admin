@@ -55,7 +55,7 @@ const TASK_STATUS_MAP: Record<number, { color: string; text: string }> = {
 
 // 任务详情抽屉
 const [TaskDetailDrawerModule, taskDetailDrawerApi] = useVbenDrawer({
-  connectedComponent: TaskDetailDrawer,
+  connectedComponent: TaskDetailDrawer
 });
 
 function openDetail(row: TaskBatchCenterItem) {
@@ -98,7 +98,7 @@ const formOptions: VbenFormProps = {
   showCollapseButton: false,
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<TaskBatchCenterItem> = {
@@ -172,7 +172,7 @@ const gridOptions: VxeGridProps<TaskBatchCenterItem> = {
       title: $t("marketing.taskCenter.columns.endTime"),
       width: "auto"
     },
-    ...(TABLE_COMMON_COLUMNS as any),
+    ...(TABLE_COMMON_COLUMNS as any)
   ],
   proxyConfig: {
     autoLoad: true,
@@ -202,42 +202,41 @@ const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #optionType="{ row }">
-          {{ OPTION_TYPE_MAP[row.optionType ?? ""] || row.optionType || "-" }}
-        </template>
-        <template #taskStatus="{ row }">
-          <Tag :color="TASK_STATUS_MAP[row.taskStatus as number]?.color">
-            {{ TASK_STATUS_MAP[row.taskStatus as number]?.text || row.taskStatusName || "-" }}
-          </Tag>
-        </template>
-        <template #progress="{ row }">
-          <div class="flex items-center gap-2">
-            <Progress
-              :percent="row.progressPercent ?? 0"
-              :size="20"
-              :stroke-width="14"
-              :status="row.taskStatus === 4 ? 'exception' : row.taskStatus === 3 ? 'success' : 'active'"
-              style="width: 120px; margin-bottom: 0;"
-            />
-            <span class="text-xs text-gray-500">{{ row.progressPercent }}</span>
-          </div>
-        </template>
-        <template #action="{ row }">
-          <Space>
-            <Button size="small" type="link" @click="openDetail(row)">
-              {{ $t("marketing.taskCenter.viewDetail") }}
-            </Button>
-          </Space>
-        </template>
-      </Grid>
-    </Page>
-
+  <Page content-class="p-5">
+    <Grid>
+      <template #optionType="{ row }">
+        {{ OPTION_TYPE_MAP[row.optionType ?? ""] || row.optionType || "-" }}
+      </template>
+      <template #taskStatus="{ row }">
+        <Tag :color="TASK_STATUS_MAP[row.taskStatus as number]?.color">
+          {{ TASK_STATUS_MAP[row.taskStatus as number]?.text || row.taskStatusName || "-" }}
+        </Tag>
+      </template>
+      <template #progress="{ row }">
+        <div class="flex items-center gap-2">
+          <Progress
+            :percent="row.progressPercent ?? 0"
+            :size="20"
+            :stroke-width="14"
+            :status="row.taskStatus === 4 ? 'exception' : row.taskStatus === 3 ? 'success' : 'active'"
+            style="width: 120px; margin-bottom: 0;"
+          />
+          <span class="text-xs text-gray-500">{{ row.progressPercent }}</span>
+        </div>
+      </template>
+      <template #action="{ row }">
+        <Space>
+          <Button size="small" type="link" @click="openDetail(row)">
+            {{ $t("marketing.taskCenter.viewDetail") }}
+          </Button>
+        </Space>
+      </template>
+    </Grid>
     <!-- 任务详情抽屉 -->
     <TaskDetailDrawerModule />
-  </div>
+  </Page>
+
+
 </template>
 
 <style scoped lang="scss"></style>

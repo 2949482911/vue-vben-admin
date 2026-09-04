@@ -15,7 +15,7 @@ import { trimObject } from "#/utils/trim";
 import { ATTRIBUTION_MODEL_OPTIONS, getAttributionModelLabel } from "./enums";
 
 const [CreateDrawer, createDrawerApi] = useVbenDrawer({
-  connectedComponent: CreateAttributionConfig,
+  connectedComponent: CreateAttributionConfig
 });
 
 function openCreateDrawer(row?: AttributionConfigItem) {
@@ -32,7 +32,7 @@ async function handlerState(row: AttributionConfigItem) {
   await attributionConfigApi.fetchBatchOptions({
     targetIds: [row.id],
     type: row.status === 1 ? BatchOptionsType.DISABLE : BatchOptionsType.Enable,
-    values: {},
+    values: {}
   });
   pageReload();
 }
@@ -42,7 +42,7 @@ async function handlerDelete(row: AttributionConfigItem) {
   await attributionConfigApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
-    values: {},
+    values: {}
   });
   pageReload();
 }
@@ -52,87 +52,87 @@ const formOptions: VbenFormProps = {
     {
       component: "Input",
       fieldName: "name",
-      label: `${$t("attribution.attributionConfig.name")}`,
+      label: `${$t("attribution.attributionConfig.name")}`
     },
     {
       component: "Select",
       componentProps: {
         allowClear: true,
         options: ATTRIBUTION_MODEL_OPTIONS,
-        placeholder: `${$t("common.choice")}`,
+        placeholder: `${$t("common.choice")}`
       },
       fieldName: "attributionModel",
-      label: `${$t("attribution.attributionConfig.attributionModel")}`,
-    },
+      label: `${$t("attribution.attributionConfig.attributionModel")}`
+    }
   ],
   showCollapseButton: true,
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<AttributionConfigItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
-    labelField: "id",
+    labelField: "id"
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    zoom: true,
+    zoom: true
   },
   columns: [
     {
       field: "name",
       title: `${$t("attribution.attributionConfig.name")}`,
-      width: "auto",
+      width: "auto"
     },
     {
       field: "attributionModel",
       title: `${$t("attribution.attributionConfig.attributionModel")}`,
       width: "auto",
-      slots: { default: "attributionModel" },
+      slots: { default: "attributionModel" }
     },
     {
       field: "clickLookbackWindow",
       title: `${$t("attribution.attributionConfig.clickLookbackWindow")}`,
-      width: "auto",
+      width: "auto"
     },
     {
       field: "exposureLookbackWindow",
       title: `${$t("attribution.attributionConfig.exposureLookbackWindow")}`,
-      width: "auto",
+      width: "auto"
     },
     {
       field: "ipLookbackWindow",
       title: `${$t("attribution.attributionConfig.ipLookbackWindow")}`,
-      width: "auto",
+      width: "auto"
     },
     {
       field: "callbackWindow",
       title: `${$t("attribution.attributionConfig.callbackWindow")}`,
-      width: "auto",
+      width: "auto"
     },
     {
       field: "isDefault",
       title: `${$t("attribution.attributionConfig.isDefault")}`,
       width: "auto",
-      slots: { default: "isDefault" },
+      slots: { default: "isDefault" }
     },
     {
       field: "idMatchPriority",
       title: `${$t("attribution.attributionConfig.idMatchPriority")}`,
-      width: "auto",
+      width: "auto"
 
     },
     {
       field: "description",
       title: `${$t("attribution.attributionConfig.description")}`,
-      width: "auto",
+      width: "auto"
     },
-    ...(TABLE_COMMON_COLUMNS as any),
+    ...(TABLE_COMMON_COLUMNS as any)
   ],
   height: "auto",
   keepSource: true,
@@ -144,11 +144,11 @@ const gridOptions: VxeGridProps<AttributionConfigItem> = {
         return await attributionConfigApi.fetchConfigList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
-      },
-    },
-  },
+      }
+    }
+  }
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
@@ -159,40 +159,38 @@ function pageReload() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #action="{ row }">
-          <Button type="link" @click="openCreateDrawer(row)">
-            {{ $t("common.edit") }}
-          </Button>
-          <Button type="link" @click="handlerDelete(row)">
-            {{ $t("common.delete") }}
-          </Button>
-        </template>
+  <Page content-class="p-5">
+    <Grid>
+      <template #action="{ row }">
+        <Button type="link" @click="openCreateDrawer(row)">
+          {{ $t("common.edit") }}
+        </Button>
+        <Button type="link" @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+      </template>
 
-        <template #isDefault="{ row }">
-          <Tag :color="row.isDefault ? 'blue' : 'default'">
-            {{ row.isDefault ? $t("common.yes") : $t("common.no") }}
-          </Tag>
-        </template>
+      <template #isDefault="{ row }">
+        <Tag :color="row.isDefault ? 'blue' : 'default'">
+          {{ row.isDefault ? $t("common.yes") : $t("common.no") }}
+        </Tag>
+      </template>
 
-        <template #attributionModel="{ row }">
-          <Tag>{{ getAttributionModelLabel(row.attributionModel) }}</Tag>
-        </template>
+      <template #attributionModel="{ row }">
+        <Tag>{{ getAttributionModelLabel(row.attributionModel) }}</Tag>
+      </template>
 
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
-        </template>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
 
-        <template #toolbar-tools>
-          <Button type="primary" @click="() => openCreateDrawer()">
-            {{ $t("common.create") }}
-          </Button>
-        </template>
-      </Grid>
-    </Page>
-
+      <template #toolbar-tools>
+        <Button type="primary" @click="() => openCreateDrawer()">
+          {{ $t("common.create") }}
+        </Button>
+      </template>
+    </Grid>
     <CreateDrawer @page-reload="pageReload" />
-  </div>
+  </Page>
+
 </template>

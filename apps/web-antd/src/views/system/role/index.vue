@@ -126,10 +126,11 @@ const gridOptions: VxeGridProps<RoleItem> = {
   },
   proxyConfig: {
     ajax: {
-      query: async (params) => {
+      query: async ({page}, args) => {
         return await roleApi.fetchRoleList({
-          page: params.page.currentPage,
-          pageSize: params.page.pageSize,
+          page: page.currentPage,
+          pageSize: page.pageSize,
+          ...args
         });
       },
     },
@@ -145,7 +146,7 @@ function pageReload() {
 </script>
 
 <template>
-  <Page>
+  <Page content-class="p-5">
     <Grid>
       <template #status="{ row }">
         <Switch :checked="row.status == 1" @change="handlerState(row)"/>

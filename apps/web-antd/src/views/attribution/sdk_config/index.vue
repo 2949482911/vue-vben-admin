@@ -14,7 +14,7 @@ import CreateSdkConfig from "./create.vue";
 import { trimObject } from "#/utils/trim";
 
 const [CreateDrawer, createDrawerApi] = useVbenDrawer({
-  connectedComponent: CreateSdkConfig,
+  connectedComponent: CreateSdkConfig
 });
 
 function openCreateDrawer(row?: SdkAppConfigItem) {
@@ -31,7 +31,7 @@ async function handlerState(row: SdkAppConfigItem) {
   await sdkConfigApi.fetchBatchOptions({
     targetIds: [row.id],
     type: row.status === 1 ? BatchOptionsType.DISABLE : BatchOptionsType.Enable,
-    values: {},
+    values: {}
   });
   pageReload();
 }
@@ -41,7 +41,7 @@ async function handlerDelete(row: SdkAppConfigItem) {
   await sdkConfigApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
-    values: {},
+    values: {}
   });
   pageReload();
 }
@@ -51,67 +51,67 @@ const formOptions: VbenFormProps = {
     {
       component: "Input",
       fieldName: "projectId",
-      label: `${$t("attribution.sdkConfig.projectId")}`,
-    },
+      label: `${$t("attribution.sdkConfig.projectId")}`
+    }
   ],
   showCollapseButton: true,
   submitOnEnter: true,
   compact: true,
-  collapsed: true,
+  collapsed: true
 };
 
 const gridOptions: VxeGridProps<SdkAppConfigItem> = {
   border: true,
   checkboxConfig: {
     highlight: true,
-    labelField: "id",
+    labelField: "id"
   },
   toolbarConfig: {
     custom: true,
     export: false,
     refresh: true,
-    zoom: true,
+    zoom: true
   },
   columns: [
     {
       field: "projectName",
       title: `${$t("attribution.sdkConfig.projectName")}`,
-      width: "auto",
+      width: "auto"
     },
     {
       field: "projectType",
       title: `${$t("attribution.sdkConfig.projectType")}`,
-      width: 120,
+      width: 120
     },
     {
       field: "packageName",
       title: `${$t("attribution.sdkConfig.packageName")}`,
-      width: "auto",
+      width: "auto"
     },
     {
       field: "sdkKey",
       title: `${$t("attribution.sdkConfig.sdkKey")}`,
       width: "auto",
-      minWidth: 200,
+      minWidth: 200
     },
     {
       field: "sdkEnabled",
       title: `${$t("attribution.sdkConfig.sdkEnabled")}`,
       width: 100,
-      slots: { default: "sdkEnabled" },
+      slots: { default: "sdkEnabled" }
     },
     {
       field: "attributionConfigName",
       title: `${$t("attribution.sdkConfig.attributionConfigName")}`,
-      width: "auto",
+      width: "auto"
     },
     {
       field: "enabledEventIds",
       title: `${$t("attribution.sdkConfig.enabledEventIds")}`,
       width: 120,
-      formatter: ({ cellValue }) => (cellValue as any[])?.length ?? 0,
+      formatter: ({ cellValue }) => (cellValue as any[])?.length ?? 0
     },
-    ...(TABLE_COMMON_COLUMNS as any),
+    ...(TABLE_COMMON_COLUMNS as any)
   ],
   height: "auto",
   keepSource: true,
@@ -123,11 +123,11 @@ const gridOptions: VxeGridProps<SdkAppConfigItem> = {
         return await sdkConfigApi.fetchSdkConfigList({
           page: page.currentPage,
           pageSize: page.pageSize,
-          ...params,
+          ...params
         });
-      },
-    },
-  },
+      }
+    }
+  }
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
@@ -138,36 +138,35 @@ function pageReload() {
 </script>
 
 <template>
-  <div>
-    <Page auto-content-height>
-      <Grid>
-        <template #action="{ row }">
-          <Button type="link" @click="openCreateDrawer(row)">
-            {{ $t("common.edit") }}
-          </Button>
-          <Button type="link" @click="handlerDelete(row)">
-            {{ $t("common.delete") }}
-          </Button>
-        </template>
+  <Page content-class="p-5">
+    <Grid>
+      <template #action="{ row }">
+        <Button type="link" @click="openCreateDrawer(row)">
+          {{ $t("common.edit") }}
+        </Button>
+        <Button type="link" @click="handlerDelete(row)">
+          {{ $t("common.delete") }}
+        </Button>
+      </template>
 
-        <template #sdkEnabled="{ row }">
-          <Tag :color="row.sdkEnabled ? 'green' : 'default'">
-            {{ row.sdkEnabled ? $t("common.yes") : $t("common.no") }}
-          </Tag>
-        </template>
+      <template #sdkEnabled="{ row }">
+        <Tag :color="row.sdkEnabled ? 'green' : 'default'">
+          {{ row.sdkEnabled ? $t("common.yes") : $t("common.no") }}
+        </Tag>
+      </template>
 
-        <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)" />
-        </template>
+      <template #status="{ row }">
+        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+      </template>
 
-        <template #toolbar-tools>
-          <Button type="primary" @click="() => openCreateDrawer()">
-            {{ $t("common.create") }}
-          </Button>
-        </template>
-      </Grid>
-    </Page>
-
+      <template #toolbar-tools>
+        <Button type="primary" @click="() => openCreateDrawer()">
+          {{ $t("common.create") }}
+        </Button>
+      </template>
+    </Grid>
     <CreateDrawer @page-reload="pageReload" />
-  </div>
+
+  </Page>
+
 </template>
