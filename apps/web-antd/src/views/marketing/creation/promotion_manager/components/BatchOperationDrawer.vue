@@ -15,6 +15,7 @@ import { computed, ref } from 'vue';
 
 import DeleteCampaignOperation from './operations/DeleteCampaignOperation.vue';
 import DeletePromotionOperation from './operations/DeletePromotionOperation.vue';
+import ProjectBatchUpdateOperation from './operations/ProjectBatchUpdateOperation.vue';
 
 // ==================== 操作类型元信息 ====================
 /** 操作类型 → i18n key（标题） */
@@ -87,6 +88,18 @@ function handleTaskCompleted() {
 
       <DeletePromotionOperation
         v-else-if="operationType === 'delete_promotion'"
+        :rows="selectedRows"
+        @task-completed="handleTaskCompleted"
+      />
+
+      <!-- 项目级更新（启停/预算/ROI） -->
+      <ProjectBatchUpdateOperation
+        v-else-if="
+          ['update_project_status', 'update_project_budget', 'update_project_roi'].includes(
+            operationType,
+          )
+        "
+        :operation-type="operationType"
         :rows="selectedRows"
         @task-completed="handleTaskCompleted"
       />

@@ -12,6 +12,14 @@ function openBatchCreate() {
     path: "/marketing/bytedance_std/promotion/creation",
   });
 }
+
+// 智擎与巨量引擎同接口：项目层批量支持 启停/预算/ROI/删除
+const STD_PROJECT_OPERATION_KEYS = [
+  "update_project_status",
+  "update_project_budget",
+  "update_project_roi",
+  "delete_campaign",
+];
 </script>
 
 <template>
@@ -29,6 +37,7 @@ function openBatchCreate() {
             platform="bytedance_std"
             level="campaign"
             id-field="campaign_id"
+            :operation-keys="STD_PROJECT_OPERATION_KEYS"
           />
         </TabPane>
       </Tabs>

@@ -37,11 +37,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   onConfirm: async () => {
     const isValidate = await formApi.validate();
-    if (!isValidate.valid) return;
     const currentValues = await formApi.getValues();
-
+    if (!isValidate.valid) return;
     const campaign = { ...currentValues };
-
     drawerApi.setData(campaign);
     await drawerApi.close();
   },

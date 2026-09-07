@@ -24,6 +24,9 @@ import OppoPromotion from "#/views/marketing/creation/oppo/components/OppoPromot
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+import AudiencePackageSelector
+  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
+import { Platform } from "#/constants/enums";
 
 
 const emit = defineEmits([
@@ -223,11 +226,8 @@ const promotionShowLabel: Record<string, string> = {
         :form-fields="adgroupFormFields"
         :adgroup-show-label="adgroupShowLabel"
         :adgroup="creationInfo?.configData.adgroup"
-        :audience="creationInfo?.configData.audience"
-        :account-info="creationInfo?.accountInfo"
         :field-label-map="fieldLabelMap"
         @update:adgroup="updateAdgroup"
-        @update:audience-package="updateAudiencePackage"
       />
     </Col>
 
@@ -257,6 +257,12 @@ const promotionShowLabel: Record<string, string> = {
         :title-package="creationInfo.configData.titlePackage"
         :account-info="creationInfo.accountInfo"
         @update:title-package="updateTitlePackage"
+      />
+      <AudiencePackageSelector
+        :audience="creationInfo.configData.audience"
+        :account-info="creationInfo.accountInfo"
+        :platform="Platform.OPPO"
+        @update:audience="updateAudiencePackage"
       />
     </Col>
 

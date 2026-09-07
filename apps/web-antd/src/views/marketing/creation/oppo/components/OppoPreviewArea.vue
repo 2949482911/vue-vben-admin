@@ -41,8 +41,8 @@ const tableColumns: PreviewColumn[] = [
     title: '广告组信息',
     children: [
       { field: 'adgroupName', title: '广告组名称', minWidth: 180 },
-      { field: 'groupPrice', title: '基础出价(分)', width: 120 },
-      { field: 'groupOcpxPrice', title: '转化出价(分)', width: 120 },
+      { field: 'groupPrice', title: '基础出价', width: 120 },
+      { field: 'groupOcpxPrice', title: '转化出价', width: 120 },
       { field: 'groupStartDate', title: '开始时间', width: 120 },
       { field: 'groupEndDate', title: '结束时间', width: 120 },
     ],

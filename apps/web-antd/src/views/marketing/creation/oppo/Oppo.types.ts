@@ -104,7 +104,7 @@ export interface OppoAdgroupData {
   // 出价类型
   ocpcOptmType: number;
   // 目标转化出价
-  ocpcPrice: string;
+  ocpcPrice: number;
   // 目标转化类型
   ocpcType: number;
   // 落地页id
@@ -313,7 +313,7 @@ export interface OppoAdgroup extends Adgroup {
   // 出价类型
   ocpcOptmType: number;
   // 目标转化出价
-  ocpcPrice: string;
+  ocpcPrice: number;
   // 目标转化类型
   ocpcType: number;
   // 落地页id

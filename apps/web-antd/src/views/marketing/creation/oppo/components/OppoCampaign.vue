@@ -11,6 +11,7 @@ const [CampaignDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: OppoCampaignDrawer,
   onOpenChange(isOpen) {
     if (!isOpen) {
+      debugger
       const campaignData = drawerApi.getData();
       campaignInfo.value = campaignData as OppoCampaignData;
       emit('update:campaign', campaignInfo.value);

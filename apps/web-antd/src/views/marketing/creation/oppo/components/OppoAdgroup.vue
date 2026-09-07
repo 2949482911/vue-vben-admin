@@ -4,15 +4,8 @@ import type { OppoAdgroupData } from '#/views/marketing/creation/oppo/Oppo.types
 import { useVbenDrawer } from '@vben/common-ui';
 import OppoAdgroupDrawer from './OppoAdgroupDrawer.vue';
 import { Alert, Button, Card, Descriptions, DescriptionsItem } from 'ant-design-vue';
-import AudiencePackageSelector
-  from '#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue';
-import type {
-  AccountInfo,
-  AudienceConfigData,
-} from '#/views/marketing/creation/creation';
-import { Platform } from '#/constants/enums';
 
-const emit = defineEmits(['update:adgroup', 'update:audiencePackage']);
+const emit = defineEmits(['update:adgroup']);
 
 const [AdgroupDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: OppoAdgroupDrawer,
@@ -25,12 +18,10 @@ const [AdgroupDrawerModule, drawerApi] = useVbenDrawer({
   },
 });
 
-const { formFields, adgroupShowLabel, adgroup, audience, accountInfo, fieldLabelMap } = defineProps({
+const { formFields, adgroupShowLabel, adgroup, fieldLabelMap } = defineProps({
   formFields: { type: Array, default: () => [] },
   adgroupShowLabel: { type: Object, default: () => ({}) },
   adgroup: { type: Object as () => OppoAdgroupData | null, default: () => ({}) },
-  audience: { type: Object as () => AudienceConfigData | null, default: null },
-  accountInfo: { type: Array<AccountInfo>, default: () => [] },
   fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
 
@@ -54,7 +45,7 @@ const adgroupInfo = ref<OppoAdgroupData>({
   instantAppId: '',
   instantAppUrl: '',
   ocpcOptmType: 0,
-  ocpcPrice: '',
+  ocpcPrice: 0,
   ocpcType: 0,
   pageId: '',
   pageType: 1,
@@ -104,11 +95,6 @@ function openAdgroupDrawer() {
   drawerApi.setData(adgroupInfo.value);
   drawerApi.open();
 }
-
-// ---------- 选择定向包 ----------
-function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
-  emit('update:audiencePackage', audienceConfigData);
-}
 </script>
 
 <template>
@@ -144,12 +130,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
         </div>
       </Card>
 
-      <AudiencePackageSelector
-        :audience="audience"
-        :account-info="accountInfo"
-        :platform="Platform.OPPO"
-        @update:audience="updateAudiencePackage"
-      />
+
     </div>
 
     <AdgroupDrawerModule :form-fields="formFields" />

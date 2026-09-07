@@ -114,16 +114,16 @@ export const FLOWSCENE_SELECT = [
     value: 12
   },
   {
+    label: "展示优选",
+    value: 13
+  },
+  {
     label: "通知栏",
     value: 14
   },
   {
     label: "网络消息",
     value: 15
-  },
-  {
-    label: "展示优选",
-    value: 13
   },
   {
     label: "信息流",
@@ -520,6 +520,10 @@ export const GLOBAL_SPECID_SELECT = [
     value: 1
   },
   {
+    label: "开屏横图",
+    value: 5
+  },
+  {
     label: "横版小图",
     value: 20
   },
@@ -538,6 +542,14 @@ export const GLOBAL_SPECID_SELECT = [
   {
     label: "竖版视频",
     value: 63
+  },
+  {
+    label: "图标大图",
+    value: 71
+  },
+  {
+    label: "开屏竖图",
+    value: 34
   }
 ];
 /**批投项目-通知形式枚举 */
@@ -1076,10 +1088,9 @@ export function getMediaLabel(value: any) {
 }
 
 // 内联枚举（未导出为常量，但表单中有使用）
-const OCPC_OPTM_TYPE_OPTIONS = [
-  { label: "无", value: 0 },
-  { label: "转化", value: 1 },
-  { label: "点击", value: 2 }
+export const OCPC_OPTM_TYPE_OPTIONS = [
+  { label: "单出价", value: 0 },
+  { label: "双出价", value: 1 }
 ];
 
 export function getOcpcOptmTypeLabel(value: any) {

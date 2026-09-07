@@ -1,11 +1,13 @@
 <script setup lang="ts" name="AdNameGen">
-import { watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { Input, Tag } from 'ant-design-vue';
 
-import { useProjectPlaceholder } from '#/utils/customName';
-
 interface Props {
+  /** 标准 v-model，兼容 useVbenForm */
+  modelValue?: string;
+  /** 兼容旧版 value prop */
+  value?: string;
   /** 可选的通配符标签列表 */
   placeholderTags?: string[];
   /** 名字最大长度 */
@@ -29,39 +31,68 @@ const props = withDefaults(defineProps<Props>(), {
   ],
 });
 
-const modelValue = defineModel<string>({ default: '' });
+const emit = defineEmits<{
+  'update:modelValue': [value: string];
+  'update:value': [value: string];
+}>();
 
-// 使用已有的通配符管理逻辑
-const { customizeName, handleTagClick } = useProjectPlaceholder(
-  modelValue.value,
-  props.maxLength,
-);
+/** 优先 modelValue（标准 v-model），回退 value */
+const effectiveValue = computed<string>(() => props.modelValue ?? props.value ?? '');
 
-// 双向同步：父组件 modelValue ↔ 内部 customizeName
-watch(modelValue, (val) => {
+/** 内部输入内容（单一受控源） */
+const customizeName = ref<string>(effectiveValue.value);
+
+// 外部值（表单 setValues / 回填）变化时同步到内部
+watch(effectiveValue, (val) => {
   if (customizeName.value !== val) {
     customizeName.value = val;
   }
 });
 
-watch(customizeName, (val) => {
-  if (modelValue.value !== val) {
-    modelValue.value = val;
-  }
-});
+/** 更新内部值并同步给表单（兼容两种绑定约定） */
+function syncValue(next: string) {
+  const val = typeof next === 'string' ? next : '';
+  customizeName.value = val;
+  emit('update:modelValue', val);
+  emit('update:value', val);
+}
+
+function onInputChange(next: string) {
+  syncValue(next);
+}
 
 function onTagClick(tag: string) {
-  handleTagClick(tag);
+  const currentVal = customizeName.value.trim();
+
+  let next: string;
+  // 切换功能：如果已存在则移除
+  if (currentVal.includes(tag)) {
+    // 转义特殊字符并匹配 "_<通配符>" 或 "<通配符>"
+    const escapedTag = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const reg = new RegExp(`_?${escapedTag}`, 'g');
+    next = currentVal.replace(reg, '');
+  } else {
+    // 追加逻辑：已有内容时自动补下划线
+    const separator = currentVal.length > 0 ? '_' : '';
+    next = currentVal + separator + tag;
+  }
+
+  // 长度截断
+  if (next.length > props.maxLength) {
+    next = next.slice(0, props.maxLength);
+  }
+  syncValue(next);
 }
 </script>
 
 <template>
   <div class="ad-name-gen">
     <Input
-      v-model:value="customizeName"
+      :value="customizeName"
       :placeholder="placeholder"
       :disabled="disabled"
       :maxlength="maxLength"
+      @update:value="onInputChange"
     />
     <div class="mt-2 flex flex-wrap gap-1">
       <Tag

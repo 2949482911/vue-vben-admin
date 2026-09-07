@@ -23,9 +23,11 @@ const [BatchDrawer, batchDrawerApi] = useVbenDrawer({
   connectedComponent: BatchOperationDrawer,
 });
 
-/** 该层级可用的批量操作 */
+/** 该层级可用的批量操作：项目层支持启停/预算/ROI/删除，广告层仅删除 */
 const levelOperationKeys = computed(() =>
-  props.level === 'campaign' ? ['delete_campaign'] : ['delete_promotion'],
+  props.level === 'campaign'
+    ? ['update_project_status', 'update_project_budget', 'update_project_roi', 'delete_campaign']
+    : ['delete_promotion'],
 );
 
 function openBatchOperation(operationType: string) {

@@ -30,6 +30,7 @@ import type {
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import { Platform } from "#/constants/enums";
 import OppoBaseTemplate from "#/views/marketing/creation/oppo/components/base/base_template.vue";
+import AppTemplate from "#/views/marketing/creation/oppo/components/app/app_template.vue";
 import QuickAppTemplate
   from "#/views/marketing/creation/oppo/components/quickapp/quick_template.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
@@ -45,6 +46,9 @@ const OPPO_MARKETING_TYPE = [
   },
   {
     label: "快应用", value: "quick_template"
+  },
+  {
+    label: "应用推广", value: "app_template"
   }
 ];
 
@@ -278,7 +282,7 @@ async function initCreationInfo() {
         instantAppId: "",
         instantAppUrl: "",
         ocpcOptmType: 0,
-        ocpcPrice: "",
+        ocpcPrice: 0,
         ocpcType: 0,
         pageId: "",
         pageType: 1,
@@ -452,7 +456,7 @@ const creationInfo = ref<OppoCreation>({
       instantAppId: "",
       instantAppUrl: "",
       ocpcOptmType: 0,
-      ocpcPrice: "",
+      ocpcPrice: 0,
       ocpcType: 0,
       pageId: "",
       pageType: 1,
@@ -596,6 +600,18 @@ function resetCreationInfo() {
         @update:audience-package="updateAudiencePackage"
         @update:landing-page="updateLandingPage"
       ></QuickAppTemplate>
+
+      <AppTemplate
+        v-if="template === 'app_template'"
+        :creation-info="creationInfo"
+        @update:title-package="updateTitlePackage"
+        @update:update-material="updateMaterial"
+        @update:campaign="updateCampaign"
+        @update:adgroup="updateAdgroup"
+        @update:promotion="updatePromotion"
+        @update:audience-package="updateAudiencePackage"
+        @update:landing-page="updateLandingPage"
+      ></AppTemplate>
     </Card>
 
     <Card class="header">

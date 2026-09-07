@@ -5,11 +5,7 @@ import type {
   OppoCreationData,
   OppoPromotion
 } from "./Oppo.types";
-import type {
-  AccountInfo,
-  Material,
-  MonitoringLinkType
-} from "#/views/marketing/creation/creation";
+import type { AccountInfo, Material } from "#/views/marketing/creation/creation";
 import {
   getAudience,
   getDeepLink,
@@ -21,7 +17,7 @@ import {
   getRuleInfoCampaignCount,
   getTiltePackage
 } from "#/views/marketing/creation/creation";
-import { DistributionMode, Platform } from "#/constants/enums";
+import { Platform } from "#/constants/enums";
 import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import { renderProjectTitle } from "#/utils/customName";
 import type {
@@ -106,7 +102,7 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
         const pageView: PageViewItem = getLandingPage(
           creationInfo.configData.landingPage.config.method,
           creationInfo.configData.landingPage.data,
-          advertiserId,
+          advertiserId
         );
 
         const adgroupData = creationInfo.configData.adgroup;
@@ -122,7 +118,7 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             globalAdGroupIdx,
             creationInfo.project.projectName
           ),
-          pageUrl: pageView.config["pageUrl"],
+          pageUrl: pageView.id ? pageView.config["pageUrl"] : "",
           extensionType: creationInfo.configData.campaign.extensionType,
           extensionFlow: adgroupData.extensionFlow,
           flowScene: adgroupData.flowScene,
@@ -139,14 +135,14 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
           instantAppId: adgroupData.instantAppId,
           instantAppUrl: adgroupData.instantAppUrl,
           ocpcOptmType: adgroupData.ocpcOptmType,
-          ocpcPrice: adgroupData.ocpcPrice,
+          ocpcPrice: adgroupData.ocpcPrice * 100,
           ocpcType: adgroupData.ocpcType,
-          pageId: adgroupData.pageId,
+          pageId: adgroupData.pageType === 9 ? "0" : adgroupData.pageId,
           pageType: adgroupData.pageType,
           price: Number(adgroupData.price) * 100 || 0,
           smartExpandType: adgroupData.smartExpandType,
           // 媒体定向的ID
-          targetId: audience.mediaId,
+          targetId: audience.mediaId || "",
           timeLimit: adgroupData.timeLimit,
           timeSet: adgroupData.timeSet,
           linkDeskFlag: adgroupData.linkDeskFlag,
@@ -247,8 +243,8 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             globalSpecId: promotionData.globalSpecId,
             adSource: promotionData.adSource,
             brandLogoImgId: promotionData.brandLogoImgId,
-            brandName: titlePackage.title,
-            buttonTxt: titlePackage.title,
+            // brandName: titlePackage.title,
+            // buttonTxt: titlePackage.title,
             copywriter: titlePackage.title,
             copywriterId: promotionData.copywriterId,
             downloadUrl: promotionData.downloadUrl,
@@ -342,8 +338,8 @@ function flattenData(campaignList: OppoCampaign[]): any[] {
 
           // 广告组层级字段
           adgroupName: adgroup.adGroupName,
-          groupPrice: adgroup.price,
-          groupOcpxPrice: Number(adgroup.ocpcPrice) || 0,
+          groupPrice: adgroup.price / 100,
+          groupOcpxPrice: adgroup.ocpcPrice / 100 || 0,
           groupStartDate: adgroup.beginTime,
           groupEndDate: adgroup.endTime,
           // 广告层级字段
