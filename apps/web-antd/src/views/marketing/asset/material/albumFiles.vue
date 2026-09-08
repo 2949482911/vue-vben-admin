@@ -47,9 +47,9 @@ const emit = defineEmits<{
 }>();
 
 watch(
-  () => props.treeItem,
-  (newVal) => {
-    if (newVal && newVal.length) {
+  [() => props.treeItem, () => props.filterParams],
+  ([tree, _params]) => {
+    if (tree && tree.length) {
       pages.current = 1;
       fileList();
     }
@@ -401,6 +401,7 @@ defineExpose({
             <span class="m-name">{{ item.name }}</span>
             <div class="m-meta">
               <span>{{ formatDate(item.updateTime) }}</span>
+              <span>{{ item.createUsername }}</span>
               <template v-if="item.fileSizeStr">
                 <span class="mx-1">·</span>
                 <span>{{ item.fileSizeStr }}</span>

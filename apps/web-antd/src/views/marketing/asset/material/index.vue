@@ -140,7 +140,7 @@ const filterFormOptions: VbenFormProps = {
       class: 'w-full',
     },
   },
-  // 表单提交后更新筛选条件并重新加载列表
+  // 表单提交后更新筛选条件；子组件 watch filterParams 自动触发列表刷新
   handleSubmit: async (values) => {
     filterParams.value = {
       name: String(values?.materialName ?? "").trim() || undefined,
@@ -151,12 +151,10 @@ const filterFormOptions: VbenFormProps = {
       aspectRatio: values?.aspectRatio,
       timeRange: values?.timeRange,
     };
-    await albumFilesRef.value?.reload();
   },
   handleReset: async () => {
-    filterParams.value = {};
     await filterFormApi.resetForm();
-    await albumFilesRef.value?.reload();
+    filterParams.value = {};
   },
   // 多列栅格，避免单个筛选项占满整行
   wrapperClass: "xl:grid-cols-4",

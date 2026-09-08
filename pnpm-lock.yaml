@@ -746,6 +746,9 @@ importers:
       pinia:
         specifier: ^4.0.2
         version: 4.0.3(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3))
+      qs:
+        specifier: 'catalog:'
+        version: 6.15.3
       spark-md5:
         specifier: 'catalog:'
         version: 3.0.2

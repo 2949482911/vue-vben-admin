@@ -83,6 +83,8 @@ import type {
   PageViewItem, PushMaterialTaskItem, PushMaterialTaskProgressVO,
   PushTaskPageRequest
 } from "#/api/models/assert";
+//@ts-ignore
+import qs from "qs";
 import type { VivoQualification } from "#/api/models/vivo";
 
 /**
@@ -376,7 +378,11 @@ class UploadEditApi extends BaseApi {
 
   /**素材列表*/
   fetchMaterialList(params: MaterialListParams) {
-    return requestClient.get(this.getServiceUrl("list"), { params });
+    return requestClient.get(this.getServiceUrl("list"), {
+      params: params,
+      paramsSerializer: function(params) {
+        return qs.stringify(params, { arrayFormat: "repeat" });
+      } });
   }
 
   /**删除素材*/
