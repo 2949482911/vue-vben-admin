@@ -353,10 +353,15 @@ export interface CreateFolderParams {
 export interface MaterialListParams {
   name?: string;
   albumId?: string;
-  type?: number;
+  type?: number; // 类型 1 图片 2 视频 3 音频
   pageSize: number;
   page: number;
-  needAlbum?: boolean;
+  needAlbum?: boolean; // 是否需要文件夹
+  fileMd5?: Array<string>; // 文件MD5
+  format?: number; // 格式 1 横版 2 竖版
+  aspectXy?: Array<string>; // 宽高比
+  aspectRatio?: Array<string>; //
+  timeRange?: Array<string>; //  时间范围查询
 }
 
 /**上传素材 */

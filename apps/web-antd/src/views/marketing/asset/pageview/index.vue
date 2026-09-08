@@ -106,12 +106,12 @@ async function delLoadingPage() {
   const checkedRecords = gridApi.grid.getCheckboxRecords();
   const ids = checkedRecords.map((item) => item.id);
   try {
-    loadingPageApi.fetchDelLoadingPage({
+    await loadingPageApi.fetchDelLoadingPage({
       targetIds: ids,
       type: "delete"
     });
     pageReload();
-    message.success("删除成功！");
+    await message.success("删除成功！");
   } catch (err) {
     console.log(err, "err");
   }
