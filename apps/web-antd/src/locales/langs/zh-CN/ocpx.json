@@ -54,7 +54,8 @@
     "tangming": "唐铭网络",
     "mlequn": "爱酷游",
     "aps": "Aps",
-    "xyanw": "Xyanw"
+    "xyanw": "Xyanw",
+    "dotsdance": "巨点"
   },
   "behavioraplatform": {
     "columns": {
@@ -152,7 +153,7 @@
       "eventName": "事件名字"
     }
   },
-  "analytics" : {
+  "analytics": {
     "totalClick": "总点击",
     "totalExposureCount": "总曝光",
     "totalAmount": "总预估结算金额",

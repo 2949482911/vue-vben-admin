@@ -62,7 +62,8 @@ export enum Platform {
   MLEQUN = "mlequn",
   // 自媒体点击处理
   APS = "aps",
-  XYANW = "xyanw"
+  XYANW = "xyanw",
+  DOTSDANCE= "dotsdance"
 }
 
 export enum RuleType {

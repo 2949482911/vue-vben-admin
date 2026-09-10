@@ -1965,6 +1965,36 @@ platformConfigForm.set(Platform.XYANW, [
   }
 ]);
 
+// 巨点
+platformConfigForm.set(Platform.DOTSDANCE, [
+  {
+    // 媒体配置表单
+    component: "Input",
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t("common.input")}`
+    },
+    // 字段名
+    fieldName: "plankey",
+    // 界面显示的label
+    label: `plankey`,
+    rules: "required"
+  },
+  {
+    // 媒体配置表单
+    component: "Input",
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t("common.input")}`
+    },
+    // 字段名
+    fieldName: "channelno",
+    // 界面显示的label
+    label: `channelno`,
+    rules: "required"
+  }
+]);
+
 
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,

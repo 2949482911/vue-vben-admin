@@ -546,6 +546,10 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.xyanw')}`,
     value: 'xyanw',
   },
+  {
+    label: `${$t('ocpx.platform.dotsdance')}`,
+    value: 'dotsdance',
+  },
 ];
 
 // 匹配下拉
