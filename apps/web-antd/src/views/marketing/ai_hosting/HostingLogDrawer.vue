@@ -13,23 +13,6 @@ import { aiHostingApi } from '#/api/core';
 import type { HostingLog } from '#/api/models/ai_hosting';
 import { RULE_TYPE_MAP, ACTION_TYPE_MAP, LOG_RESULT_MAP } from './constants';
 
-// ==================== 抽屉逻辑 ====================
-
-const [Drawer, drawerApi] = useVbenDrawer({
-  class: 'w-[900px]',
-  closeOnClickModal: true,
-  closeOnPressEscape: true,
-  onOpenChange(isOpen) {
-    if (isOpen) {
-      const data = drawerApi.getData() as { taskId: string; taskName: string };
-      if (data?.taskId) {
-        drawerApi.setState({ title: `执行日志 — ${data.taskName || ''}` });
-        gridApi.reload();
-      }
-    }
-  },
-});
-
 // ==================== 表格配置 ====================
 
 const gridOptions: VxeGridProps<HostingLog> = {
@@ -44,8 +27,8 @@ const gridOptions: VxeGridProps<HostingLog> = {
       width: 160,
       formatter: 'formatDateTime',
     },
-    { field: 'advertiserName', title: '账户', minWidth: 140 },
-    { field: 'adName', title: '计划/广告', minWidth: 160 },
+    { field: 'advertiserId', title: '账户', minWidth: 140 },
+    { field: 'adId', title: '计划/广告', minWidth: 160 },
     {
       field: 'ruleType',
       title: '规则类型',
@@ -90,6 +73,26 @@ const gridOptions: VxeGridProps<HostingLog> = {
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
+
+// ==================== 抽屉逻辑 ====================
+
+const [Drawer, drawerApi] = useVbenDrawer({
+  class: 'w-[900px]',
+  closeOnClickModal: true,
+  closeOnPressEscape: true,
+  onOpenChange(isOpen) {
+    if (isOpen) {
+      const data = drawerApi.getData() as { taskId: string; taskName: string };
+      drawerApi.setState({ title: `执行日志 — ${data?.taskName || ''}` });
+    }
+  },
+  onOpened() {
+    // 打开动画结束后 Grid 才完成挂载，此时再发起请求，否则 grid.commitProxy 未就绪
+    gridApi.reload();
+  },
+});
+
+
 </script>
 
 <template>
