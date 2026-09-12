@@ -129,6 +129,16 @@ const gridOptions: VxeGridProps<HostingTask> = {
       slots: { default: "taskStatus" }
     },
     {
+      field: "lastPollTime",
+      title: "上次执行",
+      width: 'auto',
+    },
+    {
+      field: "nextPollTime",
+      title: "下次执行",
+      width: 'auto',
+    },
+    {
       field: "stats.todayExecCount",
       title: "今日执行",
       width: 90
@@ -208,7 +218,7 @@ function pageReload() {
       <!-- 操作列 -->
       <template #action="{ row }">
         <Button type="link" size="small" @click="toggleStatus(row)">
-          {{ row.task_status === "running" ? "暂停" : "恢复" }}
+          {{ row.taskStatus === "running" ? "暂停" : "恢复" }}
         </Button>
         <Button type="link" size="small" @click="openCreateDrawer(row)">
           编辑

@@ -50,6 +50,16 @@ export type ActionType =
  */
 export type LogResult = 'success' | 'failed' | 'pending' | 'rollback';
 
+/**
+ * 监控目标层级
+ */
+export type HostingTarget = 'advertiser' | 'campaign' | 'promotion';
+
+/**
+ * 规则判定模式
+ */
+export type RulesMode = 'all' | 'any';
+
 // ==================== 托管任务 ====================
 
 /**
@@ -99,6 +109,8 @@ export interface HostingRule {
   actions: RuleAction[];
   /** 是否启用 */
   enabled: boolean;
+  /** 监控指标的数据时间范围 1表示 当天 3 表示三天内历史数据(包含当天) 7表示7天内历史数据(包含当天) */
+  report_day: number;
 }
 
 /**
@@ -114,15 +126,29 @@ export interface HostingTask extends BaseItem {
   /** 托管的账户ID列表 */
   advertiserIds: string[];
   /** 项目ID */
-  projectId?: string;
+  projectId?: string[];
+  /**
+   * 广告IDs
+   */
+  promotionIds?: string[]
   /** 规则列表 */
   rules: HostingRule[];
   /** 任务状态 */
   taskStatus: HostingStatus;
   /** 轮询间隔（分钟） */
   pollInterval: number;
-  /** 统计信息 */
-  stats: HostingTaskStats;
+
+  /**
+   * 监控目标：advertiser 账户 / campaign 计划 / promotion 广告
+   */
+  target: HostingTarget;
+  /**
+   * 规则模式：all 全部规则满足 / any 任意规则满足
+   */
+  rulesMode: RulesMode;
+
+  lastPollTime?: string;
+  nextPollTime?: string;
 }
 
 /**
