@@ -1,38 +1,39 @@
 <script setup lang="ts">
 // 巨量引擎 广告列表页（媒体直达页）
-// 展示顺序：广告列表 ->【批量创建】新标签进入批创页
-import { useRouter } from "vue-router";
-import { Button, Card, TabPane, Tabs } from "ant-design-vue";
-import BytedanceLevelList from "./components/BytedanceLevelList.vue";
-import { Page } from "@vben/common-ui";
+// 页头与层级页签由 AdManagementShell 提供，列表能力复用 BytedanceLevelList
+import { ref } from 'vue';
 
-const router = useRouter();
+import AdManagementShell from '../../components/platform_promotion/AdManagementShell.vue';
+import BytedanceLevelList from './components/BytedanceLevelList.vue';
 
-// 新开 Vben 内置标签跳转到批创页（独立隐藏路由 /marketing/creation/bytedance/create）
-function openBatchCreate() {
-  router.push({
-    path: "/marketing/bytedance/promotion/creation"
-  });
+const LEVEL_TABS: Array<{ key: string; label: string }> = [
+  { key: 'campaign', label: '项目' },
+  { key: 'adgroup', label: '广告' },
+];
+
+const campaignRef = ref<InstanceType<typeof BytedanceLevelList>>();
+const adgroupRef = ref<InstanceType<typeof BytedanceLevelList>>();
+
+/** 页签切换后刷新当前层级列表（隐藏状态下挂载的表格需要重新布局查询） */
+function handleLevelChange(key: string) {
+  const target = key === 'campaign' ? campaignRef.value : adgroupRef.value;
+  target?.pageReload();
 }
 </script>
 
 <template>
-  <Page content-class="p-5">
-    <Card>
-      <template #title>
-        <div class="flex justify-between items-center">
-          <span>巨量引擎 · 广告列表</span>
-          <Button type="primary" @click="openBatchCreate">批量创建</Button>
-        </div>
-      </template>
-      <Tabs type="card">
-        <TabPane key="campaign" tab="项目">
-          <BytedanceLevelList level="campaign" />
-        </TabPane>
-        <TabPane key="adgroup" tab="广告" force-render>
-          <BytedanceLevelList level="adgroup" />
-        </TabPane>
-      </Tabs>
-    </Card>
-  </Page>
+  <AdManagementShell
+    platform-label="巨量引擎"
+    description="按项目 / 广告层级查看数据，支持批量操作与导出"
+    create-path="/marketing/bytedance/promotion/creation"
+    :tabs="LEVEL_TABS"
+    @change="handleLevelChange"
+  >
+    <template #campaign>
+      <BytedanceLevelList ref="campaignRef" level="campaign" />
+    </template>
+    <template #adgroup>
+      <BytedanceLevelList ref="adgroupRef" level="adgroup" />
+    </template>
+  </AdManagementShell>
 </template>

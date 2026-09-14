@@ -1,10 +1,15 @@
 <script lang="ts" setup>
 import type { EchartsUIType } from "@vben/plugins/echarts";
-import { EchartsUI, useEcharts } from "@vben/plugins/echarts";
+
+import type { PageIndexReportResponse } from "#/api/models";
 
 import { onMounted, ref } from "vue";
+
+import { EchartsUI, useEcharts } from "@vben/plugins/echarts";
+
+import { Empty, message } from "ant-design-vue";
+
 import { dashboardApi } from "#/api";
-import type { PageIndexReportResponse } from "#/api/models";
 
 const chartRef = ref<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
@@ -15,6 +20,9 @@ const respData = ref<PageIndexReportResponse>({
   cname: {}, items: [], summary: []
 });
 
+// 接口无数据时展示空态，避免渲染成一张空白坐标系
+const isEmpty = ref(false);
+
 async function getTraffic_report_day() {
   respData.value = await dashboardApi.fetchPageIndexReport({
     reportType: "traffic_report_day"
@@ -23,14 +31,25 @@ async function getTraffic_report_day() {
 
 
 onMounted(async () => {
-  await getTraffic_report_day();
+  let items: Array<Record<string, any>>;
+  try {
+    await getTraffic_report_day();
+    items = respData.value.items ?? [];
+  } catch {
+    await message.error("流量趋势数据加载失败，请稍后重试");
+    return;
+  }
+  isEmpty.value = items.length === 0;
+  if (isEmpty.value) {
+    return;
+  }
   const xLine: Array<string> = [];
   const AdClick: Array<any> = []
   const AdShow: Array<any>  = []
-  respData.value.items.forEach(x => {
-    xLine.push(x["hour"]);
-    AdClick.push(x["AdClick"]);
-    AdShow.push(x["AdShow"]);
+  items.forEach(x => {
+    xLine.push(x.hour);
+    AdClick.push(x.AdClick);
+    AdShow.push(x.AdShow);
   })
   await renderEcharts({
     grid: {
@@ -38,7 +57,7 @@ onMounted(async () => {
       containLabel: true,
       left: "1%",
       right: "1%",
-      top: "2 %"
+      top: "2%"
     },
     series: [
       {
@@ -84,7 +103,7 @@ onMounted(async () => {
         show: false
       },
       boundaryGap: false,
-      data: xLine.map((_item) => `${_item }:00`),
+      data: xLine.map((_item) => `${_item}:00`),
       splitLine: {
         lineStyle: {
           type: "solid",
@@ -111,5 +130,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <EchartsUI ref="chartRef" />
+  <div v-if="isEmpty" class="flex h-[300px] items-center justify-center">
+    <Empty :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无今日流量数据" />
+  </div>
+  <EchartsUI v-else ref="chartRef" />
 </template>

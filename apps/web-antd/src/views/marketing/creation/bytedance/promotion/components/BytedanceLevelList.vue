@@ -1,22 +1,56 @@
 <script lang="ts" setup>
+import type { ReportFilter } from '#/api/models';
+
+import { computed, ref } from 'vue';
+
+import { useVbenDrawer } from '@vben/common-ui';
+
+import { Drawer as ADrawer, Button, Descriptions, message, Space, Typography } from 'ant-design-vue';
+
 // bytedance 试点：单层级(项目/广告)广告列表
 // 列由后端「媒体原生列表」返回的 columns + cname 动态生成，支持筛选/分页/导出/详情/批量操作
 // 批量操作复用 promotion_manager/components 的 BatchOperationDropdown / BatchOperationDrawer
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { Page, useVbenDrawer } from '@vben/common-ui';
 import { advertiserApi, aManagementApi } from '#/api';
-import { Button, Descriptions, message, Space, Drawer as ADrawer } from 'ant-design-vue';
-import { computed, ref } from 'vue';
-import type { ReportFilter } from '#/api/models';
-import BatchOperationDropdown from '../../../promotion_manager/components/BatchOperationDropdown.vue';
+
 import BatchOperationDrawer from '../../../promotion_manager/components/BatchOperationDrawer.vue';
+import BatchOperationDropdown from '../../../promotion_manager/components/BatchOperationDropdown.vue';
+
 const props = defineProps<{
   /** campaign=项目, adgroup=广告 */
-  level: 'campaign' | 'adgroup';
+  level: 'adgroup' | 'campaign';
 }>();
 
-// 该层级默认的 ID 字段名（媒体原生列名）
+// 该层级默认的 ID / 名称字段名（媒体原生列名）
 const idField = computed(() => (props.level === 'campaign' ? 'campaign_id' : 'adgroup_id'));
+const nameField = computed(() => (props.level === 'campaign' ? 'campaign_name' : 'adgroup_name'));
+const levelLabel = computed(() => (props.level === 'campaign' ? '项目' : '广告'));
+
+/** 统一报表指标列（与后端 PromotionReportMetric 对齐）：右对齐 + 等宽数字 */
+const METRIC_FIELDS = ['AdCost', 'AdShow', 'AdClick', 'AdEcpM', 'AdCtr'];
+
+/** 指标值格式化：保留原始小数位并加千分位，空值显示占位符 */
+function formatMetricValue(value: unknown) {
+  if (value === undefined || value === null || value === '') return '—';
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value);
+  const decimals = String(value).split('.')[1]?.length ?? 0;
+  return num.toLocaleString('zh-CN', {
+    maximumFractionDigits: decimals,
+    minimumFractionDigits: decimals,
+  });
+}
+
+// ============ 选区 ============
+/** 当前选中行（用于工具栏选区态展示） */
+const selectedRows = ref<any[]>([]);
+/** 当前筛选命中总条数 */
+const totalCount = ref(0);
+
+function clearSelection() {
+  gridApi.grid?.clearCheckboxRow();
+  selectedRows.value = [];
+}
 
 // ============ 批量操作（复用广告管理组件） ============
 const [BatchDrawer, batchDrawerApi] = useVbenDrawer({
@@ -129,7 +163,7 @@ const formOptions = {
       },
     },
   ],
-  showDefaultActions: false,
+  showDefaultActions: true,
   showCollapseButton: true,
   submitOnEnter: true,
   compact: true,
@@ -145,14 +179,14 @@ const gridOptions: VxeGridProps = {
   pagerConfig: { enabled: true, pageSizes: [20, 50, 100, 200] },
   toolbarConfig: {
     custom: true,
-    export: true,
     refresh: true,
-    zoom: true
+    zoom: true,
   },
   proxyConfig: {
     ajax: {
       query: async ({ page }, args) => {
         const { items, total, columns: cols, cname } = await doQuery(page, args);
+        totalCount.value = total ?? 0;
         // 媒体原生行无统一字段，此处补 platform/advertiserId 等冗余字段，供批量/详情复用
         const enriched = (items ?? []).map((row: any) => ({
           ...row,
@@ -170,21 +204,56 @@ const gridOptions: VxeGridProps = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const gridEvents = {
+  checkboxChange: ({ records }: { records: any[] }) => {
+    selectedRows.value = records;
+  },
+  // 全选事件
+  checkboxAll: ({ records }: { records: any[] }) => {
+    selectedRows.value = records;
+  },
+  // 翻页/重新查询后清空选中，避免跨页残留
+  proxyQuery: () => {
+    selectedRows.value = [];
+  },
+};
 
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents });
+
+/**
+ * 名称列前置并冻结，其余维度/指标列保持后端顺序横向滚动
+ * vxe 要求冻结列从最左侧连续排列，因此把名称列提到动态列首位
+ */
 function buildColumns(cols: string[] | undefined, cname: Record<string, string> | undefined) {
   if (!cols || cols.length === 0) return;
-  const dynamic = cols.map((key) => ({
-    field: key,
-    title: (cname && cname[key]) || key,
-    width: 'auto',
-    showOverflow: true,
-  }));
+  const nameKey = nameField.value;
+  const ordered = cols.includes(nameKey)
+    ? [nameKey, ...cols.filter((key) => key !== nameKey)]
+    : cols;
+  const dynamic = ordered.map((key) => {
+    const isMetric = METRIC_FIELDS.includes(key);
+    const isName = key === nameKey;
+    const column: Record<string, any> = {
+      field: key,
+      title: (cname && cname[key]) || key,
+      minWidth: isName ? 220 : isMetric ? 120 : 160,
+      align: isMetric ? 'right' : 'left',
+      headerAlign: isMetric ? 'right' : 'left',
+      showOverflow: true,
+    };
+    if (isMetric) {
+      column.formatter = ({ cellValue }: any) => formatMetricValue(cellValue);
+    }
+    if (isName) {
+      column.fixed = 'left';
+    }
+    return column;
+  });
   const newColumns: any[] = [
     { title: '', type: 'checkbox', width: 50, fixed: 'left' },
     { title: '序号', type: 'seq', width: 60, fixed: 'left' },
     ...dynamic,
-    { title: '操作', field: 'options', fixed: 'right', width: 120, slots: { default: 'action' } },
+    { title: '操作', field: 'options', fixed: 'right', width: 90, slots: { default: 'action' } },
   ];
   gridApi.setGridOptions({ columns: newColumns });
 }
@@ -229,7 +298,7 @@ async function doQuery(page: { currentPage: number; pageSize: number }, args: an
   };
 }
 
-// 导出（媒体固定单平台）
+// 导出（媒体固定单平台，按当前筛选条件全量导出）
 async function handleExport() {
   const values = await gridApi.formApi?.getValues();
   await aManagementApi.fetchAdExport({
@@ -238,48 +307,62 @@ async function handleExport() {
   });
   await message.success('导出任务已提交！请前往「下载中心」查看并下载文件。');
 }
+
+function pageReload() {
+  gridApi.reload();
+}
+
+defineExpose({ pageReload });
 </script>
 
 <template>
-  <div class="level-list">
-    <Page>
-      <Grid>
-        <template #toolbar-tools>
-          <Space>
-            <BatchOperationDropdown
-              :level="level"
-              :operation-keys="levelOperationKeys"
-              @open="openBatchOperation"
-            />
-            <Button type="primary" @click="handleExport">导出</Button>
-          </Space>
-        </template>
-        <template #action="{ row }">
-          <Button type="link" @click="openDetail(row)">详情</Button>
-        </template>
-      </Grid>
-    </Page>
+  <Grid>
+    <!-- 左侧：勾选后切换为批量操作条，未勾选时展示轻量统计 -->
+    <template #toolbar-actions>
+      <div v-if="selectedRows.length > 0" class="flex items-center gap-2">
+        <Typography.Text>
+          已选 <span class="font-medium tabular-nums">{{ selectedRows.length }}</span> 项
+        </Typography.Text>
+        <BatchOperationDropdown
+          :level="level"
+          :operation-keys="levelOperationKeys"
+          @open="openBatchOperation"
+        />
+        <Button type="link" size="small" @click="clearSelection">取消选择</Button>
+      </div>
+      <div v-else class="flex items-center gap-1">
+        <Typography.Text type="secondary">
+          命中 <span class="tabular-nums">{{ totalCount }}</span> 条
+        </Typography.Text>
+        <Typography.Text type="secondary">·</Typography.Text>
+        <Typography.Text type="secondary">{{ levelLabel }}层级</Typography.Text>
+      </div>
+    </template>
 
-    <BatchDrawer @page-reload="onBatchPageReload" />
+    <template #toolbar-tools>
+      <Space>
+        <Button @click="handleExport">导出</Button>
+      </Space>
+    </template>
 
-    <!-- 详情抽屉 -->
-    <ADrawer
-      v-model:open="detailOpen"
-      :title="detailTitle"
-      :loading="detailLoading"
-      width="560"
-    >
-      <Descriptions :column="1" size="small" bordered>
-        <Descriptions.Item v-for="(val, key) in detailData" :key="key" :label="String(key)">
-          {{ val }}
-        </Descriptions.Item>
-      </Descriptions>
-    </ADrawer>
-  </div>
+    <template #action="{ row }">
+      <Button type="link" @click="openDetail(row)">详情</Button>
+    </template>
+  </Grid>
+
+  <BatchDrawer @page-reload="onBatchPageReload" />
+
+  <!-- 详情抽屉 -->
+  <ADrawer
+    v-model:open="detailOpen"
+    :title="detailTitle"
+    :loading="detailLoading"
+    width="560"
+  >
+    <Descriptions :column="1" size="small" bordered>
+      <Descriptions.Item v-for="(val, key) in detailData" :key="key" :label="String(key)">
+        {{ val }}
+      </Descriptions.Item>
+    </Descriptions>
+  </ADrawer>
 </template>
-
-<style scoped lang="scss">
-.level-list {
-  height: 100%;
-}
-</style>

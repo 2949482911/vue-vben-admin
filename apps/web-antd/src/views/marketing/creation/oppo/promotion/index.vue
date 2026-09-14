@@ -1,39 +1,54 @@
 <script setup lang="ts">
-// oppo 广告列表页（媒体直达页）：计划/广告组/广告
-import { useRouter } from "vue-router";
-import { Page } from "@vben/common-ui";
-import { Button, Card, TabPane, Tabs } from "ant-design-vue";
-import PlatformLevelList from "../../components/platform_promotion/PlatformLevelList.vue";
+// OPPO 广告列表页（媒体直达页）：计划 / 广告组 / 广告
+// 页头与层级页签由 AdManagementShell 提供，列表能力复用 PlatformLevelList
+import { ref } from 'vue';
 
-const router = useRouter();
+import AdManagementShell from '../../components/platform_promotion/AdManagementShell.vue';
+import PlatformLevelList from '../../components/platform_promotion/PlatformLevelList.vue';
 
-function openBatchCreate() {
-  router.push({
-    path: "/marketing/oppo/promotion/creation"
-  });
+const LEVEL_TABS: Array<{ key: string; label: string }> = [
+  { key: 'campaign', label: '计划' },
+  { key: 'adgroup', label: '广告组' },
+  { key: 'promotion', label: '广告' },
+];
+
+const campaignRef = ref<InstanceType<typeof PlatformLevelList>>();
+const adgroupRef = ref<InstanceType<typeof PlatformLevelList>>();
+const promotionRef = ref<InstanceType<typeof PlatformLevelList>>();
+
+const levelRefs: Record<string, any> = {
+  campaign: campaignRef,
+  adgroup: adgroupRef,
+  promotion: promotionRef,
+};
+
+/** 页签切换后刷新当前层级列表（隐藏状态下挂载的表格需要重新布局查询） */
+function handleLevelChange(key: string) {
+  levelRefs[key]?.value?.pageReload();
 }
 </script>
 
 <template>
-  <Page content-class="p-5">
-    <Card>
-      <template #title>
-        <div class="flex justify-between items-center">
-          <span>OPPO · 广告列表</span>
-          <Button type="primary" @click="openBatchCreate">批量创建</Button>
-        </div>
-      </template>
-      <Tabs type="card">
-        <TabPane key="campaign" tab="计划">
-          <PlatformLevelList platform="oppo" level="campaign" id-field="campaign_id" />
-        </TabPane>
-        <TabPane key="adgroup" tab="广告组">
-          <PlatformLevelList platform="oppo" level="adgroup" id-field="adgroup_id" />
-        </TabPane>
-        <TabPane key="promotion" tab="广告" force-render>
-          <PlatformLevelList platform="oppo" level="promotion" id-field="promotion_id" />
-        </TabPane>
-      </Tabs>
-    </Card>
-  </Page>
+  <AdManagementShell
+    platform-label="OPPO"
+    description="按计划 / 广告组 / 广告层级查看数据，支持批量操作与导出"
+    create-path="/marketing/oppo/promotion/creation"
+    :tabs="LEVEL_TABS"
+    @change="handleLevelChange"
+  >
+    <template #campaign>
+      <PlatformLevelList ref="campaignRef" platform="oppo" level="campaign" id-field="campaign_id" />
+    </template>
+    <template #adgroup>
+      <PlatformLevelList ref="adgroupRef" platform="oppo" level="adgroup" id-field="adgroup_id" />
+    </template>
+    <template #promotion>
+      <PlatformLevelList
+        ref="promotionRef"
+        platform="oppo"
+        level="promotion"
+        id-field="promotion_id"
+      />
+    </template>
+  </AdManagementShell>
 </template>
