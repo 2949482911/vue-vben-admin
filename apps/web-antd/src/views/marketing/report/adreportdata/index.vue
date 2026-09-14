@@ -1,22 +1,32 @@
 <script setup lang="ts" name="AdReportDataManager">
-import { computed, onMounted, reactive, ref } from "vue";
-import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
-import { $t } from "@vben/locales";
-import { Button } from "ant-design-vue";
-import SelectMetricModal from "./selectmetric.vue";
 import type { AdReportRequest, ReportFilter, searchDataFilter, TemplateDto } from "#/api/models";
-import { projectApi, reportApi } from "#/api";
-import type { ProjectItem } from "../../account/advertiser/advertiser";
-import SaveTemplateModal from "../components/ReportTemplateSaveModal.vue";
-import TemplateListDrawer from "../components/ReportTemplateListDrawer.vue";
-import AdReportFilterForm from "../components/AdReportFilterForm.vue";
-import { usePreferences } from "@vben/preferences";
 
-const { isDark } = usePreferences();
-const isLight = computed(() => {
-  return !isDark.value;
-});
+import { computed, onMounted, reactive, ref } from "vue";
+
+import { Page, useVbenDrawer, useVbenModal, VbenCountToAnimator } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+
+import {
+  Button,
+  Card,
+  Col,
+  Divider,
+  message,
+  Row,
+  Space,
+  Statistic,
+  Typography
+} from "ant-design-vue";
+
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { reportApi } from "#/api";
+import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
+
+import AdReportFilterForm from "../components/AdReportFilterForm.vue";
+import TemplateListDrawer from "../components/ReportTemplateListDrawer.vue";
+import SaveTemplateModal from "../components/ReportTemplateSaveModal.vue";
+import SelectMetricModal from "./selectmetric.vue";
+
 const tmplateData = ref();
 // 表单 ref
 const filterFormRef = ref();
@@ -145,6 +155,11 @@ async function init(args?: any, columnOrder?: string[]) {
   } catch (error: any) {
     if (error.name !== "AbortError") {
       console.error("请求失败:", error);
+      message.error(
+        error?.message === "请求超时"
+          ? "查询超时，建议缩短时间范围或减少维度后重试"
+          : "查询失败，请稍后重试"
+      );
     }
   } finally {
     gridApi.setLoading(false);
@@ -163,6 +178,113 @@ async function resetSortState() {
   });
 }
 
+/** 冻结列：序号 + 前 3 个维度列（日期 / 平台 / 账户） */
+const FROZEN_COLUMN_COUNT = 4;
+/** 冻结列宽：序号、日期、平台、账户 */
+const FROZEN_COLUMN_WIDTHS = [64, 120, 120, 200];
+/** 指标格子的数字排印类，保证逐位对齐（项目内置工具类） */
+const METRIC_CELL_CLASS = "tabular-nums";
+
+/** 指标数值展示：空值统一为 —，数字加千分位并保留原有小数位 */
+function formatMetricValue(value: any) {
+  if (value === undefined || value === null || value === "") return "—";
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value);
+  const decimals = String(value).split(".")[1]?.length ?? 0;
+  return num.toLocaleString("zh-CN", {
+    maximumFractionDigits: decimals,
+    minimumFractionDigits: decimals
+  });
+}
+
+/**
+ * 概览带固定展示核心指标，数据取自接口合计行（summary），不发额外请求
+ * keywords 用于匹配合计行里的字段名，命中不到时展示 —，不会张冠李戴
+ */
+const KPI_DEFINITIONS = [
+  { exclude: ["率"], keywords: ["消耗", "cost", "spend"], label: "消耗" },
+  { exclude: ["率", "cost"], keywords: ["曝光", "展现", "show", "impression"], label: "曝光" },
+  {
+    exclude: ["率", "cost", "ctr", "rate"],
+    keywords: ["点击", "click"],
+    label: "点击"
+  },
+  { keywords: ["ctr", "点击率", "率"], label: "CTR" }
+];
+
+/** 从合计行里解析指标值：先精确匹配字段名，再按关键字包含匹配 */
+function resolveSummaryEntry(
+  summary: Record<string, any>,
+  definition: (typeof KPI_DEFINITIONS)[number],
+  usedKeys: Set<string>
+) {
+  const entries = Object.entries(summary).filter(
+    ([key]) => key !== "seq" && !usedKeys.has(key)
+  );
+  for (const exact of [true, false]) {
+    for (const [key, value] of entries) {
+      const lowerKey = key.toLowerCase();
+      if (
+        definition.exclude?.some((word) => lowerKey.includes(word.toLowerCase()))
+      ) {
+        continue;
+      }
+      const hit = definition.keywords.some((word) => {
+        const keyword = word.toLowerCase();
+        return exact ? lowerKey === keyword : lowerKey.includes(keyword);
+      });
+      if (hit) return { key, value };
+    }
+  }
+  return undefined;
+}
+
+/** 指标概览带：固定四项，未查询或取不到值时显示 — */
+const kpiList = computed(() => {
+  const summary = (tableFooter.value ?? {}) as Record<string, any>;
+  const usedKeys = new Set<string>();
+  return KPI_DEFINITIONS.map((definition) => {
+    const entry = resolveSummaryEntry(summary, definition, usedKeys);
+    if (entry) usedKeys.add(entry.key);
+    const num = Number(entry?.value);
+    const hasValue =
+      entry !== undefined &&
+      entry.value !== null &&
+      entry.value !== "" &&
+      !Number.isNaN(num);
+    return {
+      decimals: hasValue
+        ? Math.min(String(entry.value).split(".")[1]?.length ?? 0, 4)
+        : 0,
+      hasValue,
+      key: definition.label,
+      label: definition.label,
+      value: hasValue ? num : 0
+    };
+  });
+});
+
+/** 概览带固定四格一行 */
+const kpiSpan = 6;
+
+/** 命令栏口径说明：当前查询条件 */
+const querySummary = ref("");
+
+function buildQuerySummary(values: any) {
+  const toLabels = (options: any[], list?: string[]) =>
+    (list ?? [])
+      .map((item) => options.find((opt) => opt.value === item)?.label ?? item)
+      .join("、");
+  const range = Array.isArray(values?.dateTimeRange) ? values.dateTimeRange.join(" ~ ") : "";
+  return [
+    range ? `口径 ${range}` : "",
+    values?.dims?.length ? `按${toLabels(DIMS, values.dims)}聚合` : "",
+    `媒体 ${toLabels(ACTIVE_PLATFORM, values.platform) || "全部"}`
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 /*  优化4：分离表头更新和数据更新  */
 function updateTableStructure(columns: string[], footData: any, columnOrder?: string[]) {
   // 使用缓存避免重复构建（有自定义顺序时跳过缓存）
@@ -176,7 +298,6 @@ function updateTableStructure(columns: string[], footData: any, columnOrder?: st
       columnDefMap.set(key, {
         field: key,
         title: key,
-        width: "auto",
         sortable: true,
         showOverflow: true
       });
@@ -192,9 +313,43 @@ function updateTableStructure(columns: string[], footData: any, columnOrder?: st
       orderedKeys = columns;
     }
 
+    // 维度列冻结在左侧，指标列右对齐 + 千分位，横向滚动时维度不丢
+    const dimensionColumns = orderedKeys
+      .slice(0, FROZEN_COLUMN_COUNT - 1)
+      .map((key, index) => ({
+        ...columnDefMap.get(key)!,
+        fixed: "left",
+        width: FROZEN_COLUMN_WIDTHS[index + 1]
+      }));
+    const metricColumns = orderedKeys.slice(FROZEN_COLUMN_COUNT - 1).map((key) => ({
+      ...columnDefMap.get(key)!,
+      align: "right",
+      headerAlign: "right",
+      minWidth: 120,
+      className: METRIC_CELL_CLASS,
+      headerClassName: METRIC_CELL_CLASS,
+      footerClassName: METRIC_CELL_CLASS,
+      formatter: ({ cellValue }: any) => formatMetricValue(cellValue)
+    }));
+
     const newColumns: any[] = [
-      { title: "序号", field: "seq", width: 80, fixed: "left", sortable: true },
-      ...orderedKeys.map((key) => columnDefMap.get(key)!)
+      {
+        align: "center",
+        field: "seq",
+        fixed: "left",
+        sortable: true,
+        title: "序号",
+        width: FROZEN_COLUMN_WIDTHS[0]
+      },
+      ...(dimensionColumns.length > 0 && metricColumns.length > 0
+        ? [
+          { children: dimensionColumns, fixed: "left", title: "维度" },
+          { children: metricColumns, title: "指标" }
+        ]
+        : [
+          ...dimensionColumns,
+          ...metricColumns
+        ])
     ];
 
     if (!columnOrder) {
@@ -332,17 +487,6 @@ function sortDataByField(data: any[], field: string, order: "asc" | "desc"): any
   });
 }
 
-// 项目选项
-const projectOptions = ref<ProjectItem[]>([]);
-
-onMounted(async () => {
-  const res = await projectApi.fetchProjectList({
-    page: 1,
-    pageSize: 1000
-  });
-  projectOptions.value = res.items;
-});
-
 /* 优化7：表单提交防抖 */
 const decimalPoint = ref<number>();
 // 辅助函数
@@ -390,11 +534,12 @@ function buildReportParams(values: any): AdReportRequest {
 // 表单提交处理
 async function handleFormSubmit(values: any) {
   pager.currentPage = 1;
+  querySummary.value = buildQuerySummary(values);
   currentQueryMetric.value = values.queryMetric || [];
   const params = buildReportParams(values);
 
   // 复用模板后继续搜索：检测用户是否手动拖拽过列顺序
-  let orderToUse: string[] | undefined = undefined;
+  let orderToUse: string[] | undefined;
   const savedOrder = activeColumnOrder.value;
   if (savedOrder && savedOrder.length > 0) {
     const gridCols = gridApi.grid?.getColumns() ?? [];
@@ -424,6 +569,7 @@ async function handleFormReset() {
     abortController.abort();
   }
 
+  querySummary.value = "";
   currentQueryMetric.value = [];
   currentDecimalPoint.value = 4;
   activeColumnOrder.value = undefined;
@@ -470,6 +616,7 @@ async function handleUseTemplate(row: TemplateDto) {
   currentQueryMetric.value = row.template.queryMetric ? [...row.template.queryMetric] : [];
 
   const values = await filterFormRef.value?.getValues();
+  querySummary.value = buildQuerySummary(values);
   const params = buildReportParams(values);
   // 如果模板保存了列顺序，透传给 init 以便渲染时恢复
   const savedColumnOrder: string[] | undefined = row.template.columnOrder;
@@ -511,6 +658,9 @@ const gridOptions: VxeGridProps = {
   keepSource: true,
   columns: [],
   data: [],
+  // 撑满父容器（页面采用 flex 列布局，不再依赖固定高度计算）
+  height: "auto",
+  emptyText: "暂无数据，请选择时间范围与维度后查询",
   toolbarConfig: {
     custom: true,
     export: true,
@@ -543,8 +693,9 @@ const gridOptions: VxeGridProps = {
   scrollX: { enabled: true, gt: 10 },
   scrollY: { enabled: true, gt: 10 },
   // 优化渲染性能
+  // 开启行 hover，便于横向扫读
   rowConfig: {
-    isHover: false,
+    isHover: true,
     useKey: true,
     keyField: "seq"
   },
@@ -560,15 +711,9 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridEvents
 });
 
-// 在 onMounted 中初始化数据
+// 初始化：默认口径与空表格
 onMounted(async () => {
-  const res = await projectApi.fetchProjectList({
-    page: 1,
-    pageSize: 1000
-  });
-  projectOptions.value = res.items;
-
-  handleFormReset();
+  await handleFormReset();
 });
 
 const wrapperClass = ref("grid-cols-1 md:grid-cols-2 lg:grid-cols-3");
@@ -577,43 +722,84 @@ const isShowActions = ref(true);
 </script>
 
 <template>
-  <Page content-class="p-5">
-    <divÒ :class="{ isLight: isLight }">
-      <AdReportFilterForm
-        ref="filterFormRef"
-        :wrapperClass="wrapperClass"
-        :isShowActions="isShowActions"
-        :content="content"
-        @submit="handleFormSubmit"
-        @reset="handleFormReset"
-      />
-    </divÒ>
-    <div style="height: calc(100% - 202px)">
-      <Grid>
-        <template #toolbar-tools>
-          <Button class="mr-2" type="primary" @click="openSaveTemplateModalModal">
-            {{ btnText }}
-          </Button>
-          <Button class="mr-2" type="primary" @click="openTemplateListModalModal">
-            报表模板
-          </Button>
-          <Button type="primary" @click="openPlatformMetricMapDetailModal" danger>
-            {{ $t("core.metric") }}
-          </Button>
-        </template>
-      </Grid>
+  <Page auto-content-height>
+    <div class="flex h-full min-h-0 flex-col gap-4">
+      <!-- 命令栏：标题 / 口径 / 操作，用 Card 承载以与页面其他卡片对齐 -->
+      <Card size="small" class="shrink-0">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-col">
+            <div class="flex text-lg font-semibold">媒体广告聚合看板</div>
+            <Typography.Text type="secondary">
+              {{
+                querySummary || "选择时间范围与维度后查询，数据为全量聚合结果"
+              }}
+            </Typography.Text>
+          </div>
+          <Space>
+            <Button @click="openPlatformMetricMapDetailModal">
+              {{ $t("core.metric") }} {{ currentQueryMetric.length }}
+            </Button>
+            <Button @click="openTemplateListModalModal">
+              报表模板
+            </Button>
+            <Button @click="openSaveTemplateModalModal">
+              {{ btnText }}
+            </Button>
+          </Space>
+        </div>
+      </Card>
+
+      <!-- 筛选命令栏：基础三项常显，高级筛选可展开，已选条件以标签回显 -->
+      <Card size="small" class="shrink-0">
+        <AdReportFilterForm
+          ref="filterFormRef"
+          :wrapper-class="wrapperClass"
+          :is-show-actions="isShowActions"
+          :content="content"
+          :result-total="pager.total"
+          @submit="handleFormSubmit"
+          @reset="handleFormReset"
+        />
+      </Card>
+
+      <!-- 指标概览带：固定四项，数据取自接口返回的合计行，不额外请求 -->
+      <Card size="small" class="shrink-0">
+        <Row align="middle">
+          <Col v-for="(kpi, index) in kpiList" :key="kpi.key" :span="kpiSpan">
+            <div class="flex items-center gap-2">
+              <Divider v-if="index > 0" type="vertical" class="h-8" />
+              <Statistic :title="kpi.label">
+                <template #formatter>
+                  <VbenCountToAnimator
+                    v-if="kpi.hasValue"
+                    :decimals="kpi.decimals"
+                    :duration="800"
+                    :end-val="kpi.value"
+                  />
+                  <template v-else>—</template>
+                </template>
+              </Statistic>
+            </div>
+          </Col>
+        </Row>
+      </Card>
+
+      <!-- 明细表：维度列冻结在左，指标列右对齐 -->
+      <div class="min-h-[320px] min-w-0 flex-1">
+        <Grid />
+      </div>
     </div>
+
     <SelectMetricModalModal
-      @confirmMetric="reloadFromStart"
-      :selectedMetrics="currentQueryMetric"
-      :decimalPoint="currentDecimalPoint"
+      @confirm-metric="reloadFromStart"
+      :selected-metrics="currentQueryMetric"
+      :decimal-point="currentDecimalPoint"
     />
-    <SaveTemplateModalModal @success="handleTemplateSaved" :searchData="searchData" type="base" />
-    <TemplateDrawer @useTemplate="handleUseTemplate" type="base" />
+    <SaveTemplateModalModal
+      @success="handleTemplateSaved"
+      :search-data="searchData"
+      type="base"
+    />
+    <TemplateDrawer @use-template="handleUseTemplate" type="base" />
   </Page>
-
 </template>
-
-<style scoped lang="scss">
-
-</style>

@@ -1,37 +1,39 @@
 <script setup lang="ts" name="SelectMetricModal">
-import { useVbenModal } from "@vben/common-ui";
+import type { MetricGroupType, MetricItem } from "#/api/models";
+
 import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
-import { metricApi } from "#/api";
-import type { CreateSystemMetric, MetricGroupType, MetricItem } from "#/api/models";
+
+import { useVbenModal } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+
+import { ArrowDownOutlined, ArrowUpOutlined, ReloadOutlined } from "@ant-design/icons-vue";
 import {
   Button,
   Checkbox,
   CheckboxGroup,
   Divider,
   InputSearch,
-  message,
   Radio,
   RadioGroup,
   Space
 } from "ant-design-vue";
-import { ArrowDownOutlined, ArrowUpOutlined, ReloadOutlined } from "@ant-design/icons-vue";
-import { $t } from "@vben/locales";
-import { useVbenForm } from "#/adapter/form";
-import { trimObject } from "#/utils/trim";
+
+import { metricApi } from "#/api";
 import { metricGroupApi } from "#/api/core";
 
-const emit = defineEmits(["confirmMetric"]);
-const isDataLoading = ref<Boolean>(false);
-// 指标类目列表
-const metricGropList = ref<MetricGroupType[]>([]);
-//接收父组件使用模板传回来的指标回显数组
+import CreateMetricModal from "./CreateMetricModal.vue";
+
+// 接收父组件使用模板传回来的指标回显数组
 const props = defineProps<{
   selectedMetrics: string[];
   decimalPoint?: number;
   /** 报表类型：ad=广告报表，material=素材报表 */
   reportType?: string;
 }>();
-
+const emit = defineEmits(["confirmMetric"]);
+const isDataLoading = ref<Boolean>(false);
+// 指标类目列表
+const metricGropList = ref<MetricGroupType[]>([]);
 // 搜索关键字
 const indicatorValue = ref("");
 
@@ -58,57 +60,10 @@ const visibleMetricIds = computed(() => {
 const checkboxOptionTypeList = ref<{ label: string; value: string }[]>([]);
 const decimalPoint = ref<number>(4);
 
-// Modal
-function validateFormula(formula: string): boolean {
-  if (!formula) {
-    message.warning("公式不能为空");
-    return false;
-  }
+// 新增自定义指标弹窗显隐（弹窗与表单已拆到 CreateMetricModal.vue）
+const createMetricOpen = ref(false);
 
-  // 1. 括号匹配检查
-  let stack = 0;
-  for (let i = 0; i < formula.length; i++) {
-    if (formula[i] === "(") stack++;
-    if (formula[i] === ")") stack--;
-    if (stack < 0) {
-      message.error("括号不匹配");
-      return false;
-    }
-  }
-  if (stack !== 0) {
-    message.error("括号不匹配");
-    return false;
-  }
-
-  // 2. 检查是否包含非法字符（只允许字母数字下划线、运算符、括号、小数点、空格）
-  const validCharsRegex = /^[a-zA-Z0-9_+\-*/()\s.]+$/;
-  if (!validCharsRegex.test(formula)) {
-    message.error("公式包含非法字符");
-    return false;
-  }
-
-  // 3. 检查连续运算符（如 ++、-- 等）
-  if (/[+\-*/]{2,}/.test(formula)) {
-    message.error("公式不能包含连续的运算符");
-    return false;
-  }
-
-  // 4. 检查运算符位置（不能开头结尾）
-  if (/^[+\-*/]/.test(formula) || /[+\-*/]$/.test(formula)) {
-    message.error("公式不能以运算符开头或结尾");
-    return false;
-  }
-
-  // 5. 检查是否至少包含一个运算符（派生指标必须由多个指标运算组成）
-  if (!/[+\-*/]/.test(formula)) {
-    message.error("公式必须包含至少一个运算符");
-    return false;
-  }
-
-  return true;
-}
-
-const formulaForSubmit = ref<string>(""); // 存储无花括号英文公式用于提交
+/** 指标选择弹窗：父级 open() 打开的就是它 */
 const [Modal, modalApi] = useVbenModal({
   fullscreen: false,
   fullscreenButton: false,
@@ -134,111 +89,11 @@ const [Modal, modalApi] = useVbenModal({
     }
   }
 });
-const [MetricModal, metricModalApi] = useVbenModal({
-  fullscreen: false,
-  fullscreenButton: false,
-  closeOnPressEscape: false,
-  async onCancel() {
-    await metricModalApi.close();
-  },
-  async onConfirm() {
-    const result = await formApi.validate();
-    if (!result.valid) return;
-    try {
-      await formApi.submitForm(); // 如果校验失败，这里会抛出错误
-      await metricModalApi.close();
-      await getMetricList();
-    } catch (error) {
-      // 校验失败或提交失败，弹窗保持打开，错误已通过 message 提示
-      console.error("提交失败", error);
-    }
-  },
-  async onOpenChange(isOpen) {
-    if (isOpen) {
-    }
-  }
-});
-const [Form, formApi] = useVbenForm({
-  showDefaultActions: false,
-  commonConfig: {
-    componentProps: { class: "w-full" }
-  },
-  layout: "horizontal",
-  handleSubmit: async (formVal: Record<string, any>) => {
-    const result = await formApi.validate();
-    if (!result.valid) throw new Error("表单验证失败");
-    const formValues = { ...formVal };
-    let finalFormula = "";
-    if (formulaForSubmit.value) {
-      finalFormula = formulaForSubmit.value;
-    } else if (formValues.formula) {
-      finalFormula = formValues.formula.replace(/[{}]/g, "");
-    }
-    if (!finalFormula) {
-      message.warning("请输入公式");
-      throw new Error("公式为空");
-    }
-    if (!validateFormula(finalFormula)) {
-      throw new Error("公式不合法");
-    }
-    formValues.formula = finalFormula;
-    const params = trimObject(formValues);
-    await metricApi.fetchCreateMetric(params as CreateSystemMetric);
-  },
-  schema: [
-    {
-      component: "Input",
-      componentProps: { placeholder: $t("common.input") },
-      fieldName: "id",
-      dependencies: { show: false, triggerFields: ["*"] }
-    },
-    {
-      component: "Input",
-      componentProps: { placeholder: $t("common.input") },
-      fieldName: "ename",
-      label: $t("marketing.metric.columns.ename"),
-      rules: "required"
-    },
-    {
-      component: "Input",
-      componentProps: { placeholder: $t("common.input") },
-      fieldName: "cname",
-      label: $t("marketing.metric.columns.cname"),
-      rules: "required"
-    },
-    {
-      component: "Input",
-      componentProps: { placeholder: $t("common.input") },
-      defaultValue: 2,
-      fieldName: "metricType",
-      dependencies: { show: false, triggerFields: ["*"] }
-    },
-    {
-      component: "Textarea",
-      componentProps: { placeholder: $t("common.input") },
-      fieldName: "description",
-      label: $t("marketing.metric.columns.description"),
-      rules: "required"
-    },
-    {
-      component: "MetricFormulaEditor", // 自定义组件
-      fieldName: "formula", // 直接绑定到 formula 字段
-      label: $t("marketing.metric.columns.rule"),
-      componentProps: {
-        onConfirm: handleFormulaConfirm
-      }
-    }
-  ]
-});
-
-function handleFormulaConfirm(val: any) {
-  formulaForSubmit.value = val;
-}
 
 // 拉取指标
 async function getMetricList(metricGroupId?: string) {
   isDataLoading.value = true;
-  const dataList: any = await metricApi.fetchMetric({ metricGroupId: metricGroupId, reportType: props.reportType ?? "ad" });
+  const dataList: any = await metricApi.fetchMetric({ metricGroupId, reportType: props.reportType ?? "ad" });
   metricList.value = dataList;
   updateCheckboxOptions(dataList);
   isDataLoading.value = false;
@@ -246,7 +101,7 @@ async function getMetricList(metricGroupId?: string) {
 
 // 根据列表更新 checkbox options
 function updateCheckboxOptions(list: MetricItem[]) {
-  //@ts-ignore
+  // @ts-ignore
   checkboxOptionTypeList.value = list.map((item) => ({
     label: item.cname,
     value: item.id
@@ -272,7 +127,7 @@ watch(indicatorValue, (keyword) => {
   updateCheckboxOptions(filteredList);
 });
 
-//监听指标全选框和未全选框的状态
+// 监听指标全选框和未全选框的状态
 watch(
   () => state.checkedList,
   (val) => {
@@ -315,16 +170,16 @@ const handleChange = (e: any) => {
     .map((item) => item);
 };
 const handleInsertMetric = () => {
-  metricModalApi.open();
+  createMetricOpen.value = true;
 };
 const isClickAll = ref<Boolean>(false);
-const currentItem = ref<MetricItem>();
+// 当前选中的是「指标分组」，字段为 name（分组没有 ename）
+const currentItem = ref<MetricGroupType>();
 const handleClick = (row: MetricGroupType) => {
   const list = metricGropList.value;
   const targetId = row.id;
   if (targetId) {
     isClickAll.value = false;
-    //@ts-ignore
     currentItem.value = row;
     getMetricList(row.id);
     metricGropList.value = list.map((item) => ({
@@ -348,9 +203,9 @@ const handleDragStart = (index: number) => {
 
 const handleDrop = (dropIndex: number) => {
   const newList: MetricItem[] = [...selectdMetricList.value];
-  //@ts-ignore
+  // @ts-ignore
   const temp = newList[dragIndex.value];
-  //@ts-ignore
+  // @ts-ignore
   newList[dragIndex.value] = newList[dropIndex];
   newList[dropIndex] = temp;
   selectdMetricList.value = newList;
@@ -369,7 +224,7 @@ onMounted(() => {
             <InputSearch
               v-model:value="indicatorValue"
               placeholder="请输入指标名称搜索"
-              allowClear
+              allow-clear
               class="metric-search"
             />
             <div class="metric-list">
@@ -428,7 +283,7 @@ onMounted(() => {
             type="link"
             class="insertMetric flex items-center mt-1"
             @click="handleInsertMetric"
-            v-if="currentItem?.ename.includes('自定义')"
+            v-if="currentItem?.name?.includes('自定义')"
           >
             <template #icon><span class="icon-[mdi--plus] w-5 h-5"></span></template>
             自定义指标
@@ -461,10 +316,11 @@ onMounted(() => {
         </div>
       </div>
     </Modal>
-    <!-- 指标选择弹窗（含搜索功能） -->
-    <MetricModal title="新增自定义指标">
-      <Form />
-    </MetricModal>
+    <!-- 新增自定义指标弹窗（已拆分为独立组件，避免与指标选择弹窗争抢实例） -->
+    <CreateMetricModal
+      v-model:open="createMetricOpen"
+      @success="getMetricList"
+    />
   </div>
 </template>
 

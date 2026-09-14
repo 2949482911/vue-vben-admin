@@ -1,12 +1,18 @@
 <!-- components/AdReportFilterForm.vue -->
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from "vue";
-import { useVbenForm, type VbenFormProps } from "@vben/common-ui";
-import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
-import { $t } from "@vben/locales";
-import { advertiserApi, projectApi, accountLabelApi } from "#/api";
 import type { ProjectItem } from "../../account/advertiser/advertiser";
+
+import { computed, nextTick, onMounted, ref, unref, watch } from "vue";
+
+import { useVbenForm, type VbenFormProps } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+
+import { Tag, Typography } from "ant-design-vue";
 import dayjs from 'dayjs';
+
+import { accountLabelApi, advertiserApi, projectApi } from "#/api";
+import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
+
 import { useAdLinkage } from '../adreportdata/adDropdown';
 // Props 定义
 interface Props {
@@ -16,6 +22,8 @@ interface Props {
   isShowActions?: boolean;
   wrapperClass?: string;
   content?: string;
+  /** 查询命中的行数，用于已选条件行展示 */
+  resultTotal?: number;
   onConfirm?: (values: any) => void;
   onCancel?: () => void;
   resetKey?: number; //
@@ -28,9 +36,15 @@ const props = withDefaults(defineProps<Props>(), {
   isShowActions: false,
   wrapperClass: 'grid-cols-1 md:grid-cols-2',
   content: '确认',
+  resultTotal: 0,
   onConfirm: undefined,
   onCancel: undefined
 });
+const emits = defineEmits<{
+  submit: [values: any];
+  reset: [];
+  'update:values': [values: any];
+}>();
 watch(
   () => props.resetKey,
   async (newKey, oldKey) => {
@@ -40,11 +54,6 @@ watch(
   },
   {immediate: true,deep: true}
 );
-const emits = defineEmits<{
-  submit: [values: any];
-  reset: [];
-  'update:values': [values: any];
-}>();
 // @ts-ignore
 const selectPlatform = ref<string>(null);
 const {
@@ -101,6 +110,7 @@ async function resetFormToDefault() {
     dayjs().format('YYYY-MM-DD'),
   ]);
   await formApi.setFieldValue('dims', ['day']);
+  await syncActiveValues();
 }
 
 // 表单配置
@@ -124,6 +134,20 @@ const formOptions: VbenFormProps = {
       label: 'Time',
       rules: 'required',
     },
+    // ===== 基础三项：时间范围 / 维度 / 平台（折叠态默认展示一行）=====
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: DIMS,
+        mode: 'multiple',
+        placeholder: `${$t('common.choice')}`,
+        maxTagCount: 1
+      },
+      defaultValue: ['day'],
+      fieldName: 'dims',
+      label: `${$t('marketing.report.dims.title')}`,
+    },
     {
       component: 'Select',
       componentProps: {
@@ -142,19 +166,7 @@ const formOptions: VbenFormProps = {
       fieldName: 'platform',
       label: `${$t('ocpx.platform.title')}`,
     },
-    {
-      component: 'Select',
-      componentProps: {
-        allowClear: true,
-        options: DIMS,
-        mode: 'multiple',
-        placeholder: `${$t('common.choice')}`,
-        maxTagCount: 1
-      },
-      defaultValue: ['day'],
-      fieldName: 'dims',
-      label: `${$t('marketing.report.dims.title')}`,
-    },
+    // ===== 高级筛选：账户及以下层级，默认收起 =====
     {
       component: 'HybridSearchSelect',
       componentProps: {
@@ -204,7 +216,7 @@ const formOptions: VbenFormProps = {
         searchDebounce: 300,
         remoteSearchMinLength: 1,
         clearSearchOnSelect: true,
-        selectPlatform:selectPlatform,
+        selectPlatform,
         onChange: () => {
           resetLoadedMap();
         }
@@ -348,6 +360,10 @@ const formOptions: VbenFormProps = {
   ],
   showDefaultActions: props.isShowActions,
   submitOnEnter: false,
+  // 折叠态只展示基础三项所在的一行，其余字段通过「展开」查看
+  collapsed: true,
+  collapsedRows: 1,
+  showCollapseButton: true,
   commonConfig: {
     componentProps: {
       class: 'w-full',
@@ -359,6 +375,7 @@ const formOptions: VbenFormProps = {
   },
   layout: 'horizontal',
   handleSubmit: props.customSubmit ? undefined : async (values) => {
+    await syncActiveValues();
     emits('submit', values);
     filterCriteria.value = values
     if (props.onConfirm) {
@@ -377,6 +394,64 @@ const formOptions: VbenFormProps = {
 // 创建表单实例
 const [FormComponent, formApi] = useVbenForm(formOptions);
 setFormApi(formApi);
+
+/* ---------------- 已选条件回显 ---------------- */
+
+/** 当前生效的查询条件（提交、重置、模板回显后同步） */
+const activeValues = ref<Record<string, any>>({});
+/** 不在已选条件行展示的字段：指标有独立入口 */
+const HIDDEN_TAG_FIELDS = new Set(['queryMetric']);
+
+async function syncActiveValues() {
+  activeValues.value = (await formApi.getValues()) ?? {};
+}
+
+/** 取值展示文案：有 options 的取 label，区间用 ~ 连接 */
+function toDisplayText(field: any, values: any[]) {
+  if (field?.component === 'RangePicker') return values.join(' ~ ');
+  const options = unref(field?.componentProps?.options);
+  return values
+    .map((value) => {
+      const hit = Array.isArray(options)
+        ? options.find((opt: any) => String(opt.value) === String(value))
+        : undefined;
+      return hit ? String(hit.label) : String(value);
+    })
+    .join('、');
+}
+
+/** 已选条件行：仅在存在有效值时展示 */
+const activeFilterTags = computed(() => {
+  const tags: { closable: boolean; field: string; label: string; text: string }[] = [];
+  for (const field of (formOptions.schema ?? []) as any[]) {
+    const name = field.fieldName as string;
+    if (!name || HIDDEN_TAG_FIELDS.has(name)) continue;
+    const raw = activeValues.value[name];
+    const values = Array.isArray(raw)
+      ? raw.filter((item) => item !== undefined && item !== null && item !== '')
+      : raw === undefined || raw === null || raw === ''
+        ? []
+        : [raw];
+    if (values.length === 0) continue;
+    tags.push({
+      closable: field.rules !== 'required',
+      field: name,
+      label: String(field.label ?? name),
+      text: toDisplayText(field, values)
+    });
+  }
+  return tags;
+});
+
+/** 移除单个条件后立即重查 */
+async function handleRemoveFilter(field: string) {
+  await formApi.setFieldValue(field, []);
+  if (field === 'platform') {
+    await resetLoadedMap();
+  }
+  await syncActiveValues();
+  await formApi.submitForm();
+}
 
 // 监听 initialValues 变化，回显数据
 watch(
@@ -400,6 +475,7 @@ watch(
     if (newVal.platform && newVal.platform.length > 0) {
       selectPlatform.value = newVal.platform.join(',');
     }
+    await syncActiveValues();
   },
   { deep: true, immediate: true }
 );
@@ -418,4 +494,21 @@ defineExpose({
 
 <template>
   <FormComponent />
+  <!-- 已选条件回显：单个条件可直接移除并重查 -->
+  <div
+    v-if="activeFilterTags.length > 0"
+    class="mt-3 flex flex-wrap items-center gap-2"
+  >
+    <Tag
+      v-for="tag in activeFilterTags"
+      :key="tag.field"
+      :closable="tag.closable"
+      @close="handleRemoveFilter(tag.field)"
+    >
+      {{ tag.label }}：{{ tag.text }}
+    </Tag>
+    <Typography.Text type="secondary" class="ml-auto">
+      命中 {{ props.resultTotal ?? 0 }} 行
+    </Typography.Text>
+  </div>
 </template>
