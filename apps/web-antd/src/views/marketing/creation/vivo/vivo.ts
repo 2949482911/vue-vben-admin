@@ -454,7 +454,7 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
   const ruleType: string = creationInfo.ruleInfo.adRuleKey;
   // 先从账户开始
   const vivoTableData: Array<VivoTableData> = [];
-  creationInfo.accountInfo.forEach((account) => {
+  creationInfo.accountInfo.forEach((account, accountIdx) => {
     // 当前用户广告数据
     const tableData: VivoTableData = {
       advertiserId: account.localAdvertiserId,
@@ -566,10 +566,17 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           // 广告全局序号：与广告组全局序号关联
           const globalAdIdx = globalAdGroupIdx * adCount + k;
 
+          // 素材（平均分配时按 账户 → 计划 → 广告组 → 广告 逐层均分）
           const materialList: Array<Material> = getMaterial(
             creationInfo.configData.material.config.method,
             creationInfo.configData.material.data,
-            account.localAdvertiserId
+            account.localAdvertiserId,
+            [
+              { index: accountIdx, count: creationInfo.accountInfo.length },
+              { index: i, count: campaignCount },
+              { index: f, count: adGroupCount },
+              { index: k, count: adCount }
+            ]
           );
           const title: TitlePackageItem = getTiltePackage(
             creationInfo.configData.titlePackage.config.method,

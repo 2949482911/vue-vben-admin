@@ -1,3 +1,9 @@
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { PageViewItem } from "#/api/models/assert";
+import type { StdConfigData, StdCreation } from "#/views/marketing/creation/bytedance_std/bytedance";
+import type { HuaWeiStoreCreation } from "#/views/marketing/creation/huawei_store/huawei_store";
+import type { VivoConfigData, VivoCreation } from "#/views/marketing/creation/vivo/vivo";
+
 import {
   AdGroupRuleKey,
   AdRuleKey,
@@ -5,11 +11,6 @@ import {
   DistributionMode,
   Platform
 } from "#/constants/enums";
-import type { VivoConfigData, VivoCreation } from "#/views/marketing/creation/vivo/vivo";
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
-import type { PageViewItem } from "#/api/models/assert";
-import type { HuaWeiStoreCreation } from "#/views/marketing/creation/huawei_store/huawei_store";
-import type { StdConfigData, StdCreation } from "#/views/marketing/creation/bytedance_std/bytedance";
 
 /**
  * 媒体基类
@@ -53,7 +54,7 @@ export interface AccountInfo {
 
 // ==================== 抖音号配置（巨量通用） ====================
 
-export type AwemeDistributionRule = 'ALL_SAME' | 'PER_ACCOUNT' | 'PER_PROJECT' | 'PER_AD';
+export type AwemeDistributionRule = 'ALL_SAME' | 'PER_ACCOUNT' | 'PER_AD' | 'PER_PROJECT';
 
 /**
  * 抖音号条目（存储在 Map 中）
@@ -193,7 +194,7 @@ export interface FormFieldConfig {
  */
 export function getRuleInfoCampaignCount(
   platform: string,
-  creation: PlatformCreation<VivoConfigData | StdConfigData | any>,
+  creation: PlatformCreation<any | StdConfigData | VivoConfigData>,
   localMaterialIds: Array<string>
 ): number {
   if (platform === Platform.VIVO) {
@@ -232,7 +233,7 @@ export function getRuleInfoCampaignCount(
     campaignCount = creation.ruleInfo.projectCount || 0;
   }
 
-  if (method == DistributionMode.all) {
+  if (isGlobalDistribution(method)) {
     return campaignCount * localMaterialIds.length;
   } else {
     return campaignCount;
@@ -244,7 +245,7 @@ export function getRuleInfoCampaignCount(
  */
 export function getRuleInfoAdCountGroup(
   platform: string,
-  creation: PlatformCreation<VivoConfigData | any>,
+  creation: PlatformCreation<any | VivoConfigData>,
   localMaterialIds: Array<string>
 ): number {
   if (platform === Platform.VIVO) {
@@ -282,7 +283,7 @@ export function getRuleInfoAdCountGroup(
  */
 export function getRuleInfoAdCount(
   platform: string,
-  creation: PlatformCreation<VivoConfigData | any>,
+  creation: PlatformCreation<any | VivoConfigData>,
   localMaterialIds: Array<string>
 ): number {
   if (platform === Platform.VIVO) {
@@ -320,7 +321,7 @@ export function getCampaignCount(
   data: Map<string, any[]>,
   advertiserIds: string[]
 ): number {
-  if (method === DistributionMode.all) {
+  if (isGlobalDistribution(method)) {
     return data.get("0")?.length || 0;
   } else {
     let count: number = 0;
@@ -354,22 +355,88 @@ export function getAudience(
 }
 
 /**
+ * 层级位置：当前节点在同级中的下标与同级总数
+ * 用于「平均分配」逐层均分素材（账户 → 项目/计划 → 广告组 → 广告）
+ */
+export interface LevelPosition {
+  index: number;
+  count: number;
+}
+
+/**
+ * 是否为全局单份数据的分配方式（全账户复用 / 平均分配）
+ * 这两种方式的数据都只存在 data 的 '0' 键下，只有「按账户分配」按账户ID存储
+ */
+export function isGlobalDistribution(method: string): boolean {
+  return method === DistributionMode.all || method === DistributionMode.avg;
+}
+
+/**
+ * 平均分配：按同级数量均分列表，取第 index 份
+ * - 每份数量按 ceil(总数 / 份数) 向上取整
+ * - 数量不足时下标取模轮询复用，保证同级每个节点都能分到数据
+ */
+export function averageSlice<T>(list: Array<T>, position: LevelPosition): Array<T> {
+  const { index, count } = position;
+  if (list.length === 0 || count <= 0) return [];
+  if (count === 1) return [...list];
+  const size = Math.ceil(list.length / count);
+  const result: Array<T> = [];
+  for (let i = 0; i < size; i++) {
+    result.push(list[(index * size + i) % list.length] as T);
+  }
+  return result;
+}
+
+/**
+ * 平均分配素材：按各层级位置逐层均分到单个素材
+ * 先把创意组内的素材（视频在前、图片在后）拉平后逐层取份，再按原创意组结构还原，空创意组丢弃
+ */
+export function averageMaterialGroups(
+  groups: Array<Material>,
+  levels: Array<LevelPosition>
+): Array<Material> {
+  const flat: Array<LocalMaterialData> = [];
+  groups.forEach((group) => {
+    flat.push(...(group.video || []), ...(group.image || []));
+  });
+  let picked = flat;
+  levels.forEach((level) => {
+    picked = averageSlice(picked, level);
+  });
+  if (picked === flat) return groups;
+  const pickedSet = new Set(picked);
+  const result: Array<Material> = [];
+  groups.forEach((group) => {
+    const video = (group.video || []).filter((item) => pickedSet.has(item));
+    const image = (group.image || []).filter((item) => pickedSet.has(item));
+    if (video.length > 0 || image.length > 0) {
+      result.push({ ...group, video, image });
+    }
+  });
+  return result;
+}
+
+/**
  * 获取素材
- * @param method
- * @param data
- * @param advertiserId
- * @param index
+ * @param method 分配方式
+ * @param data 素材数据
+ * @param advertiserId 账户ID
+ * @param levels 各层级位置（账户 → 项目/计划 → 广告组 → 广告），平均分配时用于逐层均分
  */
 export function getMaterial(
   method: string,
   data: Map<string, Array<Material>>,
-  advertiserId: string
+  advertiserId: string,
+  levels: Array<LevelPosition> = []
 ): Array<Material> {
-  let dataList: Array<Material> = [];
-  if (method === DistributionMode.all) {
-    dataList = data.get("0") || [];
-  } else {
-    dataList = data.get(advertiserId) || [];
+  if (method === DistributionMode.account) {
+    return data.get(advertiserId) || [];
+  }
+  const dataList: Array<Material> = data.get("0") || [];
+  // 平均分配：数据同样存在 '0' 键下，取值时按当前节点逐层均分
+  if (method === DistributionMode.avg && levels.length > 0) {
+    return averageMaterialGroups(dataList, levels);
   }
   return dataList;
 }

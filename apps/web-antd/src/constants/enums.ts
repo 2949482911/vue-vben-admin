@@ -91,10 +91,11 @@ export enum AdGroupRuleKey {
 export enum AdRuleKey {
   creative = "creative", // 创意
   title = "title", // 标题包
-  custom = "custom", //自定义
+  custom = "custom", // 自定义
 }
 
 export enum DistributionMode {
   all = "all", // 全部
+  avg = "avg", // 平均分配
   account = "account", // 账户分配
 }

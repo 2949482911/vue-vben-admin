@@ -465,7 +465,7 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
   const adList: Array<TencentCreationData> = [];
 
   // 遍历账户
-  createInfo.accountInfo.forEach((account) => {
+  createInfo.accountInfo.forEach((account, accountIdx) => {
     const advertiserId = account.localAdvertiserId;
 
     // 当前账户的表格数据
@@ -532,11 +532,16 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
       for (let adGroupIdx = 0; adGroupIdx < adGroupCount; adGroupIdx++) {
         const globalAdGroupIdx = adGroupGlobalIdx + adGroupIdx;
 
-        // 获取素材
+        // 获取素材（平均分配时按 账户 → 计划 → 广告组 逐层均分）
         const materialList: Array<Material> = getMaterial(
           createInfo.configData.material.config.method,
           createInfo.configData.material.data,
-          advertiserId
+          advertiserId,
+          [
+            { index: accountIdx, count: createInfo.accountInfo.length },
+            { index: campaignIdx, count: campaignCount },
+            { index: adGroupIdx, count: adGroupCount }
+          ]
         );
 
         // 获取标题包（按全局广告组序号轮询）

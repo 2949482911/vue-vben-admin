@@ -5,7 +5,16 @@ import type {
   OppoCreationData,
   OppoPromotion
 } from "./Oppo.types";
+
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { PageViewItem } from "#/api/models/assert";
+import type {
+  AccountTabData
+} from "#/views/marketing/creation/components/preview_area/previewAreaData";
 import type { AccountInfo, Material } from "#/views/marketing/creation/creation";
+
+import { Platform } from "#/constants/enums";
+import { renderProjectTitle } from "#/utils/customName";
 import {
   getAudience,
   getDeepLink,
@@ -17,14 +26,8 @@ import {
   getRuleInfoCampaignCount,
   getTiltePackage
 } from "#/views/marketing/creation/creation";
-import { Platform } from "#/constants/enums";
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
-import { renderProjectTitle } from "#/utils/customName";
-import type {
-  AccountTabData
-} from "#/views/marketing/creation/components/preview_area/previewAreaData";
+
 import { getDeliveryModeLabel, getExtensionLabel } from "./projectEnum";
-import type { PageViewItem } from "#/api/models/assert";
 
 /**
  * 获取预览表格数据（OPPO）
@@ -33,7 +36,7 @@ import type { PageViewItem } from "#/api/models/assert";
 export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationData[] {
   const adList: OppoCreationData[] = [];
 
-  creationInfo.accountInfo.forEach((account) => {
+  creationInfo.accountInfo.forEach((account, accountIdx) => {
     const advertiserId = account.localAdvertiserId;
 
     const tableData: OppoCreationData = {
@@ -118,7 +121,7 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             globalAdGroupIdx,
             creationInfo.project.projectName
           ),
-          pageUrl: pageView.id ? pageView.config["pageUrl"] : "",
+          pageUrl: pageView.id ? pageView.config.pageUrl : "",
           extensionType: creationInfo.configData.campaign.extensionType,
           extensionFlow: adgroupData.extensionFlow,
           flowScene: adgroupData.flowScene,
@@ -169,11 +172,17 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
         for (let adIdx = 0; adIdx < adCount; adIdx++) {
           const globalAdIdx = globalAdGroupIdx * adCount + adIdx;
 
-          // 获取素材
+          // 获取素材（平均分配时按 账户 → 计划 → 广告组 → 广告 逐层均分）
           const materialList: Material[] = getMaterial(
             creationInfo.configData.material.config.method,
             creationInfo.configData.material.data,
-            advertiserId
+            advertiserId,
+            [
+              { index: accountIdx, count: creationInfo.accountInfo.length },
+              { index: campaignIdx, count: campaignCount },
+              { index: adGroupIdx, count: adGroupCount },
+              { index: adIdx, count: adCount }
+            ]
           );
 
           // 获取标题包（按全局广告序号轮询）
@@ -229,7 +238,7 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             status: 0,
             videoBgImgId: "",
             videoMatIds: "",
-            materialIdsList: materialIdsList,
+            materialIdsList,
             getName(): string {
               return this.adName;
             },

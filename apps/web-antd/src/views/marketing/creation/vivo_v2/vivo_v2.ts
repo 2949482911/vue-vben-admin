@@ -10,6 +10,9 @@ import type {
   Promotion,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
+
+import { Platform } from "#/constants/enums";
+import { renderProjectTitle } from "#/utils/customName";
 import {
   getAudience,
   getLandingPage,
@@ -18,9 +21,6 @@ import {
   getRuleInfoCampaignCount,
   getTiltePackage
 } from "#/views/marketing/creation/creation";
-
-import { Platform } from "#/constants/enums";
-import { renderProjectTitle } from "#/utils/customName";
 
 /**
  * vivo 2.0 版本常量
@@ -352,7 +352,7 @@ export function getVivoV2TableData(creationInfo: VivoV2Creation): Array<VivoV2Ta
   const tableDataList: Array<VivoV2TableData> = [];
   const { configData } = creationInfo;
 
-  creationInfo.accountInfo.forEach((account) => {
+  creationInfo.accountInfo.forEach((account, accountIdx) => {
     const advertiserId = account.localAdvertiserId;
     const tableData: VivoV2TableData = {
       advertiserId,
@@ -373,11 +373,6 @@ export function getVivoV2TableData(creationInfo: VivoV2Creation): Array<VivoV2Ta
       advertiserId
     ]);
     const adCount: number = getRuleInfoAdCount(creationInfo.platform, creationInfo, [advertiserId]);
-    const materialList: Array<Material> = getMaterial(
-      configData.material.config.method,
-      configData.material.data,
-      advertiserId
-    );
 
     // 广告全局下标：跨计划累计，避免内层下标从 0 重置导致名字重复
     let adGlobalIdx = 0;
@@ -410,6 +405,17 @@ export function getVivoV2TableData(creationInfo: VivoV2Creation): Array<VivoV2Ta
 
       for (let k = 0; k < adCount; k++) {
         const adIdx = adGlobalIdx + k;
+        // 素材（平均分配时按 账户 → 计划 → 广告 逐层均分）
+        const materialList: Array<Material> = getMaterial(
+          configData.material.config.method,
+          configData.material.data,
+          advertiserId,
+          [
+            { index: accountIdx, count: creationInfo.accountInfo.length },
+            { index: i, count: campaignCount },
+            { index: k, count: adCount }
+          ]
+        );
         const material =
           materialList.length > 0 ? materialList[adIdx % materialList.length] : undefined;
         const titlePackage = getTiltePackage(

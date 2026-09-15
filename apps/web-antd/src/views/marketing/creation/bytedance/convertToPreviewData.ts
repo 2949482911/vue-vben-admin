@@ -1,11 +1,19 @@
 import type {
+  AwemeConfigData,
   BytedanceCampaign,
   BytedanceCreation,
   BytedanceCreationData,
   BytedancePromotion,
   BytedancePromotion_promotion_materials,
-  AwemeConfigData,
 } from "./bytedance";
+
+import type { TitlePackageItem } from "#/api/models";
+import type {
+  AccountTabData
+} from "#/views/marketing/creation/components/preview_area/previewAreaData";
+
+import { Platform } from "#/constants/enums";
+import { renderProjectTitle } from "#/utils/customName";
 import {
   type AccountInfo,
   getAudience,
@@ -19,12 +27,7 @@ import {
   getRuleInfoCampaignCount,
   getTiltePackage
 } from "#/views/marketing/creation/creation";
-import { Platform } from "#/constants/enums";
-import type { TitlePackageItem } from "#/api/models";
-import { renderProjectTitle } from "#/utils/customName";
-import type {
-  AccountTabData
-} from "#/views/marketing/creation/components/preview_area/previewAreaData";
+
 import {
   getBudgetModeCampaignLabel,
   getBudgetModePromotionLabel,
@@ -65,7 +68,7 @@ export function getPreviewTableData(
 ): BytedanceCreationData[] {
   const adList: BytedanceCreationData[] = [];
 
-  creationInfo.accountInfo.forEach((account) => {
+  creationInfo.accountInfo.forEach((account, accountIdx) => {
     const advertiserId = account.localAdvertiserId;
 
     const tableData: BytedanceCreationData = {
@@ -123,11 +126,16 @@ export function getPreviewTableData(
       for (let pIdx = 0; pIdx < promotionCount; pIdx++) {
         const globalPIdx = promotionGlobalIdx + pIdx;
 
-        // 获取素材
+        // 获取素材（平均分配时按 账户 → 项目 → 广告 逐层均分）
         const materialList: Material[] = getMaterial(
           creationInfo.configData.material.config.method,
           creationInfo.configData.material.data,
-          advertiserId
+          advertiserId,
+          [
+            { index: accountIdx, count: creationInfo.accountInfo.length },
+            { index: campaignIdx, count: campaignCount },
+            { index: pIdx, count: promotionCount }
+          ]
         );
 
         // 获取标题包（按全局广告序号轮询）

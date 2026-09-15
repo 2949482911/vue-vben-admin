@@ -7,6 +7,15 @@ import type {
   StdProject,
   StdProjectMaterials
 } from "./bytedance";
+
+import type { TitlePackageItem } from "#/api/models";
+import type { BytedanceDpaProductListItem } from "#/api/models/bytedance";
+import type {
+  AccountTabData
+} from "#/views/marketing/creation/components/preview_area/previewAreaData";
+
+import { Platform } from "#/constants/enums";
+import { renderProjectTitle } from "#/utils/customName";
 import {
   type AccountInfo,
   type AwemeConfigData,
@@ -18,13 +27,7 @@ import {
   getTiltePackage,
   type Material
 } from "#/views/marketing/creation/creation";
-import type {
-  AccountTabData
-} from "#/views/marketing/creation/components/preview_area/previewAreaData";
-import { Platform } from "#/constants/enums";
-import { renderProjectTitle } from "#/utils/customName";
-import type { TitlePackageItem } from "#/api/models";
-import type { BytedanceDpaProductListItem } from "#/api/models/bytedance";
+
 import {
   getBudgetModeCampaignLabel,
   getCampaignOperationLabel,
@@ -55,7 +58,7 @@ function getAwemeId(
 function getProductConfig(
   productConfig: ProductConfigData | undefined,
   advertiserId: string,
-): ProductDataMapping | null {
+): null | ProductDataMapping {
   if (!productConfig?.data) return null;
   const key = productConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
   return productConfig.data.get(key)?.[0] || null;
@@ -82,7 +85,7 @@ export function getPreviewTableData(
 ): StdCreationData[] {
   const adList: StdCreationData[] = [];
 
-  creationInfo.accountInfo.forEach((account) => {
+  creationInfo.accountInfo.forEach((account, accountIdx) => {
     const advertiserId = account.localAdvertiserId;
 
     const tableData: StdCreationData = {
@@ -101,11 +104,15 @@ export function getPreviewTableData(
     const projectData = creationInfo.configData.project;
 
     for (let pIdx = 0; pIdx < projectCount; pIdx++) {
-      // 获取素材
+      // 获取素材（平均分配时按 账户 → 项目 逐层均分）
       const materialList: Material[] = getMaterial(
         creationInfo.configData.material.config.method,
         creationInfo.configData.material.data,
-        advertiserId
+        advertiserId,
+        [
+          { index: accountIdx, count: creationInfo.accountInfo.length },
+          { index: pIdx, count: projectCount }
+        ]
       );
 
       const material = materialList[pIdx % materialList.length];
@@ -196,7 +203,7 @@ export function getPreviewTableData(
         pIdx
       );
 
-      //@ts-ignore
+      // @ts-ignore
       const project: StdProject = {
         aigc_dynamic_creative_switch: "",
         app_name: creationInfo.project.projectName,

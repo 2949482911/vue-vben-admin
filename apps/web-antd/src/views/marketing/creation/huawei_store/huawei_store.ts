@@ -1,5 +1,7 @@
 // 华为创编对象定义
 
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { PageViewItem } from "#/api/models/assert";
 // 华为创编对象定义
 import type {
   Adgroup,
@@ -11,10 +13,12 @@ import type {
   PlatformCreation, Promotion,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
+
 import {
   DistributionMode,
   Platform
 } from "#/constants/enums";
+import { renderProjectTitle } from "#/utils/customName";
 import {
   getAudience,
   getMaterial,
@@ -26,9 +30,6 @@ import {
   type Material,
   type MonitoringLinkType
 } from "#/views/marketing/creation/creation";
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
-import type { PageViewItem } from "#/api/models/assert";
-import { renderProjectTitle } from "#/utils/customName";
 
 export const HUAWEI_STORE: string = "0.1";
 
@@ -234,24 +235,24 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
   const adList: Array<HuaWeiStoreCreationData> = [];
 
   // 遍历账户
-  creationInfo.accountInfo.forEach((account) => {
+  creationInfo.accountInfo.forEach((account, accountIdx) => {
     const advertiserId = account.localAdvertiserId;
 
     // 当前账户的表格数据
     const tableData: HuaWeiStoreCreationData = {
-      advertiserId: advertiserId,
+      advertiserId,
       campaignList: [],
-      getCampaignCount: function(): number {
+      getCampaignCount(): number {
         return this.campaignList.length;
       },
-      getAdGroupCount: function(): number {
+      getAdGroupCount(): number {
         let count: number = 0;
         this.campaignList.forEach((campaign) => {
           count += campaign.adGroupList.length;
         });
         return count;
       },
-      getAdCount: function(): number {
+      getAdCount(): number {
         let count: number = 0;
         this.campaignList.forEach((campaign) => {
           campaign.adGroupList.forEach((adgroup) => {
@@ -302,7 +303,7 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
           globalAdGroupIdx
         );
         const adgroup: HuaWeiStoreSubTask = {
-          getName: function(): string {
+          getName(): string {
             return this.subTaskName;
           },
           adgroupId: "",
@@ -327,11 +328,17 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
         for (let adIdx = 0; adIdx < adCount; adIdx++) {
           const globalAdIdx = globalAdGroupIdx * adCount + adIdx;
 
-          // 获取素材
+          // 获取素材（平均分配时按 账户 → 任务 → 子任务 → 广告 逐层均分）
           const materialList: Array<Material> = getMaterial(
             creationInfo.configData.material.config.method,
             creationInfo.configData.material.data,
-            advertiserId
+            advertiserId,
+            [
+              { index: accountIdx, count: creationInfo.accountInfo.length },
+              { index: campaignIdx, count: campaignCount },
+              { index: adGroupIdx, count: adGroupCount },
+              { index: adIdx, count: adCount }
+            ]
           );
 
           // 获取标题包（按全局广告序号轮询）
@@ -359,7 +366,7 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
 
           // 构建广告对象
           const promotion: HuaWeiStorePromotion = {
-            getName: function(): string {
+            getName(): string {
               return this.contentTitle;
             },
             adId: "",
@@ -393,7 +400,7 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
 
       // 构建任务对象
       const campaign: HuaWeiStoreTask = {
-        getName: function(): string {
+        getName(): string {
           return this.taskName;
         },
         campaignId: "",
@@ -421,7 +428,7 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
           type: creationInfo.configData.campaign.campaignInfo.type,
           dailyBudget: creationInfo.configData.campaign.campaignInfo.dailyBudget
         },
-        adGroupList: adGroupList
+        adGroupList
       };
 
       tableData.campaignList.push(campaign);
