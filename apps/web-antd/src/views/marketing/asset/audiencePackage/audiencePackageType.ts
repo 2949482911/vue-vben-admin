@@ -1,3 +1,16 @@
+import type { VivoV2AudienceInfo } from '#/views/marketing/creation/vivo_v2/vivo_v2';
+
+import { Platform } from '#/constants/enums';
+import { ACTIVE_PLATFORM } from '#/constants/locales';
+
+/**
+ * 定向包可选平台（在通用媒体平台基础上追加 vivo2.0，避免影响其他模块共用的 ACTIVE_PLATFORM）
+ */
+export const AUDIENCE_PLATFORM_OPTIONS = [
+  ...ACTIVE_PLATFORM,
+  { label: 'vivo新版', value: Platform.VIVO_NEW },
+];
+
 /**
  * 定向人群配置详情
  */
@@ -44,6 +57,11 @@ export interface AdVivoConfig extends AdConfig {
       behavior?: number;
     };
   };
+}
+
+export interface AdVivoV2Config extends AdConfig {
+  /** vivo2.0 定向配置（对应接口 audienceInfo，字段结构见 creation/vivo_v2/vivo_v2.ts） */
+  config?: VivoV2AudienceInfo;
 }
 
 export interface AdBytedanceConfig extends AdConfig {

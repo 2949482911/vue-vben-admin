@@ -1,11 +1,12 @@
 <script setup lang="ts" name="TencentCampaign">
 import type { AudienceConfigData } from "#/views/marketing/creation/creation";
-import { ref, watch } from "vue";
-import type { TencentCampaignData } from "#/views/marketing/creation/tencent/tencent";
-import { useVbenDrawer } from "@vben/common-ui";
-import TencentCampaignDrawer from "./TencentCampaignDrawer.vue";
-import { Platform } from "#/constants/enums";
 import type { AccountInfo } from "#/views/marketing/creation/creation";
+import type { TencentCampaignData } from "#/views/marketing/creation/tencent/tencent";
+
+import { ref, watch } from "vue";
+
+import { useVbenDrawer } from "@vben/common-ui";
+
 import {
   Alert,
   Button,
@@ -13,31 +14,12 @@ import {
   Descriptions,
   DescriptionsItem,
 } from "ant-design-vue";
+
+import { Platform } from "#/constants/enums";
 import AudiencePackageSelector
   from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
 
-/**
- * update:campaign 更新计划信息
- * update:audiencePackage 更新定向包
- */
-const emit = defineEmits(["update:campaign", "update:audiencePackage"]);
-
-
-/**
- * 计划编辑抽屉
- */
-
-const [CampaignDrawerModule, drawerApi] = useVbenDrawer({
-  connectedComponent: TencentCampaignDrawer,
-  onOpenChange(isOpen) {
-    if (!isOpen) {
-      const campaignData = drawerApi.getData();
-      campaignInfo.value = campaignData as TencentCampaignData;
-      emit("update:campaign", campaignInfo.value);
-    }
-  }
-});
-
+import TencentCampaignDrawer from "./TencentCampaignDrawer.vue";
 
 /**
  * formFields 展示的表单
@@ -60,7 +42,7 @@ const { formFields, campaignShowLabel, audience, campaign, accountInfo, fieldLab
     default: () => {}
   },
   campaign: {
-    type: Object as () => TencentCampaignData | null,
+    type: Object as () => null | TencentCampaignData,
     default: () => {}
   },
   accountInfo: {
@@ -68,6 +50,29 @@ const { formFields, campaignShowLabel, audience, campaign, accountInfo, fieldLab
     default: () => []
   },
   fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
+});
+
+
+/**
+ * update:campaign 更新计划信息
+ * update:audiencePackage 更新定向包
+ */
+const emit = defineEmits(["update:campaign", "update:audiencePackage"]);
+
+
+/**
+ * 计划编辑抽屉
+ */
+
+const [CampaignDrawerModule, drawerApi] = useVbenDrawer({
+  connectedComponent: TencentCampaignDrawer,
+  onOpenChange(isOpen) {
+    if (!isOpen) {
+      const campaignData = drawerApi.getData();
+      campaignInfo.value = campaignData as TencentCampaignData;
+      emit("update:campaign", campaignInfo.value);
+    }
+  }
 });
 
 
@@ -237,12 +242,14 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
       <Card title="营销单元" class="info-card">
         <div class="card-content">
           <Descriptions title="基本信息" v-if="campaignInfo.adgroup_name" :column="1" class="info-descriptions">
-            <DescriptionsItem v-for="(label, key ) in campaignShowLabel"
-                              :key="key" :label="label">
+            <DescriptionsItem
+v-for="(label, key ) in campaignShowLabel"
+                              :key="key" :label="label"
+>
               {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
             </DescriptionsItem>
           </Descriptions>
-          <Alert v-else type="error" message="请先填写营销单元信息" class="empty-alert"></Alert>
+          <Alert v-else type="error" message="请先填写营销单元信息" class="empty-alert" />
         </div>
         <div class="card-footer">
           <Button primary danger @click="openCampaignDrawer">

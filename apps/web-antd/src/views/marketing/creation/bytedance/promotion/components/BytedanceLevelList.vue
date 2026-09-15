@@ -233,14 +233,20 @@ function buildColumns(cols: string[] | undefined, cname: Record<string, string> 
   const dynamic = ordered.map((key) => {
     const isMetric = METRIC_FIELDS.includes(key);
     const isName = key === nameKey;
+    // 后端 cname 可能带多行枚举说明，表头只取第一行，完整说明放 tooltip
+    const rawTitle = (cname && cname[key]) || key;
+    const titleLines = String(rawTitle).split('\n');
     const column: Record<string, any> = {
       field: key,
-      title: (cname && cname[key]) || key,
+      title: titleLines[0],
       minWidth: isName ? 220 : isMetric ? 120 : 160,
       align: isMetric ? 'right' : 'left',
       headerAlign: isMetric ? 'right' : 'left',
       showOverflow: true,
     };
+    if (titleLines.length > 1) {
+      column.titlePrefix = { content: rawTitle };
+    }
     if (isMetric) {
       column.formatter = ({ cellValue }: any) => formatMetricValue(cellValue);
     }

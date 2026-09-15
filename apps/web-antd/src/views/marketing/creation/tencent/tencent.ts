@@ -1,26 +1,27 @@
+import type {TargetedPackageTypeItem, TitlePackageItem} from "#/api/models";
 import type {
   Adgroup,
   AudienceConfigData,
   Campaign,
   ConfigurationConfig,
+  Material,
   MaterialData,
   MonitoringLinkConfigData,
   MonitoringLinkType,
   PlatformCreation,
-  TitlePackageConfigData,
-  Material
+  TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
+
+import {Platform} from "#/constants/enums";
 import {renderProjectTitle} from "#/utils/customName";
 import {
-  getRuleInfoCampaignCount,
-  getRuleInfoAdCountGroup,
   getAudience,
   getMaterial,
   getMonitoringLink,
+  getRuleInfoAdCountGroup,
+  getRuleInfoCampaignCount,
   getTiltePackage
 } from "#/views/marketing/creation/creation";
-import {Platform} from "#/constants/enums";
-import type {TargetedPackageTypeItem, TitlePackageItem} from "#/api/models";
 
 
 export const TENCENT: string = "0.1";
@@ -469,12 +470,12 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
 
     // 当前账户的表格数据
     const tableData: TencentCreationData = {
-      advertiserId: advertiserId,
+      advertiserId,
       campaignList: [],
-      getCampaignCount: function(): number {
+      getCampaignCount(): number {
         return this.campaignList.length;
       },
-      getAdGroupCount: function(): number {
+      getAdGroupCount(): number {
         let count: number = 0;
         this.campaignList.forEach((campaign) => {
           count += campaign.adGroupList.length;
@@ -513,7 +514,7 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
       // 构建计划对象
       const campaign: TencentCampaign = {
         ...createInfo.configData.campaign,
-        getName: function(): string {
+        getName(): string {
           return this.adgroup_name;
         },
         adgroup_id: 0,
@@ -557,7 +558,7 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
         // 构建广告组对象
         const adgroup: TencentAdgroup = {
           ...createInfo.configData.adgroup,
-          getName: function(): string {
+          getName(): string {
             return this.dynamic_creative_name;
           },
           adgroup_id: 0,

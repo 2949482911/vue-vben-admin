@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
-import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { trimObject } from "#/utils/trim";
-import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
-import { Button, message, Switch } from "ant-design-vue";
-import { advertiserApi, targetedPackageApi } from "#/api";
 import type { AdConfig } from "./audiencePackageType";
-import CreatedAudiencePackage from "./createdAudiencePackage.vue";
+
 import { onMounted, ref } from "vue";
+
+import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
+
+import { Button, message, Switch } from "ant-design-vue";
+
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { advertiserApi, targetedPackageApi } from "#/api";
+import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { trimObject } from "#/utils/trim";
+
+import { AUDIENCE_PLATFORM_OPTIONS } from "./audiencePackageType";
+import CreatedAudiencePackage from "./createdAudiencePackage.vue";
 
 const [CreatedAudiencePackageModule, drawerApi] = useVbenDrawer({
   connectedComponent: CreatedAudiencePackage
@@ -50,7 +56,7 @@ const formOptions: VbenFormProps = {
       component: "Select",
       componentProps: {
         allowClear: true,
-        options: ACTIVE_PLATFORM,
+        options: AUDIENCE_PLATFORM_OPTIONS,
         placeholder: "请选择",
         onChange: async (val: string) => {
           await loadAdvertiserOptions(val);
@@ -195,7 +201,7 @@ function handlerState(_row: AdConfig) {
         <Button class="mr-2" type="primary" @click="openDrawer">新建定向包</Button>
       </template>
     </Grid>
-    <CreatedAudiencePackageModule @page-reload="pageReload" :displayValue="displayValue" />
+    <CreatedAudiencePackageModule @page-reload="pageReload" :display-value="displayValue" />
   </Page>
 </template>
 

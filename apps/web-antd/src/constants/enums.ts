@@ -11,6 +11,7 @@ export enum Platform {
   KUAKE = "kuake",
   OPPO = "oppo",
   VIVO = "vivo",
+  VIVO_NEW = "vivo2.0",
   XMLY = "xmly",
   HONOR = "honor",
   KUAISHOU = "kuaishou",

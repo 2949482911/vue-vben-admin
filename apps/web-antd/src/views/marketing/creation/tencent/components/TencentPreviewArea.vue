@@ -1,14 +1,16 @@
 <script setup lang="ts" name="TencentPreviewArea">
 // 腾讯广告预览数据
 
-import { computed } from "vue";
-import type { TencentCreationData } from "#/views/marketing/creation/tencent/tencent";
-import type { AccountInfo } from "#/views/marketing/creation/creation";
 import type {
-  PreviewColumn,
   AccountTabData,
-  LevelNames
+  LevelNames,
+  PreviewColumn
 } from "#/views/marketing/creation/components/preview_area/previewAreaData";
+import type { AccountInfo } from "#/views/marketing/creation/creation";
+import type { TencentCreationData } from "#/views/marketing/creation/tencent/tencent";
+
+import { computed } from "vue";
+
 import PreviewArea from "#/views/marketing/creation/components/preview_area/PreviewArea.vue";
 import { convertToPreviewData } from "#/views/marketing/creation/tencent/convertToPreviewData";
 
@@ -78,7 +80,7 @@ const tableColumns: PreviewColumn[] = [
     :campaign-merge-fields="['campaignName']"
     :adgroup-merge-fields="['adgroupName']"
     :level-names="levelNames"
-  ></PreviewArea>
+  />
 </div>
 </template>
 

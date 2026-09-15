@@ -1,17 +1,41 @@
 <script setup lang="ts" name="TencentAdgroup">
-import { ref, watch } from "vue";
 import type { TencentAdgroupData } from "#/views/marketing/creation/tencent/tencent";
+
+import { ref, watch } from "vue";
+
 import { useVbenDrawer } from "@vben/common-ui";
-import TencentAdgroupDrawer from "./TencentAdgroupDrawer.vue";
+
 import {
   Alert,
   Button,
   Card,
   Descriptions,
-  DescriptionsItem,
-  Divider,
-  Space
+  DescriptionsItem
 } from "ant-design-vue";
+
+import TencentAdgroupDrawer from "./TencentAdgroupDrawer.vue";
+
+/**
+ * formFields 展示的表单
+ * adgroupShowLabel 展示的label
+ * adgroup 广告数据
+ */
+const { formFields, adgroupShowLabel, adgroup, fieldLabelMap } = defineProps({
+  formFields: {
+    type: Array,
+    default: () => []
+  },
+  adgroupShowLabel: {
+    type: Object,
+    default: () => {}
+  },
+  adgroup: {
+    type: Object as () => null | TencentAdgroupData,
+    default: () => {}
+  },
+  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
+});
+
 
 /**
  * update:adgroup 更新广告信息
@@ -31,28 +55,6 @@ const [AdgroupDrawerModule, drawerApi] = useVbenDrawer({
       emit("update:adgroup", adgroupInfo.value);
     }
   }
-});
-
-
-/**
- * formFields 展示的表单
- * adgroupShowLabel 展示的label
- * adgroup 广告数据
- */
-const { formFields, adgroupShowLabel, adgroup, fieldLabelMap } = defineProps({
-  formFields: {
-    type: Array,
-    default: () => []
-  },
-  adgroupShowLabel: {
-    type: Object,
-    default: () => {}
-  },
-  adgroup: {
-    type: Object as () => TencentAdgroupData | null,
-    default: () => {}
-  },
-  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
 
 
@@ -109,12 +111,14 @@ function openAdgroupDrawer() {
     <Card title="动态创意" class="info-card">
       <div class="card-content">
         <Descriptions title="基本信息" v-if="adgroupInfo.dynamic_creative_name" :column="1" class="info-descriptions">
-          <DescriptionsItem v-for="(label, key ) in adgroupShowLabel"
-                            :key="key" :label="label">
+          <DescriptionsItem
+v-for="(label, key ) in adgroupShowLabel"
+                            :key="key" :label="label"
+>
             {{ fieldLabelMap[key] ? fieldLabelMap[key](adgroupInfo[key]) : adgroupInfo[key] }}
           </DescriptionsItem>
         </Descriptions>
-        <Alert v-else type="error" message="请先填写广告信息" class="empty-alert"></Alert>
+        <Alert v-else type="error" message="请先填写广告信息" class="empty-alert" />
       </div>
       <div class="card-footer">
         <Button primary @click="openAdgroupDrawer">

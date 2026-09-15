@@ -32,7 +32,7 @@ function handleLevelChange(key: string) {
   <AdManagementShell
     platform-label="vivo"
     description="按计划 / 广告组 / 广告层级查看数据，支持批量操作与导出"
-    create-path="/marketing/creation/vivo"
+    create-path="/marketing/vivo/promotion/creation"
     :tabs="LEVEL_TABS"
     @change="handleLevelChange"
   >

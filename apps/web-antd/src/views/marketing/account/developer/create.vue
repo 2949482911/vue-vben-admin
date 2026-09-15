@@ -146,6 +146,7 @@ const [Modal, modalApi] = useVbenModal({
   onCancel() {
     modalApi.close();
     formApi.resetForm();
+    //@ts-ignore
     objectRequest.value = {};
     isUpdate.value = false;
   },
@@ -161,9 +162,11 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
+      //@ts-ignore
       objectRequest.value = modalApi.getData<Record<string, any>>();
       if (objectRequest.value.id) {
         isUpdate.value = true;
+        //@ts-ignore
         handleSetFormValue(objectRequest.value);
       } else {
         isUpdate.value = false;

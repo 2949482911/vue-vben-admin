@@ -1,5 +1,6 @@
 <script setup lang="ts" name="TencentAdgroupDrawer">
 import { useVbenDrawer } from "@vben/common-ui";
+
 import { useVbenForm } from "#/adapter/form";
 
 const { formFields } = defineProps({
@@ -92,7 +93,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
 <template>
   <div>
     <Drawer title="广告">
-      <Form></Form>
+      <Form />
     </Drawer>
   </div>
 </template>

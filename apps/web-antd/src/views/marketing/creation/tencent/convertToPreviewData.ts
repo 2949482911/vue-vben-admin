@@ -1,16 +1,17 @@
+import type { AccountTabData } from "#/views/marketing/creation/components/preview_area/previewAreaData";
+import type { AccountInfo } from "#/views/marketing/creation/creation";
 import type {
   TencentCampaign,
   TencentCreationData
 } from "#/views/marketing/creation/tencent/tencent";
-import type { AccountInfo } from "#/views/marketing/creation/creation";
-import type { AccountTabData } from "#/views/marketing/creation/components/preview_area/previewAreaData";
+
 import {
-  getMarketingGoalLabel,
-  getMarketingSubGoalLabel,
-  getOptimizationGoalLabel,
   getConfiguredStatusLabel,
   getCreativeDeliveryModeLabel,
   getDynamicCreativeTypeLabel,
+  getMarketingGoalLabel,
+  getMarketingSubGoalLabel,
+  getOptimizationGoalLabel,
 } from "./tencent_enums";
 
 
@@ -31,7 +32,7 @@ export function convertToPreviewData(adList: TencentCreationData[], accountInfo:
       campaignCount: item.getCampaignCount(),
       adgroupCount: item.getAdGroupCount(),
       promotionCount: 0, // 腾讯没有广告层级
-      flattenedRows: flattenedRows
+      flattenedRows
     };
   });
 }
@@ -87,7 +88,7 @@ function flattenData(campaignList: TencentCampaign[]): any[] {
  */
 function formatCreativeComponents(
   creativeComponents: any[] | undefined,
-  type: 'image' | 'video' | 'title'
+  type: 'image' | 'title' | 'video'
 ): string {
   if (!creativeComponents || creativeComponents.length === 0) {
     return '';

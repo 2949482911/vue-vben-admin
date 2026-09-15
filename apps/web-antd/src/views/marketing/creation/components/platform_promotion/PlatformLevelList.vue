@@ -3,10 +3,9 @@
 // - 列由后端「媒体原生列表」返回 columns + cname 动态生成
 // - 批量操作复用 promotion_manager/components 的 BatchOperationDropdown / BatchOperationDrawer
 import type { ReportFilter } from '#/api/models';
-
 import { computed, ref } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
+import { Page, useVbenDrawer } from '@vben/common-ui';
 
 import { Drawer as ADrawer, Button, Descriptions, message, Space, Typography } from 'ant-design-vue';
 
@@ -26,8 +25,12 @@ const props = withDefaults(
     idField: string;
     /** 该层级可用的批量操作；为空则不展示批量入口 */
     operationKeys?: string[];
+    /** 账户下拉使用的媒体标识；默认同 platform（部分新版媒体复用旧媒体账户） */
+    advertiserPlatform?: string;
+    /** 枚举字典（字段 -> { 码值: 文案 }），命中时单元格展示文案 */
+    enums?: Record<string, Record<string, string>>;
   }>(),
-  { operationKeys: () => [] },
+  { operationKeys: () => [], advertiserPlatform: '', enums: () => ({}) },
 );
 
 /** 各层级名称列候选字段：各媒体命名不统一（蛇形 campaign_name / 驼峰 campaignName） */
@@ -80,6 +83,12 @@ function formatMetricValue(value: unknown) {
     maximumFractionDigits: decimals,
     minimumFractionDigits: decimals,
   });
+}
+
+/** 枚举值格式化：命中字典展示中文文案，未命中回退原始码值 */
+function formatEnumValue(map: Record<string, string>, value: unknown) {
+  if (value === undefined || value === null || value === '') return '—';
+  return map[String(value)] ?? String(value);
 }
 
 // ============ 选区 ============
@@ -150,7 +159,7 @@ const schema = levelFields.map((field) => {
             page: 1,
             pageSize: 10000,
             putStatue: 1,
-            platform: props.platform,
+            platform: props.advertiserPlatform || props.platform,
             advertiserRole: [],
             ...params,
           });
@@ -254,15 +263,24 @@ function buildColumns(cols: string[] | undefined, cname: Record<string, string> 
   const dynamic = ordered.map((key) => {
     const isMetric = METRIC_FIELDS.includes(key);
     const isName = key === nameKey;
+    const enumMap = props.enums[key];
+    // 后端 cname 可能带多行枚举说明（如「推广模式\n0:常规投放\n1:商品智投」），表头只取第一行，完整说明放 tooltip
+    const rawTitle = (cname && cname[key]) || key;
+    const titleLines = String(rawTitle).split('\n');
     const column: Record<string, any> = {
       field: key,
-      title: (cname && cname[key]) || key,
+      title: titleLines[0],
       minWidth: isName ? 220 : isMetric ? 120 : 160,
       align: isMetric ? 'right' : 'left',
       headerAlign: isMetric ? 'right' : 'left',
       showOverflow: true,
     };
-    if (isMetric) {
+    if (titleLines.length > 1) {
+      column.titlePrefix = { content: rawTitle };
+    }
+    if (enumMap) {
+      column.formatter = ({ cellValue }: any) => formatEnumValue(enumMap, cellValue);
+    } else if (isMetric) {
       column.formatter = ({ cellValue }: any) => formatMetricValue(cellValue);
     }
     if (isName) {
@@ -339,53 +357,55 @@ defineExpose({ pageReload });
 </script>
 
 <template>
-  <Grid>
-    <!-- 左侧：勾选后切换为批量操作条，未勾选时展示轻量统计 -->
-    <template #toolbar-actions>
-      <div v-if="selectedRows.length > 0" class="flex items-center gap-2">
-        <Typography.Text>
-          已选 <span class="font-medium tabular-nums">{{ selectedRows.length }}</span> 项
-        </Typography.Text>
-        <BatchOperationDropdown
-          v-if="operationKeys && operationKeys.length > 0"
-          :level="level"
-          :operation-keys="operationKeys"
-          @open="openBatchOperation"
-        />
-        <Button type="link" size="small" @click="clearSelection">取消选择</Button>
-      </div>
-      <div v-else class="flex items-center gap-1">
-        <Typography.Text type="secondary">
-          命中 <span class="tabular-nums">{{ totalCount }}</span> 条
-        </Typography.Text>
-        <Typography.Text type="secondary">·</Typography.Text>
-        <Typography.Text type="secondary">{{ levelLabel }}层级</Typography.Text>
-      </div>
-    </template>
+ <Page >
+   <Grid >
+     <!-- 左侧：勾选后切换为批量操作条，未勾选时展示轻量统计 -->
+     <template #toolbar-actions>
+       <div v-if="selectedRows.length > 0" class="flex items-center gap-2">
+         <Typography.Text>
+           已选 <span class="font-medium tabular-nums">{{ selectedRows.length }}</span> 项
+         </Typography.Text>
+         <BatchOperationDropdown
+           v-if="operationKeys && operationKeys.length > 0"
+           :level="level"
+           :operation-keys="operationKeys"
+           @open="openBatchOperation"
+         />
+         <Button type="link" size="small" @click="clearSelection">取消选择</Button>
+       </div>
+       <div v-else class="flex items-center gap-1">
+         <Typography.Text type="secondary">
+           命中 <span class="tabular-nums">{{ totalCount }}</span> 条
+         </Typography.Text>
+         <Typography.Text type="secondary">·</Typography.Text>
+         <Typography.Text type="secondary">{{ levelLabel }}层级</Typography.Text>
+       </div>
+     </template>
 
-    <template #toolbar-tools>
-      <Space>
-        <Button @click="handleExport">导出</Button>
-      </Space>
-    </template>
+     <template #toolbar-tools>
+       <Space>
+         <Button @click="handleExport">导出</Button>
+       </Space>
+     </template>
 
-    <template #action="{ row }">
-      <Button type="link" @click="openDetail(row)">详情</Button>
-    </template>
-  </Grid>
+     <template #action="{ row }">
+       <Button type="link" @click="openDetail(row)">详情</Button>
+     </template>
+   </Grid>
 
-  <BatchDrawer @page-reload="onBatchPageReload" />
+   <BatchDrawer @page-reload="onBatchPageReload" />
 
-  <ADrawer
-    v-model:open="detailOpen"
-    :loading="detailLoading"
-    width="560"
-    title="详情"
-  >
-    <Descriptions :column="1" size="small" bordered>
-      <Descriptions.Item v-for="(val, key) in detailData" :key="key" :label="String(key)">
-        {{ val }}
-      </Descriptions.Item>
-    </Descriptions>
-  </ADrawer>
+   <ADrawer
+     v-model:open="detailOpen"
+     :loading="detailLoading"
+     width="560"
+     title="详情"
+   >
+     <Descriptions :column="1" size="small" bordered>
+       <Descriptions.Item v-for="(val, key) in detailData" :key="key" :label="String(key)">
+         {{ val }}
+       </Descriptions.Item>
+     </Descriptions>
+   </ADrawer>
+ </Page>
 </template>

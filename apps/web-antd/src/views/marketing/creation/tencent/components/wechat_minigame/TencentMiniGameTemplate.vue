@@ -2,35 +2,34 @@
 // 小游戏投放模板
 
 import type {
-  TencentAdgroupData,
-  TencentCampaignData,
-  TencentCreation
-} from "#/views/marketing/creation/tencent/tencent";
-import { Col, Row } from "ant-design-vue";
-import TencentCampaign from "#/views/marketing/creation/tencent/components/TencentCampaign.vue";
-import type {
   AudienceConfigData,
   MaterialData,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
+import type {
+  TencentAdgroupData,
+  TencentCampaignData,
+  TencentCreation
+} from "#/views/marketing/creation/tencent/tencent";
+
+import { markRaw } from "vue";
+
+import { Col, Row } from "ant-design-vue";
+
+import CreativeGroupSelector
+  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import TimeSelectionPeriod
+  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
+import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+import TencentAdgroup from "#/views/marketing/creation/tencent/components/TencentAdgroup.vue";
+import TencentCampaign from "#/views/marketing/creation/tencent/components/TencentCampaign.vue";
 import {
+  fieldLabelMap,
   Tencent_auto_derived_creative_method_type_list,
   Tencent_configured_status,
   Tencent_creative_delivery_mode,
-  Tencent_ecom_pkam_switch,
-  fieldLabelMap
+  Tencent_ecom_pkam_switch
 } from "#/views/marketing/creation/tencent/tencent_enums";
-import { markRaw } from "vue";
-import TimeSelectionPeriod
-  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
-import TencentAdgroup from "#/views/marketing/creation/tencent/components/TencentAdgroup.vue";
-import CreativeGroupSelector
-  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
-import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
-
-
-const emit = defineEmits(["update:campaign", "update:adgroup",
-  "update:audiencePackage", "update:updateMaterial", "update:titlePackage"]);
 
 
 const { creationInfo } = defineProps({
@@ -41,6 +40,10 @@ const { creationInfo } = defineProps({
     }
   }
 });
+
+
+const emit = defineEmits(["update:campaign", "update:adgroup",
+  "update:audiencePackage", "update:updateMaterial", "update:titlePackage"]);
 
 
 /**
@@ -353,7 +356,7 @@ const campaignFormFields = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["auto_derived_creative_enabled"];
+        return currentValue.auto_derived_creative_enabled;
       },
       triggerFields: ["auto_derived_creative_enabled"]
     }
@@ -469,7 +472,7 @@ defineExpose({
           :field-label-map="fieldLabelMap"
           @update:campaign="updateCampaign"
           @update:audience-package="updateAudiencePackage"
-        ></TencentCampaign>
+        />
       </Col>
 
 
@@ -480,7 +483,7 @@ defineExpose({
           :adgroup="creationInfo?.configData.adgroup"
           :field-label-map="fieldLabelMap"
           @update:adgroup="updateAdgroup"
-        ></TencentAdgroup>
+        />
       </Col>
 
 
@@ -498,7 +501,7 @@ defineExpose({
           :title-package="creationInfo.configData.titlePackage"
           :account-info="creationInfo.accountInfo"
           @update:title-package="updateTitlePackage"
-        ></TitleSelector>
+        />
       </Col>
     </Row>
   </div>

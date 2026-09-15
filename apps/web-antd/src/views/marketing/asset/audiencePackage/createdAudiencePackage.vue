@@ -1,31 +1,38 @@
 <script lang="ts" setup>
-import { advertiserApi, targetedPackageApi } from '#/api';
-import { useVbenForm, useVbenDrawer } from '@vben/common-ui';
-import { message } from 'ant-design-vue';
-import { computed, ref } from 'vue';
-import { ACTIVE_PLATFORM } from '#/constants/locales';
 import type { AdBytedanceConfig, AdOppoConfig, AdVivoConfig } from './audiencePackageType';
-import { trimObject } from '#/utils/trim';
-import Vivo_audienceForm from './vivoAudience/vivo_audienceForm.vue';
-import Oppo_audienceForm from './oppoAudience/oppo_audienceForm.vue';
-import HuaWeiStoreAudienceForm from './huaweistoreAudience/huawei_store_audienceForm.vue';
-import TencentAudienceForm from './tencent/tencent_audienceForm.vue';
-import BytedanceAudienceForm from './bytedance/bytedance_audienceForm.vue';
+
+import { computed, ref } from 'vue';
+
+import { useVbenDrawer, useVbenForm } from '@vben/common-ui';
+
+import { message } from 'ant-design-vue';
+
+import { advertiserApi, targetedPackageApi } from '#/api';
 import {Platform} from "#/constants/enums";
+import { trimObject } from '#/utils/trim';
+
+import { AUDIENCE_PLATFORM_OPTIONS } from './audiencePackageType';
+import BytedanceAudienceForm from './bytedance/bytedance_audienceForm.vue';
+import HuaWeiStoreAudienceForm from './huaweistoreAudience/huawei_store_audienceForm.vue';
+import Oppo_audienceForm from './oppoAudience/oppo_audienceForm.vue';
+import TencentAudienceForm from './tencent/tencent_audienceForm.vue';
+import Vivo_audienceForm from './vivoAudience/vivo_audienceForm.vue';
+import VivoV2AudienceForm from './vivoV2Audience/vivo_v2_audienceForm.vue';
 
 const props = defineProps<{
-  displayValue?: AdVivoConfig | AdOppoConfig | AdBytedanceConfig;
+  displayValue?: AdBytedanceConfig | AdOppoConfig | AdVivoConfig;
 }>();
 
 const emit = defineEmits(['pageReload']);
 const vivoAudienceRef = ref();
+const vivoV2AudienceRef = ref();
 const oppoAudienceRef = ref();
 const huaWeiStoreAudienceRef = ref();
 const tencentAudienceRef = ref();
 const bytedanceAudienceRef = ref();
 const localAdId = ref<string>();
 const platformConfig = ref<string | undefined>();
-//传给oppo的广告主，因为oppo的地域需要广告主才能查询
+// 传给oppo的广告主，因为oppo的地域需要广告主才能查询
 const platformAdId = ref<string | undefined>();
 
 const [titlePackageDrawer, drawerApi] = useVbenDrawer({
@@ -39,6 +46,8 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
     let configData: any = {};
     if (platformConfig.value === Platform.VIVO) {
       configData = await vivoAudienceRef.value.submitVivoConfig();
+    } else if (platformConfig.value === Platform.VIVO_NEW) {
+      configData = await vivoV2AudienceRef.value.submitVivoV2Config();
     } else if (platformConfig.value === Platform.OPPO) {
       configData = await oppoAudienceRef.value.submitOppoConfig();
     } else if (platformConfig.value === Platform.HUAWEI_STORE) {
@@ -95,6 +104,8 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
       await loadAdvertiserOptions(data.platform);
       if (platformConfig.value === Platform.VIVO) {
         await vivoAudienceRef.value.echoVivoConfig(data);
+      } else if (platformConfig.value === Platform.VIVO_NEW) {
+        await vivoV2AudienceRef.value.echoVivoV2Config(data);
       } else if (platformConfig.value === Platform.OPPO) {
         await oppoAudienceRef.value.echoOppoConfig(data);
       } else if (platformConfig.value === Platform.HUAWEI_STORE) {
@@ -111,12 +122,14 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
   },
 });
 
-/**弹框取消 */
+/** 弹框取消 */
 async function popUpCancel() {
   await formApi.resetForm();
   localAdId.value = '';
   if (platformConfig.value === Platform.VIVO) {
     await vivoAudienceRef.value.popUpVivoCancel();
+  } else if (platformConfig.value === Platform.VIVO_NEW) {
+    await vivoV2AudienceRef.value.popUpVivoV2Cancel();
   } else if (platformConfig.value === Platform.OPPO) {
     await oppoAudienceRef.value.popUpOppoCancel();
   } else if (platformConfig.value === Platform.HUAWEI_STORE) {
@@ -165,7 +178,7 @@ const [Form, formApi] = useVbenForm({
       component: 'Select',
       componentProps: {
         allowClear: true,
-        options: ACTIVE_PLATFORM,
+        options: AUDIENCE_PLATFORM_OPTIONS,
         placeholder: '请选择',
         onChange: async (val: string) => {
           await loadAdvertiserOptions(val);
@@ -223,9 +236,10 @@ const [Form, formApi] = useVbenForm({
     >
       <Form />
       <Vivo_audienceForm v-if="platformConfig === Platform.VIVO" ref="vivoAudienceRef" />
-      <Oppo_audienceForm v-if="platformConfig === Platform.OPPO" ref="oppoAudienceRef" :advertiser-id="platformAdId"/>
-      <HuaWeiStoreAudienceForm v-if="platformConfig === Platform.HUAWEI_STORE" ref="huaWeiStoreAudienceRef" :advertiser-id="platformAdId"/>
-      <TencentAudienceForm v-if="platformConfig === Platform.TENCENT" ref="tencentAudienceRef" :advertiser-id="platformAdId"/>
+      <VivoV2AudienceForm v-if="platformConfig === Platform.VIVO_NEW" ref="vivoV2AudienceRef" />
+      <Oppo_audienceForm v-if="platformConfig === Platform.OPPO" ref="oppoAudienceRef" :advertiser-id="platformAdId" />
+      <HuaWeiStoreAudienceForm v-if="platformConfig === Platform.HUAWEI_STORE" ref="huaWeiStoreAudienceRef" :advertiser-id="platformAdId" />
+      <TencentAudienceForm v-if="platformConfig === Platform.TENCENT" ref="tencentAudienceRef" :advertiser-id="platformAdId" />
       <BytedanceAudienceForm v-if="platformConfig === Platform.BYTEDANCE" ref="bytedanceAudienceRef" />
     </titlePackageDrawer>
   </div>

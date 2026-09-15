@@ -1,12 +1,4 @@
 <script setup lang="ts" name="TencentBaseTemplate">
-// 腾讯基础模板
-import { Col, Row } from "ant-design-vue";
-
-import TencentCampaign from "#/views/marketing/creation/tencent/components/TencentCampaign.vue";
-import TencentAdgroup from "#/views/marketing/creation/tencent/components/TencentAdgroup.vue";
-import CreativeGroupSelector
-  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
-import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
 import type {
   AudienceConfigData,
   MaterialData,
@@ -17,7 +9,17 @@ import type {
   TencentCampaignData,
   TencentCreation
 } from "#/views/marketing/creation/tencent/tencent";
+
+// 腾讯基础模板
+import { Col, Row } from "ant-design-vue";
+
+import CreativeGroupSelector
+  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+import TencentAdgroup from "#/views/marketing/creation/tencent/components/TencentAdgroup.vue";
+import TencentCampaign from "#/views/marketing/creation/tencent/components/TencentCampaign.vue";
 import {
+  fieldLabelMap,
   Marketing_carrier_type,
   Tencent_adx_realtime_type,
   Tencent_auto_derived_creative_method_type_list,
@@ -48,13 +50,8 @@ import {
   Tencent_tencent_news,
   Tencent_wechat_search_scene,
   TencentOptimization_goal,
-  Tencnet_site_set,
-  fieldLabelMap
+  Tencnet_site_set
 } from "#/views/marketing/creation/tencent/tencent_enums";
-
-const emit = defineEmits(["update:campaign", "update:adgroup",
-  "update:audiencePackage", "update:updateMaterial", "update:titlePackage"]);
-
 
 const { creationInfo } = defineProps({
   creationInfo: {
@@ -64,6 +61,10 @@ const { creationInfo } = defineProps({
     }
   }
 });
+
+
+const emit = defineEmits(["update:campaign", "update:adgroup",
+  "update:audiencePackage", "update:updateMaterial", "update:titlePackage"]);
 
 
 /**
@@ -107,7 +108,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -122,7 +123,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -138,7 +139,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -153,7 +154,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -169,7 +170,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -184,7 +185,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -200,7 +201,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -216,7 +217,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -232,7 +233,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -247,7 +248,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"] && currentValue["site_set"] === "SITE_SET_WECHAT";
+        return currentValue.scene_spec_switch && currentValue.site_set === "SITE_SET_WECHAT";
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -262,7 +263,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"] && currentValue["site_set"] === "SITE_SET_MOBILE_UNION";
+        return currentValue.scene_spec_switch && currentValue.site_set === "SITE_SET_MOBILE_UNION";
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -277,7 +278,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -292,7 +293,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -307,7 +308,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -323,7 +324,7 @@ const scene_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["scene_spec_switch"];
+        return currentValue.scene_spec_switch;
       },
       triggerFields: ["scene_spec_switch"]
     }
@@ -344,9 +345,9 @@ const marketing_carrier_detail = [
     dependencies: {
       show: (currentValue: any) => {
         return (
-          currentValue["marketing_carrier_type"] === "MARKETING_CARRIER_TYPE_APP_ANDROID" ||
-          currentValue["marketing_carrier_type"] === "MARKETING_CARRIER_TYPE_APP_IOS" ||
-          currentValue["marketing_carrier_type"] === "MARKETING_CARRIER_TYPE_WECHAT_MINI_GAME"
+          currentValue.marketing_carrier_type === "MARKETING_CARRIER_TYPE_APP_ANDROID" ||
+          currentValue.marketing_carrier_type === "MARKETING_CARRIER_TYPE_APP_IOS" ||
+          currentValue.marketing_carrier_type === "MARKETING_CARRIER_TYPE_WECHAT_MINI_GAME"
         );
       },
       triggerFields: ["marketing_carrier_detail_switch", "marketing_carrier_type"],
@@ -362,9 +363,9 @@ const marketing_carrier_detail = [
     dependencies: {
       show: (currentValue: any) => {
         return (
-          currentValue["marketing_carrier_type"] === "MARKETING_CARRIER_TYPE_APP_ANDROID" ||
-          currentValue["marketing_carrier_type"] === "MARKETING_CARRIER_TYPE_APP_IOS" ||
-          currentValue["marketing_carrier_type"] === "MARKETING_CARRIER_TYPE_WECHAT_MINI_GAME"
+          currentValue.marketing_carrier_type === "MARKETING_CARRIER_TYPE_APP_ANDROID" ||
+          currentValue.marketing_carrier_type === "MARKETING_CARRIER_TYPE_APP_IOS" ||
+          currentValue.marketing_carrier_type === "MARKETING_CARRIER_TYPE_WECHAT_MINI_GAME"
         );
       },
       triggerFields: ["marketing_carrier_type"]
@@ -377,9 +378,9 @@ const marketing_carrier_detail = [
     dependencies: {
       show: (currentValue: any) => {
         return (
-          currentValue["marketing_carrier_type"] === "MARKETING_CARRIER_TYPE_APP_ANDROID" ||
-          currentValue["marketing_carrier_type"] === "MARKETING_CARRIER_TYPE_APP_IOS" ||
-          currentValue["marketing_carrier_type"] === "MARKETING_CARRIER_TYPE_WECHAT_MINI_GAME"
+          currentValue.marketing_carrier_type === "MARKETING_CARRIER_TYPE_APP_ANDROID" ||
+          currentValue.marketing_carrier_type === "MARKETING_CARRIER_TYPE_APP_IOS" ||
+          currentValue.marketing_carrier_type === "MARKETING_CARRIER_TYPE_WECHAT_MINI_GAME"
         );
       },
       triggerFields: ["marketing_carrier_type"]
@@ -415,11 +416,11 @@ const deep_conversion_spec = [
     label: "oCPA 深度优化价值配置类型",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["deep_conversion_spec_switch"];
+        return currentValue.deep_conversion_spec_switch;
       },
       triggerFields: ["deep_conversion_spec_switch"],
       rules: (currentValue: any) => {
-        return currentValue["deep_conversion_spec_switch"] ? "required" : "";
+        return currentValue.deep_conversion_spec_switch ? "required" : "";
       }
     }
   },
@@ -435,7 +436,7 @@ const deep_conversion_spec = [
     label: "优化转化行为目标",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["deep_conversion_spec_switch"] && currentValue["deep_conversion_type"] === "DEEP_CONVERSION_BEHAVIOR";
+        return currentValue.deep_conversion_spec_switch && currentValue.deep_conversion_type === "DEEP_CONVERSION_BEHAVIOR";
       },
       triggerFields: ["deep_conversion_spec_switch", "deep_conversion_type"]
     }
@@ -448,7 +449,7 @@ const deep_conversion_spec = [
     label: "深度优化行为的出价",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["deep_conversion_spec_switch"] && currentValue["deep_conversion_type"] === "DEEP_CONVERSION_BEHAVIOR";
+        return currentValue.deep_conversion_spec_switch && currentValue.deep_conversion_type === "DEEP_CONVERSION_BEHAVIOR";
       },
       triggerFields: ["deep_conversion_spec_switch", "deep_conversion_type"]
     }
@@ -465,7 +466,7 @@ const deep_conversion_spec = [
     label: "优化ROI目标",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["deep_conversion_spec_switch"] && currentValue["deep_conversion_type"] === "DEEP_CONVERSION_WORTH";
+        return currentValue.deep_conversion_spec_switch && currentValue.deep_conversion_type === "DEEP_CONVERSION_WORTH";
       },
       triggerFields: ["deep_conversion_spec_switch", "deep_conversion_type"]
     }
@@ -477,7 +478,7 @@ const deep_conversion_spec = [
     label: "深度优化价值效果值",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["deep_conversion_spec_switch"] && currentValue["deep_conversion_type"] === "DEEP_CONVERSION_WORTH";
+        return currentValue.deep_conversion_spec_switch && currentValue.deep_conversion_type === "DEEP_CONVERSION_WORTH";
       },
       triggerFields: ["deep_conversion_spec_switch", "deep_conversion_type"]
     }
@@ -493,7 +494,7 @@ const deep_conversion_spec = [
     label: "优化 ROI 目标",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["deep_conversion_spec_switch"] && currentValue["deep_conversion_type"] === "DEEP_CONVERSION_WORTH_ADVANCED";
+        return currentValue.deep_conversion_spec_switch && currentValue.deep_conversion_type === "DEEP_CONVERSION_WORTH_ADVANCED";
       },
       triggerFields: ["deep_conversion_spec_switch", "deep_conversion_type"]
     }
@@ -505,7 +506,7 @@ const deep_conversion_spec = [
     label: "深度优化价值效果值",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["deep_conversion_spec_switch"] && currentValue["deep_conversion_type"] === "DEEP_CONVERSION_WORTH_ADVANCED";
+        return currentValue.deep_conversion_spec_switch && currentValue.deep_conversion_type === "DEEP_CONVERSION_WORTH_ADVANCED";
       },
       triggerFields: ["deep_conversion_spec_switch", "deep_conversion_type"]
     }
@@ -521,7 +522,7 @@ const deep_conversion_spec = [
     label: "优化 ROI 目标",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["deep_conversion_spec_switch"] && currentValue["deep_conversion_type"] === "DEEP_CONVERSION_BEHAVIOR_ADVANCED";
+        return currentValue.deep_conversion_spec_switch && currentValue.deep_conversion_type === "DEEP_CONVERSION_BEHAVIOR_ADVANCED";
       },
       triggerFields: ["deep_conversion_spec_switch", "deep_conversion_type"]
     }
@@ -533,7 +534,7 @@ const deep_conversion_spec = [
     label: "深度优化价值效果值",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["deep_conversion_spec_switch"] && currentValue["deep_conversion_type"] === "DEEP_CONVERSION_BEHAVIOR_ADVANCED";
+        return currentValue.deep_conversion_spec_switch && currentValue.deep_conversion_type === "DEEP_CONVERSION_BEHAVIOR_ADVANCED";
       },
       triggerFields: ["deep_conversion_spec_switch", "deep_conversion_type"]
     }
@@ -571,7 +572,7 @@ const auto_derived_creative_preference = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["auto_derived_creative_enabled"];
+        return currentValue.auto_derived_creative_enabled;
       },
       triggerFields: ["auto_derived_creative_enabled"]
     }
@@ -604,7 +605,7 @@ const marketing_asset_outer_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["marketing_asset_outer_spec_switch"];
+        return currentValue.marketing_asset_outer_spec_switch;
       },
       triggerFields: ["marketing_asset_outer_spec_switch"]
     }
@@ -616,7 +617,7 @@ const marketing_asset_outer_spec = [
     label: "营销资产外部ID",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["marketing_asset_outer_spec_switch"];
+        return currentValue.marketing_asset_outer_spec_switch;
       },
       triggerFields: ["marketing_asset_outer_spec_switch"]
     }
@@ -627,7 +628,7 @@ const marketing_asset_outer_spec = [
     label: "营销资产外部名称",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["marketing_asset_outer_spec_switch"];
+        return currentValue.marketing_asset_outer_spec_switch;
       },
       triggerFields: ["marketing_asset_outer_spec_switch"]
     }
@@ -638,7 +639,7 @@ const marketing_asset_outer_spec = [
     label: "营销资产外部子ID",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["marketing_asset_outer_spec_switch"];
+        return currentValue.marketing_asset_outer_spec_switch;
       },
       triggerFields: ["marketing_asset_outer_spec_switch"]
     }
@@ -671,7 +672,7 @@ const mpa_spec = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["mpa_spec_switch"];
+        return currentValue.mpa_spec_switch;
       },
       triggerFields: ["mpa_spec_switch"]
     }
@@ -684,7 +685,7 @@ const mpa_spec = [
     label: "商品系列ID",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["mpa_spec_switch"];
+        return currentValue.mpa_spec_switch;
       },
       triggerFields: ["mpa_spec_switch"]
     }
@@ -696,7 +697,7 @@ const mpa_spec = [
     label: "商品库id",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["mpa_spec_switch"];
+        return currentValue.mpa_spec_switch;
       },
       triggerFields: ["mpa_spec_switch"]
     }
@@ -724,7 +725,7 @@ const dca_spec = [
     label: "动态营销类型",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["dynamic_ad_type"] === "DYNAMIC_AD_TYPE_DYNAMIC_CONTENT";
+        return currentValue.dynamic_ad_type === "DYNAMIC_AD_TYPE_DYNAMIC_CONTENT";
       },
       triggerFields: ["dynamic_ad_type"]
     }
@@ -736,7 +737,7 @@ const dca_spec = [
     label: "动态内容营销的素材集合",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["dynamic_ad_type"] === "DYNAMIC_AD_TYPE_DYNAMIC_CONTENT";
+        return currentValue.dynamic_ad_type === "DYNAMIC_AD_TYPE_DYNAMIC_CONTENT";
       },
       triggerFields: ["dynamic_ad_type"]
     }
@@ -770,7 +771,7 @@ const aoi_optimization_strategy = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["aoi_optimization_strategy_switch"];
+        return currentValue.aoi_optimization_strategy_switch;
       },
       triggerFields: ["aoi_optimization_strategy_switch"]
     }
@@ -786,7 +787,7 @@ const aoi_optimization_strategy = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["aoi_optimization_strategy_switch"] && currentValue["aoi_optimization_strategy_enabled"];
+        return currentValue.aoi_optimization_strategy_switch && currentValue.aoi_optimization_strategy_enabled;
       },
       triggerFields: ["aoi_optimization_strategy_switch", "aoi_optimization_strategy_enabled"]
     }
@@ -820,11 +821,11 @@ const cloud_union_spec = [
     label: "动态营销-优化ROI目标",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["cloud_union_spec_switch"];
+        return currentValue.cloud_union_spec_switch;
       },
       triggerFields: ["cloud_union_spec_switch"],
       rules: (currentValue: any) => {
-        return currentValue["cloud_union_spec_switch"] ? "required" : "";
+        return currentValue.cloud_union_spec_switch ? "required" : "";
       }
     }
   },
@@ -835,11 +836,11 @@ const cloud_union_spec = [
     label: "深度优化价值效果值",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["cloud_union_spec_switch"];
+        return currentValue.cloud_union_spec_switch;
       },
       triggerFields: ["cloud_union_spec_switch"],
       rules: (currentValue: any) => {
-        return currentValue["cloud_union_spec_switch"] ? "required" : "";
+        return currentValue.cloud_union_spec_switch ? "required" : "";
       }
     }
   }
@@ -866,7 +867,7 @@ const additional_product_spec = [
     label: "商品库id",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["additional_product_spec_switch"];
+        return currentValue.additional_product_spec_switch;
       },
       triggerFields: ["additional_product_spec_switch"]
     }
@@ -878,7 +879,7 @@ const additional_product_spec = [
     label: "商品外部ID",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["additional_product_spec_switch"];
+        return currentValue.additional_product_spec_switch;
       },
       triggerFields: ["additional_product_spec_switch"]
     }
@@ -994,7 +995,7 @@ const campaignFormFields = [
     label: "投放版位集合",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["automatic_site_enabled"];
+        return currentValue.automatic_site_enabled;
       },
       triggerFields: ["automatic_site_enabled"]
     }
@@ -1009,7 +1010,7 @@ const campaignFormFields = [
     label: "自动版位探索策略",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["automatic_site_enabled"] === true;
+        return currentValue.automatic_site_enabled === true;
       },
       triggerFields: ["automatic_site_enabled"]
     }
@@ -1024,11 +1025,11 @@ const campaignFormFields = [
     label: "优先版位集合",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["exploration_strategy"] === "STEADY_EXPLORATION";
+        return currentValue.exploration_strategy === "STEADY_EXPLORATION";
       },
       triggerFields: ["exploration_strategy"],
       rules: (currentValue: any) => {
-        return currentValue["exploration_strategy"] === "STEADY_EXPLORATION" ? "required" : "";
+        return currentValue.exploration_strategy === "STEADY_EXPLORATION" ? "required" : "";
       }
     }
   },
@@ -1075,11 +1076,11 @@ const campaignFormFields = [
     label: "一键起量预算",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["auto_acquisition_enabled"];
+        return currentValue.auto_acquisition_enabled;
       },
       triggerFields: ["auto_acquisition_enabled"],
       rules: (currentValue: any) => {
-        return currentValue["auto_acquisition_enabled"] ? "required" : "";
+        return currentValue.auto_acquisition_enabled ? "required" : "";
       }
     }
   },
@@ -1100,7 +1101,7 @@ const campaignFormFields = [
     label: "自动出价",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["smart_bid_type"] === "SMART_BID_TYPE_SYSTEMATIC";
+        return currentValue.smart_bid_type === "SMART_BID_TYPE_SYSTEMATIC";
       },
       triggerFields: ["smart_bid_type"]
     }
@@ -1203,7 +1204,7 @@ const campaignFormFields = [
   },
 
 
-  //动态营销类型
+  // 动态营销类型
   {
     component: "Select",
     fieldName: "short_play_pay_type",
@@ -1223,7 +1224,7 @@ const campaignFormFields = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["short_play_pay_type"] === "SHORT_PLAY_PAY_TYPE_CHARGE_PLAY";
+        return currentValue.short_play_pay_type === "SHORT_PLAY_PAY_TYPE_CHARGE_PLAY";
       },
       triggerFields: ["short_play_pay_type"]
     }
@@ -1350,7 +1351,7 @@ const program_creative_info = [
     label: "素材衍生ID",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["program_creative_info_switch"];
+        return currentValue.program_creative_info_switch;
       },
       triggerFields: ["program_creative_info_switch"]
     }
@@ -1365,7 +1366,7 @@ const program_creative_info = [
     },
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["program_creative_info_switch"];
+        return currentValue.program_creative_info_switch;
       },
       triggerFields: ["program_creative_info_switch"]
     }
@@ -1377,7 +1378,7 @@ const program_creative_info = [
     label: "衍生版本",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["program_creative_info_switch"];
+        return currentValue.program_creative_info_switch;
       },
       triggerFields: ["program_creative_info_switch"]
     }
@@ -1389,7 +1390,7 @@ const program_creative_info = [
     label: "原始素材ID列表",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["program_creative_info_switch"];
+        return currentValue.program_creative_info_switch;
       },
       triggerFields: ["program_creative_info_switch"]
     }
@@ -1401,7 +1402,7 @@ const program_creative_info = [
     label: "原始创意模板ID列表",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["program_creative_info_switch"];
+        return currentValue.program_creative_info_switch;
       },
       triggerFields: ["program_creative_info_switch"]
     }
@@ -1414,7 +1415,7 @@ const program_creative_info = [
     label: "原始封面图片ID",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["program_creative_info_switch"];
+        return currentValue.program_creative_info_switch;
       },
       triggerFields: ["program_creative_info_switch"]
     }
@@ -1426,7 +1427,7 @@ const program_creative_info = [
     label: "衍生信息列表",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["program_creative_info_switch"];
+        return currentValue.program_creative_info_switch;
       },
       triggerFields: ["program_creative_info_switch"]
     }
@@ -1549,7 +1550,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           :field-label-map="fieldLabelMap"
           @update:campaign="updateCampaign"
           @update:audience-package="updateAudiencePackage"
-        ></TencentCampaign>
+        />
       </Col>
 
       <Col :span="6" class="equal-height-col">
@@ -1559,7 +1560,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           :adgroup="creationInfo?.configData.adgroup"
           :field-label-map="fieldLabelMap"
           @update:adgroup="updateAdgroup"
-        ></TencentAdgroup>
+        />
       </Col>
 
       <Col :span="6" class="equal-height-col">
@@ -1575,10 +1576,9 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           :title-package="creationInfo.configData.titlePackage"
           :account-info="creationInfo.accountInfo"
           @update:title-package="updateTitlePackage"
-        ></TitleSelector>
+        />
       </Col>
-
-    </Row>
+</Row>
   </div>
 </template>
 

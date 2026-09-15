@@ -1,5 +1,6 @@
 <script setup lang="ts" name="TencentCampaignDrawer">
 import { useVbenDrawer } from "@vben/common-ui";
+
 import { useVbenForm } from "#/adapter/form";
 
 const { formFields } = defineProps({
@@ -226,7 +227,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
 <template>
   <div>
     <Drawer title="营销单元">
-      <Form></Form>
+      <Form />
     </Drawer>
   </div>
 </template>

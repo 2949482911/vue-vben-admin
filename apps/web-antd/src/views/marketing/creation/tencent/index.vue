@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import { Page, useVbenModal } from "@vben/common-ui";
-import { Card, message, Select } from "ant-design-vue";
-import ConfigurationConfig from "../components/configurationArea.vue";
-import { ref, watch } from "vue";
 import type {
   TencentAdgroupData,
   TencentCampaignData,
   TencentCreation,
   TencentCreationData
 } from "./tencent";
-import { getPreviewTableData, TENCENT } from "./tencent";
-import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
+
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import type {
   AccountInfo,
   AudienceConfigData,
@@ -24,17 +20,27 @@ import type {
   RuleOptions,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+
+import { ref, watch } from "vue";
+
+import { Page, useVbenModal } from "@vben/common-ui";
+
+import { Card, message, Select } from "ant-design-vue";
+
 import { Platform } from "#/constants/enums";
-import { TENCENT_MARKETING_TYPE } from "#/views/marketing/creation/tencent/enums";
+import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
+import Function from "#/views/marketing/creation/components/Function.vue";
+import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import TencentBaseTemplate
   from "#/views/marketing/creation/tencent/components/base/TencentBaseTemplate.vue";
-import TencentMiniGameTemplate
-  from "#/views/marketing/creation/tencent/components/wechat_minigame/TencentMiniGameTemplate.vue";
-import Function from "#/views/marketing/creation/components/Function.vue";
-import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import TencentPreviewArea
   from "#/views/marketing/creation/tencent/components/TencentPreviewArea.vue";
+import TencentMiniGameTemplate
+  from "#/views/marketing/creation/tencent/components/wechat_minigame/TencentMiniGameTemplate.vue";
+import { TENCENT_MARKETING_TYPE } from "#/views/marketing/creation/tencent/enums";
+
+import ConfigurationConfig from "../components/configurationArea.vue";
+import { getPreviewTableData, TENCENT } from "./tencent";
 
 
 // 腾讯微信小游戏模板
@@ -707,16 +713,18 @@ function resetCreationInfo() {
         :project="creationInfo.project"
         :rule-configuration="tencentRuleConfiguration"
         :rule-options="tencentRuleOptions"
-        @update:accountInfo="updateAccountInfo"
-        @update:productInfo="updateProject"
-        @update:ruleInfo="updateRuleInfo"
+        @update:account-info="updateAccountInfo"
+        @update:product-info="updateProject"
+        @update:rule-info="updateRuleInfo"
         @update:reuse="updateReuse"
       />
     </Card>
 
     <Card class="header">
-      <Select class='w-[200px]' :options="TENCENT_MARKETING_TYPE" :value="template"
-              @change="updateTemplate"></Select>
+      <Select
+class="w-[200px]" :options="TENCENT_MARKETING_TYPE" :value="template"
+              @change="updateTemplate"
+/>
     </Card>
 
     <Card class="header">
@@ -745,7 +753,7 @@ function resetCreationInfo() {
     <!--监测链接组-->
     <Card class="header">
       <Function
-        :accountInfo="creationInfo.accountInfo"
+        :account-info="creationInfo.accountInfo"
         :monitoring-link="creationInfo.configData.monitoringLink"
         @update:monitoring-link="updateMonitoringLink"
         @save:create-strategy-group="createStrategyGroup"
@@ -756,8 +764,10 @@ function resetCreationInfo() {
 
 
     <Card title="预览区" class="header">
-      <TencentPreviewArea :ad-list="adList"
-                          :account-info="creationInfo.accountInfo"></TencentPreviewArea>
+      <TencentPreviewArea
+:ad-list="adList"
+                          :account-info="creationInfo.accountInfo"
+/>
     </Card>
 
     <CreateStrategyGroupModal />
