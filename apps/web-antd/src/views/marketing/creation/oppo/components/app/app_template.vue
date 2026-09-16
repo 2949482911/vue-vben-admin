@@ -1,4 +1,10 @@
 <script setup lang="ts" name="OppoAppTemplate">
+import type {
+  AudienceConfigData,
+  MaterialData,
+  PageViewConfigData,
+  TitlePackageConfigData
+} from "#/views/marketing/creation/creation";
 /**
  * OPPO-应用推广模板（应用下载 / 应用调起）
  *
@@ -10,20 +16,27 @@
  * 批量搭建逻辑与其它媒体一致：预览 -> 提交 -> 任务进度。
  * 模板字段均使用 vben Form 字段配置（antd 原生组件渲染），不新增自定义组件。
  */
-import { Col, Row } from "ant-design-vue";
-
 import type {
   OppoAdgroupData,
   OppoCampaignData,
   OppoCreation,
   OppoPromotionData
 } from "#/views/marketing/creation/oppo/Oppo.types";
-import type {
-  AudienceConfigData,
-  MaterialData,
-  PageViewConfigData,
-  TitlePackageConfigData
-} from "#/views/marketing/creation/creation";
+
+import { computed, markRaw } from "vue";
+
+import { Platform } from "#/constants/enums";
+import AudiencePackageSelector
+  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
+import CreativeGroupSelector
+  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
+import TimeSelectionPeriod
+  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
+import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+import OppoAdgroup from "#/views/marketing/creation/oppo/components/OppoAdgroup.vue";
+import OppoCampaign from "#/views/marketing/creation/oppo/components/OppoCampaign.vue";
+import OppoPromotion from "#/views/marketing/creation/oppo/components/OppoPromotion.vue";
 import {
   BILLINGTYPE_SELECT,
   DAY_LIMIT_SELECT,
@@ -39,19 +52,15 @@ import {
   SMART_EXPAND_SELECT,
   TIME_LIMIT_SELECT
 } from "#/views/marketing/creation/oppo/projectEnum";
-import OppoCampaign from "#/views/marketing/creation/oppo/components/OppoCampaign.vue";
-import OppoAdgroup from "#/views/marketing/creation/oppo/components/OppoAdgroup.vue";
-import OppoPromotion from "#/views/marketing/creation/oppo/components/OppoPromotion.vue";
-import CreativeGroupSelector
-  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
-import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
-import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
-import AudiencePackageSelector
-  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
-import { Platform } from "#/constants/enums";
-import { computed, markRaw } from "vue";
-import TimeSelectionPeriod
-  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
+
+//
+
+const { creationInfo } = defineProps({
+  creationInfo: {
+    type: Object as () => OppoCreation,
+    default: () => ({})
+  }
+});
 
 const emit = defineEmits([
   "update:campaign",
@@ -63,17 +72,8 @@ const emit = defineEmits([
   "update:landingPage"
 ]);
 
-//是否展示落地页
-const showPageViewSelector = computed(() => creationInfo?.configData.adgroup.pageType === 9); //
-
-const { creationInfo } = defineProps({
-  creationInfo: {
-    type: Object as () => OppoCreation,
-    default: () => ({})
-  }
-});
-
-function updateCampaign(campaign: OppoCampaignData) {
+// 是否展示落地页
+const showPageViewSelector = computed(() => creationInfo?.configData.adgroup.pageType === 9);function updateCampaign(campaign: OppoCampaignData) {
   emit("update:campaign", campaign);
 }
 
@@ -137,7 +137,7 @@ const campaignFormFields = [
     defaultValue: 0,
     rules: "required",
     dependencies: {
-      show: (currentValue: any) => currentValue["dayLimit"] === 1,
+      show: (currentValue: any) => currentValue.dayLimit === 1,
       triggerFields: ["dayLimit"]
     }
   },
@@ -246,7 +246,7 @@ const adgroupFormFields: any[] = [
     label: "目标转化出价",
     defaultValue: "",
     dependencies: {
-      show: (currentValue: any) => currentValue["flowScene"] === 14,
+      show: (currentValue: any) => currentValue.flowScene === 14,
       triggerFields: ["flowScene"]
       // 直达链接
       // 备注：当flowScene=14（通知栏）时，deepUrl传值为应用内页
@@ -269,7 +269,7 @@ const adgroupFormFields: any[] = [
     componentProps: { format: "YYYY-MM-DD", valueFormat: "YYYY-MM-DD" },
     rules: "required",
     dependencies: {
-      show: (currentValue: any) => currentValue["dayLimit"] === 1,
+      show: (currentValue: any) => currentValue.dayLimit === 1,
       triggerFields: ["dayLimit"]
     }
   },
@@ -281,7 +281,7 @@ const adgroupFormFields: any[] = [
     componentProps: { format: "YYYY-MM-DD", valueFormat: "YYYY-MM-DD" },
     rules: "required",
     dependencies: {
-      show: (currentValue: any) => currentValue["dayLimit"] === 1,
+      show: (currentValue: any) => currentValue.dayLimit === 1,
       triggerFields: ["dayLimit"]
     }
   },
@@ -293,7 +293,7 @@ const adgroupFormFields: any[] = [
     defaultValue: 0,
     rules: "required",
     dependencies: {
-      show: (currentValue: any) => currentValue["billingType"] === 2 || currentValue["billingType"] === 5,
+      show: (currentValue: any) => currentValue.billingType === 2 || currentValue.billingType === 5,
       triggerFields: ["billingType"]
     }
   },
@@ -305,7 +305,7 @@ const adgroupFormFields: any[] = [
     label: "深度转化类型",
     defaultValue: 0,
     dependencies: {
-      show: (currentValue: any) => currentValue["ocpcOptmType"] === 1,
+      show: (currentValue: any) => currentValue.ocpcOptmType === 1,
       triggerFields: ["ocpcOptmType"]
     }
   },
@@ -316,7 +316,7 @@ const adgroupFormFields: any[] = [
     defaultValue: 0,
     rules: "required",
     dependencies: {
-      show: (currentValue: any) => currentValue["ocpcOptmType"] === 1,
+      show: (currentValue: any) => currentValue.ocpcOptmType === 1,
       triggerFields: ["ocpcOptmType"]
     }
   },
@@ -341,7 +341,7 @@ const adgroupFormFields: any[] = [
     label: "推广时段",
     rules: "required",
     dependencies: {
-      show: (currentValue: any) => currentValue["timeLimit"] === 1,
+      show: (currentValue: any) => currentValue.timeLimit === 1,
       triggerFields: ["timeLimit"]
     }
   },
@@ -426,106 +426,148 @@ const appFieldLabelMap: Record<string, (value: any) => string> = {
 </script>
 
 <template>
-  <Row :gutter="16">
-    <Col :span="5">
-      <OppoCampaign
-        :form-fields="campaignFormFields"
-        :campaign-show-label="campaignShowLabel"
-        :campaign="creationInfo?.configData.campaign"
-        :field-label-map="appFieldLabelMap"
-        @update:campaign="updateCampaign"
-      />
-    </Col>
-
-    <Col :span="5">
-      <OppoAdgroup
-        :form-fields="adgroupFormFields"
-        :adgroup-show-label="adgroupShowLabel"
-        :adgroup="creationInfo?.configData.adgroup"
-        :field-label-map="appFieldLabelMap"
-        @update:adgroup="updateAdgroup"
-      />
-    </Col>
-
-    <Col :span="5">
-      <OppoPromotion
-        :form-fields="promotionFormFields"
-        :promotion-show-label="promotionShowLabel"
-        :promotion="creationInfo?.configData.promotion"
-        :field-label-map="appFieldLabelMap"
-        @update:promotion="updatePromotion"
-      />
-    </Col>
-
-    <Col :span="5">
-      <CreativeGroupSelector
-        :account-info="creationInfo.accountInfo"
-        :material="creationInfo.configData.material"
-        @update:material="updateMaterial"
-      />
-    </Col>
-
-    <Col :span="4">
-      <div class="combined-area">
-        <PageViewSelector
-          :disabled="showPageViewSelector"
-          :page-view="creationInfo.configData.landingPage"
-          :account-info="creationInfo.accountInfo"
-          @update:page-view="updateLandingPage"
-        />
-
-        <TitleSelector
-          :title-package="creationInfo.configData.titlePackage"
-          :account-info="creationInfo.accountInfo"
-          @update:title-package="updateTitlePackage"
-        />
-
-        <AudiencePackageSelector
-          :audience="creationInfo.configData.audience"
-          :account-info="creationInfo.accountInfo"
-          :platform="Platform.OPPO"
-          @update:audience="updateAudiencePackage"
+  <div class="oppo-app-template">
+    <div class="panes">
+      <div class="pane">
+        <OppoCampaign
+          :form-fields="campaignFormFields"
+          :campaign-show-label="campaignShowLabel"
+          :campaign="creationInfo?.configData.campaign"
+          :field-label-map="appFieldLabelMap"
+          @update:campaign="updateCampaign"
         />
       </div>
-    </Col>
-  </Row>
+
+      <div class="pane">
+        <div class="combined-area">
+          <OppoAdgroup
+            :form-fields="adgroupFormFields"
+            :adgroup-show-label="adgroupShowLabel"
+            :adgroup="creationInfo?.configData.adgroup"
+            :field-label-map="appFieldLabelMap"
+            @update:adgroup="updateAdgroup"
+          />
+          <OppoPromotion
+            :form-fields="promotionFormFields"
+            :promotion-show-label="promotionShowLabel"
+            :promotion="creationInfo?.configData.promotion"
+            :field-label-map="appFieldLabelMap"
+            @update:promotion="updatePromotion"
+          />
+        </div>
+      </div>
+
+      <div class="pane">
+        <CreativeGroupSelector
+          :account-info="creationInfo.accountInfo"
+          :material="creationInfo.configData.material"
+          @update:material="updateMaterial"
+        />
+      </div>
+
+      <div class="pane">
+        <div class="combined-area">
+          <PageViewSelector
+            :disabled="showPageViewSelector"
+            :page-view="creationInfo.configData.landingPage"
+            :account-info="creationInfo.accountInfo"
+            @update:page-view="updateLandingPage"
+          />
+
+          <TitleSelector
+            :title-package="creationInfo.configData.titlePackage"
+            :account-info="creationInfo.accountInfo"
+            @update:title-package="updateTitlePackage"
+          />
+
+          <AudiencePackageSelector
+            :audience="creationInfo.configData.audience"
+            :account-info="creationInfo.accountInfo"
+            :platform="Platform.OPPO"
+            @update:audience="updateAudiencePackage"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 
 <style scoped lang="scss">
-
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
-  height: 750px;
-}
-
-.equal-height-col {
-  display: flex;
+.oppo-app-template {
+  width: 100%;
+  height: 100%;
   min-height: 0;
-
-  > * {
-    width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-  }
 }
 
-.combined-area {
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+.pane {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  flex: 1;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
 
   > * {
     flex: 1;
     min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
+  }
+}
+
+.combined-area {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+
+  > * {
+    flex: 1;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
   }
 }
 </style>

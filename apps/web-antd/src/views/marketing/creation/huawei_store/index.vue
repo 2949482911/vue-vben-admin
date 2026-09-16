@@ -1,17 +1,13 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { Page, useVbenModal } from "@vben/common-ui";
 import type {
   HuaWeiStoreAdgroupData,
   HuaWeiStoreCampaignData,
   HuaWeiStoreCreation,
   HuaWeiStoreCreationData
 } from "./huawei_store";
-import {
-  getPreviewTableData
-} from "./huawei_store";
-import { Platform } from "#/constants/enums";
-import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
+
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { PageViewItem } from "#/api/models/assert";
 import type {
   AccountInfo,
   AudienceConfigData,
@@ -20,26 +16,35 @@ import type {
   MonitoringLinkConfigData,
   MonitoringLinkType,
   Project,
-  RuleInfo,
-  TitlePackageConfigData,
   RuleConfiguration,
-  RuleOptions
+  RuleInfo,
+  RuleOptions,
+  TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
-import ConfigurationConfig from "../components/configurationArea.vue";
-import { Card, Drawer, message, Select, Space } from "ant-design-vue";
-import { AdType, TaskTypeSelect, fieldLabelMap } from "#/views/marketing/creation/huawei_store/data";
 
-import DeliveryTaskRecommend from "./components/delivery-task-recommend/index.vue";
-import type { PageViewItem } from "#/api/models/assert";
+import { ref, watch } from "vue";
+
+import { useVbenModal } from "@vben/common-ui";
+
+import { Drawer, message, Select, Space } from "ant-design-vue";
+
+import { Platform } from "#/constants/enums";
+import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
-import CreateStrategyGroupModal from "../components/createStrategyGroup.vue";
-import RecommendPreviewArea
-  from "#/views/marketing/creation/huawei_store/components/delivery-task-recommend/RecommendPreviewArea.vue";
-
-import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
 import BatchTaskResultDrawer
   from "#/views/marketing/creation/components/result/BatchTaskResultDrawer.vue";
+import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
+import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
+import RecommendPreviewArea
+  from "#/views/marketing/creation/huawei_store/components/delivery-task-recommend/RecommendPreviewArea.vue";
+import { AdType, fieldLabelMap, TaskTypeSelect } from "#/views/marketing/creation/huawei_store/data";
+
+import ConfigurationConfig from "../components/configurationArea.vue";
+import CreateStrategyGroupModal from "../components/createStrategyGroup.vue";
+import DeliveryTaskRecommend from "./components/delivery-task-recommend/index.vue";
+import {
+  getPreviewTableData
+} from "./huawei_store";
 
 /**
  * 华为商店平台的规则配置
@@ -242,7 +247,7 @@ const adList = ref<Array<HuaWeiStoreCreationData>>([]);
 
 // ==================== 批投任务结果跟踪 ====================
 /** 当前正在执行的批投任务信息 */
-const currentTask = ref<{ taskId: string; taskName: string; platform: string; projectId: string } | null>(null);
+const currentTask = ref<null | { taskId: string; taskName: string; platform: string; projectId: string }>(null);
 /** 结果抽屉开关 */
 const resultDrawerOpen = ref(false);
 /** 是否有进行中的任务（控制工具栏「查看任务进度」按钮显隐） */
@@ -457,91 +462,98 @@ function resetCreationInfo() {
 
 
 <template>
-    <Page >
-      <Card class="header">
-        <ConfigurationConfig
-          :rule-info="creationInfo.ruleInfo"
-          :configuration-config="creationInfo.configurationConfig"
-          :account-info="creationInfo.accountInfo"
-          :project="creationInfo.project"
-          :rule-configuration="huaweiStoreRuleConfiguration"
-          :rule-options="huaweiStoreRuleOptions"
-          @update:accountInfo="updateAccountInfo"
-          @update:productInfo="updateProject"
-          @update:ruleInfo="updateRuleInfo"
-          @update:reuse="updateReuse"
-        />
-      </Card>
-
-      <Card class="header">
-        <Space>
-          <Select :options="TaskTypeSelect"
-                  :value="creationInfo.configData.promotionType.taskType"></Select>
-          <Select :options="AdType" :value="creationInfo.configData.promotionType.adType"></Select>
-        </Space>
-      </Card>
-
-      <Card class="header">
-        <DeliveryTaskRecommend :creation-info="creationInfo"
-                               :field-label-map="fieldLabelMap"
-                               @update:campaign="updateCampaign"
-                               @update:adgroup="updateAdgroup"
-                               @update:audience-package="updateAudiencePackage"
-                               @update:update-material="updateMaterial"
-                               @update:title-package="updateTitlePackage"
-
-        />
-      </Card>
-
-      <!--监测链接组-->
-      <Card class="header">
-        <Function
-          :accountInfo="creationInfo.accountInfo"
-          :monitoring-link="creationInfo.configData.monitoringLink"
-          :task-in-progress="taskInProgress"
-          @update:monitoring-link="updateMonitoringLink"
-          @save:create-strategy-group="createStrategyGroup"
-          @gen:ad-list="genPreviewTableData"
-          @submit:create-batch="submitCreateBatch"
-          @view:task-progress="viewTaskProgress"
-        />
-      </Card>
-
-      <Card class="header" title="预览区">
-        <RecommendPreviewArea :ad-list="adList" :account-info="creationInfo.accountInfo" />
-      </Card>
-
-      <!--      策略组-->
-      <CreateAdvertiserModal />
-      <!--      提交审核-->
-      <SubmitModal
-        :creation-info="creationInfo"
-        :ad-list="adList"
-        @result:getCreationTask="handleTaskCreated"
-      />
-
-      <!-- 批投任务结果抽屉 -->
-      <Drawer
-        :open="resultDrawerOpen"
-        title="批投任务执行结果"
-        :width="800"
-        @close="onResultDrawerClose"
-        :destroyOnClose="false"
+  <BatchCreateLayout>
+    <template #config>
+      <ConfigurationConfig
+        compact
+        :rule-info="creationInfo.ruleInfo"
+        :configuration-config="creationInfo.configurationConfig"
+        :account-info="creationInfo.accountInfo"
+        :project="creationInfo.project"
+        :rule-configuration="huaweiStoreRuleConfiguration"
+        :rule-options="huaweiStoreRuleOptions"
+        @update:account-info="updateAccountInfo"
+        @update:product-info="updateProject"
+        @update:rule-info="updateRuleInfo"
+        @update:reuse="updateReuse"
       >
-        <BatchTaskResultDrawer
-          v-if="currentTask"
-          :task-id="currentTask.taskId"
-          :task-name="currentTask.taskName"
-          :platform="currentTask.platform"
-          :project-id="currentTask.projectId"
-          @task-completed="onTaskCompleted"
-        />
-      </Drawer>
-    </Page>
+        <template #field-extra>
+          <div class="field huawei-task-type">
+            <span class="field-label">任务类型</span>
+            <Space>
+              <Select
+                :options="TaskTypeSelect"
+                :value="creationInfo.configData.promotionType.taskType"
+              />
+              <Select
+                :options="AdType"
+                :value="creationInfo.configData.promotionType.adType"
+              />
+            </Space>
+          </div>
+        </template>
+      </ConfigurationConfig>
+    </template>
+
+    <template #workbench>
+      <DeliveryTaskRecommend
+        :creation-info="creationInfo"
+        :field-label-map="fieldLabelMap"
+        @update:campaign="updateCampaign"
+        @update:adgroup="updateAdgroup"
+        @update:audience-package="updateAudiencePackage"
+        @update:update-material="updateMaterial"
+        @update:title-package="updateTitlePackage"
+      />
+    </template>
+
+    <template #actions>
+      <Function
+        :account-info="creationInfo.accountInfo"
+        :monitoring-link="creationInfo.configData.monitoringLink"
+        :task-in-progress="taskInProgress"
+        @update:monitoring-link="updateMonitoringLink"
+        @save:create-strategy-group="createStrategyGroup"
+        @gen:ad-list="genPreviewTableData"
+        @submit:create-batch="submitCreateBatch"
+        @view:task-progress="viewTaskProgress"
+      />
+    </template>
+
+    <template #preview>
+      <RecommendPreviewArea fill :ad-list="adList" :account-info="creationInfo.accountInfo" />
+    </template>
+
+    <CreateAdvertiserModal />
+    <SubmitModal
+      :creation-info="creationInfo"
+      :ad-list="adList"
+      @result:get-creation-task="handleTaskCreated"
+    />
+
+    <Drawer
+      :open="resultDrawerOpen"
+      title="批投任务执行结果"
+      :width="800"
+      @close="onResultDrawerClose"
+      :destroy-on-close="false"
+    >
+      <BatchTaskResultDrawer
+        v-if="currentTask"
+        :task-id="currentTask.taskId"
+        :task-name="currentTask.taskName"
+        :platform="currentTask.platform"
+        :project-id="currentTask.projectId"
+        @task-completed="onTaskCompleted"
+      />
+    </Drawer>
+  </BatchCreateLayout>
 </template>
 
 <style scoped lang="scss">
-.header {
-  margin-bottom: 10px;
+.huawei-task-type {
+  .ant-select {
+    width: 120px;
+  }
 }
 </style>

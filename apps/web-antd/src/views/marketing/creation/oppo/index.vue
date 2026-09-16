@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { Page, useVbenModal } from "@vben/common-ui";
-import { Card, Drawer, message, Select } from "ant-design-vue";
-import ConfigurationConfig from "../components/configurationArea.vue";
-import { ref, watch } from "vue";
 import type {
   OppoAdgroupData,
   OppoCampaignData,
@@ -10,9 +6,8 @@ import type {
   OppoCreationData,
   OppoPromotionData
 } from "./Oppo.types";
-import { OPPO_VERSION } from "./Oppo.types";
-import { getPreviewTableData } from "./convertToPreviewData";
-import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
+
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import type {
   AccountInfo,
   AudienceConfigData,
@@ -27,18 +22,30 @@ import type {
   RuleOptions,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+
+import { ref, watch } from "vue";
+
+import { useVbenModal } from "@vben/common-ui";
+
+import { Drawer, message, Select } from "ant-design-vue";
+
 import { Platform } from "#/constants/enums";
-import OppoBaseTemplate from "#/views/marketing/creation/oppo/components/base/base_template.vue";
-import AppTemplate from "#/views/marketing/creation/oppo/components/app/app_template.vue";
-import QuickAppTemplate
-  from "#/views/marketing/creation/oppo/components/quickapp/quick_template.vue";
-import Function from "#/views/marketing/creation/components/Function.vue";
+import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
-import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
+import Function from "#/views/marketing/creation/components/Function.vue";
 import BatchTaskResultDrawer
   from "#/views/marketing/creation/components/result/BatchTaskResultDrawer.vue";
+import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
+import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
+import AppTemplate from "#/views/marketing/creation/oppo/components/app/app_template.vue";
+import OppoBaseTemplate from "#/views/marketing/creation/oppo/components/base/base_template.vue";
 import OppoPreviewArea from "#/views/marketing/creation/oppo/components/OppoPreviewArea.vue";
+import QuickAppTemplate
+  from "#/views/marketing/creation/oppo/components/quickapp/quick_template.vue";
+
+import ConfigurationConfig from "../components/configurationArea.vue";
+import { getPreviewTableData } from "./convertToPreviewData";
+import { OPPO_VERSION } from "./Oppo.types";
 
 const OPPO_MARKETING_TYPE = [
   {
@@ -171,12 +178,12 @@ function updateLandingPage(landingPage: PageViewConfigData) {
 
 // ==================== 批投任务结果跟踪 ====================
 /** 当前正在执行的批投任务信息 */
-const currentTask = ref<{
+const currentTask = ref<null | {
   taskId: string;
   taskName: string;
   platform: string;
   projectId: string
-} | null>(null);
+}>(null);
 /** 结果抽屉开关 */
 const resultDrawerOpen = ref(false);
 /** 是否有进行中的任务（控制工具栏「查看任务进度」按钮显隐） */
@@ -556,28 +563,36 @@ function resetCreationInfo() {
 </script>
 
 <template>
-  <Page>
-    <Card class="header">
+  <BatchCreateLayout>
+    <template #config>
       <ConfigurationConfig
+        compact
         :rule-info="creationInfo.ruleInfo"
         :configuration-config="creationInfo.configurationConfig"
         :account-info="creationInfo.accountInfo"
         :project="creationInfo.project"
         :rule-configuration="oppoRuleConfiguration"
         :rule-options="oppoRuleOptions"
-        @update:accountInfo="updateAccountInfo"
-        @update:productInfo="updateProject"
-        @update:ruleInfo="updateRuleInfo"
+        @update:account-info="updateAccountInfo"
+        @update:product-info="updateProject"
+        @update:rule-info="updateRuleInfo"
         @update:reuse="updateReuse"
-      />
-    </Card>
+      >
+        <template #field-extra>
+          <div class="field template-field">
+            <span class="field-label">模板</span>
+            <Select
+              class="template-select"
+              :options="OPPO_MARKETING_TYPE"
+              :value="template"
+              @change="(val) => updateTemplate(String(val))"
+            />
+          </div>
+        </template>
+      </ConfigurationConfig>
+    </template>
 
-    <Card class="header">
-      <Select class="w-[200px]" :options="OPPO_MARKETING_TYPE" :value="template"
-              @change="updateTemplate" />
-    </Card>
-
-    <Card class="header">
+    <template #workbench>
       <OppoBaseTemplate
         v-if="template === 'base_template'"
         :creation-info="creationInfo"
@@ -599,7 +614,7 @@ function resetCreationInfo() {
         @update:promotion="updatePromotion"
         @update:audience-package="updateAudiencePackage"
         @update:landing-page="updateLandingPage"
-      ></QuickAppTemplate>
+      />
 
       <AppTemplate
         v-if="template === 'app_template'"
@@ -611,10 +626,10 @@ function resetCreationInfo() {
         @update:promotion="updatePromotion"
         @update:audience-package="updateAudiencePackage"
         @update:landing-page="updateLandingPage"
-      ></AppTemplate>
-    </Card>
+      />
+    </template>
 
-    <Card class="header">
+    <template #actions>
       <Function
         :account-info="creationInfo.accountInfo"
         :monitoring-link="creationInfo.configData.monitoringLink"
@@ -625,18 +640,18 @@ function resetCreationInfo() {
         @submit:create-batch="submitCreateBatch"
         @view:task-progress="viewTaskProgress"
       />
-    </Card>
+    </template>
 
-    <Card class="header" title="预览区">
-      <OppoPreviewArea :ad-list="adList" :account-info="creationInfo.accountInfo" />
-    </Card>
+    <template #preview>
+      <OppoPreviewArea fill :ad-list="adList" :account-info="creationInfo.accountInfo" />
+    </template>
 
     <CreateStrategyGroupModal />
     <!--      提交审核-->
     <SubmitModal
       :creation-info="creationInfo"
       :ad-list="adList"
-      @result:getCreationTask="handleTaskCreated"
+      @result:get-creation-task="handleTaskCreated"
       @result:error="(err: any) => { console.error(err); }"
     />
 
@@ -646,7 +661,7 @@ function resetCreationInfo() {
       title="批投任务执行结果"
       :width="800"
       @close="onResultDrawerClose"
-      :destroyOnClose="false"
+      :destroy-on-close="false"
     >
       <BatchTaskResultDrawer
         v-if="currentTask"
@@ -657,23 +672,11 @@ function resetCreationInfo() {
         @task-completed="onTaskCompleted"
       />
     </Drawer>
-  </Page>
+  </BatchCreateLayout>
 </template>
 
 <style scoped lang="scss">
-.header {
-  margin-bottom: 10px;
-}
-
-.btnCla {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.generateButton {
-  display: flex;
-  justify-content: space-between;
-  margin: 20px 0;
+.template-select {
+  width: 180px;
 }
 </style>

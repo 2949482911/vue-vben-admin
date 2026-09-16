@@ -1,15 +1,13 @@
 <script setup lang="ts">
-/**
- * 巨量智擎版批投页面
- *
- * 单层结构：只有项目层级，无广告组/广告/创意层级
- * 统一模板：std_project_template
- * 提交时通过 extraParams 增加 taskType=bytedance_std 区分
- */
-import { Page, useVbenModal } from "@vben/common-ui";
-import { Card, Drawer, message, Select } from "ant-design-vue";
-import { ref, watch } from "vue";
+import type {
+  DpaProductConfigData,
+  ProductConfigData,
+  StdCreation,
+  StdCreationData,
+  StdProjectData
+} from "./bytedance";
 
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import type {
   AccountInfo,
   AudienceConfigData,
@@ -24,29 +22,35 @@ import type {
   RuleOptions,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
-import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
+
+import { ref, watch } from "vue";
+
+/**
+ * 巨量智擎版批投页面
+ *
+ * 单层结构：只有项目层级，无广告组/广告/创意层级
+ * 统一模板：std_project_template
+ * 提交时通过 extraParams 增加 taskType=bytedance_std 区分
+ */
+import { useVbenModal } from "@vben/common-ui";
+
+import { Drawer, message, Select } from "ant-design-vue";
+
 import { Platform } from "#/constants/enums";
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import { BYTEDANCE_STD_MARKETING_TYPE } from "#/views/marketing/creation/bytedance_std/enums";
+import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
+import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 
 import ConfigurationConfig from "../components/configurationArea.vue";
-import Function from "../components/Function.vue";
 import CreateStrategyGroup from "../components/createStrategyGroup.vue";
-import Submit from "../components/submit/SubmitModal.vue";
+import Function from "../components/Function.vue";
 import BatchTaskResultDrawer from "../components/result/BatchTaskResultDrawer.vue";
-
-import StdBaseTemplate from "./components/base_template/base_template.vue";
+import Submit from "../components/submit/SubmitModal.vue";
+import { BYTEDANCE_STD } from "./bytedance";
 import StdAppTemplate from "./components/app_template/AppTemplate.vue";
+import StdBaseTemplate from "./components/base_template/base_template.vue";
 import StdProjectPreviewArea from "./components/StdProjectPreviewArea.vue";
 import { getPreviewTableData } from "./convertToPreviewData";
-import type {
-  DpaProductConfigData,
-  ProductConfigData,
-  StdCreation,
-  StdCreationData,
-  StdProjectData
-} from "./bytedance";
-import { BYTEDANCE_STD } from "./bytedance";
-import { BYTEDANCE_STD_MARKETING_TYPE } from "#/views/marketing/creation/bytedance_std/enums";
 
 // ==================== 提交弹窗 ====================
 const [SubmitModal, submitApi] = useVbenModal({
@@ -67,12 +71,12 @@ const [CreateStrategyGroupModal, createStrategyGroupApi] = useVbenModal({
 });
 
 // ==================== 批投任务结果跟踪 ====================
-const currentTask = ref<{
+const currentTask = ref<null | {
   taskId: string;
   taskName: string;
   platform: string;
   projectId: string;
-} | null>(null);
+}>(null);
 const resultDrawerOpen = ref(false);
 const taskInProgress = ref(false);
 
@@ -495,20 +499,10 @@ watch(() => creationInfo, (_) => {
 </script>
 
 <template>
-  <Page content-class="p-5">
-
-    <Card class="header" title="模板选择">
-      <Select
-        class="w-[200px]"
-        :options="BYTEDANCE_STD_MARKETING_TYPE"
-        :value="template"
-        @change="updateTemplate"
-      />
-    </Card>
-
-    <!-- 配置区：账户、产品、规则 -->
-    <Card class="header">
+  <BatchCreateLayout>
+    <template #config>
       <ConfigurationConfig
+        compact
         :rule-info="creationInfo.ruleInfo"
         :configuration-config="creationInfo.configurationConfig"
         :account-info="creationInfo.accountInfo"
@@ -519,11 +513,22 @@ watch(() => creationInfo, (_) => {
         @update:account-info="updateAccountInfo"
         @update:rule-info="updateRuleInfo"
         @update:reuse="updateReuse"
-      />
-    </Card>
+      >
+        <template #field-extra>
+          <div class="field template-field">
+            <span class="field-label">模板</span>
+            <Select
+              class="template-select"
+              :options="BYTEDANCE_STD_MARKETING_TYPE"
+              :value="template"
+              @change="(val) => updateTemplate(String(val))"
+            />
+          </div>
+        </template>
+      </ConfigurationConfig>
+    </template>
 
-    <!-- 模板区：通过 v-if 切换不同模板组件 -->
-    <Card class="header">
+    <template #workbench>
       <StdBaseTemplate
         v-if="template === 'base_template'"
         :creation-info="creationInfo"
@@ -551,10 +556,9 @@ watch(() => creationInfo, (_) => {
         @update:product-config="updateProductConfig"
         @update:dpa-product-config="updateDpaProductConfig"
       />
-    </Card>
+    </template>
 
-    <!-- 工具栏 -->
-    <Card class="header">
+    <template #actions>
       <Function
         :account-info="creationInfo.accountInfo"
         :task-in-progress="taskInProgress"
@@ -565,24 +569,24 @@ watch(() => creationInfo, (_) => {
         @view:task-progress="viewTaskProgress"
         @update:monitoring-link="updateMonitoringLink"
       />
-    </Card>
+    </template>
 
     <CreateStrategyGroupModal />
 
-    <!-- 预览区 -->
-    <Card class="header" title="预览区">
+    <template #preview>
       <StdProjectPreviewArea
+        fill
         :ad-list="adList"
         :account-info="creationInfo.accountInfo"
       />
-    </Card>
+    </template>
 
     <!-- 提交弹窗：extraParams 传递 taskType=bytedance_std -->
     <SubmitModal
       :extra-params="{'taskType': 'bytedance_std'}"
       :creation-info="creationInfo"
       :ad-list="adList"
-      @result:getCreationTask="handleTaskCreated"
+      @result:get-creation-task="handleTaskCreated"
     />
 
     <!-- 批投任务结果抽屉 -->
@@ -591,7 +595,7 @@ watch(() => creationInfo, (_) => {
       title="批投任务执行结果"
       :width="800"
       @close="onResultDrawerClose"
-      :destroyOnClose="false"
+      :destroy-on-close="false"
     >
       <BatchTaskResultDrawer
         v-if="currentTask"
@@ -604,11 +608,11 @@ watch(() => creationInfo, (_) => {
         :show-promotion="false"
       />
     </Drawer>
-  </Page>
+  </BatchCreateLayout>
 </template>
 
 <style scoped lang="scss">
-.header {
-  margin-bottom: 10px;
+.template-select {
+  width: 180px;
 }
 </style>

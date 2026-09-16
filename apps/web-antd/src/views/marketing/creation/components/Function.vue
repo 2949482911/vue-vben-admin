@@ -113,7 +113,7 @@ function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0 flex-1">
     <div class="flex justify-between">
       <Space>
         <Button type="primary" @click="openMonitoringDrawer">监测连接</Button>

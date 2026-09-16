@@ -1,15 +1,4 @@
 <script setup lang="ts" name="OppoBaseTemplate">
-import { Col, Row } from 'ant-design-vue';
-
-import OppoCampaign from '#/views/marketing/creation/oppo/components/OppoCampaign.vue';
-import OppoAdgroup from '#/views/marketing/creation/oppo/components/OppoAdgroup.vue';
-import OppoPromotion from '#/views/marketing/creation/oppo/components/OppoPromotion.vue';
-import TitleSelector from '#/views/marketing/creation/components/title/TitleSelector.vue';
-import CreativeGroupSelector from '#/views/marketing/creation/components/creative/CreativeGroupSelector.vue';
-import PageViewSelector from '#/views/marketing/creation/components/pageview/PageViewSelector.vue';
-import AudiencePackageSelector
-  from '#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue';
-import { Platform } from '#/constants/enums';
 import type {
   AudienceConfigData,
   MaterialData,
@@ -22,31 +11,49 @@ import type {
   OppoCreation,
   OppoPromotionData,
 } from '#/views/marketing/creation/oppo/Oppo.types';
+
+import { markRaw } from "vue";
+
+import { oppo_advertisementApi } from "#/api";
+import { Platform } from '#/constants/enums';
+import AudiencePackageSelector
+  from '#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue';
+import CreativeGroupSelector from '#/views/marketing/creation/components/creative/CreativeGroupSelector.vue';
+import PageViewSelector from '#/views/marketing/creation/components/pageview/PageViewSelector.vue';
+import TimeSelectionPeriod
+  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
+import TitleSelector from '#/views/marketing/creation/components/title/TitleSelector.vue';
+import OppoAdgroup from '#/views/marketing/creation/oppo/components/OppoAdgroup.vue';
+import OppoCampaign from '#/views/marketing/creation/oppo/components/OppoCampaign.vue';
+import OppoPromotion from '#/views/marketing/creation/oppo/components/OppoPromotion.vue';
 import {
+  ADTYPE_SELECT,
+  BILLINGTYPE_SELECT,
+  DAY_LIMIT_SELECT,
   // EXTENSION_SELECT,
   DAYLIMIT_SELECT,
-  DELIVERMODE_SELECT,
   // FLOW_SELECT,
   // FLOWSCENE_SELECT,
   DEEP_CV_SELECT,
-  SMART_EXPAND_SELECT,
-  DAY_LIMIT_SELECT,
-  TIME_LIMIT_SELECT,
-  OPPO_QUICK_APP_SELECT,
-  QUICK_APP_TYPE_SELECT,
+  DELIVERMODE_SELECT,
+  fieldLabelMap,
+  GLOBAL_SPECID_SELECT,
   OPPO_FREE_ORDER_SELECT,
-  PRODUCT_AD_TYPE_SELECT,
-  ADTYPE_SELECT,
+  OPPO_QUICK_APP_SELECT,
   OPTIMIZE_SWITCH_SELECT,
   OPTIMIZE_TYPE_SELECT,
-  GLOBAL_SPECID_SELECT,
-  BILLINGTYPE_SELECT,
-  fieldLabelMap, PAGE_TYPE_SELECT
+  PAGE_TYPE_SELECT,
+  PRODUCT_AD_TYPE_SELECT,
+  QUICK_APP_TYPE_SELECT,
+  SMART_EXPAND_SELECT, TIME_LIMIT_SELECT
 } from "#/views/marketing/creation/oppo/projectEnum";
-import { markRaw } from "vue";
-import TimeSelectionPeriod
-  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
-import { oppo_advertisementApi } from "#/api";
+
+const { creationInfo } = defineProps({
+  creationInfo: {
+    type: Object as () => OppoCreation,
+    default: () => ({}),
+  },
+});
 
 const emit = defineEmits([
   'update:campaign',
@@ -57,13 +64,6 @@ const emit = defineEmits([
   'update:titlePackage',
   'update:landingPage',
 ]);
-
-const { creationInfo } = defineProps({
-  creationInfo: {
-    type: Object as () => OppoCreation,
-    default: () => ({}),
-  },
-});
 
 function updateCampaign(campaign: OppoCampaignData) {
   emit('update:campaign', campaign);
@@ -134,7 +134,7 @@ const campaignFormFields = [
     rules: "required",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["dayLimit"] === 1
+        return currentValue.dayLimit === 1
       },
       triggerFields: ["dayLimit"]
     }
@@ -228,7 +228,7 @@ const adgroupFormFields = [
     rules: "required",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue['dayLimit'] === 1
+        return currentValue.dayLimit === 1
       },
       triggerFields: ['dayLimit']
     }
@@ -245,7 +245,7 @@ const adgroupFormFields = [
     rules: "required",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue['dayLimit'] === 1
+        return currentValue.dayLimit === 1
       },
       triggerFields: ['dayLimit']
     }
@@ -268,7 +268,7 @@ const adgroupFormFields = [
     dependencies: {
       show: (currentValue: any) => {
         // 信息流才会展示
-        return currentValue["flowScene"] === 6
+        return currentValue.flowScene === 6
       },
       triggerFields: ["flowScene"]
     }
@@ -291,7 +291,7 @@ const adgroupFormFields = [
     dependencies: {
       show:(currentValue: any) => {
         // CPC 出价
-        return currentValue["billingType"] === 2 || currentValue["billingType"] === 5
+        return currentValue.billingType === 2 || currentValue.billingType === 5
       },
       triggerFields: ["billingType"]
     }
@@ -306,7 +306,7 @@ const adgroupFormFields = [
     dependencies: {
       show: (currentValue: any) => {
         // OCPC
-        return currentValue["billingType"] === 5
+        return currentValue.billingType === 5
       },
       triggerFields: ["billingType"]
     }
@@ -321,7 +321,7 @@ const adgroupFormFields = [
     dependencies: {
       show: (currentValue: any) => {
         // OCPC
-        return currentValue["billingType"] === 5
+        return currentValue.billingType === 5
       },
       triggerFields: ["billingType"]
     }
@@ -360,7 +360,7 @@ const adgroupFormFields = [
     rules: "required",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["billingType"] === 5
+        return currentValue.billingType === 5
       },
       triggerFields: ["billingType"]
     }
@@ -388,7 +388,7 @@ const adgroupFormFields = [
     rules: "required",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["timeLimit"] === 1
+        return currentValue.timeLimit === 1
       },
       triggerFields: ["timeLimit"]
     }
@@ -445,7 +445,7 @@ const adgroupFormFields = [
     rules: "required",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["ocpcType"] === 47
+        return currentValue.ocpcType === 47
       },
       triggerFields: ["ocpcType"]
     }
@@ -584,8 +584,8 @@ const promotionShowLabel: Record<string, string> = {
 
 <template>
   <div class="oppo-base-template">
-    <Row :gutter="16" class="equal-height-row">
-      <Col :span="5" class="equal-height-col">
+    <div class="panes">
+      <div class="pane">
         <OppoCampaign
           :form-fields="campaignFormFields"
           :campaign-show-label="campaignShowLabel"
@@ -593,37 +593,36 @@ const promotionShowLabel: Record<string, string> = {
           :field-label-map="fieldLabelMap"
           @update:campaign="updateCampaign"
         />
-      </Col>
+      </div>
 
-      <Col :span="5" class="equal-height-col">
-        <OppoAdgroup
-          :form-fields="adgroupFormFields"
-          :adgroup-show-label="adgroupShowLabel"
-          :adgroup="creationInfo?.configData.adgroup"
-          :field-label-map="fieldLabelMap"
-          @update:adgroup="updateAdgroup"
-        />
-      </Col>
+      <div class="pane">
+        <div class="combined-area">
+          <OppoAdgroup
+            :form-fields="adgroupFormFields"
+            :adgroup-show-label="adgroupShowLabel"
+            :adgroup="creationInfo?.configData.adgroup"
+            :field-label-map="fieldLabelMap"
+            @update:adgroup="updateAdgroup"
+          />
+          <OppoPromotion
+            :form-fields="promotionFormFields"
+            :promotion-show-label="promotionShowLabel"
+            :promotion="creationInfo?.configData.promotion"
+            :field-label-map="fieldLabelMap"
+            @update:promotion="updatePromotion"
+          />
+        </div>
+      </div>
 
-      <Col :span="5" class="equal-height-col">
-        <OppoPromotion
-          :form-fields="promotionFormFields"
-          :promotion-show-label="promotionShowLabel"
-          :promotion="creationInfo?.configData.promotion"
-          :field-label-map="fieldLabelMap"
-          @update:promotion="updatePromotion"
-        />
-      </Col>
-
-      <Col :span="5" class="equal-height-col">
+      <div class="pane">
         <CreativeGroupSelector
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData.material"
           @update:material="updateMaterial"
         />
-      </Col>
+      </div>
 
-      <Col :span="4" class="equal-height-col">
+      <div class="pane">
         <div class="combined-area">
           <PageViewSelector
             :page-view="creationInfo.configData.landingPage"
@@ -642,36 +641,86 @@ const promotionShowLabel: Record<string, string> = {
             @update:audience="updateAudiencePackage"
           />
         </div>
-      </Col>
-    </Row>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .oppo-base-template {
   width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
 }
 
-.equal-height-col {
+.pane {
   display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 
   > * {
-    width: 100%;
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
   }
 }
 
 .combined-area {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 16px;
   width: 100%;
+  min-height: 0;
+  overflow: hidden;
+
+  > * {
+    flex: 1;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
 }
 </style>

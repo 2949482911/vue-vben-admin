@@ -2,24 +2,21 @@
 // 投放推荐任务
 // https://developer.huawei.com/consumer/cn/doc/promotion/bp-delivery-task-recommend-0000001337110797
 
-import {Col, Row} from "ant-design-vue";
-import Task from "../HuaweiStoreTask.vue";
-import SubTask from "../HuaweiStoreSubTask.vue";
-import type {
-  HuaWeiStoreCampaignData,
-} from "#/views/marketing/creation/huawei_store/huawei_store";
 import type {
   AudienceConfigData,
   MaterialData,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
+import type {
+  HuaWeiStoreCampaignData,
+} from "#/views/marketing/creation/huawei_store/huawei_store";
 
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
 
-const emit = defineEmits(["update:campaign", "update:adgroup",
-  "update:audiencePackage", "update:updateMaterial", "update:titlePackage"])
+import SubTask from "../HuaweiStoreSubTask.vue";
+import Task from "../HuaweiStoreTask.vue";
 
 const {creationInfo, fieldLabelMap} = defineProps({
   creationInfo: {
@@ -30,6 +27,9 @@ const {creationInfo, fieldLabelMap} = defineProps({
   },
   fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 })
+
+const emit = defineEmits(["update:campaign", "update:adgroup",
+  "update:audiencePackage", "update:updateMaterial", "update:titlePackage"])
 
 // 任务表单字段
 const taskFormFields = [
@@ -367,18 +367,19 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 
 <template>
   <div class="delivery-task-recommend-container">
-    <Row :gutter="16" class="equal-height-row">
-      <Col :span="6" class="equal-height-col">
-        <Task :form-fields="taskFormFields"
+    <div class="panes">
+      <div class="pane">
+        <Task
+:form-fields="taskFormFields"
               :task-show-label="taskShowLabel"
               :campaign="creationInfo.configData?.campaign"
               :field-label-map="fieldLabelMap"
-              @update:campaign="updateCampaign">
-
-        </Task>
-      </Col>
-      <Col :span="6" class="equal-height-col">
-        <SubTask :form-fields="subTaskFormFields"
+              @update:campaign="updateCampaign"
+/>
+      </div>
+      <div class="pane">
+        <SubTask
+:form-fields="subTaskFormFields"
                  :sub-task-show-label="subTaskShowLabel"
                  :account-info="creationInfo.accountInfo"
                  :audience="creationInfo.configData?.audience"
@@ -387,47 +388,93 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
                  @update:adgroup="updateAdgroup"
                  @update:audience-package="updateAudiencePackage"
         />
-      </Col>
+      </div>
 
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <CreativeGroupSelector
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData?.material"
           @update:material="updateMaterial"
         />
-      </Col>
+      </div>
 
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <TitleSelector
           :title-package="creationInfo.configData?.titlePackage"
           :account-info="creationInfo.accountInfo"
           @update:title-package="updateTitlePackage"
-        ></TitleSelector>
-      </Col>
-    </Row>
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .delivery-task-recommend-container {
   width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
-// 让所有列高度一致，但不强制扩容
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
+/**
+ * 配置列布局：grid 固定「4 列 + 1 行」，
+ * 行高 = 工作台高度（外层给的是确定高度），因此列高恒定、不会被内容撑高；
+ * 不再使用 Row/Col 的 stretch + 612px 魔法值，也不会因为列换行而外溢
+ */
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
 }
 
-.equal-height-col {
+.pane {
   display: flex;
-  
-  // 让内部组件高度自适应父容器（匹配最高的列）
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  // 列内容必须是工作台高度：既不能被内容撑高，也不能顶出去；
+  // 卡片自身填满列、内容区滚动、列脚按钮固定可见
   > * {
-    width: 100%;
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  // 在列内直接加固卡片滚动契约，确保 :deep 能可靠命中当前模板渲染的卡片
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
   }
 }
 </style>

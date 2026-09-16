@@ -1,14 +1,4 @@
 <script setup lang="ts" name="VivoBaseTemplate">
-// vivo基础模板
-import { Col, Row } from "ant-design-vue";
-
-import VivoCampaign from "#/views/marketing/creation/vivo/components/VivoCampaign.vue";
-import VivoAdgroup from "#/views/marketing/creation/vivo/components/VivoAdgroup.vue";
-import VivoPromotion from "#/views/marketing/creation/vivo/components/VivoPromotion.vue";
-import CreativeGroupSelector
-  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
-import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
-
 import type {
   AudienceConfigData,
   MaterialData,
@@ -23,6 +13,14 @@ import type {
   VivoCreation,
   VivoPromotionData
 } from "#/views/marketing/creation/vivo/vivo";
+
+import CreativeGroupSelector
+  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+import VivoAdgroup from "#/views/marketing/creation/vivo/components/VivoAdgroup.vue";
+// vivo基础模板
+import VivoCampaign from "#/views/marketing/creation/vivo/components/VivoCampaign.vue";
+import VivoPromotion from "#/views/marketing/creation/vivo/components/VivoPromotion.vue";
 import {
   ADTYPE_SELECT,
   BID_SELECT,
@@ -39,10 +37,6 @@ import {
   PROMOTIONLINK_SELECT
 } from "#/views/marketing/creation/vivo/projectEnum";
 
-const emit = defineEmits(["update:campaign", "update:adgroup", "update:promotion",
-  "update:audiencePackage", "update:material", "update:titlePackage",
-  "update:adQualification", "update:channelPackage", "adTypeChanged", "update:pageView"]);
-
 /**
  * vivo基础模板props
  * 包含creationInfo
@@ -55,6 +49,10 @@ const { creationInfo } = defineProps({
     }
   }
 });
+
+const emit = defineEmits(["update:campaign", "update:adgroup", "update:promotion",
+  "update:audiencePackage", "update:material", "update:titlePackage",
+  "update:adQualification", "update:channelPackage", "adTypeChanged", "update:pageView"]);
 
 /**
  * vivo计划表单字段配置
@@ -421,8 +419,8 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 
 <template>
   <div class="vivo-base-template">
-    <Row :gutter="16" class="equal-height-row">
-      <Col :span="5" class="equal-height-col">
+    <div class="panes">
+      <div class="pane">
         <VivoCampaign
           :campaign="creationInfo?.configData.campaign"
           :form-fields="campaignFormFields"
@@ -431,11 +429,11 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
           :has-account="creationInfo.accountInfo.length > 0"
           :has-product="!!creationInfo.project.projectId"
           @update:campaign="updateCampaign"
-          @adTypeChanged="handleAdTypeChanged"
+          @ad-type-changed="handleAdTypeChanged"
         />
-      </Col>
+      </div>
 
-      <Col :span="5" class="equal-height-col">
+      <div class="pane">
         <VivoAdgroup
           :adgroup="creationInfo?.configData.adgroup"
           :form-fields="adgroupFormFields"
@@ -446,13 +444,13 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
           :advertiser-qualification="creationInfo?.configData.advertiserQualification"
           :channel-package="creationInfo?.configData.channelPackage"
           @update:adgroup="updateAdgroup"
-          @update:adQualification="updateAdQualification"
-          @update:channelPackage="updateChannelPackage"
-          @update:audiencePackage="updateAudiencePackage"
+          @update:ad-qualification="updateAdQualification"
+          @update:channel-package="updateChannelPackage"
+          @update:audience-package="updateAudiencePackage"
         />
-      </Col>
+      </div>
 
-      <Col :span="5" class="equal-height-col">
+      <div class="pane">
         <VivoPromotion
           :promotion="creationInfo?.configData.promotion"
           :form-fields="promotionFormFields"
@@ -465,49 +463,101 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
           @update:promotion="updatePromotion"
           @update:page-view="updatePageView"
         />
-      </Col>
+      </div>
 
-      <Col :span="5" class="equal-height-col">
-        <CreativeGroupSelector
-          :account-info="creationInfo.accountInfo"
-          :material="creationInfo.configData.material"
-          :rule-info="creationInfo.ruleInfo"
-          @update:material="updateMaterial"
-        />
-      </Col>
-
-      <Col :span="4" class="equal-height-col">
-        <TitleSelector
-          :title-package="creationInfo.configData.titlePackage"
-          :account-info="creationInfo.accountInfo"
-          @update:titlePackage="updateTitlePackage"
-        />
-      </Col>
-
-    </Row>
+      <div class="pane">
+        <div class="combined-area">
+          <CreativeGroupSelector
+            :account-info="creationInfo.accountInfo"
+            :material="creationInfo.configData.material"
+            :rule-info="creationInfo.ruleInfo"
+            @update:material="updateMaterial"
+          />
+          <TitleSelector
+            :title-package="creationInfo.configData.titlePackage"
+            :account-info="creationInfo.accountInfo"
+            @update:title-package="updateTitlePackage"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .vivo-base-template {
   width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
-// 让所有列高度一致，但不强制扩容
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
 }
 
-.equal-height-col {
+.pane {
   display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 
-  // 让内部组件高度自适应父容器（匹配最高的列）
   > * {
-    width: 100%;
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
+  }
+}
+
+.combined-area {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+
+  > * {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow: hidden;
   }
 }
 </style>

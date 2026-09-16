@@ -1,22 +1,18 @@
 <script setup lang="ts" name="MarketingProductDouyinTemplate">
-import { Col, Row } from "ant-design-vue";
-
-import BytedanceCampaign from "../BytedanceCampaign.vue";
-import BytedancePromotion from "../BytedancePromotion.vue";
-import CreativeGroupSelector
-  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
-import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
-import type {
-  AudienceConfigData,
-  MaterialData, PageViewConfigData,
-  TitlePackageConfigData
-} from "#/views/marketing/creation/creation";
 import type {
   AwemeConfigData,
   BytedanceCampaignData,
   BytedanceCreation,
   BytedancePromotionData
 } from "#/views/marketing/creation/bytedance/bytedance";
+import type {
+  AudienceConfigData,
+  MaterialData, PageViewConfigData,
+  TitlePackageConfigData
+} from "#/views/marketing/creation/creation";
+
+import { markRaw } from "vue";
+
 import {
   BytedanceCampaign_ad_type,
   BytedanceCampaign_app_promotion_type,
@@ -44,13 +40,25 @@ import {
   DeliveryMode,
   fieldLabelMap
 } from "#/views/marketing/creation/bytedance/enums";
-import { markRaw } from "vue";
+import CreativeGroupSelector
+  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
 import TimeSelectionPeriod
   from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
-import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
+import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+
+import AwemeConfigCard from "../../../components/aweme/AwemeConfigCard.vue";
+import BytedanceCampaign from "../BytedanceCampaign.vue";
+import BytedancePromotion from "../BytedancePromotion.vue";
 import DpaProductButtonField from "../DpaProductButtonField.vue";
 import ProductImageButtonField from "../ProductImageButtonField.vue";
-import AwemeConfigCard from "../../../components/aweme/AwemeConfigCard.vue";
+
+const { creationInfo } = defineProps({
+  creationInfo: {
+    type: Object as () => BytedanceCreation,
+    default: () => ({})
+  }
+});
 
 const emit = defineEmits([
   "update:campaign",
@@ -61,13 +69,6 @@ const emit = defineEmits([
   "update:landingPage",
   "update:awemeConfig",
 ]);
-
-const { creationInfo } = defineProps({
-  creationInfo: {
-    type: Object as () => BytedanceCreation,
-    default: () => ({})
-  }
-});
 
 function updateCampaign(campaign: BytedanceCampaignData) {
   emit("update:campaign", campaign);
@@ -130,7 +131,7 @@ const campaignFormFields = [
     defaultValue: "DOWNLOAD",
     dependencies: {
       show: (currentValue: Record<string, any>) => {
-        return currentValue["landing_type"] === "APP";
+        return currentValue.landing_type === "APP";
       },
       triggerFields: ["landing_type"]
     }
@@ -222,7 +223,7 @@ const campaignFormFields = [
     componentProps: {}, // 由 BytedanceCampaignDrawer.onOpenChange 动态注入 dpaContext / openDpaModal
     dependencies: {
       show: (currentValue: Record<string, any>) => {
-        return currentValue["related_product_setting"] === "SINGLE";
+        return currentValue.related_product_setting === "SINGLE";
       },
       triggerFields: ["related_product_setting"],
     },
@@ -375,7 +376,7 @@ const campaignFormFields = [
     component: "Input", fieldName: "native_setting_aweme_id", label: "抖音号ID",
     dependencies: {
       show: (currentValue: Record<string, any>) => {
-        return currentValue["advertiser_body"] === "douyin";
+        return currentValue.advertiser_body === "douyin";
       },
       triggerFields: ["advertiser_body"]
     }
@@ -478,7 +479,7 @@ const campaignFormFields = [
     rules: "required",
     dependencies: {
       show: (currentValue: Record<string, any>) => {
-        return currentValue["delivery_setting_schedule_type"] === "SCHEDULE_START_END";
+        return currentValue.delivery_setting_schedule_type === "SCHEDULE_START_END";
       },
       triggerFields: ["delivery_setting_schedule_type"]
 
@@ -492,7 +493,7 @@ const campaignFormFields = [
     rules: "required",
     dependencies: {
       show: (currentValue: Record<string, any>) => {
-        return currentValue["delivery_setting_schedule_type"] === "SCHEDULE_START_END";
+        return currentValue.delivery_setting_schedule_type === "SCHEDULE_START_END";
       },
       triggerFields: ["delivery_setting_schedule_type"]
 
@@ -721,8 +722,8 @@ const promotionShowLabel: Record<string, string> = {
 
 <template>
   <div class="bytedance-base-template">
-    <Row :gutter="16" class="equal-height-row">
-      <Col :span="6" class="equal-height-col">
+    <div class="panes">
+      <div class="pane">
         <BytedanceCampaign
           :form-fields="campaignFormFields"
           :campaign-show-label="campaignShowLabel"
@@ -733,9 +734,9 @@ const promotionShowLabel: Record<string, string> = {
           @update:campaign="updateCampaign"
           @update:audience-package="updateAudiencePackage"
         />
-      </Col>
+      </div>
 
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <div class="combined-area">
           <BytedancePromotion
             :form-fields="promotionFormFields"
@@ -750,18 +751,17 @@ const promotionShowLabel: Record<string, string> = {
             @update:aweme-config="updateAwemeConfig"
           />
         </div>
+      </div>
 
-      </Col>
-
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <CreativeGroupSelector
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData.material"
           @update:material="updateMaterial"
         />
-      </Col>
+      </div>
 
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <div class="combined-area">
           <PageViewSelector
             :page-view="creationInfo.configData.landingPage"
@@ -775,48 +775,87 @@ const promotionShowLabel: Record<string, string> = {
             @update:title-package="updateTitlePackage"
           />
         </div>
-      </Col>
-    </Row>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .bytedance-base-template {
   width: 100%;
-}
-
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
-  //height: 650px;
-}
-
-.equal-height-col {
-  display: flex;
+  height: 100%;
   min-height: 0;
-
-  > * {
-    width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-  }
 }
 
-.combined-area {
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+.pane {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  flex: 1;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
 
   > * {
     flex: 1;
     min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  // 卡片滚动契约
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
+  }
+}
+
+.combined-area {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+
+  > * {
+    flex: 1;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
   }
 }
 </style>

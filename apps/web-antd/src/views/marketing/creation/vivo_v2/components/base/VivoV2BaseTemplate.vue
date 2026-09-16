@@ -11,8 +11,6 @@ import type {
   VivoV2PlanData,
 } from '#/views/marketing/creation/vivo_v2/vivo_v2';
 
-import { Col, Row } from 'ant-design-vue';
-
 import { Platform } from '#/constants/enums';
 import AudiencePackageSelector from '#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue';
 import CreativeGroupSelector from '#/views/marketing/creation/components/creative/CreativeGroupSelector.vue';
@@ -92,27 +90,27 @@ function updatePageView(landingPage: PageViewConfigData) {
 
 <template>
   <div class="vivo-v2-base-template">
-    <!-- 单行多列：每块配置独占一列，列高度对齐；小配置（定向包/标题包/落地页）合并到最后一列 -->
-    <Row :gutter="16" class="equal-height-row">
-      <Col :span="6" :xs="24" :md="12" :xl="6" class="equal-height-col">
+    <!-- 配置列：一行 4 列，列高由外层工作台决定；内容超出只在列内滚动 -->
+    <div class="panes">
+      <div class="pane">
         <VivoV2Campaign :creation-info="creationInfo" @update:campaign="updateCampaign" />
-      </Col>
+      </div>
 
-      <Col :span="6" :xs="24" :md="12" :xl="6" class="equal-height-col">
+      <div class="pane">
         <VivoV2Ad :creation-info="creationInfo" @update:ad="updateAd" />
-      </Col>
+      </div>
 
-      <Col :span="6" :xs="24" :md="12" :xl="6" class="equal-height-col">
+      <div class="pane">
         <CreativeGroupSelector
           :account-info="creationInfo?.accountInfo"
           :material="creationInfo?.configData?.material"
           :rule-info="creationInfo?.ruleInfo"
           @update:material="updateMaterial"
         />
-      </Col>
+      </div>
 
       <!-- 小配置合并列：定向包 / 标题包 / 落地页 -->
-      <Col :span="6" :xs="24" :md="12" :xl="6" class="equal-height-col">
+      <div class="pane">
         <div class="combined-area">
           <AudiencePackageSelector
             :audience="creationInfo?.configData?.audience"
@@ -132,37 +130,72 @@ function updatePageView(landingPage: PageViewConfigData) {
             @update:page-view="updatePageView"
           />
         </div>
-      </Col>
-    </Row>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .vivo-v2-base-template {
   width: 100%;
-}
-
-// 让所有列高度一致，但不强制扩容
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
-}
-
-.equal-height-col {
-  display: flex;
+  height: 100%;
   min-height: 0;
+}
 
-  // 让内部组件高度自适应父容器（匹配最高的列）
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
   > * {
-    display: flex;
     flex: 1;
-    flex-direction: column;
-    width: 100%;
     min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
   }
 }
 
-// 合并列：多个小配置纵向排列，等分列高
 .combined-area {
   display: flex;
   flex: 1;
@@ -170,5 +203,12 @@ function updatePageView(landingPage: PageViewConfigData) {
   gap: 16px;
   width: 100%;
   min-height: 0;
+  overflow: hidden;
+
+  > * {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow: hidden;
+  }
 }
 </style>

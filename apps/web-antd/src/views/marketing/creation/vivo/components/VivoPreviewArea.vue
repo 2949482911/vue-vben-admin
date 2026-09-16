@@ -8,6 +8,8 @@ import { convertToPreviewData } from '#/views/marketing/creation/vivo/convertToP
 const props = defineProps<{
   tableData: any[];
   accountInfo: AccountInfo[];
+  /** 撑满父容器（批创工作台预览区） */
+  fill?: boolean;
 }>();
 
 // 转换数据为预览区需要的格式
@@ -70,15 +72,16 @@ const tableColumns = [
 </script>
 
 <template>
-  <div>
+  <div class="h-full">
     <PreviewArea
+      fill
       :table-columns="tableColumns"
       :table-data="previewData"
       :show-empty="tableData.length === 0"
       :campaign-merge-fields="['campaignName']"
       :adgroup-merge-fields="['groupName']"
       :level-names="levelNames"
-    ></PreviewArea>
+    />
   </div>
 </template>
 

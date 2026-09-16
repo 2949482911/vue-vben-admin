@@ -1,4 +1,20 @@
 <script setup lang="ts" name="StdAppTemplate">
+import type {
+  DpaProductConfigData,
+  ProductConfigData,
+  StdCreation,
+  StdProjectData
+} from "#/views/marketing/creation/bytedance_std/bytedance";
+import type {
+  AudienceConfigData,
+  AwemeConfigData,
+  MaterialData,
+  PageViewConfigData,
+  TitlePackageConfigData
+} from "#/views/marketing/creation/creation";
+
+import { computed, markRaw, watch } from "vue";
+
 /**
  * 智擎版 App推广模板
  *
@@ -7,33 +23,9 @@
  *
  * 参考 bytedance/MarketingProductDouyinTemplate.vue 模式
  */
-import { Col, message, Row } from "ant-design-vue";
-import { computed, markRaw, watch } from "vue";
+import { message } from "ant-design-vue";
 
 import { bytedanceAdvertisementApi } from "#/api/core";
-import StdProject from "../StdProject.vue";
-import ProductConfigCard from "../product/ProductConfigCard.vue";
-import AwemeConfigCard from "#/views/marketing/creation/components/aweme/AwemeConfigCard.vue";
-import CreativeGroupSelector
-  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
-import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
-import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
-import TimeSelectionPeriod
-  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
-import DpaProductConfigCard from "../product/DpaProductConfigCard.vue";
-import type {
-  AudienceConfigData,
-  AwemeConfigData,
-  MaterialData,
-  PageViewConfigData,
-  TitlePackageConfigData
-} from "#/views/marketing/creation/creation";
-import type {
-  DpaProductConfigData,
-  ProductConfigData,
-  StdCreation,
-  StdProjectData
-} from "#/views/marketing/creation/bytedance_std/bytedance";
 import {
   BytedanceCampaign_ad_type,
   BytedanceCampaign_app_promotion_type,
@@ -58,6 +50,32 @@ import {
   DeliveryMode,
   fieldLabelMap
 } from "#/views/marketing/creation/bytedance_std/enums";
+import AwemeConfigCard from "#/views/marketing/creation/components/aweme/AwemeConfigCard.vue";
+import CreativeGroupSelector
+  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
+import TimeSelectionPeriod
+  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
+import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+
+import DpaProductConfigCard from "../product/DpaProductConfigCard.vue";
+import ProductConfigCard from "../product/ProductConfigCard.vue";
+import StdProject from "../StdProject.vue";
+
+const { creationInfo, productConfig, dpaProductConfig } = defineProps({
+  creationInfo: {
+    type: Object as () => StdCreation,
+    default: () => ({})
+  },
+  productConfig: {
+    type: Object as () => null | ProductConfigData,
+    default: null
+  },
+  dpaProductConfig: {
+    type: Object as () => DpaProductConfigData | null,
+    default: null
+  }
+});
 
 const emit = defineEmits([
   "update:project",
@@ -69,21 +87,6 @@ const emit = defineEmits([
   "update:productConfig",
   "update:dpaProductConfig"
 ]);
-
-const { creationInfo, productConfig, dpaProductConfig } = defineProps({
-  creationInfo: {
-    type: Object as () => StdCreation,
-    default: () => ({})
-  },
-  productConfig: {
-    type: Object as () => ProductConfigData | null,
-    default: null
-  },
-  dpaProductConfig: {
-    type: Object as () => DpaProductConfigData | null,
-    default: null
-  }
-});
 
 function updateProject(project: StdProjectData) {
   emit("update:project", project);
@@ -303,7 +306,7 @@ const projectFormFields = [
     component: "Input", fieldName: "subscribe_url",
     dependencies: {
       show: (currentVal: Record<string, any>) => {
-        return currentVal["app_promotion_type"] === "RESERVE";
+        return currentVal.app_promotion_type === "RESERVE";
       },
       triggerFields: ["app_promotion_type"]
     },
@@ -336,7 +339,7 @@ const projectFormFields = [
     component: "Input", fieldName: "dpa_product_display", label: "投放商品",
     componentProps: { disabled: true, placeholder: "请先在配置区配置投放商品" },
     dependencies: {
-      show: (cv: Record<string, any>) => cv["related_product_enabled"] === "YES",
+      show: (cv: Record<string, any>) => cv.related_product_enabled === "YES",
       triggerFields: ["related_product_enabled"]
     }
   },
@@ -375,7 +378,7 @@ const projectFormFields = [
     label: "开始时间",
     rules: "required",
     dependencies: {
-      show: (cv: Record<string, any>) => cv["schedule_type"] === "SCHEDULE_START_END",
+      show: (cv: Record<string, any>) => cv.schedule_type === "SCHEDULE_START_END",
       triggerFields: ["schedule_type"]
     }
   },
@@ -385,7 +388,7 @@ const projectFormFields = [
     label: "结束时间",
     rules: "required",
     dependencies: {
-      show: (cv: Record<string, any>) => cv["schedule_type"] === "SCHEDULE_START_END",
+      show: (cv: Record<string, any>) => cv.schedule_type === "SCHEDULE_START_END",
       triggerFields: ["schedule_type"]
     }
   },
@@ -417,7 +420,7 @@ const projectFormFields = [
     component: "InputNumber", fieldName: "budget",
     label: "预算", defaultValue: 0,
     dependencies: {
-      show: (cv: Record<string, any>) => cv["budget_mode"] !== "BUDGET_MODE_INFINITE",
+      show: (cv: Record<string, any>) => cv.budget_mode !== "BUDGET_MODE_INFINITE",
       triggerFields: ["budget_mode"]
     }
   },
@@ -444,7 +447,7 @@ const projectFormFields = [
   {
     component: "Input", fieldName: "open_url", label: "直达链接", dependencies: {
       show: (currentVal: Record<string, any>) => {
-        return currentVal["app_promotion_type"] === "LAUNCH";
+        return currentVal.app_promotion_type === "LAUNCH";
       },
       triggerFields: ["app_promotion_type"]
     }
@@ -453,7 +456,7 @@ const projectFormFields = [
     component: "Input", fieldName: "ulink_url", label: "备用链接",
     dependencies: {
       show: (currentVal: Record<string, any>) => {
-        return currentVal["app_promotion_type"] === "LAUNCH";
+        return currentVal.app_promotion_type === "LAUNCH";
       },
       triggerFields: ["app_promotion_type"]
     }
@@ -464,7 +467,7 @@ const projectFormFields = [
     label: "备用链接类型", defaultValue: "UNIVERSAL_LINK",
     dependencies: {
       show: (currentVal: Record<string, any>) => {
-        return currentVal["app_promotion_type"] === "LAUNCH";
+        return currentVal.app_promotion_type === "LAUNCH";
       },
       triggerFields: ["app_promotion_type"]
     }
@@ -576,36 +579,29 @@ const campaignShowLabel: Record<string, string> = {
 
 <template>
   <div class="std-app-template">
-    <Row :gutter="16" class="equal-height-row">
+    <div class="panes">
       <!-- 第1列：项目配置 + 抖音号配置 -->
-      <Col :span="8" class="equal-height-col">
-        <div class="combined-area">
-          <StdProject
-            :project="creationInfo?.configData.project"
-            :audience="creationInfo?.configData.audience"
-            :account-info="creationInfo.accountInfo"
-            :form-fields="projectFormFields"
-            :campaign-show-label="campaignShowLabel"
-            :field-label-map="fieldLabelMap"
-            :dpa-product-config="dpaProductConfig"
-            @update:project="updateProject"
-            @update:audience-package="updateAudiencePackage"
-          />
-        </div>
-      </Col>
+      <div class="pane">
+        <StdProject
+          :project="creationInfo?.configData.project"
+          :audience="creationInfo?.configData.audience"
+          :account-info="creationInfo.accountInfo"
+          :form-fields="projectFormFields"
+          :campaign-show-label="campaignShowLabel"
+          :field-label-map="fieldLabelMap"
+          :dpa-product-config="dpaProductConfig"
+          @update:project="updateProject"
+          @update:audience-package="updateAudiencePackage"
+        />
+      </div>
 
-      <!-- 第2列：产品配置 + 创意组 -->
-      <Col :span="8" class="equal-height-col">
+      <!-- 第2列：产品配置 + 抖音号配置 -->
+      <div class="pane">
         <div class="combined-area">
           <ProductConfigCard
             :product-config="productConfig"
             :account-info="creationInfo.accountInfo"
             @update:product-config="updateProductConfig"
-          />
-          <CreativeGroupSelector
-            :account-info="creationInfo.accountInfo"
-            :material="creationInfo.configData.material"
-            @update:material="updateMaterial"
           />
           <AwemeConfigCard
             :aweme-config="creationInfo?.configData.awemeConfig"
@@ -615,10 +611,19 @@ const campaignShowLabel: Record<string, string> = {
             @update:aweme-config="updateAwemeConfig"
           />
         </div>
-      </Col>
+      </div>
 
-      <!-- 第3列：落地页 + 标题包 -->
-      <Col :span="8" class="equal-height-col">
+      <!-- 第3列：创意组 -->
+      <div class="pane">
+        <CreativeGroupSelector
+          :account-info="creationInfo.accountInfo"
+          :material="creationInfo.configData.material"
+          @update:material="updateMaterial"
+        />
+      </div>
+
+      <!-- 第4列：落地页 + 标题包 -->
+      <div class="pane">
         <div class="combined-area">
           <PageViewSelector
             :disabled="isPageView"
@@ -637,42 +642,81 @@ const campaignShowLabel: Record<string, string> = {
             @update:dpa-product-config="updateDpaProductConfig"
           />
         </div>
-      </Col>
-    </Row>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .std-app-template {
   width: 100%;
-}
-
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
-  height: 750px;
-}
-
-.equal-height-col {
-  display: flex;
+  height: 100%;
   min-height: 0;
+}
 
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  // 列内容必须是工作台高度：既不能被内容撑高，也不能顶出去；
+  // 卡片自身填满列、内容区滚动、列脚按钮固定可见
   > * {
-    width: 100%;
     flex: 1;
-    display: flex;
-    flex-direction: column;
     min-height: 0;
+    max-height: 100%;
     overflow: hidden;
+  }
+
+  // 在列内直接加固卡片滚动契约
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
   }
 }
 
 .combined-area {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  flex: 1;
   min-height: 0;
   overflow: hidden;
 

@@ -164,6 +164,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 
 .campaign-cards-wrapper {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -197,7 +198,8 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
     padding: 16px;
     flex: 1;
     min-height: 0;
-    overflow: hidden;
+    // 内容超出时在卡片内滚动，避免被裁切（工作台高度固定）
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
   }

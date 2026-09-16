@@ -15,6 +15,8 @@ import { convertToPreviewData } from "#/views/marketing/creation/bytedance/conve
 const props = defineProps<{
   adList: Array<BytedanceCreationData>;
   accountInfo: AccountInfo[];
+  /** 撑满父容器（批创工作台预览区），表格占满剩余高度 */
+  fill?: boolean;
 }>();
 
 // 转换数据为预览区需要的格式
@@ -70,12 +72,13 @@ const tableColumns: PreviewColumn[] = [
 </script>
 
 <template>
-  <div>
+  <div class="h-full">
     <PreviewArea
       :key="adList.length"
       :table-columns="tableColumns"
       :table-data="previewData"
       :show-empty="adList.length === 0"
+      :fill="fill"
       :campaign-merge-fields="[
         'campaignName',
         'marketingGoal',

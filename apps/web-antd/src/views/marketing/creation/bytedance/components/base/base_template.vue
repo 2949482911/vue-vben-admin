@@ -1,21 +1,15 @@
 <script setup lang="ts" name="BytedanceBaseTemplate">
-import { Col, Row } from "ant-design-vue";
-
-import BytedanceCampaign from "../BytedanceCampaign.vue";
-import BytedancePromotion from "../BytedancePromotion.vue";
-import CreativeGroupSelector
-  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
-import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
-import type {
-  AudienceConfigData,
-  MaterialData,
-  TitlePackageConfigData
-} from "#/views/marketing/creation/creation";
 import type {
   BytedanceCampaignData,
   BytedanceCreation,
   BytedancePromotionData
 } from "#/views/marketing/creation/bytedance/bytedance";
+import type {
+  AudienceConfigData,
+  MaterialData,
+  TitlePackageConfigData
+} from "#/views/marketing/creation/creation";
+
 import {
   BytedanceCampaign_ad_type,
   BytedanceCampaign_app_promotion_type,
@@ -62,6 +56,19 @@ import {
   DeliveryMode,
   fieldLabelMap
 } from "#/views/marketing/creation/bytedance/enums";
+import CreativeGroupSelector
+  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+
+import BytedanceCampaign from "../BytedanceCampaign.vue";
+import BytedancePromotion from "../BytedancePromotion.vue";
+
+const { creationInfo } = defineProps({
+  creationInfo: {
+    type: Object as () => BytedanceCreation,
+    default: () => ({})
+  }
+});
 
 const emit = defineEmits([
   "update:campaign",
@@ -70,13 +77,6 @@ const emit = defineEmits([
   "update:updateMaterial",
   "update:titlePackage"
 ]);
-
-const { creationInfo } = defineProps({
-  creationInfo: {
-    type: Object as () => BytedanceCreation,
-    default: () => ({})
-  }
-});
 
 function updateCampaign(campaign: BytedanceCampaignData) {
   emit("update:campaign", campaign);
@@ -131,7 +131,7 @@ const campaignFormFields = [
     defaultValue: "DOWNLOAD",
     dependencies: {
       show: (currentValue: Record<string, any>) => {
-        return currentValue["landing_type"] === "APP";
+        return currentValue.landing_type === "APP";
       },
       triggerFields: ["landing_type"]
     }
@@ -428,7 +428,7 @@ const campaignFormFields = [
     component: "Input", fieldName: "native_setting_aweme_id", label: "抖音号ID",
     dependencies: {
       show: (currentValue: Record<string, any>) => {
-        return currentValue["advertiser_body"] === "douyin";
+        return currentValue.advertiser_body === "douyin";
       },
       triggerFields: ["advertiser_body"]
     }
@@ -505,7 +505,7 @@ const campaignFormFields = [
     label: "开始时间",
     dependencies: {
       show: (currentValue: Record<string, any>) => {
-        return currentValue["delivery_setting_schedule_type"] === "SCHEDULE_START_END";
+        return currentValue.delivery_setting_schedule_type === "SCHEDULE_START_END";
       },
       triggerFields: ["*"]
     }
@@ -517,7 +517,7 @@ const campaignFormFields = [
     label: "结束时间",
     dependencies: {
       show: (currentValue: Record<string, any>) => {
-        return currentValue["delivery_setting_schedule_type"] === "SCHEDULE_START_END";
+        return currentValue.delivery_setting_schedule_type === "SCHEDULE_START_END";
       },
       triggerFields: ["*"]
     }
@@ -782,8 +782,9 @@ const promotionShowLabel: Record<string, string> = {
 
 <template>
   <div class="bytedance-base-template">
-    <Row :gutter="16" class="equal-height-row">
-      <Col :span="6" class="equal-height-col">
+    <!-- 配置列：一行 4 列，列高由外层工作台决定；内容超出只在列内滚动 -->
+    <div class="panes">
+      <div class="pane">
         <BytedanceCampaign
           :form-fields="campaignFormFields"
           :campaign-show-label="campaignShowLabel"
@@ -794,9 +795,9 @@ const promotionShowLabel: Record<string, string> = {
           @update:campaign="updateCampaign"
           @update:audience-package="updateAudiencePackage"
         />
-      </Col>
+      </div>
 
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <BytedancePromotion
           :form-fields="promotionFormFields"
           :promotion-show-label="promotionShowLabel"
@@ -804,49 +805,93 @@ const promotionShowLabel: Record<string, string> = {
           :field-label-map="fieldLabelMap"
           @update:promotion="updatePromotion"
         />
-      </Col>
+      </div>
 
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <CreativeGroupSelector
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData.material"
           @update:material="updateMaterial"
         />
-      </Col>
+      </div>
 
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <TitleSelector
           :title-package="creationInfo.configData.titlePackage"
           :account-info="creationInfo.accountInfo"
           @update:title-package="updateTitlePackage"
         />
-      </Col>
-    </Row>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .bytedance-base-template {
   width: 100%;
-}
-
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
-  height: 612px;
-}
-
-.equal-height-col {
-  display: flex;
+  height: 100%;
   min-height: 0;
+}
 
+/**
+ * 配置列布局：grid 固定「4 列 + 1 行」，
+ * 行高 = 工作台高度（外层给的是确定高度），因此列高恒定、不会被内容撑高；
+ * 不再使用 Row/Col 的 stretch + 612px 魔法值，也不会因为列换行而外溢
+ */
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  // 列内容必须是工作台高度：既不能被内容撑高，也不能顶出去；
+  // 卡片自身填满列、内容区滚动、列脚按钮固定可见
   > * {
-    width: 100%;
     flex: 1;
-    display: flex;
-    flex-direction: column;
     min-height: 0;
+    max-height: 100%;
     overflow: hidden;
+  }
+
+  // 在列内直接加固卡片滚动契约，确保 :deep 能可靠命中当前模板渲染的卡片
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
   }
 }
 </style>

@@ -15,6 +15,8 @@ import { convertToPreviewData } from "#/views/marketing/creation/huawei_store/co
 const props = defineProps<{
   adList: HuaWeiStoreCreationData[];
   accountInfo: AccountInfo[];
+  /** 撑满父容器（批创工作台预览区） */
+  fill?: boolean;
 }>();
 
 // 转换数据为预览区需要的格式
@@ -61,15 +63,16 @@ const tableColumns: PreviewColumn[] = [
 </script>
 
 <template>
-  <div>
+  <div class="h-full">
     <PreviewArea
+      fill
       :table-data="previewData"
       :table-columns="tableColumns"
       :show-empty="adList.length === 0"
       :campaign-merge-fields="['taskName', 'budget']"
       :adgroup-merge-fields="['subTaskName']"
       :level-names="levelNames"
-    ></PreviewArea>
+    />
   </div>
 </template>
 

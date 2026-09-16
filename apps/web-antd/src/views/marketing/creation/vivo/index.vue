@@ -1,28 +1,6 @@
 <script setup lang="ts">
-import { Page, useVbenModal } from "@vben/common-ui";
-import { Card, message, Select } from "ant-design-vue";
-import ConfigurationConfig from "../components/configurationArea.vue";
-import VivoBaseTemplate from "./components/base/VivoBaseTemplate.vue";
-import VivoApplicationAdvertiserTemplate
-  from "./components/application_advertiser/VivoApplicationAdvertiserTemplate.vue";
-import Function from "../components/Function.vue";
-import VivoPreviewArea from "./components/VivoPreviewArea.vue";
-import CreateStrategyGroup from "../components/createStrategyGroup.vue";
-import { nextTick, ref, watch } from "vue";
-
-import { VIVO_MARKETING_TYPE } from "#/views/marketing/creation/vivo/components/enums";
-
-import type {
-  ChannelPackageValue,
-  QualificationValue,
-  VivoAdgroupData,
-  VivoCampaignData,
-  VivoCreation,
-  VivoPromotionData
-} from "#/views/marketing/creation/vivo/vivo";
-import { VIVO_VERSION } from "#/views/marketing/creation/vivo/vivo";
-import { Platform } from "#/constants/enums";
-import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { PageViewItem } from "#/api/models/assert";
 import type {
   AccountInfo,
   AudienceConfigData,
@@ -34,10 +12,36 @@ import type {
   RuleInfo,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type {
+  ChannelPackageValue,
+  QualificationValue,
+  VivoAdgroupData,
+  VivoCampaignData,
+  VivoCreation,
+  VivoPromotionData
+} from "#/views/marketing/creation/vivo/vivo";
+
+import { nextTick, ref, watch } from "vue";
+
+import { useVbenModal } from "@vben/common-ui";
+
+import { message, Select } from "ant-design-vue";
+
+import { Platform } from "#/constants/enums";
+import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
+import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
+import { VIVO_MARKETING_TYPE } from "#/views/marketing/creation/vivo/components/enums";
+import { VIVO_VERSION } from "#/views/marketing/creation/vivo/vivo";
+
+import ConfigurationConfig from "../components/configurationArea.vue";
+import CreateStrategyGroup from "../components/createStrategyGroup.vue";
+import Function from "../components/Function.vue";
+import VivoApplicationAdvertiserTemplate
+  from "./components/application_advertiser/VivoApplicationAdvertiserTemplate.vue";
+import VivoBaseTemplate from "./components/base/VivoBaseTemplate.vue";
+import VivoPreviewArea from "./components/VivoPreviewArea.vue";
 import { vivoRuleConfiguration, vivoRuleOptions } from "./rules";
 import { getVivoTableData } from "./vivo";
-import type { PageViewItem } from "#/api/models/assert";
 
 // 预览数据列表
 const adList = ref<Array<any>>([]);
@@ -596,49 +600,51 @@ function submitCreateBatch() {
 </script>
 
 <template>
-  <Page>
-    <!-- 配置区 -->
-    <Card class="header">
+  <BatchCreateLayout>
+    <template #config>
       <ConfigurationConfig
+        compact
         :rule-info="creationInfo.ruleInfo"
         :configuration-config="creationInfo.configurationConfig"
         :account-info="creationInfo.accountInfo"
         :project="creationInfo.project"
         :rule-configuration="vivoRuleConfiguration"
         :rule-options="vivoRuleOptions"
-        @update:accountInfo="updateAccountInfo"
-        @update:productInfo="updateProject"
-        @update:ruleInfo="updateRuleInfo"
+        @update:account-info="updateAccountInfo"
+        @update:product-info="updateProject"
+        @update:rule-info="updateRuleInfo"
         @update:reuse="updateReuse"
-      />
-    </Card>
-
-    <!-- 基础模板（包含计划、广告组、定向包、创意组、标题包） -->
-
-    <Card class="header">
-      <Select class='w-[200px]'
+      >
+        <template #field-extra>
+          <div class="field template-field">
+            <span class="field-label">模板</span>
+            <Select
+              class="template-select"
               :options="VIVO_MARKETING_TYPE"
               :value="template"
-              @change="updateTemplate"
-      ></Select>
-    </Card>
+              @change="(val) => updateTemplate(String(val))"
+            />
+          </div>
+        </template>
+      </ConfigurationConfig>
+    </template>
 
-    <Card class="header">
-      <VivoBaseTemplate v-if="template === 'base_template'"
-                        :creation-info="creationInfo"
-                        @update:campaign="updateCampaign"
-                        @update:adgroup="updateAdgroup"
-                        @update:promotion="updatePromotion"
-                        @update:audiencePackage="updateAudiencePackage"
-                        @update:material="updateMaterial"
-                        @update:titlePackage="updateTitlePackage"
-                        @update:adQualification="updateAdQualification"
-                        @update:channelPackage="updateChannelPackage"
-                        @update:page-view="updatePageView"
-                        @adTypeChanged="handleAdTypeChanged"
+    <template #workbench>
+      <VivoBaseTemplate
+        v-if="template === 'base_template'"
+        :creation-info="creationInfo"
+        @update:campaign="updateCampaign"
+        @update:adgroup="updateAdgroup"
+        @update:promotion="updatePromotion"
+        @update:audience-package="updateAudiencePackage"
+        @update:material="updateMaterial"
+        @update:title-package="updateTitlePackage"
+        @update:ad-qualification="updateAdQualification"
+        @update:channel-package="updateChannelPackage"
+        @update:page-view="updatePageView"
+        @ad-type-changed="handleAdTypeChanged"
       />
 
-      <!--      应用推广-->
       <VivoApplicationAdvertiserTemplate
         ref="VivoApplicationAdvertiserTemplateRef"
         v-if="template === 'application_advertiser'"
@@ -646,39 +652,36 @@ function submitCreateBatch() {
         @update:campaign="updateCampaign"
         @update:adgroup="updateAdgroup"
         @update:promotion="updatePromotion"
-        @update:audiencePackage="updateAudiencePackage"
+        @update:audience-package="updateAudiencePackage"
         @update:material="updateMaterial"
-        @update:titlePackage="updateTitlePackage"
-        @update:adQualification="updateAdQualification"
-        @update:channelPackage="updateChannelPackage"
+        @update:title-package="updateTitlePackage"
+        @update:ad-qualification="updateAdQualification"
+        @update:channel-package="updateChannelPackage"
         @update:page-view="updatePageView"
       />
-    </Card>
+    </template>
 
-    <!-- 监测链接组 -->
-    <Card class="header">
+    <template #actions>
       <Function
-        :accountInfo="creationInfo.accountInfo"
+        :account-info="creationInfo.accountInfo"
         :monitoring-link="creationInfo.configData.monitoringLink"
         @update:monitoring-link="updateMonitoringLink"
-        @save:createStrategyGroup="createStrategyGroup"
-        @gen:adList="genPreviewTableData"
-        @submit:createBatch="submitCreateBatch"
+        @save:create-strategy-group="createStrategyGroup"
+        @gen:ad-list="genPreviewTableData"
+        @submit:create-batch="submitCreateBatch"
       />
-    </Card>
+    </template>
 
-    <!-- 预览区 -->
-    <Card title="预览区" class="header">
-      <VivoPreviewArea :table-data="adList" :account-info="creationInfo.accountInfo" />
-    </Card>
+    <template #preview>
+      <VivoPreviewArea fill :table-data="adList" :account-info="creationInfo.accountInfo" />
+    </template>
 
-    <!-- 策略组保存弹窗 -->
     <CreateStrategyGroupModal />
-  </Page>
+  </BatchCreateLayout>
 </template>
 
 <style scoped lang="scss">
-.header {
-  margin-bottom: 10px;
+.template-select {
+  width: 180px;
 }
 </style>

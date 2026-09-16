@@ -11,8 +11,6 @@ import type {
 } from "#/views/marketing/creation/tencent/tencent";
 
 // 腾讯基础模板
-import { Col, Row } from "ant-design-vue";
-
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
@@ -1539,8 +1537,8 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 
 <template>
   <div class="tencent-base-template">
-    <Row :gutter="16" class="equal-height-row">
-      <Col :span="6" class="equal-height-col">
+    <div class="panes">
+      <div class="pane">
         <TencentCampaign
           :form-fields="campaignFormFields"
           :campaign-show-label="campaignShowLabel"
@@ -1551,9 +1549,9 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           @update:campaign="updateCampaign"
           @update:audience-package="updateAudiencePackage"
         />
-      </Col>
+      </div>
 
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <TencentAdgroup
           :form-fields="adgroupFormFields"
           :adgroup-show-label="adgroupShowLabel"
@@ -1561,47 +1559,85 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           :field-label-map="fieldLabelMap"
           @update:adgroup="updateAdgroup"
         />
-      </Col>
+      </div>
 
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <CreativeGroupSelector
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData.material"
           @update:material="updateMaterial"
         />
-      </Col>
+      </div>
 
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <TitleSelector
           :title-package="creationInfo.configData.titlePackage"
           :account-info="creationInfo.accountInfo"
           @update:title-package="updateTitlePackage"
         />
-      </Col>
-</Row>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .tencent-base-template {
   width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
-// 让所有列高度一致，但不强制扩容
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
 }
 
-.equal-height-col {
+.pane {
   display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 
-  // 让内部组件高度自适应父容器（匹配最高的列）
   > * {
-    width: 100%;
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
   }
 }
 </style>

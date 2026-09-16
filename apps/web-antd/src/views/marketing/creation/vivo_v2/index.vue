@@ -14,10 +14,11 @@ import type {
 
 import { ref, watch } from 'vue';
 
-import { Page, useVbenModal } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 
-import { Card, message, Select } from 'ant-design-vue';
+import { message, Select } from 'ant-design-vue';
 
+import BatchCreateLayout from '#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue';
 import ConfigurationConfig from '#/views/marketing/creation/components/configurationArea.vue';
 import CreateStrategyGroup from '#/views/marketing/creation/components/createStrategyGroup.vue';
 import Function from '#/views/marketing/creation/components/Function.vue';
@@ -197,10 +198,10 @@ function submitCreateBatch() {
 </script>
 
 <template>
-  <Page>
-    <!-- 配置区 -->
-    <Card class="header">
+  <BatchCreateLayout>
+    <template #config>
       <ConfigurationConfig
+        compact
         :rule-info="creationInfo.ruleInfo"
         :configuration-config="creationInfo.configurationConfig"
         :account-info="creationInfo.accountInfo"
@@ -211,21 +212,22 @@ function submitCreateBatch() {
         @update:product-info="updateProject"
         @update:rule-info="updateRuleInfo"
         @update:reuse="updateReuse"
-      />
-    </Card>
+      >
+        <template #field-extra>
+          <div class="field template-field">
+            <span class="field-label">模板</span>
+            <Select
+              class="template-select"
+              :options="VIVO_V2_MARKETING_TYPE"
+              :value="template"
+              @change="(val) => updateTemplate(String(val))"
+            />
+          </div>
+        </template>
+      </ConfigurationConfig>
+    </template>
 
-    <!-- 模板选择 -->
-    <Card class="header">
-      <Select
-        class="w-[200px]"
-        :options="VIVO_V2_MARKETING_TYPE"
-        :value="template"
-        @change="(val) => updateTemplate(String(val))"
-      />
-    </Card>
-
-    <!-- 模板配置（计划 / 广告 / 定向包 / 素材 / 标题包 / 落地页） -->
-    <Card class="header">
+    <template #workbench>
       <VivoV2BaseTemplate
         v-if="template === 'base_template'"
         :creation-info="creationInfo"
@@ -236,10 +238,9 @@ function submitCreateBatch() {
         @update:title-package="updateTitlePackage"
         @update:page-view="updatePageView"
       />
-    </Card>
+    </template>
 
-    <!-- 监测链接组 -->
-    <Card class="header">
+    <template #actions>
       <Function
         :account-info="creationInfo.accountInfo"
         :monitoring-link="creationInfo.configData.monitoringLink"
@@ -248,20 +249,18 @@ function submitCreateBatch() {
         @gen:ad-list="genPreviewTableData"
         @submit:create-batch="submitCreateBatch"
       />
-    </Card>
+    </template>
 
-    <!-- 预览区 -->
-    <Card title="预览区" class="header">
-      <VivoV2PreviewArea :table-data="adList" :account-info="creationInfo.accountInfo" />
-    </Card>
+    <template #preview>
+      <VivoV2PreviewArea fill :table-data="adList" :account-info="creationInfo.accountInfo" />
+    </template>
 
-    <!-- 策略组保存弹窗 -->
     <CreateStrategyGroupModal />
-  </Page>
+  </BatchCreateLayout>
 </template>
 
 <style scoped lang="scss">
-.header {
-  margin-bottom: 10px;
+.template-select {
+  width: 180px;
 }
 </style>

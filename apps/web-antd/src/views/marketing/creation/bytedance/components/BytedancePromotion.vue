@@ -171,7 +171,8 @@ function openPromotionDrawer() {
     padding: 16px;
     flex: 1;
     min-height: 0;
-    overflow: hidden;
+    // 内容超出时在卡片内滚动，避免被裁切（工作台高度固定）
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
   }

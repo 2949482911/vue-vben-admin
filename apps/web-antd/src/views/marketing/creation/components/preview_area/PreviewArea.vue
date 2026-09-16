@@ -26,6 +26,12 @@ const props = defineProps<{
   adgroupMergeFields?: string[];
   /** 自定义层级名称配置 */
   levelNames?: LevelNames;
+  /**
+   * 撑满父容器（批创工作台预览区用）
+   * true：外层只保留一个带边框容器，Tabs / 统计条固定、表格自适应剩余高度
+   * false（默认）：保持原有「多个 Card 纵向排列」的形态
+   */
+  fill?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -302,7 +308,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="preview-area">
+  <div class="preview-area" :class="{ 'is-fill': fill }">
     <!-- 空状态 -->
     <div v-if="showEmpty && isEmpty" class="empty-status">
       请先完成计划配置，再预览生成的广告计划~
@@ -324,7 +330,7 @@ defineExpose({
       </Tabs>
 
       <!-- 统计信息 -->
-      <Card style="margin-top: 10px">
+      <Card :class="{ 'pv-plain': fill }" :style="fill ? undefined : { marginTop: '10px' }">
         <div class="statistics-bar">
           <span v-if="levelNamesConfig.campaign.show">{{ levelNamesConfig.campaign.labelName }}总数：<span class="stat-value">{{ currentAccountData?.campaignCount || 0
             }}</span></span>
@@ -338,8 +344,8 @@ defineExpose({
       </Card>
 
       <!-- 数据表格 -->
-      <Card style="margin-top: 10px">
-        <Grid style="min-height: 60vh"></Grid>
+      <Card :class="{ 'pv-grid': fill }" :style="fill ? undefined : { marginTop: '10px' }">
+        <Grid :style="fill ? undefined : { minHeight: '60vh' }" />
       </Card>
     </template>
   </div>
@@ -348,6 +354,64 @@ defineExpose({
 <style scoped lang="scss">
 .preview-area {
   width: 100%;
+}
+
+/**
+ * 撑满父容器形态：外层一个带边框容器，
+ * Tabs / 统计条固定高度，表格占满剩余高度并内部滚动（页面本身不整页滚动）
+ */
+.preview-area.is-fill {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 16px 12px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+
+  :deep(.ant-tabs) {
+    flex-shrink: 0;
+  }
+
+  .empty-status {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .pv-plain {
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+
+    :deep(.ant-card-body) {
+      padding: 0;
+    }
+  }
+
+  .pv-grid {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    margin-top: 8px;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+
+    :deep(.ant-card-body) {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+      padding: 0;
+    }
+  }
 }
 
 .empty-status {

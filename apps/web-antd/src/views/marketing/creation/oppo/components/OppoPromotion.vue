@@ -104,54 +104,58 @@ function openPromotionDrawer() {
 
 <style scoped lang="scss">
 .oppo-promotion-container {
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
 }
 
 .info-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   width: 100%;
-  height: 100%;
-  min-height: 300px;
+  min-height: 0;
+  overflow: hidden;
 
   &.ant-card {
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
     transition: box-shadow 0.3s ease;
 
     &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
     }
   }
 
-  .ant-card-head {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    padding: 12px 16px;
+  :deep(.ant-card-head) {
     min-height: 57px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgb(0 0 0 / 6%);
   }
 
-  .ant-card-body {
-    padding: 16px;
-    height: 100%;
+  :deep(.ant-card-body) {
     display: flex;
+    flex: 1;
     flex-direction: column;
+    min-height: 0;
+    padding: 16px;
+    overflow-y: auto;
   }
 }
 
 .card-content {
   flex: 1;
-  overflow-y: auto;
   padding-bottom: 16px;
-  min-height: 150px;
+  overflow-y: auto;
 }
 
 .card-footer {
   display: flex;
+  flex-shrink: 0;
   justify-content: center;
   padding-top: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  margin-top: auto;
+  border-top: 1px solid rgb(0 0 0 / 6%);
 }
 
 .info-descriptions {

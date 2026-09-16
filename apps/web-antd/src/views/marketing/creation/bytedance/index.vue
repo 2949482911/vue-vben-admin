@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Page, useVbenModal } from "@vben/common-ui";
-import { Card, Drawer, message, Select } from "ant-design-vue";
+import { useVbenModal } from "@vben/common-ui";
+import { Drawer, message, Select } from "ant-design-vue";
+import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import ConfigurationConfig from "../components/configurationArea.vue";
 import { ref, watch } from "vue";
 import type { BytedanceCampaignData, BytedanceCreation, BytedanceCreationData, BytedancePromotionData } from "./bytedance";
@@ -32,8 +33,6 @@ import MarketingProductDouyinTemplate
   from "#/views/marketing/creation/bytedance/components/marketing_product_douyin/MarketingProductDouyinTemplate.vue";
 import MiniProgramDouyinTemplate
   from "#/views/marketing/creation/bytedance/components/mini_program_douyin/MiniProgramDouyinTemplate.vue";
-import MiniProgramWechatTemplate
-  from "#/views/marketing/creation/bytedance/components/mini_program_wechat/MiniProgramWechatTemplate.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
@@ -759,20 +758,12 @@ watch(() => creationInfo, (_) => {
 </script>
 
 <template>
-    <Page >
-
-
-      <Card class="header" title="模板选择">
-        <Select
-          class="w-[200px]"
-          :options="BYTEDANCE_MARKETING_TYPE"
-          :value="template"
-          @change="updateTemplate"
-        />
-      </Card>
-
-      <Card class="header">
+    <!-- 批创工作台：① 配置条 → ② 配置工作台 → ③ 操作条 → ④ 预览区 -->
+    <BatchCreateLayout>
+      <!-- ① 配置条：项目 / 媒体账户 / 规则摘要 / 模板选择 -->
+      <template #config>
         <ConfigurationConfig
+          compact
           :rule-info="creationInfo.ruleInfo"
           :configuration-config="creationInfo.configurationConfig"
           :account-info="creationInfo.accountInfo"
@@ -783,10 +774,24 @@ watch(() => creationInfo, (_) => {
           @update:account-info="updateAccountInfo"
           @update:rule-info="updateRuleInfo"
           @update:reuse="updateReuse"
-        />
-      </Card>
+        >
+          <!-- 模板选择与项目 / 账户同一条水平线 -->
+          <template #field-extra>
+            <div class="field template-field">
+              <span class="field-label">模板</span>
+              <Select
+                class="template-select"
+                :options="BYTEDANCE_MARKETING_TYPE"
+                :value="template"
+                @change="(val) => updateTemplate(String(val))"
+              />
+            </div>
+          </template>
+        </ConfigurationConfig>
+      </template>
 
-      <Card class="header">
+      <!-- ② 配置工作台：各配置列等高，内容超出时在列内滚动 -->
+      <template #workbench>
         <BytedanceBaseTemplate
           v-if="template === 'base_template'"
           :creation-info="creationInfo"
@@ -818,9 +823,10 @@ watch(() => creationInfo, (_) => {
           @update:landing-page="updateLandingPage"
           @update:aweme-config="updateAwemeConfig"
         />
-      </Card>
+      </template>
 
-      <Card class="header">
+      <!-- ③ 操作条：监测链接组 / 保存策略组 / 生成预览 / 提交审核 -->
+      <template #actions>
         <Function
           :account-info="creationInfo.accountInfo"
           :monitoring-link="creationInfo.configData.monitoringLink"
@@ -831,16 +837,18 @@ watch(() => creationInfo, (_) => {
           @submit:create-batch="submitCreateBatch"
           @view:task-progress="viewTaskProgress"
         />
-      </Card>
+      </template>
 
       <CreateStrategyGroupModal />
 
-      <Card class="header" title="预览区">
+      <!-- ④ 预览区：占满剩余高度，表格内部滚动、表头吸顶 -->
+      <template #preview>
         <BytedancePreviewArea
+          fill
           :ad-list="adList"
           :account-info="creationInfo.accountInfo"
         />
-      </Card>
+      </template>
 
       <SubmitModal
         :creation-info="creationInfo"
@@ -865,11 +873,11 @@ watch(() => creationInfo, (_) => {
           @task-completed="onTaskCompleted"
         />
       </Drawer>
-    </Page>
+    </BatchCreateLayout>
 </template>
 
 <style scoped lang="scss">
-.header {
-  margin-bottom: 10px;
+.template-select {
+  width: 180px;
 }
 </style>

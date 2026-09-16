@@ -16,6 +16,8 @@ const productList = ref();
 const mediaAccountLabel = ref<string>('');
 // 选中的ID数组方便回显
 const selectedAccountIds = ref<string[]>([]);
+// 已选账户数量（条形态下的触发器展示用）
+const accountCount = computed(() => selectedAccountIds.value.length);
 // 定义一个变量存储完整的行对象
 const selectedRowsData = ref<any[]>([]);
 // 内部维护一个临时变量，记录弹窗中所有的勾选对象
@@ -23,7 +25,7 @@ const tempSelectedRows = ref<AdvertiserItem[]>([]);
 const emit = defineEmits(['update:accountInfo', 'update:productInfo','update:ruleInfo', 'update:reuse']);
 
 
-const { ruleInfo, configurationConfig, accountInfo, project, ruleConfiguration, ruleOptions } = defineProps({
+const { ruleInfo, configurationConfig, accountInfo, project, ruleConfiguration, ruleOptions, compact } = defineProps({
   ruleInfo: {
     type: Object,
     default: () => {
@@ -124,6 +126,12 @@ const { ruleInfo, configurationConfig, accountInfo, project, ruleConfiguration, 
   project: {
     type: Object as () => Project | null,
     default: null
+  },
+
+  // 条形态：用于批创工作台顶部配置条（隐藏「配置区」标题、强制单行不换行）
+  compact: {
+    type: Boolean,
+    default: false
   }
 
 });
@@ -393,15 +401,15 @@ function reuseStrategyGroup() {
 }
 </script>
 <template>
-  <div class="header-configuration">
+  <div class="header-configuration" :class="{ 'is-compact': compact }">
     <h2 class="header-configuration-title">配置区</h2>
     <div class="header-configuration-content">
       <div class="header-configuration-content-left">
-        <div class="project">
-          项目
+        <div class="field project">
+          <span class="field-label">项目</span>
           <Select
             v-model:value="projectId"
-            style="width: 120px"
+            class="project-select"
             @change="handleProjectChange">
             <Select.Option
               v-for="item in productList"
@@ -412,22 +420,29 @@ function reuseStrategyGroup() {
             </Select.Option>
           </Select>
         </div>
-        <div class="media-account">
-          媒体账户
+        <div class="field media-account">
+          <span class="field-label">媒体账户</span>
           <Tooltip placement="top">
             <template #title v-if="mediaAccountLabel">
               {{ mediaAccountLabel }}
             </template>
+            <!-- 条形态下用触发器展示已选数量，比只读输入框更像工具栏控件 -->
+            <Button v-if="compact" class="account-trigger" @click="mediaAccountClick()">
+              {{ accountCount > 0 ? `已选 ${accountCount} 个` : '请选择' }}
+            </Button>
             <Input
+              v-else
               class="inp"
               :value="mediaAccountLabel"
               readonly
               placeholder="请选择"
-              style="width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
               @click="mediaAccountClick()"
             />
           </Tooltip>
         </div>
+
+        <!-- 条形态下追加的字段（如「模板」），与项目/账户同一条水平线 -->
+        <slot name="field-extra"></slot>
       </div>
       <div class="header-configuration-content-right">
         <div class="info-tag">
@@ -440,8 +455,10 @@ function reuseStrategyGroup() {
           <span class="label ml-4">{{ ruleConfiguration.creative.name }}：</span>
           <span class="value">{{ displayDisplayText.creativeText }}</span>
         </div>
-        <Button type="primary" @click="ruleConfigurationEvent">规则配置</Button>
-        <Button type="primary" class="ml-5" @click="reuseStrategyGroup">复用策略组</Button>
+        <div class="action-btns">
+          <Button type="primary" @click="ruleConfigurationEvent">规则配置</Button>
+          <Button type="primary" @click="reuseStrategyGroup">复用策略组</Button>
+        </div>
       </div>
     </div>
     <Modal class="w-[80%] h-[80vh]" title="选择媒体账户">
@@ -546,30 +563,35 @@ function reuseStrategyGroup() {
 <style lang="scss">
 .header-configuration {
   &-title {
+    margin-bottom: 10px;
     font-size: 16px;
     font-weight: 600;
-    margin-bottom: 10px;
   }
+
   &-content {
     display: flex;
     justify-content: space-between;
+
     &-left {
       display: flex;
+
       .media-account {
         margin-left: 10px;
       }
     }
+
     &-right {
       display: flex;
       align-items: center;
+
       .info-tag {
         display: flex;
         align-items: center;
         padding: 4px 12px;
+        margin-right: 10px;
         font-size: 13px;
         border: 1px solid #006be6;
         border-radius: 4px;
-        margin-right: 10px;
 
         .label {
           // color: #666;
@@ -586,7 +608,145 @@ function reuseStrategyGroup() {
       }
     }
   }
+
+  // 字段：标签 + 控件
+  .field {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .field-label {
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+
+  .project-select {
+    width: 120px;
+  }
+
+  .inp {
+    width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .account-trigger {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+  }
+
+  // 单行条形态：隐藏标题、单行不换行、超长省略
+  &.is-compact {
+    // 自身作为 flex 行且垂直居中，避免依赖父级的 align-items
+    display: flex;
+    flex: 1;
+    align-items: center;
+    min-width: 0;
+
+    .header-configuration-title {
+      display: none;
+    }
+
+    // 一行 32px：与右侧按钮 / 模板选择严格同一水平线
+    .header-configuration-content {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      min-width: 0;
+      height: 32px;
+    }
+
+    .header-configuration-content-left {
+      display: flex;
+      flex-shrink: 0;
+      gap: 16px;
+      align-items: center;
+      min-width: 0;
+
+      .media-account {
+        margin-left: 0;
+      }
+    }
+
+    .header-configuration-content-right {
+      display: flex;
+      flex: 1;
+      gap: 16px;
+      align-items: center;
+      justify-content: flex-end;
+      min-width: 0;
+
+      .action-btns {
+        display: flex;
+        flex-shrink: 0;
+        gap: 12px;
+        align-items: center;
+      }
+    }
+
+    // 字段统一 32px 高，与右侧按钮 / 模板选择落在同一条水平线上
+    .field {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      height: 32px;
+
+      // 标签与控件都垂直居中
+      > * {
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .ant-select,
+      .ant-btn,
+      .ant-input {
+        height: 32px;
+      }
+
+      .ant-select {
+        .ant-select-selector {
+          display: flex;
+          align-items: center;
+          height: 32px !important;
+        }
+      }
+    }
+
+    .field-label {
+      flex-shrink: 0;
+      font-size: 12px;
+      line-height: 1;
+      color: hsl(var(--muted-foreground));
+    }
+
+    .project-select {
+      width: 150px;
+    }
+
+    .inp {
+      width: 180px;
+    }
+
+    .account-trigger {
+      height: 32px;
+      padding: 0 12px;
+    }
+
+    .info-tag {
+      min-width: 0;
+      height: 28px;
+      padding: 0 12px;
+      margin-right: 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
 }
+
 .rule-container {
   padding: 10px;
 

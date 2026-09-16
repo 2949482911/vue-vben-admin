@@ -23,11 +23,12 @@ import type {
 
 import { ref, watch } from "vue";
 
-import { Page, useVbenModal } from "@vben/common-ui";
+import { useVbenModal } from "@vben/common-ui";
 
-import { Card, message, Select } from "ant-design-vue";
+import { message, Select } from "ant-design-vue";
 
 import { Platform } from "#/constants/enums";
+import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
@@ -704,9 +705,10 @@ function resetCreationInfo() {
 </script>
 
 <template>
-  <Page>
-    <Card class="header">
+  <BatchCreateLayout>
+    <template #config>
       <ConfigurationConfig
+        compact
         :rule-info="creationInfo.ruleInfo"
         :configuration-config="creationInfo.configurationConfig"
         :account-info="creationInfo.accountInfo"
@@ -717,17 +719,22 @@ function resetCreationInfo() {
         @update:product-info="updateProject"
         @update:rule-info="updateRuleInfo"
         @update:reuse="updateReuse"
-      />
-    </Card>
+      >
+        <template #field-extra>
+          <div class="field template-field">
+            <span class="field-label">模板</span>
+            <Select
+              class="template-select"
+              :options="TENCENT_MARKETING_TYPE"
+              :value="template"
+              @change="(val) => updateTemplate(String(val))"
+            />
+          </div>
+        </template>
+      </ConfigurationConfig>
+    </template>
 
-    <Card class="header">
-      <Select
-class="w-[200px]" :options="TENCENT_MARKETING_TYPE" :value="template"
-              @change="updateTemplate"
-/>
-    </Card>
-
-    <Card class="header">
+    <template #workbench>
       <TencentBaseTemplate
         v-if="template === 'base_template'"
         :creation-info="creationInfo"
@@ -748,10 +755,9 @@ class="w-[200px]" :options="TENCENT_MARKETING_TYPE" :value="template"
         @update:adgroup="updateAdgroup"
         @update:audience-package="updateAudiencePackage"
       />
-    </Card>
+    </template>
 
-    <!--监测链接组-->
-    <Card class="header">
+    <template #actions>
       <Function
         :account-info="creationInfo.accountInfo"
         :monitoring-link="creationInfo.configData.monitoringLink"
@@ -760,22 +766,22 @@ class="w-[200px]" :options="TENCENT_MARKETING_TYPE" :value="template"
         @gen:ad-list="genPreviewTableData"
         @submit:create-batch="submitCreateBatch"
       />
-    </Card>
+    </template>
 
-
-    <Card title="预览区" class="header">
+    <template #preview>
       <TencentPreviewArea
-:ad-list="adList"
-                          :account-info="creationInfo.accountInfo"
-/>
-    </Card>
+        fill
+        :ad-list="adList"
+        :account-info="creationInfo.accountInfo"
+      />
+    </template>
 
     <CreateStrategyGroupModal />
-  </Page>
+  </BatchCreateLayout>
 </template>
 
 <style scoped lang="scss">
-.header {
-  margin-bottom: 10px;
+.template-select {
+  width: 180px;
 }
 </style>

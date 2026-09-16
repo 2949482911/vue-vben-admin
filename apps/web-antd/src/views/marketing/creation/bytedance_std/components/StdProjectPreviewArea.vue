@@ -18,6 +18,8 @@ import { convertToPreviewData } from '#/views/marketing/creation/bytedance_std/c
 const props = defineProps<{
   adList: Array<StdCreationData>;
   accountInfo: AccountInfo[];
+  /** 撑满父容器（批创工作台预览区） */
+  fill?: boolean;
 }>();
 
 const previewData = computed<AccountTabData[]>(() => {
@@ -62,9 +64,10 @@ const tableColumns: PreviewColumn[] = [
 </script>
 
 <template>
-  <div>
+  <div class="h-full">
     <PreviewArea
       :key="adList.length"
+      fill
       :table-columns="tableColumns"
       :table-data="previewData"
       :show-empty="adList.length === 0"

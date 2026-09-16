@@ -1,4 +1,17 @@
 <script setup lang="ts" name="MiniProgramDouyinTemplate">
+import type {
+  AwemeConfigData,
+  BytedanceCampaignData,
+  BytedanceCreation,
+  BytedancePromotionData
+} from "#/views/marketing/creation/bytedance/bytedance";
+import type {
+  AudienceConfigData,
+  MaterialData,
+  PageViewConfigData,
+  TitlePackageConfigData
+} from "#/views/marketing/creation/creation";
+
 /**
  * 小程序抖音号推广模板（商品推广·非短剧）
  *
@@ -19,32 +32,8 @@
  * - native_setting.aweme_id 由 AwemeConfigCard 分配
  * - 出价预算继承项目级，广告级不单独设置
  */
-import { Col, Row } from "ant-design-vue";
 import { markRaw } from "vue";
 
-import BytedanceCampaign from "../BytedanceCampaign.vue";
-import BytedancePromotion from "../BytedancePromotion.vue";
-import CreativeGroupSelector
-  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
-import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
-import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
-import AwemeConfigCard from "../../../components/aweme/AwemeConfigCard.vue";
-import DpaProductButtonField from "../DpaProductButtonField.vue";
-import ProductImageButtonField from "../ProductImageButtonField.vue";
-import TimeSelectionPeriod
-  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
-import type {
-  AudienceConfigData,
-  MaterialData,
-  PageViewConfigData,
-  TitlePackageConfigData
-} from "#/views/marketing/creation/creation";
-import type {
-  AwemeConfigData,
-  BytedanceCampaignData,
-  BytedanceCreation,
-  BytedancePromotionData
-} from "#/views/marketing/creation/bytedance/bytedance";
 import {
   BytedanceCampaign_ad_type,
   BytedanceCampaign_bid_type,
@@ -63,6 +52,25 @@ import {
   DeliveryMode,
   fieldLabelMap
 } from "#/views/marketing/creation/bytedance/enums";
+import CreativeGroupSelector
+  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
+import TimeSelectionPeriod
+  from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
+import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+
+import AwemeConfigCard from "../../../components/aweme/AwemeConfigCard.vue";
+import BytedanceCampaign from "../BytedanceCampaign.vue";
+import BytedancePromotion from "../BytedancePromotion.vue";
+import DpaProductButtonField from "../DpaProductButtonField.vue";
+import ProductImageButtonField from "../ProductImageButtonField.vue";
+
+const { creationInfo } = defineProps({
+  creationInfo: {
+    type: Object as () => BytedanceCreation,
+    default: () => ({})
+  }
+});
 
 const emit = defineEmits([
   "update:campaign",
@@ -73,13 +81,6 @@ const emit = defineEmits([
   "update:landingPage",
   "update:awemeConfig"
 ]);
-
-const { creationInfo } = defineProps({
-  creationInfo: {
-    type: Object as () => BytedanceCreation,
-    default: () => ({})
-  }
-});
 
 /**
  * 项目数据更新回调
@@ -251,7 +252,7 @@ const campaignFormFields = [
     label: "投放商品",
     componentProps: {},
     dependencies: {
-      show: (cv: Record<string, any>) => cv["related_product_setting"] === "SINGLE",
+      show: (cv: Record<string, any>) => cv.related_product_setting === "SINGLE",
       triggerFields: ["related_product_setting"]
     }
   },
@@ -325,7 +326,7 @@ const campaignFormFields = [
     label: "开始时间",
     rules: "required",
     dependencies: {
-      show: (cv: Record<string, any>) => cv["delivery_setting_schedule_type"] === "SCHEDULE_START_END",
+      show: (cv: Record<string, any>) => cv.delivery_setting_schedule_type === "SCHEDULE_START_END",
       triggerFields: ["delivery_setting_schedule_type"]
     }
   },
@@ -336,7 +337,7 @@ const campaignFormFields = [
     label: "结束时间",
     rules: "required",
     dependencies: {
-      show: (cv: Record<string, any>) => cv["delivery_setting_schedule_type"] === "SCHEDULE_START_END",
+      show: (cv: Record<string, any>) => cv.delivery_setting_schedule_type === "SCHEDULE_START_END",
       triggerFields: ["delivery_setting_schedule_type"]
     }
   },
@@ -377,7 +378,7 @@ const campaignFormFields = [
     rules: "required",
     dependencies: {
       show: (currentValue: Record<string, any>) => {
-        return currentValue["delivery_setting_budget_mode"] !== "BUDGET_MODE_INFINITE";
+        return currentValue.delivery_setting_budget_mode !== "BUDGET_MODE_INFINITE";
       },
       triggerFields: ["delivery_setting_budget_mode"]
     }
@@ -514,9 +515,9 @@ const promotionShowLabel: Record<string, string> = {
 
 <template>
   <div class="mini-program-douyin-template">
-    <Row :gutter="16" class="equal-height-row">
+    <div class="panes">
       <!-- 第1列：项目 + 定向包 -->
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <BytedanceCampaign
           :form-fields="campaignFormFields"
           :campaign-show-label="campaignShowLabel"
@@ -527,10 +528,10 @@ const promotionShowLabel: Record<string, string> = {
           @update:campaign="updateCampaign"
           @update:audience-package="updateAudiencePackage"
         />
-      </Col>
+      </div>
 
       <!-- 第2列：广告 + 抖音号配置 -->
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <div class="combined-area">
           <BytedancePromotion
             :form-fields="promotionFormFields"
@@ -545,19 +546,19 @@ const promotionShowLabel: Record<string, string> = {
             @update:aweme-config="updateAwemeConfig"
           />
         </div>
-      </Col>
+      </div>
 
       <!-- 第3列：创意组 -->
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <CreativeGroupSelector
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData.material"
           @update:material="updateMaterial"
         />
-      </Col>
+      </div>
 
       <!-- 第4列：落地页 + 标题包 -->
-      <Col :span="6" class="equal-height-col">
+      <div class="pane">
         <div class="combined-area">
           <PageViewSelector
             :page-view="creationInfo.configData.landingPage"
@@ -570,48 +571,87 @@ const promotionShowLabel: Record<string, string> = {
             @update:title-package="updateTitlePackage"
           />
         </div>
-      </Col>
-    </Row>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .mini-program-douyin-template {
   width: 100%;
-}
-
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
-  height: 650px;
-}
-
-.equal-height-col {
-  display: flex;
+  height: 100%;
   min-height: 0;
-
-  > * {
-    width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden;
-  }
 }
 
-.combined-area {
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+.pane {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  flex: 1;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
 
   > * {
     flex: 1;
     min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  // 卡片滚动契约
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
+  }
+}
+
+.combined-area {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+
+  > * {
+    flex: 1;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
   }
 }
 </style>

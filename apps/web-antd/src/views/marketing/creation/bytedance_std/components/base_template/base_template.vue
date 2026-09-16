@@ -1,4 +1,17 @@
 <script setup lang="ts" name="StdBaseTemplate">
+import type {
+  DpaProductConfigData,
+  ProductConfigData,
+  StdCreation,
+  StdProjectData,
+} from '#/views/marketing/creation/bytedance_std/bytedance';
+import type {
+  AudienceConfigData,
+  MaterialData,
+  PageViewConfigData,
+  TitlePackageConfigData,
+} from '#/views/marketing/creation/creation';
+
 /**
  * 智擎版基础模板
  *
@@ -8,34 +21,8 @@
  * - 渲染布局（Row/Col）
  * - 通过 :form-fields 传给 StdProject
  */
-import { Col, Row } from 'ant-design-vue';
 import { markRaw } from 'vue';
 
-import StdProject from '../StdProject.vue';
-import ProductConfigCard
-  from '../product/ProductConfigCard.vue';
-import DpaProductConfigCard
-  from '../product/DpaProductConfigCard.vue';
-import CreativeGroupSelector
-  from '#/views/marketing/creation/components/creative/CreativeGroupSelector.vue';
-import TitleSelector
-  from '#/views/marketing/creation/components/title/TitleSelector.vue';
-import PageViewSelector
-  from '#/views/marketing/creation/components/pageview/PageViewSelector.vue';
-import TimeSelectionPeriod
-  from '#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue';
-import type {
-  AudienceConfigData,
-  MaterialData,
-  PageViewConfigData,
-  TitlePackageConfigData,
-} from '#/views/marketing/creation/creation';
-import type {
-  ProductConfigData,
-  StdCreation,
-  StdProjectData,
-  DpaProductConfigData,
-} from '#/views/marketing/creation/bytedance_std/bytedance';
 import {
   BytedanceCampaign_ad_type,
   BytedanceCampaign_bid_type,
@@ -54,6 +41,35 @@ import {
   DeliveryMode,
   fieldLabelMap,
 } from '#/views/marketing/creation/bytedance_std/enums';
+import CreativeGroupSelector
+  from '#/views/marketing/creation/components/creative/CreativeGroupSelector.vue';
+import PageViewSelector
+  from '#/views/marketing/creation/components/pageview/PageViewSelector.vue';
+import TimeSelectionPeriod
+  from '#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue';
+import TitleSelector
+  from '#/views/marketing/creation/components/title/TitleSelector.vue';
+
+import DpaProductConfigCard
+  from '../product/DpaProductConfigCard.vue';
+import ProductConfigCard
+  from '../product/ProductConfigCard.vue';
+import StdProject from '../StdProject.vue';
+
+const { creationInfo, productConfig, dpaProductConfig } = defineProps({
+  creationInfo: {
+    type: Object as () => StdCreation,
+    default: () => ({}),
+  },
+  productConfig: {
+    type: Object as () => null | ProductConfigData,
+    default: null,
+  },
+  dpaProductConfig: {
+    type: Object as () => DpaProductConfigData | null,
+    default: null,
+  },
+});
 
 const emit = defineEmits([
   'update:project',
@@ -64,21 +80,6 @@ const emit = defineEmits([
   'update:productConfig',
   'update:dpaProductConfig',
 ]);
-
-const { creationInfo, productConfig, dpaProductConfig } = defineProps({
-  creationInfo: {
-    type: Object as () => StdCreation,
-    default: () => ({}),
-  },
-  productConfig: {
-    type: Object as () => ProductConfigData | null,
-    default: null,
-  },
-  dpaProductConfig: {
-    type: Object as () => DpaProductConfigData | null,
-    default: null,
-  },
-});
 
 function updateProject(project: StdProjectData) {
   emit('update:project', project);
@@ -191,7 +192,7 @@ const projectFormFields = [
     component: 'Input', fieldName: 'dpa_product_display', label: '投放商品',
     componentProps: { disabled: true, placeholder: '请先在配置区配置投放商品' },
     dependencies: {
-      show: (cv: Record<string, any>) => cv['related_product_enabled'] === 'YES',
+      show: (cv: Record<string, any>) => cv.related_product_enabled === 'YES',
       triggerFields: ['related_product_enabled'],
     },
   },
@@ -210,7 +211,7 @@ const projectFormFields = [
     componentProps: { format: 'YYYY-MM-DD', valueFormat: 'YYYY-MM-DD' },
     label: '开始时间',
     dependencies: {
-      show: (cv: Record<string, any>) => cv['schedule_type'] === 'SCHEDULE_START_END',
+      show: (cv: Record<string, any>) => cv.schedule_type === 'SCHEDULE_START_END',
       triggerFields: ['schedule_type'],
     },
   },
@@ -219,7 +220,7 @@ const projectFormFields = [
     componentProps: { format: 'YYYY-MM-DD', valueFormat: 'YYYY-MM-DD' },
     label: '结束时间',
     dependencies: {
-      show: (cv: Record<string, any>) => cv['schedule_type'] === 'SCHEDULE_START_END',
+      show: (cv: Record<string, any>) => cv.schedule_type === 'SCHEDULE_START_END',
       triggerFields: ['schedule_type'],
     },
   },
@@ -251,7 +252,7 @@ const projectFormFields = [
     component: 'InputNumber', fieldName: 'budget',
     label: '预算', defaultValue: 0,
     dependencies: {
-      show: (cv: Record<string, any>) => cv['budget_mode'] !== 'BUDGET_MODE_INFINITE',
+      show: (cv: Record<string, any>) => cv.budget_mode !== 'BUDGET_MODE_INFINITE',
       triggerFields: ['budget_mode'],
     },
   },
@@ -302,9 +303,9 @@ const projectFormFields = [
 
 <template>
   <div class="std-base-template">
-    <Row :gutter="16" class="equal-height-row">
+    <div class="panes">
       <!-- 第1列：项目配置 + 定向包 -->
-      <Col :span="8" class="equal-height-col">
+      <div class="pane">
         <StdProject
           :project="creationInfo?.configData.project"
           :audience="creationInfo?.configData.audience"
@@ -316,10 +317,10 @@ const projectFormFields = [
           @update:project="updateProject"
           @update:audience-package="updateAudiencePackage"
         />
-      </Col>
+      </div>
 
-      <!-- 第2列：产品配置 + 创意组 -->
-      <Col :span="8" class="equal-height-col">
+      <!-- 第2列：产品配置 -->
+      <div class="pane">
         <div class="combined-area">
           <ProductConfigCard
             :product-config="productConfig"
@@ -331,16 +332,20 @@ const projectFormFields = [
             :account-info="creationInfo.accountInfo"
             @update:dpa-product-config="updateDpaProductConfig"
           />
-          <CreativeGroupSelector
-            :account-info="creationInfo.accountInfo"
-            :material="creationInfo.configData.material"
-            @update:material="updateMaterial"
-          />
         </div>
-      </Col>
+      </div>
 
-      <!-- 第3列：落地页 + 标题包 -->
-      <Col :span="8" class="equal-height-col">
+      <!-- 第3列：创意组 -->
+      <div class="pane">
+        <CreativeGroupSelector
+          :account-info="creationInfo.accountInfo"
+          :material="creationInfo.configData.material"
+          @update:material="updateMaterial"
+        />
+      </div>
+
+      <!-- 第4列：落地页 + 标题包 -->
+      <div class="pane">
         <div class="combined-area">
           <PageViewSelector
             :page-view="creationInfo.configData.landingPage"
@@ -353,40 +358,81 @@ const projectFormFields = [
             @update:title-package="updateTitlePackage"
           />
         </div>
-      </Col>
-    </Row>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.std-base-template { width: 100%; }
-
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
-  height: 650px;
+.std-base-template {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
-.equal-height-col {
-  display: flex;
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
   min-height: 0;
+}
 
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  // 列内容必须是工作台高度：既不能被内容撑高，也不能顶出去；
+  // 卡片自身填满列、内容区滚动、列脚按钮固定可见
   > * {
-    width: 100%;
     flex: 1;
-    display: flex;
-    flex-direction: column;
     min-height: 0;
+    max-height: 100%;
     overflow: hidden;
+  }
+
+  // 在列内直接加固卡片滚动契约
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
   }
 }
 
 .combined-area {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  flex: 1;
   min-height: 0;
   overflow: hidden;
 

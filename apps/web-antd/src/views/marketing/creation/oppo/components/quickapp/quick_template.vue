@@ -1,33 +1,38 @@
 <script setup lang="ts" name="QuickAppTemplate">
+import type {
+  AudienceConfigData,
+  MaterialData,
+  TitlePackageConfigData
+} from "#/views/marketing/creation/creation";
 // 快应用模板
-import { Col, Row } from 'ant-design-vue';
-
 import type {
   OppoAdgroupData,
   OppoCampaignData,
   OppoCreation, OppoPromotionData
 } from "#/views/marketing/creation/oppo/Oppo.types";
-import type {
-  AudienceConfigData,
-  MaterialData, PageViewConfigData,
-  TitlePackageConfigData
-} from "#/views/marketing/creation/creation";
-import { oppo_advertisementApi } from "#/api";
+
+import { Platform } from "#/constants/enums";
+import AudiencePackageSelector
+  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
+import CreativeGroupSelector
+  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+import OppoAdgroup from "#/views/marketing/creation/oppo/components/OppoAdgroup.vue";
+import OppoCampaign from "#/views/marketing/creation/oppo/components/OppoCampaign.vue";
+import OppoPromotion from "#/views/marketing/creation/oppo/components/OppoPromotion.vue";
 import {
   DAYLIMIT_SELECT,
   DELIVERMODE_SELECT,
   fieldLabelMap, GLOBAL_SPECID_SELECT
 } from "#/views/marketing/creation/oppo/projectEnum";
-import OppoCampaign from "#/views/marketing/creation/oppo/components/OppoCampaign.vue";
-import OppoAdgroup from "#/views/marketing/creation/oppo/components/OppoAdgroup.vue";
-import OppoPromotion from "#/views/marketing/creation/oppo/components/OppoPromotion.vue";
-import CreativeGroupSelector
-  from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
-import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
-import AudiencePackageSelector
-  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
-import { Platform } from "#/constants/enums";
 
+
+const { creationInfo } = defineProps({
+  creationInfo: {
+    type: Object as () => OppoCreation,
+    default: () => ({}),
+  },
+});
 
 const emit = defineEmits([
   'update:campaign',
@@ -36,15 +41,7 @@ const emit = defineEmits([
   'update:audiencePackage',
   'update:updateMaterial',
   'update:titlePackage',
-  'update:landingPage',
 ]);
-
-const { creationInfo } = defineProps({
-  creationInfo: {
-    type: Object as () => OppoCreation,
-    default: () => ({}),
-  },
-});
 
 function updateCampaign(campaign: OppoCampaignData) {
   emit('update:campaign', campaign);
@@ -68,10 +65,6 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 
 function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
   emit('update:audiencePackage', audienceConfigData);
-}
-
-function updateLandingPage(landingPage: PageViewConfigData) {
-  emit('update:landingPage', landingPage);
 }
 
 const campaignFormFields = [
@@ -109,7 +102,7 @@ const campaignFormFields = [
     rules: "required",
     dependencies: {
       show: (currentValue: any) => {
-        return currentValue["dayLimit"] === 1
+        return currentValue.dayLimit === 1
       },
       triggerFields: ["dayLimit"]
     }
@@ -207,95 +200,139 @@ const promotionShowLabel: Record<string, string> = {
 </script>
 
 <template>
-<div class="oppo-quickapp-template">
-  <Row :gutter="16" class="equal-height-row">
-    <Col :span="5" class="equal-height-col">
-      <OppoCampaign
-        :form-fields="campaignFormFields"
-        :campaign-show-label="campaignShowLabel"
-        :campaign="creationInfo?.configData.campaign"
-        :field-label-map="fieldLabelMap"
-        @update:campaign="updateCampaign"
-      />
-    </Col>
+  <div class="oppo-quickapp-template">
+    <div class="panes">
+      <div class="pane">
+        <OppoCampaign
+          :form-fields="campaignFormFields"
+          :campaign-show-label="campaignShowLabel"
+          :campaign="creationInfo?.configData.campaign"
+          :field-label-map="fieldLabelMap"
+          @update:campaign="updateCampaign"
+        />
+      </div>
 
+      <div class="pane">
+        <div class="combined-area">
+          <OppoAdgroup
+            :form-fields="adgroupFormFields"
+            :adgroup-show-label="adgroupShowLabel"
+            :adgroup="creationInfo?.configData.adgroup"
+            :field-label-map="fieldLabelMap"
+            @update:adgroup="updateAdgroup"
+          />
+          <OppoPromotion
+            :form-fields="promotionFormFields"
+            :promotion-show-label="promotionShowLabel"
+            :promotion="creationInfo?.configData.promotion"
+            :field-label-map="fieldLabelMap"
+            @update:promotion="updatePromotion"
+          />
+        </div>
+      </div>
 
+      <div class="pane">
+        <CreativeGroupSelector
+          :account-info="creationInfo.accountInfo"
+          :material="creationInfo.configData.material"
+          @update:material="updateMaterial"
+        />
+      </div>
 
-    <Col :span="5" class="equal-height-col">
-      <OppoAdgroup
-        :form-fields="adgroupFormFields"
-        :adgroup-show-label="adgroupShowLabel"
-        :adgroup="creationInfo?.configData.adgroup"
-        :field-label-map="fieldLabelMap"
-        @update:adgroup="updateAdgroup"
-      />
-    </Col>
-
-
-    <Col :span="5" class="equal-height-col">
-      <OppoPromotion
-        :form-fields="promotionFormFields"
-        :promotion-show-label="promotionShowLabel"
-        :promotion="creationInfo?.configData.promotion"
-        :field-label-map="fieldLabelMap"
-        @update:promotion="updatePromotion"
-      />
-    </Col>
-
-
-    <Col :span="5" class="equal-height-col">
-      <CreativeGroupSelector
-        :account-info="creationInfo.accountInfo"
-        :material="creationInfo.configData.material"
-        @update:material="updateMaterial"
-      />
-    </Col>
-
-
-    <Col :span="4" class="equal-height-col">
-      <TitleSelector
-        :title-package="creationInfo.configData.titlePackage"
-        :account-info="creationInfo.accountInfo"
-        @update:title-package="updateTitlePackage"
-      />
-      <AudiencePackageSelector
-        :audience="creationInfo.configData.audience"
-        :account-info="creationInfo.accountInfo"
-        :platform="Platform.OPPO"
-        @update:audience="updateAudiencePackage"
-      />
-    </Col>
-
-  </Row>
-</div>
+      <div class="pane">
+        <div class="combined-area">
+          <TitleSelector
+            :title-package="creationInfo.configData.titlePackage"
+            :account-info="creationInfo.accountInfo"
+            @update:title-package="updateTitlePackage"
+          />
+          <AudiencePackageSelector
+            :audience="creationInfo.configData.audience"
+            :account-info="creationInfo.accountInfo"
+            :platform="Platform.OPPO"
+            @update:audience="updateAudiencePackage"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
 .oppo-quickapp-template {
   width: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
-.equal-height-row {
-  display: flex;
-  align-items: stretch;
+.panes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
 }
 
-.equal-height-col {
+.pane {
   display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 
   > * {
-    width: 100%;
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  :deep(.ant-card) {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  :deep(.ant-card-head) {
+    flex-shrink: 0 !important;
+  }
+
+  :deep(.ant-card-body) {
+    display: flex !important;
+    flex: 1 1 0% !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-content) {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  :deep(.card-footer) {
+    flex-shrink: 0 !important;
   }
 }
 
 .combined-area {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 16px;
   width: 100%;
-}
+  min-height: 0;
+  overflow: hidden;
 
+  > * {
+    flex: 1;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+}
 </style>
