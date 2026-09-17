@@ -64,7 +64,8 @@ export enum Platform {
   // 自媒体点击处理
   APS = "aps",
   XYANW = "xyanw",
-  DOTSDANCE= "dotsdance"
+  DOTSDANCE= "dotsdance",
+  IHYHS = "ihyhs"
 }
 
 export enum RuleType {
