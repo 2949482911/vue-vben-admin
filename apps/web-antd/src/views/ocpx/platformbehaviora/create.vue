@@ -2023,6 +2023,18 @@ platformConfigForm.set(Platform.IHYHS, [
     // 界面显示的label
     label: `channelno`,
     rules: "required"
+  },
+  {
+    // 媒体配置表单
+    component: "Input",
+    // 对应组件的参数
+    componentProps: {
+      placeholder: `${$t("common.input")}`
+    },
+    // 字段名
+    fieldName: "developer_id",
+    // 界面显示的label
+    label: `developer_id`,
   }
 ]);
 
