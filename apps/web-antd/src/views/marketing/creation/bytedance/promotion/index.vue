@@ -2,6 +2,7 @@
 // 巨量引擎 广告列表页（媒体直达页）
 // 页头与层级页签由 AdManagementShell 提供，列表能力复用 BytedanceLevelList
 import { ref } from 'vue';
+import { Page } from "@vben/common-ui";
 
 import AdManagementShell from '../../components/platform_promotion/AdManagementShell.vue';
 import BytedanceLevelList from './components/BytedanceLevelList.vue';
@@ -22,18 +23,20 @@ function handleLevelChange(key: string) {
 </script>
 
 <template>
-  <AdManagementShell
-    platform-label="巨量引擎"
-    description="按项目 / 广告层级查看数据，支持批量操作与导出"
-    create-path="/marketing/bytedance/promotion/creation"
-    :tabs="LEVEL_TABS"
-    @change="handleLevelChange"
-  >
-    <template #campaign>
-      <BytedanceLevelList ref="campaignRef" level="campaign" />
-    </template>
-    <template #adgroup>
-      <BytedanceLevelList ref="adgroupRef" level="adgroup" />
-    </template>
-  </AdManagementShell>
+  <Page>
+    <AdManagementShell
+      platform-label="巨量引擎"
+      description="按项目 / 广告层级查看数据，支持批量操作与导出"
+      create-path="/marketing/bytedance/promotion/creation"
+      :tabs="LEVEL_TABS"
+      @change="handleLevelChange"
+    >
+      <template #campaign>
+        <BytedanceLevelList ref="campaignRef" level="campaign" />
+      </template>
+      <template #adgroup>
+        <BytedanceLevelList ref="adgroupRef" level="adgroup" />
+      </template>
+    </AdManagementShell>
+  </Page>
 </template>

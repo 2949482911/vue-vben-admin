@@ -91,6 +91,7 @@ const formOptions: VbenFormProps = {
 
 const gridOptions: VxeGridProps<ProjectItem> = {
   border: true,
+  height: "auto",
   checkboxConfig: {
     highlight: true,
     labelField: "id"
@@ -211,7 +212,7 @@ function getProjectTypeLabel(value: string): string {
 </script>
 
 <template>
-  <Page>
+  <Page auto-content-height>
     <Grid>
       <template #action="{ row }">
         <Button type="link" @click="openCreateModal(row)">

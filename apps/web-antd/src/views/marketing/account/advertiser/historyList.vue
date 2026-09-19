@@ -120,7 +120,6 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
 <template>
-  <div>
     <Modal class="w-[70%]">
       <Grid>
         <template #status="{ row }">
@@ -134,7 +133,6 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
         </template>
       </Grid>
     </Modal>
-  </div>
 </template>
 
 <style scoped>

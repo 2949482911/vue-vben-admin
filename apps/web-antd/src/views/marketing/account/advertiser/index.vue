@@ -471,6 +471,7 @@ const formOptions: VbenFormProps = {
 };
 
 const gridOptions: VxeGridProps<AdvertiserItem> = {
+  height: "auto",
   columns: [
     {
       field: "platform",
@@ -650,7 +651,6 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     highlight: true,
     labelField: "id"
   },
-  height: "auto",
   toolbarConfig: {
     custom: true,
     export: true,
@@ -703,7 +703,7 @@ async function loadAgentData(platform: string) {
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page auto-content-height>
     <Grid>
       <template #putStatue="{ row }">
         <Switch :checked="row.putStatue === 1" @click="handlerPutState(row)"></Switch>
@@ -813,16 +813,15 @@ async function loadAgentData(platform: string) {
         </Button>
       </template>
     </Grid>
+    <CreateObjectModal @page-reload="pageReload" />
+    <AuthAccountModal />
+    <BatchOperationModal @page-reload="pageReload" />
+    <ImportModal @page-reload="pageReload" />
+    <ImportChildAdvertiserModal
+      @page-reload="pageReload"
+      :projectOptions="projectOptions"
+      :roleType="roleType"
+    />
+    <HistoryModal />
   </Page>
-
-  <CreateObjectModal @page-reload="pageReload" />
-  <AuthAccountModal />
-  <BatchOperationModal @page-reload="pageReload" />
-  <ImportModal @page-reload="pageReload" />
-  <ImportChildAdvertiserModal
-    @page-reload="pageReload"
-    :projectOptions="projectOptions"
-    :roleType="roleType"
-  />
-  <HistoryModal />
 </template>
