@@ -5,6 +5,7 @@ import { ref } from 'vue';
 
 import AdManagementShell from '../../components/platform_promotion/AdManagementShell.vue';
 import PlatformLevelList from '../../components/platform_promotion/PlatformLevelList.vue';
+import { getBatchOperations } from '../../promotion_manager/platformOptions';
 
 const LEVEL_TABS: Array<{ key: string; label: string }> = [
   { key: 'campaign', label: '计划' },
@@ -37,10 +38,22 @@ function handleLevelChange(key: string) {
     @change="handleLevelChange"
   >
     <template #campaign>
-      <PlatformLevelList ref="campaignRef" platform="oppo" level="campaign" id-field="campaign_id" />
+      <PlatformLevelList
+        ref="campaignRef"
+        platform="oppo"
+        level="campaign"
+        id-field="campaign_id"
+        :operation-keys="getBatchOperations('oppo', 'campaign')"
+      />
     </template>
     <template #adgroup>
-      <PlatformLevelList ref="adgroupRef" platform="oppo" level="adgroup" id-field="adgroup_id" />
+      <PlatformLevelList
+        ref="adgroupRef"
+        platform="oppo"
+        level="adgroup"
+        id-field="adgroup_id"
+        :operation-keys="getBatchOperations('oppo', 'adgroup')"
+      />
     </template>
     <template #promotion>
       <PlatformLevelList
@@ -48,6 +61,7 @@ function handleLevelChange(key: string) {
         platform="oppo"
         level="promotion"
         id-field="promotion_id"
+        :operation-keys="getBatchOperations('oppo', 'promotion')"
       />
     </template>
   </AdManagementShell>

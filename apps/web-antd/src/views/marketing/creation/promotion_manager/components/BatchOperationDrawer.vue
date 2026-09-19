@@ -13,30 +13,62 @@ import { $t } from '#/locales';
 import { Empty } from 'ant-design-vue';
 import { computed, ref } from 'vue';
 
+import {
+  BATCH_OPERATION_LABEL_KEYS,
+  BatchOperationType,
+} from '../platformOptions';
+import AddPromotionOperation from './operations/AddPromotionOperation.vue';
+import AdGroupBatchUpdateOperation from './operations/AdGroupBatchUpdateOperation.vue';
+import DeleteAdGroupOperation from './operations/DeleteAdGroupOperation.vue';
 import DeleteCampaignOperation from './operations/DeleteCampaignOperation.vue';
 import DeletePromotionOperation from './operations/DeletePromotionOperation.vue';
 import ProjectBatchUpdateOperation from './operations/ProjectBatchUpdateOperation.vue';
+import PromotionBatchUpdateOperation from './operations/PromotionBatchUpdateOperation.vue';
 
-// ==================== 操作类型元信息 ====================
-/** 操作类型 → i18n key（标题） */
-const OPERATION_TITLE_KEYS: Record<string, string> = {
-  delete_campaign: 'marketing.promotionManager.optionTypes.deleteCampaign',
-  update_project_status: 'marketing.promotionManager.optionTypes.updateStatus',
-  update_project_budget: 'marketing.promotionManager.optionTypes.updateBudget',
-  update_project_roi: 'marketing.promotionManager.optionTypes.updateRoi',
-  delete_promotion: 'marketing.promotionManager.optionTypes.deletePromotion',
-};
+// ==================== 操作类型分组 ====================
+const PROJECT_UPDATE_TYPES: BatchOperationType[] = [
+  BatchOperationType.UPDATE_PROJECT_STATUS,
+  BatchOperationType.UPDATE_PROJECT_BUDGET,
+  BatchOperationType.UPDATE_PROJECT_ROI,
+];
+
+const ADGROUP_UPDATE_TYPES: BatchOperationType[] = [
+  BatchOperationType.UPDATE_ADGROUP_STATUS,
+  BatchOperationType.UPDATE_ADGROUP_PRICE,
+  BatchOperationType.UPDATE_ADGROUP_OCPC_PRICE,
+  BatchOperationType.UPDATE_ADGROUP_DEEP_OCPC_PRICE,
+  BatchOperationType.OPEN_ADGROUP_DEFAULT_SECOND_STAGE,
+  BatchOperationType.UPDATE_ADGROUP_DEEPLINK,
+  BatchOperationType.UPDATE_ADGROUP_ROI,
+];
+
+const PROMOTION_UPDATE_TYPES: BatchOperationType[] = [
+  BatchOperationType.UPDATE_PROMOTION_STATUS,
+  BatchOperationType.UPDATE_PROMOTION_MONITOR_URL,
+];
 
 // ==================== 抽屉状态 ====================
-const operationType = ref<string>('');
+const operationType = ref<BatchOperationType | ''>('');
 const selectedRows = ref<any[]>([]);
 const level = ref<string>('campaign');
 
 /** 当前操作标题 */
 const drawerTitle = computed(() => {
-  const key = OPERATION_TITLE_KEYS[operationType.value];
+  const key = operationType.value
+    ? BATCH_OPERATION_LABEL_KEYS[operationType.value]
+    : undefined;
   return key ? $t(key) : $t('marketing.promotionManager.batchOperation');
 });
+
+/** 判断当前操作类型 */
+function isType(type: BatchOperationType): boolean {
+  return operationType.value === type;
+}
+
+/** 判断当前操作类型是否属于某分组 */
+function isTypeIn(types: BatchOperationType[]): boolean {
+  return types.includes(operationType.value as BatchOperationType);
+}
 
 /** 操作完成后刷新父级列表 */
 const emit = defineEmits<{
@@ -44,14 +76,14 @@ const emit = defineEmits<{
 }>();
 
 const [Drawer, drawerApi] = useVbenDrawer({
-  class: 'w-[640px]',
+  class: 'w-[75%]',
   closeOnClickModal: false,
   showConfirmButton: false,
   closeOnPressEscape: true,
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const data = drawerApi.getData() as {
-        operationType: string;
+        operationType: BatchOperationType;
         rows: any[];
         level: string;
       };
@@ -81,25 +113,51 @@ function handleTaskCompleted() {
     <div class="batch-operation-drawer">
       <!-- 根据操作类型动态渲染对应操作组件 -->
       <DeleteCampaignOperation
-        v-if="operationType === 'delete_campaign'"
+        v-if="isType(BatchOperationType.DELETE_CAMPAIGN)"
         :rows="selectedRows"
         @task-completed="handleTaskCompleted"
       />
 
       <DeletePromotionOperation
-        v-else-if="operationType === 'delete_promotion'"
+        v-else-if="isType(BatchOperationType.DELETE_PROMOTION)"
         :rows="selectedRows"
         @task-completed="handleTaskCompleted"
       />
 
       <!-- 项目级更新（启停/预算/ROI） -->
       <ProjectBatchUpdateOperation
-        v-else-if="
-          ['update_project_status', 'update_project_budget', 'update_project_roi'].includes(
-            operationType,
-          )
-        "
+        v-else-if="isTypeIn(PROJECT_UPDATE_TYPES)"
         :operation-type="operationType"
+        :rows="selectedRows"
+        @task-completed="handleTaskCompleted"
+      />
+
+      <!-- 广告组删除 -->
+      <DeleteAdGroupOperation
+        v-else-if="isType(BatchOperationType.DELETE_ADGROUP)"
+        :rows="selectedRows"
+        @task-completed="handleTaskCompleted"
+      />
+
+      <!-- 广告组级更新（启停/基础出价/转化出价/深度转化出价/免一阶/Deeplink/ROI） -->
+      <AdGroupBatchUpdateOperation
+        v-else-if="isTypeIn(ADGROUP_UPDATE_TYPES)"
+        :operation-type="operationType"
+        :rows="selectedRows"
+        @task-completed="handleTaskCompleted"
+      />
+
+      <!-- 广告创意级更新（启停/监测链接） -->
+      <PromotionBatchUpdateOperation
+        v-else-if="isTypeIn(PROMOTION_UPDATE_TYPES)"
+        :operation-type="operationType"
+        :rows="selectedRows"
+        @task-completed="handleTaskCompleted"
+      />
+
+      <!-- 批量新增广告创意 -->
+      <AddPromotionOperation
+        v-else-if="isType(BatchOperationType.ADD_PROMOTION)"
         :rows="selectedRows"
         @task-completed="handleTaskCompleted"
       />

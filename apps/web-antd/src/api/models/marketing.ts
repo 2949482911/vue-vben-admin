@@ -695,6 +695,12 @@ export interface TaskBatchCenterDetailItem {
   optionType: string;
   /** 媒体 */
   platform: string;
+  /** 该批次结果码，0 成功 */
+  code?: number;
+  /** 结果信息，失败时为媒体返回的原因 */
+  message?: string;
+  /** 媒体请求ID */
+  requestId?: string;
   /** 目标ID数组 */
   targetIds?: string[];
   /** 请求参数 */

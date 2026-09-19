@@ -15,6 +15,7 @@ import { advertiserApi, aManagementApi } from '#/api';
 
 import BatchOperationDrawer from '../../../promotion_manager/components/BatchOperationDrawer.vue';
 import BatchOperationDropdown from '../../../promotion_manager/components/BatchOperationDropdown.vue';
+import { getBatchOperations, type BatchOperationType } from '../../../promotion_manager/platformOptions';
 
 const props = defineProps<{
   /** campaign=项目, adgroup=广告 */
@@ -57,14 +58,10 @@ const [BatchDrawer, batchDrawerApi] = useVbenDrawer({
   connectedComponent: BatchOperationDrawer,
 });
 
-/** 该层级可用的批量操作：项目层支持启停/预算/ROI/删除，广告层仅删除 */
-const levelOperationKeys = computed(() =>
-  props.level === 'campaign'
-    ? ['update_project_status', 'update_project_budget', 'update_project_roi', 'delete_campaign']
-    : ['delete_promotion'],
-);
+/** 该层级可用的批量操作（按支持矩阵区分媒体） */
+const levelOperationKeys = computed(() => getBatchOperations('bytedance', props.level));
 
-function openBatchOperation(operationType: string) {
+function openBatchOperation(operationType: BatchOperationType) {
   const rows = (gridApi.grid?.getCheckboxRecords() ?? []) as any[];
   if (rows.length === 0) {
     message.warning('请先勾选需要操作的数据');

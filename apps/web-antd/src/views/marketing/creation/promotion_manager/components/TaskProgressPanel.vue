@@ -5,7 +5,10 @@
  * 提交批量操作拿到 taskId 后，传入本组件即可自动轮询进度接口，
  * 展示进度条、任务状态、成功/失败统计和结果明细。
  */
-import type { TaskBatchCenterProgressResponse } from '#/api/models/marketing';
+import type {
+  TaskBatchCenterDetailItem,
+  TaskBatchCenterProgressResponse,
+} from '#/api/models/marketing';
 
 import { taskCenterApi } from '#/api';
 import { $t } from '#/locales';
@@ -70,6 +73,12 @@ const isFinished = () => {
   const status = progress.value?.taskStatus;
   return status === 3 || status === 4;
 };
+
+/** 明细描述：目标ID + 失败原因 */
+function detailDescription(item: TaskBatchCenterDetailItem) {
+  const ids = (item.targetIds || []).join(', ') || '-';
+  return item.message ? `${ids}（${item.message}）` : ids;
+}
 
 /** 轮询一次 */
 async function fetchProgress() {
@@ -194,7 +203,7 @@ onBeforeUnmount(() => {
           <List.Item>
             <List.Item.Meta
               :title="item.platform"
-              :description="(item.targetIds || []).join(', ') || '-'"
+              :description="detailDescription(item)"
             />
             <Tag
               :color="

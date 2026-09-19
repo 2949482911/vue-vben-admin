@@ -14,6 +14,7 @@ import { advertiserApi, aManagementApi } from '#/api';
 
 import BatchOperationDrawer from '../../promotion_manager/components/BatchOperationDrawer.vue';
 import BatchOperationDropdown from '../../promotion_manager/components/BatchOperationDropdown.vue';
+import type { BatchOperationType } from '../../promotion_manager/platformOptions';
 
 const props = withDefaults(
   defineProps<{
@@ -24,7 +25,7 @@ const props = withDefaults(
     /** 该层级的 ID 列(媒体原生列名)，如 campaign_id/adgroup_id/promotion_id */
     idField: string;
     /** 该层级可用的批量操作；为空则不展示批量入口 */
-    operationKeys?: string[];
+    operationKeys?: BatchOperationType[];
     /** 账户下拉使用的媒体标识；默认同 platform（部分新版媒体复用旧媒体账户） */
     advertiserPlatform?: string;
     /** 枚举字典（字段 -> { 码值: 文案 }），命中时单元格展示文案 */
@@ -107,7 +108,7 @@ const [BatchDrawer, batchDrawerApi] = useVbenDrawer({
   connectedComponent: BatchOperationDrawer,
 });
 
-function openBatchOperation(operationType: string) {
+function openBatchOperation(operationType: BatchOperationType) {
   const rows = (gridApi.grid?.getCheckboxRecords() ?? []) as any[];
   if (rows.length === 0) {
     message.warning('请先勾选需要操作的数据');

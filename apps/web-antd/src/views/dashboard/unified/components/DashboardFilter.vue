@@ -6,11 +6,14 @@
  * 通过 defineExpose 暴露 getValues 方法供父组件调用
  */
 import { ref } from 'vue';
-import { Card, DatePicker, Select, Space } from 'ant-design-vue';
+import { SearchOutlined } from '@ant-design/icons-vue';
+import { Button, Card, DatePicker, Select, Space } from 'ant-design-vue';
 import dayjs, { type Dayjs } from 'dayjs';
 import { Platform } from '#/constants/enums';
 
 const { RangePicker } = DatePicker;
+
+const emit = defineEmits<{ search: [] }>();
 
 // 平台选项（从枚举中提取已对接的平台）
 const platformOptions = [
@@ -42,6 +45,13 @@ function getValues() {
     platforms: selectedPlatforms.value,
     advertiserIds: selectedAdvertisers.value,
   };
+}
+
+/**
+ * 触发查询
+ */
+function handleSearch() {
+  emit('search');
 }
 
 defineExpose({ getValues });
@@ -86,6 +96,12 @@ defineExpose({ getValues });
           :options="[]"
         />
       </div>
+
+      <!-- 查询按钮 -->
+      <Button type="primary" @click="handleSearch">
+        <template #icon><SearchOutlined /></template>
+        查询
+      </Button>
     </Space>
   </Card>
 </template>

@@ -19,13 +19,24 @@ function formatMoney(cents: number): string {
   return `¥${cents}`;
 }
 
+// 平台标签颜色
+function platformColor(value: string): string {
+  const colorMap: Record<string, string> = {
+    bytedance: 'blue',
+    tencent: 'green',
+    oppo: 'orange',
+    vivo: 'purple',
+    huawei_store: 'red',
+  };
+  return colorMap[value] || 'default';
+}
+
 // 表格列配置
 const columns = [
   {
     title: '排名',
     key: 'rank',
     width: 60,
-    customRender: ({ index }: { index: number }) => index + 1,
   },
   {
     title: '账户名称',
@@ -35,19 +46,8 @@ const columns = [
   {
     title: '平台',
     dataIndex: 'platform',
+    key: 'platform',
     width: 100,
-    customRender: ({ value }: { value: string }) => {
-      const colorMap: Record<string, string> = {
-        bytedance: 'blue',
-        tencent: 'green',
-        oppo: 'orange',
-        vivo: 'purple',
-        huawei_store: 'red',
-      };
-      return value
-        ? { children: value, props: { color: colorMap[value] || 'default' } }
-        : '';
-    },
   },
   {
     title: '消耗',
@@ -67,14 +67,12 @@ const columns = [
     dataIndex: 'adPayRoi',
     width: 80,
     sorter: (a: AccountTopItem, b: AccountTopItem) => a.adPayRoi - b.adPayRoi,
-    customRender: ({ value }: { value: number }) => value,
   },
   {
     title: '曝光',
     dataIndex: 'adShow',
     width: 80,
     sorter: (a: AccountTopItem, b: AccountTopItem) => a.adShow - b.adShow,
-    customRender: ({ value }: { value: number }) => value,
   },
 ];
 </script>
@@ -89,7 +87,7 @@ const columns = [
       :scroll="{ y: 260 }"
       row-key="platform_account_id"
     >
-      <template #bodyCell="{ column, index }">
+      <template #bodyCell="{ column, index, text }">
         <template v-if="column.key === 'rank'">
           <Tag
             :color="index < 3 ? ['gold', 'silver', 'orange'][index] : 'default'"
@@ -97,6 +95,9 @@ const columns = [
           >
             {{ index + 1 }}
           </Tag>
+        </template>
+        <template v-else-if="column.key === 'platform'">
+          <Tag :color="platformColor(text)" :bordered="false">{{ text }}</Tag>
         </template>
       </template>
     </Table>

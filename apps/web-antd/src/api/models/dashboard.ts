@@ -105,7 +105,7 @@ export interface AccountTopItem {
   /** 消耗 */
   adCost: number;
   /** 转化数 */
-  dConvertAppCustom: number;
+  adConvertAppCustom: number;
   /** ROI */
   adPayRoi: number;
   /** 曝光 */

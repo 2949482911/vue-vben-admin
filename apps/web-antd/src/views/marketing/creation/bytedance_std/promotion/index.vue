@@ -5,20 +5,13 @@ import { ref } from 'vue';
 
 import AdManagementShell from '../../components/platform_promotion/AdManagementShell.vue';
 import PlatformLevelList from '../../components/platform_promotion/PlatformLevelList.vue';
+import { getBatchOperations } from '../../promotion_manager/platformOptions';
 
 const LEVEL_TABS: Array<{ key: string; label: string }> = [{ key: 'campaign', label: '项目' }];
 
 const campaignRef = ref<InstanceType<typeof PlatformLevelList>>();
 
 const levelRefs: Record<string, any> = { campaign: campaignRef };
-
-// 智擎与巨量引擎同接口：项目层批量支持 启停/预算/ROI/删除
-const STD_PROJECT_OPERATION_KEYS = [
-  'update_project_status',
-  'update_project_budget',
-  'update_project_roi',
-  'delete_campaign',
-];
 
 /** 页签切换后刷新当前层级列表（隐藏状态下挂载的表格需要重新布局查询） */
 function handleLevelChange(key: string) {
@@ -40,7 +33,7 @@ function handleLevelChange(key: string) {
         platform="bytedance_std"
         level="campaign"
         id-field="campaign_id"
-        :operation-keys="STD_PROJECT_OPERATION_KEYS"
+        :operation-keys="getBatchOperations('bytedance_std', 'campaign')"
       />
     </template>
   </AdManagementShell>

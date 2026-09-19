@@ -185,7 +185,7 @@ onMounted(() => {
 <template>
   <Page auto-content-height>
     <!-- 顶部筛选栏 -->
-    <DashboardFilter ref="filterRef" />
+    <DashboardFilter ref="filterRef" @search="loadAllData" />
 
     <!-- 核心指标卡片 -->
     <OverviewCards

@@ -1,15 +1,14 @@
 <script setup lang="ts">
 /**
- * 批量操作-项目级更新（启停/预算/ROI 共用操作组件）
+ * 批量操作-广告创意级更新（启停/监测链接 共用组件）
  *
  * 支持「全部应用 / 单独设置」双模式：
- * - 全部应用：所有选中项目共用一个配置，并在下方展示选中数据列表
- * - 单独设置：每个项目独立配置（表单数组列表）
+ * - 全部应用：所有选中创意共用一个配置，并在下方展示选中数据列表
+ * - 单独设置：每个创意独立配置（表单数组列表）
  *
- * 后端 target 约定（智擎与巨量同接口）：
- * - update_project_status: { project_id, opt_status: 'ENABLE' | 'DISABLE' }
- * - update_project_budget: { project_id, budget_mode: 'BUDGET_MODE_DAY'|'BUDGET_MODE_TOTAL'|'BUDGET_MODE_INFINITE', budget }
- * - update_project_roi:     { project_id, roi_goal }
+ * 后端 target 约定（OPPO）：
+ * - update_promotion_status:       { promotion_id, opt_status: 'ENABLE' | 'DISABLE' }
+ * - update_promotion_monitor_url:  { promotion_id, clickUrl, exposeUrl }（两者不能都为空）
  */
 import { Page } from '@vben/common-ui';
 
@@ -28,16 +27,16 @@ import TaskProgressPanel from '../TaskProgressPanel.vue';
 import BatchIndividualFormArray from './BatchIndividualFormArray.vue';
 import BatchOperationModeShell from './BatchOperationModeShell.vue';
 import BatchSelectedRowsTable from './BatchSelectedRowsTable.vue';
-import ProjectConfigForm, {
-  buildProjectConfigChildren,
-  makeDefaultProjectConfig,
-  type ProjectConfig,
-} from './ProjectConfigForm.vue';
+import PromotionConfigForm, {
+  buildPromotionConfigChildren,
+  makeDefaultPromotionConfig,
+  type PromotionConfig,
+} from './PromotionConfigForm.vue';
 
 const props = defineProps<{
-  /** 操作类型: update_project_status / update_project_budget / update_project_roi */
+  /** 操作类型（创意级） */
   operationType: string;
-  /** 勾选的行数据（项目行） */
+  /** 勾选的行数据（创意行） */
   rows: any[];
 }>();
 
@@ -51,15 +50,14 @@ const submitting = ref(false);
 const taskId = ref<string | number | null>(null);
 
 // ==================== 选中数据 ====================
-const pickProjectId = (row: any) => row.campaignId || row.campaign_id || row.project_id;
-const pickProjectName = (row: any) =>
-  row.campaignName || row.campaign_name || row.projectName || row.project_name || '-';
+const pickId = (row: any) => row.promotionId || row.promotion_id || row.adId;
+const pickName = (row: any) => row.promotionName || row.promotion_name || '-';
 
 const mode = ref<BatchMode>(BatchMode.ALL);
 
 // ==================== 双模式配置 ====================
-const globalConfig = reactive<ProjectConfig>(makeDefaultProjectConfig());
-const rowConfigs = ref<ProjectConfig[]>(props.rows.map(() => makeDefaultProjectConfig()));
+const globalConfig = reactive<PromotionConfig>(makeDefaultPromotionConfig());
+const rowConfigs = ref<PromotionConfig[]>(props.rows.map(() => makeDefaultPromotionConfig()));
 
 // 模式切换时同步配置，避免「单独设置 ↔ 全部应用」切换丢失已编辑内容
 watch(mode, (next) => {
@@ -72,11 +70,8 @@ watch(mode, (next) => {
   }
 });
 
-const showBudgetForm = computed(
-  () => props.operationType === BatchOperationType.UPDATE_PROJECT_BUDGET,
-);
-const showRoiForm = computed(
-  () => props.operationType === BatchOperationType.UPDATE_PROJECT_ROI,
+const showMonitorForm = computed(
+  () => props.operationType === BatchOperationType.UPDATE_PROMOTION_MONITOR_URL,
 );
 
 const allTip = computed(() => {
@@ -84,12 +79,9 @@ const allTip = computed(() => {
   return key ? $t(key) : $t('marketing.promotionManager.mode.allTip');
 });
 
-function isConfigValid(config: ProjectConfig): boolean {
-  if (showBudgetForm.value && config.budgetMode !== 'BUDGET_MODE_INFINITE') {
-    return config.budget !== undefined && Number(config.budget) > 0;
-  }
-  if (showRoiForm.value) {
-    return config.roiGoal !== undefined && Number(config.roiGoal) > 0;
+function isConfigValid(config: PromotionConfig): boolean {
+  if (showMonitorForm.value) {
+    return config.clickUrl.trim().length > 0 || config.exposeUrl.trim().length > 0;
   }
   return true;
 }
@@ -102,31 +94,27 @@ const canSubmit = computed(() => {
   return isConfigValid(globalConfig);
 });
 
-/** 每个项目行需要追加的操作参数 */
-function extraFields(config: ProjectConfig): Record<string, any> {
-  if (props.operationType === BatchOperationType.UPDATE_PROJECT_STATUS) {
-    return { opt_status: config.optStatus };
+function extraFields(config: PromotionConfig): Record<string, any> {
+  if (showMonitorForm.value) {
+    const fields: Record<string, any> = {};
+    if (config.clickUrl.trim()) fields.clickUrl = config.clickUrl.trim();
+    if (config.exposeUrl.trim()) fields.exposeUrl = config.exposeUrl.trim();
+    return fields;
   }
-  if (props.operationType === BatchOperationType.UPDATE_PROJECT_BUDGET) {
-    return { budget_mode: config.budgetMode, budget: config.budget ?? 0 };
-  }
-  if (props.operationType === BatchOperationType.UPDATE_PROJECT_ROI) {
-    return { roi_goal: config.roiGoal ?? 0 };
-  }
-  return {};
+  return { opt_status: config.optStatus };
 }
 
-/** 取某一行当前生效的配置（单独设置取逐条，全部应用取全局） */
-function configOf(index: number): ProjectConfig {
+/** 取某一行当前生效的配置 */
+function configOf(index: number): PromotionConfig {
   return mode.value === BatchMode.INDIVIDUAL ? rowConfigs.value[index]! : globalConfig;
 }
 
 /** 表单数组行配置变化同步 */
 function onConfigsChange(configs: Record<string, any>[]) {
-  rowConfigs.value = configs as ProjectConfig[];
+  rowConfigs.value = configs as PromotionConfig[];
 }
 
-/** 按账户分组组装 items（level=campaign，target 携带 project_id + 操作参数） */
+/** 按账户分组组装 items（level=promotion，target 携带 promotion_id + 操作参数） */
 function buildItems() {
   const groupMap = new Map<
     string,
@@ -145,9 +133,9 @@ function buildItems() {
     items.push({
       advertiserId: group.advertiserId,
       platform: group.platform,
-      level: 'campaign',
+      level: 'promotion',
       target: group.entries.map(({ row, index }) => ({
-        project_id: pickProjectId(row),
+        promotion_id: pickId(row),
         ...extraFields(configOf(index)),
       })),
     });
@@ -155,7 +143,6 @@ function buildItems() {
   return items;
 }
 
-/** 确认提交 */
 async function handleConfirm() {
   if (!canSubmit.value) return;
   submitting.value = true;
@@ -170,7 +157,7 @@ async function handleConfirm() {
       `${$t('marketing.promotionManager.tips.submitSuccess')}，${$t('marketing.promotionManager.tips.taskId')}: ${res}`,
     );
   } catch (err) {
-    console.error('批量更新项目提交失败:', err);
+    console.error('批量更新广告创意提交失败:', err);
   } finally {
     submitting.value = false;
   }
@@ -194,22 +181,18 @@ function handleTaskCompleted() {
         @confirm="handleConfirm"
       >
         <template #all>
-          <ProjectConfigForm
+          <PromotionConfigForm
             v-model:config="globalConfig"
             :operation-type="operationType"
           />
-          <BatchSelectedRowsTable
-            :rows="props.rows"
-            :id-of="pickProjectId"
-            :name-of="pickProjectName"
-          />
+          <BatchSelectedRowsTable :rows="props.rows" :id-of="pickId" :name-of="pickName" />
         </template>
 
         <template #individual>
           <BatchIndividualFormArray
             :rows="props.rows"
-            :name-of="pickProjectName"
-            :children="buildProjectConfigChildren(operationType)"
+            :name-of="pickName"
+            :children="buildPromotionConfigChildren(operationType)"
             :initial-configs="rowConfigs"
             @update:configs="onConfigsChange"
           />

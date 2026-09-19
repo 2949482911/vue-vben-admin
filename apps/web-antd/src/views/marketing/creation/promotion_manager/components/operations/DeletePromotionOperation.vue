@@ -11,6 +11,7 @@ import { $t } from '#/locales';
 import { Button, Card, message, Table, Tag, Space } from 'ant-design-vue';
 import { computed, ref } from 'vue';
 import { Page } from "@vben/common-ui";
+import { BatchOperationType } from '../../platformOptions';
 import TaskProgressPanel from '../TaskProgressPanel.vue';
 
 const props = defineProps<{
@@ -100,7 +101,7 @@ async function handleConfirm() {
   try {
     const res = await aManagementApi.fetchCreateBatch({
       name: `${$t('marketing.promotionManager.optionTypes.deletePromotion')}_${props.rows.length}`,
-      optionType: 'delete_promotion',
+      optionType: BatchOperationType.DELETE_PROMOTION,
       items: buildItems(),
     });
     taskId.value = res;
@@ -121,7 +122,7 @@ function handleTaskCompleted() {
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page>
     <Space direction="vertical">
       <Card size="small" :title="$t('marketing.promotionManager.selectedRows')" class="mb-3">
         <Table
