@@ -16,6 +16,9 @@ export interface BaseItem {
   createdBy?: string;
   updatedBy?: string;
   del?: number;
+  orgId?: string;
+  mainId?:string;
+  orgCode?: string;
   _X_ROW_KEY?: string;
 }
 

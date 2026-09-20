@@ -356,11 +356,9 @@ const [Modal, modalApi] = useVbenModal({
 </script>
 
 <template>
-  <Page>
-    <Modal class="w-[400px]" :title="title">
-      <Form :key="modalType" />
-    </Modal>
-  </Page>
+  <Modal class="w-[400px]" :title="title">
+    <Form :key="modalType" />
+  </Modal>
 </template>
 
 <style scoped lang="scss">

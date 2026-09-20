@@ -168,8 +168,7 @@ function pageReload() {
 </script>
 
 <template>
-
-  <Page content-class="p-5">
+  <Page>
       <Grid>
 
         <template #status="{ row }">

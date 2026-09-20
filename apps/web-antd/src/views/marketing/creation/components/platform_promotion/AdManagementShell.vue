@@ -59,28 +59,52 @@ function openBatchCreate() {
 </script>
 
 <template>
-  <Page content-class="p-5">
-    <Card>
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex min-w-0 items-center gap-3">
-          <Tag class="m-0" color="processing">{{ platformLabel }}</Tag>
-          <div class="min-w-0">
-            <div class="text-base font-medium leading-6">广告管理</div>
-            <Typography.Text type="secondary" class="text-xs">
-              {{ subtitle }}
-            </Typography.Text>
+  <Page auto-content-height>
+    <Card class="h-full" :body-style="{ height: '100%' }">
+      <div class="flex h-full flex-col">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex min-w-0 items-center gap-3">
+            <Tag class="m-0" color="processing">{{ platformLabel }}</Tag>
+            <div class="min-w-0">
+              <div class="text-base font-medium leading-6">广告管理</div>
+              <Typography.Text type="secondary" class="text-xs">
+                {{ subtitle }}
+              </Typography.Text>
+            </div>
           </div>
+          <Button v-if="createPath" type="primary" @click="openBatchCreate">
+            批量创建
+          </Button>
         </div>
-        <Button v-if="createPath" type="primary" @click="openBatchCreate">
-          批量创建
-        </Button>
-      </div>
 
-      <Tabs v-model:active-key="activeKey" class="mt-4" @change="handleTabChange">
-        <TabPane v-for="tab in tabs" :key="tab.key" :tab="tab.label" force-render>
-          <slot :name="tab.key"></slot>
-        </TabPane>
-      </Tabs>
+        <Tabs
+          v-model:active-key="activeKey"
+          class="mt-4 min-h-0 flex-1"
+          @change="handleTabChange"
+        >
+          <TabPane v-for="tab in tabs" :key="tab.key" :tab="tab.label" force-render>
+            <slot :name="tab.key"></slot>
+          </TabPane>
+        </Tabs>
+      </div>
     </Card>
   </Page>
 </template>
+
+<style scoped>
+/* 让 Tabs 内容区撑满高度，配合表格 height:auto 实现表内滚动、分页固定底部 */
+:deep(.ant-tabs) {
+  display: flex;
+  flex-direction: column;
+}
+
+:deep(.ant-tabs-content-holder) {
+  flex: 1;
+  min-height: 0;
+}
+
+:deep(.ant-tabs-content),
+:deep(.ant-tabs-tabpane) {
+  height: 100%;
+}
+</style>

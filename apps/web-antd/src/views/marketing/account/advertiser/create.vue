@@ -1,46 +1,53 @@
 <script setup lang="ts" name="CreateAdvertiserModal">
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { ref, watch } from 'vue';
-import { useVbenForm } from '#/adapter/form';
+import { useVbenModal } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+import { ref, watch } from "vue";
+import { useVbenForm } from "#/adapter/form";
 import type {
+  AdvertiserDeveloperBindRequest,
   AdvertiserItem,
   DeveloperItem,
-  UserItem,
-  AdvertiserDeveloperBindRequest,
   UpdateAdvertiserRequest,
-} from '#/api/models';
-import { advertiserApi, projectApi, developerApi, userApi, orgApi } from '#/api';
-import { STATUS_SELECT, ADVERTISET_ADDED } from '#/constants/locales';
-import { trimObject } from '#/utils/trim';
+  UserItem
+} from "#/api/models";
+import { advertiserApi, developerApi, orgApi, projectApi, userApi } from "#/api";
+import { ADVERTISET_ADDED, STATUS_SELECT } from "#/constants/locales";
+import { trimObject } from "#/utils/trim";
 
-const emit = defineEmits(['pageReload']);
+const emit = defineEmits(["pageReload"]);
 
 const objectRequest = ref<AdvertiserItem>({
+  accessToken: "",
+  authStatus: 0,
+  authStatusName: "",
+  hourlyState: 0,
+  putStatus: 0,
+  tagId: "",
+  tagName: "",
   config: new Map<string, any>(),
-  projectId: '',
+  projectId: "",
   putStatue: 0,
-  advertiserId: '',
-  advertiserName: '',
-  advertiserRole: '',
-  customer: '',
-  saleId: '',
-  orgId: '',
+  advertiserId: "",
+  advertiserName: "",
+  advertiserRole: "",
+  customer: "",
+  saleId: "",
+  orgId: "",
   balance: 0,
-  companyName: '',
-  createTime: '',
-  createUsername: '',
+  companyName: "",
+  createTime: "",
+  createUsername: "",
   dailyBudget: 0,
-  id: '',
-  platform: '',
-  platformAuditState: '',
-  platformRemark: '',
-  platformStatus: '',
-  remark: '',
-  roleType: '',
+  id: "",
+  platform: "",
+  platformAuditState: "",
+  platformRemark: "",
+  platformStatus: "",
+  remark: "",
+  roleType: "",
   status: 0,
-  updateTime: '',
-  updateUsername: '',
+  updateTime: "",
+  updateUsername: ""
 });
 
 const isUpdate = ref<Boolean>(false);
@@ -49,6 +56,7 @@ interface DeveloperOption {
   label: string;
   value: string;
 }
+
 const developerOption = ref<DeveloperOption[]>([]);
 const salesOption = ref<DeveloperOption[]>([]);
 const menuData = ref([]);
@@ -58,10 +66,10 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     // 所有表单项
     componentProps: {
-      class: 'w-full',
-    },
+      class: "w-full"
+    }
   },
-  layout: 'horizontal',
+  layout: "horizontal",
   handleSubmit: async (formVal: Record<string, any>) => {
     const params = trimObject(formVal);
     await (isUpdate.value
@@ -71,266 +79,266 @@ const [Form, formApi] = useVbenForm({
   schema: [
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
+      component: "Input",
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
       // 字段名
-      fieldName: 'id',
+      fieldName: "id",
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ['*'],
-      },
+        triggerFields: ["*"]
+      }
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
-        placeholder: `${$t('common.choice')}`,
-        options: ADVERTISET_ADDED,
+        placeholder: `${$t("common.choice")}`,
+        options: ADVERTISET_ADDED
       },
-      rules: 'required',
+      rules: "required",
       // 字段名
-      fieldName: 'platform',
-      label: '平台',
+      fieldName: "platform",
+      label: "平台",
       dependencies: {
         show: (value) => !value.id,
-        triggerFields: ['id'],
-      },
+        triggerFields: ["id"]
+      }
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
-        placeholder: `${$t('common.choice')}`,
-        options: developerOption,
+        placeholder: `${$t("common.choice")}`,
+        options: developerOption
       },
-      rules: 'required',
+      rules: "required",
       // 字段名
-      fieldName: 'developerId',
-      label: '开发者',
+      fieldName: "developerId",
+      label: "开发者",
       dependencies: {
         show: (value) => {
-          return !value.id && value.platform === 'huawei_store';
+          return !value.id && value.platform === "huawei_store";
         },
-        triggerFields: ['platform', 'id'],
-      },
+        triggerFields: ["platform", "id"]
+      }
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      rules: 'required',
+      rules: "required",
       // 字段名
-      fieldName: 'companyName',
-      label: '公司名称',
+      fieldName: "companyName",
+      label: "公司名称",
       dependencies: {
         show: (value) => {
-          return value.platform === 'huawei_store';
+          return value.platform === "huawei_store";
         },
-        triggerFields: ['platform', 'id'],
-      },
+        triggerFields: ["platform", "id"]
+      }
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      rules: 'required',
+      rules: "required",
       // 字段名
-      fieldName: 'apiId',
-      label: 'api-id',
+      fieldName: "apiId",
+      label: "api-id",
       dependencies: {
         show: (value) => {
-          return value.platform === 'oppo';
+          return value.platform === "oppo";
         },
-        triggerFields: ['platform', 'id'],
-      },
+        triggerFields: ["platform", "id"]
+      }
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      rules: 'required',
+      rules: "required",
       // 字段名
-      fieldName: 'apiKey',
-      label: 'api-key',
+      fieldName: "apiKey",
+      label: "api-key",
       dependencies: {
         show: (value) => {
-          return value.platform === 'oppo';
+          return value.platform === "oppo";
         },
-        triggerFields: ['platform', 'id'],
-      },
+        triggerFields: ["platform", "id"]
+      }
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      rules: 'required',
-      fieldName: 'advertiserId',
-      label: '账户ID',
+      rules: "required",
+      fieldName: "advertiserId",
+      label: "账户ID",
       dependencies: {
         show: (value) => !value.id,
-        triggerFields: ['id'],
-      },
+        triggerFields: ["id"]
+      }
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      rules: 'required',
-      fieldName: 'advertiserName',
-      label: '账户名称',
+      rules: "required",
+      fieldName: "advertiserName",
+      label: "账户名称",
       dependencies: {
         show: (value) => !value.id,
-        triggerFields: ['id'],
-      },
+        triggerFields: ["id"]
+      }
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: [
           {
-            label: `${$t('marketing.advertiser.advertiserRole.proxy')}`,
-            value: 'proxy',
+            label: `${$t("marketing.advertiser.advertiserRole.proxy")}`,
+            value: "proxy"
           },
           {
-            label: `${$t('marketing.advertiser.advertiserRole.advertiser')}`,
-            value: 'advertiser',
+            label: `${$t("marketing.advertiser.advertiserRole.advertiser")}`,
+            value: "advertiser"
           },
           {
-            label: `${$t('marketing.advertiser.advertiserRole.personal')}`,
-            value: 'personal',
-          },
+            label: `${$t("marketing.advertiser.advertiserRole.personal")}`,
+            value: "personal"
+          }
         ],
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      rules: 'required',
+      rules: "required",
       // 字段名
-      fieldName: 'advertiserRole',
-      label: '角色',
+      fieldName: "advertiserRole",
+      label: "角色",
       dependencies: {
         show: (value) => !value.id,
-        triggerFields: ['id'],
-      },
+        triggerFields: ["id"]
+      }
     },
     {
-      component: 'TreeSelect',
+      component: "TreeSelect",
       componentProps: {
         allowClear: true,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`,
         showSearch: true,
         filterTreeNode: true,
         treeData: menuData,
         fieldNames: {
-          label: 'name',
-          value: 'id',
-          children: 'children',
-        },
+          label: "name",
+          value: "id",
+          children: "children"
+        }
       },
-      fieldName: 'orgId',
-      label: '部门',
+      fieldName: "orgId",
+      label: "部门"
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: salesOption,
-        placeholder: `${$t('common.choice')}`,
-        valueField: 'id',
-        labelField: 'name',
-        resultField: 'items',
+        placeholder: `${$t("common.choice")}`,
+        valueField: "id",
+        labelField: "name",
+        resultField: "items"
       },
       // 字段名
-      fieldName: 'saleId',
-      label: '销售',
+      fieldName: "saleId",
+      label: "销售",
       dependencies: {
         show: true,
-        triggerFields: ['orgId'],
+        triggerFields: ["orgId"],
         required: (value) => !!value.orgId,
         rules: (value) => {
           if (value.orgId) {
-            return 'required';
+            return "required";
           }
-          return '';
+          return "";
         },
         if: (value, formApi) => {
           if (value.orgId) {
-            formApi.setFieldValue('saleId', null);
+            formApi.setFieldValue("saleId", null);
             loadSalesByOrg(value.orgId);
           } else {
             salesOption.value = [];
           }
           return true;
-        },
-      },
+        }
+      }
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      fieldName: 'customer',
-      label: '客户系',
+      fieldName: "customer",
+      label: "客户系"
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
-        placeholder: `${$t('common.choice')}`,
-        options: STATUS_SELECT,
+        placeholder: `${$t("common.choice")}`,
+        options: STATUS_SELECT
       },
       defaultValue: 9,
       // 字段名
-      fieldName: 'putStatus',
-      label: `${$t('marketing.advertiser.columns.putStatue')}`,
+      fieldName: "putStatus",
+      label: `${$t("marketing.advertiser.columns.putStatue")}`
     },
     {
-      component: 'Textarea',
+      component: "Textarea",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      fieldName: 'remark',
-      label: `${$t('marketing.advertiser.columns.remark')}`,
+      fieldName: "remark",
+      label: `${$t("marketing.advertiser.columns.remark")}`
     },
     {
-      component: 'ApiSelect',
+      component: "ApiSelect",
       componentProps: {
         showSearch: true,
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
         params: {
           page: 1,
-          size: 1000,
+          size: 1000
         },
-        valueField: 'id',
-        labelField: 'name',
-        resultField: 'items',
+        valueField: "id",
+        labelField: "name",
+        resultField: "items",
         api: async (params: any) => {
           return await projectApi.fetchProjectList(params);
-        },
+        }
       },
-      fieldName: 'projectId',
-      label: `${$t('marketing.advertiser.columns.projectId')}`,
-    },
-  ],
+      fieldName: "projectId",
+      label: `${$t("marketing.advertiser.columns.projectId")}`
+    }
+  ]
 });
 
 watch(
   () => formApi.form?.values?.orgId,
   async (newOrgId, oldOrgId) => {
     if (newOrgId !== oldOrgId) {
-      formApi.setFieldValue('saleId', null);
+      formApi.setFieldValue("saleId", null);
       await loadSalesByOrg(newOrgId);
     }
-  },
+  }
 );
 const [Modal, modalApi] = useVbenModal({
   fullscreenButton: false,
@@ -339,29 +347,29 @@ const [Modal, modalApi] = useVbenModal({
     await formApi.resetForm();
     objectRequest.value = {
       config: new Map<string, any>(),
-      projectId: '',
+      projectId: "",
       putStatue: 0,
-      advertiserId: '',
-      advertiserName: '',
-      customer: '',
-      saleId: '',
-      orgId: '',
-      advertiserRole: '',
+      advertiserId: "",
+      advertiserName: "",
+      customer: "",
+      saleId: "",
+      orgId: "",
+      advertiserRole: "",
       balance: 0,
-      companyName: '',
-      createTime: '',
-      createUsername: '',
+      companyName: "",
+      createTime: "",
+      createUsername: "",
       dailyBudget: 0,
-      id: '',
-      platform: '',
-      platformAuditState: '',
-      platformRemark: '',
-      platformStatus: '',
-      remark: '',
-      roleType: '',
+      id: "",
+      platform: "",
+      platformAuditState: "",
+      platformRemark: "",
+      platformStatus: "",
+      remark: "",
+      roleType: "",
       status: 0,
-      updateTime: '',
-      updateUsername: '',
+      updateTime: "",
+      updateUsername: ""
     };
     isUpdate.value = false;
     await modalApi.close();
@@ -374,7 +382,7 @@ const [Modal, modalApi] = useVbenModal({
 
     await formApi.submitForm();
     isUpdate.value = false;
-    emit('pageReload');
+    emit("pageReload");
 
     await modalApi.close();
   },
@@ -386,13 +394,13 @@ const [Modal, modalApi] = useVbenModal({
         handleSetFormValue(objectRequest.value);
       }
       const res = await developerApi.fetchDeveloperList({
-        platform: 'huawei_store',
+        platform: "huawei_store",
         page: 1,
-        pageSize: 200,
+        pageSize: 200
       });
       developerOption.value = res.items.map((item: DeveloperItem) => ({
         label: item.name,
-        value: item.id,
+        value: item.id
       }));
       const orgRes = await orgApi.fetchOrgTree();
       menuData.value = orgRes;
@@ -402,7 +410,7 @@ const [Modal, modalApi] = useVbenModal({
     } else {
       isUpdate.value = false;
     }
-  },
+  }
 });
 
 async function loadSalesByOrg(orgId: string) {
@@ -413,7 +421,7 @@ async function loadSalesByOrg(orgId: string) {
   const saleSRes: any = await userApi.fetchUserList({ orgId, page: 1, pageSize: 200 });
   salesOption.value = saleSRes.items.map((item: UserItem) => ({
     label: item.nickname,
-    value: item.id,
+    value: item.id
   }));
 }
 
@@ -423,13 +431,9 @@ function handleSetFormValue(row: AdvertiserItem) {
 </script>
 
 <template>
-  <div>
-    <Page>
-      <Modal>
-        <Form />
-      </Modal>
-    </Page>
-  </div>
+  <Modal>
+    <Form />
+  </Modal>
 </template>
 
 <style scoped></style>

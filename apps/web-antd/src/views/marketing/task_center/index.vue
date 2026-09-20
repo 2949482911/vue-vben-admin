@@ -202,7 +202,7 @@ const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page>
     <Grid>
       <template #optionType="{ row }">
         {{ OPTION_TYPE_MAP[row.optionType ?? ""] || row.optionType || "-" }}

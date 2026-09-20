@@ -16,7 +16,7 @@ const { matchDataList } = defineProps<{
 }>()
 
 const list = ref<OcpxPlatformMatchForm[]>([])
-  
+
 watch(
   () => matchDataList,
   (val) => {
@@ -149,7 +149,7 @@ async function importExcel() {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '.xlsx, .xls';
-  
+
   input.onchange = async (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -159,7 +159,7 @@ async function importExcel() {
       const arrayBuffer = event.target.result;
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(arrayBuffer);
-      
+
       const worksheet = workbook.getWorksheet(1); // 读取第一个工作表
       const jsonData: any[] = [];
 
@@ -183,12 +183,12 @@ async function importExcel() {
       const importedList = jsonData.map(item => createRow(item, true));
       list.value = [...list.value, ...importedList];
       gridApi.setGridOptions({ data: list.value });
-      
+
       console.log('导入成功:', list.value);
     };
     reader.readAsArrayBuffer(file);
   };
-  
+
   input.click();
 }
 
@@ -199,56 +199,56 @@ defineExpose({
 </script>
 
 <template>
-  <Page>
-    <div class="imBtn">
-      <Button type="primary" @click="importExcel">
-        导入 Excel
+    <div>
+      <div class="imBtn">
+        <Button type="primary" @click="importExcel">
+          导入 Excel
+        </Button>
+      </div>
+      <Grid>
+
+        <template #platform="{ row }">
+          <Select size="large" v-model:value="row.platform" :options="PLATFORM" style="width: 80px;"/>
+        </template>
+
+        <template #advertiserId="{ row }">
+          <Input v-model:value="row.advertiserId"/>
+        </template>
+
+        <template #campaignId="{ row }">
+          <Input v-model:value="row.campaignId"/>
+        </template>
+
+        <template #adgroupId="{ row }">
+          <Input v-model:value="row.adgroupId"/>
+        </template>
+
+        <template #promotionId="{ row }">
+          <Input v-model:value="row.promotionId"/>
+        </template>
+
+        <template #creativeId="{ row }">
+          <Input v-model:value="row.creativeId"/>
+        </template>
+
+        <template #matchId="{ row }">
+          <Input v-model:value="row.matchId"/>
+        </template>
+
+        <template #action="{ row, rowIndex  }">
+          <Button type="link" @click="copyMatchData(row)">
+            {{ $t('core.copy') }}
+          </Button>
+          <Button type="link" @click="delMatchData(row, rowIndex)">
+            {{ $t('common.delete') }}
+          </Button>
+        </template>
+      </Grid>
+      <Button block class="mt-5" type="dashed" @click="addMatchCol"> {{
+          $t('common.create')
+        }}
       </Button>
     </div>
-    <Grid>
-
-      <template #platform="{ row }">
-        <Select size="large" v-model:value="row.platform" :options="PLATFORM" style="width: 80px;"/>
-      </template>
-
-      <template #advertiserId="{ row }">
-        <Input v-model:value="row.advertiserId"/>
-      </template>
-
-      <template #campaignId="{ row }">
-        <Input v-model:value="row.campaignId"/>
-      </template>
-
-      <template #adgroupId="{ row }">
-        <Input v-model:value="row.adgroupId"/>
-      </template>
-
-      <template #promotionId="{ row }">
-        <Input v-model:value="row.promotionId"/>
-      </template>
-
-      <template #creativeId="{ row }">
-        <Input v-model:value="row.creativeId"/>
-      </template>
-
-      <template #matchId="{ row }">
-        <Input v-model:value="row.matchId"/>
-      </template>
-
-      <template #action="{ row, rowIndex  }">
-        <Button type="link" @click="copyMatchData(row)">
-          {{ $t('core.copy') }}
-        </Button>
-        <Button type="link" @click="delMatchData(row, rowIndex)">
-          {{ $t('common.delete') }}
-        </Button>
-      </template>
-    </Grid>
-    <Button block class="mt-5" type="dashed" @click="addMatchCol"> {{
-        $t('common.create')
-      }}
-    </Button>
-  </Page>
 </template>
 
 <style scoped lang="scss">

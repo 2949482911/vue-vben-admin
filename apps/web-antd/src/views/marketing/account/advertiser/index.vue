@@ -471,7 +471,8 @@ const formOptions: VbenFormProps = {
 };
 
 const gridOptions: VxeGridProps<AdvertiserItem> = {
-  height: "auto",
+  pagerConfig: {},
+  border: true,
   columns: [
     {
       field: "platform",
@@ -628,6 +629,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
 
     ...(TABLE_COMMON_COLUMNS as any)
   ],
+  keepSource: true,
   proxyConfig: {
     ajax: {
       query: async ({ page }, args) => {
@@ -639,13 +641,6 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
         });
       }
     }
-  },
-  exportConfig: {
-    filename: "",
-    types: ["csv", "xlsx", "xls"]
-  },
-  pagerConfig: {
-    enabled: true
   },
   checkboxConfig: {
     highlight: true,
@@ -703,7 +698,7 @@ async function loadAgentData(platform: string) {
 </script>
 
 <template>
-  <Page auto-content-height>
+  <Page>
     <Grid>
       <template #putStatue="{ row }">
         <Switch :checked="row.putStatue === 1" @click="handlerPutState(row)"></Switch>

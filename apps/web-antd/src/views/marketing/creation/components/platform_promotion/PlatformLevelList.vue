@@ -5,7 +5,7 @@
 import type { ReportFilter } from '#/api/models';
 import { computed, ref } from 'vue';
 
-import { Page, useVbenDrawer } from '@vben/common-ui';
+import { useVbenDrawer } from '@vben/common-ui';
 
 import { Drawer as ADrawer, Button, Descriptions, message, Space, Typography } from 'ant-design-vue';
 
@@ -201,6 +201,7 @@ const formOptions = {
 
 const gridOptions: VxeGridProps = {
   border: true,
+  height: 'auto',
   checkboxConfig: { highlight: true },
   columns: [],
   data: [],
@@ -358,8 +359,8 @@ defineExpose({ pageReload });
 </script>
 
 <template>
- <Page >
-   <Grid >
+  <div class="h-full">
+    <Grid >
      <!-- 左侧：勾选后切换为批量操作条，未勾选时展示轻量统计 -->
      <template #toolbar-actions>
        <div v-if="selectedRows.length > 0" class="flex items-center gap-2">
@@ -408,5 +409,5 @@ defineExpose({ pageReload });
        </Descriptions.Item>
      </Descriptions>
    </ADrawer>
- </Page>
+ </div>
 </template>

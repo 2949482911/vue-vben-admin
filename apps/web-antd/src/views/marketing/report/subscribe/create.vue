@@ -1,235 +1,232 @@
 <script setup lang="ts">
-import { Page, useVbenDrawer } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { ref, watch, h } from 'vue'; // 添加 watch
-import { useVbenForm } from '#/adapter/form';
-import type {
-  searchDataFilter,
-  ReportSubscriptionItem,
-  UpdateSubscribeType
-} from '#/api/models';
-import { subscribeApi } from '#/api';
-import { trimObject } from '#/utils/trim';
-import dayjs from 'dayjs';
-import { message } from 'ant-design-vue';
-import AdReportFilterForm from '../components/AdReportFilterForm.vue';
-import MetricTemplate from './components/metricTemplate.vue';
-import { WEEKLIST, DAYLIST, TIMELIST } from '#/constants/locales.js'
+import { useVbenDrawer } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+import { h, ref, watch } from "vue"; // 添加 watch
+import { useVbenForm } from "#/adapter/form";
+import type { ReportSubscriptionItem, searchDataFilter, UpdateSubscribeType } from "#/api/models";
+import { subscribeApi } from "#/api";
+import { trimObject } from "#/utils/trim";
+import dayjs from "dayjs";
+import { message } from "ant-design-vue";
+import AdReportFilterForm from "../components/AdReportFilterForm.vue";
+import MetricTemplate from "./components/metricTemplate.vue";
+import { DAYLIST, TIMELIST, WEEKLIST } from "#/constants/locales.js";
 
-const emit = defineEmits(['pageReload']);
+const emit = defineEmits(["pageReload"]);
 const objectRequest = ref<ReportSubscriptionItem>({});
 const isUpdate = ref<Boolean>(false);
 const metricList = ref<string[]>([]);
 const filterCriteria = ref<searchDataFilter>();
-const title = ref<string>('');
+const title = ref<string>("");
 const isShowActions = ref(false);
 const filterFormRef = ref();
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
     componentProps: {
-      class: 'w-full',
-    },
+      class: "w-full"
+    }
   },
-  layout: 'horizontal',
+  layout: "horizontal",
   handleSubmit: async (formVal: Record<string, any>) => {
     const params = trimObject(formVal);
     const pushConfig = buildPushConfig(params.pushMethod, params.emailAddress);
-    const {advertiserId,...otherFields} = params.config;
+    const { advertiserId, ...otherFields } = params.config;
     const reportParams = {
       ...otherFields,
-      'platform_account_id':advertiserId
+      "platform_account_id": advertiserId
     };
     const addSubmitParams: ReportSubscriptionItem = {
       name: params.name,
       type: params.type,
       queryMetric: params.queryMetric,
       config: reportParams,
-      status: Number(params.status) === 1? 1 : 9,
+      status: Number(params.status) === 1 ? 1 : 9,
       subscribeDateTimeRange: params.subscribeDateTimeRange,
       pushConfig,
       days: params.days,
       weeks: params.weeks,
       sendDateTime: params.sendDateTime,
-      dayRange: params.dayRange,
-    }
+      dayRange: params.dayRange
+    };
     const updateSubmitParams: UpdateSubscribeType = {
       id: params.id,
       ...addSubmitParams
-    }
-    if(isUpdate.value) {
+    };
+    if (isUpdate.value) {
       // 调用修改接口
       await subscribeApi.fetchUpdateSubscribe(updateSubmitParams);
-      message.success('修改成功');
+      message.success("修改成功");
     } else {
       // 调用新增接口
       await subscribeApi.fetchNewSubscribe(addSubmitParams);
-      message.success('新增成功');
-     }
+      message.success("新增成功");
+    }
   },
   schema: [
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      fieldName: 'id',
+      fieldName: "id",
       dependencies: {
         show: false,
-        triggerFields: ['*'],
-      },
+        triggerFields: ["*"]
+      }
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      rules: 'required',
-      fieldName: 'name',
-      label: `${$t('marketing.report.subscribe.name')}`
+      rules: "required",
+      fieldName: "name",
+      label: `${$t("marketing.report.subscribe.name")}`
     },
     {
-      component: 'RadioGroup',
-      defaultValue: 'day',
-      rules: 'required',
+      component: "RadioGroup",
+      defaultValue: "day",
+      rules: "required",
       componentProps: {
         options: [
-          { label: '日报', value: 'day' },
-          { label: '周报', value: 'week' },
-          { label: '月报', value: 'month' },
-        ],
+          { label: "日报", value: "day" },
+          { label: "周报", value: "week" },
+          { label: "月报", value: "month" }
+        ]
       },
-      fieldName: 'type',
-      label: `${$t('marketing.report.subscribe.reportType')}`,
+      fieldName: "type",
+      label: `${$t("marketing.report.subscribe.reportType")}`
     },
     {
-      component: 'Default' as any,
-      fieldName: 'queryMetric',
-      label: `${$t('marketing.report.subscribe.metricList')}`,
-      rules: 'required'
+      component: "Default" as any,
+      fieldName: "queryMetric",
+      label: `${$t("marketing.report.subscribe.metricList")}`,
+      rules: "required"
     },
     {
-      component: 'Default' as any,
-      help: '选择完毕请点击确认按钮',
-      fieldName: 'config',
-      label: `${$t('marketing.report.subscribe.filterCriteria')}`,
-      rules: 'required'
+      component: "Default" as any,
+      help: "选择完毕请点击确认按钮",
+      fieldName: "config",
+      label: `${$t("marketing.report.subscribe.filterCriteria")}`,
+      rules: "required"
     },
     {
-      component: 'Switch',
+      component: "Switch",
       defaultValue: true,
       componentProps: {
-        class: 'w-10'
+        class: "w-10"
       },
-      rules: 'required',
-      fieldName: 'status',
-      label: `${$t('marketing.report.subscribe.subscribeStatus')}`,
+      rules: "required",
+      fieldName: "status",
+      label: `${$t("marketing.report.subscribe.subscribeStatus")}`
     },
     {
-      component: 'RangePicker',
+      component: "RangePicker",
       defaultValue: [
-        dayjs().subtract(6, 'day').format('YYYY-MM-DD'),
-        dayjs().format('YYYY-MM-DD'),
+        dayjs().subtract(6, "day").format("YYYY-MM-DD"),
+        dayjs().format("YYYY-MM-DD")
       ],
       componentProps: {
-        placeholder: [`${$t('common.select')}`, `${$t('common.select')}`],
-        format: ['YYYY-MM-DD', 'YYYY-MM-DD'],
-        valueFormat: 'YYYY-MM-DD',
+        placeholder: [`${$t("common.select")}`, `${$t("common.select")}`],
+        format: ["YYYY-MM-DD", "YYYY-MM-DD"],
+        valueFormat: "YYYY-MM-DD"
       },
-      fieldName: 'subscribeDateTimeRange',
-      label: `${$t('marketing.report.subscribe.subscribeDateTimeRange')}`,
-      rules: 'required',
+      fieldName: "subscribeDateTimeRange",
+      label: `${$t("marketing.report.subscribe.subscribeDateTimeRange")}`,
+      rules: "required"
     },
     {
-      component: 'InputNumber',
+      component: "InputNumber",
       defaultValue: 7,
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      fieldName: 'dayRange',
+      fieldName: "dayRange",
       label: `时间范围`,
-      suffix: () => h('span', { class: 'text-400' }, '日'),
+      suffix: () => h("span", { class: "text-400" }, "日")
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
-        placeholder: `${$t('common.select')}`,
-        mode: 'multiple',
+        placeholder: `${$t("common.select")}`,
+        mode: "multiple",
         options: TIMELIST
       },
-      fieldName: 'sendDateTime',
-      label: `发送时间`,
+      fieldName: "sendDateTime",
+      label: `发送时间`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
-        placeholder: `${$t('common.select')}`,
-        mode: 'multiple',
+        placeholder: `${$t("common.select")}`,
+        mode: "multiple",
         options: DAYLIST
       },
       dependencies: {
         show: (value) => {
-          return value.type !== 'week'
+          return value.type !== "week";
         },
-        triggerFields: ['type'],
+        triggerFields: ["type"]
       },
-      fieldName: 'days',
+      fieldName: "days",
       label: `发送日`
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
-        placeholder: `${$t('common.select')}`,
+        placeholder: `${$t("common.select")}`,
         options: WEEKLIST,
-        mode: 'multiple',
+        mode: "multiple"
       },
       dependencies: {
         show: (value) => {
-          return value.type === 'week'
+          return value.type === "week";
         },
-        triggerFields: ['type'],
+        triggerFields: ["type"]
       },
-      fieldName: 'weeks',
-      label: `发送周`,
+      fieldName: "weeks",
+      label: `发送周`
     },
     {
-      component: 'RadioGroup',
-      defaultValue: 'email',
+      component: "RadioGroup",
+      defaultValue: "email",
       componentProps: {
         options: [
-          { label: '邮箱', value: 'email' },
-        ],
+          { label: "邮箱", value: "email" }
+        ]
       },
-      fieldName: 'pushMethod',
-      label: `${$t('marketing.report.subscribe.pushMethod')}`,
+      fieldName: "pushMethod",
+      label: `${$t("marketing.report.subscribe.pushMethod")}`
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
-        placeholder: `多个邮箱请用逗号分隔`,
+        placeholder: `多个邮箱请用逗号分隔`
       },
-      rules: 'required',
-      fieldName: 'emailAddress',
-      label: `${$t('marketing.report.subscribe.emailAddress')}`
-    },
-  ],
+      rules: "required",
+      fieldName: "emailAddress",
+      label: `${$t("marketing.report.subscribe.emailAddress")}`
+    }
+  ]
 });
 
-watch(isUpdate,(newVal) => {
-  if(newVal) {
-    title.value = "修改订阅"
+watch(isUpdate, (newVal) => {
+  if (newVal) {
+    title.value = "修改订阅";
   } else {
-    title.value = "新增订阅"
+    title.value = "新增订阅";
   }
-},{ deep: true, immediate: true });
+}, { deep: true, immediate: true });
+
 function handleMetricConfirm(val: string[]) {
   metricList.value = val;
-  formApi.setFieldValue('queryMetric', val);
+  formApi.setFieldValue("queryMetric", val);
 }
 
 const buildPushConfig = (type: string, addressStr: string) => {
   const addressList = addressStr
-    .split(',')
+    .split(",")
     .map(item => item.trim())
     .filter(Boolean);
   return [{ [type]: addressList }];
@@ -239,20 +236,21 @@ const buildPushConfig = (type: string, addressStr: string) => {
  */
 const parsePushConfig = (pushConfig: { [key: string]: string[] }[] = []) => {
   if (!pushConfig || pushConfig.length === 0) {
-    return { pushMethod: '', emailAddress: '' };
+    return { pushMethod: "", emailAddress: "" };
   }
   const firstPushItem = pushConfig[0];
   if (!firstPushItem) {
-    return { pushMethod: '', emailAddress: '' };
+    return { pushMethod: "", emailAddress: "" };
   }
-  const pushMethod = Object.keys(firstPushItem)[0] || '';
+  const pushMethod = Object.keys(firstPushItem)[0] || "";
   const addressList = firstPushItem[pushMethod] || [];
-  const emailAddress = addressList.join(',');
+  const emailAddress = addressList.join(",");
   return { pushMethod, emailAddress };
 };
+
 async function handleSetFormValue(row: ReportSubscriptionItem) {
   const metricIds = Array.isArray(row.queryMetric) ? row.queryMetric : [];
-  const subscribeDateTimeRange = row.subscribeDateTimeRange?.split('~');
+  const subscribeDateTimeRange = row.subscribeDateTimeRange?.split("~");
   const { pushMethod, emailAddress } = parsePushConfig(row.pushConfig);
   const status = row.status === 1 ? true : false;
   formApi.setValues({
@@ -275,22 +273,22 @@ async function handleSetFormValue(row: ReportSubscriptionItem) {
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: false,
   async onCancel() {
-    await formApi.setFieldValue('queryMetric', null);
+    await formApi.setFieldValue("queryMetric", null);
     await formApi.resetForm();
     isUpdate.value = false;
     metricList.value = [];
     await drawerApi.close();
   },
   async onConfirm() {
-    const configVal = await filterFormRef.value?.getValues()
-    formApi.setFieldValue('config', configVal);
+    const configVal = await filterFormRef.value?.getValues();
+    formApi.setFieldValue("config", configVal);
     const result = await formApi.validate();
     if (!result.valid) {
       return;
     }
     await formApi.submitForm();
     isUpdate.value = false;
-    emit('pageReload');
+    emit("pageReload");
     await drawerApi.close();
   },
   async onOpenChange(isOpen: boolean) {
@@ -306,32 +304,28 @@ const [Drawer, drawerApi] = useVbenDrawer({
         filterCriteria.value = {};
       }
     }
-  },
+  }
 });
 </script>
 
 <template>
-  <div>
-    <Page>
-      <Drawer class="w-[50%]" :title="title">
-        <Form>
-          <template #queryMetric>
-            <MetricTemplate
-              :metricList="metricList"
-              @confirm="handleMetricConfirm"
-            ></MetricTemplate>
-          </template>
-          <template #config>
-            <AdReportFilterForm 
-              :initialValues="filterCriteria"
-              ref="filterFormRef" 
-              :isShowActions="isShowActions"
-              ></AdReportFilterForm>
-          </template>
-        </Form>
-      </Drawer>
-    </Page>
-  </div>
+  <Drawer class="w-[50%]" :title="title">
+    <Form>
+      <template #queryMetric>
+        <MetricTemplate
+          :metricList="metricList"
+          @confirm="handleMetricConfirm"
+        ></MetricTemplate>
+      </template>
+      <template #config>
+        <AdReportFilterForm
+          :initialValues="filterCriteria"
+          ref="filterFormRef"
+          :isShowActions="isShowActions"
+        ></AdReportFilterForm>
+      </template>
+    </Form>
+  </Drawer>
 </template>
 
 <style scoped></style>

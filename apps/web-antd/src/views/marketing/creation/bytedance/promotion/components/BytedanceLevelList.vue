@@ -16,7 +16,6 @@ import { advertiserApi, aManagementApi } from '#/api';
 import BatchOperationDrawer from '../../../promotion_manager/components/BatchOperationDrawer.vue';
 import BatchOperationDropdown from '../../../promotion_manager/components/BatchOperationDropdown.vue';
 import { getBatchOperations, type BatchOperationType } from '../../../promotion_manager/platformOptions';
-
 const props = defineProps<{
   /** campaign=项目, adgroup=广告 */
   level: 'adgroup' | 'campaign';
@@ -169,6 +168,7 @@ const formOptions = {
 
 const gridOptions: VxeGridProps = {
   border: true,
+  height: 'auto',
   checkboxConfig: { highlight: true },
   columns: [],
   data: [],
@@ -319,53 +319,54 @@ defineExpose({ pageReload });
 </script>
 
 <template>
-  <Grid>
-    <!-- 左侧：勾选后切换为批量操作条，未勾选时展示轻量统计 -->
-    <template #toolbar-actions>
-      <div v-if="selectedRows.length > 0" class="flex items-center gap-2">
-        <Typography.Text>
-          已选 <span class="font-medium tabular-nums">{{ selectedRows.length }}</span> 项
-        </Typography.Text>
-        <BatchOperationDropdown
-          :level="level"
-          :operation-keys="levelOperationKeys"
-          @open="openBatchOperation"
-        />
-        <Button type="link" size="small" @click="clearSelection">取消选择</Button>
-      </div>
-      <div v-else class="flex items-center gap-1">
-        <Typography.Text type="secondary">
-          命中 <span class="tabular-nums">{{ totalCount }}</span> 条
-        </Typography.Text>
-        <Typography.Text type="secondary">·</Typography.Text>
-        <Typography.Text type="secondary">{{ levelLabel }}层级</Typography.Text>
-      </div>
-    </template>
+  <div class="h-full">
+    <Grid>
+      <!-- 左侧：勾选后切换为批量操作条，未勾选时展示轻量统计 -->
+      <template #toolbar-actions>
+        <div v-if="selectedRows.length > 0" class="flex items-center gap-2">
+          <Typography.Text>
+            已选 <span class="font-medium tabular-nums">{{ selectedRows.length }}</span> 项
+          </Typography.Text>
+          <BatchOperationDropdown
+            :level="level"
+            :operation-keys="levelOperationKeys"
+            @open="openBatchOperation"
+          />
+          <Button type="link" size="small" @click="clearSelection">取消选择</Button>
+        </div>
+        <div v-else class="flex items-center gap-1">
+          <Typography.Text type="secondary">
+            命中 <span class="tabular-nums">{{ totalCount }}</span> 条
+          </Typography.Text>
+          <Typography.Text type="secondary">·</Typography.Text>
+          <Typography.Text type="secondary">{{ levelLabel }}层级</Typography.Text>
+        </div>
+      </template>
 
-    <template #toolbar-tools>
-      <Space>
-        <Button @click="handleExport">导出</Button>
-      </Space>
-    </template>
+      <template #toolbar-tools>
+        <Space>
+          <Button @click="handleExport">导出</Button>
+        </Space>
+      </template>
 
-    <template #action="{ row }">
-      <Button type="link" @click="openDetail(row)">详情</Button>
-    </template>
-  </Grid>
+      <template #action="{ row }">
+        <Button type="link" @click="openDetail(row)">详情</Button>
+      </template>
+    </Grid>
 
-  <BatchDrawer @page-reload="onBatchPageReload" />
+    <BatchDrawer @page-reload="onBatchPageReload" />
 
-  <!-- 详情抽屉 -->
-  <ADrawer
-    v-model:open="detailOpen"
-    :title="detailTitle"
-    :loading="detailLoading"
-    width="560"
-  >
-    <Descriptions :column="1" size="small" bordered>
-      <Descriptions.Item v-for="(val, key) in detailData" :key="key" :label="String(key)">
-        {{ val }}
-      </Descriptions.Item>
-    </Descriptions>
-  </ADrawer>
+    <!-- 详情抽屉 -->
+    <ADrawer
+      v-model:open="detailOpen"
+      :title="detailTitle"
+      :loading="detailLoading"
+    >
+      <Descriptions :column="1" size="small" bordered>
+        <Descriptions.Item v-for="(val, key) in detailData" :key="key" :label="String(key)">
+          {{ val }}
+        </Descriptions.Item>
+      </Descriptions>
+    </ADrawer>
+  </div>
 </template>

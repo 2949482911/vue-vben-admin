@@ -211,7 +211,7 @@ function pageReload() {
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page>
     <Grid>
       <template #model="{ row }">
         <Tag color="red">

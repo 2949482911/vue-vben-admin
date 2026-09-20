@@ -216,7 +216,6 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
     <Modal class="w-[70%] max-w-[70%] mx-auto">
       <div class="metric-content">
         <div class="metric-content-left">
@@ -321,7 +320,6 @@ onMounted(() => {
       v-model:open="createMetricOpen"
       @success="getMetricList"
     />
-  </div>
 </template>
 
 <style lang="scss" scoped>

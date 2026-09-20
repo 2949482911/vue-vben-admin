@@ -1,22 +1,19 @@
 <script setup lang="ts" name="CreateProject">
-import {Page, useVbenDrawer} from '@vben/common-ui';
-import {$t} from '@vben/locales';
-import {computed, ref} from 'vue';
+import { useVbenDrawer } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+import { computed, ref } from "vue";
 
-import type {
-  CreateProjectRequest,
-  UpdateProjectRequest
-} from "#/api/models";
+import type { CreateProjectRequest, UpdateProjectRequest } from "#/api/models";
 import { projectApi } from "#/api";
 import { useVbenForm } from "#/adapter/form";
-import { trimObject } from '#/utils/trim';
+import { trimObject } from "#/utils/trim";
 import { ProjectType, ProjectTypeLabel } from "#/views/marketing/project/enums";
 import { useOssClient } from "#/views/marketing/asset/material/useOssClient";
 import { uploadToOss } from "#/utils/uploadToOss";
 import { calcFileMd5 } from "#/utils/fileMd5";
 import { useUserStore } from "@vben/stores";
 
-const emit = defineEmits(['pageReload']);
+const emit = defineEmits(["pageReload"]);
 
 const objectRequest = ref<CreateProjectRequest | UpdateProjectRequest>({
   miniProgramId: "",
@@ -26,20 +23,20 @@ const objectRequest = ref<CreateProjectRequest | UpdateProjectRequest>({
   name: "",
   packageName: "",
   projectType: ProjectType.ANDROID,
-  appId: '',
-  downloadUrl: '',
+  appId: "",
+  downloadUrl: ""
 });
 
 const isUpdate = ref<Boolean>(false);
 
-const title = computed(() => isUpdate.value ? `${$t('common.edit')}` : `${$t('common.create')}`);
+const title = computed(() => isUpdate.value ? `${$t("common.edit")}` : `${$t("common.create")}`);
 
 /** 上传 icon 到阿里云 OSS */
 async function uploadIcon(file: File, onSuccess?: Function, onError?: Function) {
   try {
     const client = await useOssClient();
     const md5 = await calcFileMd5(file);
-    const ext = file.name.substring(file.name.lastIndexOf('.'));
+    const ext = file.name.substring(file.name.lastIndexOf("."));
     const userStore = useUserStore();
     const mainId = userStore.userInfo?.mainId;
     const ossKey = `${mainId}/image/project_icon/${md5}${ext}`;
@@ -51,12 +48,12 @@ async function uploadIcon(file: File, onSuccess?: Function, onError?: Function) 
 }
 
 function extractIconUrl(icon: any): string {
-  if (!icon) return '';
-  if (typeof icon === 'string') return icon;
+  if (!icon) return "";
+  if (typeof icon === "string") return icon;
   if (Array.isArray(icon) && icon.length > 0) {
-    return icon[0]?.url || icon[0]?.response?.url || '';
+    return icon[0]?.url || icon[0]?.response?.url || "";
   }
-  return '';
+  return "";
 }
 
 const [Form, formApi] = useVbenForm({
@@ -64,117 +61,117 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     // 所有表单项
     componentProps: {
-      class: 'w-full',
-    },
+      class: "w-full"
+    }
   },
-  layout: 'horizontal',
+  layout: "horizontal",
   handleSubmit: async (values) => {
     const formVal = values as Record<string, any>;
     formVal.icon = extractIconUrl(formVal.icon);
     const params = trimObject(formVal) as CreateProjectRequest | UpdateProjectRequest;
     await (isUpdate.value ? projectApi.fetchUpdateProject(params as UpdateProjectRequest)
-      : projectApi.fetchCreateProject(params))
+      : projectApi.fetchCreateProject(params));
   },
   schema: [
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
+      component: "Input",
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
       // 字段名
-      fieldName: 'id',
+      fieldName: "id",
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ['*'],
-      },
+        triggerFields: ["*"]
+      }
     },
 
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
+      component: "Input",
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
       // 字段名
-      fieldName: 'name',
+      fieldName: "name",
       // 界面显示的label
-      rules: 'required',
-      label: `${$t('marketing.project.columns.name')}`,
+      rules: "required",
+      label: `${$t("marketing.project.columns.name")}`
     },
 
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
+      component: "Input",
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
       // 字段名
-      fieldName: 'packageName',
+      fieldName: "packageName",
       // 界面显示的label
-      rules: 'required',
-      label: `${$t('marketing.project.columns.packageName')}`,
+      rules: "required",
+      label: `${$t("marketing.project.columns.packageName")}`
 
     },
     {
       component: "Upload",
       componentProps: {
-        accept: '.png,.jpg,.jpeg,.svg,.ico',
+        accept: ".png,.jpg,.jpeg,.svg,.ico",
         maxCount: 1,
         maxSize: 2,
         multiple: false,
-        listType: 'picture-card',
+        listType: "picture-card",
         customRequest: async (option: { file: File; onSuccess?: Function; onError?: Function }) => {
           await uploadIcon(option.file, option.onSuccess, option.onError);
-        },
+        }
       },
       fieldName: "icon",
-      rules: 'required',
-      label: `${$t('marketing.project.columns.icon')}`,
+      rules: "required",
+      label: `${$t("marketing.project.columns.icon")}`
     },
 
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Select',
+      component: "Select",
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`,
-        options: ProjectTypeLabel,
+        placeholder: `${$t("common.input")}`,
+        options: ProjectTypeLabel
       },
       // 字段名
-      fieldName: 'projectType',
+      fieldName: "projectType",
       defaultValue: ProjectType.ANDROID,
       // 界面显示的label
-      label: `${$t('marketing.project.columns.projectType')}`,
-      rules: 'required',
+      label: `${$t("marketing.project.columns.projectType")}`,
+      rules: "required"
     },
 
     {
       component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      label: `${$t('marketing.project.columns.appId')}`,
-      rules: 'required',
+      label: `${$t("marketing.project.columns.appId")}`,
+      rules: "required",
       fieldName: "appId"
     },
     {
       component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      label: `${$t('marketing.project.columns.downloadUrl')}`,
-      rules: 'required',
+      label: `${$t("marketing.project.columns.downloadUrl")}`,
+      rules: "required",
       fieldName: "downloadUrl",
       dependencies: {
-        show: (currentVal : Record<string, any> ) => {
+        show: (currentVal: Record<string, any>) => {
           return currentVal["projectType"] === ProjectType.ANDROID
             || currentVal["projectType"] === ProjectType.IOS
-          || currentVal["projectType"] === ProjectType.HARMONY
+            || currentVal["projectType"] === ProjectType.HARMONY;
         },
         triggerFields: ["projectType"]
       }
@@ -182,27 +179,27 @@ const [Form, formApi] = useVbenForm({
     {
       component: "Input",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      label: `${$t('marketing.project.columns.miniProgramId')}`,
+      label: `${$t("marketing.project.columns.miniProgramId")}`,
       rules: "required",
       fieldName: "miniProgramId",
       dependencies: {
         show: (val: any) => {
-          return val.projectType === ProjectType.WECHAT_MINI_GAME || val.projectType === ProjectType.WECHAT_MINI_PROGRAM
+          return val.projectType === ProjectType.WECHAT_MINI_GAME || val.projectType === ProjectType.WECHAT_MINI_PROGRAM;
         },
-        triggerFields: ["projectType"],
+        triggerFields: ["projectType"]
       }
     },
     {
       component: "Textarea",
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
-      label: `${$t('marketing.project.columns.description')}`,
-      fieldName: "description",
+      label: `${$t("marketing.project.columns.description")}`,
+      fieldName: "description"
     }
-  ],
+  ]
 });
 
 
@@ -216,10 +213,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
       id: "",
       name: "",
       packageName: "",
-      projectType: '',
+      projectType: "",
       miniProgramId: "",
       appId: "",
-      downloadUrl: ''
+      downloadUrl: ""
     };
     isUpdate.value = false;
     await drawerApi.close();
@@ -227,12 +224,12 @@ const [Drawer, drawerApi] = useVbenDrawer({
   async onConfirm() {
     const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
 
     await formApi.submitForm();
     isUpdate.value = false;
-    emit('pageReload');
+    emit("pageReload");
     await formApi.resetForm();
     await drawerApi.close();
   },
@@ -249,15 +246,15 @@ const [Drawer, drawerApi] = useVbenDrawer({
     } else {
       isUpdate.value = false;
     }
-  },
+  }
 });
 
 function handleSetFormValue(row: CreateProjectRequest | UpdateProjectRequest) {
   formApi.setValues({
     ...row,
     icon: row.icon
-      ? [{ uid: row.icon, name: 'icon', status: 'done', url: row.icon }]
-      : undefined,
+      ? [{ uid: row.icon, name: "icon", status: "done", url: row.icon }]
+      : undefined
   });
 }
 
@@ -265,11 +262,9 @@ function handleSetFormValue(row: CreateProjectRequest | UpdateProjectRequest) {
 </script>
 
 <template>
-  <Page>
-    <Drawer :title="title">
-      <Form/>
-    </Drawer>
-  </Page>
+  <Drawer :title="title">
+    <Form />
+  </Drawer>
 </template>
 
 <style scoped>
