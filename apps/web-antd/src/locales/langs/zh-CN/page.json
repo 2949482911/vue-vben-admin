@@ -33,7 +33,7 @@
     "flowable_task": "监听"
   },
   "ocpx": {
-    "title": "推广活动",
+    "title": "推广",
     "ocpx_task": "推广活动",
     "match": "推广活动映射",
     "platformcallback": "转化回传",
@@ -156,7 +156,7 @@
     "downloadCenter": "下载中心"
   },
   "adx": {
-    "title": "竞价交易",
+    "title": "竞价",
     "dsp": "Dsp渠道",
     "rtb": "Rtb渠道",
     "campaign": "投放计划",
