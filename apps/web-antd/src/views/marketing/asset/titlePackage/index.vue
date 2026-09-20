@@ -158,7 +158,7 @@ function handlerState(_row: TitlePackItem) {
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page>
     <Grid>
       <template #status="{ row }">
         <Switch :checked="row.status === 1" @click="handlerState(row)" />

@@ -189,6 +189,7 @@ const gridOptions: VxeGridProps<UserItem> = {
   pagerConfig: {
     enabled: true
   },
+  height: "auto",
   toolbarConfig: {
     custom: true,
     export: false,

@@ -97,6 +97,7 @@ const gridOptions: VxeGridProps<RoleItem> = {
     highlight: true,
     labelField: 'id',
   },
+  height: "auto",
   columns: [
     {
       field: 'name',
@@ -146,7 +147,7 @@ function pageReload() {
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page>
     <Grid>
       <template #status="{ row }">
         <Switch :checked="row.status == 1" @change="handlerState(row)"/>

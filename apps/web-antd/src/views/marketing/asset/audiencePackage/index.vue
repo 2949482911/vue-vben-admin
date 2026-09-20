@@ -99,6 +99,7 @@ const formOptions: VbenFormProps = {
 
 const gridOptions: VxeGridProps = {
   border: true,
+  height: "auto",
   checkboxConfig: {
     highlight: true
   },

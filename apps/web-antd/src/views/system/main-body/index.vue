@@ -122,7 +122,8 @@ const gridOptions: VxeGridProps<MainBodyItem> = {
     export: false,
     refresh: true,
     zoom: true
-  }
+  },
+  height: "auto",
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });

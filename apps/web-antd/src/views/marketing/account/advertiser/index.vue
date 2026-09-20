@@ -651,7 +651,8 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     export: true,
     refresh: true,
     zoom: true
-  }
+  },
+  height: "auto",
 };
 // 勾选的数组
 const selectedRows = ref<AdvertiserItem[]>([]);

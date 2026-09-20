@@ -88,6 +88,7 @@ const gridOptions: VxeGridProps<NoticeItem> = {
     highlight: true,
     labelField: "id"
   },
+  height: "auto",
   toolbarConfig: {
     custom: true,
     export: false,
@@ -124,7 +125,7 @@ function pageReload() {
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page>
     <Grid>
       <template #action="{ row }">
         <Button type="link" @click="openBaseDrawer(row)">

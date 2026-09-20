@@ -27,8 +27,9 @@ const formOptions: VbenFormProps = {
   collapsed: true,
 };
 
-const gridOptions: VxeGridProps<RowType> = {
+const gridOptions: VxeGridProps = {
   border: true,
+  height: "auto",
   checkboxConfig: {
     highlight: true,
     labelField: 'id',
@@ -61,7 +62,7 @@ function pageReload() {
 </script>
 
 <template>
-    <Page content-class="p-5">
+    <Page>
       <Grid>
         <!--        <template #action="{ row }">-->
         <!--          <Button type="link" @click="openBaseDrawer(row)">{{$t('common.edit')}}</Button>-->

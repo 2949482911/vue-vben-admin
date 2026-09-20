@@ -118,6 +118,7 @@ const formOptions: VbenFormProps = {
 
 const gridOptions: VxeGridProps<PlatformcallbackItem> = {
   border: true,
+  height: "auto",
   checkboxConfig: {
     highlight: true,
     labelField: "id"

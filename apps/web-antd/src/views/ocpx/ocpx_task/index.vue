@@ -232,6 +232,7 @@ const formOptions: VbenFormProps = {
 
 const gridOptions: VxeGridProps<OcpxTaskItem> = {
   border: true,
+  height: "auto",
   checkboxConfig: {
     highlight: true,
     labelField: "id"

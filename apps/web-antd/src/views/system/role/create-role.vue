@@ -1,20 +1,20 @@
 <script lang="ts" setup name="CreateRole">
-import type {CreateRoleRequest, UpdateRoleRequest} from '#/api/models';
-import type {MenuItem} from '#/api/models/menu';
-import type {BasicRole} from '@vben-core/typings/src/basic';
+import type { CreateRoleRequest, UpdateRoleRequest } from "#/api/models";
+import type { MenuItem } from "#/api/models/menu";
+import type { BasicRole } from "@vben-core/typings/src/basic";
 
-import {computed, onMounted, ref} from 'vue';
+import { computed, onMounted, ref } from "vue";
 
-import {Tree, useVbenDrawer} from '@vben/common-ui';
-import {IconifyIcon} from '@vben/icons';
-import {$t} from '@vben/locales';
+import { Tree, useVbenDrawer } from "@vben/common-ui";
+import { IconifyIcon } from "@vben/icons";
+import { $t } from "@vben/locales";
 
-import {useVbenForm} from '#/adapter/form';
-import {menuApi, roleApi} from '#/api';
-import {ROLE_TYPE_OPTIONS} from '#/constants/locales';
-import {useUserStore} from "@vben/stores";
+import { useVbenForm } from "#/adapter/form";
+import { menuApi, roleApi } from "#/api";
+import { ROLE_TYPE_OPTIONS } from "#/constants/locales";
+import { useUserStore } from "@vben/stores";
 
-const emit = defineEmits(['pageReload']);
+const emit = defineEmits(["pageReload"]);
 const userStore = useUserStore();
 
 const createObject = ref<CreateRoleRequest | UpdateRoleRequest>({
@@ -28,17 +28,17 @@ const isUpdate = ref<Boolean>(false);
 const menuData = ref<MenuItem[]>([]);
 const roleType = ref<Array<{ label: string, value: number }>>([
   {
-    label: `${$t('core.role_type.platform_user')}`,
-    value: 3,
+    label: `${$t("core.role_type.platform_user")}`,
+    value: 3
   },
   {
-    label: `${$t('core.role_type.main_admin')}`,
-    value: 4,
+    label: `${$t("core.role_type.main_admin")}`,
+    value: 4
   },
   {
-    label: `${$t('core.role_type.main_user')}`,
-    value: 5,
-  },
+    label: `${$t("core.role_type.main_user")}`,
+    value: 5
+  }
 ]);
 // const menuParentIds = ref<string[]>([]);
 
@@ -49,56 +49,56 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     // 所有表单项
     componentProps: {
-      class: 'w-full',
-    },
+      class: "w-full"
+    }
   },
-  layout: 'horizontal',
+  layout: "horizontal",
   schema: [
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
+      component: "Input",
       // 对应组件的参数
       componentProps: {
-        placeholder: `${$t('common.input')}`,
+        placeholder: `${$t("common.input")}`
       },
       // 字段名
-      fieldName: 'id',
+      fieldName: "id",
       // 界面显示的label
       dependencies: {
         show: false,
-        triggerFields: ['*'],
-      },
+        triggerFields: ["*"]
+      }
     },
     {
-      component: 'Input',
-      fieldName: 'name',
-      rules: 'required',
-      label: `${$t('system.role.columns.name')}`,
+      component: "Input",
+      fieldName: "name",
+      rules: "required",
+      label: `${$t("system.role.columns.name")}`
     },
 
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         options: roleType,
         allowClear: true,
-        placeholder: `${$t('common.choice')}`,
+        placeholder: `${$t("common.choice")}`
       },
-      fieldName: 'roleType',
-      rules: 'required',
-      label: `${$t('system.role.columns.roleType')}`,
+      fieldName: "roleType",
+      rules: "required",
+      label: `${$t("system.role.columns.roleType")}`
     },
     {
-      component: 'Textarea',
+      component: "Textarea",
       componentProps: {
         max: 200,
-        line: 5,
+        line: 5
       },
-      fieldName: 'comment',
-      label: `${$t('system.role.columns.comment')}`,
+      fieldName: "comment",
+      label: `${$t("system.role.columns.comment")}`
     },
     {
-      component: 'Tree',
-      rules: 'required',
+      component: "Tree",
+      rules: "required",
       // formItemClass: 'items-start',
       // modelPropName: 'modelValue',
       componentProps: {
@@ -107,26 +107,26 @@ const [Form, formApi] = useVbenForm({
         multiple: true,
         checkStrictly: false,
         fieldNames: {
-          key: 'id',
-          children: 'children',
-          title: 'title',
+          key: "id",
+          children: "children",
+          title: "title"
         },
         autoCheckParent: true,
         defaultExpandedLevel: 2,
-        checkedKeys: checkedKeys,
+        checkedKeys: checkedKeys
       },
-      fieldName: 'menuIds',
-      label: `${$t('system.role.columns.menuIds')}`,
-    },
+      fieldName: "menuIds",
+      label: `${$t("system.role.columns.menuIds")}`
+    }
   ],
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
-  wrapperClass: 'grid-cols-1',
+  wrapperClass: "grid-cols-1",
   handleSubmit: async (values: Record<string, any>) => {
     await (isUpdate.value
       ? roleApi.fetchUpdateRole(values as UpdateRoleRequest)
       : roleApi.fetchCreateRole(values as CreateRoleRequest));
     await drawerApi.close();
-  },
+  }
 });
 
 function updateMenuTitle(menu: MenuItem) {
@@ -153,7 +153,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     }
     await formApi.submitForm();
     isUpdate.value = false;
-    emit('pageReload');
+    emit("pageReload");
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
@@ -176,7 +176,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         });
       });
     }
-  },
+  }
 });
 
 function handleSetFormValue(row: CreateRoleRequest | UpdateRoleRequest) {
@@ -186,54 +186,54 @@ function handleSetFormValue(row: CreateRoleRequest | UpdateRoleRequest) {
 function getNodeClass(node: any) {
   const classes: string[] = [];
   if (node.value?.type === 2) {
-    classes.push('inline-flex');
+    classes.push("inline-flex");
   }
 
-  return classes.join(' ');
+  return classes.join(" ");
 }
 
 onMounted(() => {
   //  handler role type options
   //  if (userStore.userInfo?.maxRoleCode)
-  var supperUser: boolean = false
+  var supperUser: boolean = false;
   userStore.roles.forEach((role: BasicRole) => {
     if (role.roleType === 1) {
-      supperUser = true
+      supperUser = true;
     }
-  })
+  });
   if (supperUser) {
-    roleType.value = ROLE_TYPE_OPTIONS
+    roleType.value = ROLE_TYPE_OPTIONS;
   }
-})
+});
 
 const title = computed(() =>
-  isUpdate.value ? `${$t('common.edit')}` : `${$t('common.create')}`,
+  isUpdate.value ? `${$t("common.edit")}` : `${$t("common.create")}`
 );
 </script>
 <template>
   <Drawer :title="title">
     <Form>
       <template #menuIds="slotProps">
-          <Tree
-            :tree-data="menuData"
-            :multiple="true"
-            bordered
-            :check-strictly="false"
-            :default-expanded-level="2"
-            v-bind="slotProps"
-            :get-node-class="getNodeClass"
-            value-field="id"
-            label-field="title"
-            icon-field="meta.icon"
-            :defaultValue="checkedKeys"
-            :autoCheckParent="true"
-          >
-            <template #node="{ value }">
-              <IconifyIcon v-if="value.icon" :icon="value.icon"/>
-              {{ $t(value.title) }}
-            </template>
-          </Tree>
-        </template>
-      </Form>
+        <Tree
+          :tree-data="menuData"
+          :multiple="true"
+          bordered
+          :check-strictly="false"
+          :default-expanded-level="2"
+          v-bind="slotProps"
+          :get-node-class="getNodeClass"
+          value-field="id"
+          label-field="title"
+          icon-field="meta.icon"
+          :defaultValue="checkedKeys"
+          :autoCheckParent="true"
+        >
+          <template #node="{ value }">
+            <IconifyIcon v-if="value.icon" :icon="value.icon" />
+            {{ $t(value.title) }}
+          </template>
+        </Tree>
+      </template>
+    </Form>
   </Drawer>
 </template>

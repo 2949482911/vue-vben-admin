@@ -117,6 +117,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
   pagerConfig: {
     enabled: false
   },
+  height: "auto",
   treeConfig: {
     childrenField: "children",
     parentField: "parentId",

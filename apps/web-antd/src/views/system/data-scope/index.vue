@@ -99,6 +99,7 @@ const formOptions: VbenFormProps = {
 };
 
 const gridOptions: VxeGridProps<DataRangeItem> = {
+  height: "auto",
   columns: [
     {
       field: "name",
@@ -164,7 +165,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page>
     <Grid>
       <template #status="{ row }">
         <Switch :checked="row.status == 1" @click="handlerState(row)" />

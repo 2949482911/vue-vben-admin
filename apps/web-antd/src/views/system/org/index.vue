@@ -82,6 +82,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
     rowField: "id",
     transform: false
   },
+  height: "auto",
   toolbarConfig: {
     custom: true,
     export: false,
@@ -98,7 +99,7 @@ const pageReload = () => {
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page>
     <Grid>
       <template #status="{ row }">
         <Switch :checked="row.status == 1" @click="handlerState(row)" />

@@ -121,6 +121,7 @@ const formOptions: VbenFormProps = {
 
 const gridOptions: VxeGridProps<BehavioraPlatformItem> = {
   border: true,
+  height: "auto",
   checkboxConfig: {
     highlight: true,
     labelField: "id"
