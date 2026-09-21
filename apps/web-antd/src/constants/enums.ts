@@ -65,7 +65,8 @@ export enum Platform {
   APS = "aps",
   XYANW = "xyanw",
   DOTSDANCE= "dotsdance",
-  IHYHS = "ihyhs"
+  IHYHS = "ihyhs",
+  TAQU = "taqu"
 }
 
 export enum RuleType {

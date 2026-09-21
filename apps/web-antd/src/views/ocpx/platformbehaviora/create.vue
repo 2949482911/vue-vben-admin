@@ -2038,6 +2038,37 @@ platformConfigForm.set(Platform.IHYHS, [
   }
 ]);
 
+// 他趣
+platformConfigForm.set(Platform.TAQU, [
+  {
+    component: "Input",
+    componentProps: {
+      placeholder: `${$t("common.input")}`
+    },
+    fieldName: "tq_prc",
+    label: "tq_prc",
+    rules: "required"
+  },
+  {
+    component: "Input",
+    componentProps: {
+      placeholder: `${$t("common.input")}`
+    },
+    fieldName: "tq_gid",
+    label: "tq_gid",
+    rules: "required"
+  },
+  {
+    component: "Input",
+    componentProps: {
+      placeholder: `${$t("common.input")}`
+    },
+    fieldName: "tq_pid",
+    label: "tq_pid",
+    rules: "required"
+  }
+]);
+
 const [ConfigForm, configFormApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {

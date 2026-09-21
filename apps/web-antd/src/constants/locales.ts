@@ -554,6 +554,10 @@ export const BEHAVIORA_PLATFORM = [
     label: `${$t('ocpx.platform.ihyhs')}`,
     value: 'ihyhs',
   },
+  {
+    label: '他趣',
+    value: 'taqu',
+  },
 ];
 
 // 匹配下拉
