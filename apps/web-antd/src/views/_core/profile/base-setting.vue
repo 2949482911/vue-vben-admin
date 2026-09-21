@@ -36,11 +36,19 @@ const formSchema = computed((): VbenFormSchema[] => {
       fieldName: 'platformAdmin',
       component: 'Switch',
       label: '平台管理员',
+      componentProps: {
+        class: 'w-10',
+        disabled: true,
+      },
     },
 
     {
       fieldName: 'mainAdmin',
       component: 'Switch',
+      componentProps: {
+        class: 'w-10',
+        disabled: true,
+      },
       label: '主体管理员',
     },
   ];

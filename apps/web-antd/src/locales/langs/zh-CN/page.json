@@ -26,6 +26,11 @@
     "profile": "个人中心",
     "main_body_combo": "套餐"
   },
+  "profile": {
+    "currentCombo": "当前套餐",
+    "expiresAt": "到期",
+    "privileges": "套餐权益"
+  },
   "bpm": {
     "flowable": "流程",
     "work_flow": "工作流",

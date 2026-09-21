@@ -26,6 +26,11 @@
     "profile": "Account Profile",
     "main_body_combo": "Marketing Combo"
   },
+  "profile": {
+    "currentCombo": "Current Plan",
+    "expiresAt": "Expires",
+    "privileges": "Plan Benefits"
+  },
   "bpm": {
     "flowable": "Flow Work",
     "flowable_form": "Flow Form",

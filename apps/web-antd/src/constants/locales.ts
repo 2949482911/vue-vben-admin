@@ -145,11 +145,7 @@ export const ROLE_TYPE_OPTIONS = [
   },
 ];
 
-export enum BatchOptionsType {
-  Delete = 'delete',
-  DISABLE = 'disable',
-  Enable = 'enable',
-}
+export { BatchOptionsType } from '#/views/system/sysenums';
 
 /**
  * Ocpx平台

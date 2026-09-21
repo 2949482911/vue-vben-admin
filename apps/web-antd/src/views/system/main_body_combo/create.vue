@@ -1,23 +1,14 @@
 <script lang="ts" setup>
 import { mainBodyComboApi } from "#/api";
+import type {
+  ComboPrivilegeCreateRequest,
+  MainBodyComboCreateRequest,
+  MainBodyComboPageItem
+} from "#/api/models/main-body";
 import { useVbenDrawer, useVbenForm } from "@vben/common-ui";
-import {
-  Button,
-  Card,
-  Divider,
-  InputNumber,
-  message,
-  Popconfirm,
-  Select,
-  Table
-} from "ant-design-vue";
-import { ref } from "vue";
-import type { ComboPrivilegeCreateRequest } from "#/api/models/main-body";
+import { message } from "ant-design-vue";
 
 const emit = defineEmits(["pageReload"]);
-
-// 权益列表
-const privileges = ref<ComboPrivilegeCreateRequest[]>([]);
 
 // 权益单位选项
 const unitOptions = [
@@ -34,83 +25,6 @@ const privilegeCodeOptions = [
   { label: "项目数量", value: "projects" },
   { label: "报表导出次数", value: "report_export" }
 ];
-
-const [comboDrawer, drawerApi] = useVbenDrawer({
-  closeOnPressEscape: true,
-  async onCancel() {
-    await formApi.resetForm();
-    privileges.value = [];
-    await drawerApi.close();
-  },
-  async onConfirm() {
-    const result = await formApi.validate();
-    if (!result.valid) {
-      return;
-    }
-    const formValue = await formApi.getValues();
-    const params = {
-      ...formValue,
-      days: Number(formValue.days),
-      price: Number(formValue.price),
-      isDefault: formValue.isDefault || false,
-      privileges: privileges.value
-    };
-
-    // 获取drawer传递的数据
-    const drawerData = drawerApi.getData();
-
-    try {
-      if (drawerData && drawerData.id) {
-        // @ts-ignore
-        await mainBodyComboApi.fetchMainBodyComboUpdate({
-          id: drawerData.id,
-          ...params
-        });
-        message.success("修改成功！");
-      } else {
-        // @ts-ignore
-        await mainBodyComboApi.fetchMainBodyComboCreate(params);
-        message.success("添加成功！");
-      }
-      await formApi.resetForm();
-      privileges.value = [];
-      await drawerApi.close();
-      emit("pageReload");
-    } catch (err) {
-      console.error("保存失败:", err);
-    }
-  },
-  async onOpened() {
-    // 获取drawer传递的数据
-    const drawerData = drawerApi.getData();
-
-    if (drawerData && drawerData.id) {
-      const data = drawerData;
-      formApi.setValues({
-        name: data.name,
-        type: data.type,
-        days: data.days,
-        price: data.price,
-        isDefault: data.isDefault,
-        version: data.version
-      });
-      // 回显权益列表
-      if (data.privileges && data.privileges.length > 0) {
-        // @ts-ignore
-        privileges.value = data.privileges.map(item => ({
-          id: item.id || "",
-          privilegeCode: item.privilegeCode,
-          privilegeName: item.privilegeName,
-          quota: item.quota,
-          unit: item.unit
-        }));
-      }
-    } else {
-      await formApi.resetForm();
-      privileges.value = [];
-    }
-  }
-});
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -186,134 +100,169 @@ const [Form, formApi] = useVbenForm({
       },
       fieldName: "version",
       label: "版本"
+    },
+    {
+      type: "array",
+      fieldName: "privileges",
+      label: "权益配置",
+      hideLabel: true,
+      defaultValue: [],
+      arrayProps: {
+        addButtonText: "添加权益",
+        createRow: () => ({
+          id: "",
+          privilegeCode: undefined,
+          privilegeName: "",
+          quota: 0,
+          unit: "gb"
+        }),
+        showIndex: true
+      },
+      children: [
+        {
+          component: "Select",
+          fieldName: "privilegeCode",
+          label: "权益代码",
+          componentProps: ({ rowPath }) => ({
+            allowClear: true,
+            options: privilegeCodeOptions,
+            placeholder: "请选择权益代码",
+            onChange: (value: string) => {
+              const option = privilegeCodeOptions.find(
+                (opt) => opt.value === value
+              );
+              formApi.setFieldValue(
+                `${rowPath}.privilegeName`,
+                option?.label ?? ""
+              );
+            }
+          })
+        },
+        {
+          component: "Input",
+          fieldName: "privilegeName",
+          label: "权益名称",
+          componentProps: {
+            disabled: true,
+            placeholder: "选择权益代码后自动填充"
+          }
+        },
+        {
+          component: "InputNumber",
+          fieldName: "quota",
+          label: "配额",
+          componentProps: {
+            min: 0,
+            placeholder: "请输入配额"
+          }
+        },
+        {
+          component: "Select",
+          fieldName: "unit",
+          label: "单位",
+          componentProps: {
+            allowClear: true,
+            options: unitOptions,
+            placeholder: "请选择单位"
+          }
+        }
+      ]
     }
   ]
 });
 
-// 添加权益项
-function addPrivilege() {
-  privileges.value.push({
-    id: "",
-    privilegeCode: "",
-    privilegeName: "",
-    quota: 0,
-    unit: "gb"
-  });
-}
+const [comboDrawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
+  async onCancel() {
+    await drawerApi.close();
+  },
+  class:"w-[75%]",
+  async onConfirm() {
+    const result = await formApi.validate();
+    if (!result.valid) {
+      return;
+    }
+    const formValue = await formApi.getValues();
+    const drawerData = getDrawerData();
 
-// 删除权益项
-function removePrivilege(index: number) {
-  privileges.value.splice(index, 1);
-}
+    const privileges: ComboPrivilegeCreateRequest[] = (
+      formValue.privileges ?? []
+    ).map((item: any) => ({
+      id: item.id ?? "",
+      privilegeCode: item.privilegeCode,
+      privilegeName:
+        item.privilegeName ||
+        privilegeCodeOptions.find((opt) => opt.value === item.privilegeCode)
+          ?.label ||
+        "",
+      quota: Number(item.quota ?? 0),
+      unit: item.unit
+    }));
 
-// 权益代码变更时自动填充权益名称
-function handlePrivilegeCodeChange(value: string, index: number) {
-  const option = privilegeCodeOptions.find(opt => opt.value === value);
-  if (option) {
-    // @ts-ignore
-    privileges.value[index].privilegeName = option.label;
+    const params: MainBodyComboCreateRequest = {
+      name: formValue.name,
+      type: formValue.type,
+      days: Number(formValue.days),
+      price: Number(formValue.price),
+      isDefault: formValue.isDefault || false,
+      version: formValue.version,
+      privileges
+    };
+
+    try {
+      if (drawerData?.id) {
+        await mainBodyComboApi.fetchMainBodyComboUpdate({
+          id: drawerData.id,
+          ...params
+        });
+        message.success("修改成功！");
+      } else {
+        await mainBodyComboApi.fetchMainBodyComboCreate(params);
+        message.success("添加成功！");
+      }
+      await drawerApi.close();
+      emit("pageReload");
+    } catch (err) {
+      console.error("保存失败:", err);
+    }
+  },
+  async onClosed() {
+    await formApi.resetForm();
+  },
+  async onOpened() {
+    const drawerData = getDrawerData();
+
+    if (drawerData?.id) {
+      await formApi.setValues({
+        name: drawerData.name,
+        type: drawerData.type,
+        days: drawerData.days,
+        price: drawerData.price,
+        isDefault: drawerData.isDefault,
+        version: drawerData.version,
+        privileges: (drawerData.privileges ?? []).map((item) => ({
+          id: item.id ?? "",
+          privilegeCode: item.privilegeCode,
+          privilegeName: item.privilegeName,
+          quota: item.quota,
+          unit: item.unit
+        }))
+      });
+    } else {
+      await formApi.resetForm();
+    }
   }
-}
+});
 
-// 权益表格列定义
-const privilegeColumns = [
-  {
-    title: "权益代码",
-    dataIndex: "privilegeCode",
-    key: "privilegeCode",
-    width: 150
-  },
-  {
-    title: "权益名称",
-    dataIndex: "privilegeName",
-    key: "privilegeName",
-    width: 150
-  },
-  {
-    title: "配额",
-    dataIndex: "quota",
-    key: "quota",
-    width: 100
-  },
-  {
-    title: "单位",
-    dataIndex: "unit",
-    key: "unit",
-    width: 80
-  },
-  {
-    title: "操作",
-    key: "action",
-    width: 80
-  }
-];
+function getDrawerData(): MainBodyComboPageItem | undefined {
+  return drawerApi.getData() as MainBodyComboPageItem | undefined;
+}
 </script>
 
 <template>
-  <div>
-    <comboDrawer
-      :title="drawerApi.getData()?.id ? '修改套餐' : '添加套餐'"
-    >
-      <Form />
-
-      <Divider>权益配置</Divider>
-
-      <Card size="small">
-        <div class="mb-3">
-          <Button type="primary" size="small" @click="addPrivilege">
-            添加权益
-          </Button>
-        </div>
-
-        <Table
-          :columns="privilegeColumns"
-          :data-source="privileges"
-          :pagination="false"
-          size="small"
-          bordered
-        >
-          <template #bodyCell="{ column, record, index }">
-            <template v-if="column.key === 'privilegeCode'">
-              <Select
-                v-model:value="record.privilegeCode"
-                :options="privilegeCodeOptions"
-                size="small"
-                style="width: 100%"
-                @change="(val: string) => handlePrivilegeCodeChange(val, index)"
-              />
-            </template>
-            <template v-if="column.key === 'privilegeName'">
-              {{ record.privilegeName }}
-            </template>
-            <template v-if="column.key === 'quota'">
-              <InputNumber
-                v-model:value="record.quota"
-                :min="0"
-                size="small"
-                style="width: 100%"
-              />
-            </template>
-            <template v-if="column.key === 'unit'">
-              <Select
-                v-model:value="record.unit"
-                :options="unitOptions"
-                size="small"
-                style="width: 100%"
-              />
-            </template>
-            <template v-if="column.key === 'action'">
-              <Popconfirm
-                title="确定删除该权益吗？"
-                @confirm="removePrivilege(index)"
-              >
-                <Button type="link" danger size="small">删除</Button>
-              </Popconfirm>
-            </template>
-          </template>
-        </Table>
-      </Card>
-    </comboDrawer>
-  </div>
+  <comboDrawer :title="getDrawerData()?.id ? '修改套餐' : '添加套餐'">
+    <Form />
+  </comboDrawer>
 </template>
 
 <style lang="scss" scoped></style>

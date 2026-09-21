@@ -95,7 +95,37 @@
     "columns": {
       "name": "名字",
       "remark": "备注",
-      "email": "邮箱"
+      "email": "邮箱",
+      "phone": "电话",
+      "sellId": "销售",
+      "sellName": "销售名字",
+      "combo": "套餐信息"
+    },
+    "sale": "销售人员",
+    "batch": {
+      "setSale": "设置销售人员",
+      "setCombo": "批量修改套餐"
+    },
+    "combo": {
+      "title": "套餐信息",
+      "view": "查看",
+      "comboName": "套餐名称",
+      "comboType": "套餐类型",
+      "startTime": "开始时间",
+      "endTime": "结束时间",
+      "using": "使用中",
+      "privilege": "套餐权益",
+      "privilegeName": "权益名称",
+      "quota": "配额",
+      "unit": "单位",
+      "yes": "是",
+      "no": "否",
+      "types": {
+        "trial": "试用套餐",
+        "standard": "标准套餐",
+        "premium": "高级套餐",
+        "enterprise": "企业套餐"
+      }
     }
   },
   "operator": {

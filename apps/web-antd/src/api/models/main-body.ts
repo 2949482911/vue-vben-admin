@@ -10,6 +10,9 @@ export interface MainBodyItem extends BaseItem {
   email: string;
   remark: string;
   mainBodyCombo: Array<MainBodyItemCombo>;
+  sellId?: string;
+  sellName?: string;
+  phone?: string;
 }
 
 

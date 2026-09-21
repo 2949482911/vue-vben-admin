@@ -94,7 +94,37 @@
     "columns": {
       "name": "Name",
       "remark": "Remark",
-      "email": "Email"
+      "email": "Email",
+      "phone": "Phone",
+      "sellId": "Sales ID",
+      "sellName": "Sales Name",
+      "combo": "Combo Info"
+    },
+    "sale": "Salesperson",
+    "batch": {
+      "setSale": "Set Salesperson",
+      "setCombo": "Update Combo"
+    },
+    "combo": {
+      "title": "Combo Info",
+      "view": "View",
+      "comboName": "Combo Name",
+      "comboType": "Combo Type",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "using": "In Use",
+      "privilege": "Combo Privileges",
+      "privilegeName": "Privilege Name",
+      "quota": "Quota",
+      "unit": "Unit",
+      "yes": "Yes",
+      "no": "No",
+      "types": {
+        "trial": "Trial",
+        "standard": "Standard",
+        "premium": "Premium",
+        "enterprise": "Enterprise"
+      }
     }
   },
   "operator": {

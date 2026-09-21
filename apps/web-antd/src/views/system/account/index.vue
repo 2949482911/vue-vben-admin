@@ -222,7 +222,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page content-class="p-5">
+  <Page>
     <ColPage v-bind="props">
       <template #left="{ isCollapsed, expand }">
         <div
