@@ -415,7 +415,7 @@ const selectedCount = computed(() => selectedMaterials.value.length);
 </script>
 
 <template>
-  <Page>
+  <Page auto-content-height>
     <Row :gutter="[16, 16]">
       <!-- 素材筛选 -->
       <Col :span="24">

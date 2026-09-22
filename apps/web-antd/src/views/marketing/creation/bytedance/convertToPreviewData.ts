@@ -7,12 +7,11 @@ import type {
   BytedancePromotion_promotion_materials,
 } from "./bytedance";
 
-import type { TitlePackageItem } from "#/api/models";
 import type {
   AccountTabData
 } from "#/views/marketing/creation/components/preview_area/previewAreaData";
 
-import { Platform } from "#/constants/enums";
+import { AdGroupRuleKey, CampaignRuleKey, Platform } from "#/constants/enums";
 import { renderProjectTitle } from "#/utils/customName";
 import {
   type AccountInfo,
@@ -22,10 +21,11 @@ import {
   type Material
 } from "#/views/marketing/creation/creation";
 import {
+  getFlatTitleList,
   getMaterial,
   getRuleInfoAdCountGroup,
   getRuleInfoCampaignCount,
-  getTiltePackage
+  getTitleCount
 } from "#/views/marketing/creation/creation";
 
 import {
@@ -99,17 +99,41 @@ export function getPreviewTableData(
       }
     };
 
-    const campaignCount = getRuleInfoCampaignCount(
-      Platform.BYTEDANCE,
-      creationInfo,
-      [advertiserId]
-    );
+    const titlePackageConfig = creationInfo.configData.titlePackage;
 
-    // 巨量引擎中 adGroupRuleKey 控制广告（promotion）数量
-    const promotionCount = getRuleInfoAdCountGroup(
-      Platform.BYTEDANCE,
-      creationInfo,
-      [advertiserId]
+    // 项目数：按标题生成时，项目数 = 标题总数
+    const campaignCount =
+      creationInfo.ruleInfo.projectRuleKey === CampaignRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoCampaignCount(
+            Platform.BYTEDANCE,
+            creationInfo,
+            [advertiserId]
+          );
+
+    // 巨量引擎中 adGroupRuleKey 控制广告（promotion）数量；按标题生成时，广告数 = 标题总数
+    const promotionCount =
+      creationInfo.ruleInfo.adGroupRuleKey === AdGroupRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoAdCountGroup(
+            Platform.BYTEDANCE,
+            creationInfo,
+            [advertiserId]
+          );
+
+    // 该账户展开后的全部标题（扁平列表），逐广告轮询取标题
+    const flatTitles = getFlatTitleList(
+      titlePackageConfig.config.method,
+      titlePackageConfig.data,
+      advertiserId
     );
 
     const campaignData = creationInfo.configData.campaign;
@@ -138,13 +162,10 @@ export function getPreviewTableData(
           ]
         );
 
-        // 获取标题包（按全局广告序号轮询）
-        const titlePackage: TitlePackageItem = getTiltePackage(
-          creationInfo.configData.titlePackage.config.method,
-          creationInfo.configData.titlePackage.data,
-          advertiserId,
-          globalPIdx
-        );
+        // 按全局广告序号轮询取标题
+        const title = flatTitles.length > 0
+          ? flatTitles[globalPIdx % flatTitles.length]
+          : '';
 
         const material = materialList[globalPIdx % materialList.length];
         const videoIds = (material?.video || []).map((v) => v.localMaterialId);
@@ -175,8 +196,9 @@ export function getPreviewTableData(
             image_mode: "",
             images: [{ image_id: i.localMaterialId, template_id: 0, template_data_list: [] }]
           })),
-          title_material_list: titlePackage?.title
-            ? [{ title: titlePackage.title, word_list: [] }]
+          // 标题 标题素材，上限10个 巨量的是10个标题为上限
+          title_material_list: title
+            ? [{ title, word_list: [] }]
             : [],
           params_type: promotionData.promotion_materials?.params_type || "",
           external_url_field: promotionData.promotion_materials?.external_url_field || "",

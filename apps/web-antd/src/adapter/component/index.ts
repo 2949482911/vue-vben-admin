@@ -93,6 +93,9 @@ const AdNameGen = defineAsyncComponent(
 const TextareaTags = defineAsyncComponent(
   () => import('#/components/textarea_tags/TextareaTags.vue'),
 );
+const TitleTextarea = defineAsyncComponent(
+  () => import('#/components/title_textarea/TitleTextarea.vue'),
+);
 const AutoComplete = defineAsyncComponent(
   () => import('ant-design-vue/es/auto-complete'),
 );
@@ -649,6 +652,7 @@ export type ComponentType =
   | 'HybridSearchSelect'
   | 'AdNameGen'
   | 'TextareaTags'
+  | 'TitleTextarea'
   | BaseFormComponentType;
 
 /**
@@ -669,6 +673,13 @@ export interface ComponentPropsMap {
     maxLength?: number;
     placeholder?: string;
     disabled?: boolean;
+  };
+  /**每行一个标题的文本域组件 Props */
+  TitleTextarea: {
+    placeholder?: string;
+    rows?: number;
+    disabled?: boolean;
+    countLabel?: string;
   };
   ApiCascader: ApiComponentSharedProps & CascaderProps;
   ApiSelect: ApiComponentSharedProps & SelectProps;
@@ -714,6 +725,7 @@ async function initComponentAdapter() {
     }),
     AdNameGen,
     TextareaTags,
+    TitleTextarea,
     ApiSelect: withDefaultPlaceholder(ApiComponent, 'select', {
       component: Select,
       loadingSlot: 'suffixIcon',

@@ -529,18 +529,13 @@ export interface DelTitlePackType {
   type: string;
 }
 
-/**营销-资产-标题包新建 */
-export interface TitlePackConfig {
-  subTitle: string[];
-  pushSubTitle: string[];
-}
-
-/** 标题包基础数据结构 */
+/**营销-资产-标题包新建/修改 */
 export interface TitlePackItem {
+  id?: string;
   title: string;
   platform: string;
   projectId: string;
-  config: TitlePackConfig;
+  titles: string[];
 }
 
 /**营销-资产-定向包查询 */
@@ -607,6 +602,7 @@ export interface TitlePackageItem extends BaseItem {
   projectId: string;
   updatedBy: string;
   advertiserName: string;
+  titles: string[];
   config: any;
 }
 

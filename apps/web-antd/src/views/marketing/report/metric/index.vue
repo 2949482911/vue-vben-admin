@@ -72,24 +72,24 @@ const formOptions: VbenFormProps = {
   // 默认展开
   schema: [
     {
-      component: "VbenInput",
+      component: "Input",
       fieldName: "id",
       label: `id`
     },
     {
-      component: "VbenInput",
+      component: "Input",
       fieldName: "ename",
       label: `${$t("marketing.metric.columns.ename")}`
     },
 
     {
-      component: "VbenInput",
+      component: "Input",
       fieldName: "cname",
       label: `${$t("marketing.metric.columns.cname")}`
     },
 
     {
-      component: "VbenSelect",
+      component: "Select",
       fieldName: "reportType",
       label: $t("marketing.metric.columns.reportType"),
       componentProps: {
@@ -102,7 +102,7 @@ const formOptions: VbenFormProps = {
     },
 
     {
-      component: "VbenSelect",
+      component: "Select",
       fieldName: "metricType",
       label: $t("marketing.metric.columns.metricType"),
       componentProps: {
@@ -116,7 +116,7 @@ const formOptions: VbenFormProps = {
     },
 
     {
-      component: "VbenSelect",
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: STATUS_SELECT,

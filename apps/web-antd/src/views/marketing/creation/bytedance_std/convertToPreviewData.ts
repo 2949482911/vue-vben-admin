@@ -8,23 +8,23 @@ import type {
   StdProjectMaterials
 } from "./bytedance";
 
-import type { TitlePackageItem } from "#/api/models";
 import type { BytedanceDpaProductListItem } from "#/api/models/bytedance";
 import type {
   AccountTabData
 } from "#/views/marketing/creation/components/preview_area/previewAreaData";
 
-import { Platform } from "#/constants/enums";
+import { CampaignRuleKey, Platform } from "#/constants/enums";
 import { renderProjectTitle } from "#/utils/customName";
 import {
   type AccountInfo,
   type AwemeConfigData,
   getAudience,
+  getFlatTitleList,
   getLandingPage,
   getMaterial,
   getMonitoringLink,
   getRuleInfoCampaignCount,
-  getTiltePackage,
+  getTitleCount,
   type Material
 } from "#/views/marketing/creation/creation";
 
@@ -95,10 +95,27 @@ export function getPreviewTableData(
         return this.projectList.length;
       }
     };
-    const projectCount = getRuleInfoCampaignCount(
-      Platform.BYTEDANCE,
-      creationInfo,
-      [advertiserId]
+    const titlePackageConfig = creationInfo.configData.titlePackage;
+
+    // 项目数：按标题生成时，项目数 = 标题总数
+    const projectCount =
+      creationInfo.ruleInfo.projectRuleKey === CampaignRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoCampaignCount(
+            Platform.BYTEDANCE,
+            creationInfo,
+            [advertiserId]
+          );
+
+    // 该账户展开后的全部标题（扁平列表），逐项目轮询取标题
+    const flatTitles = getFlatTitleList(
+      titlePackageConfig.config.method,
+      titlePackageConfig.data,
+      advertiserId
     );
 
     const projectData = creationInfo.configData.project;
@@ -119,13 +136,9 @@ export function getPreviewTableData(
       const videoIds = (material?.video || []).map((v) => v.localMaterialId);
       const imageIds = (material?.image || []).map((i) => i.localMaterialId);
 
-      // 获取标题包
-      const titlePackage: TitlePackageItem = getTiltePackage(
-        creationInfo.configData.titlePackage.config.method,
-        creationInfo.configData.titlePackage.data,
-        advertiserId,
-        pIdx
-      );
+      // 按项目序号轮询取标题
+      const title =
+        flatTitles.length > 0 ? flatTitles[pIdx % flatTitles.length] : '';
 
       // 获取落地页
       const landingPageItem = getLandingPage(
@@ -158,8 +171,8 @@ export function getPreviewTableData(
         local_image_material_list: imageIds,
         video_material_list: [],
         image_material_list: [],
-        title_material_list: titlePackage?.title
-          ? [{ title: titlePackage.title, word_list: [] }]
+        title_material_list: title
+          ? [{ title, word_list: [] }]
           : [],
         carousel_material_list: [],
         trial_play_material_list: [],

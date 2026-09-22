@@ -1,4 +1,4 @@
-import type {TargetedPackageTypeItem, TitlePackageItem} from "#/api/models";
+import type {TargetedPackageTypeItem} from "#/api/models";
 import type {
   Adgroup,
   AudienceConfigData,
@@ -12,15 +12,16 @@ import type {
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 
-import {Platform} from "#/constants/enums";
+import {AdGroupRuleKey, CampaignRuleKey, Platform} from "#/constants/enums";
 import {renderProjectTitle} from "#/utils/customName";
 import {
   getAudience,
+  getFlatTitleList,
   getMaterial,
   getMonitoringLink,
   getRuleInfoAdCountGroup,
   getRuleInfoCampaignCount,
-  getTiltePackage
+  getTitleCount
 } from "#/views/marketing/creation/creation";
 
 
@@ -484,18 +485,32 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
       }
     };
 
-    // 获取计划数量（根据规则配置）
-    const campaignCount: number = getRuleInfoCampaignCount(
-      Platform.TENCENT,
-      createInfo,
-      [advertiserId]
-    );
+    // 获取各层级数量（按标题生成时，对应层级数量 = 标题总数）
+    const titlePackageConfig = createInfo.configData.titlePackage;
 
-    // 获取广告组数量（根据规则配置）
-    const adGroupCount: number = getRuleInfoAdCountGroup(
-      Platform.TENCENT,
-      createInfo,
-      [advertiserId]
+    const campaignCount: number =
+      createInfo.ruleInfo.projectRuleKey === CampaignRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoCampaignCount(Platform.TENCENT, createInfo, [advertiserId]);
+
+    const adGroupCount: number =
+      createInfo.ruleInfo.adGroupRuleKey === AdGroupRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoAdCountGroup(Platform.TENCENT, createInfo, [advertiserId]);
+
+    // 该账户展开后的全部标题（扁平列表），逐广告组轮询取标题
+    const flatTitles = getFlatTitleList(
+      titlePackageConfig.config.method,
+      titlePackageConfig.data,
+      advertiserId
     );
 
     // 广告组全局下标：跨计划累计，避免每个计划内下标从 0 重置导致名字重复
@@ -544,13 +559,8 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
           ]
         );
 
-        // 获取标题包（按全局广告组序号轮询）
-        const titlePackage: TitlePackageItem = getTiltePackage(
-          createInfo.configData.titlePackage.config.method,
-          createInfo.configData.titlePackage.data,
-          advertiserId,
-          globalAdGroupIdx
-        );
+        // 按全局广告组序号轮询取标题
+        const title = flatTitles[globalAdGroupIdx % flatTitles.length] ?? '';
 
         // 获取监测链接
         const monitoringLink: MonitoringLinkType = getMonitoringLink(
@@ -580,7 +590,7 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
           creative_components: buildCreativeComponents(
             materialList,
             globalAdGroupIdx,
-            titlePackage
+            title
           )
         };
         campaign.adGroupList.push(adgroup);
@@ -600,12 +610,12 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
  * 构建创意组件
  * @param materialList 素材列表
  * @param index 索引
- * @param titlePackage 标题包
+ * @param title 标题
  */
 function buildCreativeComponents(
   materialList: Array<Material>,
   index: number,
-  titlePackage: TitlePackageItem
+  title: string
 ): Array<TencentCreativeComponent> {
   if (!materialList || materialList.length === 0) {
     return [];
@@ -660,11 +670,11 @@ function buildCreativeComponents(
   };
 
   // 添加标题组件
-  if (titlePackage.title) {
+  if (title) {
     creativeComponent.title.push({
       component_id: 0,
       is_deleted: false,
-      value: new Map([["content", titlePackage.title]]),
+      value: new Map([["content", title]]),
       materialIdsList: []
     });
   }

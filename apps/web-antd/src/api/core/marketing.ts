@@ -423,6 +423,11 @@ class TitlePackApi extends BaseApi {
   fetchNewTitlePack(params: TitlePackItem) {
     return requestClient.post(this.getServiceUrl("create"), params);
   }
+
+  /**标题包修改*/
+  fetchModifyTitlePack(params: TitlePackItem) {
+    return requestClient.post(this.getServiceUrl("update"), params);
+  }
 }
 
 export const titlePackApi = new TitlePackApi("/platform/titlePackage");

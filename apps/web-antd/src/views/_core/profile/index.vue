@@ -30,14 +30,14 @@ function onMenuClick({ key }: { key: string | number }) {
       >
         <div class="flex flex-col items-center gap-3">
           <Avatar :size="80" :src="userStore.userInfo?.avatar">
-            {{ userStore.userInfo?.realName?.charAt(0) ?? '' }}
+            {{ userStore.userInfo?.nickname?.charAt(0) ?? '' }}
           </Avatar>
           <div class="flex flex-col items-center">
             <span class="text-lg font-semibold">
-              {{ userStore.userInfo?.realName ?? '' }}
+              {{ userStore.userInfo?.authName ?? '' }}
             </span>
             <span class="text-sm text-gray-500">
-              {{ userStore.userInfo?.username ?? '' }}
+              {{ userStore.userInfo?.nickname ?? '' }}
             </span>
           </div>
         </div>

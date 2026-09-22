@@ -1,17 +1,24 @@
 <script lang="ts" setup>
-import { projectApi, titlePackApi } from '#/api';
-import { ACTIVE_PLATFORM } from '#/constants/locales';
-import { trimObject } from '#/utils/trim';
-import { useVbenForm, useVbenModal } from '@vben/common-ui';
-import { message } from 'ant-design-vue';
+import { projectApi, titlePackApi } from "#/api";
+import { ACTIVE_PLATFORM } from "#/constants/locales";
+import { trimObject } from "#/utils/trim";
+import { useVbenDrawer, useVbenForm } from "@vben/common-ui";
+import { message } from "ant-design-vue";
 
-const emit = defineEmits(['pageReload']);
+import type { TitlePackItem } from "./titlePackageType";
 
-const [titlePackageModal, modalApi] = useVbenModal({
-  fullscreenButton: false,
+const props = defineProps<{
+  displayValue?: TitlePackItem;
+}>();
+
+const emit = defineEmits(["pageReload"]);
+
+const [titlePackageDrawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
+  class: "w-[50%]",
   async onCancel() {
-    await formApi.resetForm();
-    await modalApi.close();
+    formApi.reset();
+    await drawerApi.close();
   },
   async onConfirm() {
     const result = await formApi.validate();
@@ -19,45 +26,56 @@ const [titlePackageModal, modalApi] = useVbenModal({
       return;
     }
     const formValue = await formApi.getValues();
-    const formattedData = {
+    const params = trimObject({
+      id: props.displayValue?.id,
       title: formValue.title,
       platform: formValue.platform,
       projectId: formValue.projectId,
-      config: {
-        pushSubTitle:
-          formValue.pushSubTitle?.split('\n').filter((item: string) => item.trim() !== '') || [],
-        subTitle:
-          formValue.subTitle?.split('\n').filter((item: string) => item.trim() !== '') || [],
-      },
-    };
+      titles: formValue.titles || []
+    });
     try {
-      const params = trimObject(formattedData);
-      await titlePackApi.fetchNewTitlePack(params);
-      await formApi.resetForm();
-      await modalApi.close();
-      emit('pageReload');
-      message.success('添加成功！');
+      if (props.displayValue?.id) {
+        await titlePackApi.fetchModifyTitlePack(params);
+        await message.success("修改成功！");
+      } else {
+        await titlePackApi.fetchNewTitlePack(params);
+        await message.success("添加成功！");
+      }
+      formApi.reset();
+      await drawerApi.close();
+      emit("pageReload");
     } catch (err) {
       console.log(err);
     }
   },
+  async onOpened() {
+    if (props.displayValue?.id) {
+      const data = props.displayValue;
+      formApi.setValues({
+        title: data.title,
+        platform: data.platform,
+        projectId: data.projectId,
+        titles: data.titles || []
+      });
+    }
+  }
 });
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
     componentProps: {
-      class: 'w-full',
-    },
+      class: "w-full"
+    }
   },
-  layout: 'horizontal',
+  layout: "horizontal",
   schema: [
     {
-      component: 'ApiSelect',
+      component: "ApiSelect",
       componentProps: {
         allowClear: true,
         showSearch: true,
-        placeholder: '请选择',
+        placeholder: "请选择",
         api: async (params: any) => {
           return await projectApi.fetchProjectList(params);
         },
@@ -66,66 +84,55 @@ const [Form, formApi] = useVbenForm({
         },
         params: {
           page: 1,
-          pageSize: 1000,
+          pageSize: 1000
         },
-        valueField: 'id',
-        labelField: 'name',
-        resultField: 'items',
+        valueField: "id",
+        labelField: "name",
+        resultField: "items"
       },
-      fieldName: 'projectId',
-      label: '产品',
-      rules: 'required',
+      fieldName: "projectId",
+      label: "产品",
+      rules: "required"
     },
     {
-      component: 'Input',
+      component: "Input",
       componentProps: {
         allowClear: true,
-        placeholder: '请输入',
+        placeholder: "请输入"
       },
-      fieldName: 'title',
-      label: '标题',
-      rules: 'required',
+      fieldName: "title",
+      label: "标题",
+      rules: "required"
     },
     {
-      component: 'Select',
+      component: "Select",
       componentProps: {
         allowClear: true,
         options: ACTIVE_PLATFORM,
-        placeholder: '请选择',
+        placeholder: "请选择"
       },
-      fieldName: 'platform',
-      label: '平台',
-      rules: 'required',
+      fieldName: "platform",
+      label: "平台",
+      rules: "required"
     },
     {
-      component: 'Textarea',
-      fieldName: 'subTitle',
-      label: '副标题',
-      dependencies: {
-        show: (val) => {
-          return val.platform === 'vivo';
-        },
-        triggerFields: ['platform'],
+      component: "TitleTextarea",
+      componentProps: {
+        placeholder: "每行一个标题，按换行分隔",
+        rows: 10
       },
-    },
-    {
-      component: 'Textarea',
-      fieldName: 'pushSubTitle',
-      label: '应用副标题',
-      dependencies: {
-        show: (val) => {
-          return val.platform === 'vivo';
-        },
-        triggerFields: ['platform'],
-      },
-    },
-  ],
+      fieldName: "titles",
+      label: "标题列表",
+      rules: "required"
+    }
+  ]
 });
 </script>
+
 <template>
-  <titlePackageModal title="添加标题包">
+  <titlePackageDrawer :title="props.displayValue?.id ? '编辑标题包' : '添加标题包'">
     <Form />
-  </titlePackageModal>
+  </titlePackageDrawer>
 </template>
 
 <style lang="scss" scoped></style>

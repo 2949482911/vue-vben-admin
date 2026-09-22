@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { ref } from "vue";
+
+import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { projectApi, titlePackApi } from "#/api";
 import { trimObject } from "#/utils/trim";
@@ -9,15 +11,16 @@ import type { TitlePackItem } from "./titlePackageType";
 import CreatedTitlePackage from "./createdTitlePackage.vue";
 import { $t } from "#/locales";
 
-const [CreatedTitlePackageModule, modalApi] = useVbenModal({
+const [CreatedTitlePackageModule, drawerApi] = useVbenDrawer({
   // 连接抽离的组件
-  connectedComponent: CreatedTitlePackage,
-  centered: true,
-  modal: true
+  connectedComponent: CreatedTitlePackage
 });
 
-function openModal() {
-  modalApi.open();
+const displayValue = ref<TitlePackItem>();
+
+function openDrawer() {
+  displayValue.value = undefined;
+  drawerApi.open();
 }
 
 const formOptions: VbenFormProps = {
@@ -118,6 +121,14 @@ const gridOptions: VxeGridProps = {
 };
 
 /**
+ * 单个编辑按钮点击事件
+ */
+function handlerEdit(row: TitlePackItem) {
+  displayValue.value = { ...row };
+  drawerApi.open();
+}
+
+/**
  * 单个删除按钮点击事件
  */
 async function handlerDelete(data: TitlePackItem | TitlePackItem[]) {
@@ -164,16 +175,17 @@ function handlerState(_row: TitlePackItem) {
         <Switch :checked="row.status === 1" @click="handlerState(row)" />
       </template>
       <template #action="{ row }">
+        <Button type="link" @click="handlerEdit(row)">编辑</Button>
         <Button type="link" danger @click="handlerDelete(row)">
           {{ $t("common.delete") }}
         </Button>
       </template>
       <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="openModal">新建标题包</Button>
+        <Button class="mr-2" type="primary" @click="openDrawer">新建标题包</Button>
         <Button type="primary" danger @click="handlerDeleteAll">删除</Button>
       </template>
     </Grid>
-    <CreatedTitlePackageModule @page-reload="pageReload" />
+    <CreatedTitlePackageModule @page-reload="pageReload" :display-value="displayValue" />
   </Page>
 </template>
 

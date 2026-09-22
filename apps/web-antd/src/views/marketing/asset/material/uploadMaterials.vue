@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { useVbenDrawer } from '@vben/common-ui';
-import { useVbenForm } from '#/adapter/form';
-import { UploadDragger, TreeSelect, message, Upload, Switch } from 'ant-design-vue';
-import { ref } from 'vue';
-import { SvgUploadIcon } from '@vben/icons';
-import type { FileInfo, FolderItem } from '#/api/models';
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import { useOssClient } from './useOssClient';
-import { getFileMeta } from '#/utils/fileMeta';
-import { uploadToOss } from '#/utils/uploadToOss';
-import { uploadEditApi } from '#/api/core';
-import { useUserStore } from '@vben/stores';
+import { useVbenDrawer } from "@vben/common-ui";
+import { useVbenForm } from "#/adapter/form";
+import { message, Switch, TreeSelect, Upload, UploadDragger } from "ant-design-vue";
+import { ref } from "vue";
+import { SvgUploadIcon } from "@vben/icons";
+import type { FileInfo, FolderItem } from "#/api/models";
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { useOssClient } from "./useOssClient";
+import { getFileMeta } from "#/utils/fileMeta";
+import { uploadToOss } from "#/utils/uploadToOss";
+import { uploadEditApi } from "#/api/core";
+import { useUserStore } from "@vben/stores";
 
 const props = defineProps<{
   treeData: FolderItem[];
@@ -18,7 +18,7 @@ const props = defineProps<{
 
 /** ================== 表单 & 文件 ================== */
 const userStore = useUserStore();
-const nameId = ref<string>('');
+const nameId = ref<string>("");
 const fileList = ref<any[]>([]);
 
 // 新增：串行上传队列控制
@@ -28,7 +28,7 @@ const isUploading = ref(false);
 const isDirectoryMode = ref<boolean>(true);
 
 const emit = defineEmits<{
-  (e: 'treeNode'): void;
+  (e: "treeNode"): void;
 }>();
 
 /** ================== Drawer ================== */
@@ -42,64 +42,65 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   async onConfirm() {
     await drawerApi.close();
-    emit('treeNode');
-  },
+    emit("treeNode");
+  }
 });
 
 /** ================== Form ================== */
 const [Form, formApi] = useVbenForm({
-  layout: 'vertical',
+  layout: "vertical",
   showDefaultActions: false,
   commonConfig: {
-    componentProps: { class: 'w-full' },
+    componentProps: { class: "w-full" }
   },
   schema: [
     {
-      component: 'Select',
-      fieldName: 'name',
-      label: '文件夹',
-      rules: 'required',
+      component: "Select",
+      fieldName: "name",
+      label: "文件夹",
+      rules: "required"
     },
     {
-      fieldName: 'files',
-      label: '附件上传',
-      component: 'UploadDragger',
-      rules: 'required',
-    },
-  ],
+      fieldName: "files",
+      label: "附件上传",
+      component: "UploadDragger",
+      rules: "required"
+    }
+  ]
 });
 
 /** ================== 表格 ================== */
 const gridData = ref<any[]>([]);
 
 const gridOptions: VxeGridProps = {
-  height: '100%',
+  height: "100%",
   data: gridData.value,
   checkboxConfig: { highlight: true },
   columns: [
-    { title: '序号', type: 'seq', width: 60 },
-    { field: 'category', title: '素材名' },
-    { field: 'status', title: '上传状态', width: 100 },
+    { title: "序号", type: "seq", width: 60 },
+    { field: "category", title: "素材名" },
+    { field: "status", title: "上传状态", width: 100 }
   ],
-  pagerConfig: { enabled: false },
+  pagerConfig: { enabled: false }
 };
 
 /** ================== 批量串行上传逻辑 ================== */
 interface RcFile extends File {
   uid: string;
 }
+
 // 1. 拦截文件加入队列
 function handleBeforeUpload(file: any) {
   if (!nameId.value) {
     if (pendingFiles.value.length === 0 && !isUploading.value) {
-      message.error('请先选择上传文件夹');
+      message.error("请先选择上传文件夹");
     }
     return Upload.LIST_IGNORE;
   }
 
   const rawFile = (file.originFileObj ?? file) as RcFile;
   // 过滤幽灵文件夹
-  if (rawFile.size === 0 && !rawFile.name.includes('.')) {
+  if (rawFile.size === 0 && !rawFile.name.includes(".")) {
     return Upload.LIST_IGNORE;
   }
 
@@ -113,7 +114,7 @@ function handleBeforeUpload(file: any) {
   gridData.value.push({
     fileId: rawFile.uid || `${Date.now()}_${Math.random()}`, // 增加唯一标识
     category: rawFile.name,
-    status: '排队中...',
+    status: "排队中..."
   });
 
   // 2：VxeGrid 刷新数据，解决可能存在的响应式丢失问题
@@ -127,23 +128,23 @@ function handleBeforeUpload(file: any) {
 
 // 3. 单个文件上传核心逻辑
 async function doUpload(rawFile: File) {
-  const isVideo = rawFile.type.startsWith('video/');
+  const isVideo = rawFile.type.startsWith("video/");
 
   // 从表格中精准找到当前这个文件，更新状态为“上传中...”
   const currentRecord = gridData.value.find(
-    (item) => item.category === rawFile.name && item.status === '排队中...',
+    (item) => item.category === rawFile.name && item.status === "排队中..."
   );
   if (currentRecord) {
-    currentRecord.status = '上传中...';
+    currentRecord.status = "上传中...";
     // 每次状态改变都最好同步一下 Grid
     gridApi.setGridOptions({ data: gridData.value });
   }
 
   try {
     const meta = await getFileMeta(rawFile);
-    const ext = rawFile.name.substring(rawFile.name.lastIndexOf('.'));
+    const ext = rawFile.name.substring(rawFile.name.lastIndexOf("."));
     const mainId = userStore.userInfo?.mainId;
-    const resourceType = isVideo ? 'video' : 'image';
+    const resourceType = isVideo ? "video" : "image";
     const ossKey = `${mainId}/${resourceType}/${meta.fileMd5}${ext}`;
 
     const client = await useOssClient();
@@ -157,20 +158,20 @@ async function doUpload(rawFile: File) {
       width: meta.width,
       height: meta.height,
       fileUrl: result.url,
-      thumbnailUrl: isVideo ? `${result.url}?x-oss-process=video/snapshot,t_0,f_jpg` : result.url,
+      thumbnailUrl: isVideo ? `${result.url}?x-oss-process=video/snapshot,t_0,f_jpg` : result.url
     };
 
     await uploadEditApi.fetchUploadMaterials(payload as unknown as FileInfo);
 
     if (currentRecord) {
-      currentRecord.status = '已上传';
+      currentRecord.status = "已上传";
       gridApi.setGridOptions({ data: gridData.value });
     }
   } catch (err: any) {
     console.error(`文件 ${rawFile.name} 上传失败:`, err);
     if (currentRecord) {
-      console.log('currentRecord', currentRecord);
-      currentRecord.status = err?.message?.includes('已上传') ? '文件已存在' : '上传失败';
+      console.log("currentRecord", currentRecord);
+      currentRecord.status = err?.message?.includes("已上传") ? "文件已存在" : "上传失败";
       gridApi.setGridOptions({ data: gridData.value });
     }
   }
@@ -197,7 +198,7 @@ async function processQueue() {
 /** ================== 重置逻辑 ================== */
 function resetAll() {
   formApi.resetForm();
-  nameId.value = '';
+  nameId.value = "";
   fileList.value = [];
   gridData.value = [];
 
@@ -207,36 +208,36 @@ function resetAll() {
 
   gridApi.setGridOptions({ data: [] });
 }
+
 const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
 </script>
 
 <template>
-  <div>
-    <Drawer class="w-[50%]" title="上传素材">
-      <Form>
-        <template #name>
-          <TreeSelect
-            :treeData="props.treeData"
-            :field-names="{ label: 'name', value: 'id', children: 'children' }"
-            v-model:value="nameId"
-            style="width: 100%"
-            :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
-            placeholder="请选择文件夹"
-            allow-clear
-          />
-        </template>
+  <Drawer class="w-[50%]" title="上传素材">
+    <Form>
+      <template #name>
+        <TreeSelect
+          :treeData="props.treeData"
+          :field-names="{ label: 'name', value: 'id', children: 'children' }"
+          v-model:value="nameId"
+          style="width: 100%"
+          :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
+          placeholder="请选择文件夹"
+          allow-clear
+        />
+      </template>
 
-        <template #files="slotProps">
-          <div style="width: 100%">
-            <div
-              style="
+      <template #files="slotProps">
+        <div style="width: 100%">
+          <div
+            style="
                 display: flex;
                 gap: 12px;
                 align-items: center;
                 justify-content: center;
                 margin-bottom: 16px;
               "
-            >
+          >
               <span
                 :style="{
                   fontWeight: !isDirectoryMode ? 'bold' : 'normal',
@@ -245,42 +246,41 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
               >
                 文件
               </span>
-              <Switch v-model:checked="isDirectoryMode" />
-              <span
-                :style="{
+            <Switch v-model:checked="isDirectoryMode" />
+            <span
+              :style="{
                   fontWeight: isDirectoryMode ? 'bold' : 'normal',
                   color: isDirectoryMode ? '#1890ff' : 'inherit',
                 }"
-              >
+            >
                 文件夹
               </span>
-            </div>
-
-            <UploadDragger
-              v-bind="slotProps"
-              v-model:fileList="fileList"
-              multiple
-              :directory="isDirectoryMode"
-              :before-upload="handleBeforeUpload"
-              :showUploadList="false"
-            >
-              <p class="pIcon">
-                <SvgUploadIcon class="iconClass" />
-              </p>
-              <p class="ant-upload-text">
-                {{
-                  isDirectoryMode
-                    ? '点击选择文件夹，或拖拽文件夹到此处'
-                    : '点击选择文件（支持多选），或拖拽文件到此处'
-                }}
-              </p>
-            </UploadDragger>
           </div>
-        </template>
-      </Form>
-      <Grid style="height: 58%"> </Grid>
-    </Drawer>
-  </div>
+
+          <UploadDragger
+            v-bind="slotProps"
+            v-model:fileList="fileList"
+            multiple
+            :directory="isDirectoryMode"
+            :before-upload="handleBeforeUpload"
+            :showUploadList="false"
+          >
+            <p class="pIcon">
+              <SvgUploadIcon class="iconClass" />
+            </p>
+            <p class="ant-upload-text">
+              {{
+                isDirectoryMode
+                  ? "点击选择文件夹，或拖拽文件夹到此处"
+                  : "点击选择文件（支持多选），或拖拽文件到此处"
+              }}
+            </p>
+          </UploadDragger>
+        </div>
+      </template>
+    </Form>
+    <Grid style="height: 58%"></Grid>
+  </Drawer>
 </template>
 
 <style scoped lang="scss">

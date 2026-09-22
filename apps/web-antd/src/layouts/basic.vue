@@ -5,9 +5,9 @@ import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
-import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
+// import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
 import { useWatermark } from '@vben/hooks';
-import { BookOpenText, CircleHelp, SvgGithubIcon } from '@vben/icons';
+// import { BookOpenText, CircleHelp, SvgGithubIcon } from '@vben/icons';
 import {
   BasicLayout,
   LockScreen,
@@ -16,11 +16,13 @@ import {
 } from '@vben/layouts';
 import { preferences, usePreferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
-import { openWindow } from '@vben/utils';
+// import { openWindow } from '@vben/utils';
 
 import { $t } from '#/locales';
 import { useAuthStore } from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
+
+import ComboTag from './ComboTag.vue';
 
 const notifications = ref<NotificationItem[]>([
   {
@@ -85,6 +87,7 @@ const showDot = computed(() =>
   notifications.value.some((item) => !item.isRead),
 );
 
+// 菜单
 const menus = computed(() => [
   {
     handler: () => {
@@ -93,33 +96,33 @@ const menus = computed(() => [
     icon: 'lucide:user',
     text: $t('page.auth.profile'),
   },
-  {
-    handler: () => {
-      openWindow(VBEN_DOC_URL, {
-        target: '_blank',
-      });
-    },
-    icon: BookOpenText,
-    text: $t('ui.widgets.document'),
-  },
-  {
-    handler: () => {
-      openWindow(VBEN_GITHUB_URL, {
-        target: '_blank',
-      });
-    },
-    icon: SvgGithubIcon,
-    text: 'GitHub',
-  },
-  {
-    handler: () => {
-      openWindow(`${VBEN_GITHUB_URL}/issues`, {
-        target: '_blank',
-      });
-    },
-    icon: CircleHelp,
-    text: $t('ui.widgets.qa'),
-  },
+  // {
+  //   handler: () => {
+  //     openWindow(VBEN_DOC_URL, {
+  //       target: '_blank',
+  //     });
+  //   },
+  //   icon: BookOpenText,
+  //   text: $t('ui.widgets.document'),
+  // },
+  // {
+  //   handler: () => {
+  //     openWindow(VBEN_GITHUB_URL, {
+  //       target: '_blank',
+  //     });
+  //   },
+  //   icon: SvgGithubIcon,
+  //   text: 'GitHub',
+  // },
+  // {
+  //   handler: () => {
+  //     openWindow(`${VBEN_GITHUB_URL}/issues`, {
+  //       target: '_blank',
+  //     });
+  //   },
+  //   icon: CircleHelp,
+  //   text: $t('ui.widgets.qa'),
+  // },
 ]);
 
 const avatar = computed(() => {
@@ -219,7 +222,7 @@ watch(
 <template>
   <BasicLayout
     :avatar
-    :text="userStore.userInfo?.realName"
+    :text="userStore.userInfo?.nickname"
     @clear-preferences-and-logout="handleLogout"
     @logout="handleLogout"
   >
@@ -229,11 +232,15 @@ watch(
         :menus
         :text="userStore.userInfo?.nickname"
         :description="userStore.userInfo?.email"
-        tag-text="Pro"
         @clear-preferences-and-logout="handleLogout"
         @logout="handleLogout"
-      />
+      >
+        <template #tagText>
+          <ComboTag />
+        </template>
+      </UserDropdown>
     </template>
+
     <template #notification>
       <Notification
         :dot="showDot"

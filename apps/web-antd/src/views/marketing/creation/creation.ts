@@ -442,25 +442,51 @@ export function getMaterial(
 }
 
 /**
- * 获取标题包
- * @param method
- * @param data
- * @param advertiserId
- * @param index
+ * 获取单个标题包中的标题列表
+ * 兼容新字段 titles（标题数组）与旧字段 title（单个标题）
  */
-export function getTiltePackage(
+export function getTitleList(titlePackage: TitlePackageItem): string[] {
+  if (Array.isArray(titlePackage?.titles) && titlePackage.titles.length > 0) {
+    return titlePackage.titles;
+  }
+  return titlePackage?.title ? [titlePackage.title] : [];
+}
+
+/**
+ * 获取指定分配方式下某账户展开后的全部标题（扁平列表）
+ * 用于「按标题生成广告」时逐广告轮询取标题
+ */
+export function getFlatTitleList(
   method: string,
   data: Map<string, Array<TitlePackageItem>>,
-  advertiserId: string,
-  index: number
-): TitlePackageItem {
+  advertiserId: string
+): string[] {
   let dataList: Array<TitlePackageItem> = [];
   if (method === DistributionMode.all) {
     dataList = data.get("0") || [];
   } else {
     dataList = data.get(advertiserId) || [];
   }
-  return <TitlePackageItem>dataList[index % dataList.length] || {};
+  return dataList.flatMap((item) => getTitleList(item));
+}
+
+/**
+ * 获取标题总数
+ * 用于「按标题生成广告/项目/广告组」规则：按标题数量生成
+ */
+export function getTitleCount(
+  method: string,
+  data: Map<string, Array<TitlePackageItem>>,
+  advertiserIds: string[]
+): number {
+  if (isGlobalDistribution(method)) {
+    return getFlatTitleList(method, data, "0").length;
+  }
+  let count = 0;
+  advertiserIds.forEach((id) => {
+    count += getFlatTitleList(method, data, id).length;
+  });
+  return count;
 }
 
 /**

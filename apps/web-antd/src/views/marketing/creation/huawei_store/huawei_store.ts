@@ -1,6 +1,6 @@
 // 华为创编对象定义
 
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { TargetedPackageTypeItem } from "#/api/models";
 import type { PageViewItem } from "#/api/models/assert";
 // 华为创编对象定义
 import type {
@@ -15,18 +15,22 @@ import type {
 } from "#/views/marketing/creation/creation";
 
 import {
+  AdGroupRuleKey,
+  AdRuleKey,
+  CampaignRuleKey,
   DistributionMode,
   Platform
 } from "#/constants/enums";
 import { renderProjectTitle } from "#/utils/customName";
 import {
   getAudience,
+  getFlatTitleList,
   getMaterial,
   getMonitoringLink,
   getRuleInfoAdCount,
   getRuleInfoAdCountGroup,
   getRuleInfoCampaignCount,
-  getTiltePackage,
+  getTitleCount,
   type Material,
   type MonitoringLinkType
 } from "#/views/marketing/creation/creation";
@@ -263,25 +267,49 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
       }
     };
 
-    // 获取任务数量（根据规则配置）
-    const campaignCount: number = getRuleInfoCampaignCount(
-      Platform.HUAWEI_STORE,
-      creationInfo,
-      [advertiserId]
-    );
+    // 获取各层级数量（按标题生成时，对应层级数量 = 标题总数）
+    const titlePackageConfig = creationInfo.configData.titlePackage;
 
-    // 获取广告组数量（根据规则配置）
-    const adGroupCount: number = getRuleInfoAdCountGroup(
-      Platform.HUAWEI_STORE,
-      creationInfo,
-      [advertiserId]
-    );
+    const campaignCount: number =
+      creationInfo.ruleInfo.projectRuleKey === CampaignRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoCampaignCount(
+            Platform.HUAWEI_STORE,
+            creationInfo,
+            [advertiserId]
+          );
 
-    // 获取广告数量（根据规则配置）
-    const adCount: number = getRuleInfoAdCount(
-      Platform.HUAWEI_STORE,
-      creationInfo,
-      [advertiserId]
+    const adGroupCount: number =
+      creationInfo.ruleInfo.adGroupRuleKey === AdGroupRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoAdCountGroup(
+            Platform.HUAWEI_STORE,
+            creationInfo,
+            [advertiserId]
+          );
+
+    const adCount: number =
+      creationInfo.ruleInfo.adRuleKey === AdRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoAdCount(Platform.HUAWEI_STORE, creationInfo, [advertiserId]);
+
+    // 该账户展开后的全部标题（扁平列表），逐广告轮询取标题
+    const flatTitles = getFlatTitleList(
+      titlePackageConfig.config.method,
+      titlePackageConfig.data,
+      advertiserId
     );
 
     // 子任务（广告组）全局下标：跨任务累计，避免内层下标从 0 重置导致名字重复
@@ -341,13 +369,8 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
             ]
           );
 
-          // 获取标题包（按全局广告序号轮询）
-          const titlePackage: TitlePackageItem = getTiltePackage(
-            creationInfo.configData.titlePackage.config.method,
-            creationInfo.configData.titlePackage.data,
-            advertiserId,
-            globalAdIdx
-          );
+          // 按全局广告序号轮询取标题
+          const title = flatTitles[globalAdIdx % flatTitles.length] ?? '';
 
           // 获取落地页（华为商店使用 PageViewItem）
           const landingPage: PageViewItem | undefined = getPageViewItem(
@@ -372,10 +395,10 @@ export function getPreviewTableData(creationInfo: HuaWeiStoreCreation): Array<Hu
             adId: "",
             pageType: creationInfo.configData.promotion.pageType,
             pageId: landingPage?.id || "",
-            contentTitle: titlePackage.title || "",
+            contentTitle: title,
             contentType: creationInfo.configData.promotion.contentType,
             attachment: creationInfo.configData.promotion.attachment,
-            slogan: titlePackage.title || "",
+            slogan: title,
             appDeepLinkUrl: creationInfo.configData.promotion.appDeepLinkUrl,
             httpDeepLinkUrl: creationInfo.configData.promotion.httpDeepLinkUrl,
             landingPageType: creationInfo.configData.promotion.landingPageType,

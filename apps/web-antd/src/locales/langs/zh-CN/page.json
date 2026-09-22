@@ -28,8 +28,11 @@
   },
   "profile": {
     "currentCombo": "当前套餐",
-    "expiresAt": "到期",
-    "privileges": "套餐权益"
+    "expiresAt": "有效期至",
+    "privileges": "套餐权益",
+    "expiringSoon": "即将到期",
+    "lessThanHalfMonth": "不足半月",
+    "lessThanWeek": "不足一周"
   },
   "bpm": {
     "flowable": "流程",

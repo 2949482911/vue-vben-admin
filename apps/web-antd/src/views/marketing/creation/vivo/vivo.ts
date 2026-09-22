@@ -1,10 +1,10 @@
 import type { Ref } from "vue";
 
-import type { LandingPageData, TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { LandingPageData, TargetedPackageTypeItem } from "#/api/models";
 import type { PageViewItem } from "#/api/models/assert";
 import type { BaseItem } from "#/api/models/core";
 
-import { Platform } from "#/constants/enums";
+import { AdGroupRuleKey, AdRuleKey, CampaignRuleKey, Platform } from "#/constants/enums";
 import { renderProjectTitle } from "#/utils/customName";
 import {
   type Adgroup,
@@ -13,12 +13,13 @@ import {
   type ConfigurationConfig,
   getAudience,
   getDeepLink,
+  getFlatTitleList,
   getLandingPage,
   getMaterial,
   getRuleInfoAdCount,
   getRuleInfoAdCountGroup,
   getRuleInfoCampaignCount,
-  getTiltePackage,
+  getTitleCount,
   type Material,
   type MaterialData,
   type MonitoringLinkConfigData,
@@ -202,14 +203,6 @@ export interface VivoPromotionConfig {
   placeType: number;
   strongReminder: number;
   virtualPositionId: string;
-}
-
-/**
- * 标题包
- */
-export interface VivoTitlePackageData {
-  titlePackageConfig: VivoAudienceDataConfig;
-  data: Map<string, Array<TitlePackageItem>>;
 }
 
 /**
@@ -480,15 +473,38 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
       }
     };
     // 计划对应
-    // 获取计划数量
-    const campaignCount: number = getRuleInfoCampaignCount(creationInfo.platform, creationInfo, [
-      account.localAdvertiserId
-    ]);
+    // 获取各层级数量（按标题生成时，对应层级数量 = 标题总数）
+    const titlePackageConfig = creationInfo.configData.titlePackage;
+
+    const campaignCount: number =
+      creationInfo.ruleInfo.projectRuleKey === CampaignRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [account.localAdvertiserId]
+          )
+        : getRuleInfoCampaignCount(creationInfo.platform, creationInfo, [
+            account.localAdvertiserId
+          ]);
 
     // 生成广告组
-    const adGroupCount: number = getRuleInfoAdCountGroup(Platform.VIVO, creationInfo, [
+    const adGroupCount: number =
+      creationInfo.ruleInfo.adGroupRuleKey === AdGroupRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [account.localAdvertiserId]
+          )
+        : getRuleInfoAdCountGroup(Platform.VIVO, creationInfo, [
+            account.localAdvertiserId
+          ]);
+
+    // 该账户展开后的全部标题（扁平列表），逐广告轮询取标题
+    const flatTitles = getFlatTitleList(
+      titlePackageConfig.config.method,
+      titlePackageConfig.data,
       account.localAdvertiserId
-    ]);
+    );
 
     // 广告组/广告全局下标：跨计划累计，避免内层下标从 0 重置导致名字重复
     let adGroupGlobalIdx = 0;
@@ -558,9 +574,16 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
           promotionList: []
         };
         // 生成广告
-        const adCount: number = getRuleInfoAdCount(Platform.VIVO, creationInfo, [
-          account.localAdvertiserId
-        ]);
+        const adCount: number =
+          creationInfo.ruleInfo.adRuleKey === AdRuleKey.title
+            ? getTitleCount(
+                titlePackageConfig.config.method,
+                titlePackageConfig.data,
+                [account.localAdvertiserId]
+              )
+            : getRuleInfoAdCount(Platform.VIVO, creationInfo, [
+                account.localAdvertiserId
+              ]);
 
         for (let k = 0; k < adCount; k++) {
           // 广告全局序号：与广告组全局序号关联
@@ -578,12 +601,8 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
               { index: k, count: adCount }
             ]
           );
-          const title: TitlePackageItem = getTiltePackage(
-            creationInfo.configData.titlePackage.config.method,
-            creationInfo.configData.titlePackage.data,
-            account.localAdvertiserId,
-            globalAdIdx
-          );
+          // 按全局广告序号轮询取标题
+          const title = flatTitles[globalAdIdx % flatTitles.length] ?? '';
 
           const deepLink: string = getDeepLink(
             creationInfo.configData.deepLinkList.deepLinkConfig.method,
@@ -605,11 +624,9 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
               placeType: creationInfo.configData.promotion.config.placeType,
               materialNormId: creationInfo.configData.promotion.config.materialNormId,
               virtualPositionId: creationInfo.configData.promotion.config.virtualPositionId,
-              title: title.title,
-              subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : "", // 当媒体类型是广告联盟需要subTitle
-              pushSubTitle: Array.isArray(title.config?.pushSubTitle)
-                ? title.config.pushSubTitle[0] || ""
-                : "",
+              title,
+              subTitle: creationInfo.configData.campaign.mediaType === 2 ? title : "", // 当媒体类型是广告联盟需要subTitle
+              pushSubTitle: "",
               imgsCode: "",
               videoCode: "",
               strongReminder: creationInfo.configData.promotion.config.strongReminder,
@@ -626,11 +643,9 @@ export function getVivoTableData(creationInfo: VivoCreation): Array<VivoTableDat
                 placeType: creationInfo.configData.promotion.config.placeType,
                 materialNormId: creationInfo.configData.promotion.config.materialNormId,
                 virtualPositionId: creationInfo.configData.promotion.config.virtualPositionId,
-                title: title.title,
-                subTitle: creationInfo.configData.campaign.mediaType === 2 ? title.title : "", // 当媒体类型是广告联盟需要subTitle
-                pushSubTitle: Array.isArray(title.config?.pushSubTitle)
-                  ? title.config.pushSubTitle[0] || ""
-                  : "",
+                title,
+                subTitle: creationInfo.configData.campaign.mediaType === 2 ? title : "", // 当媒体类型是广告联盟需要subTitle
+                pushSubTitle: "",
                 imgsCode: "",
                 videoCode: "",
                 strongReminder: creationInfo.configData.promotion.config.strongReminder,

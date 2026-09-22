@@ -11,15 +11,16 @@ import type {
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 
-import { Platform } from "#/constants/enums";
+import { AdRuleKey, CampaignRuleKey, Platform } from "#/constants/enums";
 import { renderProjectTitle } from "#/utils/customName";
 import {
   getAudience,
+  getFlatTitleList,
   getLandingPage,
   getMaterial,
   getRuleInfoAdCount,
   getRuleInfoCampaignCount,
-  getTiltePackage
+  getTitleCount
 } from "#/views/marketing/creation/creation";
 
 /**
@@ -369,10 +370,33 @@ export function getVivoV2TableData(creationInfo: VivoV2Creation): Array<VivoV2Ta
       }
     };
 
-    const campaignCount: number = getRuleInfoCampaignCount(creationInfo.platform, creationInfo, [
+    // 各层级数量（按标题生成时，对应层级数量 = 标题总数）
+    const titlePackageConfig = configData.titlePackage;
+
+    const campaignCount: number =
+      creationInfo.ruleInfo.projectRuleKey === CampaignRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoCampaignCount(creationInfo.platform, creationInfo, [advertiserId]);
+
+    const adCount: number =
+      creationInfo.ruleInfo.adRuleKey === AdRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoAdCount(creationInfo.platform, creationInfo, [advertiserId]);
+
+    // 该账户展开后的全部标题（扁平列表），逐广告轮询取标题
+    const flatTitles = getFlatTitleList(
+      titlePackageConfig.config.method,
+      titlePackageConfig.data,
       advertiserId
-    ]);
-    const adCount: number = getRuleInfoAdCount(creationInfo.platform, creationInfo, [advertiserId]);
+    );
 
     // 广告全局下标：跨计划累计，避免内层下标从 0 重置导致名字重复
     let adGlobalIdx = 0;
@@ -418,12 +442,9 @@ export function getVivoV2TableData(creationInfo: VivoV2Creation): Array<VivoV2Ta
         );
         const material =
           materialList.length > 0 ? materialList[adIdx % materialList.length] : undefined;
-        const titlePackage = getTiltePackage(
-          configData.titlePackage.config.method,
-          configData.titlePackage.data,
-          advertiserId,
-          adIdx
-        );
+        // 按全局广告序号轮询取标题
+        const title =
+          flatTitles.length > 0 ? flatTitles[adIdx % flatTitles.length] : '';
         const landingPage = getLandingPage(
           configData.landingPage.config.method,
           configData.landingPage.data,
@@ -443,7 +464,7 @@ export function getVivoV2TableData(creationInfo: VivoV2Creation): Array<VivoV2Ta
           viewMonitorUrl: configData.ad.viewMonitorUrl,
           clickMonitorUrl: configData.ad.clickMonitorUrl,
           material,
-          title: titlePackage?.title || "",
+          title,
           imgsCodeList: configData.ad.imgsCodeList,
           videoList: configData.ad.videoList
         } as VivoV2Ad);

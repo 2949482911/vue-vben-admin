@@ -6,25 +6,26 @@ import type {
   OppoPromotion
 } from "./Oppo.types";
 
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { TargetedPackageTypeItem } from "#/api/models";
 import type { PageViewItem } from "#/api/models/assert";
 import type {
   AccountTabData
 } from "#/views/marketing/creation/components/preview_area/previewAreaData";
 import type { AccountInfo, Material } from "#/views/marketing/creation/creation";
 
-import { Platform } from "#/constants/enums";
+import { AdGroupRuleKey, AdRuleKey, CampaignRuleKey, Platform } from "#/constants/enums";
 import { renderProjectTitle } from "#/utils/customName";
 import {
   getAudience,
   getDeepLink,
+  getFlatTitleList,
   getLandingPage,
   getMaterial,
   getMonitoringLink,
   getRuleInfoAdCount,
   getRuleInfoAdCountGroup,
   getRuleInfoCampaignCount,
-  getTiltePackage
+  getTitleCount
 } from "#/views/marketing/creation/creation";
 
 import { getDeliveryModeLabel, getExtensionLabel } from "./projectEnum";
@@ -63,23 +64,41 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
       }
     };
 
-    // 获取各层级数量
-    const campaignCount = getRuleInfoCampaignCount(
-      Platform.OPPO,
-      creationInfo,
-      [advertiserId]
-    );
+    // 获取各层级数量（按标题生成时，对应层级数量 = 标题总数）
+    const titlePackageConfig = creationInfo.configData.titlePackage;
 
-    const adGroupCount = getRuleInfoAdCountGroup(
-      Platform.OPPO,
-      creationInfo,
-      [advertiserId]
-    );
+    const campaignCount =
+      creationInfo.ruleInfo.projectRuleKey === CampaignRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoCampaignCount(Platform.OPPO, creationInfo, [advertiserId]);
 
-    const adCount = getRuleInfoAdCount(
-      Platform.OPPO,
-      creationInfo,
-      [advertiserId]
+    const adGroupCount =
+      creationInfo.ruleInfo.adGroupRuleKey === AdGroupRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoAdCountGroup(Platform.OPPO, creationInfo, [advertiserId]);
+
+    const adCount =
+      creationInfo.ruleInfo.adRuleKey === AdRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId]
+          )
+        : getRuleInfoAdCount(Platform.OPPO, creationInfo, [advertiserId]);
+
+    // 该账户展开后的全部标题（扁平列表），逐广告轮询取标题
+    const flatTitles = getFlatTitleList(
+      titlePackageConfig.config.method,
+      titlePackageConfig.data,
+      advertiserId
     );
 
     // 广告组/广告全局下标：跨计划累计，避免内层下标从 0 重置导致名字重复
@@ -185,13 +204,8 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             ]
           );
 
-          // 获取标题包（按全局广告序号轮询）
-          const titlePackage: TitlePackageItem = getTiltePackage(
-            creationInfo.configData.titlePackage.config.method,
-            creationInfo.configData.titlePackage.data,
-            advertiserId,
-            globalAdIdx
-          );
+          // 按全局广告序号轮询取标题
+          const title = flatTitles[globalAdIdx % flatTitles.length] ?? '';
 
           // 获取落地页
           const landingPageItem = getLandingPage(
@@ -252,9 +266,9 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             globalSpecId: promotionData.globalSpecId,
             adSource: promotionData.adSource,
             brandLogoImgId: promotionData.brandLogoImgId,
-            // brandName: titlePackage.title,
-            // buttonTxt: titlePackage.title,
-            copywriter: titlePackage.title,
+            // brandName: title,
+            // buttonTxt: title,
+            copywriter: title,
             copywriterId: promotionData.copywriterId,
             downloadUrl: promotionData.downloadUrl,
             dynamicCr: promotionData.dynamicCr,

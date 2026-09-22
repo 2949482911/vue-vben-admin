@@ -28,8 +28,11 @@
   },
   "profile": {
     "currentCombo": "Current Plan",
-    "expiresAt": "Expires",
-    "privileges": "Plan Benefits"
+    "expiresAt": "Valid until",
+    "privileges": "Plan Benefits",
+    "expiringSoon": "Expiring soon",
+    "lessThanHalfMonth": "Less than 15 days",
+    "lessThanWeek": "Less than a week"
   },
   "bpm": {
     "flowable": "Flow Work",
