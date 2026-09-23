@@ -4,13 +4,14 @@
  *
  * 展示选中广告组数据（ID + 名字），确认后提交批量删除任务。
  * target 字段：{ adgroup_id }
+ * 腾讯的营销单元挂在 campaign 层级列表（媒体侧称 adgroup），腾讯行取 campaignId 作为 adgroup_id。
  */
 import { aManagementApi } from '#/api';
 import { $t } from '#/locales';
 import { Button, Card, message, Table, Tag, Space } from 'ant-design-vue';
 import { computed, ref } from 'vue';
 import { Page } from '@vben/common-ui';
-import { BatchOperationType } from '../../platformOptions';
+import { BatchOperationType, MediaPlatform } from '../../platformOptions';
 import TaskProgressPanel from '../TaskProgressPanel.vue';
 
 const props = defineProps<{
@@ -27,9 +28,15 @@ const emit = defineEmits<{
 const submitting = ref(false);
 const taskId = ref<string | number | null>(null);
 
-/** 兼容取广告组ID/名称 */
-const pickId = (row: any) => row.adgroupId || row.adgroup_id;
-const pickName = (row: any) => row.adgroupName || row.adgroup_name || '-';
+/** 兼容取广告组ID/名称（腾讯取营销单元字段） */
+const pickId = (row: any) =>
+  row.platform === MediaPlatform.TENCENT
+    ? row.campaignId || row.campaign_id
+    : row.adgroupId || row.adgroup_id;
+const pickName = (row: any) =>
+  row.platform === MediaPlatform.TENCENT
+    ? row.campaignName || row.campaign_name || '-'
+    : row.adgroupName || row.adgroup_name || '-';
 
 // ==================== 选中数据表格 ====================
 const tableColumns = computed(() => [

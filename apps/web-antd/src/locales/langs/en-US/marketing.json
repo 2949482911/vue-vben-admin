@@ -197,6 +197,8 @@
       "deleteAdgroup": "Delete Adgroup",
       "updateAdgroupStatus": "Adgroup Start/Stop",
       "updateAdgroupPrice": "Update Adgroup Price",
+      "updateAdgroupDailyBudget": "Update Unit Daily Budget",
+      "updateAdgroupDatetime": "Update Unit Delivery Time",
       "updateAdgroupOcpcPrice": "Update OCPC Price",
       "updateAdgroupDeepOcpcPrice": "Update Deep OCPC Price",
       "openAdgroupSecondStage": "Open Second Stage",
@@ -231,6 +233,7 @@
       "submitSuccess": "Batch operation submitted",
       "taskId": "Task Id",
       "selectedCount": "{count} selected",
+      "noValidTarget": "No valid target ID in the selected rows, please select again",
       "openSecondStageInfo": "The selected ad groups will be enabled for second-stage launch (enable only, disable is not supported)"
     },
     "mode": {
@@ -246,6 +249,8 @@
       "updateProjectRoi": "The ROI goal will be applied to all selected projects",
       "updateAdgroupStatus": "The start/stop status will be applied to all selected ad groups",
       "updateAdgroupPrice": "The base price will be applied to all selected ad groups",
+      "updateAdgroupDailyBudget": "The daily budget will be applied to all selected ad units",
+      "updateAdgroupDatetime": "The delivery date range will be applied to all selected ad units",
       "updateAdgroupOcpcPrice": "The OCPC price will be applied to all selected ad groups",
       "updateAdgroupDeepOcpcPrice": "The deep OCPC price will be applied to all selected ad groups",
       "updateAdgroupDeeplink": "The Deeplink will be applied to all selected ad groups",
@@ -262,6 +267,10 @@
       "specifyCoefficient": "Specify Coefficient",
       "byRatio": "By Ratio",
       "basePrice": "Base Price (CNY)",
+      "dailyBudget": "Daily Budget (CNY)",
+      "beginDate": "Delivery Start Date",
+      "endDate": "Delivery End Date",
+      "timeSeries": "Delivery Time Slots",
       "percent": "Percentage (%)",
       "billingType": "Billing Type",
       "targetOcpcPrice": "Target OCPC Price (CNY)",
@@ -282,6 +291,10 @@
       "addElement": "Add Element",
       "placeholder": {
         "basePrice": "Enter base price in CNY",
+        "dailyBudget": "Enter daily budget in CNY",
+        "dailyBudgetShort": "Daily Budget (CNY)",
+        "beginDate": "Select delivery start date",
+        "endDate": "Select delivery end date",
         "percent": "Enter an integer percentage",
         "billingType": "Select billing type",
         "targetOcpcPrice": "Enter OCPC price in CNY",
@@ -303,6 +316,9 @@
       "alert": {
         "infiniteBudget": "Unlimited budget mode disables the daily/total budget limit",
         "monitorUrlRequired": "Fill in at least one of the click and exposure monitor URLs",
+        "datetimeAtLeastOne": "Fill in at least one of the start date, end date and delivery time slots",
+        "tencentBidAbsolute": "Tencent only supports an absolute bid, not a percentage adjustment",
+        "tencentDailyBudget": "For non-Moments ads the daily budget must be between CNY 50 and CNY 4,000,000, and no lower than today's spend plus CNY 50",
         "noConfig": "No extra configuration is required for this operation"
       }
     },

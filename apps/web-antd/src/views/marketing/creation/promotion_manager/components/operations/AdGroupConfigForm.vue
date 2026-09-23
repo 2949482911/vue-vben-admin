@@ -1,10 +1,14 @@
 <script lang="ts">
 /**
- * 广告组级批量操作配置表单（启停/基础出价/转化出价/深度转化出价/免一阶/Deeplink/ROI）
+ * 广告组级批量操作配置表单（启停/基础出价/日限额/投放时间/转化出价/深度转化出价/免一阶/Deeplink/ROI）
  *
  * - 全部应用：通过 v-model:config 绑定单个全局配置
  * - 单独设置：通过 buildAdGroupConfigChildren 生成表单数组列 schema
  * 注：open_adgroup_default_second_stage 无配置参数，由父组件单独渲染提示，不使用本表单。
+ *     投放起止时间（update_adgroup_datetime）只用一组值，同样只在「全部应用」下渲染本表单。
+ *
+ * 媒体差异（由 platform 传入）：
+ * - 腾讯（tencent）update_adgroup_price 只支持绝对值出价，字段为 bid_amount（分），不提供按比例与计费方式
  */
 import type { VbenFormSchema } from '#/adapter/form';
 
@@ -24,6 +28,10 @@ export interface AdGroupConfig {
   roiMode: 'value' | 'percent';
   targetROI: number | undefined;
   targetROIPercent: number | undefined;
+  dailyBudget: number | undefined;
+  beginDate: string;
+  endDate: string;
+  timeSeries: string;
 }
 
 export function makeDefaultAdGroupConfig(): AdGroupConfig {
@@ -43,6 +51,10 @@ export function makeDefaultAdGroupConfig(): AdGroupConfig {
     roiMode: 'value',
     targetROI: undefined,
     targetROIPercent: undefined,
+    dailyBudget: undefined,
+    beginDate: '',
+    endDate: '',
+    timeSeries: '',
   };
 }
 
@@ -86,12 +98,43 @@ const modifyModeColumn = (modeField: string): VbenFormSchema => ({
 /** 生成「单独设置」表单数组的配置列 schema */
 export function buildAdGroupConfigChildren(
   operationType: string,
+  platform?: string,
 ): VbenFormSchema[] {
   if (operationType === BatchOperationType.UPDATE_ADGROUP_STATUS) {
     return [statusColumn];
   }
 
+  if (operationType === BatchOperationType.UPDATE_ADGROUP_DAILY_BUDGET) {
+    return [
+      {
+        component: 'InputNumber',
+        componentProps: {
+          min: 0,
+          placeholder: $t('marketing.promotionManager.form.placeholder.dailyBudgetShort'),
+          precision: 2,
+        },
+        fieldName: 'dailyBudget',
+        label: $t('marketing.promotionManager.form.dailyBudget'),
+      },
+    ];
+  }
+
   if (operationType === BatchOperationType.UPDATE_ADGROUP_PRICE) {
+    // 腾讯只支持绝对值出价：只保留出价输入，不提供按比例与计费方式
+    if (platform === MediaPlatform.TENCENT) {
+      return [
+        {
+          component: 'InputNumber',
+          componentProps: {
+            min: 0,
+            placeholder: $t('marketing.promotionManager.form.placeholder.priceShort'),
+            precision: 2,
+          },
+          fieldName: 'price',
+          label: $t('marketing.promotionManager.form.basePrice'),
+        },
+      ];
+    }
     return [
       {
         component: 'RadioGroup',
@@ -310,6 +353,7 @@ export function buildAdGroupConfigChildren(
 <script setup lang="ts">
 import {
   Alert,
+  DatePicker,
   Form,
   FormItem,
   Input,
@@ -318,16 +362,24 @@ import {
   RadioGroup,
   Select,
 } from 'ant-design-vue';
+import { computed } from 'vue';
 
 import { $t } from '#/locales';
 
-import { BatchOperationType } from '../../platformOptions';
+import TimeSelectionPeriod from '#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue';
 
-defineProps<{
+import { BatchOperationType, MediaPlatform } from '../../platformOptions';
+
+const props = defineProps<{
   operationType: string;
+  /** 媒体标识，用于处理同操作类型下的媒体参数差异（如腾讯出价） */
+  platform?: string;
 }>();
 
 const config = defineModel<AdGroupConfig>('config', { required: true });
+
+/** 腾讯：出价只支持绝对值，隐藏按比例与计费方式 */
+const isTencent = computed(() => props.platform === MediaPlatform.TENCENT);
 
 const billingTypeOptions = [
   { label: 'CPD', value: 1 },
@@ -354,13 +406,8 @@ const billingTypeOptions = [
 
     <!-- 基础出价 -->
     <template v-else-if="operationType === BatchOperationType.UPDATE_ADGROUP_PRICE">
-      <FormItem :label="$t('marketing.promotionManager.form.modifyMode')">
-        <RadioGroup v-model:value="config.priceMode" button-style="solid">
-          <RadioButton value="price">{{ $t('marketing.promotionManager.form.specifyPrice') }}</RadioButton>
-          <RadioButton value="percent">{{ $t('marketing.promotionManager.form.byPercent') }}</RadioButton>
-        </RadioGroup>
-      </FormItem>
-      <template v-if="config.priceMode === 'price'">
+      <!-- 腾讯只支持绝对值出价，不展示修改方式与计费方式 -->
+      <template v-if="isTencent">
         <FormItem :label="$t('marketing.promotionManager.form.basePrice')" required>
           <InputNumber
             v-model:value="config.price"
@@ -370,24 +417,95 @@ const billingTypeOptions = [
             class="w-full"
           />
         </FormItem>
-        <FormItem :label="$t('marketing.promotionManager.form.billingType')" required>
-          <Select
-            v-model:value="config.billingType"
-            :options="billingTypeOptions"
-            :placeholder="$t('marketing.promotionManager.form.placeholder.billingType')"
+        <Alert
+          type="info"
+          show-icon
+          :message="$t('marketing.promotionManager.form.alert.tencentBidAbsolute')"
+        />
+      </template>
+      <template v-else>
+        <FormItem :label="$t('marketing.promotionManager.form.modifyMode')">
+          <RadioGroup v-model:value="config.priceMode" button-style="solid">
+            <RadioButton value="price">{{ $t('marketing.promotionManager.form.specifyPrice') }}</RadioButton>
+            <RadioButton value="percent">{{ $t('marketing.promotionManager.form.byPercent') }}</RadioButton>
+          </RadioGroup>
+        </FormItem>
+        <template v-if="config.priceMode === 'price'">
+          <FormItem :label="$t('marketing.promotionManager.form.basePrice')" required>
+            <InputNumber
+              v-model:value="config.price"
+              :min="0"
+              :precision="2"
+              :placeholder="$t('marketing.promotionManager.form.placeholder.basePrice')"
+              class="w-full"
+            />
+          </FormItem>
+          <FormItem :label="$t('marketing.promotionManager.form.billingType')" required>
+            <Select
+              v-model:value="config.billingType"
+              :options="billingTypeOptions"
+              :placeholder="$t('marketing.promotionManager.form.placeholder.billingType')"
+              class="w-full"
+            />
+          </FormItem>
+        </template>
+        <FormItem v-else :label="$t('marketing.promotionManager.form.percent')" required>
+          <InputNumber
+            v-model:value="config.percent"
+            :min="0"
+            :precision="0"
+            :placeholder="$t('marketing.promotionManager.form.placeholder.percent')"
             class="w-full"
           />
         </FormItem>
       </template>
-      <FormItem v-else :label="$t('marketing.promotionManager.form.percent')" required>
+    </template>
+
+    <!-- 营销单元日限额 -->
+    <template v-else-if="operationType === BatchOperationType.UPDATE_ADGROUP_DAILY_BUDGET">
+      <FormItem :label="$t('marketing.promotionManager.form.dailyBudget')" required>
         <InputNumber
-          v-model:value="config.percent"
+          v-model:value="config.dailyBudget"
           :min="0"
-          :precision="0"
-          :placeholder="$t('marketing.promotionManager.form.placeholder.percent')"
+          :precision="2"
+          :placeholder="$t('marketing.promotionManager.form.placeholder.dailyBudget')"
           class="w-full"
         />
       </FormItem>
+      <Alert
+        v-if="isTencent"
+        type="info"
+        show-icon
+        :message="$t('marketing.promotionManager.form.alert.tencentDailyBudget')"
+      />
+    </template>
+
+    <!-- 营销单元投放起止时间与投放时段 -->
+    <template v-else-if="operationType === BatchOperationType.UPDATE_ADGROUP_DATETIME">
+      <FormItem :label="$t('marketing.promotionManager.form.beginDate')">
+        <DatePicker
+          v-model:value="config.beginDate"
+          value-format="YYYY-MM-DD"
+          :placeholder="$t('marketing.promotionManager.form.placeholder.beginDate')"
+          class="w-full"
+        />
+      </FormItem>
+      <FormItem :label="$t('marketing.promotionManager.form.endDate')">
+        <DatePicker
+          v-model:value="config.endDate"
+          value-format="YYYY-MM-DD"
+          :placeholder="$t('marketing.promotionManager.form.placeholder.endDate')"
+          class="w-full"
+        />
+      </FormItem>
+      <FormItem :label="$t('marketing.promotionManager.form.timeSeries')">
+        <TimeSelectionPeriod v-model="config.timeSeries" />
+      </FormItem>
+      <Alert
+        type="info"
+        show-icon
+        :message="$t('marketing.promotionManager.form.alert.datetimeAtLeastOne')"
+      />
     </template>
 
     <!-- 转化出价 -->

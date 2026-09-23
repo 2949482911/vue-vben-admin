@@ -35,6 +35,8 @@ const PROJECT_UPDATE_TYPES: BatchOperationType[] = [
 const ADGROUP_UPDATE_TYPES: BatchOperationType[] = [
   BatchOperationType.UPDATE_ADGROUP_STATUS,
   BatchOperationType.UPDATE_ADGROUP_PRICE,
+  BatchOperationType.UPDATE_ADGROUP_DAILY_BUDGET,
+  BatchOperationType.UPDATE_ADGROUP_DATETIME,
   BatchOperationType.UPDATE_ADGROUP_OCPC_PRICE,
   BatchOperationType.UPDATE_ADGROUP_DEEP_OCPC_PRICE,
   BatchOperationType.OPEN_ADGROUP_DEFAULT_SECOND_STAGE,

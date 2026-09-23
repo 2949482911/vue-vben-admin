@@ -21,6 +21,7 @@ export const MediaPlatform = {
   HUAWEI: 'huawei',
   BYTEDANCE: 'bytedance',
   BYTEDANCE_STD: 'bytedance_std',
+  TENCENT: 'tencent',
 } as const;
 export type MediaPlatform = (typeof MediaPlatform)[keyof typeof MediaPlatform];
 
@@ -50,6 +51,8 @@ export const BatchOperationType = {
   DELETE_ADGROUP: 'delete_adgroup',
   UPDATE_ADGROUP_STATUS: 'update_adgroup_status',
   UPDATE_ADGROUP_PRICE: 'update_adgroup_price',
+  UPDATE_ADGROUP_DAILY_BUDGET: 'update_adgroup_daily_budget',
+  UPDATE_ADGROUP_DATETIME: 'update_adgroup_datetime',
   UPDATE_ADGROUP_OCPC_PRICE: 'update_adgroup_ocpc_price',
   UPDATE_ADGROUP_DEEP_OCPC_PRICE: 'update_adgroup_deep_ocpc_price',
   OPEN_ADGROUP_DEFAULT_SECOND_STAGE: 'open_adgroup_default_second_stage',
@@ -73,6 +76,10 @@ export const BATCH_OPERATION_LABEL_KEYS: Record<BatchOperationType, string> = {
     'marketing.promotionManager.optionTypes.updateAdgroupStatus',
   [BatchOperationType.UPDATE_ADGROUP_PRICE]:
     'marketing.promotionManager.optionTypes.updateAdgroupPrice',
+  [BatchOperationType.UPDATE_ADGROUP_DAILY_BUDGET]:
+    'marketing.promotionManager.optionTypes.updateAdgroupDailyBudget',
+  [BatchOperationType.UPDATE_ADGROUP_DATETIME]:
+    'marketing.promotionManager.optionTypes.updateAdgroupDatetime',
   [BatchOperationType.UPDATE_ADGROUP_OCPC_PRICE]:
     'marketing.promotionManager.optionTypes.updateAdgroupOcpcPrice',
   [BatchOperationType.UPDATE_ADGROUP_DEEP_OCPC_PRICE]:
@@ -98,6 +105,10 @@ export const BATCH_OPERATION_ALL_TIP_KEYS: Partial<Record<BatchOperationType, st
   [BatchOperationType.UPDATE_PROJECT_ROI]: 'marketing.promotionManager.allTips.updateProjectRoi',
   [BatchOperationType.UPDATE_ADGROUP_STATUS]: 'marketing.promotionManager.allTips.updateAdgroupStatus',
   [BatchOperationType.UPDATE_ADGROUP_PRICE]: 'marketing.promotionManager.allTips.updateAdgroupPrice',
+  [BatchOperationType.UPDATE_ADGROUP_DAILY_BUDGET]:
+    'marketing.promotionManager.allTips.updateAdgroupDailyBudget',
+  [BatchOperationType.UPDATE_ADGROUP_DATETIME]:
+    'marketing.promotionManager.allTips.updateAdgroupDatetime',
   [BatchOperationType.UPDATE_ADGROUP_OCPC_PRICE]:
     'marketing.promotionManager.allTips.updateAdgroupOcpcPrice',
   [BatchOperationType.UPDATE_ADGROUP_DEEP_OCPC_PRICE]:
@@ -163,6 +174,21 @@ export const BATCH_OPERATION_MATRIX: Record<
   },
   [MediaPlatform.VIVO]: {},
   [MediaPlatform.HUAWEI]: {},
+  // 腾讯层级命名与批投模块保持一致：campaign=营销单元、adgroup=动态创意
+  //（媒体侧 adgroup=营销单元、dynamic_creative=动态创意，与我们的命名相反）。
+  // 因此营销单元的批量操作挂在 campaign 层（target 用营销单元ID，即该层的 campaignId），
+  // 批量接口的 level 仍为 adgroup，由操作组件内部固定；创意删除挂在 adgroup 层，
+  // 创意ID 取该层列表的 source_dynamic_creative_id 列。
+  [MediaPlatform.TENCENT]: {
+    [BatchLevel.CAMPAIGN]: [
+      BatchOperationType.UPDATE_ADGROUP_STATUS,
+      BatchOperationType.UPDATE_ADGROUP_DAILY_BUDGET,
+      BatchOperationType.UPDATE_ADGROUP_PRICE,
+      BatchOperationType.UPDATE_ADGROUP_DATETIME,
+      BatchOperationType.DELETE_ADGROUP,
+    ],
+    [BatchLevel.ADGROUP]: [BatchOperationType.DELETE_PROMOTION],
+  },
 };
 
 /** 取某媒体某层级支持的批量操作；未配置返回空数组（即不开放批量入口） */

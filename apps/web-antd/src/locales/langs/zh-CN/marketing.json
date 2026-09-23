@@ -258,6 +258,8 @@
       "deleteAdgroup": "批量删除广告组",
       "updateAdgroupStatus": "批量启停广告组",
       "updateAdgroupPrice": "批量改广告组出价",
+      "updateAdgroupDailyBudget": "批量改单元日限额",
+      "updateAdgroupDatetime": "批量改单元投放时间",
       "updateAdgroupOcpcPrice": "批量改转化出价",
       "updateAdgroupDeepOcpcPrice": "批量改深度转化出价",
       "openAdgroupSecondStage": "开启免一阶",
@@ -292,6 +294,7 @@
       "submitSuccess": "批量操作已提交",
       "taskId": "任务ID",
       "selectedCount": "已选 {count} 条",
+      "noValidTarget": "所选数据中没有可用的目标ID，请重新勾选",
       "openSecondStageInfo": "将对选中的广告组开启免一阶投放（仅支持开启，不支持关闭）"
     },
     "mode": {
@@ -307,6 +310,8 @@
       "updateProjectRoi": "ROI 目标将统一应用到所有已选项目",
       "updateAdgroupStatus": "启停状态将统一应用到所有已选广告组",
       "updateAdgroupPrice": "基础出价将统一应用到所有已选广告组",
+      "updateAdgroupDailyBudget": "日限额将统一应用到所有已选营销单元",
+      "updateAdgroupDatetime": "投放起止时间将统一应用到所有已选营销单元",
       "updateAdgroupOcpcPrice": "转化出价将统一应用到所有已选广告组",
       "updateAdgroupDeepOcpcPrice": "深度转化出价将统一应用到所有已选广告组",
       "updateAdgroupDeeplink": "Deeplink 链接将统一应用到所有已选广告组",
@@ -323,6 +328,10 @@
       "specifyCoefficient": "指定系数",
       "byRatio": "按比例",
       "basePrice": "基础出价（元）",
+      "dailyBudget": "日限额（元）",
+      "beginDate": "开始投放日期",
+      "endDate": "结束投放日期",
+      "timeSeries": "投放时段",
       "percent": "百分比（%）",
       "billingType": "计费方式",
       "targetOcpcPrice": "目标转化出价（元）",
@@ -343,6 +352,10 @@
       "addElement": "添加元素",
       "placeholder": {
         "basePrice": "请输入基础出价，单位元",
+        "dailyBudget": "请输入日限额，单位元",
+        "dailyBudgetShort": "日限额（元）",
+        "beginDate": "请选择开始投放日期",
+        "endDate": "请选择结束投放日期",
         "percent": "请输入整数百分比",
         "billingType": "请选择计费方式",
         "targetOcpcPrice": "请输入转化出价，单位元",
@@ -364,6 +377,9 @@
       "alert": {
         "infiniteBudget": "不限预算模式下将关闭日/总预算限制",
         "monitorUrlRequired": "点击监测链接与曝光监测链接至少填写一个",
+        "datetimeAtLeastOne": "开始投放日期、结束投放日期、投放时段至少填写一项",
+        "tencentBidAbsolute": "腾讯仅支持绝对值出价，不支持按比例调整",
+        "tencentDailyBudget": "非朋友圈广告日限额需在 50 元～400 万元之间，且不得低于该单元今日已消耗金额 + 50 元",
         "noConfig": "该操作无需额外配置"
       }
     },

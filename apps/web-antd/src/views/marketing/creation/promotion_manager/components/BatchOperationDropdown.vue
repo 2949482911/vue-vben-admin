@@ -7,9 +7,10 @@
  *
  * 支持的操作矩阵（level -> operationType）：
  * - campaign:   update_project_status / update_project_budget / update_project_roi / delete_campaign
- * - adgroup:    delete_adgroup / update_adgroup_status / update_adgroup_price /
- *               update_adgroup_ocpc_price / update_adgroup_deep_ocpc_price /
- *               open_adgroup_default_second_stage / update_adgroup_deeplink / update_adgroup_roi
+ * - adgroup:    delete_adgroup / update_adgroup_status / update_adgroup_price / update_adgroup_daily_budget /
+ *               update_adgroup_datetime / update_adgroup_ocpc_price /
+ *               update_adgroup_deep_ocpc_price / open_adgroup_default_second_stage /
+ *               update_adgroup_deeplink / update_adgroup_roi
  * - promotion:  delete_promotion / add_promotion / update_promotion_status /
  *               update_promotion_monitor_url
  */
