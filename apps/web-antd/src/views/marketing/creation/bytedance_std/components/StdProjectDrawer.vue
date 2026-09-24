@@ -207,7 +207,7 @@ function injectGoalOptions() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
-  class: 'w-[35vw]',
+  class: "w-[70%]",
   closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {

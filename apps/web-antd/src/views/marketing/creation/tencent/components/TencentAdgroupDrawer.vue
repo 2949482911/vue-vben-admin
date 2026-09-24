@@ -14,18 +14,17 @@ const { formFields } = defineProps({
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
-    // 所有表单项
-    labelClass: 'w-[200px]',
     componentProps: {
-      class: "w-[300px]"
-    }
+      class: 'w-full',
+    },
+    labelWidth: 'auto',
   }
 });
 
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
-  class: 'w-[30vw]',
+  class: "w-[75%]",
   closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
@@ -91,11 +90,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
 </script>
 
 <template>
-  <div>
-    <Drawer title="广告">
-      <Form />
-    </Drawer>
-  </div>
+  <Drawer title="广告">
+    <Form />
+  </Drawer>
 </template>
 
 <style scoped lang="scss">

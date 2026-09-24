@@ -7,9 +7,10 @@ import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import type { NoticeItem } from "#/api/models";
 import { $t } from "@vben/locales";
 
-import { Button, Switch } from "ant-design-vue";
+import { Button, Switch, Tag } from "ant-design-vue";
 import { noticeApi } from "#/api";
 import { BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { noticeLevelColor, noticeLevelText, noticePlainText } from "#/utils/notice";
 
 import CreateNotice from "./create-notice.vue";
 
@@ -95,18 +96,28 @@ const gridOptions: VxeGridProps<NoticeItem> = {
     refresh: true,
     zoom: true
   },
-
   columns: [
-    { title: "序号", type: "seq", width: 100 },
-    { field: "title", title: `${$t("system.notice.columns.title")}` },
-    { field: "level", title: `${$t("system.notice.columns.level")}` },
+    { field: "title", title: `${$t("system.notice.columns.title")}`, minWidth: 200 },
+    {
+      field: "content",
+      title: `${$t("system.notice.columns.content")}`,
+      minWidth: 260,
+      slots: { default: "content" }
+    },
+    {
+      field: "level",
+      title: `${$t("system.notice.columns.level")}`,
+      width: 120,
+      slots: { default: "level" }
+    },
     ...TABLE_COMMON_COLUMNS as any
   ],
   keepSource: true,
-  pagerConfig: {},
   proxyConfig: {
+    autoLoad: true,
     ajax: {
       query: async ({ page }, args) => {
+        // 后端返回全量列表（未分页），此处包装为 vxe-table 需要的结构
         return await noticeApi.getNoticeList({
           page: page.currentPage,
           pageSize: page.pageSize,
@@ -127,6 +138,14 @@ function pageReload() {
 <template>
   <Page>
     <Grid>
+      <template #content="{ row }">
+        <span>{{ noticePlainText(row.content) }}</span>
+      </template>
+      <template #level="{ row }">
+        <Tag :color="noticeLevelColor(row.level)">
+          {{ noticeLevelText(row.level) }}
+        </Tag>
+      </template>
       <template #action="{ row }">
         <Button type="link" @click="openBaseDrawer(row)">
           {{ $t("common.edit") }}

@@ -429,7 +429,8 @@ const adgroupFormFields = [
     label: "自动衍生",
     defaultValue: false,
     componentProps: {
-      checked: false
+      checked: false,
+      class: '200px',
     },
     help: "自动衍生程序化创意开关"
   },

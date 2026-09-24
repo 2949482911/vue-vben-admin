@@ -10,6 +10,7 @@ const {formFields} = defineProps({
 });
 
 const [Drawer, drawerApi] = useVbenDrawer({
+  class: "w-[70%]",
   closeOnClickModal: false,
   closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {

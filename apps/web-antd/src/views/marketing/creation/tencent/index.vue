@@ -216,7 +216,7 @@ function createStrategyGroup() {
 /**
  * 模板选择
  */
-const template = ref<string>("base_template");
+const template = ref<string>("wechat_mini_game");
 
 async function initCreationInfo() {
   creationInfo.value = {
@@ -410,6 +410,8 @@ async function initCreationInfo() {
     },
     platform: Platform.TENCENT,
     project: {
+      appId: "",
+      downloadUrl: "",
       projectId: "",
       projectName: "",
       icon: "",
@@ -665,7 +667,7 @@ const creationInfo = ref<TencentCreation>({
   },
   configurationConfig: {
     platform: Platform.TENCENT,
-    template: "base_template"
+    template: "wechat_mini_game"
   },
   platform: Platform.TENCENT,
   project: {

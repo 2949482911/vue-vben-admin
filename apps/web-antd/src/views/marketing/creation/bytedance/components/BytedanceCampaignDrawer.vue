@@ -85,7 +85,7 @@ const [Form, formApi] = useVbenForm({
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
-  class: 'w-[30vw]',
+  class: "w-[70%]",
   closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {

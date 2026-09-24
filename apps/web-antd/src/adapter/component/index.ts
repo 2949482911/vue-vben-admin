@@ -39,6 +39,7 @@ import type {
   IconPickerProps,
 } from '@vben/common-ui';
 import type { Sortable } from '@vben/hooks';
+import type { TipTapProps } from '@vben/plugins/tiptap';
 import type { Recordable } from '@vben/types';
 
 import {
@@ -64,9 +65,14 @@ import {
 import { useSortable } from '@vben/hooks';
 import { IconifyIcon } from '@vben/icons';
 import { $t } from '@vben/locales';
+import { VbenTiptap } from '@vben/plugins/tiptap';
+import { useUserStore } from '@vben/stores';
 import { isEmpty } from '@vben/utils';
 
 import { message, Modal, notification } from 'ant-design-vue';
+
+import { uploadToOss } from '#/utils/uploadToOss';
+import { useOssClient } from '#/views/marketing/asset/material/useOssClient';
 
 type AdapterUploadProps = UploadProps & {
   aspectRatio?: string;
@@ -638,6 +644,7 @@ export type ComponentType =
   | 'RadioGroup'
   | 'RangePicker'
   | 'Rate'
+  | 'RichEditor'
   | 'Select'
   | 'Space'
   | 'Switch'
@@ -701,6 +708,8 @@ export interface ComponentPropsMap {
   RadioGroup: RadioGroupProps;
   RangePicker: RangePickerProps;
   Rate: RateProps;
+  /**富文本编辑器（vben Tiptap）Props */
+  RichEditor: TipTapProps;
   Select: SelectProps;
   Space: SpaceProps;
   Switch: SwitchProps;
@@ -708,6 +717,20 @@ export interface ComponentPropsMap {
   TimePicker: TimePickerProps;
   TreeSelect: TreeSelectProps;
   Upload: AdapterUploadProps;
+}
+
+/**
+ * 富文本编辑器（vben Tiptap）的图片上传：复用项目统一 OSS 凭证与上传工具
+ */
+async function uploadRichEditorImage(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<string> {
+  const client = await useOssClient();
+  const { userInfo } = useUserStore();
+  const objectKey = `${userInfo?.mainId ?? 'public'}/image/notice/${Date.now()}_${file.name}`;
+  const result = await uploadToOss(client, file, objectKey, onProgress);
+  return result.url;
 }
 
 async function initComponentAdapter() {
@@ -770,6 +793,12 @@ async function initComponentAdapter() {
     RadioGroup,
     RangePicker,
     Rate,
+    RichEditor: withDefaultPlaceholder(VbenTiptap, 'input', {
+      imageUpload: {
+        maxSize: 5 * 1024 * 1024,
+        upload: uploadRichEditorImage,
+      },
+    }),
     Select: withDefaultPlaceholder(Select, 'select'),
     Space,
     Switch,

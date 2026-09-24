@@ -19,6 +19,8 @@ async function initSetupVbenForm() {
       modelPropNameMap: {
         Checkbox: 'checked',
         Radio: 'checked',
+        // VbenTiptap 使用 Vue 标准的 modelValue/update:modelValue
+        RichEditor: 'modelValue',
         Switch: 'checked',
         Upload: 'fileList',
         Tree: 'checkedKeys',

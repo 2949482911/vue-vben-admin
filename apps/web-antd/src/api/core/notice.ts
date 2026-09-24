@@ -4,35 +4,42 @@ import type {
   NoticeSearchParams,
   UpdateNoticeRequest,
 } from '#/api/models';
+import type {BatchOptions, PageResult} from "#/api/models/core";
 
-import {requestClient} from '#/api/request';
 import {BaseApi} from "#/api/core/baseapi";
-import type {BatchOptions} from "#/api/models/core";
+import {requestClient} from '#/api/request';
 
 class NoticeApi extends BaseApi {
 
-  getNoticeList(params: NoticeSearchParams) {
-    return requestClient.get<NoticeItem[]>(this.getServiceUrl("list"), {params});
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
   fetchCreateNotice(params: CreateNoticeRequest) {
     return requestClient.post(this.getServiceUrl("create"), params);
   }
 
+  /**
+   * 公告列表 + 当前登录用户已读标记（isRead：1 已读 / 9 未读）
+   * 后端 PageIntercept 会把 `*List` 方法统一包装为 { items, page, pageCount, pageSize, total }
+   */
+  fetchReadListNotice(): Promise<PageResult<NoticeItem>> {
+    return requestClient.get(this.getServiceUrl("read_list"));
+  }
+
+  /** 标记已读，后端按「当前登录用户」维度写入 notice_read */
+  fetchReadNotice(noticeIds: Array<number | string>) {
+    return requestClient.get(this.getServiceUrl("read_notice"), {
+      params: {noticeIds: noticeIds.join(",")},
+    });
+  }
+
   fetchUpdateNotice(params: UpdateNoticeRequest) {
     return requestClient.post(this.getServiceUrl("update"), params);
   }
 
-  fetchReadListNotice(): Promise<NoticeItem[]> {
-    return requestClient.get(this.getServiceUrl("read_list"));
-  }
-
-  fetchReadNotice(ids: string[]) {
-    return requestClient.get(this.getServiceUrl("read_notice"), {params: {ids: ids}});
-  }
-
-  fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("batch_options"), params);
+  getNoticeList(params: NoticeSearchParams): Promise<PageResult<NoticeItem>> {
+    return requestClient.get(this.getServiceUrl("list"), {params});
   }
 }
 

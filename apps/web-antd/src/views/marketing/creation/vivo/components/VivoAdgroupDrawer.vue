@@ -19,7 +19,7 @@ const [Form, formApi] = useVbenForm({
     componentProps: {
       // class: "w-[600px]"
     }
-  },
+  }
 });
 
 const localAdvertiserQualification = ref<Map<string, any>>(new Map());
@@ -27,8 +27,8 @@ const localChannelPackage = ref<Map<string, any>>(new Map());
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
-  class: 'w-[30vw]',
   closeOnPressEscape: true,
+  class: "w-[70%]",
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
       const data = drawerApi.getData();
@@ -46,7 +46,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
         // 资质数据始终使用父组件传入的 advertiserQualification Map 回显
         if (data.localAdQualification instanceof Map) {
-          await formApi.setFieldValue('advertiseQualificationId', data.localAdQualification);
+          await formApi.setFieldValue("advertiseQualificationId", data.localAdQualification);
         }
       }
     }
@@ -87,17 +87,16 @@ const [Drawer, drawerApi] = useVbenDrawer({
 </script>
 
 <template>
-  <div>
-    <Drawer title="编辑广告组信息">
-      <Form></Form>
-    </Drawer>
-  </div>
+  <Drawer title="编辑广告组信息">
+    <Form></Form>
+  </Drawer>
 </template>
 
 <style scoped lang="scss">
 .switch-item {
   width: auto !important;
   flex: none !important;
+
   :deep(.ant-form-item-control-input) {
     width: auto !important;
     max-width: 60px !important;

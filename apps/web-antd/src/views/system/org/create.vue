@@ -88,7 +88,7 @@ const [Form, formApi] = useVbenForm({
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,
-
+  class: "w-[75%]",
   onCancel() {
     drawerApi.close();
     isUpdate.value = false;

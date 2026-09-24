@@ -20,8 +20,10 @@ import {useUserStore} from '@vben/stores';
 import {openWindow} from '@vben/utils';
 
 import AnalyticsVisitsSource from '../analytics/analytics-visits-source.vue';
-import {taskApi} from "#/api";
-import type {RepresentativeItem} from "#/api/models";
+import type {NoticeItem, RepresentativeItem} from "#/api/models";
+import {noticeApi, taskApi} from "#/api";
+import { $t } from "#/locales";
+import {noticeLevelText, noticeLevelTextClass, noticePlainText} from "#/utils/notice";
 
 const userStore = useUserStore();
 
@@ -242,8 +244,31 @@ const getRepresentative = async () => {
   todoItems.value = items
 }
 
+/**
+ * 最新公告：取前 4 条，点击进入站内通知中心对应详情
+ */
+const noticeItems = ref<NoticeItem[]>([])
+
+const getLatestNotices = async () => {
+  try {
+    const { items } = await noticeApi.fetchReadListNotice()
+    noticeItems.value = (items ?? []).slice(0, 4)
+  } catch {
+    noticeItems.value = []
+  }
+}
+
+function openNotice(item: NoticeItem) {
+  router.push({path: '/system/notice/center', query: {id: item.id}})
+}
+
+function openNoticeCenter() {
+  router.push('/system/notice/center')
+}
+
 onMounted(() => {
   getRepresentative()
+  getLatestNotices()
 })
 
 </script>
@@ -271,6 +296,82 @@ onMounted(() => {
           title="快捷导航"
           @click="navTo"
         />
+
+        <!-- 最新公告：沿用工作台其它卡片（shadcn Card）的结构与类名，保证观感一致 -->
+        <div
+          class="mt-5 flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm"
+        >
+          <div class="grid grid-cols-[1fr_auto] items-start gap-1.5 px-6">
+            <h3 class="text-lg leading-none font-semibold">
+              {{ $t('system.notice.workbench.latest') }}
+            </h3>
+            <button
+              class="justify-self-end text-sm text-primary hover:opacity-80"
+              type="button"
+              @click="openNoticeCenter"
+            >
+              {{ $t('system.notice.workbench.viewAll') }}
+            </button>
+          </div>
+
+          <div class="px-6 pt-0">
+            <ul
+              v-if="noticeItems.length > 0"
+              class="w-full divide-y divide-border"
+              role="list"
+            >
+              <li
+                v-for="item in noticeItems"
+                :key="item.id"
+                class="flex cursor-pointer justify-between gap-x-6 py-5"
+                @click="openNotice(item)"
+              >
+                <div class="flex min-w-0 items-center gap-x-4">
+                  <span class="relative flex size-10 flex-none">
+                    <span
+                      class="flex size-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary"
+                    >
+                      {{ item.createUsername?.slice(0, 1) ?? '公' }}
+                    </span>
+                    <span
+                      v-if="item.isRead !== 1"
+                      class="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary"
+                    ></span>
+                  </span>
+                  <div class="min-w-0 flex-auto">
+                    <p class="flex items-center gap-x-2 text-sm/6 font-semibold text-foreground">
+                      <span class="truncate">{{ item.title }}</span>
+                      <span
+                        class="shrink-0 text-xs font-normal"
+                        :class="noticeLevelTextClass(item.level)"
+                      >
+                        {{ noticeLevelText(item.level) }}
+                      </span>
+                    </p>
+                    <p class="mt-1 flex items-center gap-x-1 text-xs/5 text-foreground/80">
+                      <span class="shrink-0 font-medium text-foreground">
+                        {{ item.createUsername ?? '-' }}
+                      </span>
+                      <span class="truncate">
+                        {{ noticePlainText(item.content) }}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <div class="hidden h-full shrink-0 sm:flex sm:flex-col sm:items-end">
+                  <span class="mt-6 text-xs/6 text-foreground/80">
+                    {{ item.createTime }}
+                  </span>
+                </div>
+              </li>
+            </ul>
+
+            <p v-else class="py-8 text-center text-sm text-muted-foreground">
+              {{ $t('system.notice.workbench.empty') }}
+            </p>
+          </div>
+        </div>
+
         <WorkbenchTodo :items="todoItems" class="mt-5" title="待办事项"/>
         <AnalysisChartCard class="mt-5" title="访问来源">
           <AnalyticsVisitsSource/>

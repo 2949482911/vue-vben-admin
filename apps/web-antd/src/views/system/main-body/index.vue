@@ -128,7 +128,7 @@ const gridOptions: VxeGridProps<MainBodyItem> = {
       width: "auto",
       slots: { default: "combo" }
     },
-    ...TABLE_COMMON_COLUMNS
+    ...TABLE_COMMON_COLUMNS  as any
   ],
   checkboxConfig: {
     highlight: true,

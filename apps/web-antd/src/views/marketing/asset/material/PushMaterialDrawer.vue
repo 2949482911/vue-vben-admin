@@ -223,7 +223,7 @@ async function handleSubmit() {
   if (!values) return;
 
   if (targetKeys.value.length === 0) {
-    message.warning($t(`${T}.selectAccountWarning`));
+    await message.warning($t(`${T}.selectAccountWarning`));
     return;
   }
   submitting.value = true;
@@ -236,11 +236,11 @@ async function handleSubmit() {
       materialIds: (props.materials ?? []).map((m) => m.id),
       advertiserIds: targetKeys.value
     });
-    message.success($t(`${T}.pushSuccess`));
+    await message.success($t(`${T}.pushSuccess`));
     resetState();
     await drawerApi.close();
   } catch (e) {
-    message.error($t(`${T}.pushError`));
+    await  message.error($t(`${T}.pushError`));
   } finally {
     submitting.value = false;
   }

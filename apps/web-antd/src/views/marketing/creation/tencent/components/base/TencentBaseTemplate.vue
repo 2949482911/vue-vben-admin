@@ -892,16 +892,18 @@ const campaignFormFields = [
     component: "AdNameGen",
     fieldName: "adgroup_name",
     label: "名字",
-    rules: "required"
+    rules: "required",
+    formItemClass: "w-[500px]",
   },
   {
     component: "Select",
     fieldName: "marketing_goal",
     componentProps: {
-      options: Tencent_marketing_goal
+      options: Tencent_marketing_goal,
     },
     label: "营销目的",
-    rules: "required"
+    rules: "required",
+    formItemClass: "w-[300px]",
   },
   {
     component: "Select",
@@ -948,20 +950,21 @@ const campaignFormFields = [
   },
 
   {
-    component: "Input",
+    component: "InputNumber",
     fieldName: "bid_amount",
     label: "出价",
     rules: "required",
-    formItemClass: "items-baseline"
+    formItemClass: "w-[500px]",
   },
   {
-    component: "Select",
+    component: "VbenSelect",
     fieldName: "optimization_goal",
     componentProps: {
       options: TencentOptimization_goal
     },
     label: "优化目标",
-    rules: "required"
+    rules: "required",
+    formItemClass: "w-[300px]",
   },
 
   {
@@ -969,7 +972,8 @@ const campaignFormFields = [
     fieldName: "time_series",
     componentProps: {},
     label: "投放时间段",
-    rules: "required"
+    rules: "required",
+    formItemClass: "w-[500px]",
   },
 
   {
@@ -1033,7 +1037,7 @@ const campaignFormFields = [
   },
 
   {
-    component: "Input",
+    component: "InputNumber",
     fieldName: "daily_budget",
     label: "日预算",
     rules: "required"

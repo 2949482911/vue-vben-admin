@@ -75,9 +75,9 @@ const [Form, formApi] = useVbenForm({
   commonConfig: {
     // 所有表单项
     colon: true,
-    formItemClass: '',
+    formItemClass: 'w-[300px]',
     componentProps: {
-      class: 'w-full',
+      class: 'w-[300px]',
     },
   },
   schema: [
@@ -577,7 +577,7 @@ const [Form, formApi] = useVbenForm({
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,
-
+  class: 'w-[75%]',
   onCancel() {
     drawerApi.close();
     isUpdate.value = false;

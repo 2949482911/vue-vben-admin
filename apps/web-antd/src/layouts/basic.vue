@@ -1,13 +1,12 @@
 <script lang="ts" setup>
 import type { NotificationItem } from '@vben/layouts';
 
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
 // import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
 import { useWatermark } from '@vben/hooks';
-// import { BookOpenText, CircleHelp, SvgGithubIcon } from '@vben/icons';
 import {
   BasicLayout,
   LockScreen,
@@ -18,64 +17,41 @@ import { preferences, usePreferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
 // import { openWindow } from '@vben/utils';
 
+import { noticeApi } from '#/api';
 import { $t } from '#/locales';
 import { useAuthStore } from '#/store';
+import { noticePlainText } from '#/utils/notice';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
 import ComboTag from './ComboTag.vue';
 
-const notifications = ref<NotificationItem[]>([
-  {
-    id: 1,
-    avatar: 'https://avatar.vercel.sh/vercel.svg?text=VB',
-    date: '3小时前',
-    isRead: true,
-    message: '描述信息描述信息描述信息',
-    title: '收到了 14 份新周报',
-  },
-  {
-    id: 2,
-    avatar: 'https://avatar.vercel.sh/1',
-    date: '刚刚',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '朱偏右 回复了你',
-  },
-  {
-    id: 3,
-    avatar: 'https://avatar.vercel.sh/1',
-    date: '2024-01-01',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '曲丽丽 评论了你',
-  },
-  {
-    id: 4,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '代办提醒',
-  },
-  {
-    id: 5,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '跳转Workspace示例',
-    link: '/workspace',
-  },
-  {
-    id: 6,
-    avatar: 'https://avatar.vercel.sh/satori',
-    date: '1天前',
-    isRead: false,
-    message: '描述信息描述信息描述信息',
-    title: '跳转外部链接示例',
-    link: 'https://doc.vben.pro',
-  },
-]);
+const notices = ref<NotificationItem[]>([]);
+
+/** 发布人头像：用姓名首字生成 SVG，避免额外图片依赖 */
+function publisherAvatar(name?: string) {
+  const char = (name ?? '公').trim().charAt(0) || '公';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" rx="40" fill="#006be6"/><text x="40" y="40" dy="0.35em" font-family="sans-serif" font-size="36" fill="#ffffff" text-anchor="middle">${char}</text></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+/** 铃铛面板数据：read_list 返回分页结构，items 内每条带当前用户已读标记 */
+async function loadNotices() {
+  try {
+    const { items } = await noticeApi.fetchReadListNotice();
+    notices.value = (items ?? []).map((item) => ({
+      id: item.id ?? item.title,
+      avatar: publisherAvatar(item.createUsername),
+      date: `${item.createUsername ?? '-'} · ${item.createTime ?? ''}`,
+      isRead: item.isRead === 1,
+      message: noticePlainText(item.content),
+      title: item.title,
+      link: '/system/notice/center',
+      query: { id: item.id },
+    }));
+  } catch {
+    notices.value = [];
+  }
+}
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -83,9 +59,7 @@ const authStore = useAuthStore();
 const accessStore = useAccessStore();
 const { destroyWatermark, updateWatermark } = useWatermark();
 const { isDark } = usePreferences();
-const showDot = computed(() =>
-  notifications.value.some((item) => !item.isRead),
-);
+const showDot = computed(() => notices.value.some((item) => !item.isRead));
 
 // 菜单
 const menus = computed(() => [
@@ -134,50 +108,45 @@ async function handleLogout() {
 }
 
 function handleNoticeClear() {
-  notifications.value = [];
+  notices.value = [];
 }
 
-function markRead(id: number | string) {
-  const item = notifications.value.find((item) => item.id === id);
-  if (item) {
-    item.isRead = true;
+async function markRead(id: number | string) {
+  const item = notices.value.find((notice) => notice.id === id);
+  if (!item || item.isRead) {
+    return;
   }
+  await noticeApi.fetchReadNotice([id]);
+  item.isRead = true;
 }
 
 function remove(id: number | string) {
-  notifications.value = notifications.value.filter((item) => item.id !== id);
+  notices.value = notices.value.filter((notice) => notice.id !== id);
 }
 
-function handleMakeAll() {
-  notifications.value.forEach((item) => (item.isRead = true));
-}
-
-const viewAll = () => {};
-
-const handleClick = (item: NotificationItem) => {
-  // 如果通知项有链接，点击时跳转
-  if (item.link) {
-    navigateTo(item.link, item.query, item.state);
+async function handleMakeAll() {
+  const unreadIds = notices.value
+    .filter((notice) => !notice.isRead)
+    .map((notice) => notice.id);
+  if (unreadIds.length === 0) {
+    return;
   }
+  await noticeApi.fetchReadNotice(unreadIds);
+  notices.value.forEach((notice) => {
+    notice.isRead = true;
+  });
+}
+
+const viewAll = () => {
+  router.push('/system/notice/center');
 };
 
-function navigateTo(
-  link: string,
-  query?: Record<string, any>,
-  state?: Record<string, any>,
-) {
-  if (link.startsWith('http://') || link.startsWith('https://')) {
-    // 外部链接，在新标签页打开
-    window.open(link, '_blank');
-  } else {
-    // 内部路由链接，支持 query 参数和 state
-    router.push({
-      path: link,
-      query: query || {},
-      state,
-    });
+const handleClick = (item: NotificationItem) => {
+  // 点击通知项跳转到站内通知中心对应详情
+  if (item.link) {
+    router.push({ path: item.link, query: item.query });
   }
-}
+};
 
 watch(
   () => ({
@@ -217,6 +186,8 @@ watch(
     immediate: true,
   },
 );
+
+onMounted(loadNotices);
 </script>
 
 <template>
@@ -244,7 +215,7 @@ watch(
     <template #notification>
       <Notification
         :dot="showDot"
-        :notifications="notifications"
+        :notifications="notices"
         @clear="handleNoticeClear"
         @read="(item) => item.id && markRead(item.id)"
         @remove="(item) => item.id && remove(item.id)"

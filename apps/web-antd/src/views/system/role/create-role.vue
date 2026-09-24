@@ -48,8 +48,9 @@ const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
     // 所有表单项
+    formItemClass: 'w-[300px]',
     componentProps: {
-      class: "w-full"
+      class: "w-[300px]"
     }
   },
   layout: "horizontal",
@@ -99,8 +100,7 @@ const [Form, formApi] = useVbenForm({
     {
       component: "Tree",
       rules: "required",
-      // formItemClass: 'items-start',
-      // modelPropName: 'modelValue',
+      formItemClass: 'w-[600px]',
       componentProps: {
         treeData: menuData,
         checkable: true,
@@ -141,6 +141,7 @@ function updateMenuTitle(menu: MenuItem) {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,
+  class: "w-[75%]",
   onCancel() {
     drawerApi.close();
     isUpdate.value = false;
