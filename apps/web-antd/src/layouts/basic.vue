@@ -4,9 +4,13 @@ import type { NotificationItem } from '@vben/layouts';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
+import {
+  AuthenticationLoginExpiredModal,
+  VbenIconButton,
+} from '@vben/common-ui';
 // import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
 import { useWatermark } from '@vben/hooks';
+import { CircleCheckBig } from '@vben/icons';
 import {
   BasicLayout,
   LockScreen,
@@ -39,14 +43,15 @@ async function loadNotices() {
   try {
     const { items } = await noticeApi.fetchReadListNotice();
     notices.value = (items ?? []).map((item) => ({
-      id: item.id ?? item.title,
       avatar: publisherAvatar(item.createUsername),
-      date: `${item.createUsername ?? '-'} · ${item.createTime ?? ''}`,
+      date: item.createTime ?? '',
+      id: item.id ?? item.title,
       isRead: item.isRead === 1,
-      message: noticePlainText(item.content),
-      title: item.title,
       link: '/system/notice/center',
+      message: noticePlainText(item.content),
+      publisher: item.createUsername ?? '-',
       query: { id: item.id },
+      title: item.title,
     }));
   } catch {
     notices.value = [];
@@ -118,10 +123,6 @@ async function markRead(id: number | string) {
   }
   await noticeApi.fetchReadNotice([id]);
   item.isRead = true;
-}
-
-function remove(id: number | string) {
-  notices.value = notices.value.filter((notice) => notice.id !== id);
 }
 
 async function handleMakeAll() {
@@ -217,12 +218,60 @@ onMounted(loadNotices);
         :dot="showDot"
         :notifications="notices"
         @clear="handleNoticeClear"
-        @read="(item) => item.id && markRead(item.id)"
-        @remove="(item) => item.id && remove(item.id)"
         @make-all="handleMakeAll"
         @on-click="handleClick"
         @view-all="viewAll"
-      />
+      >
+        <!-- 自定义内容：正文不再压住操作按钮；发布人与时间分两行 -->
+        <template #content="{ item }">
+          <span class="relative flex size-10 shrink-0">
+            <span class="flex size-10 overflow-hidden rounded-full">
+              <img
+                :src="item.avatar"
+                class="aspect-square size-full object-cover"
+              />
+            </span>
+            <span
+              v-if="!item.isRead"
+              class="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-primary"
+            ></span>
+          </span>
+
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-semibold">{{ item.title }}</p>
+            <p class="mt-1 truncate text-xs text-muted-foreground">
+              {{ item.publisher }}
+            </p>
+            <p class="mt-0.5 truncate text-xs text-muted-foreground">
+              {{ item.date }}
+            </p>
+            <p class="mt-1 line-clamp-2 text-xs text-muted-foreground">
+              {{ item.message }}
+            </p>
+          </div>
+
+          <VbenIconButton
+            v-if="!item.isRead"
+            class="shrink-0"
+            size="xs"
+            variant="ghost"
+            :tooltip="$t('system.notice.center.markRead')"
+            @click.stop="markRead(item.id)"
+          >
+            <CircleCheckBig class="size-4" />
+          </VbenIconButton>
+          <VbenIconButton
+            v-else
+            class="shrink-0 text-primary"
+            disabled
+            size="xs"
+            variant="ghost"
+            :tooltip="$t('system.notice.center.read')"
+          >
+            <CircleCheckBig class="size-4" />
+          </VbenIconButton>
+        </template>
+      </Notification>
     </template>
     <template #extra>
       <AuthenticationLoginExpiredModal

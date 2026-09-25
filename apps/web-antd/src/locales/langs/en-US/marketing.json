@@ -37,6 +37,26 @@
       "authExp": "Auth Exp"
     }
   },
+  "creation": {
+    "columns": {
+      "name": "Task Name",
+      "platform": "Platform",
+      "ruleType": "Submit Type",
+      "taskStatus": "Task Status",
+      "projectId": "Project Id",
+      "commitAdvertiserCount": "Accounts",
+      "commitCampaignCount": "Campaigns Submitted",
+      "successCampaignCount": "Campaigns Succeeded",
+      "commitAdGroupCount": "Ad Groups Submitted",
+      "successAdGroupCount": "Ad Groups Succeeded",
+      "commitPromotionCount": "Ads Submitted",
+      "successPromotionCount": "Ads Succeeded",
+      "commitCreativeCount": "Creatives Submitted",
+      "successCreativeCount": "Creatives Succeeded",
+      "startTime": "Start Time",
+      "endTime": "End Time"
+    }
+  },
   "developer": {
     "title": "Developer",
     "columns": {

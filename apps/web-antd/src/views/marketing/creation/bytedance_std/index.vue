@@ -32,9 +32,9 @@ import { ref, watch } from "vue";
  * 统一模板：std_project_template
  * 提交时通过 extraParams 增加 taskType=bytedance_std 区分
  */
-import { useVbenModal } from "@vben/common-ui";
+import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
 
-import { Drawer, message, Select } from "ant-design-vue";
+import { message, Select } from "ant-design-vue";
 
 import { Platform } from "#/constants/enums";
 import { BYTEDANCE_STD_MARKETING_TYPE } from "#/views/marketing/creation/bytedance_std/enums";
@@ -71,34 +71,45 @@ const [CreateStrategyGroupModal, createStrategyGroupApi] = useVbenModal({
 });
 
 // ==================== 批投任务结果跟踪 ====================
-const currentTask = ref<null | {
+/** 结果抽屉入参 */
+type ResultDrawerData = {
   taskId: string;
   taskName: string;
   platform: string;
   projectId: string;
-}>(null);
-const resultDrawerOpen = ref(false);
+  /** 需要隐藏的结果层 */
+  hiddenLayers?: Array<'adGroup' | 'campaign' | 'creative' | 'promotion'>;
+};
+
+const currentTask = ref<null | ResultDrawerData>(null);
 const taskInProgress = ref(false);
+
+/** 结果抽屉（vben useVbenDrawer，内部复用共享详情面板） */
+const [TaskResultDrawer, taskResultDrawerApi] = useVbenDrawer({
+  connectedComponent: BatchTaskResultDrawer
+});
+
+/** 打开结果抽屉（任务信息通过模板上的 :task 传入） */
+function openResultDrawer() {
+  if (!currentTask.value) return;
+  taskResultDrawerApi.open();
+}
 
 function handleTaskCreated(data: { taskId: string; taskName: string }) {
   currentTask.value = {
     taskId: data.taskId,
     taskName: data.taskName,
     platform: creationInfo.value.platform,
-    projectId: creationInfo.value.project.projectId
+    projectId: creationInfo.value.project.projectId,
+    // 智擎版是单层流程，没有广告组 / 广告层
+    hiddenLayers: ['adGroup', 'promotion']
   };
   taskInProgress.value = true;
-  resultDrawerOpen.value = true;
+  openResultDrawer();
 }
 
 function viewTaskProgress() {
-  if (currentTask.value) {
-    resultDrawerOpen.value = true;
-  }
-}
-
-function onResultDrawerClose() {
-  resultDrawerOpen.value = false;
+  openResultDrawer();
 }
 
 function onTaskCompleted(_status: number) {
@@ -214,7 +225,7 @@ function genPreviewTableData() {
   // 点击生成广告预览即开启新一轮配置，清空上个任务进度信息并隐藏「查看任务进度」按钮
   currentTask.value = null;
   taskInProgress.value = false;
-  resultDrawerOpen.value = false;
+  taskResultDrawerApi.close();
   adList.value = getPreviewTableData(creationInfo.value);
   console.log(adList.value);
 }
@@ -589,25 +600,8 @@ watch(() => creationInfo, (_) => {
       @result:get-creation-task="handleTaskCreated"
     />
 
-    <!-- 批投任务结果抽屉 -->
-    <Drawer
-      :open="resultDrawerOpen"
-      title="批投任务执行结果"
-      :width="800"
-      @close="onResultDrawerClose"
-      :destroy-on-close="false"
-    >
-      <BatchTaskResultDrawer
-        v-if="currentTask"
-        :task-id="currentTask.taskId"
-        :task-name="currentTask.taskName"
-        :platform="currentTask.platform"
-        :project-id="currentTask.projectId"
-        @task-completed="onTaskCompleted"
-        :show-ad-group="false"
-        :show-promotion="false"
-      />
-    </Drawer>
+    <!-- 批投任务执行结果抽屉（内部复用共享详情面板） -->
+    <TaskResultDrawer :task="currentTask" @task-completed="onTaskCompleted" />
   </BatchCreateLayout>
 </template>
 

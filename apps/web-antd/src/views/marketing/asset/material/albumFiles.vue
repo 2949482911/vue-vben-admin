@@ -1,19 +1,16 @@
 <script setup lang="ts">
+import type { MaterialLibraryFolderType } from './materialType';
+
+import type { FolderItem } from '#/api/models';
+import type { MaterialItem } from '#/api/models/assert';
+import type { MaterialListParams } from '#/api/models/marketing';
+
+import { computed, reactive, ref, watch } from 'vue';
+
+import { Spinner } from '@vben/common-ui';
+
 import {
-  Button,
-  Card,
-  Checkbox,
-  Dropdown,
-  Empty,
-  Menu,
-  MenuItem,
-  Modal,
-  Pagination,
-  Tag,
-  Tooltip,
-  message,
-} from 'ant-design-vue';
-import {
+  CopyOutlined,
   DeleteOutlined,
   EditOutlined,
   EllipsisOutlined,
@@ -23,16 +20,23 @@ import {
   FolderOpenOutlined,
   PlayCircleOutlined,
 } from '@ant-design/icons-vue';
-import { Spinner } from '@vben/common-ui';
-import { uploadEditApi } from '#/api/core';
-import { computed, reactive, ref, watch } from 'vue';
-import type { FolderItem } from '#/api/models';
-import type { MaterialListParams } from '#/api/models/marketing';
-import type { MaterialItem } from '#/api/models/assert';
-import type { MaterialLibraryFolderType } from './materialType';
-import { BatchOptionsType } from '#/constants/locales';
+import {
+  Button,
+  Card,
+  Checkbox,
+  Dropdown,
+  Empty,
+  Menu,
+  MenuItem,
+  message,
+  Modal,
+  Pagination,
+  Tag,
+  Tooltip,
+} from 'ant-design-vue';
 
-const isShowLoading = ref(true);
+import { uploadEditApi } from '#/api/core';
+import { BatchOptionsType } from '#/constants/locales';
 
 const props = defineProps<{
   treeItem: FolderItem[];
@@ -45,6 +49,8 @@ const emit = defineEmits<{
   (e: 'breadcrumbClick', item: FolderItem): void;
   (e: 'toggleMaterialSelect', material: MaterialItem): void;
 }>();
+
+const isShowLoading = ref(true);
 
 watch(
   [() => props.treeItem, () => props.filterParams],
@@ -155,7 +161,7 @@ async function delFile(item: any) {
 
 function isVideo(fileName: string): boolean {
   const ext = fileName.split('.').pop()?.toLowerCase();
-  return ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext || '');
+  return ['avi', 'mkv', 'mov', 'mp4', 'webm'].includes(ext || '');
 }
 
 function showControls(event: Event) {
@@ -170,6 +176,17 @@ function hideControls(event: Event) {
 
 function isSelected(id?: string): boolean {
   return Boolean(id && (props.selectedMaterialIds ?? []).includes(id));
+}
+
+/** 复制素材ID */
+async function copyMaterialId(id?: string) {
+  if (!id) return;
+  try {
+    await navigator.clipboard.writeText(id);
+    await message.success('已复制素材ID');
+  } catch {
+    await message.error('复制失败');
+  }
 }
 
 const selectedCount = computed(() => props.selectedMaterialIds?.length ?? 0);
@@ -349,7 +366,7 @@ defineExpose({
                 class="m-media"
                 @mouseenter="showControls($event)"
                 @mouseleave="hideControls($event)"
-              />
+              ></video>
               <!-- 图片 -->
               <img
                 v-else-if="item.fileUrl"
@@ -396,9 +413,27 @@ defineExpose({
             </div>
           </template>
 
-          <!-- 信息区：文件名完整展示，允许换行 -->
+          <!-- 信息区：文件名完整展示，允许换行；素材ID + 复制按钮贴右侧 -->
           <div class="m-info">
-            <span class="m-name">{{ item.name }}</span>
+            <div class="m-head">
+              <span class="m-name">{{ item.name }}</span>
+              <Tooltip :title="item.id ? `素材ID：${item.id}` : ''">
+                <span class="m-id font-mono">{{ item.id || '-' }}</span>
+              </Tooltip>
+              <Tooltip title="复制素材ID">
+                <Button
+                  type="text"
+                  size="small"
+                  class="m-copy"
+                  :disabled="!item.id"
+                  @click.stop="copyMaterialId(item.id)"
+                >
+                  <template #icon>
+                    <CopyOutlined />
+                  </template>
+                </Button>
+              </Tooltip>
+            </div>
             <div class="m-meta">
               <span>{{ formatDate(item.updateTime) }}</span>
               <span>{{ item.createUsername }}</span>
@@ -421,7 +456,7 @@ defineExpose({
       <Pagination
         show-size-changer
         v-model:current="pages.current"
-        v-model:pageSize="pages.pageSize"
+        v-model:page-size="pages.pageSize"
         :total="pages.total"
         :show-total="(total: number) => `共 ${total} 条`"
         @change="handlePageChange"
@@ -446,7 +481,7 @@ defineExpose({
           controls
           autoplay
           class="mx-auto max-h-[60vh] w-full rounded-lg"
-        />
+        ></video>
         <img
           v-else-if="previewMaterial.fileUrl"
           :src="previewMaterial.fileUrl"
@@ -546,12 +581,44 @@ defineExpose({
   padding-top: 2px;
 }
 
+/* 文件名 + 素材ID + 复制按钮：同一行，ID 贴右侧 */
+.m-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 .m-name {
+  /* 文件名优先换行完整展示，ID 空间不足时先截断 */
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.5;
   color: hsl(var(--foreground));
   word-break: break-all;
+}
+
+/* 素材ID：空间够就全量显示，不够则省略号（Tooltip 看全量） */
+.m-id {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 50%;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.5;
+  color: hsl(var(--muted-foreground));
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.m-copy {
+  flex: none;
+  color: hsl(var(--muted-foreground));
+
+  &:hover:not(:disabled) {
+    color: hsl(var(--primary));
+  }
 }
 
 .m-meta {

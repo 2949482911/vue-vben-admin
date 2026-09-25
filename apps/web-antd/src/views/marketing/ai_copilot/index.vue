@@ -1,4 +1,6 @@
 <script setup lang="ts" name="AiCopilot">
+import type { ChatMessage, ChatSession, ChatSuggestion, ToolRecord } from "#/api/models/ai_chat";
+
 /**
  * AI 投手对话助手（redesigned chat layout）
  *
@@ -9,23 +11,11 @@
  *      执行记录/建议以 antd Card 平铺，hover 提供复制；light/dark 使用项目语义色自动适配。
  */
 import { computed, nextTick, onMounted, ref } from "vue";
+
 import { Page } from "@vben/common-ui";
+
 import {
-  Avatar,
-  Button,
-  Card,
-  Empty,
-  Input,
-  List,
-  ListItem,
-  message,
-  Modal,
-  Progress,
-  Spin,
-  Tag,
-  Tooltip
-} from "ant-design-vue";
-import {
+  ArrowDownOutlined,
   BarChartOutlined,
   BuildOutlined,
   CheckOutlined,
@@ -42,8 +32,23 @@ import {
   ThunderboltOutlined,
   UserOutlined
 } from "@ant-design/icons-vue";
+import {
+  Avatar,
+  Button,
+  Card,
+  Empty,
+  Input,
+  List,
+  ListItem,
+  message,
+  Modal,
+  Progress,
+  Spin,
+  Tag,
+  Tooltip
+} from "ant-design-vue";
+
 import { aiChatApi } from "#/api/core";
-import type { ChatMessage, ChatSession, ChatSuggestion, ToolRecord } from "#/api/models/ai_chat";
 
 // ==================== 平台文案 ====================
 
@@ -58,6 +63,23 @@ const PLATFORM_MAP: Record<string, string> = {
 
 function platformText(p?: string): string {
   return (p && PLATFORM_MAP[p]) || p || "";
+}
+
+/**
+ * 会话列表平台圆点色：取色语义与项目既有 platformColor（blue/green/orange/purple/red）保持一致，
+ * 仅把 Tag 换成小圆点以降低列表视觉噪音。
+ */
+const PLATFORM_DOT_COLOR: Record<string, string> = {
+  bytedance: "#1677ff",
+  huawei: "#f5222d",
+  oppo: "#fa8c16",
+  rednote: "#eb2f96",
+  tencent: "#52c41a",
+  vivo: "#722ed1"
+};
+
+function platformDotColor(p?: string): string {
+  return (p && PLATFORM_DOT_COLOR[p]) || "hsl(var(--muted-foreground))";
 }
 
 // ==================== 会话管理 ====================
@@ -162,6 +184,13 @@ const loadingMessages = ref(false);
 const inputValue = ref("");
 const sending = ref(false);
 
+/** 输入框占位：等待 AI 回复期间输入框被锁定，给出等待提示 */
+const composerPlaceholder = computed(() =>
+  sending.value
+    ? "AI 正在回复，请稍候…"
+    : "描述你的投放需求，例如：查看今天巨量各账户消耗…"
+);
+
 const messageScrollRef = ref<HTMLElement>();
 
 /** 是否贴近消息底部（>=该距离才自动滚动，向上翻阅时不打扰） */
@@ -210,6 +239,7 @@ async function sendText(rawContent: string) {
   };
 
   messages.value.push(userMsg, aiMsgPlaceholder);
+  // 发送即刻清空输入框，并进入锁定态（模板 :disabled="sending"），待 AI 回复后再解锁
   inputValue.value = "";
   sending.value = true;
   await scrollToBottom(true);
@@ -239,6 +269,9 @@ async function sendText(rawContent: string) {
     await message.error("AI 回复失败，请重试");
   } finally {
     sending.value = false;
+    // 解锁后回焦输入框，便于直接继续下一轮问答
+    await nextTick();
+    composerRef.value?.focus();
   }
 }
 
@@ -318,6 +351,8 @@ function recordStatusColor(status: string): string {
 }
 
 function onKeyup(e: KeyboardEvent) {
+  // 等待 AI 回复期间输入框处于锁定态，忽略回车
+  if (sending.value) return;
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     sendMessage();
@@ -531,6 +566,8 @@ const promptIconMap: Record<string, any> = {
 };
 
 function sendPrompt(prompt: string) {
+  // 回复期间不接管输入框，避免留下未发送的残留文案
+  if (sending.value) return;
   inputValue.value = prompt;
   sendMessage();
 }
@@ -544,6 +581,7 @@ function regenerateMessage() {
 
 /** 追问：把该条消息内容带进输入框，让用户补充提问 */
 function askFollowUp(content: string) {
+  if (sending.value) return;
   const head = content.length > 60 ? `${content.slice(0, 60)}…` : content;
   inputValue.value = `请针对你上面的「${head}」，进一步说明`;
   composerRef.value?.focus();
@@ -562,7 +600,7 @@ function execProgress(ds?: any): number {
 }
 
 /** 执行进度状态 */
-function execProgressStatus(ds?: any): "active" | "success" | "exception" {
+function execProgressStatus(ds?: any): "active" | "exception" | "success" {
   if (!ds?.records?.length) return "active";
   const failed = ds.records.filter((r: ToolRecord) => r.status === "failed").length;
   if (failed > 0) return "exception";
@@ -621,31 +659,38 @@ onMounted(() => {
     <div class="chat-root">
       <!-- ==================== 左：会话列表（固定，内部滚动） ==================== -->
       <Card class="session-card" :bordered="false">
-        <template #title>
-          <span class="session-card-title">对话会话</span>
-        </template>
-        <template #extra>
-          <Button type="primary" size="small" @click="createSession">
+        <div class="session-head">
+          <span class="brand-logo">
+            <RobotOutlined />
+          </span>
+          <div class="brand-meta">
+            <div class="brand-title">AI 投放助手</div>
+            <div class="brand-sub">共 {{ sessions.length }} 个会话</div>
+          </div>
+        </div>
+
+        <div class="session-pad">
+          <Button class="btn-new" @click="createSession">
             <template #icon>
               <PlusOutlined />
             </template>
-            新建
+            新建对话
           </Button>
-        </template>
-        <div class="session-body">
+
           <Input
             v-model:value="sessionKeyword"
+            class="session-search"
             placeholder="搜索会话"
             allow-clear
-            size="small"
             @change="handleSearch"
-            @pressEnter="handleSearch"
+            @press-enter="handleSearch"
           >
             <template #prefix>
               <SearchOutlined />
             </template>
           </Input>
-          <div class="session-scroll">
+
+          <div class="session-scroll vben-scrollbar">
             <Spin :spinning="loadingSessions">
               <template v-for="group in sessionGroups" :key="group.key">
                 <div class="session-group-title">{{ group.title }}</div>
@@ -663,15 +708,12 @@ onMounted(() => {
                       <div class="session-item-main">
                         <div class="session-item-title">
                           <span class="session-item-name">{{ item.title || "新对话" }}</span>
-                          <Tag
-                            v-if="platformText(item.platform)"
-                            color="blue"
-                            :bordered="false"
-                            size="small"
-                            class="session-item-tag"
-                          >
-                            {{ platformText(item.platform) }}
-                          </Tag>
+                          <span
+                            v-if="item.platform"
+                            class="session-item-dot"
+                            :style="{ background: platformDotColor(item.platform) }"
+                            :title="platformText(item.platform)"
+                          ></span>
                         </div>
                         <div class="session-item-meta">
                           <span>{{ item.messageCount || 0
@@ -697,7 +739,7 @@ onMounted(() => {
               </template>
               <Empty
                 v-if="!loadingSessions && sessions.length === 0"
-                description="暂无会话，点右上角新建"
+                description="暂无会话，点上方新建"
               />
             </Spin>
           </div>
@@ -707,53 +749,49 @@ onMounted(() => {
       <!-- ==================== 右：对话区（固定，消息内部滚动） ==================== -->
       <Card class="chat-card" :bordered="false">
         <!-- 标题栏：上下文条（固定） -->
-        <template #title>
-          <div class="chat-head">
-            <Avatar :size="24" class="chat-head-logo bg-primary text-primary-foreground">
-              <template #icon>
-                <RobotOutlined />
+        <div class="chat-head">
+          <span class="chat-head-logo">
+            <RobotOutlined />
+          </span>
+          <div class="chat-head-meta">
+            <span class="chat-head-title">{{ currentSessionTitle }}</span>
+            <span class="chat-head-sub">
+              <template v-if="messages.length > 0">
+                {{ messages.length }} 条消息
               </template>
-            </Avatar>
-            <div class="chat-head-meta">
-              <span class="chat-head-title">{{ currentSessionTitle }}</span>
-              <span class="chat-head-sub">
-                <template v-if="messages.length > 0">
-                  {{ messages.length }} 条消息
-                  <span v-if="currentSession?.platform"> · {{ platformText(currentSession.platform)
-                    }}</span>
-                </template>
-                <template v-else>新对话 · 随时开始</template>
-              </span>
-            </div>
+              <template v-else>新对话 · 随时开始</template>
+            </span>
           </div>
-        </template>
-        <template #extra>
-          <Button
-            type="primary"
-            ghost
-            size="small"
-            @click="createSession"
-          >
-            <template #icon>
-              <PlusOutlined />
-            </template>
-            新对话
-          </Button>
-        </template>
+          <div class="chat-head-actions">
+            <Tag
+              v-if="currentSession?.platform"
+              color="blue"
+              :bordered="false"
+              class="head-platform"
+            >
+              {{ platformText(currentSession.platform) }}
+            </Tag>
+            <Tooltip title="新对话">
+              <Button type="text" class="head-icon-btn" @click="createSession">
+                <template #icon>
+                  <PlusOutlined />
+                </template>
+              </Button>
+            </Tooltip>
+          </div>
+        </div>
 
         <!-- 消息流（仅此滚动） -->
         <div
           ref="messageScrollRef"
-          class="message-scroll"
+          class="message-scroll vben-scrollbar"
           @scroll="onMessageScroll"
         >
           <!-- 空状态 + 快捷提问 -->
           <div v-if="messages.length === 0 && !loadingMessages" class="chat-welcome">
-            <Avatar :size="52" class="chat-welcome-logo bg-primary text-primary-foreground">
-              <template #icon>
-                <RobotOutlined style="font-size: 26px" />
-              </template>
-            </Avatar>
+            <span class="chat-welcome-logo">
+              <RobotOutlined />
+            </span>
             <div class="chat-welcome-title">你好，我是 AI 投放助手</div>
             <div class="chat-welcome-sub">
               一句话查数据、诊断计划、批量操作、搭建广告
@@ -764,7 +802,11 @@ onMounted(() => {
                 :key="card.title"
                 :bordered="false"
                 class="prompt-card"
+                role="button"
+                tabindex="0"
                 @click="sendPrompt(card.prompt)"
+                @keydown.enter.prevent="sendPrompt(card.prompt)"
+                @keydown.space.prevent="sendPrompt(card.prompt)"
               >
                 <div class="prompt-card-icon">
                   <component :is="promptIconMap[card.icon]" />
@@ -789,11 +831,7 @@ onMounted(() => {
             <Avatar
               :size="30"
               class="msg-avatar"
-              :class="
-                msg.role === 'assistant'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'msg-avatar-user bg-muted text-muted-foreground'
-              "
+              :class="msg.role === 'assistant' ? 'msg-avatar-ai' : 'msg-avatar-user'"
             >
               <template #icon>
                 <RobotOutlined v-if="msg.role === 'assistant'" />
@@ -805,37 +843,41 @@ onMounted(() => {
               <!-- AI：思考中 / 富文本内容 + 动作组 -->
               <div v-if="msg.role === 'assistant'">
                 <span v-if="!msg.content && sending" class="msg-thinking">
-                  AI 正在思考
-                  <span class="msg-thinking-dot">.</span><span
-                  class="msg-thinking-dot">.</span><span class="msg-thinking-dot">.</span>
+                  <span class="msg-thinking-text">正在分析</span>
+                  <span class="msg-thinking-dots">
+                    <i></i><i></i><i></i>
+                  </span>
                 </span>
                 <div
                   v-else-if="msg.content"
                   class="md"
                   v-html="renderMarkdown(msg.content)"
-                />
-                <div v-else class="msg-ai-text msg-ai-text-empty" />
+                ></div>
+                <div v-else class="msg-ai-text msg-ai-text-empty"></div>
 
                 <!-- hover 动作组 -->
                 <div v-if="msg.content" class="msg-actions">
-                  <Button type="text" size="small" @click="copyMessage(msg.content)">
-                    <template #icon>
-                      <CopyOutlined />
-                    </template>
-                    复制
-                  </Button>
-                  <Button type="text" size="small" @click="regenerateMessage">
-                    <template #icon>
-                      <RedoOutlined />
-                    </template>
-                    重新生成
-                  </Button>
-                  <Button type="text" size="small" @click="askFollowUp(msg.content)">
-                    <template #icon>
-                      <CommentOutlined />
-                    </template>
-                    追问
-                  </Button>
+                  <Tooltip title="复制">
+                    <Button type="text" class="msg-act-btn" @click="copyMessage(msg.content)">
+                      <template #icon>
+                        <CopyOutlined />
+                      </template>
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="重新生成">
+                    <Button type="text" class="msg-act-btn" @click="regenerateMessage">
+                      <template #icon>
+                        <RedoOutlined />
+                      </template>
+                    </Button>
+                  </Tooltip>
+                  <Tooltip title="追问">
+                    <Button type="text" class="msg-act-btn" @click="askFollowUp(msg.content)">
+                      <template #icon>
+                        <CommentOutlined />
+                      </template>
+                    </Button>
+                  </Tooltip>
                 </div>
               </div>
 
@@ -845,20 +887,20 @@ onMounted(() => {
               </div>
 
               <!-- 执行记录（dataSnapshot.records） -->
-              <Card
+              <div
                 v-if="msg.dataSnapshot && msg.dataSnapshot.records && msg.dataSnapshot.records.length > 0"
-                size="small"
                 class="exec-card"
               >
-                <template #title>
-                  <div class="flex items-center justify-between w-full">
-                    <span class="exec-title">执行记录</span>
-                    <span class="exec-title">
-                      {{ msg.dataSnapshot.successSteps || 0
-                      }}/{{ msg.dataSnapshot.totalSteps || msg.dataSnapshot.records.length }} 步
-                    </span>
-                  </div>
-                </template>
+                <div class="exec-head">
+                  <span class="exec-head-left">
+                    <ThunderboltOutlined />
+                    执行记录
+                  </span>
+                  <span class="exec-pill">
+                    {{ msg.dataSnapshot.successSteps || 0
+                    }}/{{ msg.dataSnapshot.totalSteps || msg.dataSnapshot.records.length }} 步
+                  </span>
+                </div>
                 <Progress
                   :percent="execProgress(msg.dataSnapshot)"
                   :status="execProgressStatus(msg.dataSnapshot)"
@@ -871,30 +913,36 @@ onMounted(() => {
                   :key="i"
                   class="exec-record"
                 >
-                  <span class="text-muted-foreground">{{ recordIndex(i) }}.</span>
+                  <span class="exec-record-idx">{{ recordIndex(i) }}.</span>
                   <span class="exec-record-name">{{ rec.stepName || rec.toolName }}</span>
                   <span v-if="rec.duration" class="exec-record-dur">{{ rec.duration }}ms</span>
                   <Tag
                     :color="recordStatusColor(rec.status)"
                     :bordered="false"
-                    size="small"
+                    class="exec-tag"
                   >
                     {{ recordStatusText(rec.status) }}
                   </Tag>
                 </div>
-              </Card>
+              </div>
 
               <!-- 操作建议 -->
               <div
                 v-if="msg.suggestions && msg.suggestions.length > 0"
                 class="suggestion-list"
               >
-                <Card v-for="s in msg.suggestions" :key="s.id" size="small" class="suggestion-card">
-                  <div class="flex items-center gap-2 mb-1.5">
+                <Card
+                  v-for="s in msg.suggestions"
+                  :key="s.id"
+                  size="small"
+                  class="suggestion-card"
+                  :class="`sug-${s.riskLevel}`"
+                >
+                  <div class="sug-head">
                     <Tag
                       :color="riskColor(s.riskLevel)"
                       :bordered="false"
-                      size="small"
+                      class="sug-tag"
                     >
                       {{ riskText(s.riskLevel) }}
                     </Tag>
@@ -903,22 +951,25 @@ onMounted(() => {
                       v-if="s.status === 'executed'"
                       color="green"
                       :bordered="false"
-                      size="small"
-                    >已执行
+                      class="sug-tag"
+                    >
+已执行
                     </Tag>
                     <Tag
                       v-else-if="s.status === 'cancelled'"
                       color="default"
                       :bordered="false"
-                      size="small"
-                    >已取消
+                      class="sug-tag"
+                    >
+已取消
                     </Tag>
                     <Tag
                       v-else-if="s.status === 'failed'"
                       color="red"
                       :bordered="false"
-                      size="small"
-                    >执行失败
+                      class="sug-tag"
+                    >
+执行失败
                     </Tag>
                   </div>
                   <div class="suggestion-desc">{{ s.description }}</div>
@@ -930,7 +981,7 @@ onMounted(() => {
                   </div>
                   <div
                     v-if="!s.executed && s.status !== 'cancelled' && s.status !== 'executed'"
-                    class="flex justify-end gap-2"
+                    class="sug-foot"
                   >
                     <Button
                       size="small"
@@ -969,40 +1020,65 @@ onMounted(() => {
 
           <!-- 底部吸底提示 -->
           <div v-if="messages.length > 0 && !stickToBottom" class="scroll-to-bottom-btn">
-            <Button size="small" type="primary" ghost @click="scrollToBottom(true)">
-              ↓ 回到最新
+            <Button class="to-bottom-btn" @click="scrollToBottom(true)">
+              <template #icon>
+                <ArrowDownOutlined />
+              </template>
+              回到最新
             </Button>
           </div>
         </div>
 
-        <!-- 输入区（吸附底部）：聚焦式编辑器 -->
+        <!-- 输入区（吸附底部）：快捷 chip + 浮起编辑卡片 -->
         <div class="chat-composer">
-          <div class="composer-inner">
-            <Input.TextArea
-              ref="composerRef"
-              v-model:value="inputValue"
-              placeholder="描述你的投放需求，例如：查看今天巨量各账户消耗…"
-              :bordered="false"
-              :auto-size="{ minRows: 1, maxRows: 6 }"
-              :disabled="sending"
-              @keyup="onKeyup"
-            />
-            <div class="composer-toolbar">
-              <span class="composer-tips">Enter 发送 · Shift+Enter 换行</span>
-              <Tooltip title="发送">
-                <Button
-                  type="primary"
-                  shape="circle"
-                  :loading="sending"
-                  :disabled="!inputValue.trim()"
-                  class="composer-send"
-                  @click="sendMessage"
-                >
-                  <template #icon>
-                    <SendOutlined />
-                  </template>
-                </Button>
-              </Tooltip>
+          <div class="composer-shell">
+            <div v-if="messages.length > 0 && !sending" class="composer-chips">
+              <button
+                v-for="card in promptCards"
+                :key="card.title"
+                type="button"
+                class="composer-chip"
+                @click="sendPrompt(card.prompt)"
+              >
+                {{ card.title }}
+              </button>
+            </div>
+            <div
+              class="composer-inner"
+              :class="{ 'composer-inner-locked': sending }"
+            >
+              <Input.TextArea
+                ref="composerRef"
+                v-model:value="inputValue"
+                :placeholder="composerPlaceholder"
+                :bordered="false"
+                :auto-size="{ minRows: 1, maxRows: 6 }"
+                :disabled="sending"
+                @keyup="onKeyup"
+              />
+              <div class="composer-toolbar">
+                <span class="composer-tips" :class="{ 'composer-tips-busy': sending }">
+                  {{
+                    sending
+                      ? "AI 正在回复中，请稍候…"
+                      : "Enter 发送 · Shift+Enter 换行"
+                  }}
+                </span>
+                <Tooltip title="发送">
+                  <Button
+                    type="primary"
+                    shape="circle"
+                    :loading="sending"
+                    :disabled="!inputValue.trim()"
+                    class="composer-send"
+                    @click="sendMessage"
+                  >
+                    <template #icon>
+                      <SendOutlined />
+                    </template>
+                  </Button>
+                </Tooltip>
+              </div>
             </div>
           </div>
         </div>
@@ -1019,6 +1095,42 @@ onMounted(() => {
   height: 100%;
   min-height: 0;
   overflow: hidden;
+
+  /* 纵深分级（中性阴影统一用黑色低透明度，深浅色都成立）：
+     L1 卡片底 / L2 浮层（输入框、粘性条） / L3 悬浮操作（回到最新） */
+  --chat-shadow-l1: 0 1px 2px rgb(0 0 0 / 4%);
+  --chat-shadow-l2: 0 4px 16px rgb(0 0 0 / 6%);
+  --chat-shadow-l3: 0 6px 18px rgb(0 0 0 / 12%);
+}
+
+/* 字号层级（全页仅 4 档，靠字重与颜色区分主次）：
+   20 主标题 / 14 正文 / 13 次要标题与小正文 / 12 辅助信息 */
+
+/* 两张主卡片统一用 L1 阴影，和以下各层的浮起程度拉开档位 */
+.session-card,
+.chat-card {
+  box-shadow: var(--chat-shadow-l1);
+}
+
+/* 项目既有滚动条写法（对齐 VivoCampaign.vue / creativeProduction.vue） */
+.vben-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+
+    &:hover {
+      background: hsl(var(--muted-foreground) / 0.5);
+    }
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 /* ---------- 左：会话卡片 ---------- */
@@ -1033,24 +1145,102 @@ onMounted(() => {
   :deep(.ant-card-body) {
     flex: 1;
     min-height: 0;
-    padding: 8px;
+    padding: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
 }
 
-.session-card-title {
-  font-weight: 600;
-  font-size: 14px;
+/* 顶部品牌区：替代原「对话会话」卡片标题 */
+.session-head {
+  flex: none;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 14px 12px;
 }
 
-.session-body {
+.brand-logo {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  font-size: 16px;
+  color: hsl(var(--primary-foreground));
+  background: linear-gradient(140deg, hsl(var(--primary)), hsl(var(--primary) / 0.62));
+}
+
+.brand-meta {
+  min-width: 0;
+}
+
+.brand-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: hsl(var(--foreground));
+}
+
+.brand-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.session-pad {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
+/* 新建对话：整行软主色按钮 */
+.btn-new {
+  width: 100%;
+  height: 34px;
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.09);
+  border-color: hsl(var(--primary) / 0.22);
+
+  &:hover {
+    color: hsl(var(--primary));
+    background: hsl(var(--primary) / 0.15);
+    border-color: hsl(var(--primary) / 0.4);
+  }
+}
+
+/* 搜索框：无边框灰底，聚焦才出主色描边 */
+.session-search {
+  :deep(.ant-input-affix-wrapper) {
+    padding: 5px 10px;
+    background: hsl(var(--muted) / 0.7);
+    border-color: transparent;
+    border-radius: 8px;
+    box-shadow: none;
+
+    &:hover {
+      background: hsl(var(--muted));
+      border-color: transparent;
+    }
+
+    &.ant-input-affix-wrapper-focused {
+      background: hsl(var(--background));
+      border-color: hsl(var(--primary) / 0.45);
+      box-shadow: none;
+    }
+  }
+
+  :deep(.ant-input) {
+    font-size: 13px;
+    background: transparent;
+  }
 }
 
 .session-scroll {
@@ -1067,13 +1257,13 @@ onMounted(() => {
 }
 
 .session-item {
-  border-radius: 8px;
+  border-radius: 9px;
   cursor: pointer;
-  padding: 8px 8px !important;
+  padding: 8px 9px !important;
   transition: background-color 0.15s ease;
 
   &:hover {
-    background: hsl(var(--muted) / 0.6);
+    background: hsl(var(--muted) / 0.7);
 
     .session-item-del {
       opacity: 1;
@@ -1081,8 +1271,7 @@ onMounted(() => {
   }
 
   &.session-item-active {
-    background: hsl(var(--muted));
-    box-shadow: inset 2px 0 0 hsl(var(--primary));
+    background: hsl(var(--primary) / 0.1);
   }
 
   &-main {
@@ -1106,12 +1295,20 @@ onMounted(() => {
     color: hsl(var(--foreground));
   }
 
-  &-tag {
+  &.session-item-active &-name {
+    color: hsl(var(--primary));
+  }
+
+  /* 平台标识：小圆点降噪，title 悬浮可见平台名 */
+  &-dot {
+    width: 6px;
+    height: 6px;
     flex-shrink: 0;
+    border-radius: 50%;
   }
 
   &-meta {
-    margin-top: 2px;
+    margin-top: 3px;
     font-size: 12px;
     color: hsl(var(--muted-foreground));
   }
@@ -1132,11 +1329,6 @@ onMounted(() => {
   height: 100%;
   overflow: hidden;
 
-  :deep(.ant-card-head) {
-    flex: none;
-    border-block-end: 1px solid hsl(var(--border));
-  }
-
   :deep(.ant-card-body) {
     flex: 1;
     min-height: 0;
@@ -1148,14 +1340,24 @@ onMounted(() => {
 }
 
 .chat-head {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 12px 16px;
   line-height: 1.25;
+  border-bottom: 1px solid hsl(var(--border));
 
   &-logo {
-    border-radius: 8px;
+    width: 30px;
+    height: 30px;
     flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    font-size: 16px;
+    color: hsl(var(--primary-foreground));
+    background: linear-gradient(140deg, hsl(var(--primary)), hsl(var(--primary) / 0.62));
   }
 
   &-meta {
@@ -1174,9 +1376,40 @@ onMounted(() => {
   }
 
   &-sub {
-    margin-top: 2px;
+    margin-top: 3px;
     font-size: 12px;
     color: hsl(var(--muted-foreground));
+  }
+
+  &-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+}
+
+/* 平台 Tag：压掉 antd 默认右边距 */
+.head-platform {
+  margin: 0;
+}
+
+.head-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: hsl(var(--muted-foreground));
+  border-radius: 8px;
+
+  &:hover {
+    color: hsl(var(--primary));
+    background: hsl(var(--muted));
+  }
+
+  &:focus-visible {
+    outline: 2px solid hsl(var(--primary) / 0.5);
+    outline-offset: 1px;
   }
 }
 
@@ -1194,47 +1427,57 @@ onMounted(() => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 20px 24px 28px;
-  background: hsl(var(--background));
+  padding: 22px 24px 26px;
+  /* 顶部极淡主色光晕：给平面白底一点纵深，深浅色模式都成立 */
+  background:
+    radial-gradient(120% 60% at 50% 0%, hsl(var(--primary) / 0.05), transparent 60%),
+    hsl(var(--background));
   position: relative;
 }
 
-/* 空状态 + 快捷提问 */
+/* 居中定宽内容列：对齐主流 AI 对话界面的阅读宽度 */
+.message-scroll > * {
+  max-width: 880px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* 空状态 + 快捷提问（入场编排：logo → 标题 → 副标题 → 卡片依次上浮） */
 .chat-welcome {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 56px 0 24px;
+  padding: 46px 0 24px;
   text-align: center;
 
   &-logo {
+    width: 56px;
+    height: 56px;
     flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 18px;
+    font-size: 26px;
+    color: hsl(var(--primary-foreground));
+    background: linear-gradient(140deg, hsl(var(--primary)), hsl(var(--primary) / 0.55));
+    box-shadow: 0 10px 24px hsl(var(--primary) / 0.22);
+    animation: chat-rise 0.34s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
 
   &-title {
-    margin-top: 18px;
-    font-size: 17px;
+    margin-top: 20px;
+    font-size: 20px;
     font-weight: 600;
+    letter-spacing: -0.2px;
     color: hsl(var(--foreground));
+    animation: chat-rise 0.34s cubic-bezier(0.16, 1, 0.3, 1) 60ms backwards;
   }
 
   &-sub {
-    margin-top: 6px;
-    font-size: 13px;
+    margin-top: 8px;
+    font-size: 14px;
     color: hsl(var(--muted-foreground));
-  }
-
-  &-prompts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-top: 28px;
-    max-width: 640px;
-  }
-
-  &-prompt {
-    border-radius: 18px;
+    animation: chat-rise 0.34s cubic-bezier(0.16, 1, 0.3, 1) 110ms backwards;
   }
 }
 
@@ -1243,6 +1486,8 @@ onMounted(() => {
   display: flex;
   gap: 12px;
   margin-bottom: 22px;
+  /* fill-mode 用 backwards：动画结束后不占用 transform，避免压掉 :hover 的位移 */
+  animation: chat-rise 0.22s ease-out backwards;
 
   &-user {
     flex-direction: row-reverse;
@@ -1252,7 +1497,14 @@ onMounted(() => {
 .msg-avatar {
   flex-shrink: 0;
 
+  &-ai {
+    color: hsl(var(--primary-foreground));
+    background: linear-gradient(140deg, hsl(var(--primary)), hsl(var(--primary) / 0.62));
+  }
+
   &-user {
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--muted));
     border: 1px solid hsl(var(--border));
   }
 }
@@ -1281,20 +1533,30 @@ onMounted(() => {
   }
 }
 
-/* AI 消息 hover 动作组 */
+/* AI 消息 hover 动作组：图标按钮 */
 .msg-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 2px;
-  margin-top: 4px;
+  margin-top: 6px;
   opacity: 0;
   transition: opacity 0.15s ease;
+}
 
-  :deep(.ant-btn) {
-    height: 26px;
-    padding: 0 10px;
-    font-size: 12px;
-    color: hsl(var(--muted-foreground));
+.msg-act-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: hsl(var(--muted-foreground));
+
+  &:hover {
+    color: hsl(var(--primary));
+    background: hsl(var(--muted));
+  }
+
+  &:focus-visible {
+    outline: 2px solid hsl(var(--primary) / 0.5);
+    outline-offset: 1px;
   }
 }
 
@@ -1306,8 +1568,8 @@ onMounted(() => {
 /* 用户气泡 */
 .msg-user-bubble {
   padding: 10px 14px;
-  border-radius: 12px;
-  border-top-right-radius: 4px;
+  border-radius: 14px;
+  border-bottom-right-radius: 4px;
   font-size: 14px;
   line-height: 1.7;
   white-space: pre-wrap;
@@ -1315,21 +1577,38 @@ onMounted(() => {
   max-width: 100%;
 }
 
-/* 思考中 */
+/* 思考中：灰底胶囊 + 弹性三点 */
 .msg-thinking {
-  font-style: italic;
-  color: hsl(var(--muted-foreground));
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 14px;
+  background: hsl(var(--muted) / 0.7);
+  border-radius: 12px;
 
-  &-dot {
-    animation: msg-blink 1.4s infinite both;
+  &-text {
+    font-size: 13px;
+    color: hsl(var(--muted-foreground));
+  }
 
-    &:nth-child(2) {
-      animation-delay: 0.2s;
-    }
+  &-dots {
+    display: inline-flex;
+    gap: 3px;
 
-    &:nth-child(3) {
-      animation-delay: 0.4s;
+    i {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: hsl(var(--primary));
+      animation: msg-blink 1.4s infinite both;
+
+      &:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      &:nth-child(3) {
+        animation-delay: 0.4s;
+      }
     }
   }
 }
@@ -1338,10 +1617,12 @@ onMounted(() => {
   0%,
   80%,
   100% {
-    opacity: 0;
+    opacity: 0.25;
+    transform: translateY(0);
   }
   40% {
     opacity: 1;
+    transform: translateY(-2px);
   }
 }
 
@@ -1352,41 +1633,81 @@ onMounted(() => {
   color: hsl(var(--muted-foreground));
 }
 
-/* 回到最新按钮 */
+/* 回到最新 */
 .scroll-to-bottom-btn {
   position: sticky;
-  bottom: 8px;
+  bottom: 12px;
   display: flex;
   justify-content: center;
   margin-top: -6px;
   z-index: 2;
 }
 
-/* 执行记录 / 建议 */
-.exec-card,
-.suggestion-card {
-  margin-top: 10px;
+.to-bottom-btn {
+  border-radius: 999px;
+  color: hsl(var(--primary));
+  box-shadow: var(--chat-shadow-l3);
 
-  :deep(.ant-card-body) {
-    padding: 10px 12px;
+  &:focus-visible {
+    outline: 2px solid hsl(var(--primary) / 0.5);
+    outline-offset: 1px;
   }
 }
 
-.exec-title {
+/* 执行记录：灰底圆角块（替代 antd Card，弱化「后台表格感」） */
+.exec-card {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: hsl(var(--muted) / 0.45);
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+}
+
+.exec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+
+.exec-head-left {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.exec-pill {
+  padding: 1px 8px;
+  border-radius: 999px;
   font-size: 12px;
-  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
 }
 
 .exec-progress {
-  margin-bottom: 6px;
+  margin-bottom: 10px;
+
+  :deep(.ant-progress-bg) {
+    border-radius: 999px;
+  }
 }
 
 .exec-record {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 0;
-  font-size: 12px;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+
+  &-idx {
+    width: 14px;
+    flex: none;
+    color: hsl(var(--muted-foreground));
+  }
 
   &-name {
     flex: 1;
@@ -1400,57 +1721,168 @@ onMounted(() => {
   &-dur {
     flex-shrink: 0;
     color: hsl(var(--muted-foreground));
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 
+.exec-tag {
+  flex: none;
+  margin: 0;
+  font-size: 12px;
+}
+
+/* 操作建议：左侧风险色条 */
 .suggestion-list {
   display: flex;
   flex-direction: column;
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.suggestion-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+
+  :deep(.ant-card-body) {
+    padding: 12px 14px;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+  }
+
+  &.sug-high::before {
+    background: hsl(var(--destructive));
+  }
+
+  &.sug-medium::before {
+    background: hsl(var(--warning));
+  }
+
+  &.sug-low::before {
+    background: hsl(var(--success));
+  }
+}
+
+.sug-head {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  margin-top: 6px;
+}
+
+.sug-tag {
+  flex: none;
+  margin: 0;
+  font-size: 12px;
+}
+
+.sug-foot {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 11px;
 }
 
 .suggestion-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 13px;
   font-weight: 600;
   color: hsl(var(--foreground));
 }
 
 .suggestion-desc {
-  font-size: 12px;
-  line-height: 1.6;
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.65;
   color: hsl(var(--muted-foreground));
 }
 
 .suggestion-result {
-  margin-top: 8px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: hsl(var(--muted));
+  margin-top: 9px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: hsl(var(--muted) / 0.6);
   font-size: 12px;
   color: hsl(var(--muted-foreground));
   word-break: break-all;
 }
 
-/* 输入区（吸附底部）：聚焦式编辑器 */
+/* 输入区（吸附底部）：快捷 chip + 浮起编辑卡片 */
 .chat-composer {
   flex: none;
-  padding: 10px 14px 12px;
-  border-top: 1px solid hsl(var(--border));
+  padding: 0 24px 16px;
   background: hsl(var(--background));
 }
 
-.composer-inner {
+/* 与消息列同宽（880px），保证输入框与内容左右对齐 */
+.composer-shell {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+/* 快捷提问 chip：仅在有消息时出现，避免与欢迎卡片重复 */
+.composer-chips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 9px;
+  overflow: hidden;
+}
+
+.composer-chip {
+  flex: none;
+  padding: 5px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  border-radius: 12px;
-  background: hsl(var(--background));
-  padding: 6px 10px 0;
+  border-radius: 999px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    color: hsl(var(--primary));
+    border-color: hsl(var(--primary) / 0.5);
+  }
+
+  &:focus-visible {
+    outline: 2px solid hsl(var(--primary) / 0.5);
+    outline-offset: 1px;
+  }
+}
+
+.composer-inner {
+  padding: 8px 8px 8px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 16px;
+  background: hsl(var(--card));
+  box-shadow: var(--chat-shadow-l2);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:focus-within {
     border-color: hsl(var(--primary));
-    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.12);
+    box-shadow:
+      0 0 0 3px hsl(var(--primary) / 0.12),
+      var(--chat-shadow-l2);
+  }
+
+  /* AI 回复中：锁定态 */
+  &-locked,
+  &-locked:focus-within {
+    background: hsl(var(--muted) / 0.45);
+    border-color: hsl(var(--primary) / 0.35);
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.08);
   }
 }
 
@@ -1458,15 +1890,18 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 2px;
-  padding-bottom: 6px;
+  margin-top: 4px;
 }
 
 .composer-tips {
   flex: 1;
-  font-size: 11px;
+  font-size: 12px;
   color: hsl(var(--muted-foreground));
   user-select: none;
+
+  &-busy {
+    color: hsl(var(--primary));
+  }
 }
 
 .composer-send {
@@ -1551,7 +1986,7 @@ onMounted(() => {
     padding: 1px 6px;
     border-radius: 5px;
     background: hsl(var(--muted));
-    font-size: 12.5px;
+    font-size: 13px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 
@@ -1565,7 +2000,7 @@ onMounted(() => {
 
     .md-pre-lang {
       margin-bottom: 6px;
-      font-size: 11px;
+      font-size: 12px;
       color: hsl(var(--muted-foreground));
       text-transform: uppercase;
       letter-spacing: 0.4px;
@@ -1581,24 +2016,48 @@ onMounted(() => {
 /* ==================== 欢迎区模板卡片 ==================== */
 .chat-welcome-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   width: 100%;
-  max-width: 780px;
-  margin-top: 28px;
+  max-width: 660px;
+  margin-top: 30px;
   text-align: left;
+}
+
+/* 模板卡片：接续副标题错峰入场（第 4 个编排点） */
+.chat-welcome-cards > * {
+  animation: chat-rise 0.34s cubic-bezier(0.16, 1, 0.3, 1) 160ms backwards;
+
+  &:nth-child(2) {
+    animation-delay: 200ms;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 240ms;
+  }
+
+  &:nth-child(4) {
+    animation-delay: 280ms;
+  }
 }
 
 .prompt-card {
   cursor: pointer;
   border: 1px solid hsl(var(--border)) !important;
-  border-radius: 10px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  border-radius: 12px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 
   &:hover {
-    border-color: hsl(var(--primary) / 0.6) !important;
-    box-shadow: 0 2px 10px hsl(var(--primary) / 0.08);
-    transform: translateY(-1px);
+    border-color: hsl(var(--primary) / 0.55) !important;
+    box-shadow: 0 6px 18px hsl(var(--primary) / 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* 键盘聚焦：与 hover 同款反馈 + 主色焦点环 */
+  &:focus-visible {
+    border-color: hsl(var(--primary) / 0.55) !important;
+    outline: 2px solid hsl(var(--primary) / 0.5);
+    outline-offset: 2px;
   }
 
   :deep(.ant-card-body) {
@@ -1614,8 +2073,8 @@ onMounted(() => {
     flex-shrink: 0;
     display: grid;
     place-items: center;
-    border-radius: 9px;
-    font-size: 16px;
+    border-radius: 10px;
+    font-size: 17px;
     color: hsl(var(--primary));
     background: hsl(var(--primary) / 0.1);
   }
@@ -1625,15 +2084,45 @@ onMounted(() => {
   }
 
   &-title {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: hsl(var(--foreground));
   }
 
   &-desc {
-    margin-top: 3px;
+    margin-top: 4px;
     font-size: 12px;
+    line-height: 1.5;
     color: hsl(var(--muted-foreground));
+  }
+}
+
+/* ==================== 动效：入场编排 + 降级 ==================== */
+@keyframes chat-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 系统开启「减少动态效果」时：取消入场动画与所有过渡 */
+@media (prefers-reduced-motion: reduce) {
+  .chat-welcome-logo,
+  .chat-welcome-title,
+  .chat-welcome-sub,
+  .chat-welcome-cards > *,
+  .msg-row,
+  .msg-thinking-dots i {
+    animation: none !important;
+  }
+
+  * {
+    transition-duration: 0ms !important;
   }
 }
 </style>

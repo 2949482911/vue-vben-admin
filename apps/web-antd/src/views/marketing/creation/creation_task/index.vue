@@ -1,20 +1,24 @@
 <script lang="ts" setup name="CreationTaskList">
 import type { VbenFormProps } from "@vben/common-ui";
-import { Page } from "@vben/common-ui";
 
 import type { VxeGridProps } from "#/adapter/vxe-table";
-import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import type { CreationTaskItem } from "#/api/models/marketing";
-import { $t } from "@vben/locales";
 
-import { Button, Drawer, Progress, Space, Tag } from "ant-design-vue";
 import { onBeforeUnmount, ref } from "vue";
-import { trimObject } from "#/utils/trim";
-import { creationTaskApi } from "#/api";
-import { TASK_STATUS_SELECT } from "#/constants/locales";
-import { RuleType } from "#/constants/enums";
+
+import { Page, useVbenDrawer } from "@vben/common-ui";
+import { $t } from "@vben/locales";
 import { formatDateTime } from "@vben/utils";
-import TaskDetailDrawer from "./task_drawer_detail.vue";
+
+import { Button, Progress, Space, Tag } from "ant-design-vue";
+
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
+import { creationTaskApi } from "#/api";
+import { RuleType } from "#/constants/enums";
+import { TABLE_COMMON_COLUMNS, TASK_STATUS_SELECT } from "#/constants/locales";
+import { trimObject } from "#/utils/trim";
+
+import TaskDetailPanel from "./task_drawer_detail.vue";
 
 const formOptions: VbenFormProps = {
   schema: [
@@ -55,22 +59,28 @@ const formOptions: VbenFormProps = {
   collapsed: true
 };
 
-// 任务详情抽屉
-const detailVisible = ref(false);
+// 任务详情抽屉（vben useVbenDrawer）
 const selectedTask = ref<CreationTaskItem | null>(null);
+
+const [TaskDetailDrawer, taskDetailDrawerApi] = useVbenDrawer({
+  class: "w-[65%]",
+  contentClass: "p-5",
+  destroyOnClose: true,
+  closeOnPressEscape: true,
+  footer: false,
+  title: "批投任务详情",
+  onClosed() {
+    selectedTask.value = null;
+  }
+});
 
 function openDetail(task: CreationTaskItem) {
   selectedTask.value = task;
-  detailVisible.value = true;
-}
-
-function closeDetail() {
-  detailVisible.value = false;
-  selectedTask.value = null;
+  taskDetailDrawerApi.open();
 }
 
 // 自动刷新：对进行中的任务定期轮询
-let refreshTimer: ReturnType<typeof setInterval> | null = null;
+let refreshTimer: null | ReturnType<typeof setInterval> = null;
 
 function startAutoRefresh() {
   stopAutoRefresh();
@@ -121,6 +131,31 @@ const gridOptions: VxeGridProps<CreationTaskItem> = {
       width: 180
     },
     {
+      field: "commitAdvertiserCount",
+      title: `${$t("marketing.creation.columns.commitAdvertiserCount")}`,
+      width: 100
+    },
+    {
+      field: "commitCampaignCount",
+      title: `${$t("marketing.creation.columns.commitCampaignCount")}`,
+      width: 110
+    },
+    {
+      field: "commitAdGroupCount",
+      title: `${$t("marketing.creation.columns.commitAdGroupCount")}`,
+      width: 110
+    },
+    {
+      field: "commitPromotionCount",
+      title: `${$t("marketing.creation.columns.commitPromotionCount")}`,
+      width: 110
+    },
+    {
+      field: "commitCreativeCount",
+      title: `${$t("marketing.creation.columns.commitCreativeCount")}`,
+      width: 110
+    },
+    {
       field: "projectId",
       title: `${$t("marketing.creation.columns.projectId")}`,
       width: 100
@@ -142,12 +177,7 @@ const gridOptions: VxeGridProps<CreationTaskItem> = {
       title: `${$t("marketing.creation.columns.endTime")}`,
       width: 160
     },
-    {
-      title: "操作",
-      slots: { default: "actions" },
-      width: 100,
-      fixed: "right"
-    }
+    ...TABLE_COMMON_COLUMNS as any
   ],
   proxyConfig: {
     autoLoad: true,
@@ -246,7 +276,7 @@ onBeforeUnmount(() => {
           />
         </div>
       </template>
-      <template #actions="{ row }">
+      <template #action="{ row }">
         <Space>
           <Button size="small" type="link" @click="openDetail(row)">查看详情</Button>
         </Space>
@@ -254,18 +284,8 @@ onBeforeUnmount(() => {
     </Grid>
   </Page>
 
-  <!-- 任务详情抽屉 -->
-  <Drawer
-    :open="detailVisible"
-    title="批投任务详情"
-    :width="880"
-    @close="closeDetail"
-    :destroyOnClose="true"
-  >
-    <TaskDetailDrawer
-      v-if="selectedTask"
-      :task="selectedTask"
-      :auto-poll="true"
-    />
-  </Drawer>
+  <!-- 任务详情抽屉（复用共享详情面板） -->
+  <TaskDetailDrawer>
+    <TaskDetailPanel v-if="selectedTask" :task="selectedTask" />
+  </TaskDetailDrawer>
 </template>

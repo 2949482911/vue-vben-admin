@@ -25,9 +25,9 @@ import type {
 
 import { ref, watch } from "vue";
 
-import { useVbenModal } from "@vben/common-ui";
+import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
 
-import { Drawer, message, Select } from "ant-design-vue";
+import { message, Select } from "ant-design-vue";
 
 import { Platform } from "#/constants/enums";
 import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
@@ -184,10 +184,19 @@ const currentTask = ref<null | {
   platform: string;
   projectId: string
 }>(null);
-/** 结果抽屉开关 */
-const resultDrawerOpen = ref(false);
 /** 是否有进行中的任务（控制工具栏「查看任务进度」按钮显隐） */
 const taskInProgress = ref(false);
+
+/** 结果抽屉（vben useVbenDrawer，内部复用共享详情面板） */
+const [TaskResultDrawer, taskResultDrawerApi] = useVbenDrawer({
+  connectedComponent: BatchTaskResultDrawer
+});
+
+/** 打开结果抽屉（任务信息通过模板上的 :task 传入） */
+function openResultDrawer() {
+  if (!currentTask.value) return;
+  taskResultDrawerApi.open();
+}
 
 /**
  * 提交成功回调 - 自动打开结果抽屉
@@ -200,27 +209,18 @@ function handleTaskCreated(data: { taskId: string; taskName: string }) {
     projectId: creationInfo.value.project.projectId
   };
   taskInProgress.value = true;
-  resultDrawerOpen.value = true;
+  openResultDrawer();
 }
 
 /**
  * 查看任务进度（从工具栏按钮触发）
  */
 function viewTaskProgress() {
-  if (currentTask.value) {
-    resultDrawerOpen.value = true;
-  }
+  openResultDrawer();
 }
 
 /**
- * 抽屉关闭回调
- */
-function onResultDrawerClose() {
-  resultDrawerOpen.value = false;
-}
-
-/**
- * 任务完成回调（由 BatchTaskResultDrawer emit）
+ * 任务完成回调（由结果抽屉 emit）
  */
 function onTaskCompleted(_status: number) {
   // 任务执行完毕，按钮在任务完成后仍然显示（用户可能需要查看结果），但不再标记为进行中
@@ -230,7 +230,7 @@ function genPreviewTableData() {
   // 点击生成广告预览即开启新一轮配置，清空上个任务进度信息并隐藏「查看任务进度」按钮
   currentTask.value = null;
   taskInProgress.value = false;
-  resultDrawerOpen.value = false;
+  taskResultDrawerApi.close();
   adList.value = getPreviewTableData(creationInfo.value);
 }
 
@@ -655,23 +655,8 @@ function resetCreationInfo() {
       @result:error="(err: any) => { console.error(err); }"
     />
 
-    <!-- 批投任务结果抽屉 -->
-    <Drawer
-      :open="resultDrawerOpen"
-      title="批投任务执行结果"
-      :width="800"
-      @close="onResultDrawerClose"
-      :destroy-on-close="false"
-    >
-      <BatchTaskResultDrawer
-        v-if="currentTask"
-        :task-id="currentTask.taskId"
-        :task-name="currentTask.taskName"
-        :platform="currentTask.platform"
-        :project-id="currentTask.projectId"
-        @task-completed="onTaskCompleted"
-      />
-    </Drawer>
+    <!-- 批投任务执行结果抽屉（内部复用共享详情面板） -->
+    <TaskResultDrawer :task="currentTask" @task-completed="onTaskCompleted" />
   </BatchCreateLayout>
 </template>
 

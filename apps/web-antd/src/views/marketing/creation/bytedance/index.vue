@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import { useVbenModal } from "@vben/common-ui";
-import { Drawer, message, Select } from "ant-design-vue";
-import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
-import ConfigurationConfig from "../components/configurationArea.vue";
-import { ref, watch } from "vue";
 import type { BytedanceCampaignData, BytedanceCreation, BytedanceCreationData, BytedancePromotionData } from "./bytedance";
-import { BYTEDANCE } from "./bytedance";
-import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import type { AwemeConfigData } from "./bytedance";
+
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import type {
   AccountInfo,
   AudienceConfigData,
@@ -21,22 +16,33 @@ import type {
   RuleOptions,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+
+import { ref, watch } from "vue";
+
+import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
+
+import { message, Select } from "ant-design-vue";
+
 import { Platform } from "#/constants/enums";
-import { BYTEDANCE_MARKETING_TYPE } from "#/views/marketing/creation/bytedance/enums";
 import BytedanceBaseTemplate
   from "#/views/marketing/creation/bytedance/components/base/base_template.vue";
 import BytedancePreviewArea
   from "#/views/marketing/creation/bytedance/components/BytedancePreviewArea.vue";
-import { getPreviewTableData } from "#/views/marketing/creation/bytedance/convertToPreviewData";
 import MarketingProductDouyinTemplate
   from "#/views/marketing/creation/bytedance/components/marketing_product_douyin/MarketingProductDouyinTemplate.vue";
 import MiniProgramDouyinTemplate
   from "#/views/marketing/creation/bytedance/components/mini_program_douyin/MiniProgramDouyinTemplate.vue";
-import Function from "#/views/marketing/creation/components/Function.vue";
+import { getPreviewTableData } from "#/views/marketing/creation/bytedance/convertToPreviewData";
+import { BYTEDANCE_MARKETING_TYPE } from "#/views/marketing/creation/bytedance/enums";
+import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
-import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
+import Function from "#/views/marketing/creation/components/Function.vue";
 import BatchTaskResultDrawer from "#/views/marketing/creation/components/result/BatchTaskResultDrawer.vue";
+import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
+import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
+
+import ConfigurationConfig from "../components/configurationArea.vue";
+import { BYTEDANCE } from "./bytedance";
 
 
 // 提交弹窗
@@ -51,11 +57,20 @@ const [SubmitModal, submitApi] = useVbenModal({
 
 // ==================== 批投任务结果跟踪 ====================
 /** 当前正在执行的批投任务信息 */
-const currentTask = ref<{ taskId: string; taskName: string; platform: string; projectId: string } | null>(null);
-/** 结果抽屉开关 */
-const resultDrawerOpen = ref(false);
+const currentTask = ref<null | { taskId: string; taskName: string; platform: string; projectId: string }>(null);
 /** 是否有进行中的任务（控制工具栏「查看任务进度」按钮显隐） */
 const taskInProgress = ref(false);
+
+/** 结果抽屉（vben useVbenDrawer，内部复用共享详情面板） */
+const [TaskResultDrawer, taskResultDrawerApi] = useVbenDrawer({
+  connectedComponent: BatchTaskResultDrawer
+});
+
+/** 打开结果抽屉（任务信息通过模板上的 :task 传入） */
+function openResultDrawer() {
+  if (!currentTask.value) return;
+  taskResultDrawerApi.open();
+}
 
 /**
  * 提交成功回调 - 自动打开结果抽屉
@@ -68,27 +83,18 @@ function handleTaskCreated(data: { taskId: string; taskName: string }) {
     projectId: creationInfo.value.project.projectId,
   };
   taskInProgress.value = true;
-  resultDrawerOpen.value = true;
+  openResultDrawer();
 }
 
 /**
  * 查看任务进度（从工具栏按钮触发）
  */
 function viewTaskProgress() {
-  if (currentTask.value) {
-    resultDrawerOpen.value = true;
-  }
+  openResultDrawer();
 }
 
 /**
- * 抽屉关闭回调
- */
-function onResultDrawerClose() {
-  resultDrawerOpen.value = false;
-}
-
-/**
- * 任务完成回调（由 BatchTaskResultDrawer emit）
+ * 任务完成回调（由结果抽屉 emit）
  */
 function onTaskCompleted(_status: number) {
   // 任务执行完毕，更新按钮状态
@@ -224,7 +230,7 @@ function resetCreationInfo() {
 function genPreviewTableData() {
   currentTask.value = null;
   taskInProgress.value = false;
-  resultDrawerOpen.value = false;
+  taskResultDrawerApi.close();
   adList.value = getPreviewTableData(creationInfo.value);
   console.log(adList.value);
 }
@@ -853,26 +859,11 @@ watch(() => creationInfo, (_) => {
       <SubmitModal
         :creation-info="creationInfo"
         :ad-list="adList"
-        @result:getCreationTask="handleTaskCreated"
+        @result:get-creation-task="handleTaskCreated"
       />
 
-      <!-- 批投任务结果抽屉 -->
-      <Drawer
-        :open="resultDrawerOpen"
-        title="批投任务执行结果"
-        :width="800"
-        @close="onResultDrawerClose"
-        :destroyOnClose="false"
-      >
-        <BatchTaskResultDrawer
-          v-if="currentTask"
-          :task-id="currentTask.taskId"
-          :task-name="currentTask.taskName"
-          :platform="currentTask.platform"
-          :project-id="currentTask.projectId"
-          @task-completed="onTaskCompleted"
-        />
-      </Drawer>
+      <!-- 批投任务执行结果抽屉（内部复用共享详情面板） -->
+      <TaskResultDrawer :task="currentTask" @task-completed="onTaskCompleted" />
     </BatchCreateLayout>
 </template>
 
