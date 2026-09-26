@@ -3,14 +3,14 @@ import type { VbenFormSchema } from '@vben/common-ui';
 import type { Recordable } from '@vben/types';
 
 import { computed, h, ref } from 'vue';
+import {useRouter} from "vue-router";
 
 import { AuthenticationRegister, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
-import {authApi} from "#/api";
-import {useRouter} from "vue-router";
-const router = useRouter();
-defineOptions({ name: 'Register' });
 
+import {authApi} from "#/api";
+defineOptions({ name: 'Register' });
+const router = useRouter();
 const loading = ref(false);
 
 const formSchema = computed((): VbenFormSchema[] => {
@@ -70,7 +70,11 @@ const formSchema = computed((): VbenFormSchema[] => {
       label: $t('authentication.confirmPassword'),
     },
     {
-      component: 'VbenCheckbox',
+      // 必须用 'Checkbox'（antd 的 Checkbox，走 v-model:checked）
+      // 用 'VbenCheckbox' 会取到内置的 shadcn Checkbox，它只认 modelValue，
+      // 而表单按 'checked' 绑定，勾选后值传不回表单，协议校验永远不通过
+      component: 'Checkbox',
+      defaultValue: false,
       fieldName: 'agreePolicy',
       renderComponentContent: () => ({
         default: () =>

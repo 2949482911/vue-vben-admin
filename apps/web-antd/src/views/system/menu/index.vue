@@ -1,8 +1,10 @@
 <script lang="ts" setup name="MenuManager">
 import type { VxeGridProps } from "#/adapter/vxe-table";
-import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import type { CreateMenuRequest, MenuItem, UpdateMenuRequest } from "#/api/models/menu";
 
+import { computed } from "vue";
+
+import { useAccess } from "@vben/access";
 import { Page, useVbenDrawer } from "@vben/common-ui";
 import { IconifyIcon } from "@vben/icons";
 import { $t } from "@vben/locales";
@@ -10,10 +12,23 @@ import { $t } from "@vben/locales";
 import { MenuBadge } from "@vben-core/menu-ui";
 
 import { Button, Tag } from "ant-design-vue";
+
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import { menuApi } from "#/api";
 import { BatchOptionsType } from "#/constants/locales";
 
 import CreateMenu from "./create-menu.vue";
+
+/**
+ * 超级管理员角色标识：后端 roleType=1，
+ * 登录后 userStore.userRoles 存的是它的字符串形式（见 @vben/stores 的 setUserInfo）
+ */
+const SUPER_ADMIN_ROLE = "1";
+
+const { hasAccessByRoles } = useAccess();
+
+/** 菜单的增删改只对超级管理员开放 */
+const canManageMenu = computed(() => hasAccessByRoles([SUPER_ADMIN_ROLE]));
 
 const [CreateMenuDrawer, createMenuDrawerApi] = useVbenDrawer({
   connectedComponent: CreateMenu
@@ -199,22 +214,30 @@ const pageReload = () => {
       </template>
 
       <template #action="{ row }">
-        <Button
-          type="link"
-          @click="openBaseDrawer({ parentId: row.id, sort: row.sort + 1 })"
-        >
-          {{ $t("common.create") }}
-        </Button>
-        <Button type="link" @click="openBaseDrawer(row)">
-          {{ $t("common.edit") }}
-        </Button>
-        <Button type="link" @click="handlerDeleteMenu(row.id)">
-          {{ $t("common.delete") }}
-        </Button>
+        <!-- 非超级管理员不展示菜单维护按钮 -->
+        <template v-if="canManageMenu">
+          <Button
+            type="link"
+            @click="openBaseDrawer({ parentId: row.id, sort: row.sort + 1 })"
+          >
+            {{ $t("common.create") }}
+          </Button>
+          <Button type="link" @click="openBaseDrawer(row)">
+            {{ $t("common.edit") }}
+          </Button>
+          <Button type="link" @click="handlerDeleteMenu(row.id)">
+            {{ $t("common.delete") }}
+          </Button>
+        </template>
       </template>
 
       <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="openBaseDrawer(null)">
+        <Button
+          v-if="canManageMenu"
+          class="mr-2"
+          type="primary"
+          @click="openBaseDrawer(null)"
+        >
           {{ $t("common.create") }}
         </Button>
         <Button class="mr-2" type="primary" @click="expandAll">
@@ -225,7 +248,6 @@ const pageReload = () => {
     </Grid>
     <CreateMenuDrawer @page-reload="pageReload" />
   </Page>
-
 </template>
 
 <style lang="less" scoped>

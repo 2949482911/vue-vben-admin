@@ -1,18 +1,19 @@
 <script lang="ts" setup name="CreateRole">
+import type { BasicRole } from "@vben-core/typings/src/basic";
+
 import type { CreateRoleRequest, UpdateRoleRequest } from "#/api/models";
 import type { MenuItem } from "#/api/models/menu";
-import type { BasicRole } from "@vben-core/typings/src/basic";
 
 import { computed, onMounted, ref } from "vue";
 
 import { Tree, useVbenDrawer } from "@vben/common-ui";
 import { IconifyIcon } from "@vben/icons";
 import { $t } from "@vben/locales";
+import { useUserStore } from "@vben/stores";
 
 import { useVbenForm } from "#/adapter/form";
 import { menuApi, roleApi } from "#/api";
 import { ROLE_TYPE_OPTIONS } from "#/constants/locales";
-import { useUserStore } from "@vben/stores";
 
 const emit = defineEmits(["pageReload"]);
 const userStore = useUserStore();
@@ -41,8 +42,6 @@ const roleType = ref<Array<{ label: string, value: number }>>([
   }
 ]);
 // const menuParentIds = ref<string[]>([]);
-
-const checkedKeys = ref<string[]>([]);
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -98,23 +97,12 @@ const [Form, formApi] = useVbenForm({
       label: `${$t("system.role.columns.comment")}`
     },
     {
+      // 树在模板的 #menuIds 插槽里渲染（vben 的 Tree，model 是 modelValue），
+      // 所以这里不写 componentProps；app 注册的 'Tree' 是 antd 的 Tree（model 是 checkedKeys），
+      // 两者模型名不同，插槽里必须用 componentField 绑定，不能整包 spread slotProps
       component: "Tree",
       rules: "required",
       formItemClass: 'w-[600px]',
-      componentProps: {
-        treeData: menuData,
-        checkable: true,
-        multiple: true,
-        checkStrictly: false,
-        fieldNames: {
-          key: "id",
-          children: "children",
-          title: "title"
-        },
-        autoCheckParent: true,
-        defaultExpandedLevel: 2,
-        checkedKeys: checkedKeys
-      },
       fieldName: "menuIds",
       label: `${$t("system.role.columns.menuIds")}`
     }
@@ -145,7 +133,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onCancel() {
     drawerApi.close();
     isUpdate.value = false;
-    checkedKeys.value = [];
   },
   async onConfirm() {
     const result = await formApi.validate();
@@ -160,13 +147,12 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (isOpen) {
       formApi.resetForm();
       createObject.value = drawerApi.getData<Record<string, any>>() as CreateRoleRequest | UpdateRoleRequest;
+      // 编辑：把角色已有的 menuIds 写进表单，树由表单值回显（角色列表接口已带回 menuIds）
       if (createObject.value.id) {
         isUpdate.value = true;
-        checkedKeys.value = createObject.value.menuIds || [];
         handleSetFormValue(createObject.value);
       } else {
         isUpdate.value = false;
-        checkedKeys.value = [];
       }
       menuApi.fetchMenuTree().then((res) => {
         menuData.value = res;
@@ -215,19 +201,24 @@ const title = computed(() =>
   <Drawer :title="title">
     <Form>
       <template #menuIds="slotProps">
+        <!--
+          componentField 里有 modelValue + onUpdate:modelValue（写回表单字段 menuIds）。
+          原来整包 v-bind="slotProps"：只有 modelValue，没有 onUpdate:modelValue，
+          勾选结果永远回不到表单 —— 新建时 required 校验不过、编辑时新增的权限被丢弃。
+        -->
         <Tree
+          v-bind="slotProps.componentField"
           :tree-data="menuData"
           :multiple="true"
           bordered
           :check-strictly="false"
           :default-expanded-level="2"
-          v-bind="slotProps"
+          :include-indeterminate="true"
           :get-node-class="getNodeClass"
           value-field="id"
           label-field="title"
           icon-field="meta.icon"
-          :defaultValue="checkedKeys"
-          :autoCheckParent="true"
+          :auto-check-parent="true"
         >
           <template #node="{ value }">
             <IconifyIcon v-if="value.icon" :icon="value.icon" />
