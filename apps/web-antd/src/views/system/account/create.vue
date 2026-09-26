@@ -12,7 +12,9 @@ import { SEX_SELECT } from '#/constants/locales';
 
 const emit = defineEmits(['pageReload']);
 
-const notice = ref<OrgCreateRequest>({});
+const notice = ref<OrgCreateRequest>({
+  id: "", name: "", parentId: ""
+});
 const menuData = ref([]);
 const roleData = ref([]);
 const dataRangeData = ref([]);

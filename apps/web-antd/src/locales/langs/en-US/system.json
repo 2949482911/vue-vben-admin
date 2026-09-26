@@ -156,7 +156,10 @@
       "sex": "Sex",
       "roleIds": "Role",
       "password": "password",
-      "dataRangeId": "Data Range"
+      "dataRangeId": "Data Range",
+      "lastTime": "Last Login",
+      "loginIp": "Login IP",
+      "remark": "Remark"
     }
   },
   "data_scope": {

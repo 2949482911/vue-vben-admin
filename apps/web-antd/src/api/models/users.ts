@@ -53,6 +53,16 @@ export interface UserItem extends BaseItem {
   sex: number;
   roleIds: string[];
   roleList: RoleItem[],
+  /** 登录IP，列表接口一并返回 */
+  loginIp?: string;
+  /** 最后登录时间（后端已格式化的字符串） */
+  lastTime?: string;
+  remark?: string;
+  /** 所属组织名称 / 编码，列表接口一并返回，便于直接展示 */
+  orgName?: string;
+  orgCode?: string;
+  /** 数据权限ID */
+  dataRangeId?: string;
 }
 
 /**

@@ -157,7 +157,10 @@
       "sex": "性别",
       "roleIds": "角色",
       "password": "密码",
-      "dataRangeId": "数据权限"
+      "dataRangeId": "数据权限",
+      "lastTime": "最后登录",
+      "loginIp": "登录IP",
+      "remark": "备注"
     }
   },
   "data_scope": {

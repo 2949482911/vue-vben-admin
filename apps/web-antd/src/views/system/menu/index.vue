@@ -54,7 +54,7 @@ function getMenuTypeOptions() {
     { color: "error", label: $t("system.menu.type.button"), value: 3 }
   ];
 }
-
+//@ts-ignore
 const gridOptions: VxeGridProps<MenuItem> = {
   columns: [
     {
@@ -152,7 +152,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
 /**
  * delete menu
  */
-const handlerDeleteMenu = async (id) => {
+const handlerDeleteMenu = async (id: any) => {
   await menuApi.fetchBatchOptions({
     targetIds: [id],
     type: BatchOptionsType.Delete,
