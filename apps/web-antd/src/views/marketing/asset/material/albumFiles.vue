@@ -236,9 +236,9 @@ defineExpose({
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex min-h-0 flex-1 flex-col">
     <!-- 面包屑 + 统计 -->
-    <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <div class="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-1 text-sm">
         <FolderOpenOutlined class="mr-1 text-[#f5a623]" />
         <template v-for="(item, index) in props.treeItem" :key="item?.id || index">
@@ -268,7 +268,11 @@ defineExpose({
       </span>
     </div>
 
-    <Spinner :spinning="isShowLoading" class="min-h-[200px]">
+    <!-- 素材网格：占满卡片剩余高度并内部滚动，素材再多也不会撑高整页 -->
+    <Spinner
+      :spinning="isShowLoading"
+      class="flex min-h-0 flex-1 flex-col overflow-hidden"
+    >
       <!-- 空状态 -->
       <Empty
         v-if="displayList.length === 0"
@@ -277,10 +281,10 @@ defineExpose({
         class="!py-16"
       />
 
-      <!-- 素材卡片网格 -->
+      <!-- 素材卡片网格：自身即滚动容器，占满剩余高度，素材再多也不撑高整页 -->
       <div
         v-else
-        class="grid gap-4"
+        class="material-grid grid min-h-0 flex-1 gap-4 overflow-y-auto pr-1"
         style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));"
       >
         <!-- 文件夹卡片 -->
@@ -452,7 +456,10 @@ defineExpose({
     </Spinner>
 
     <!-- 分页 -->
-    <div v-if="pages.total > pages.pageSize" class="mt-4 flex justify-end border-t border-gray-100 pt-3">
+    <div
+      v-if="pages.total > pages.pageSize"
+      class="mt-4 flex shrink-0 justify-end border-t border-gray-100 pt-3"
+    >
       <Pagination
         show-size-changer
         v-model:current="pages.current"
@@ -501,6 +508,13 @@ defineExpose({
 
 <style scoped lang="scss">
 /* 只保留布局定位所需样式，表层背景一律交由 antd Card / Tag / Button 原生提供 */
+
+/* 网格容器高度确定后，align-content 默认的 stretch 会把隐式行拉高填满容器，
+   导致卡片（尤其目录下只有文件夹时）被撑大；改为 start，行高只按内容计算 */
+.material-grid {
+  align-content: start;
+}
+
 .material-card {
   cursor: pointer;
 

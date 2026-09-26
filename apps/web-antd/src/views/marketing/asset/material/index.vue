@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { $t } from "@vben/locales";
 import type { TreeProps } from "ant-design-vue";
-import {
-  Badge,
-  Button,
-  Card,
-  Col,
-  DirectoryTree,
-  Divider,
-  Dropdown,
-  Input,
-  Menu,
-  MenuItem,
-  message,
-  Row,
-  Space
-} from "ant-design-vue";
+import type { Key } from "ant-design-vue/es/vc-tree-select/interface";
+
+import type { ComponentPublicInstance } from "vue";
+
+import type { MaterialLibraryFolderType } from "./materialType";
+
+import type { VbenFormProps } from "#/adapter/form";
+import type { FolderItem } from "#/api/models";
+import type { MaterialItem } from "#/api/models/assert";
+import type { MaterialListParams } from "#/api/models/marketing";
+
+import { computed, nextTick, onMounted, ref, watch } from "vue";
+
+import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+
 import {
   CheckSquareOutlined,
   ClearOutlined,
@@ -29,22 +29,28 @@ import {
   SendOutlined,
   UploadOutlined
 } from "@ant-design/icons-vue";
-import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
+import {
+  Badge,
+  Button,
+  Card,
+  DirectoryTree,
+  Divider,
+  Dropdown,
+  Input,
+  Menu,
+  MenuItem,
+  message,
+  Space
+} from "ant-design-vue";
+
 import { useVbenForm } from "#/adapter/form";
-import type { VbenFormProps } from "#/adapter/form";
-import type { ComponentPublicInstance } from "vue";
-import { computed, nextTick, onMounted, ref, watch } from "vue";
-import NewFolder from "./newFolder.vue";
-import UploadMaterials from "./uploadMaterials.vue";
+import { materialLibraryApi } from "#/api/core";
+
 import AlbumFiles from "./albumFiles.vue";
+import NewFolder from "./newFolder.vue";
 import PushMaterialDrawer from "./PushMaterialDrawer.vue";
 import PushTaskListDrawer from "./PushTaskListDrawer.vue";
-import { materialLibraryApi } from "#/api/core";
-import type { Key } from "ant-design-vue/es/vc-tree-select/interface";
-import type { FolderItem } from "#/api/models";
-import type { MaterialListParams } from "#/api/models/marketing";
-import type { MaterialItem } from "#/api/models/assert";
-import type { MaterialLibraryFolderType } from "./materialType";
+import UploadMaterials from "./uploadMaterials.vue";
 
 // 树的数据
 const treeData = ref<TreeProps["treeData"]>([]);
@@ -351,7 +357,7 @@ function handleToggleMaterialSelect(material: MaterialItem) {
 // ==================== 树操作 ====================
 function findPathNodes(
   tree: any[],
-  targetId: string | number,
+  targetId: number | string,
   path: any[] = []
 ): any[] | null {
   for (const node of tree) {
@@ -416,18 +422,17 @@ const selectedCount = computed(() => selectedMaterials.value.length);
 
 <template>
   <Page auto-content-height>
-    <Row :gutter="[16, 16]">
-      <!-- 素材筛选 -->
-      <Col :span="24">
-        <Card>
-          <FilterForm />
-        </Card>
-      </Col>
+    <div class="material-page">
+      <!-- 素材筛选：按内容高度固定，不参与伸缩 -->
+      <Card class="material-filter">
+        <FilterForm />
+      </Card>
 
-      <!-- 左侧：素材目录 -->
-      <Col :xs="24" :xl="7">
-        <Card class="!h-full" :bordered="true">
-          <div class="mb-3 flex items-center justify-between">
+      <!-- 目录 + 素材：占满剩余高度，各自内部滚动 -->
+      <div class="material-body">
+        <!-- 左侧：素材目录 -->
+        <Card class="material-tree" :bordered="true">
+          <div class="mb-3 flex shrink-0 items-center justify-between">
             <div class="flex items-center gap-2">
               <FolderFilled class="text-[#f5a623]" />
               <span class="text-[15px] font-semibold text-gray-800">素材目录</span>
@@ -450,18 +455,18 @@ const selectedCount = computed(() => selectedMaterials.value.length);
             v-model:value="keyword"
             allow-clear
             size="middle"
+            class="!mb-2 shrink-0"
             placeholder="搜索目录"
-            class="!mb-2"
           >
             <template #prefix>
               <SearchOutlined class="text-gray-400" />
             </template>
           </Input>
 
-          <div class="max-h-[calc(100vh-260px)] overflow-auto pr-1">
+          <div class="tree-scroll">
             <DirectoryTree
-              v-model:selectedKeys="selectedKeys"
-              v-model:expandedKeys="expandedKeys"
+              v-model:selected-keys="selectedKeys"
+              v-model:expanded-keys="expandedKeys"
               :tree-data="filteredTree"
               :field-names="{
                 title: 'name',
@@ -500,12 +505,10 @@ const selectedCount = computed(() => selectedMaterials.value.length);
             </DirectoryTree>
           </div>
         </Card>
-      </Col>
 
-      <!-- 右侧：工具栏 + 素材内容 -->
-      <Col :xs="24" :xl="17">
-        <Card class="!h-full">
-          <div class="mb-4">
+        <!-- 右侧：工具栏 + 素材内容 -->
+        <Card class="material-main">
+          <div class="mb-4 shrink-0">
             <Space wrap :size="8">
               <Button type="primary" @click="upMaterial">
                 <template #icon>
@@ -562,16 +565,16 @@ const selectedCount = computed(() => selectedMaterials.value.length);
             @open-file="newBuilt"
             @breadcrumb-click="handleBreadcrumbJump"
             @toggle-material-select="handleToggleMaterialSelect"
-            :treeItem="treeItem ?? []"
-            :selectedMaterialIds="selectedMaterialIds"
-            :filterParams="filterParams"
+            :tree-item="treeItem ?? []"
+            :selected-material-ids="selectedMaterialIds"
+            :filter-params="filterParams"
           />
         </Card>
-      </Col>
-    </Row>
+      </div>
+    </div>
 
-    <NewFolderModal @treeNode="requestTreeNode" :treeData="treeData" :idEdit="idEditStr" />
-    <UploadMaterialsModal @treeNode="requestTreeNode" :treeData="treeData" />
+    <NewFolderModal @tree-node="requestTreeNode" :tree-data="treeData" :id-edit="idEditStr" />
+    <UploadMaterialsModal @tree-node="requestTreeNode" :tree-data="treeData" />
     <PushMaterialDrawerModal
       @closed="selectedMaterials = []"
       :materials="selectedMaterials"
@@ -581,6 +584,90 @@ const selectedCount = computed(() => selectedMaterials.value.length);
 </template>
 
 <style scoped lang="scss">
+/* 整页锁高：页面自然填满内容区，素材在卡片内部滚动，不再撑出页面滚动条 */
+.material-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+/* 筛选区按内容高度固定，不参与伸缩 */
+.material-filter {
+  flex: none;
+}
+
+/* 目录 + 素材：占满筛选区之外的剩余高度 */
+.material-body {
+  display: flex;
+  flex: 1;
+  gap: 16px;
+  min-height: 0;
+}
+
+/* 左：目录树，按原 24 栅格中 7 份的占比，树自身滚动 */
+.material-tree {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 29%;
+  min-width: 240px;
+  overflow: hidden;
+
+  :deep(.ant-card-body) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+.tree-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+/* 右：素材区，吃掉剩余宽度，网格在内部滚动 */
+.material-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+
+  :deep(.ant-card-body) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+/* 窄屏回退：恢复上下堆叠，并交回页面整体滚动 */
+@media (max-width: 1199px) {
+  .material-page {
+    height: auto;
+  }
+
+  .material-body {
+    flex-direction: column;
+  }
+
+  .material-tree {
+    width: 100%;
+    max-height: 320px;
+  }
+
+  .material-main {
+    min-height: 420px;
+  }
+}
+
 :deep(.dir-node) {
   display: flex;
   align-items: center;

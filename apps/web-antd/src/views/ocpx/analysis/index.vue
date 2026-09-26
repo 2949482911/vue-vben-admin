@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { ocpxTaskApi } from "#/api";
-import { computed, onMounted, ref, reactive } from "vue";
 import type { ReportAnalysisOcpxRequest, ReportAnalysisOcpxResponse } from "#/api/models";
+
+import { computed, onMounted, reactive, ref } from "vue";
+
+import { Loading, Page } from '@vben/common-ui';
+import {$t} from '@vben/locales';
+
 import { Button, Card, Col, RangePicker, Row, Select, Space, Statistic } from "ant-design-vue";
 import dayjs from "dayjs";
+
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import {$t} from '@vben/locales';
+import { ocpxTaskApi } from "#/api";
 import { PLATFORM } from "#/constants/locales";
-import { Loading, Page } from '@vben/common-ui';
 
 const allData = ref<any>([]); // 全部数据
 const tableColumns = ref<any[]>([]); // 表头
@@ -78,6 +82,7 @@ const gridOptions: VxeGridProps = {
     useKey: true,
     keyField: '_seq',
   },
+  height: 'auto'
 };
 
 const [Grid, gridApi] = useVbenVxeGrid({ gridOptions, gridEvents });
@@ -150,7 +155,7 @@ const summaryData = computed(() => {
 
   // total 是一个数组，取第一个元素
   const totalItem = total[0] as any;
-  const clickCnt = totalItem[ocpxAnalysisResponse.value.cname['click_cnt']] || 0;
+  const clickCnt = totalItem[ocpxAnalysisResponse.value.cname.click_cnt] || 0;
   const eventCnt = ocpxAnalysisResponse.value.totalEventCnt || 0;
 
   // 计算转化率（万分比精度）
@@ -161,7 +166,7 @@ const summaryData = computed(() => {
 
   return {
     totalClickCount: clickCnt,
-    totalExposureCount: totalItem[ocpxAnalysisResponse.value.cname['show_cnt']] || 0,
+    totalExposureCount: totalItem[ocpxAnalysisResponse.value.cname.show_cnt] || 0,
     totalAmount: ocpxAnalysisResponse.value.totalAmount || 0,
     totalEventCnt: eventCnt,
     assessmentAmount: ocpxAnalysisResponse.value.assessmentAmount || 0,
@@ -208,7 +213,7 @@ function updateTableStructure(columns: string[], footData: any) {
       width: "auto",
       sortable: true,
       showOverflow: true,
-      fixed: fixed
+      fixed
     });
   });
 
@@ -279,15 +284,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <Page content-class="p-5">
-    <Loading  :spinning="loading">
-      <Space direction="vertical" :size="16" class="w-full">
+  <Page auto-content-height>
+    <Loading :spinning="loading" class="h-full min-h-0">
+      <div class="ocpx-body">
         <!-- 第一块：筛选条件 -->
-        <Card>
+        <Card class="ocpx-filter">
           <Space :size="16" wrap>
             <!-- 时间筛选 -->
             <Space align="center">
-              <span>{{$t('ocpx.analytics.dateRange')}}：</span>
+              <span>{{ $t('ocpx.analytics.dateRange') }}：</span>
               <RangePicker
                 :value="[dayjs(dateRange[0]), dayjs(dateRange[1])]"
                 @change="handleDateRangeChange"
@@ -296,7 +301,7 @@ onMounted(() => {
 
             <!-- 维度多选 -->
             <Space align="center">
-              <span>{{$t('ocpx.analytics.dims')}}：</span>
+              <span>{{ $t('ocpx.analytics.dims') }}：</span>
               <Select
                 v-model:value="ocpxAnalysisRequest.dimensions"
                 mode="multiple"
@@ -309,7 +314,7 @@ onMounted(() => {
 
             <!-- 平台筛选 -->
             <Space align="center">
-              <span>{{$t('ocpx.platform.title')}}：</span>
+              <span>{{ $t('ocpx.platform.title') }}：</span>
               <Select
                 v-model:value="ocpxAnalysisRequest.platforms"
                 mode="multiple"
@@ -321,7 +326,7 @@ onMounted(() => {
 
 
             <Space align="center">
-              <span>{{$t('ocpx.ocpx_task.columns.taskType')}}：</span>
+              <span>{{ $t('ocpx.ocpx_task.columns.taskType') }}：</span>
               <Select
                 v-model:value="ocpxAnalysisRequest.taskType"
                 mode="multiple"
@@ -338,7 +343,7 @@ onMounted(() => {
         </Card>
 
         <!-- 第二块：指标卡片 -->
-        <Card>
+        <Card class="ocpx-kpi">
           <Row :gutter="16">
             <Col :span="6">
               <Card>
@@ -376,7 +381,7 @@ onMounted(() => {
                     />
                   </div>
                   <div class="text-center">
-                    <div class="text-gray-500 text-sm mb-1">{{$t('ocpx.analytics.completionRate')}}</div>
+                    <div class="text-gray-500 text-sm mb-1">{{ $t('ocpx.analytics.completionRate') }}</div>
                     <div class="text-3xl font-bold" :style="{ color: completionRate >= 100 ? '#3f8600' : '#cf1322' }">
                       {{ completionRate }}%
                     </div>
@@ -402,20 +407,44 @@ onMounted(() => {
         </Card>
 
         <!-- 第三块：数据表格 -->
-        <Card>
-          <Grid>
-            <template #toolbar-tools>
-
-            </template>
-          </Grid>
+        <Card class="ocpx-table">
+          <Grid />
         </Card>
-      </Space>
+      </div>
     </Loading>
   </Page>
 </template>
 
 <style scoped lang="scss">
-.w-full {
-  width: 100%;
+/* 整页锁高：页面自然填满内容区，表格在卡片内部滚动，不再撑出页面滚动条 */
+.ocpx-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+}
+
+/* 筛选区、指标区按内容高度固定，不参与伸缩 */
+.ocpx-filter,
+.ocpx-kpi {
+  flex: none;
+}
+
+/* 表格区吃掉剩余高度；Card 内部转成 flex 列，高度才能继续传给栅格 */
+.ocpx-table {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+
+  :deep(.ant-card-body) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
 }
 </style>
