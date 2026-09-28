@@ -2,6 +2,11 @@
   "advertiser": {
     "authAccount": "Auth Account",
     "authType": "Auth Type",
+    "accountType": "Auth Account Type",
+    "accountTypeOptions": {
+      "qq": "QQ",
+      "wechat": "WeChat"
+    },
     "authUrl": "Auth Url",
     "columns": {
       "advertiserId": "Advertiser Id",

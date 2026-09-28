@@ -331,6 +331,10 @@ export const AUTH_ACCOUNT_PLATFORM = [
     label: `${$t('ocpx.platform.bytedance')}`,
     value: 'bytedance',
   },
+  {
+    label: `${$t('ocpx.platform.tencent')}`,
+    value: 'tencent',
+  },
 ];
 export const DEVELOPER_AUTH_ACCOUNT_PLATFORM = [
   {

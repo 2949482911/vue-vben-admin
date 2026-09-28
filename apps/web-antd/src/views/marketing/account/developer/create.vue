@@ -1,38 +1,29 @@
-<script lang="ts" setup name="CreateNotice">
-import type {DeveloperItem, PlatformcallbackItem, CreateDeveloperRequest, UpdateDeveloperRequest} from '#/api/models';
+<script lang="ts" setup name="CreateDeveloper">
+import type { CreateDeveloperRequest, UpdateDeveloperRequest } from '#/api/models';
 
-import {ref} from 'vue';
+import { computed, ref } from 'vue';
 
-import {useVbenModal} from '@vben/common-ui';
-import {$t} from '@vben/locales';
+import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 
-import {useVbenForm} from '#/adapter/form';
-import {developerApi} from '#/api/core';
-import {DEVELOPER_AUTH_ACCOUNT_PLATFORM} from '#/constants/locales';
-import {Platform} from "#/constants/enums";
+import { useVbenForm } from '#/adapter/form';
+import { developerApi } from '#/api/core';
+import { Platform } from '#/constants/enums';
+import { DEVELOPER_AUTH_ACCOUNT_PLATFORM } from '#/constants/locales';
 import { trimObject } from '#/utils/trim';
 
 const emit = defineEmits(['pageReload']);
 
-const objectRequest = ref<DeveloperItem>({
-  apiKey: "",
-  apiSecret: "",
-  authCount: "",
-  createTime: "",
-  createUsername: "",
-  id: "",
-  name: "",
-  platform: "",
-  remark: "",
-  status: 0,
-  updateTime: "",
-  updateUsername: "",
-  createdBy: "",
-  updatedBy: ""
+/** 是否为编辑态：决定标题文案与提交时调用的接口 */
+const isUpdate = ref(false);
 
-});
-const isUpdate = ref<Boolean>(false);
-
+/**
+ * 标题必须用 computed：
+ * 原先写成普通 const，只在初始化时求值一次，新增时也会显示成「编辑」
+ */
+const title = computed(() =>
+  isUpdate.value ? `${$t('common.edit')}` : `${$t('common.create')}`,
+);
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -54,137 +45,99 @@ const [Form, formApi] = useVbenForm({
     {
       // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
-      // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
-      // 字段名
       fieldName: 'id',
-      // 界面显示的label
+      // 主键仅用于回显，不在界面上展示
       dependencies: {
         show: false,
         triggerFields: ['*'],
       },
     },
     {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Select',
-      // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-        options: DEVELOPER_AUTH_ACCOUNT_PLATFORM
+        options: DEVELOPER_AUTH_ACCOUNT_PLATFORM,
       },
-      // 字段名
-      fieldName: 'platform',
       defaultValue: Platform.VIVO,
-      // 界面显示的label
+      fieldName: 'platform',
       label: `${$t('marketing.developer.columns.platform')}`,
       rules: 'required',
     },
     {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
-      // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
-      // 字段名
       fieldName: 'name',
-      // 界面显示的label
       label: `${$t('marketing.developer.columns.name')}`,
       rules: 'required',
-
     },
     {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
-      // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
-      // 字段名
       fieldName: 'apiKey',
-      // 界面显示的label
       label: `${$t('marketing.developer.columns.apiKey')}`,
       rules: 'required',
-
     },
     {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Input',
-      // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
       },
-      // 字段名
       fieldName: 'apiSecret',
-      // 界面显示的label
       label: `${$t('marketing.developer.columns.apiSecret')}`,
       rules: 'required',
     },
     {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
       component: 'Textarea',
-      // 对应组件的参数
       componentProps: {
         placeholder: `${$t('common.input')}`,
-
       },
-      // 字段名
       fieldName: 'remark',
-      // 界面显示的label
       label: `${$t('marketing.developer.columns.remark')}`,
     },
   ],
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  // 抽屉内单列展示，字段宽度更充裕
+  wrapperClass: 'grid-cols-1',
 });
 
-
-const [Modal, modalApi] = useVbenModal({
-  fullscreen: true,
-  fullscreenButton: false,
+const [Drawer, drawerApi] = useVbenDrawer({
+  class: 'w-[600px]',
   onCancel() {
-    modalApi.close();
-    formApi.resetForm();
-    //@ts-ignore
-    objectRequest.value = {};
+    drawerApi.close();
     isUpdate.value = false;
   },
   async onConfirm() {
     const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
     await formApi.submitForm();
     isUpdate.value = false;
     emit('pageReload');
-    await modalApi.close();
+    await drawerApi.close();
   },
   onOpenChange(isOpen: boolean) {
-    if (isOpen) {
-      //@ts-ignore
-      objectRequest.value = modalApi.getData<Record<string, any>>();
-      if (objectRequest.value.id) {
-        isUpdate.value = true;
-        //@ts-ignore
-        handleSetFormValue(objectRequest.value);
-      } else {
-        isUpdate.value = false;
-      }
+    if (!isOpen) {
+      return;
+    }
+    // 先重置再回显，避免上一次的值残留到本次
+    formApi.resetForm();
+    const row = drawerApi.getData() as Record<string, any> | undefined;
+    isUpdate.value = Boolean(row?.id);
+    if (row?.id) {
+      formApi.setValues(row);
     }
   },
 });
-
-function handleSetFormValue(row: PlatformcallbackItem) {
-  formApi.setValues(row);
-}
-
-const title: string = objectRequest.value
-  ? `${$t('common.edit')}`
-  : `${$t('common.create')}`;
 </script>
 <template>
-  <Modal :title="title">
-    <Form/>
-  </Modal>
+  <Drawer :title="title">
+    <Form />
+  </Drawer>
 </template>

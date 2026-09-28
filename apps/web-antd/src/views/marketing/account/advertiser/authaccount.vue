@@ -1,24 +1,43 @@
 <script setup lang="ts" name="AuthAccount">
-import { useVbenModal } from "@vben/common-ui";
-import { useVbenForm } from "#/adapter/form";
-import { $t } from "@vben/locales";
-import { AUTH_ACCOUNT_PLATFORM } from "#/constants/locales";
-import { Platform } from "#/constants/enums";
-import { advertiserApi, developerApi } from "#/api/core";
 import { onMounted, ref } from "vue";
 
+import { useVbenModal } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+
 import { Alert } from "ant-design-vue";
+
+import { useVbenForm } from "#/adapter/form";
+import { advertiserApi, developerApi } from "#/api/core";
+import { Platform } from "#/constants/enums";
+import { AUTH_ACCOUNT_PLATFORM } from "#/constants/locales";
 
 interface DeveloperOption {
   label: string;
   value: string;
 }
 
+/** 腾讯授权账号类型（account_type），后端原样拼进授权地址，默认 QQ */
+const TENCENT_ACCOUNT_TYPE = {
+  WECHAT: "ACCOUNT_TYPE_WECHAT",
+  QQ: "ACCOUNT_TYPE_QQ"
+};
+
+const TENCENT_ACCOUNT_TYPE_OPTIONS = [
+  {
+    "label": `${$t("marketing.advertiser.accountTypeOptions.qq")}`,
+    "value": TENCENT_ACCOUNT_TYPE.QQ
+  },
+  {
+    "label": `${$t("marketing.advertiser.accountTypeOptions.wechat")}`,
+    "value": TENCENT_ACCOUNT_TYPE.WECHAT
+  }
+];
+
 
 const aGenerationOption = ref<DeveloperOption[]>([]);
 
 
-/**默认平台为华为商店，然后拿到一代主体的下拉事件 */
+/** 默认平台为华为商店，然后拿到一代主体的下拉事件 */
 async function aGenerationOptions(platform: string) {
   aGenerationOption.value = [];
 
@@ -54,7 +73,8 @@ const [Form, formApi] = useVbenForm({
         placeholder: `${$t("common.input")}`,
         options: AUTH_ACCOUNT_PLATFORM,
         onSelect: async (value: string) => {
-          await handlerAuthUrl(value, "");
+          const formVal = await formApi.getValues();
+          await handlerAuthUrl(value, "", formVal.accountType);
           await aGenerationOptions(value);
         }
       },
@@ -70,6 +90,33 @@ const [Form, formApi] = useVbenForm({
       component: "Select",
       componentProps: {
         placeholder: `${$t("common.select")}`,
+        options: TENCENT_ACCOUNT_TYPE_OPTIONS,
+        onSelect: async (accountType: string) => {
+          const formVal = await formApi.getValues();
+          await handlerAuthUrl(
+            formVal.platform,
+            formVal.developerId,
+            accountType
+          );
+        }
+      },
+      fieldName: "accountType",
+      defaultValue: TENCENT_ACCOUNT_TYPE.QQ,
+      // 界面显示的label
+      label: `${$t("marketing.advertiser.accountType")}`,
+      // 只有腾讯区分 QQ / 微信登录账号，其他媒体不展示
+      dependencies: {
+        show: value => {
+          return value.platform === Platform.TENCENT;
+        },
+        triggerFields: ["platform"]
+      }
+    },
+
+    {
+      component: "Select",
+      componentProps: {
+        placeholder: `${$t("common.select")}`,
         showSearch: true,
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
@@ -77,7 +124,11 @@ const [Form, formApi] = useVbenForm({
         options: aGenerationOption,
         onSelect: async (developerId: string) => {
           const formVal = await formApi.getValues();
-          await handlerAuthUrl(formVal["platform"], developerId);
+          await handlerAuthUrl(
+            formVal.platform,
+            developerId,
+            formVal.accountType
+          );
         }
       },
       fieldName: "developerId",
@@ -128,9 +179,15 @@ const [Form, formApi] = useVbenForm({
  * 获取授权url
  * @param platform
  * @param developerId
+ * @param accountType 授权账号类型，仅腾讯需要（QQ / 微信）
  */
-async function handlerAuthUrl(platform: string, developerId?: string) {
-  const url = await advertiserApi.fetchAuthUrl({ platform: platform, developerId: developerId });
+async function handlerAuthUrl(platform: string, developerId?: string, accountType?: string) {
+  const url = await advertiserApi.fetchAuthUrl({
+    platform,
+    developerId,
+    // 非腾讯媒体不需要该参数，带上会污染请求
+    accountType: platform === Platform.TENCENT ? accountType : undefined
+  });
   await formApi.setFieldValue("authUrl", url);
 }
 
@@ -149,8 +206,8 @@ const [Modal, modalApi] = useVbenModal({
 
   async onConfirm() {
     const authUrl = await formApi.getValues();
-    if (authUrl["field1"] === 1) {
-      window.open(authUrl["authUrl"], "_blank");
+    if (authUrl.field1 === 1) {
+      window.open(authUrl.authUrl, "_blank");
     }
     await modalApi.close();
   },
@@ -167,9 +224,9 @@ const [Modal, modalApi] = useVbenModal({
 
 <template>
   <Modal>
-    <Form></Form>
+    <Form />
 
-    <Alert type="warning" message="授权链接生成后，将于15分钟后失效，请尽快使用"></Alert>
+    <Alert type="warning" message="授权链接生成后，将于15分钟后失效，请尽快使用" />
   </Modal>
 </template>
 

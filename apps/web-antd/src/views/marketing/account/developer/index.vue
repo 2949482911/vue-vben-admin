@@ -1,13 +1,15 @@
 <script lang="ts" setup name="DeveloperManager">
 import type { VbenFormProps } from "@vben/common-ui";
-import { Page, useVbenModal } from "@vben/common-ui";
 
 import type { VxeGridProps } from "#/adapter/vxe-table";
-import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import type { DeveloperItem } from "#/api/models";
+
+import { Page, useVbenDrawer } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 
-import { Button, Switch } from "ant-design-vue";
+import { Button, Modal, Popconfirm } from "ant-design-vue";
+
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import { developerApi } from "#/api/core";
 import {
   BatchOptionsType,
@@ -15,41 +17,48 @@ import {
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS
 } from "#/constants/locales";
-
-import CreateObjectRequestComp from "./create.vue";
 import { trimObject } from "#/utils/trim";
 
+import CreateObjectRequestComp from "./create.vue";
 
-const [CreateObjectModal, createObjectApi] = useVbenModal({
-  connectedComponent: CreateObjectRequestComp,
-  centered: true,
-  modal: true
+/** 开发者状态：1 启用 / 9 停用（对应 STATUS_SELECT） */
+const STATUS_ENABLE = 1;
+const STATUS_DISABLE = 9;
+
+const [CreateDrawer, createDrawerApi] = useVbenDrawer({
+  connectedComponent: CreateObjectRequestComp
 });
 
-function openCreateModal(
-  row?: DeveloperItem
-) {
-  if (row?.id) {
-    createObjectApi.setData(row);
-  } else {
-    createObjectApi.setData({});
-  }
-  createObjectApi.open();
+function openCreateDrawer(row?: DeveloperItem) {
+  createDrawerApi.setData(row?.id ? row : {}).open();
 }
 
-async function handlerState(row: DeveloperItem) {
-  await (row.status == 1
-    ? developerApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.DISABLE,
-      values: new Map<string, any>()
-    })
-    : developerApi.fetchBatchOptions({
-      targetIds: [row.id],
-      type: BatchOptionsType.Enable,
-      values: new Map<string, any>()
-    }));
+/**
+ * 状态开关二次确认：返回 false 会中止切换（CellSwitch 的 beforeChange）
+ * @param newStatus 期望切换到的状态值
+ * @param row 行数据
+ */
+async function onStatusChange(newStatus: number, row: DeveloperItem) {
+  const toEnable = newStatus === STATUS_ENABLE;
+  try {
+    await new Promise((resolve, reject) => {
+      Modal.confirm({
+        content: `${row.name} → ${toEnable ? $t("common.enabled") : $t("common.disabled")}`,
+        onCancel: () => reject(new Error("已取消")),
+        onOk: () => resolve(true),
+        title: $t("ui.actionTitle.edit", [$t("core.columns.status")])
+      });
+    });
+  } catch {
+    return false;
+  }
+  await developerApi.fetchBatchOptions({
+    targetIds: [row.id],
+    type: toEnable ? BatchOptionsType.Enable : BatchOptionsType.DISABLE,
+    values: new Map<string, any>()
+  });
   pageReload();
+  return true;
 }
 
 async function handlerDelete(row: DeveloperItem) {
@@ -86,11 +95,6 @@ const formOptions: VbenFormProps = {
       label: `${$t("marketing.developer.columns.name")}`
     },
     {
-      component: "DatePicker",
-      fieldName: "datePicker",
-      label: "Date"
-    },
-    {
       component: "Select",
       componentProps: {
         allowClear: true,
@@ -111,6 +115,7 @@ const formOptions: VbenFormProps = {
 
 const gridOptions: VxeGridProps<DeveloperItem> = {
   border: true,
+  height: "auto",
   checkboxConfig: {
     highlight: true,
     labelField: "id"
@@ -148,8 +153,20 @@ const gridOptions: VxeGridProps<DeveloperItem> = {
     {
       field: "authCount", title: `${$t("marketing.developer.columns.authCount")}`, width: "auto"
     },
+    {
+      // 启用/停用，切换前二次确认，接口失败自动回滚
+      cellRender: {
+        attrs: { beforeChange: onStatusChange },
+        name: "CellSwitch",
+        props: { checkedValue: STATUS_ENABLE, unCheckedValue: STATUS_DISABLE }
+      },
+      field: "status",
+      title: `${$t("core.columns.status")}`,
+      width: "auto"
+    },
 
-    ...TABLE_COMMON_COLUMNS as any
+    // status 已在上方单独定义（需要开关渲染器），从公共列里剔除避免出现重复列
+    ...(TABLE_COMMON_COLUMNS.filter((col: any) => col.field !== "status") as any)
   ],
   keepSource: true,
   pagerConfig: {},
@@ -175,26 +192,28 @@ function pageReload() {
 </script>
 
 <template>
-  <Page>
+  <Page auto-content-height>
     <Grid>
       <template #action="{ row }">
-        <Button type="link" @click="openCreateModal(row)">
+        <Button type="link" @click="openCreateDrawer(row)">
           {{ $t("common.edit") }}
         </Button>
-        <Button type="link" @click="handlerDelete(row)">
-          {{ $t("common.delete") }}
-        </Button>
-      </template>
-      <template #status="{ row }">
-        <Switch :checked="row.status === 1" @click="handlerState(row)" />
+        <Popconfirm
+          :title="$t('ui.actionMessage.deleteConfirm', [row.name])"
+          @confirm="handlerDelete(row)"
+        >
+          <Button danger type="link">
+            {{ $t("common.delete") }}
+          </Button>
+        </Popconfirm>
       </template>
 
       <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="()=>openCreateModal()">
+        <Button class="mr-2" type="primary" @click="openCreateDrawer()">
           {{ $t("common.create") }}
         </Button>
       </template>
     </Grid>
   </Page>
-  <CreateObjectModal @page-reload="pageReload" />
+  <CreateDrawer @page-reload="pageReload" />
 </template>

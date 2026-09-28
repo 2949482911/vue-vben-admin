@@ -2,6 +2,11 @@
   "advertiser": {
     "authAccount": "授权",
     "authType": "授权类型",
+    "accountType": "授权账号类型",
+    "accountTypeOptions": {
+      "qq": "QQ授权",
+      "wechat": "微信授权"
+    },
     "authUrl": "授权链接",
     "exportAll": "全部导出",
     "columns": {
