@@ -207,14 +207,6 @@
       "message": "消息",
       "requestId": "请求ID"
     },
-    "optionType": {
-      "campaignBatchStart": "批量开启计划",
-      "deleteCampaign": "删除计划",
-      "deletePromotion": "删除广告",
-      "updateProjectStatus": "更新项目状态",
-      "updateProjectBudget": "更新项目预算",
-      "updateProjectRoi": "更新项目ROI"
-    },
     "taskStatus": {
       "pending": "待处理",
       "processing": "处理中",
@@ -231,7 +223,14 @@
       "failed": "失败"
     },
     "viewDetail": "查看详情",
-    "detailTitle": "任务详情"
+    "detailTitle": "任务详情",
+    "elapsed": "已耗时",
+    "failSummary": "{0} 条提交失败，集中在 {1} 类原因",
+    "failStat": "{0} 次 · {1}%",
+    "duration": {
+      "minuteSecond": "{0} 分 {1} 秒",
+      "second": "{0} 秒"
+    }
   },
   "promotionManager": {
     "batchOperation": "批量操作",
@@ -250,6 +249,7 @@
       "platform": "平台"
     },
     "optionTypes": {
+      "campaignBatchStart": "批量开启计划",
       "updateStatus": "批量启停",
       "updateBudget": "批量改预算",
       "updateRoi": "批量改ROI",

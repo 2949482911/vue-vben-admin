@@ -166,14 +166,6 @@
       "message": "Message",
       "requestId": "RequestId"
     },
-    "optionType": {
-      "campaignBatchStart": "Batch Start Campaign",
-      "deleteCampaign": "Delete Campaign",
-      "deletePromotion": "Delete Promotion",
-      "updateProjectStatus": "Update Project Status",
-      "updateProjectBudget": "Update Project Budget",
-      "updateProjectRoi": "Update Project ROI"
-    },
     "taskStatus": {
       "pending": "Pending",
       "processing": "Processing",
@@ -190,7 +182,14 @@
       "failed": "Failed"
     },
     "viewDetail": "View Detail",
-    "detailTitle": "Task Detail"
+    "detailTitle": "Task Detail",
+    "elapsed": "Elapsed",
+    "failSummary": "{0} submissions failed across {1} distinct reasons",
+    "failStat": "{0} times · {1}%",
+    "duration": {
+      "minuteSecond": "{0}m {1}s",
+      "second": "{0}s"
+    }
   },
   "promotionManager": {
     "batchOperation": "Batch Operation",
@@ -209,6 +208,7 @@
       "platform": "Platform"
     },
     "optionTypes": {
+      "campaignBatchStart": "Batch Start Campaign",
       "updateStatus": "Batch Start/Stop",
       "updateBudget": "Update Budget",
       "updateRoi": "Update ROI",

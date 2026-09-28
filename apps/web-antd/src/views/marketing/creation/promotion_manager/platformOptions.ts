@@ -6,6 +6,8 @@
  * 各操作组件共同引用，避免散落字符串判断。
  */
 
+import { $t } from '#/locales';
+
 // ==================== 广告管理平台选项 ====================
 export const AD_MANAGEMENT_PLATFORM_OPTIONS = [
   { label: 'vivo', value: 'vivo' },
@@ -43,7 +45,11 @@ export const BatchMode = {
 export type BatchMode = (typeof BatchMode)[keyof typeof BatchMode];
 
 // ==================== 批量操作类型 ====================
+// 这里收录的是「历史上出现过的全部操作类型」，用于任务中心的记录类型筛选与文案映射。
+// 是否对外开放批量入口由下面的 BATCH_OPERATION_MATRIX 决定，两者不要混用：
+// campaign_batch_start 属于早期 vivo 链路，只在枚举/文案里保留，不写进矩阵。
 export const BatchOperationType = {
+  CAMPAIGN_BATCH_START: 'campaign_batch_start',
   DELETE_CAMPAIGN: 'delete_campaign',
   UPDATE_PROJECT_STATUS: 'update_project_status',
   UPDATE_PROJECT_BUDGET: 'update_project_budget',
@@ -67,6 +73,8 @@ export type BatchOperationType = (typeof BatchOperationType)[keyof typeof BatchO
 
 // ==================== 操作类型 → 标题 i18n key ====================
 export const BATCH_OPERATION_LABEL_KEYS: Record<BatchOperationType, string> = {
+  [BatchOperationType.CAMPAIGN_BATCH_START]:
+    'marketing.promotionManager.optionTypes.campaignBatchStart',
   [BatchOperationType.DELETE_CAMPAIGN]: 'marketing.promotionManager.optionTypes.deleteCampaign',
   [BatchOperationType.UPDATE_PROJECT_STATUS]: 'marketing.promotionManager.optionTypes.updateStatus',
   [BatchOperationType.UPDATE_PROJECT_BUDGET]: 'marketing.promotionManager.optionTypes.updateBudget',
@@ -175,7 +183,7 @@ export const BATCH_OPERATION_MATRIX: Record<
   [MediaPlatform.VIVO]: {},
   [MediaPlatform.HUAWEI]: {},
   // 腾讯层级命名与批投模块保持一致：campaign=营销单元、adgroup=动态创意
-  //（媒体侧 adgroup=营销单元、dynamic_creative=动态创意，与我们的命名相反）。
+  // （媒体侧 adgroup=营销单元、dynamic_creative=动态创意，与我们的命名相反）。
   // 因此营销单元的批量操作挂在 campaign 层（target 用营销单元ID，即该层的 campaignId），
   // 批量接口的 level 仍为 adgroup，由操作组件内部固定；创意删除挂在 adgroup 层，
   // 创意ID 取该层列表的 source_dynamic_creative_id 列。
@@ -195,4 +203,26 @@ export const BATCH_OPERATION_MATRIX: Record<
 export function getBatchOperations(platform: string, level: string): BatchOperationType[] {
   const levelMap = BATCH_OPERATION_MATRIX[platform as MediaPlatform];
   return (levelMap?.[level as BatchLevel] ?? []) as BatchOperationType[];
+}
+
+// ==================== 对外复用的取值 / 文案 / 选项 ====================
+
+/** 批量操作类型的全部取值，顺序即筛选下拉的展示顺序 */
+export const BATCH_OPERATION_TYPES = Object.values(BatchOperationType);
+
+/** 操作类型文案；未收录的取值原样返回 */
+export function getBatchOperationLabel(optionType?: string): string {
+  const key = BATCH_OPERATION_LABEL_KEYS[optionType as BatchOperationType];
+  return key ? $t(key) : optionType || '-';
+}
+
+/**
+ * 操作类型筛选选项：value 取自共用枚举、label 走共用文案表。
+ * 需要「按操作类型筛选或展示」的模块直接复用，不要再各写一份枚举映射。
+ */
+export function getBatchOperationOptions() {
+  return BATCH_OPERATION_TYPES.map((value) => ({
+    label: getBatchOperationLabel(value),
+    value,
+  }));
 }

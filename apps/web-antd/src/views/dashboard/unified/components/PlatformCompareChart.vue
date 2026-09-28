@@ -5,10 +5,15 @@
  * 展示各平台的消耗和ROI对比
  */
 import type { EchartsUIType } from '@vben/plugins/echarts';
-import { onMounted, ref, watch } from 'vue';
-import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
-import { Card, Empty } from 'ant-design-vue';
+
 import type { PlatformCompareItem } from '#/api/models';
+
+import { onMounted, ref, watch } from 'vue';
+
+import { Loading } from '@vben/common-ui';
+import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
+
+import { Card, Empty } from 'ant-design-vue';
 
 const props = defineProps<{
   /** 平台对比数据 */
@@ -18,7 +23,7 @@ const props = defineProps<{
 }>();
 
 const chartRef = ref<EchartsUIType>();
-const { renderEcharts, updateData } = useEcharts(chartRef);
+const { renderEcharts } = useEcharts(chartRef);
 
 function buildOption(data: PlatformCompareItem[]) {
   return {
@@ -105,7 +110,11 @@ watch(
   () => props.data,
   (newData) => {
     if (newData.length > 0) {
-      updateData(buildOption(newData));
+      // 必须用 renderEcharts 而不是 updateData：
+      // 空数据 ↔ 有数据切换时 EchartsUI 会重新挂载（DOM 换了），
+      // updateData 会把配置 setOption 到已卸载的旧实例上，图表就再也画不出来；
+      // renderEcharts 会比对实例 DOM，不一致时先 dispose 再重建。
+      renderEcharts(buildOption(newData));
     }
   },
   { deep: true },
@@ -113,9 +122,13 @@ watch(
 </script>
 
 <template>
-  <Card title="平台对比" class="chart-card" :loading="loading">
-    <Empty v-if="data.length === 0 && !loading" description="暂无数据" />
-    <EchartsUI v-else ref="chartRef" />
+  <Card title="平台对比" class="chart-card">
+    <!-- 用 Loading 覆盖层而不是 Card 的 loading：
+         Card 的 loading 会把子节点换成 Skeleton，导致 EchartsUI 被卸载、图表实例失联 -->
+    <Loading :spinning="loading">
+      <Empty v-if="data.length === 0 && !loading" description="暂无数据" />
+      <EchartsUI v-else ref="chartRef" />
+    </Loading>
   </Card>
 </template>
 

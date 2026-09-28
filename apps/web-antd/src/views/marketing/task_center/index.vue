@@ -1,41 +1,28 @@
 <script setup lang="ts">
 import type { VbenFormProps } from "@vben/common-ui";
-import { Page, useVbenDrawer } from "@vben/common-ui";
 
 import type { VxeGridProps } from "#/adapter/vxe-table";
-import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import type { TaskBatchCenterItem } from "#/api/models/marketing";
+
+import { Page, useVbenDrawer } from "@vben/common-ui";
 import { formatDateTime } from "@vben/utils";
 
-import { $t } from "#/locales";
 import { Button, Progress, Space, Tag } from "ant-design-vue";
+
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import { taskCenterApi } from "#/api";
-import { trimObject } from "#/utils/trim";
-import TaskDetailDrawer from "./task_detail_drawer.vue";
 import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { $t } from "#/locales";
+import { trimObject } from "#/utils/trim";
 
-// 操作类型选项
-const OPTION_TYPE_SELECT = [
-  {
-    label: $t("marketing.taskCenter.optionType.campaignBatchStart"),
-    value: "campaign_batch_start"
-  },
-  { label: $t("marketing.taskCenter.optionType.deleteCampaign"), value: "delete_campaign" },
-  { label: $t("marketing.taskCenter.optionType.deletePromotion"), value: "delete_promotion" },
-  {
-    label: $t("marketing.taskCenter.optionType.updateProjectStatus"),
-    value: "update_project_status"
-  },
-  {
-    label: $t("marketing.taskCenter.optionType.updateProjectBudget"),
-    value: "update_project_budget"
-  },
-  { label: $t("marketing.taskCenter.optionType.updateProjectRoi"), value: "update_project_roi" }
-];
+import {
+  getBatchOperationLabel,
+  getBatchOperationOptions
+} from "../creation/promotion_manager/platformOptions";
+import TaskDetailDrawer from "./task_detail_drawer.vue";
 
-const OPTION_TYPE_MAP: Record<string, string> = Object.fromEntries(
-  OPTION_TYPE_SELECT.map((item) => [item.value, item.label])
-);
+// 操作类型选项：取值与文案统一走批量操作枚举，避免各模块各维护一份
+const OPTION_TYPE_SELECT = getBatchOperationOptions();
 
 // 任务状态下拉选项
 const TASK_STATUS_SELECT = [
@@ -205,7 +192,7 @@ const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
   <Page>
     <Grid>
       <template #optionType="{ row }">
-        {{ OPTION_TYPE_MAP[row.optionType ?? ""] || row.optionType || "-" }}
+        {{ getBatchOperationLabel(row.optionType) }}
       </template>
       <template #taskStatus="{ row }">
         <Tag :color="TASK_STATUS_MAP[row.taskStatus as number]?.color">
@@ -235,8 +222,6 @@ const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
     <!-- 任务详情抽屉 -->
     <TaskDetailDrawerModule />
   </Page>
-
-
 </template>
 
 <style scoped lang="scss"></style>

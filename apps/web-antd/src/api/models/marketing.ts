@@ -713,6 +713,8 @@ export interface TaskBatchCenterDetailItem {
 export interface TaskBatchCenterProgressResponse {
   /** 任务ID */
   taskId?: number;
+  /** 媒体 */
+  platform?: string;
   /** 任务名称 */
   name?: string;
   /** 操作类型 */

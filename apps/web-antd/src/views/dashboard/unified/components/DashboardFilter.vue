@@ -42,7 +42,7 @@ function getValues() {
       dateRange.value[0]?.format('YYYY-MM-DD') || '',
       dateRange.value[1]?.format('YYYY-MM-DD') || '',
     ] as [string, string],
-    platforms: selectedPlatforms.value,
+    platform: selectedPlatforms.value,
     advertiserIds: selectedAdvertisers.value,
   };
 }
