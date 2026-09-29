@@ -1,353 +1,368 @@
 <script setup lang="ts" name="ImportChildAdvertiser">
-// 导入子账户
-import { useVbenModal } from "@vben/common-ui";
-import { computed, reactive, ref } from "vue";
-import { advertiserApi } from "#/api/core";
-import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { useVbenForm } from "#/adapter/form";
-import type { AccountChildResponse, AdvertiserItem } from "#/api/models";
+import type { ProjectItem } from "./advertiser";
+
+import type { VxeGridProps } from "#/adapter/vxe-table";
+// 导入子账户：手动选择（查询子账户列表勾选）/ 手动导入（文本域粘贴账户ID）
+import type { AccountChildResponse } from "#/api/models";
+
+import { computed, nextTick, ref, watch } from "vue";
+
+import { useVbenDrawer } from "@vben/common-ui";
 import { $t } from "@vben/locales";
+
 import {
-  Button,
   Checkbox,
   InputSearch,
   message,
   RadioButton,
   RadioGroup,
-  Select
+  Select,
+  Textarea
 } from "ant-design-vue";
-import type { ProjectItem } from "./advertiser";
-// 新增响应式变量
-const selectedRowKeys = ref<(string)[]>([]);
-//父传子接受的项目下拉数据列表
+
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
+import { advertiserApi } from "#/api/core";
+
 const props = defineProps<{
   projectOptions: ProjectItem[];
-  roleType: String;
+  /** 媒体账户角色（归一化后的值，如 bm / mdm / unit），不是后端 roleType 原始码 */
+  advertiserRole: string;
 }>();
-//转换成响应式
+const emit = defineEmits(["pageReload"]);
+/** 导入方式 */
+const MODE_CHOOSE = "choose";
+const MODE_IMPORT = "import";
+
+/** 目标父账户ID，由父级 setData 注入 */
+const parentId = ref("");
+/** 当前导入方式 */
+const mode = ref<string>(MODE_CHOOSE);
+/**
+ * 需要区分两种导入方式的媒体账户角色：腾讯的商务管家 / 客户主体 / 业务单元。
+ * 注意用归一化后的 advertiserRole 判断：后端 roleType 存的是媒体原始角色码（如 "1"、"ACCOUNT_TYPE_BM"）
+ */
+const MODE_SWITCH_ROLES = ["bm", "mdm", "unit"];
+
+/** 仅上述角色需要在「手动选择 / 手动导入」之间切换 */
+const showModeSwitch = computed(() =>
+  MODE_SWITCH_ROLES.includes(props.advertiserRole)
+);
+
+/** 所属项目下拉选项（父级传入的项目列表） */
 const projectItemOptions = computed(() =>
-  props.projectOptions.map(item => ({
+  props.projectOptions.map((item) => ({
     label: item.name,
     value: item.id
   }))
 );
-//所属项目字段
-const projectStr = ref();
 
-//设置分页参数
-const pages = reactive({
-  total: 0,
+/** 所属项目 */
+const projectId = ref<string>();
+
+/** 子账户全量数据 / 搜索过滤后的数据（接口一次性返回，分页在前端做） */
+const allData = ref<AccountChildResponse[]>([]);
+const filterData = ref<AccountChildResponse[]>([]);
+
+/** 列表筛选条件 */
+const keyword = ref("");
+const onlyAddable = ref(false);
+
+/** 手动导入的账户ID文本 */
+const accountIdsText = ref("");
+
+/** 尚未导入的子账户ID，表头全选时用来跨页补齐 */
+const addableIds = computed(() =>
+  allData.value.filter((item) => !item.exist).map((item) => item.advertiserId)
+);
+/** 是否点了表头全选 */
+const isSelectAll = ref(false);
+
+/** 前端分页参数 */
+const pages = ref({
   currentPage: 1,
   pageSize: 100
 });
 
-const handleType = ref("choose");
-const isSelectAll = ref<Boolean>(false);
-//弹框导入列表的全部数据
-const importData = ref<AccountChildResponse | any>([]);
-// 当前用于分页的数据（搜索后 or 原始）
-const filterData = ref<AccountChildResponse | any>([]);
-
-const emit = defineEmits(["pageReload"]);
-const objectRequest = ref<{ id: string; }>({ id: "" });
-
-const isSlect = ref(true);
-const isLoading = ref<Boolean>(false);
-const [Modal, modalApi] = useVbenModal({
-  fullscreenButton: false,
-  closeOnPressEscape: false,
-  async onOpenChange(isOpen: boolean) {
-    if (isOpen) {
-      objectRequest.value = modalApi.getData<{ id: string; }>();
-      gridApi.setLoading(true);
-
-      importData.value = await advertiserApi.fetchAccountChild(objectRequest.value.id);
-      // 初始化搜索数据 = 全量数据
-      filterData.value = [...importData.value];
-      pages.total = filterData.value.length;
-      pages.currentPage = 1;
-      updatePageData(filterData.value);
-      gridApi.setLoading(false);
-    }
-  }
-});
-
-async function handleCancel() {
-  gridApi.setGridOptions({ data: [] });
-  objectRequest.value = { id: "" };
-  await modalApi.close();
-  accountName.value = "";
-  checked.value = false;
-  projectStr.value = "";
-  isSlect.value = true;
-}
-
-async function handleConfirm() {
-  isLoading.value = true;
-  let advertiserIds: string[];
-  try {
-    if (handleType.value === "import") {
-      const formVal = await formApi.getValues();
-      advertiserIds = strToArray(formVal.accountIds);
-    } else {
-      if (isSelectAll.value) {
-        advertiserIds = selectedRowKeys.value;
-      } else {
-        const checkedRecords = gridApi.grid.getCheckboxRecords();
-        console.log("checkedRecords", checkedRecords);
-        advertiserIds = checkedRecords.map((item) => item.advertiserId);
-      }
-    }
-    await advertiserApi.fetchImportChild({
-      id: objectRequest.value.id,
-      advertiserIds,
-      projectId: projectStr.value
-    });
-    gridApi.setGridOptions({ data: [] });
-    objectRequest.value = { id: "" };
-    emit("pageReload");
-    await modalApi.close();
-    accountName.value = "";
-    checked.value = false;
-    projectStr.value = "";
-    isSlect.value = true;
-    handleType.value = "choose";
-    message.success("导入成功");
-  } catch (error) {
-    console.log(error);
-  } finally {
-    isLoading.value = false;
-  }
-}
-
 const gridOptions: VxeGridProps<AccountChildResponse> = {
   border: true,
-  height: "491.5px",
+  // 高度由抽屉内的 flex 容器决定，表格在内部滚动
+  height: "auto",
   checkboxConfig: {
     highlight: true,
     labelField: "advertiserId",
-    checkMethod(params: {
-      row: AccountChildResponse
-    }): boolean {
-      return !params.row.exist;
-    }
+    // 已导入的子账户不允许再勾选
+    checkMethod: ({ row }: { row: AccountChildResponse }) => !row.exist
   },
-  toolbarConfig: {},
-  data: [],
   columns: [
-    { title: "序号", type: "checkbox", fixed: "left", width: "auto" },
-
+    { title: "序号", type: "checkbox", fixed: "left", width: 60 },
     {
       field: "advertiserId",
       title: `${$t("marketing.advertiser.columns.advertiserId")}`,
       width: "auto"
     },
-
     {
       field: "advertiserName",
       title: `${$t("marketing.advertiser.columns.advertiserName")}`,
       width: "auto"
     }
   ],
+  data: [],
   keepSource: true,
-  proxyConfig: undefined,
   pagerConfig: {
     enabled: true,
-    total: pages.total,
-    pageSize: pages.pageSize,
-    currentPage: pages.currentPage,
+    pageSize: pages.value.pageSize,
     pageSizes: [50, 100, 300, 500]
-  }
+  },
+  toolbarConfig: {}
 };
 
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-//设置前端分页更新事件
-async function updatePageData(dataArr: []) {
-  gridApi.setLoading(true);
-  // 人为制造分页 loading
-  await sleep(500);
-  const start = (pages.currentPage - 1) * pages.pageSize;
-  const end = pages.currentPage * pages.pageSize;
+/**
+ * 按当前分页参数把数据切片后喂给表格
+ * 接口一次性返回全量数据，分页在前端做，所以每次都要重新切片
+ */
+function updatePageData(dataArr: AccountChildResponse[]) {
+  const { currentPage, pageSize } = pages.value;
   gridApi.setGridOptions({
-    data: dataArr.slice(start, end),
-    pagerConfig: {
-      total: dataArr.length,
-      currentPage: pages.currentPage,
-      pageSize: pages.pageSize
-    }
+    data: dataArr.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    pagerConfig: { currentPage, pageSize, total: dataArr.length }
   });
-  isSlect.value = true;
-  gridApi.setLoading(false);
 }
 
-//前端分页按钮事件
 const gridEvents = {
-  pageChange({ currentPage, pageSize }: { currentPage: number, pageSize: number }) {
-    pages.currentPage = currentPage;
-    pages.pageSize = pageSize;
-    updatePageData(filterData.value);
-  },
-  checkboxChange: ({ records }: { records: AdvertiserItem[] }) => {
-    isSelectAll.value = false;
-    // selectedRows.value = records
-    if (!records.length) isSlect.value = true;
-    else isSlect.value = false;
-  },
-  //全选事件
-  checkboxAll: async ({ checked, $event }) => {
-    if (checked) {
-      isSelectAll.value = true;
-      const isAddList = importData.value.filter((item: AccountChildResponse) =>
-        !item.exist
-      );
-      selectedRowKeys.value = isAddList.map((item: AdvertiserItem) => item.advertiserId);
-    }
-    if (!selectedRowKeys.value.length) {
-      isSlect.value = true;
+  // 表头全选只覆盖当前页，这里记下标记，提交时把其余页的可新增账户一起带上
+  checkboxAll: ({ checked }: { checked: boolean }) => {
+    isSelectAll.value = checked;
+    if (checked && addableIds.value.length === 0) {
       message.warning("无可新增数据");
-    } else isSlect.value = false;
-    // selectedRows.value = records
+    }
+  },
+  // 表头全选只触发 checkboxAll，因此勾选单行时取消全选标记即可
+  checkboxChange: () => {
+    isSelectAll.value = false;
+  },
+  pageChange({
+    currentPage,
+    pageSize
+  }: {
+    currentPage: number;
+    pageSize: number;
+  }) {
+    pages.value.currentPage = currentPage;
+    pages.value.pageSize = pageSize;
+    updatePageData(filterData.value);
   }
-  //当分页时也需要置灰批量操作按钮
-  // proxyQuery:({})=>{
-  //   selectedRows.value = []
-  // }
 };
 
-//项目名字筛选
-const accountName = ref<string>();
+const [Grid, gridApi] = useVbenVxeGrid({ gridEvents, gridOptions });
 
-function onSearch(valueText: string) {
-  pages.currentPage = 1;
-  if (!valueText) {
-    // 清空搜索：还原原始数据
-    filterData.value = [...importData.value];
-  } else {
-    filterData.value = importData.value.filter((item: AccountChildResponse) =>
-      item.advertiserName?.includes(valueText.trim())
-    );
+/**
+ * 两个面板用 v-show 切换，表格不会被卸载，切回来自然带回列表与勾选状态。
+ * 但隐藏期间容器高度为 0，恢复显示后需要让表格重算一次尺寸
+ */
+watch(mode, (value) => {
+  if (value === MODE_CHOOSE) {
+    nextTick(() => gridApi.grid.recalculate());
   }
-  pages.total = filterData.value.length;
-  updatePageData(filterData.value);
-}
-
-const checked = ref(false);
-
-function changeBool() {
-  filterExist(checked.value);
-  isSlect.value = true;
-}
-
-// 过滤展示只展示可新增账户
-function filterExist(bool: boolean) {
-  if (bool) {
-    filterData.value = importData.value.filter((item: AccountChildResponse) =>
-      !item.exist
-    );
-  } else {
-    // 不过滤还原原始数据
-    filterData.value = [...importData.value];
-  }
-  updatePageData(filterData.value);
-}
-
-
-// 用来控制只展示可新增账户的字段
-const [Grid, gridApi] = useVbenVxeGrid({ gridOptions, gridEvents });
-const [Form, formApi] = useVbenForm({
-  showDefaultActions: false,
-  commonConfig: {
-    // 所有表单项
-    componentProps: {
-      class: "w-full"
-    }
-  },
-  layout: "horizontal",
-  schema: [
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: "Textarea",
-      // 对应组件的参数
-      componentProps: {
-        placeholder: "请输入以逗号分隔的账户ID",
-        rows: 6
-      },
-      // 字段名
-      fieldName: "accountIds",
-      // 界面显示的label
-      label: "账户ID"
-    }
-  ]
 });
 
-function handlerOperate(e) {
+/** 按当前搜索词与「只展示可新增账户」重算列表数据 */
+function applyFilter() {
+  const word = keyword.value.trim();
+  filterData.value = allData.value.filter((item) => {
+    if (onlyAddable.value && item.exist) {
+      return false;
+    }
+    return !word || item.advertiserName?.includes(word);
+  });
+  pages.value.currentPage = 1;
+  updatePageData(filterData.value);
 }
 
-function strToArray(inputStr) {
+/** 收集本次要导入的账户ID */
+function collectAdvertiserIds(): string[] {
+  if (mode.value === MODE_IMPORT) {
+    return strToArray(accountIdsText.value);
+  }
+  const ids = new Set(
+    (gridApi.grid.getCheckboxRecords() as AccountChildResponse[]).map(
+      (item) => item.advertiserId
+    )
+  );
+  if (isSelectAll.value) {
+    addableIds.value.forEach((id) => ids.add(id));
+  }
+  return [...ids];
+}
+
+async function handleConfirm() {
+  const advertiserIds = collectAdvertiserIds();
+  if (advertiserIds.length === 0) {
+    message.warning(
+      mode.value === MODE_IMPORT ? "请输入账户ID" : "请选择要导入的账户"
+    );
+    return;
+  }
+  // lock 期间抽屉内置遮罩、确认按钮 loading，并禁止关闭
+  drawerApi.lock();
+  try {
+    await advertiserApi.fetchImportChild({
+      id: parentId.value,
+      advertiserIds,
+      projectId: projectId.value
+    });
+    message.success("导入成功");
+    emit("pageReload");
+    await drawerApi.close();
+  } finally {
+    drawerApi.unlock();
+  }
+}
+
+/** 打开时重新拉取子账户列表并清掉上一次的状态 */
+async function init() {
+  mode.value = MODE_CHOOSE;
+  projectId.value = undefined;
+  keyword.value = "";
+  onlyAddable.value = false;
+  accountIdsText.value = "";
+  isSelectAll.value = false;
+  pages.value.currentPage = 1;
+  allData.value = [];
+  filterData.value = [];
+  updatePageData([]);
+
+  gridApi.setLoading(true);
+  try {
+    allData.value = await advertiserApi.fetchAccountChild(parentId.value);
+    filterData.value = [...allData.value];
+    updatePageData(filterData.value);
+  } finally {
+    gridApi.setLoading(false);
+  }
+}
+
+const [Drawer, drawerApi] = useVbenDrawer({
+  class: "w-[760px]",
+  closeOnPressEscape: false,
+  onConfirm: handleConfirm,
+  onOpenChange(isOpen: boolean) {
+    if (!isOpen) {
+      return;
+    }
+    const data = drawerApi.getData() as undefined | { id: string };
+    parentId.value = data?.id ?? "";
+    void init();
+  }
+});
+
+/** 逗号 / 空格 / 换行分隔的账户ID文本转数组 */
+function strToArray(inputStr: string): string[] {
   if (!inputStr || inputStr.trim() === "") {
     return [];
   }
-  const arr = inputStr.split(/[, \n\t]+/);
-  const result = arr.filter(item => item.trim() !== "");
-  // 去重
-  // const result = [...new Set(arr.filter(item => item.trim() !== ''))];
-  return result;
+  return inputStr.split(/[, \n\t]+/).filter((item) => item.trim() !== "");
 }
 </script>
 
 <template>
-  <Modal class="w-[605px]">
-    <div class="oprateBtns" v-if="roleType === 'bm'">
-      <RadioGroup v-model:value="handleType" button-style="solid" @change="handlerOperate">
-        <RadioButton value="choose">手动选择</RadioButton>
-        <RadioButton value="import">手动导入</RadioButton>
+  <Drawer :title="$t('marketing.advertiser.importChild')">
+    <div class="import-child">
+      <!-- 导入方式：仅 BM 账户需要区分 -->
+      <RadioGroup
+        v-if="showModeSwitch"
+        v-model:value="mode"
+        button-style="solid"
+        class="shrink-0"
+      >
+        <RadioButton :value="MODE_CHOOSE">手动选择</RadioButton>
+        <RadioButton :value="MODE_IMPORT">手动导入</RadioButton>
       </RadioGroup>
-    </div>
-    <div v-if="handleType === 'choose'" v-loading="isLoading">
-      <div class="filterClass">
-        <InputSearch
-          v-model:value="accountName"
-          placeholder="请输入账户名字搜索"
-          style="width: 200px"
-          @search="onSearch"
+
+      <!-- 手动选择：查询子账户列表后勾选 -->
+      <div v-show="mode === MODE_CHOOSE" class="panel">
+        <div class="panel-toolbar">
+          <InputSearch
+            v-model:value="keyword"
+            placeholder="请输入账户名字搜索"
+            style="width: 200px"
+            @search="applyFilter"
+          />
+          <Checkbox v-model:checked="onlyAddable" @change="applyFilter">
+            只展示可新增账户
+          </Checkbox>
+          <div class="project-field">
+            <span>所属项目：</span>
+            <Select
+              v-model:value="projectId"
+              :filter-option="
+                (input, option) =>
+                  option?.label?.toLowerCase().includes(input.toLowerCase())
+              "
+              :options="projectItemOptions"
+              allow-clear
+              placeholder="请选择项目"
+              show-search
+              style="width: 160px"
+            />
+          </div>
+        </div>
+        <div class="panel-body">
+          <Grid />
+        </div>
+      </div>
+
+      <!-- 手动导入：直接粘贴账户ID -->
+      <div v-show="mode === MODE_IMPORT" class="panel">
+        <div class="panel-hint">多个账户ID请用逗号、空格或换行分隔</div>
+        <Textarea
+          v-model:value="accountIdsText"
+          placeholder="请输入以逗号分隔的账户ID"
+          :rows="14"
         />
-        <Checkbox v-model:checked="checked" @change="changeBool">只展示可新增账户</Checkbox>
       </div>
-      <div class="belongingClass">
-        <div style="font-size: 13px;">所属项目：</div>
-        <Select
-          :disabled="isSlect"
-          style="width: 133px"
-          v-model:value="projectStr"
-          show-search
-          allow-clear
-          :filter-option="(input, option) =>
-              option?.label?.toLowerCase().includes(input.toLowerCase())
-            "
-          :options="projectItemOptions"
-          placeholder="请选择项目">
-        </Select>
-      </div>
-      <Grid></Grid>
     </div>
-    <div v-else>
-      <Form />
-    </div>
-    <template #footer>
-      <div class="flex justify-end gap-2">
-        <Button @click="handleCancel">{{ $t("common.cancel") }}</Button>
-        <Button type="primary" @click="handleConfirm" :loading="isLoading">{{ $t("common.confirm")
-          }}
-        </Button>
-      </div>
-    </template>
-  </Modal>
+  </Drawer>
 </template>
 
 <style scoped lang="scss">
+.import-child {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-toolbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+}
+
+.panel-body {
+  min-height: 0;
+  flex: 1;
+}
+
+.panel-hint {
+  flex: none;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.project-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 13px;
+}
 </style>
-
-

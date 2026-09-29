@@ -7,6 +7,7 @@
       "qq": "QQ",
       "wechat": "WeChat"
     },
+    "importChild": "Import Sub-accounts",
     "authUrl": "Auth Url",
     "columns": {
       "advertiserId": "Advertiser Id",

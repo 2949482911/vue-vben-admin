@@ -7,6 +7,7 @@
       "qq": "QQ授权",
       "wechat": "微信授权"
     },
+    "importChild": "导入子账户",
     "authUrl": "授权链接",
     "exportAll": "全部导出",
     "columns": {

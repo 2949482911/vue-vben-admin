@@ -1,32 +1,36 @@
 <script lang="ts" setup name="AdvertiserManager">
 import type { VbenFormProps } from "@vben/common-ui";
-import { Page, useVbenModal } from "@vben/common-ui";
+
+import type { ProjectItem } from "./advertiser";
 
 import type { VxeGridProps } from "#/adapter/vxe-table";
-import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import type { AdvertiserItem, DeveloperItem } from "#/api/models";
+
+import { computed, onMounted, ref } from "vue";
+
+import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 
-import { Button, Dropdown, Menu, MenuItem, message, SubMenu, Switch, Tag } from "ant-design-vue";
 import { UploadOutlined } from "@ant-design/icons-vue";
-import { advertiserApi, userApi } from "#/api/core";
+import { Button, Dropdown, Menu, MenuItem, message, SubMenu, Switch, Tag } from "ant-design-vue";
+
+import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import { accountLabelApi, developerApi, projectApi } from "#/api";
+import { advertiserApi, userApi } from "#/api/core";
 import {
   BatchOptionsType,
   PLATFORM,
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS
 } from "#/constants/locales";
-
-import AuthAccount from "./authaccount.vue"; //授权弹窗
-import CreateObjectRequestComp from "./create.vue"; //新增|修改弹窗
-import BatchOperationComp from "./batchOperation.vue"; //批量修改弹窗
-import ImportChildAdvertiser from "./importchildadvertiser.vue";
-import BatchImportCom from "./BatchImportCom.vue";
-import HistoryList from "./historyList.vue";
-import { computed, onMounted, ref } from "vue";
-import type { ProjectItem } from "./advertiser";
 import { trimObject } from "#/utils/trim";
+
+import AuthAccount from "./authaccount.vue"; // 授权弹窗
+import BatchImportCom from "./BatchImportCom.vue";
+import BatchOperationComp from "./batchOperation.vue"; // 批量修改弹窗
+import CreateObjectRequestComp from "./create.vue"; // 新增|修改弹窗
+import HistoryList from "./historyList.vue";
+import ImportChildAdvertiser from "./importchildadvertiser.vue";
 
 const agentData = ref<{ label: string; value: string }[]>([]);
 /**
@@ -72,15 +76,13 @@ const [BatchOperationModal, BatchOperationApi] = useVbenModal({
 function openBatchOptions(modalType: string) {
   BatchOperationApi.setData({
     selectedRows: selectedRows.value, // 原有选中行数据
-    modalType: modalType // 新增的弹窗类型
+    modalType // 新增的弹窗类型
   });
   BatchOperationApi.open();
 }
 
-const [ImportChildAdvertiserModal, improtChildApi] = useVbenModal({
-  connectedComponent: ImportChildAdvertiser,
-  centered: true,
-  modal: true
+const [ImportChildAdvertiserDrawer, importChildApi] = useVbenDrawer({
+  connectedComponent: ImportChildAdvertiser
 });
 
 async function exportAllData() {
@@ -116,19 +118,24 @@ async function cancelBatchOptions(opType: string) {
     };
   }
   await advertiserApi.fetchBatchOptions({
-    targetIds: targetIds,
-    type: type,
-    values: values
+    targetIds,
+    type,
+    values
   });
   pageReload();
 }
 
-const roleType = ref<string>("");
+/**
+ * 当前操作行的媒体账户角色（归一化值 bm / mdm / unit ...）。
+ * 决定导入子账户抽屉里是否展示「手动选择 / 手动导入」切换，需在 open 之前赋值。
+ * 注意不能用 row.roleType：后端 role_type 存的是媒体原始角色码
+ */
+const advertiserRole = ref<string>("");
 
-function openImportChildModal(row: AdvertiserItem) {
-  improtChildApi.setData({ id: row.id });
-  improtChildApi.open();
-  roleType.value = row.roleType;
+function openImportChildDrawer(row: AdvertiserItem) {
+  advertiserRole.value = row.advertiserRole;
+  importChildApi.setData({ id: row.id });
+  importChildApi.open();
 }
 
 // 导入
@@ -231,7 +238,7 @@ onMounted(async () => {
   }));
 });
 
-//computed是响应式的，如果直接赋值projectOptions已经晚了，schema已经初始化完成了异步数据没有触发表单更新
+// computed是响应式的，如果直接赋值projectOptions已经晚了，schema已经初始化完成了异步数据没有触发表单更新
 const projectSelectOptions = computed(() =>
   projectOptions.value.map((item: ProjectItem) => ({
     label: item.name,
@@ -383,7 +390,7 @@ const formOptions: VbenFormProps = {
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
-        options: projectSelectOptions, //options不能直接传ref
+        options: projectSelectOptions, // options不能直接传ref
         placeholder: `${$t("common.choice")}`
       },
       fieldName: "projectId",
@@ -660,11 +667,11 @@ const gridEvents = {
   checkboxChange: ({ records }: { records: AdvertiserItem[] }) => {
     selectedRows.value = records;
   },
-  //全选事件
+  // 全选事件
   checkboxAll: ({ records }: { records: AdvertiserItem[] }) => {
     selectedRows.value = records;
   },
-  //当分页时也需要置灰批量操作按钮
+  // 当分页时也需要置灰批量操作按钮
   proxyQuery: ({}) => {
     selectedRows.value = [];
   }
@@ -686,7 +693,7 @@ async function loadAgentData(platform: string) {
   const res = await advertiserApi.fetchAdvertiserList({
     page: 1,
     pageSize: 1000,
-    platform: platform,
+    platform,
     // @ts-ignore
     advertiserRole: "proxy"
   });
@@ -702,10 +709,10 @@ async function loadAgentData(platform: string) {
   <Page>
     <Grid>
       <template #putStatue="{ row }">
-        <Switch :checked="row.putStatue === 1" @click="handlerPutState(row)"></Switch>
+        <Switch :checked="row.putStatue === 1" @click="handlerPutState(row)" />
       </template>
       <template #hourlyState="{ row }">
-        <Switch :checked="row.hourlyState === 1" @click="handlerHourlyState(row)"></Switch>
+        <Switch :checked="row.hourlyState === 1" @click="handlerHourlyState(row)" />
       </template>
       <template #advertiserRole="{ row }">
         <Tag color="red">{{ row.advertiserRoleName }}</Tag>
@@ -750,8 +757,11 @@ async function loadAgentData(platform: string) {
               <MenuItem> 投放</MenuItem>
               <MenuItem
                 v-if="row.advertiserRole === 'proxy' || row.advertiserRole === 'bm'
-                  || row.advertiserRole === 'bp_admin' || row.advertiserRole==='admin' || row.advertiserRole === 'operator'"
-                @click="openImportChildModal(row)"
+                  || row.advertiserRole === 'bp_admin' || row.advertiserRole === 'admin'
+                  || row.advertiserRole === 'operator'
+                  || row.advertiserRole === 'mdm'
+                  || row.advertiserRole === 'unit'"
+                @click="openImportChildDrawer(row)"
               >
                 {{ $t("core.import") }}
               </MenuItem>
@@ -813,10 +823,10 @@ async function loadAgentData(platform: string) {
     <AuthAccountModal />
     <BatchOperationModal @page-reload="pageReload" />
     <ImportModal @page-reload="pageReload" />
-    <ImportChildAdvertiserModal
+    <ImportChildAdvertiserDrawer
+      :advertiser-role="advertiserRole"
+      :project-options="projectOptions"
       @page-reload="pageReload"
-      :projectOptions="projectOptions"
-      :roleType="roleType"
     />
     <HistoryModal />
   </Page>

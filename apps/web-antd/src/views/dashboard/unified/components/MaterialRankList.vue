@@ -100,7 +100,6 @@ function roiColor(roi: number): string {
   height: 24px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.65);
   font-size: 12px;
   font-weight: 600;
   display: flex;
@@ -129,7 +128,6 @@ function roiColor(roi: number): string {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(0, 0, 0, 0.25);
     font-size: 20px;
   }
 }
@@ -140,7 +138,6 @@ function roiColor(roi: number): string {
 
   .material-name {
     font-size: 14px;
-    color: rgba(0, 0, 0, 0.85);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -151,7 +148,6 @@ function roiColor(roi: number): string {
     display: flex;
     gap: 12px;
     font-size: 12px;
-    color: rgba(0, 0, 0, 0.45);
   }
 }
 

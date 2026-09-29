@@ -82,7 +82,8 @@ export interface AccountChildResponse {
 export interface ImportChildRequest {
   id: string;
   advertiserIds: Array<string>;
-  projectId: string;
+  /** 后端允许为空，仅在选择项目时校验项目是否存在 */
+  projectId?: string;
 }
 
 /**
