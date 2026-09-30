@@ -12,6 +12,8 @@ declare module 'ali-oss' {
   export interface OssOptions {
     region: string;
     bucket: string;
+    /** true 走 https 拼 endpoint，默认 false 会走 http */
+    secure?: boolean;
     accessKeyId: string;
     accessKeySecret: string;
     stsToken?: string;
