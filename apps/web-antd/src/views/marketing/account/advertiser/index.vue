@@ -307,6 +307,14 @@ const formOptions: VbenFormProps = {
           {
             label: `${$t("marketing.advertiser.advertiserRole.bp_operator")}`,
             value: "bp_operator"
+          },
+          {
+            label: `${$t("marketing.advertiser.advertiserRole.unit")}`,
+            value: "unit"
+          },
+          {
+            label: `${$t("marketing.advertiser.advertiserRole.mdm")}`,
+            value: "mdm"
           }
         ],
         placeholder: `${$t("common.choice")}`

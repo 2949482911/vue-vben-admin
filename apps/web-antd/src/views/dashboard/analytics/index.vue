@@ -1,17 +1,21 @@
 <script lang="ts" setup>
 import type { AnalysisOverviewItem } from "@vben/common-ui";
-import { AnalysisChartCard, AnalysisChartsTabs, AnalysisOverview } from "@vben/common-ui";
 import type { TabOption } from "@vben/types";
-import { SvgBellIcon, SvgCakeIcon, SvgCardIcon, SvgDownloadIcon } from "@vben/icons";
+
+import type { PageIndexReportResponse } from "#/api/models";
+
 import { onMounted, ref } from "vue";
+
+import { AnalysisChartCard, AnalysisChartsTabs, AnalysisOverview } from "@vben/common-ui";
+import { SvgBellIcon, SvgCakeIcon, SvgCardIcon, SvgDownloadIcon } from "@vben/icons";
+
+import { dashboardApi } from "#/api";
 
 import AnalyticsTrends from "./analytics-trends.vue";
 import AnalyticsVisitsData from "./analytics-visits-data.vue";
 import AnalyticsVisitsSales from "./analytics-visits-sales.vue";
 import AnalyticsVisitsSource from "./analytics-visits-source.vue";
 import AnalyticsVisits from "./analytics-visits.vue";
-import { dashboardApi } from "#/api";
-import type { PageIndexReportResponse } from "#/api/models";
 
 const respData = ref<PageIndexReportResponse>({
   cname: {}, items: [], summary: []
@@ -32,34 +36,43 @@ function toNumber(value: unknown): number {
   return Number.isFinite(num) ? num : 0;
 }
 
+/**
+ * 指标文案：cname 里不一定有对应字段，取值会是 undefined，
+ * 直接塞进模板会渲染出字符串 "undefined"，这里统一兜底成 -
+ */
+function toLabel(value: unknown): string {
+  return value === null || value === undefined || value === "" ? "-" : String(value);
+}
+
 async function initOverviewItems() {
   if (respData.value.summary) {
+    const cname = respData.value.cname;
     const summary = respData.value.summary[0] || {};
     overviewItems.value = [
       {
         icon: SvgCardIcon,
-        title: `${respData.value.cname["AdRegister"]}`,
-        totalTitle: `${respData.value.cname["AdRegister"]}`,
+        title: toLabel(cname.AdRegister),
+        totalTitle: toLabel(cname.AdRegister),
         totalValue: toNumber(summary.AdRegister),
         value: toNumber(summary.AdRegister)
       },
       {
         icon: SvgCakeIcon,
-        title: `${respData.value.cname["AdCost"]}`,
-        totalTitle: `${respData.value.cname["AdCost"]}`,
+        title: toLabel(cname.AdCost),
+        totalTitle: toLabel(cname.AdCost),
         totalValue: toNumber(summary.AdCost),
         value: toNumber(summary.AdCost)
       },
       {
         icon: SvgDownloadIcon,
-        title: `${respData.value.cname["AdActivate"]}`,
-        totalTitle: `${respData.value.cname["AdActivate"]}`,
+        title: toLabel(cname.AdActivate),
+        totalTitle: toLabel(cname.AdActivate),
         totalValue: toNumber(summary.AdActivate),
         value: toNumber(summary.AdActivate)
       },
       {
         icon: SvgBellIcon,
-        title: `${respData.value.cname["AdPayOneTimeAmount"]}`,
+        title: toLabel(cname.AdPayOneTimeAmount),
         totalTitle: "总使用量",
         totalValue: toNumber(summary.AdPayOneTimeAmount),
         value: toNumber(summary.AdPayOneTimeAmount)

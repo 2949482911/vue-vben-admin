@@ -36,7 +36,9 @@
       "admin": "Admin",
       "bm": "Tencent BM Account",
       "bp_admin": "BM Admin",
-      "bp_operator": "BM OPERATOR"
+      "bp_operator": "BM OPERATOR",
+      "mdm": "Customer Main Account",
+      "unit": "Customer Unit"
     },
     "authStatus": {
       "auth": "Auth",

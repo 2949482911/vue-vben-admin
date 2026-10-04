@@ -98,6 +98,7 @@
         "pushTargetType": "推送目标",
         "pushToOrganization": "推送到组织",
         "pushToAccount": "推送到账户",
+        "pushToUnit": "推送到业务单元",
         "tencent": "腾讯广告",
         "bytedance": "巨量引擎",
         "oppo": "OPPO",

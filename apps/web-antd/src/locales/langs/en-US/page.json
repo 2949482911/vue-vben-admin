@@ -98,6 +98,7 @@
         "pushTargetType": "Push Target",
         "pushToOrganization": "Push to Organization",
         "pushToAccount": "Push to Account",
+        "pushToUnit": "Push to Business Unit",
         "tencent": "Tencent Ads",
         "bytedance": "ByteDance Ads",
         "oppo": "OPPO",
