@@ -181,13 +181,18 @@ export interface PlatformMetricMap {
   metricName: string;
 }
 
-// 报表数据响应
+// 报表数据响应（结构与后端 AdReportResponse 一致）
 export interface AdReportResponse {
-  data: any;
+  /** 数据列，顺序为「维度列 + 伴随名称列 + 指标列」 */
+  columns: Array<string>;
+  /** 字段名 -> 中文名映射 */
+  cname: Record<string, string>;
+  /** 本次参与聚合的维度 */
   dims: Array<string>;
-  cname: Map<string, string>;
-  items: Array<Map<string, string>>;
-  summary: Map<string, string>;
+  /** 明细行 */
+  items: Array<Record<string, any>>;
+  /** 合计行，前端取第 0 项 */
+  summary: Array<Record<string, any>>;
 }
 
 /**
@@ -865,6 +870,59 @@ export interface ReportSubscriptionItem {
 
 export interface UpdateSubscribeType extends ReportSubscriptionItem {
   id: string;
+}
+
+/** 腾讯商品库查询请求：多账户取交集 */
+export interface TencentProductCatalogsRequest {
+  /** 账户 id 列表（本地广告主 id） */
+  advertiserId: string[];
+  catalogId?: number;
+  catalogName?: string;
+}
+
+/** 腾讯商品库 */
+export interface TencentProductCatalogItem {
+  product_catalog_id: number;
+  product_catalog_name: string;
+  /** 商品库类型，见枚举 product_catalog_type */
+  product_catalog_type: string;
+  /** 商品库行业类型，见枚举 product_catalog_vertical */
+  product_catalog_vertical: string;
+  /** 商品库状态，见枚举 product_catalog_status */
+  product_catalog_status: string;
+}
+
+/** 腾讯商品查询请求：多账户取交集 */
+export interface TencentProductItemsRequest {
+  advertiserId: string[];
+  productCatalogId: number;
+}
+
+/** 腾讯商品 */
+export interface TencentProductItem {
+  /** 客户商品 id，即 marketing_asset_outer_spec.marketing_asset_outer_id */
+  product_outer_id: string;
+  product_name: string;
+  product_short_name: string;
+  product_image_url: string;
+  /** 商品日常售价 */
+  price: number;
+  first_category_id?: number;
+  first_category_name?: string;
+  second_category_id?: number;
+  second_category_name?: string;
+  third_category_id?: number;
+  third_category_name?: string;
+  fourth_category_id?: number;
+  fourth_category_name?: string;
+  brand_name?: string;
+  brand_id?: number;
+  description?: string;
+  custom_data?: string;
+  is_video?: boolean;
+  data_source?: string;
+  /** 爆量分 */
+  product_select_score?: number;
 }
 
 export interface GetSubscribeType extends PageRequestParams {

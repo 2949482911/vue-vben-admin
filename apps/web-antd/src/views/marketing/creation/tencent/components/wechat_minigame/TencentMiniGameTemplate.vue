@@ -14,6 +14,9 @@ import type {
 
 import { markRaw } from "vue";
 
+import { Platform } from "#/constants/enums";
+import AudiencePackageSelector
+  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
 import TimeSelectionPeriod
@@ -26,7 +29,7 @@ import {
   Tencent_auto_derived_creative_method_type_list,
   Tencent_configured_status,
   Tencent_creative_delivery_mode,
-  Tencent_ecom_pkam_switch
+  Tencent_ecom_pkam_switch, Tencent_marketing_goal
 } from "#/views/marketing/creation/tencent/tencent_enums";
 
 
@@ -228,6 +231,16 @@ const campaignFormFields = [
     fieldName: "adgroup_name",
     label: "名字",
     rules: "required"
+  },
+  {
+    component: "Select",
+    fieldName: "marketing_goal",
+    componentProps: {
+      options: Tencent_marketing_goal,
+    },
+    label: "营销目的",
+    rules: "required",
+    formItemClass: "w-[300px]",
   },
   {
     component: "DatePicker",
@@ -466,11 +479,17 @@ defineExpose({
           :form-fields="campaignFormFields"
           :campaign-show-label="campaignShowLabel"
           :campaign="creationInfo?.configData.campaign"
-          :audience="creationInfo?.configData.audience"
-          :account-info="creationInfo.accountInfo"
           :field-label-map="fieldLabelMap"
           @update:campaign="updateCampaign"
-          @update:audience-package="updateAudiencePackage"
+        />
+      </div>
+
+      <div class="pane">
+        <AudiencePackageSelector
+          :audience="creationInfo?.configData.audience"
+          :account-info="creationInfo.accountInfo"
+          :platform="Platform.TENCENT"
+          @update:audience="updateAudiencePackage"
         />
       </div>
 
@@ -512,8 +531,9 @@ defineExpose({
 
 .panes {
   display: grid;
-  grid-template-rows: minmax(0, 1fr);
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  // 面板自动换行，每行等高
+  grid-auto-rows: minmax(0, 1fr);
   gap: 16px;
   height: 100%;
   min-height: 0;

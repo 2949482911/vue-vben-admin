@@ -1,20 +1,29 @@
 <script lang="ts" setup>
-import { Button, message } from "ant-design-vue";
+import type { StrategyGropType } from "#/api/models";
+
 import { useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { $t } from "@vben/locales";
+
+import { Button, message } from "ant-design-vue";
+
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { projectApi, strategyGropApi } from "#/api/core";
-import type { StrategyGropType } from "#/api/models";
-import { $t } from "@vben/locales";
+import { Platform } from "#/constants/enums";
 import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { trimObject } from "#/utils/trim";
-import CreateObjectRequestComp from "./createStrategyGroup.vue"; //新增|修改弹窗
-import { VIVO_VERSION } from "../vivo/vivo";
-
-import { Platform } from "#/constants/enums";
 import { BYTEDANCE_STD } from "#/views/marketing/creation/bytedance_std/bytedance";
-import { OPPO_VERSION } from "#/views/marketing/creation/oppo/Oppo.types";
 import { HUAWEI_STORE } from "#/views/marketing/creation/huawei_store/huawei_store";
+import { OPPO_VERSION } from "#/views/marketing/creation/oppo/Oppo.types";
+import { TENCENT } from "#/views/marketing/creation/tencent/tencent";
 
+import { VIVO_VERSION } from "../vivo/vivo";
+import CreateObjectRequestComp from "./createStrategyGroup.vue"; // 新增|修改弹窗
+
+
+const props = defineProps<Props>();
+
+// 定义要传递给父组件的事件
+const emit = defineEmits(["update:reuse"]);
 
 function getLasterVersion(platform: string, version: string): boolean {
   if (platform === Platform.VIVO) {
@@ -23,6 +32,8 @@ function getLasterVersion(platform: string, version: string): boolean {
     return version !== BYTEDANCE_STD;
   } else if (platform === Platform.OPPO) {
     return version !== OPPO_VERSION;
+  } else if (platform === Platform.TENCENT) {
+    return version !== TENCENT;
   } else if (platform !== Platform.HUAWEI_STORE) {
     return version !== HUAWEI_STORE;
   }
@@ -35,10 +46,6 @@ interface Props {
   platform?: string;
   config?: Object;
 }
-
-const props = defineProps<Props>();
-// 定义要传递给父组件的事件
-const emit = defineEmits(["update:reuse"]);
 
 const formOptions: VbenFormProps = {
   // 默认展开
@@ -180,8 +187,7 @@ function openCreateModal(row: StrategyGropType) {
               getLasterVersion(row.platform, row.version) ? "版本已迭代，旧版本不可用" : "最新版本"
             }}
           </div>
-
-        </template>
+</template>
         <template #action="{ row }">
           <Button
             type="link"
@@ -211,7 +217,7 @@ function openCreateModal(row: StrategyGropType) {
     <CreateObjectModal
       @page-reload="pageReload"
       :config="props.config"
-      :projectId="props.projectId"
+      :project-id="props.projectId"
       :plaform="props.platform"
     />
   </div>

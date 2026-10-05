@@ -8,7 +8,7 @@ import { $t } from "@vben/locales";
 import { Tag, Typography } from "ant-design-vue";
 import dayjs from 'dayjs';
 
-import { advertiserApi } from "#/api";
+import { advertiserApi, orgApi, userApi } from "#/api";
 import { ACTIVE_PLATFORM } from "#/constants/locales";
 
 import { useAdLinkage } from '../adreportdata/adDropdown';
@@ -44,7 +44,30 @@ const MATERIAL_DIMS = [
   { label: '广告组维度', value: 'adgroup_id' },
   { label: '广告维度', value: 'promotion_id' },
   { label: '平台维度', value: 'platform' },
+  // 素材侧关联维度：后端在关联维度补齐后聚合
+  { label: '本地素材ID维度', value: 'material_id' },
+  { label: '剪辑师维度', value: 'editor_id' },
+  { label: '优化师维度', value: 'createdBy' },
+  { label: '部门维度', value: 'org_id' },
 ];
+
+/** 素材格式：1 横版 / 2 竖版（对齐素材库 format） */
+const MATERIAL_FORMAT_OPTIONS = [
+  { label: '横版', value: '1' },
+  { label: '竖版', value: '2' },
+];
+
+/** 素材类型：1 图片 / 2 视频 / 3 音频（对齐素材库 type） */
+const MATERIAL_TYPE_OPTIONS = [
+  { label: '图片', value: '1' },
+  { label: '视频', value: '2' },
+  { label: '音频', value: '3' },
+];
+
+/** 优化师 / 剪辑师候选：用户列表接口不按部门收敛，直接取全量 */
+async function fetchStaffOptions() {
+  return await userApi.fetchUserList({ orgId: '', page: 1, pageSize: 1000 });
+}
 
 // Props 定义
 interface Props {
@@ -95,6 +118,10 @@ async function resetFormToDefault() {
   await formApi.setFieldValue('promotion_id', []);     // 广告
   await formApi.setFieldValue('adgroup_id', []);       // 广告组
   await formApi.setFieldValue('creative_id', []);      // 创意
+  await formApi.setFieldValue('media_material_id', []); // 媒体文件ID
+  await formApi.setFieldValue('created_by', []);        // 优化师
+  await formApi.setFieldValue('editor_id', []);         // 剪辑师
+  await formApi.setFieldValue('org_id', []);            // 部门
   await formApi.setFieldValue('queryMetric', []);
 
   // 3. 重置联动选项的加载状态（清空已缓存的选项列表）
@@ -312,6 +339,100 @@ const formOptions: VbenFormProps = {
       fieldName: 'creative_id',
       label: '创意',
     },
+    // ===== 素材侧筛选：后端在关联维度补齐后在 DataFrame 内过滤 =====
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: '请输入素材文件名字',
+      },
+      fieldName: 'material_name',
+      label: '文件名字',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: MATERIAL_FORMAT_OPTIONS,
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'material_format',
+      label: '文件格式',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        options: MATERIAL_TYPE_OPTIONS,
+        placeholder: `${$t('common.choice')}`,
+      },
+      fieldName: 'material_type',
+      label: '素材类型',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        mode: 'tags',
+        placeholder: '输入媒体素材ID，回车添加',
+      },
+      fieldName: 'media_material_id',
+      label: '媒体文件ID',
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: '请输入媒体素材名字',
+      },
+      fieldName: 'media_material_name',
+      label: '媒体文件名字',
+    },
+    {
+      component: 'ApiSelect',
+      componentProps: {
+        allowClear: true,
+        maxTagCount: 1,
+        mode: 'multiple',
+        placeholder: `${$t('common.choice')}`,
+        labelField: 'nickname',
+        valueField: 'id',
+        resultField: 'items',
+        api: fetchStaffOptions,
+      },
+      fieldName: 'created_by',
+      label: '优化师',
+    },
+    {
+      component: 'ApiSelect',
+      componentProps: {
+        allowClear: true,
+        maxTagCount: 1,
+        mode: 'multiple',
+        placeholder: `${$t('common.choice')}`,
+        labelField: 'nickname',
+        valueField: 'id',
+        resultField: 'items',
+        api: fetchStaffOptions,
+      },
+      fieldName: 'editor_id',
+      label: '剪辑师',
+    },
+    {
+      component: 'ApiTreeSelect',
+      componentProps: {
+        allowClear: true,
+        maxTagCount: 1,
+        multiple: true,
+        placeholder: `${$t('common.choice')}`,
+        labelField: 'name',
+        valueField: 'id',
+        childrenField: 'children',
+        api: async () => await orgApi.fetchOrgTree(),
+      },
+      fieldName: 'org_id',
+      label: '部门',
+    },
   ],
   showDefaultActions: props.isShowActions,
   submitOnEnter: false,
@@ -354,8 +475,17 @@ setFormApi(formApi);
 
 /** 当前生效的查询条件（提交、重置、模板回显后同步） */
 const activeValues = ref<Record<string, any>>({});
-/** 不在已选条件行展示的字段：指标有独立入口 */
-const HIDDEN_TAG_FIELDS = new Set(['queryMetric']);
+/**
+ * 不在已选条件行展示的字段：
+ *  - queryMetric 有独立入口
+ *  - 优化师 / 剪辑师 / 部门 取值为用户ID、部门ID，标签行无法映射成名称
+ */
+const HIDDEN_TAG_FIELDS = new Set([
+  'created_by',
+  'editor_id',
+  'org_id',
+  'queryMetric',
+]);
 
 async function syncActiveValues() {
   activeValues.value = (await formApi.getValues()) ?? {};

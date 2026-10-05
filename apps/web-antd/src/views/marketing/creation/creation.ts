@@ -1,4 +1,4 @@
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { TargetedPackageTypeItem, TencentProductItem, TitlePackageItem } from "#/api/models";
 import type { PageViewItem } from "#/api/models/assert";
 import type { StdConfigData, StdCreation } from "#/views/marketing/creation/bytedance_std/bytedance";
 import type { HuaWeiStoreCreation } from "#/views/marketing/creation/huawei_store/huawei_store";
@@ -354,6 +354,23 @@ export function getAudience(
   return <TargetedPackageTypeItem>dataList[index % dataList.length] || {};
 }
 
+
+/**
+ * 取当前账户/下标对应的商品
+ * 取值规则与 getAudience 一致：全部相同时存在 "0" 键下，按账户分配时按账户 id 取
+ */
+export function getProduct(
+  method: string,
+  data: Map<string, Array<TencentProductItem>>,
+  advertiserId: string,
+  index: number
+): TencentProductItem | undefined {
+  // 只有「按账户分配」才按账户取，其余（含 method 未配置）都走全部相同的 "0"
+  const dataList: Array<TencentProductItem> =
+    method === DistributionMode.account ? data.get(advertiserId) || [] : data.get("0") || [];
+  return dataList[index % dataList.length];
+}
+
 /**
  * 层级位置：当前节点在同级中的下标与同级总数
  * 用于「平均分配」逐层均分素材（账户 → 项目/计划 → 广告组 → 广告）
@@ -605,6 +622,16 @@ export interface AudienceConfigData {
 export interface TitlePackageConfigData {
   config: MethodConfig;
   data: Map<string, Array<TitlePackageItem>>;
+}
+
+
+/**
+ * 商品（商品库）配置
+ * 与素材/标题包一致：method 决定「全部相同」还是「按账户分配」，data 的 key 为账户 id（全部相同时为 "0"）
+ */
+export interface ProductData {
+  config: MethodConfig;
+  data: Map<string, Array<TencentProductItem>>;
 }
 
 

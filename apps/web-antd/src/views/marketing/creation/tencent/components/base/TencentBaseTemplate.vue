@@ -11,6 +11,9 @@ import type {
 } from "#/views/marketing/creation/tencent/tencent";
 
 // 腾讯基础模板
+import { Platform } from "#/constants/enums";
+import AudiencePackageSelector
+  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
@@ -1547,11 +1550,17 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           :form-fields="campaignFormFields"
           :campaign-show-label="campaignShowLabel"
           :campaign="creationInfo?.configData.campaign"
-          :audience="creationInfo?.configData.audience"
-          :account-info="creationInfo.accountInfo"
           :field-label-map="fieldLabelMap"
           @update:campaign="updateCampaign"
-          @update:audience-package="updateAudiencePackage"
+        />
+      </div>
+
+      <div class="pane">
+        <AudiencePackageSelector
+          :audience="creationInfo?.configData.audience"
+          :account-info="creationInfo.accountInfo"
+          :platform="Platform.TENCENT"
+          @update:audience="updateAudiencePackage"
         />
       </div>
 
@@ -1593,8 +1602,9 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 
 .panes {
   display: grid;
-  grid-template-rows: minmax(0, 1fr);
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  // 面板自动换行，每行等高
+  grid-auto-rows: minmax(0, 1fr);
   gap: 16px;
   height: 100%;
   min-height: 0;

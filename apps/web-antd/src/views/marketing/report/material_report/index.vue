@@ -15,12 +15,15 @@ import {
   Row,
   Space,
   Statistic,
+  Tag,
   Typography,
 } from 'ant-design-vue';
 
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import { reportApi } from '#/api';
+import { rawDimFieldOf } from '#/constants/dimension';
 import { ACTIVE_PLATFORM, DIMS } from '#/constants/locales';
+import { getPlatformColor, getPlatformLabel } from '#/constants/platform';
 
 import SelectMetricModal from '../adreportdata/selectmetric.vue';
 import TemplateListDrawer from '../components/ReportTemplateListDrawer.vue';
@@ -303,6 +306,11 @@ function updateTableStructure(columns: string[], footData: any, columnOrder?: st
         title: cnameMap.value[key] || key,
         sortable: true,
         showOverflow: true,
+        // 平台列走列插槽渲染成中文带色标签（CellTag 渲染器在本项目内实际不生效）
+        // needCname 时后端把列名翻成中文（platform → 平台），这里反查回英文字段名再判断
+        ...(rawDimFieldOf(key) === 'platform'
+          ? { slots: { default: 'platform' } }
+          : {}),
       });
     });
 
@@ -487,11 +495,19 @@ function sortDataByField(data: any[], field: string, order: 'asc' | 'desc'): any
 
 /* 表单提交防抖 */
 const decimalPoint = ref<number>();
+/** 操作符取值，对齐后端 OperatorEnum */
+const OPERATOR_IN = 1;
+const OPERATOR_LIKE = 3;
 // 辅助函数
-const makeFilter = (field: string, values?: string[], operator = 1): ReportFilter[] | undefined =>
+const makeFilter = (field: string, values?: string[], operator = OPERATOR_IN): ReportFilter[] | undefined =>
   values?.length ? [{ field, operator, values }] : undefined;
 
-// 素材报表仅支持 platform/campaign_id/adgroup_id/promotion_id/creative_id 过滤
+/**
+ * 素材报表筛选条件。
+ * 事实表筛选（platform / campaign_id / adgroup_id / promotion_id / creative_id）直接进入 SQL；
+ * 素材侧字段（material_* / media_material_* / created_by / editor_id / org_id）属于关联筛选，
+ * 后端在关联维度补齐后在 DataFrame 内过滤。
+ */
 function buildReportParams(values: any): AdReportRequest {
   const {
     dateTimeRange,
@@ -502,6 +518,14 @@ function buildReportParams(values: any): AdReportRequest {
     adgroup_id,
     promotion_id,
     creative_id,
+    material_name,
+    material_format,
+    material_type,
+    media_material_id,
+    media_material_name,
+    created_by,
+    editor_id,
+    org_id,
   } = values;
 
   const normalizeArray = (val?: string | string[]) =>
@@ -513,6 +537,15 @@ function buildReportParams(values: any): AdReportRequest {
     ...(makeFilter('adgroup_id', normalizeArray(adgroup_id)) ?? []),
     ...(makeFilter('promotion_id', normalizeArray(promotion_id)) ?? []),
     ...(makeFilter('creative_id', normalizeArray(creative_id)) ?? []),
+    // 素材侧筛选
+    ...(makeFilter('material_name', material_name ? [material_name] : undefined, OPERATOR_LIKE) ?? []),
+    ...(makeFilter('material_format', normalizeArray(material_format)) ?? []),
+    ...(makeFilter('material_type', normalizeArray(material_type)) ?? []),
+    ...(makeFilter('media_material_id', normalizeArray(media_material_id)) ?? []),
+    ...(makeFilter('media_material_name', media_material_name ? [media_material_name] : undefined, OPERATOR_LIKE) ?? []),
+    ...(makeFilter('created_by', normalizeArray(created_by)) ?? []),
+    ...(makeFilter('editor_id', normalizeArray(editor_id)) ?? []),
+    ...(makeFilter('org_id', normalizeArray(org_id)) ?? []),
   ];
 
   return {
@@ -770,7 +803,17 @@ const isShowActions = ref(true);
 
       <!-- 素材明细表：素材/创意列冻结在左，指标列右对齐 -->
       <div class="min-h-[320px] min-w-0 flex-1">
-        <Grid />
+        <Grid>
+          <!-- 平台列：中文名 + 平台色标签。取值走 column.field，兼容列名被翻译成中文 -->
+          <template #platform="{ row, column }">
+            <Tag
+              :bordered="false"
+              :color="getPlatformColor(String(row[column.field] ?? ''))"
+            >
+              {{ getPlatformLabel(String(row[column.field] ?? '')) }}
+            </Tag>
+          </template>
+        </Grid>
       </div>
     </div>
 

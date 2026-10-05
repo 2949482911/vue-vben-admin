@@ -47,6 +47,7 @@ import { useVbenForm } from "#/adapter/form";
 import { materialLibraryApi } from "#/api/core";
 
 import AlbumFiles from "./albumFiles.vue";
+import MaterialDetailPanel from "./materialDetail.vue";
 import NewFolder from "./newFolder.vue";
 import PushMaterialDrawer from "./PushMaterialDrawer.vue";
 import PushTaskListDrawer from "./PushTaskListDrawer.vue";
@@ -401,6 +402,48 @@ function handleBreadcrumbJump(item: FolderItem) {
   }
 }
 
+// ==================== 素材详情 ====================
+const detailMaterial = ref<MaterialItem | null>(null);
+
+/**
+ * 打开序号：每次打开详情自增并传给面板。
+ * 面板据此触发取数，避免依赖组件挂载时机导致「关闭后再打开不再查询」。
+ */
+const detailOpenSeq = ref(0);
+
+/** 当前目录路径，作为详情页「所属目录」的展示文案 */
+const detailFolderPath = computed(() =>
+  (treeItem.value ?? [])
+    .map((item) => item.name)
+    .filter(Boolean)
+    .join(" / ")
+);
+
+const [MaterialDetailDrawer, materialDetailDrawerApi] = useVbenDrawer({
+  class: "w-[92%]",
+  contentClass: "p-4",
+  destroyOnClose: true,
+  closeOnPressEscape: true,
+  footer: false,
+  header: false,
+  onClosed() {
+    detailMaterial.value = null;
+  }
+});
+
+function openMaterialDetail(material: MaterialItem) {
+  detailMaterial.value = material;
+  detailOpenSeq.value += 1;
+  materialDetailDrawerApi.open();
+}
+
+/** 详情页里点「推送素材」：复用素材库已有的推送流程 */
+function handlePushFromDetail(material: MaterialItem) {
+  selectedMaterials.value = [material];
+  materialDetailDrawerApi.close();
+  pushMaterialDrawerApi.open();
+}
+
 async function deleteFolder(folder: MaterialLibraryFolderType) {
   try {
     const params = {
@@ -565,6 +608,7 @@ const selectedCount = computed(() => selectedMaterials.value.length);
             @open-file="newBuilt"
             @breadcrumb-click="handleBreadcrumbJump"
             @toggle-material-select="handleToggleMaterialSelect"
+            @view-detail="openMaterialDetail"
             :tree-item="treeItem ?? []"
             :selected-material-ids="selectedMaterialIds"
             :filter-params="filterParams"
@@ -580,6 +624,19 @@ const selectedCount = computed(() => selectedMaterials.value.length);
       :materials="selectedMaterials"
     />
     <PushTaskListDrawerModal />
+
+    <!-- 素材详情抽屉 -->
+    <MaterialDetailDrawer>
+      <MaterialDetailPanel
+        v-if="detailMaterial"
+        :key="detailOpenSeq"
+        :folder-path="detailFolderPath"
+        :material="detailMaterial"
+        :open-seq="detailOpenSeq"
+        @close="materialDetailDrawerApi.close()"
+        @push="handlePushFromDetail"
+      />
+    </MaterialDetailDrawer>
   </Page>
 </template>
 

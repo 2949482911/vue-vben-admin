@@ -9,6 +9,7 @@ import type {
   MonitoringLinkConfigData,
   MonitoringLinkType,
   PlatformCreation,
+  ProductData,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 
@@ -19,6 +20,7 @@ import {
   getFlatTitleList,
   getMaterial,
   getMonitoringLink,
+  getProduct,
   getRuleInfoAdCountGroup,
   getRuleInfoCampaignCount,
   getTitleCount
@@ -41,6 +43,8 @@ export interface TencentConfigData {
   audience: AudienceConfigData;
   titlePackage: TitlePackageConfigData;
   monitoringLink: MonitoringLinkConfigData;
+  /** 商品（商品库），商品销售场景使用 */
+  product: ProductData;
 }
 
 
@@ -259,6 +263,28 @@ export interface TencentAdgroupData {
   creative_components: Array<TencentCreativeComponent>;
   program_creative_info_switch: boolean;
   program_creative_info: TencentProgramCreativeInfo;
+
+  /**
+   * 以下为「商品销售 + 商品库 + 页面跳转」场景的创意内联取值。
+   * 这些字段不属于 dynamic_creatives/add 的入参，会在生成创意组件时被组装进
+   * creative_components 的 description / wechat_channels / main_jump_info，不会直接提交给媒体。
+   */
+  /** 创意描述文案 */
+  description_content?: string;
+  /** 视频号名称（投放含视频号版位时使用） */
+  wechat_channels_username?: string;
+  /** 落地页微信小程序 id，与 mini_program_path 同时填写才生成主跳转组件 */
+  mini_program_id?: string;
+  /** 落地页微信小程序路径 */
+  mini_program_path?: string;
+}
+
+/**
+ * 微信小程序落地页结构，对应 jump_info 的 page_spec.wechat_mini_program_spec
+ */
+export interface TencentWechatMiniProgramSpec {
+  mini_program_id: string;
+  mini_program_path: string;
 }
 
 // 创意组件
@@ -308,7 +334,8 @@ export interface TencentCreativeComponent {
 export interface TencentComponent {
   component_id: number;
   is_deleted: boolean;
-  value: Map<string, string>;
+  // 内联组件取值：既有扁平结构（{content: "..."}），也有嵌套结构（jump_info.page_spec），所以不能限定为 string
+  value: Map<string, any>;
   // 本地素材ids
   materialIdsList: Array<string>;
 }
@@ -526,6 +553,14 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
         campaignIdx
       );
 
+      // 商品（商品库）：按分配方式（全部相同 / 按账户分配）取当前账户、当前下标对应的商品
+      const product = getProduct(
+        createInfo.configData.product?.config?.method ?? "",
+        createInfo.configData.product?.data ?? new Map(),
+        advertiserId,
+        campaignIdx
+      );
+
       // 构建计划对象
       const campaign: TencentCampaign = {
         ...createInfo.configData.campaign,
@@ -540,6 +575,16 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
         ),
         // 从定向包的 config 属性获取 targeting（config 可能是 JSON 字符串，需要解析）
         targeting: audience.config ? audience.config : {},
+        // 外投商品：选择器里配了商品就用它覆盖，否则沿用表单里填的
+        marketing_asset_outer_spec: {
+          ...createInfo.configData.campaign.marketing_asset_outer_spec,
+          marketing_asset_outer_id:
+            product?.product_outer_id
+            || createInfo.configData.campaign.marketing_asset_outer_spec.marketing_asset_outer_id,
+          marketing_asset_outer_name:
+            product?.product_name
+            || createInfo.configData.campaign.marketing_asset_outer_spec.marketing_asset_outer_name
+        },
         adGroupList: []
       };
 
@@ -590,7 +635,8 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
           creative_components: buildCreativeComponents(
             materialList,
             globalAdGroupIdx,
-            title
+            title,
+            createInfo.configData.adgroup
           )
         };
         campaign.adGroupList.push(adgroup);
@@ -611,11 +657,13 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
  * @param materialList 素材列表
  * @param index 索引
  * @param title 标题
+ * @param config 动态创意配置，用于取场景化的内联组件取值（描述/视频号/小程序落地页）
  */
 function buildCreativeComponents(
   materialList: Array<Material>,
   index: number,
-  title: string
+  title: string,
+  config: TencentAdgroupData
 ): Array<TencentCreativeComponent> {
   if (!materialList || materialList.length === 0) {
     return [];
@@ -702,6 +750,52 @@ function buildCreativeComponents(
         value: new Map(),
         materialIdsList: [video.localMaterialId]
       });
+    });
+  }
+
+  // 描述文案：内联 value，不引用创意组件库
+  if (config.description_content) {
+    creativeComponent.description.push({
+      component_id: 0,
+      is_deleted: false,
+      value: new Map([["content", config.description_content]]),
+      materialIdsList: []
+    });
+  }
+
+  // 视频号：投放含视频号版位时，品牌形象需要用视频号，否则创意在视频号版位无法播放
+  if (config.wechat_channels_username) {
+    creativeComponent.wechat_channels.push({
+      component_id: 0,
+      is_deleted: false,
+      value: new Map<string, any>([
+        ["finder_object_visibility", false],
+        ["username", config.wechat_channels_username]
+      ]),
+      materialIdsList: []
+    });
+  }
+
+  // 主跳转（落地页）：页面跳转载体的落地页由创意侧决定，这里按微信小程序生成
+  if (config.mini_program_id && config.mini_program_path) {
+    creativeComponent.main_jump_info.push({
+      component_id: 0,
+      is_deleted: false,
+      value: new Map([
+        [
+          "jump_info",
+          {
+            page_type: "PAGE_TYPE_WECHAT_MINI_PROGRAM",
+            page_spec: {
+              wechat_mini_program_spec: {
+                mini_program_id: config.mini_program_id,
+                mini_program_path: config.mini_program_path
+              }
+            }
+          }
+        ]
+      ]),
+      materialIdsList: []
     });
   }
 

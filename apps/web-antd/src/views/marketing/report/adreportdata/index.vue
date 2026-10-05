@@ -15,12 +15,15 @@ import {
   Row,
   Space,
   Statistic,
+  Tag,
   Typography
 } from "ant-design-vue";
 
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { reportApi } from "#/api";
+import { rawDimFieldOf } from "#/constants/dimension";
 import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
+import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 
 import AdReportFilterForm from "../components/AdReportFilterForm.vue";
 import TemplateListDrawer from "../components/ReportTemplateListDrawer.vue";
@@ -299,7 +302,12 @@ function updateTableStructure(columns: string[], footData: any, columnOrder?: st
         field: key,
         title: key,
         sortable: true,
-        showOverflow: true
+        showOverflow: true,
+        // 平台列走列插槽渲染成中文带色标签（CellTag 渲染器在本项目内实际不生效）
+        // needCname 时后端把列名翻成中文（platform → 平台），这里反查回英文字段名再判断
+        ...(rawDimFieldOf(key) === 'platform'
+          ? { slots: { default: 'platform' } }
+          : {})
       });
     });
 
@@ -786,7 +794,17 @@ const isShowActions = ref(true);
 
       <!-- 明细表：维度列冻结在左，指标列右对齐 -->
       <div class="min-h-[320px] min-w-0 flex-1">
-        <Grid />
+        <Grid>
+          <!-- 平台列：中文名 + 平台色标签。取值走 column.field，兼容列名被翻译成中文 -->
+          <template #platform="{ row, column }">
+            <Tag
+              :bordered="false"
+              :color="getPlatformColor(String(row[column.field] ?? ''))"
+            >
+              {{ getPlatformLabel(String(row[column.field] ?? '')) }}
+            </Tag>
+          </template>
+        </Grid>
       </div>
     </div>
 

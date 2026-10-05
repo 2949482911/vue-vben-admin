@@ -6,7 +6,7 @@ import type {
   TencentCreationData
 } from "./tencent";
 
-import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
+import type { TargetedPackageTypeItem, TencentProductItem, TitlePackageItem } from "#/api/models";
 import type {
   AccountInfo,
   AudienceConfigData,
@@ -14,6 +14,7 @@ import type {
   MaterialData,
   MonitoringLinkConfigData,
   MonitoringLinkType,
+  ProductData,
   Project,
   RuleConfiguration,
   RuleInfo,
@@ -21,7 +22,7 @@ import type {
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 
-import { ref, watch } from "vue";
+import { nextTick, ref, watch } from "vue";
 
 import { useVbenModal } from "@vben/common-ui";
 
@@ -34,6 +35,8 @@ import Function from "#/views/marketing/creation/components/Function.vue";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import TencentBaseTemplate
   from "#/views/marketing/creation/tencent/components/base/TencentBaseTemplate.vue";
+import TencentProductSalesTemplate
+  from "#/views/marketing/creation/tencent/components/product_sales/TencentProductSalesTemplate.vue";
 import TencentPreviewArea
   from "#/views/marketing/creation/tencent/components/TencentPreviewArea.vue";
 import TencentMiniGameTemplate
@@ -151,6 +154,14 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
  */
 function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
   creationInfo.value.configData.monitoringLink = monitoringLink;
+}
+
+
+/**
+ * 更新商品（商品库）
+ */
+function updateProduct(productData: ProductData) {
+  creationInfo.value.configData.product = productData;
 }
 
 
@@ -403,6 +414,12 @@ async function initCreationInfo() {
         },
         linkType: RuleMethod.MANUAL,
         data: new Map<string, Array<MonitoringLinkType>>()
+      },
+      product: {
+        config: {
+          method: RuleMethod.ALL
+        },
+        data: new Map<string, Array<TencentProductItem>>()
       }
     },
     configurationConfig: {
@@ -434,7 +451,10 @@ async function initCreationInfo() {
 async function updateTemplate(changeVal: string) {
   template.value = changeVal;
   await initCreationInfo();
+  // 模板组件是 v-if 挂载的，先等一次渲染，否则下面 ref 还是空的
+  await nextTick();
 
+  // 商品销售模板的默认值都写在表单元素上，不再从模板取数据对象
   if (changeVal === "wechat_mini_game") {
     creationInfo.value.configData.campaign = TencentMiniGameTemplateRef.value.campaign;
     creationInfo.value.configData.adgroup = TencentMiniGameTemplateRef.value.adgroup;
@@ -473,8 +493,25 @@ function updateReuse(tencentCreation: TencentCreation) {
     if (config.monitoringLink && !(config.monitoringLink.data instanceof Map)) {
       config.monitoringLink.data = new Map(Object.entries(config.monitoringLink.data || {}));
     }
+
+    // 6. 恢复 product.data
+    if (config.product && !(config.product.data instanceof Map)) {
+      config.product.data = new Map(Object.entries(config.product.data || {}));
+    }
+
+    // 7. 老策略组没有商品配置，补默认值
+    if (!config.product) {
+      config.product = {
+        config: { method: RuleMethod.ALL },
+        data: new Map()
+      };
+    }
   }
   creationInfo.value = tencentCreation;
+  // 复用后切回策略组里保存的模板，否则工作台还停留在当前模板、模板下拉也回显不上
+  if (tencentCreation.configurationConfig?.template) {
+    template.value = tencentCreation.configurationConfig.template;
+  }
 }
 
 
@@ -663,6 +700,12 @@ const creationInfo = ref<TencentCreation>({
       },
       linkType: RuleMethod.MANUAL,
       data: new Map<string, Array<MonitoringLinkType>>()
+    },
+    product: {
+      config: {
+        method: RuleMethod.ALL
+      },
+      data: new Map<string, Array<TencentProductItem>>()
     }
   },
   configurationConfig: {
@@ -756,6 +799,17 @@ function resetCreationInfo() {
         @update:campaign="updateCampaign"
         @update:adgroup="updateAdgroup"
         @update:audience-package="updateAudiencePackage"
+      />
+
+      <TencentProductSalesTemplate
+        v-else-if="template === 'product_sales'"
+        :creation-info="creationInfo"
+        @update:title-package="updateTitlePackage"
+        @update:update-material="updateMaterial"
+        @update:campaign="updateCampaign"
+        @update:adgroup="updateAdgroup"
+        @update:audience-package="updateAudiencePackage"
+        @update:product="updateProduct"
       />
     </template>
 

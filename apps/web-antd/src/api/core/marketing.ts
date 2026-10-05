@@ -67,6 +67,10 @@ import type {
   TaskBatchCenterItem,
   TaskBatchCenterListPageRequest,
   TaskBatchCenterProgressResponse,
+  TencentProductCatalogItem,
+  TencentProductCatalogsRequest,
+  TencentProductItem,
+  TencentProductItemsRequest,
   templateListType,
   TitlePackItem,
   UpdateAdvertiserRequest,
@@ -764,3 +768,28 @@ class TaskCenterApi extends BaseApi {
 }
 
 export const taskCenterApi = new TaskCenterApi("/platform/task_center");
+
+
+/**
+ * 营销-腾讯广告工具接口
+ * 对应后端 TencentAdvertisementApi（@RequestMapping("tencent_advertisement")）
+ */
+class TencentAdvertisementApi extends BaseApi {
+  /** 获取商品库，多账户取交集 */
+  fetchProductCatalogs(params: TencentProductCatalogsRequest) {
+    return requestClient.post<TencentProductCatalogItem[]>(
+      this.getServiceUrl("product_catalogs"),
+      params
+    );
+  }
+
+  /** 获取商品库下的商品，多账户取交集 */
+  fetchProductItems(params: TencentProductItemsRequest) {
+    return requestClient.post<TencentProductItem[]>(
+      this.getServiceUrl("product_items"),
+      params
+    );
+  }
+}
+
+export const tencentAdvertisementApi = new TencentAdvertisementApi("/platform/tencent_advertisement");

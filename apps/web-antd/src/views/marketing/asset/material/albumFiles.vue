@@ -48,6 +48,7 @@ const emit = defineEmits<{
   (e: 'openFile', rowVal: MaterialLibraryFolderType): void;
   (e: 'breadcrumbClick', item: FolderItem): void;
   (e: 'toggleMaterialSelect', material: MaterialItem): void;
+  (e: 'viewDetail', material: MaterialItem): void;
 }>();
 
 const isShowLoading = ref(true);
@@ -127,6 +128,11 @@ const currentPageFiles = computed(() =>
 
 function handleMaterialClick(material: MaterialItem) {
   emit('toggleMaterialSelect', material);
+}
+
+/** 打开素材详情抽屉 */
+function handleViewDetail(material: MaterialItem) {
+  emit('viewDetail', material);
 }
 
 function handleFolderClick(item: any) {
@@ -450,6 +456,21 @@ defineExpose({
                 <span>{{ resolutionOf(item as MaterialItem) }}</span>
               </template>
             </div>
+
+            <!-- 查看详情：贴卡片右下角，点击不触发素材勾选 -->
+            <div class="m-foot">
+              <Button
+                type="link"
+                size="small"
+                class="m-detail"
+                @click.stop="handleViewDetail(item as MaterialItem)"
+              >
+                <template #icon>
+                  <EyeOutlined />
+                </template>
+                查看详情
+              </Button>
+            </div>
           </div>
         </Card>
       </div>
@@ -642,5 +663,20 @@ defineExpose({
   font-size: 11px;
   line-height: 1.5;
   color: hsl(var(--muted-foreground));
+}
+
+/* 卡片底部操作：查看详情贴右下角 */
+.m-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+  margin-top: 2px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.m-detail {
+  height: 24px;
+  padding: 0;
+  font-size: 12px;
 }
 </style>

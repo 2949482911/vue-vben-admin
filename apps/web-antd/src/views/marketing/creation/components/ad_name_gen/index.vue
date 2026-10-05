@@ -95,15 +95,21 @@ function onTagClick(tag: string) {
       @update:value="onInputChange"
     />
     <div class="mt-2 flex flex-wrap gap-1">
-      <Tag
+      <!--
+        点击事件挂在外层 span 上，不要挂到 antd Tag 上：
+        Tag 收到 onClick 后会额外包一层 Wave（水波纹），而 Wave 是
+        createVNode(Wave, null, { default: () => [...] }) 这种「非编译态插槽」，
+        Vue 3.5 在插槽于渲染函数外被调用时会告警
+        （Slot "default" invoked outside of the render function）。
+      -->
+      <span
         v-for="tag in placeholderTags"
         :key="tag"
-        :color="customizeName.includes(tag) ? 'blue' : 'default'"
         class="cursor-pointer"
         @click="onTagClick(tag)"
       >
-        {{ tag }}
-      </Tag>
+        <Tag :color="customizeName.includes(tag) ? 'blue' : 'default'">{{ tag }}</Tag>
+      </span>
     </div>
   </div>
 </template>

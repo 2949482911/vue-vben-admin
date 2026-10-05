@@ -34,6 +34,23 @@ async function bootstrap(namespace: string) {
 
   const app = createApp(App);
 
+  /**
+   * 过滤 Vue 3.5 的「插槽在渲染函数之外被调用」告警：
+   *   Slot "xxx" invoked outside of the render function: ...
+   *
+   * 触发方是各库自己用 `createVNode(Comp, props, { default: () => ... })` 拼的
+   * 「非编译态插槽」（例如 antd Tag 的 Wave、antd InputNumber 的 StepHandler），
+   * 模板里编译出来的插槽带 _n 标记不受影响。这类告警属于框架侧误报：
+   * 只在 dev 打印、不影响功能，生产构建不会出现。
+   * 这里只过滤这一条消息，其余 Vue 警告照常输出；整段注释掉即可全部恢复。
+   */
+  app.config.warnHandler = (msg, _instance, trace) => {
+    if (msg.includes('invoked outside of the render function')) {
+      return;
+    }
+    console.warn(`[Vue warn]: ${msg}${trace ? `\n${trace}` : ''}`);
+  };
+
   // 注册v-loading指令
   registerLoadingDirective(app, {
     loading: 'loading', // 在这里可以自定义指令名称，也可以明确提供false表示不注册这个指令

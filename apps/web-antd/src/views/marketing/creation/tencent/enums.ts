@@ -32,6 +32,10 @@ export const TENCENT_MARKETING_TYPE = [
     value: "wechat_mini_game"
   },
   {
+    label: "商品销售-商品库",
+    value: "product_sales"
+  },
+  {
     label: "小程序",
     value: "mini_program"
   },

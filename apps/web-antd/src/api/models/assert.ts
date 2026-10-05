@@ -2,13 +2,20 @@ import type { BaseItem, PageRequestParams } from "#/api/models/core";
 
 
 /**
- * 素材列表
+ * 素材列表行
+ * 对应后端 MaterialItem：素材行与文件夹行共用同一结构
  */
 export interface MaterialItem extends BaseItem {
   albumId: string;
   rootAlbumId: string;
   name: string;
+  /**
+   * 行类型：1 文件夹 / 2 素材文件。
+   * 注意它不是媒体类型 —— 素材表自己的 type（1 图片/2 视频/3 音频）在后端 DTO 里被覆盖了，
+   * 媒体类型需要按扩展名或 videoDurationSecond 判断。
+   */
   type: number;
+  /** 格式：1 横版 / 2 竖版 */
   format: number;
   fileMd5: string;
   fileSize: string;
@@ -22,6 +29,16 @@ export interface MaterialItem extends BaseItem {
   width: number;
   aspectRatio: string;
   aspectXy: string;
+  /** 剪辑师ID */
+  editor: string;
+  /** 剪辑师姓名 */
+  editorName: string;
+  /** 备注 */
+  remark: string;
+  /** 文件夹下的素材数（仅文件夹行） */
+  count: string;
+  /** 父级文件夹ID（仅文件夹行） */
+  parentId: string;
 }
 
 

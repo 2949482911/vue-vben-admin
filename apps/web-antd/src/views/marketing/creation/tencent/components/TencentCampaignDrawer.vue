@@ -11,14 +11,32 @@ const { formFields } = defineProps({
 });
 
 
+/**
+ * 去掉各模板 schema 上写死的字段宽度（w-[300px]、w-[400px] 等）。
+ * 框架会把 commonConfig.formItemClass 和 schema 的 formItemClass 拼在同一个 class 上，
+ * 两个宽度类同时存在时谁生效取决于样式表顺序、结果不可控，
+ * 所以统一去掉，宽度只由下面 commonConfig 的 formItemClass 决定。
+ */
+function stripSchemaWidths(fields: any[]): any[] {
+  return fields.map(({ formItemClass = "", ...rest }) => {
+    return {
+      ...rest,
+      formItemClass: String(formItemClass)
+        .split(" ")
+        .filter((cls) => cls && !cls.startsWith("w-["))
+        .join(" ")
+    };
+  });
+}
+
+
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
+  // 竖版布局：一行一个字段
+  wrapperClass: "grid-cols-1",
   commonConfig: {
-    // 所有表单项
-    // formItemClass: 'w-[600px]',
-    componentProps: {
-      // class: "w-[300px]"
-    }
+    // 字段宽度：铺满抽屉并限制最大宽度，保证 Select 下拉能完整显示选项
+    formItemClass: "w-full max-w-[800px]"
   },
 });
 
@@ -26,12 +44,12 @@ const [Form, formApi] = useVbenForm({
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
   closeOnPressEscape: true,
-  class: "w-[70%]",
+  class: "w-[80%]",
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
       const campaign = drawerApi.getData();
       formApi.setState({
-        schema: formFields
+        schema: stripSchemaWidths(formFields)
       });
 
       // 将对象属性平铺出来，用于表单回显

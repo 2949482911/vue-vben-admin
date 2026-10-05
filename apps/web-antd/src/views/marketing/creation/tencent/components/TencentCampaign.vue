@@ -1,6 +1,4 @@
 <script setup lang="ts" name="TencentCampaign">
-import type { AudienceConfigData } from "#/views/marketing/creation/creation";
-import type { AccountInfo } from "#/views/marketing/creation/creation";
 import type { TencentCampaignData } from "#/views/marketing/creation/tencent/tencent";
 
 import { ref, watch } from "vue";
@@ -15,20 +13,14 @@ import {
   DescriptionsItem,
 } from "ant-design-vue";
 
-import { Platform } from "#/constants/enums";
-import AudiencePackageSelector
-  from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
-
 import TencentCampaignDrawer from "./TencentCampaignDrawer.vue";
 
 /**
  * formFields 展示的表单
  * campaignShowLabel 展示的label
- * audience 定向包
  * campaign 计划数据
- * accountInfo 账户信息
  */
-const { formFields, campaignShowLabel, audience, campaign, accountInfo, fieldLabelMap } = defineProps({
+const { formFields, campaignShowLabel, campaign, fieldLabelMap } = defineProps({
   formFields: {
     type: Array,
     default: () => []
@@ -37,17 +29,9 @@ const { formFields, campaignShowLabel, audience, campaign, accountInfo, fieldLab
     type: Object,
     default: () => {}
   },
-  audience: {
-    type: Object as () => AudienceConfigData | null,
-    default: () => {}
-  },
   campaign: {
     type: Object as () => null | TencentCampaignData,
     default: () => {}
-  },
-  accountInfo: {
-    type: Array as () => AccountInfo[],
-    default: () => []
   },
   fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
@@ -55,9 +39,8 @@ const { formFields, campaignShowLabel, audience, campaign, accountInfo, fieldLab
 
 /**
  * update:campaign 更新计划信息
- * update:audiencePackage 更新定向包
  */
-const emit = defineEmits(["update:campaign", "update:audiencePackage"]);
+const emit = defineEmits(["update:campaign"]);
 
 
 /**
@@ -226,46 +209,28 @@ function openCampaignDrawer() {
   drawerApi.open();
 }
 
-
-/**
- * 更新定向包
- */
-function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
-  emit("update:audiencePackage", audienceConfigData);
-}
-
 </script>
 
 <template>
   <div class="tencent-campaign-container">
-    <div class="campaign-cards-wrapper">
-      <Card title="营销单元" class="info-card">
-        <div class="card-content">
-          <Descriptions title="基本信息" v-if="campaignInfo.adgroup_name" :column="1" class="info-descriptions">
-            <DescriptionsItem
-v-for="(label, key ) in campaignShowLabel"
-                              :key="key" :label="label"
->
-              {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
-            </DescriptionsItem>
-          </Descriptions>
-          <Alert v-else type="error" message="请先填写营销单元信息" class="empty-alert" />
-        </div>
-        <div class="card-footer">
-          <Button primary danger @click="openCampaignDrawer">
-            {{ campaignInfo.adgroup_name ? "编辑营销单元" : "添加营销单元" }}
-          </Button>
-        </div>
-      </Card>
-
-      <AudiencePackageSelector
-        :audience="audience"
-        :account-info="accountInfo"
-        :platform="Platform.TENCENT"
-        @update:audience="updateAudiencePackage"
-      />
-    </div>
-
+    <Card title="营销单元" class="info-card">
+      <div class="card-content">
+        <Descriptions title="基本信息" v-if="campaignInfo.adgroup_name" :column="1" class="info-descriptions">
+          <DescriptionsItem
+            v-for="(label, key ) in campaignShowLabel"
+            :key="key" :label="label"
+          >
+            {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
+          </DescriptionsItem>
+        </Descriptions>
+        <Alert v-else type="error" message="请先填写营销单元信息" class="empty-alert" />
+      </div>
+      <div class="card-footer">
+        <Button primary danger @click="openCampaignDrawer">
+          {{ campaignInfo.adgroup_name ? "编辑营销单元" : "添加营销单元" }}
+        </Button>
+      </div>
+    </Card>
     <CampaignDrawerModule :form-fields="formFields" />
   </div>
 </template>
