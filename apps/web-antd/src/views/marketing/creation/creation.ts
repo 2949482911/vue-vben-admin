@@ -356,19 +356,33 @@ export function getAudience(
 
 
 /**
- * 取当前账户/下标对应的商品
+ * 商品选择结果：某个账户（「全部相同」时为 "0"）选中的商品库与商品
+ */
+export interface ProductSelection {
+  /** 商品库 id，对应 marketing_asset_outer_spec.marketing_asset_outer_id */
+  productCatalogId: string;
+  /** 已选商品，其 product_outer_id 对应 marketing_asset_outer_spec.marketing_asset_outer_sub_id */
+  products: Array<TencentProductItem>;
+}
+
+
+/**
+ * 取当前账户/下标对应的商品库与商品
  * 取值规则与 getAudience 一致：全部相同时存在 "0" 键下，按账户分配时按账户 id 取
  */
 export function getProduct(
   method: string,
-  data: Map<string, Array<TencentProductItem>>,
+  data: Map<string, ProductSelection>,
   advertiserId: string,
   index: number
-): TencentProductItem | undefined {
+): { product: TencentProductItem | undefined; productCatalogId: string } {
   // 只有「按账户分配」才按账户取，其余（含 method 未配置）都走全部相同的 "0"
-  const dataList: Array<TencentProductItem> =
-    method === DistributionMode.account ? data.get(advertiserId) || [] : data.get("0") || [];
-  return dataList[index % dataList.length];
+  const selection = method === DistributionMode.account ? data.get(advertiserId) : data.get("0");
+  const products = selection?.products || [];
+  return {
+    product: products[index % products.length],
+    productCatalogId: selection?.productCatalogId || ""
+  };
 }
 
 /**
@@ -631,7 +645,7 @@ export interface TitlePackageConfigData {
  */
 export interface ProductData {
   config: MethodConfig;
-  data: Map<string, Array<TencentProductItem>>;
+  data: Map<string, ProductSelection>;
 }
 
 

@@ -7,7 +7,7 @@ import { useVbenForm } from '#/adapter/form';
 import { Page, useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { useVbenVxeGrid } from '@vben/plugins/vxe-table';
-import { Button, message, RangePicker } from 'ant-design-vue';
+import { Button, message } from 'ant-design-vue';
 import { ocpxTaskApi,platformCallbackApi } from '#/api/core/ocpx';
 import { trimObject } from '#/utils/trim';
 const defalutPlatformCallbackId = ref<string>()
@@ -20,7 +20,13 @@ const taskId = ref<string>()
   ids:'',
   name:''
 })
-const [Modal, modalApi] = useVbenModal({
+interface ClickRecordModalData {
+  id?: string;
+  platform: string;
+  behavioraPlatformIds: string[];
+  platformCallbackIds: string[];
+}
+const [Modal, modalApi] = useVbenModal<ClickRecordModalData>({
   fullscreen: true,
   fullscreenButton: false,
   onCancel() {
@@ -31,12 +37,12 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const modalData = modalApi.getData()
+      const modalData = modalApi.getData()!
       taskId.value = modalData.id
       platform.value = modalData.platform
       defalutPlatformCallbackId.value = modalData.platformCallbackIds[0]
       defalutBehaviorPlatformId.value = modalData.behavioraPlatformIds[0]
-      queryCallback.value.ids = modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : []
+      queryCallback.value.ids = (modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : []) as string
     }
   },
 });
@@ -253,7 +259,7 @@ function pageReload() {
 function openBatchCallback() {
   callbackModalApi.open()
 }
-function openCallback(row: ClickReordItem) {
+function openCallback(_row: ClickReordItem) {
 }
 </script>
 

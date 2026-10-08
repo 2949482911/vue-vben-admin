@@ -24,6 +24,7 @@ import TimeSelectionPeriod
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
 import TencentAdgroup from "#/views/marketing/creation/tencent/components/TencentAdgroup.vue";
 import TencentCampaign from "#/views/marketing/creation/tencent/components/TencentCampaign.vue";
+import { createEmptyCreativeComponents } from "#/views/marketing/creation/tencent/tencent";
 import {
   fieldLabelMap,
   Tencent_auto_derived_creative_method_type_list,
@@ -391,7 +392,7 @@ const adgroup: TencentAdgroupData = {
   auto_derived_program_creative_switch: false,
   click_tracking_url: "",
   configured_status: "AD_STATUS_NORMAL",
-  creative_components: [],
+  creative_components: createEmptyCreativeComponents(),
   creative_template_id: "",
   delivery_mode: "DELIVERY_MODE_COMPONENT",
   dynamic_creative_name: "",

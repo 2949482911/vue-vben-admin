@@ -1,6 +1,6 @@
 <script setup lang="ts" name="HuaweiStoreSubTask">
 import {ref, watch} from 'vue';
-import {Card, Divider, Descriptions, DescriptionsItem, Alert, Button, Space} from 'ant-design-vue';
+import {Card, Descriptions, DescriptionsItem, Alert, Button} from 'ant-design-vue';
 import type {HuaWeiStoreAdgroupData} from "#/views/marketing/creation/huawei_store/huawei_store";
 import {useVbenDrawer} from '@vben/common-ui';
 import HuaweiStoreSubTaskDrawer
@@ -101,7 +101,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           <Descriptions title="基本信息" v-if="adgroupData.subTaskName" :column="1" class="info-descriptions">
             <DescriptionsItem v-for="(label, key ) in subTaskShowLabel"
                               :key="key" :label="label">
-              {{ fieldLabelMap[key] ? fieldLabelMap[key](adgroupData[key]) : adgroupData[key] }}
+              {{ fieldLabelMap[key] ? fieldLabelMap[key]((adgroupData as any)[key]) : (adgroupData as any)[key] }}
             </DescriptionsItem>
           </Descriptions>
           <Alert v-else type="error" message="请先填写子任务信息" class="empty-alert"></Alert>

@@ -49,7 +49,7 @@ async function handlerState(row: ProjectItem) {
 
 async function handlerDelete(row: ProjectItem) {
   await projectApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>()
   });
@@ -192,7 +192,7 @@ function openBatchOptions(modalType: string) {
 }
 
 function batchDelete() {
-  const targetIds = selectedRows.value.map((item) => item.id);
+  const targetIds = selectedRows.value.map((item) => item.id!);
   projectApi.fetchBatchOptions({
     targetIds: targetIds,
     type: "delete",

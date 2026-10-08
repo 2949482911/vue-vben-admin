@@ -64,7 +64,7 @@ const maxCount = 200;
 function openEditDrawer() {
   creativeGroupDrawerApi.setData({
     // 将 localMaterial 的 data Map 转换为可传递的格式
-    method: localMaterial.value.config.method,
+    method: localMaterial.value.config.method as RuleMethod,
     data: localMaterial.value.data
   });
   creativeGroupDrawerApi.open();
@@ -100,7 +100,7 @@ watch(
       // 处理普通对象转换为 Map（复用策略组时 JSON 序列化后 Map 变成普通对象）
       const dataMap = newMaterial.data instanceof Map
         ? newMaterial.data
-        : new Map(Object.entries(newMaterial.data || {}));
+        : new Map<string, Material[]>(Object.entries(newMaterial.data || {}) as Array<[string, Material[]]>);
 
       localMaterial.value = {
         ...newMaterial,

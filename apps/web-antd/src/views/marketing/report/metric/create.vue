@@ -6,7 +6,7 @@ import { Page, useVbenModal } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 import { useVbenForm } from "#/adapter/form";
 import { metricApi } from "#/api/core";
-import type { VxeGridProps } from "#/adapter/vxe-table";
+import type { VxeGridProps, VxeTableGridColumns } from "#/adapter/vxe-table";
 import { useVbenVxeGrid } from "@vben/plugins/vxe-table";
 import { Button, Divider, Input, message, Select } from "ant-design-vue";
 import { ACTIVE_PLATFORM } from "#/constants/locales";
@@ -156,7 +156,7 @@ const [Form, formApi] = useVbenForm({
       fieldName: "platform",
       label: $t("marketing.metric.columns.platform"),
       dependencies: {
-        show: async () => (await formApi.getValues()).metricType === 4,
+        show: async (): Promise<boolean> => (await formApi.getValues()).metricType === 4,
         triggerFields: ["metricType"]
       }
     },
@@ -167,7 +167,7 @@ const [Form, formApi] = useVbenForm({
       fieldName: "implMethod",
       label: $t("marketing.metric.columns.implMethod"),
       dependencies: {
-        show: async () => (await formApi.getValues()).metricType === 3,
+        show: async (): Promise<boolean> => (await formApi.getValues()).metricType === 3,
         triggerFields: ["metricType"]
       }
     },
@@ -190,7 +190,7 @@ const [Form, formApi] = useVbenForm({
         }
       },
       dependencies: {
-        show: async () => (await formApi.getValues()).metricType === 2,
+        show: async (): Promise<boolean> => (await formApi.getValues()).metricType === 2,
         triggerFields: ["metricType", "reportType"]
       }
     }
@@ -199,7 +199,7 @@ const [Form, formApi] = useVbenForm({
 });
 
 // 表格配置（不变）
-const columns = [
+const columns: VxeTableGridColumns<PlatformMetricMap> = [
   { title: "序号", type: "seq" },
   {
     field: "platform",
@@ -238,7 +238,7 @@ function deletePlatformMetricMap(index: number) {
   gridApi.setGridOptions({ data: platformMetricMap.value });
 }
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<UpdateMetric | CreateSystemMetric>({
   fullscreen: true,
   fullscreenButton: false,
   closeOnPressEscape: false,
@@ -253,7 +253,8 @@ const [Modal, modalApi] = useVbenModal({
       ename: "",
       formula: "",
       id: "",
-      implMethod: ""
+      implMethod: "",
+      reportType: ""
     };
     defaultPlatformMetricMap();
     isUpdate.value = false;
@@ -275,8 +276,8 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       // 先加载指标列表
-      metricList.value = await metricApi.fetchMetric();
-      objectRequest.value = modalApi.getData<UpdateMetric | CreateSystemMetric>();
+      metricList.value = await metricApi.fetchMetric({}) as unknown as MetricItem[];
+      objectRequest.value = modalApi.getData()!;
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
@@ -288,7 +289,7 @@ const [Modal, modalApi] = useVbenModal({
   }
 });
 
-function handleFormulaConfirm(val) {
+function handleFormulaConfirm(val: string) {
   formulaForSubmit.value = val;
 }
 
@@ -365,7 +366,7 @@ function handleSetFormValue(row: UpdateMetric | CreateSystemMetric) {
 
 onMounted(async () => {
   // 加载指标列表，用于回显转换
-  metricList.value = await metricApi.fetchMetric();
+  metricList.value = await metricApi.fetchMetric({}) as unknown as MetricItem[];
 });
 const title: string = isUpdate.value ? $t("common.edit") : $t("common.create");
 </script>
@@ -379,15 +380,15 @@ const title: string = isUpdate.value ? $t("common.edit") : $t("common.create");
         <template #platform="{ seq }">
           <Select
             :options="ACTIVE_PLATFORM"
-            v-model:value="platformMetricMap[seq - 1].platform"
+            v-model:value="platformMetricMap[(seq as number) - 1]!.platform"
             style="width:100%"
           />
         </template>
         <template #metricName="{ seq }">
-          <Input v-model:value="platformMetricMap[seq - 1].metricName" />
+          <Input v-model:value="platformMetricMap[(seq as number) - 1]!.metricName" />
         </template>
         <template #action="{ seq }">
-          <Button type="link" @click="deletePlatformMetricMap(seq - 1)">
+          <Button type="link" @click="deletePlatformMetricMap((seq as number) - 1)">
             {{ $t("common.delete") }}
           </Button>
         </template>

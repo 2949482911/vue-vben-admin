@@ -11,7 +11,7 @@ export const customRequest = axios.create({
 
 // 请求拦截器：自动添加 token
 customRequest.interceptors.request.use(
-  (config: { headers: { [x: string]: string; Authorization: string; }; }) => {
+  (config) => {
     const accessStore = useAccessStore();
     const token = accessStore.accessToken;
     if (token) {
@@ -25,7 +25,7 @@ customRequest.interceptors.request.use(
 
 // 响应拦截器：统一错误处理
 customRequest.interceptors.response.use(
-  (response: { config: { responseType: string; }; data: any; }) => {
+  (response) => {
     if (response.config.responseType === 'blob' || response.config.responseType === 'arraybuffer') {
       return response;
     }

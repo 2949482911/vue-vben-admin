@@ -47,12 +47,12 @@ function openCreateModal(row?: MetricItem) {
 async function handlerState(row: MetricItem) {
   await (row.status == 1
     ? metricApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>()
     })
     : metricApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
     }));
@@ -61,7 +61,7 @@ async function handlerState(row: MetricItem) {
 
 async function handlerDelete(row: MetricItem) {
   await metricApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>()
   });

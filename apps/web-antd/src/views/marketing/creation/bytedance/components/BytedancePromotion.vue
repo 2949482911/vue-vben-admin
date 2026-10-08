@@ -1,6 +1,6 @@
 <script setup lang="ts" name="BytedancePromotion">
 import { ref, watch } from 'vue';
-import type { BytedancePromotionData } from '#/views/marketing/creation/bytedance/bytedance';
+import type { BytedancePromotionData, BytedancePromotionProduct_info } from '#/views/marketing/creation/bytedance/bytedance';
 import { useVbenDrawer } from '@vben/common-ui';
 import BytedancePromotionDrawer from './BytedancePromotionDrawer.vue';
 import {
@@ -51,7 +51,7 @@ const promotionInfo = ref<BytedancePromotionData>({
       product_name_type: '', product_image_type: '', product_selling_point_type: '',
       product_name_fields: [], product_image_fields: [], product_selling_point_fields: [],
       titles: [], image_ids: [], selling_points: [],
-    },
+    } as unknown as BytedancePromotionProduct_info,
     original_video_title: "",
     playlet_series_url_list: [],
     decoration_material: { activity_id: "", image_mode: "" },
@@ -120,7 +120,7 @@ function openPromotionDrawer() {
       <div class="card-content">
         <Descriptions title="基本信息" v-if="promotionInfo.name" :column="1" class="info-descriptions">
           <DescriptionsItem v-for="(label, key) in promotionShowLabel" :key="key" :label="label">
-            {{ fieldLabelMap[key] ? fieldLabelMap[key](promotionInfo[key]) : promotionInfo[key] }}
+            {{ fieldLabelMap[key] ? fieldLabelMap[key](promotionInfo[key as keyof BytedancePromotionData]) : promotionInfo[key as keyof BytedancePromotionData] }}
           </DescriptionsItem>
         </Descriptions>
         <Alert v-else type="error" message="请先填写广告信息" class="empty-alert" />

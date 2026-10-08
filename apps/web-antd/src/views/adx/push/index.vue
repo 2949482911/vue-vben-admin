@@ -7,7 +7,7 @@ import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {Button, Switch} from 'ant-design-vue';
 import {TABLE_COMMON_COLUMNS,PLATFORM} from '#/constants/locales';
-import { pushCampaignApi } from '#/api/core/adx.ts';
+import { pushCampaignApi } from '#/api/core/adx';
 import {$t} from '@vben/locales';
 import CreateDSpDrawer from './create.vue';
 import {Dropdown, Menu,MenuItem} from 'ant-design-vue';
@@ -75,7 +75,7 @@ const [CreateDrawer, createDrawerApi] = useVbenDrawer({
  connectedComponent: CreateDSpDrawer,
 })
 function openCreateDrawer(row?: DspItem|string) {
-  if (row?.id) {
+  if (row && typeof row !== 'string' && row.id) {
     createDrawerApi.setData(row);
   } else {
     createDrawerApi.setData({type: row});
@@ -85,6 +85,8 @@ function openCreateDrawer(row?: DspItem|string) {
 function pageReload() {
   gridApi.reload();
 }
+// TODO: 模板已绑定但业务尚未实现，暂为空实现，待确认后补全
+function handlerState(_row: DspItem) {}
 </script>
 
 <template>

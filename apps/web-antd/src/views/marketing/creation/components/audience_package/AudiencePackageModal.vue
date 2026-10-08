@@ -181,10 +181,10 @@ async function changeMethod(e: RadioChangeEvent) {
   await gridApi.query();
 }
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<AudienceConfigData>({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const data = modalApi.getData();
+      const data = modalApi.getData()!;
       localAudience.value = {
         ...data,
         config: {...data.config},

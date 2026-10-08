@@ -50,12 +50,12 @@ function openCreateModal(row?: PlatformcallbackItem, type?: string) {
 async function handlerState(row: PlatformcallbackItem) {
   await (row.status == 1
     ? platformCallbackApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>()
     })
     : platformCallbackApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
     }));
@@ -64,7 +64,7 @@ async function handlerState(row: PlatformcallbackItem) {
 
 async function handlerDelete(row: PlatformcallbackItem) {
   await platformCallbackApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>()
   });

@@ -53,7 +53,7 @@ const [Modal, modalApi] = useVbenModal({
     // 更新外层显示文字
     mediaAccountLabel.value = finalRows.map((r) => r.advertiserName).join('，');
     // 更新外层选中的 ID 数组
-    selectedAccountIds.value = finalRows.map((r) => r.id);
+    selectedAccountIds.value = finalRows.map((r) => r.id!);
 
     // 构造发送给后端或父组件的数据
     const uniqueAccountInfo = finalRows.map((row: AdvertiserItem) => ({
@@ -156,7 +156,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
           const grid = gridApi.grid;
           if (grid) {
             // 【重要】这里应该用 tempSelectedRows 的 ID，因为它是弹窗内操作的最实时状态
-            const idsToCheck = tempSelectedRows.value.map((item) => item.id);
+            const idsToCheck = tempSelectedRows.value.map((item) => item.id!);
             if (idsToCheck.length > 0) {
               grid.setCheckboxRowKey(idsToCheck, true);
             }

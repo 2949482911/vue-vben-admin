@@ -137,7 +137,7 @@ function pageReload() {
 async function handlerDelete(row: MainBodyComboPageItem) {
   try {
     await mainBodyComboApi.fetchMainBodyComboBatchOption({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: "delete",
       values: new Map<string, any>()
     });
@@ -151,7 +151,7 @@ async function handlerDelete(row: MainBodyComboPageItem) {
 async function handlerState(row: MainBodyComboPageItem) {
   try {
     await mainBodyComboApi.fetchMainBodyComboBatchOption({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: row.status === 1 ? "disable" : "enable",
       values: new Map<string, any>()
     });

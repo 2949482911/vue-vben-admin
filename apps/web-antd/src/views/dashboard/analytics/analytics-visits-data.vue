@@ -13,6 +13,12 @@ const respData = ref<PageIndexReportResponse>({
   cname: {}, items: [], summary: []
 });
 
+type TrafficCountRow = {
+  platform: string;
+  AdClick: number;
+  AdShow: number;
+};
+
 async function getTraffic_report_count() {
   respData.value = await dashboardApi.fetchPageIndexReport({
     reportType: "traffic_report_count"
@@ -26,9 +32,10 @@ onMounted(async () => {
   const x_data: Array<number> = [];
   const y_data: Array<number> = [];
   respData.value.items.forEach(x => {
-    indicator_map[x["platform"]] = 1;
-    x_data.push(x["AdClick"]);
-    y_data.push(x["AdShow"]);
+    const row = x as TrafficCountRow;
+    indicator_map[row["platform"]] = 1;
+    x_data.push(row["AdClick"]);
+    y_data.push(row["AdShow"]);
   });
 
   for (let indicatorMapKey in indicator_map) {

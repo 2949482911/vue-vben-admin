@@ -60,7 +60,7 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
+      query: async (_, args) => {
         const params = trimObject(args) as OpcxTaskPageRequest;
         const res = await ocpxTaskApi.fetchOcpxTaskList(params);
         // 恢复勾选状态
@@ -78,7 +78,7 @@ const gridOptions: VxeGridProps = {
 
 // Grid 事件
 const gridEvents = {
-  radioChange: ({row}) => {
+  radioChange: ({row}: {row: OcpxTaskItem}) => {
     tempSelectedRow.value = row;
     emitUpdate();
   },

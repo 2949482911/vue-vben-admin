@@ -18,7 +18,7 @@ export function trimObject<T>(obj: T): T {
     const result: Record<string, any> = {};
     for (const key in target) {
       if (Object.prototype.hasOwnProperty.call(target, key)) {
-        const value = target[key];
+        const value = (target as Record<string, any>)[key];
         // 删除 所有空白（半角空格+全角空格+制表+换行+中间空格）
         result[key] = typeof value === 'string' 
           ? value.replace(/[\s\u3000]/g, '') 

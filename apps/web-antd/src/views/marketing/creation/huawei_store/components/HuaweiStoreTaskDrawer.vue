@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {useVbenDrawer} from '@vben/common-ui';
-import {useVbenForm} from '#/adapter/form';
+import {useVbenForm, type VbenFormSchema} from '#/adapter/form';
+import type {HuaWeiStoreCampaignData} from "#/views/marketing/creation/huawei_store/huawei_store";
 
 const {formFields} = defineProps({
   formFields: {
@@ -16,9 +17,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
   class: "w-[70%]",
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
-      const campaign = drawerApi.getData();
+      const campaign = drawerApi.getData() as HuaWeiStoreCampaignData;
       formApi.setState({
-        schema: formFields,
+        schema: formFields as VbenFormSchema[],
       })
       const campaignInfo = campaign.campaignInfo || {};
       const newCampaign = Object.assign(campaign, campaignInfo);

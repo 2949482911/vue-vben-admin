@@ -245,7 +245,7 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             }
           });
 
-          const promotion: OppoPromotion = {
+          const promotion = {
             exposeEndUrl: "",
             playBeginUrl: "",
             playEndUrl: "",
@@ -278,7 +278,7 @@ export function getPreviewTableData(creationInfo: OppoCreation): OppoCreationDat
             clickUrl: monitoringLink.clickLink,
             pageUrlName: landingPageItem?.name || "",
             deepLink
-          };
+          } as OppoPromotion;
           adgroup.promotionList.push(promotion);
         }
 

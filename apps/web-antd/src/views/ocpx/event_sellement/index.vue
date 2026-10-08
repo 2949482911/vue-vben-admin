@@ -4,7 +4,7 @@ import {Page, useVbenModal} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import type {EventSettlementItem, OcpxTaskItem} from '#/api/models';
+import type {EventSettlementItem} from '#/api/models';
 import {$t} from '@vben/locales';
 
 import {Button, Switch} from 'ant-design-vue';
@@ -26,7 +26,7 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
   modal: true,
 });
 
-function openCreateModal(row?: OcpxTaskItem) {
+function openCreateModal(row?: EventSettlementItem) {
   if (row?.id) {
     createObjectApi.setData(row);
   } else {
@@ -35,15 +35,15 @@ function openCreateModal(row?: OcpxTaskItem) {
   createObjectApi.open();
 }
 
-async function handlerState(row: OcpxTaskItem) {
+async function handlerState(row: EventSettlementItem) {
   await (row.status === 1
     ? eventSettlementApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>(),
     })
     : eventSettlementApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>(),
     }));
@@ -54,9 +54,9 @@ async function handlerState(row: OcpxTaskItem) {
  * delete ocpx task
  * @param row
  */
-async function handlerDelete(row: OcpxTaskItem) {
+async function handlerDelete(row: EventSettlementItem) {
   await eventSettlementApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>(),
   });

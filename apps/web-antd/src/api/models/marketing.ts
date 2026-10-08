@@ -94,6 +94,13 @@ export interface AuthAdvertiserRequest {
   developerId?: string;
   /** 授权账号类型，仅腾讯需要：ACCOUNT_TYPE_QQ / ACCOUNT_TYPE_WECHAT */
   accountType?: string;
+  /**
+   * 腾讯实名认证令牌(user_token)授权标识，非空即获取该授权地址
+   * （后端 PlatformAdvertiserAuthUrlRequest#isTencentUserAuth）
+   */
+  subType?: string;
+  /** userToken 授权指定的账户主键（platform_advertiser.id），仅 subType 非空时必填 */
+  advertiserId?: string;
 }
 
 /**
@@ -900,7 +907,7 @@ export interface TencentProductItemsRequest {
 
 /** 腾讯商品 */
 export interface TencentProductItem {
-  /** 客户商品 id，即 marketing_asset_outer_spec.marketing_asset_outer_id */
+  /** 客户商品 id，即 marketing_asset_outer_spec.marketing_asset_outer_sub_id（商品库 id 见 product_catalog_id） */
   product_outer_id: string;
   product_name: string;
   product_short_name: string;

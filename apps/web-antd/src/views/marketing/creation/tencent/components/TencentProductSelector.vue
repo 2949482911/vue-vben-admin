@@ -2,7 +2,7 @@
 import type { TencentProductItem } from "#/api/models";
 // 商品选择组件 - 供腾讯商品销售场景使用
 // 参照 audience_package/AudiencePackageSelector.vue 模式：内部组装 展示 + 抽屉 + 选择按钮
-import type { AccountInfo, ProductData } from "#/views/marketing/creation/creation";
+import type { AccountInfo, ProductData, ProductSelection } from "#/views/marketing/creation/creation";
 
 import { computed, ref, watch } from "vue";
 
@@ -28,7 +28,7 @@ const [ProductDrawerComp, productDrawerApi] = useVbenDrawer({
 });
 
 /** 兼容复用策略组后 Map 被 JSON 序列化成普通对象的情况 */
-function toMap(data: any): Map<string, Array<TencentProductItem>> {
+function toMap(data: any): Map<string, ProductSelection> {
   return data instanceof Map ? data : new Map(Object.entries(data || {}));
 }
 
@@ -40,8 +40,9 @@ const localProduct = ref<ProductData>({
 /** 已选商品分组，用于卡片回显 */
 const previewGroups = computed(() => {
   const groups: Array<{ items: Array<TencentProductItem>; key: string; name: string }> = [];
-  toMap(localProduct.value.data).forEach((items, key) => {
-    if (Array.isArray(items) && items.length > 0) {
+  toMap(localProduct.value.data).forEach((selection, key) => {
+    const items = selection?.products ?? [];
+    if (items.length > 0) {
       const account = props.accountInfo.find((item) => item.localAdvertiserId === key);
       groups.push({
         items,

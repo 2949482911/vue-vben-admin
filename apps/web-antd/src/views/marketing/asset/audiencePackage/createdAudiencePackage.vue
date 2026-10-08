@@ -151,7 +151,7 @@ async function loadAdvertiserOptions(platform?: string) {
   platformConfig.value = platform;
   advertiserOption.value = [];
   const res = await advertiserApi.fetchAdvertiserList({
-    advertiserRole: "",
+    advertiserRole: "" as any,
     platform,
     putStatue: 1,
     page: 1,
@@ -159,7 +159,7 @@ async function loadAdvertiserOptions(platform?: string) {
   });
 
   advertiserOption.value = res.items.map((item) => ({
-    id: item.id,
+    id: item.id!,
     label: item.advertiserName,
     value: item.advertiserId,
   }));

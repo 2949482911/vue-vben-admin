@@ -1,7 +1,8 @@
 <script setup lang="ts" name="OppoCampaignDrawer">
 import { nextTick } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
-import { useVbenForm } from '#/adapter/form';
+import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
+import type { OppoCampaignData } from '#/views/marketing/creation/oppo/Oppo.types';
 
 const { formFields } = defineProps({
   formFields: {
@@ -25,8 +26,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
-      const campaign = drawerApi.getData();
-      formApi.setState({ schema: formFields });
+      const campaign = drawerApi.getData() as OppoCampaignData;
+      formApi.setState({ schema: formFields as VbenFormSchema[] });
       await nextTick();
 
       // Campaign 全部为平铺字段，无嵌套对象

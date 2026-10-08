@@ -168,12 +168,12 @@ const LINKS: LinkTemplate[] = [
 const MEDIA_OPTIONS = ['巨量引擎', '腾讯广告', '快手磁力', 'OPPO', '京东', '淘宝', '穿山甲'];
 
 // ===== 交互状态 =====
-const selectedLinkId = ref(LINKS[0].id);
+const selectedLinkId = ref(LINKS[0]!.id);
 const selectedNodeId = ref<NodeType | null>(null);
 const jsonModalOpen = ref(false);
 const jsonText = ref('');
 
-const currentLink = computed(() => LINKS.find((l) => l.id === selectedLinkId.value) ?? LINKS[0]);
+const currentLink = computed<LinkTemplate>(() => LINKS.find((l) => l.id === selectedLinkId.value) ?? LINKS[0]!);
 const currentNode = computed(() => currentLink.value.nodes[selectedNodeId.value as NodeType]);
 const linkedCount = computed(() => currentLink.value.nodes.callback?.events?.filter((e) => e.linked).length ?? 0);
 

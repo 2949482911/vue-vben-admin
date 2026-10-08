@@ -235,7 +235,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = drawerApi.getData<CreateProjectRequest | UpdateProjectRequest>();
+      objectRequest.value = drawerApi.getData() as CreateProjectRequest | UpdateProjectRequest;
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);

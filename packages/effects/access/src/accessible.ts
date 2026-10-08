@@ -19,7 +19,7 @@ import {
 } from '@vben/utils';
 
 async function generateAccessible(
-  mode: AccessModeType,
+  _mode: AccessModeType,
   options: GenerateMenuAndRoutesOptions,
 ) {
   const { router } = options;

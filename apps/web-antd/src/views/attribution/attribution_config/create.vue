@@ -114,7 +114,7 @@ const [Form, formApi] = useVbenForm({
   ]
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<UpdateAttributionConfigRequest>({
   closeOnPressEscape: true,
   async onCancel() {
     await formApi.resetForm();
@@ -133,10 +133,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const data =
-        drawerApi.getData<
-          CreateAttributionConfigRequest | UpdateAttributionConfigRequest
-        >();
+      const data = drawerApi.getData();
       if (data?.id) {
         isUpdate.value = true;
         formApi.setValues(data);

@@ -155,7 +155,11 @@ const summaryData = computed(() => {
 
   // total 是一个数组，取第一个元素
   const totalItem = total[0] as any;
-  const clickCnt = totalItem[ocpxAnalysisResponse.value.cname.click_cnt] || 0;
+  const cname = ocpxAnalysisResponse.value.cname as unknown as {
+    click_cnt: string;
+    show_cnt: string;
+  };
+  const clickCnt = totalItem[cname.click_cnt] || 0;
   const eventCnt = ocpxAnalysisResponse.value.totalEventCnt || 0;
 
   // 计算转化率（万分比精度）
@@ -166,8 +170,8 @@ const summaryData = computed(() => {
 
   return {
     totalClickCount: clickCnt,
-    totalExposureCount: totalItem[ocpxAnalysisResponse.value.cname.show_cnt] || 0,
-    totalAmount: ocpxAnalysisResponse.value.totalAmount || 0,
+    totalExposureCount: totalItem[cname.show_cnt] || 0,
+    totalAmount: Number(ocpxAnalysisResponse.value.totalAmount) || 0,
     totalEventCnt: eventCnt,
     assessmentAmount: ocpxAnalysisResponse.value.assessmentAmount || 0,
     conversionRate,
@@ -382,7 +386,7 @@ onMounted(() => {
                   </div>
                   <div class="text-center">
                     <div class="text-gray-500 text-sm mb-1">{{ $t('ocpx.analytics.completionRate') }}</div>
-                    <div class="text-3xl font-bold" :style="{ color: completionRate >= 100 ? '#3f8600' : '#cf1322' }">
+                    <div class="text-3xl font-bold" :style="{ color: Number(completionRate) >= 100 ? '#3f8600' : '#cf1322' }">
                       {{ completionRate }}%
                     </div>
                   </div>

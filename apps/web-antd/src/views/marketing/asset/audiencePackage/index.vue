@@ -5,11 +5,13 @@ import { onMounted, ref } from "vue";
 
 import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
 
-import { Button, message, Switch } from "ant-design-vue";
+import { Button, message, Switch, Tag } from "ant-design-vue";
 
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { advertiserApi, targetedPackageApi } from "#/api";
 import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import type { AdvertiserPageRequest } from "#/api/models/marketing";
+import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
 
 import { AUDIENCE_PLATFORM_OPTIONS } from "./audiencePackageType";
@@ -42,7 +44,7 @@ async function loadAdvertiserOptions(platform?: string) {
     putStatue: 1,
     page: 1,
     pageSize: 100000
-  });
+  } as AdvertiserPageRequest);
 
   advertiserOption.value = res.items.map((item) => ({
     label: item.advertiserName,
@@ -112,7 +114,9 @@ const gridOptions: VxeGridProps = {
     {
       field: "platform",
       title: "平台",
-      width: "auto"
+      width: "auto",
+      // 媒体列渲染成中文带色标签，映射取自 constants/platform
+      slots: { default: "platform" }
     },
     // {
     //   field: 'type',
@@ -185,6 +189,11 @@ function handlerState(_row: AdConfig) {
 <template>
   <Page content-class="p-5">
     <Grid>
+      <template #platform="{ row }">
+        <Tag :bordered="false" :color="getPlatformColor(row.platform)">
+          {{ getPlatformLabel(row.platform) }}
+        </Tag>
+      </template>
       <!--        <template #type="{ row }">-->
       <!--          <span v-if="row.type === 'normal'">常规定向</span>-->
       <!--          <span v-else>媒体定向</span>-->

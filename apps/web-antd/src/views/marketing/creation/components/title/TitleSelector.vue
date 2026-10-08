@@ -1,7 +1,9 @@
 <script setup lang="ts" name="TitleSelector">
 // 标题包选择组件 - 供后续全媒体批投公用
 import type {AccountInfo, TitlePackageConfigData} from '#/views/marketing/creation/creation';
-import {Card, Alert, Space, Button, Divider} from 'ant-design-vue';
+import type {TitlePackageItem} from '#/api/models';
+import {RuleMethod} from '#/views/marketing/creation/creation_enums';
+import {Card, Alert, Button} from 'ant-design-vue';
 import {useVbenDrawer} from '@vben/common-ui';
 import {ref, computed, watch} from 'vue';
 import TitlePackageShow from '#/views/marketing/creation/components/title/TitlePackageShow.vue';
@@ -76,7 +78,7 @@ watch(
       // 处理普通对象转换为 Map（复用策略组时 JSON 序列化后 Map 变成普通对象）
       const dataMap = newPackage.data instanceof Map
         ? newPackage.data
-        : new Map(Object.entries(newPackage.data || {}));
+        : new Map<string, TitlePackageItem[]>(Object.entries(newPackage.data || {}) as Array<[string, TitlePackageItem[]]>);
 
       localTitlePackage.value = {
         ...newPackage,
@@ -94,7 +96,7 @@ watch(
     <Card title="标题包" class="info-card">
       <div class="card-content">
         <template v-if="totalCount > 0">
-          <TitlePackageShow :data="localTitlePackage.data" :method="localTitlePackage.config.method" />
+          <TitlePackageShow :data="localTitlePackage.data" :method="localTitlePackage.config.method as RuleMethod" />
         </template>
 
         <template v-else>

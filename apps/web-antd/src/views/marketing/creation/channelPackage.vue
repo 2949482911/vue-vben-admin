@@ -64,7 +64,9 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       // 从 modalApi 中获取刚才 open 时传入的 data
-      const { channelPackage: latestData } = modalApi.getData();
+      const { channelPackage: latestData } = modalApi.getData() as {
+        channelPackage: Record<string, ChannelPackageValue> | Map<string, ChannelPackageValue>;
+      };
       if (accountInfo.length > 0) {
         await initSelection(latestData);
         await nextTick();

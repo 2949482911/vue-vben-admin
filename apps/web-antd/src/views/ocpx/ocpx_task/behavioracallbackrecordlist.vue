@@ -19,6 +19,12 @@ interface eventType {
   label: string;
   value: string;
 }
+interface BehavioracallbackModalData {
+  platform: string;
+  taskId: string;
+  behavioraPlatformIds: string[];
+  platformCallbackIds: string[];
+}
 const eventList = ref<eventType[]>([]);
 let TYPE_LABEL_MAP: Record<string, string> = {};
 const platform = ref<string>();
@@ -59,7 +65,7 @@ function viewDetailsOpen(row: OcpxBehavioracallbackRecordItem) {
   drawerApi.open();
 }
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<BehavioracallbackModalData>({
   fullscreen: true,
   fullscreenButton: false,
   // 确保第一层有一个明确的 zIndex (可选)
@@ -73,15 +79,17 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const modalData = modalApi.getData();
+      const modalData = modalApi.getData()!;
       platform.value = modalData.platform;
       taskId.value = modalData.taskId;
       defalutBehavioraPlatformId.value = modalData.behavioraPlatformIds[0];
       defalutPlatformCallbackId.value = modalData.platformCallbackIds[0];
-      queryCallback.value.ids =
-        modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : [];
-      queryBehaviora.value.ids =
-        modalData.behavioraPlatformIds.length > 0 ? modalData.behavioraPlatformIds.join(',') : [];
+      queryCallback.value.ids = (
+        modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : []
+      ) as string;
+      queryBehaviora.value.ids = (
+        modalData.behavioraPlatformIds.length > 0 ? modalData.behavioraPlatformIds.join(',') : []
+      ) as string;
     }
   },
 });
@@ -286,7 +294,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
           page: page.currentPage,
           pageSize: page.pageSize,
           ...params,
-          taskId: modalApi.getData()['taskId'],
+          taskId: modalApi.getData()!['taskId'],
         });
       },
     },
@@ -295,7 +303,7 @@ const gridOptions: VxeGridProps<OcpxBehavioracallbackRecordItem> = {
 
 const detailsId = ref<string>('');
 async function viewDetails(row: OcpxBehavioracallbackRecordItem) {
-  detailsId.value = row.id;
+  detailsId.value = row.id!;
   viewDetailsOpen(row);
 }
 

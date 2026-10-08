@@ -5,7 +5,7 @@ import { JsonViewer, useVbenModal } from '@vben/common-ui';
 
 const jsonData = ref<Record<string, any>>({});
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<Record<string, any>>({
   onCancel() {
     modalApi.close();
   },
@@ -16,7 +16,7 @@ const [Modal, modalApi] = useVbenModal({
     modalApi.close();
   },
   onOpened() {
-    jsonData.value = modalApi.getData<Record<string, any>>();
+    jsonData.value = modalApi.getData()!;
   },
 });
 </script>

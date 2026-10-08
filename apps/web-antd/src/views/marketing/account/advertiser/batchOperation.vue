@@ -1,5 +1,5 @@
 <script setup lang="ts" name="CreateAdvertiserModal">
-import { Page, useVbenModal } from "@vben/common-ui";
+import { useVbenModal } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 import { reactive, ref } from "vue";
 import { useVbenForm } from "#/adapter/form";
@@ -51,7 +51,7 @@ const [Form, formApi] = useVbenForm({
   },
   layout: "horizontal",
   handleSubmit: async (formVal) => {
-    const targetIds = selectedRows.value.map((item) => item.id);
+    const targetIds = selectedRows.value.map((item) => item.id) as string[];
     let type = "";
     let values = {};
     if (modalType.value === "edit") {
@@ -221,7 +221,7 @@ const [Form, formApi] = useVbenForm({
           value: "id",
           children: "children"
         },
-        onSelect: (selectedKeys, event, node) => {
+        onSelect: (_selectedKeys: unknown, event: { code?: string; label?: string }, _node: unknown) => {
           if (event && event.code) {
             selectedOrgCode.value = event.code;
           }
@@ -242,7 +242,7 @@ const [Form, formApi] = useVbenForm({
         allowClear: true,
         options: salesOption,
         placeholder: `${$t("common.choice")}`,
-        onSelect: (selectedKeys, event, node) => {
+        onSelect: (_selectedKeys: unknown, event: { code?: string; label?: string }, _node: unknown) => {
           if (modalType.value === "creator") {
             if (event && event.label) {
               creatorUerName.value = event.label;
@@ -282,7 +282,7 @@ const [Form, formApi] = useVbenForm({
         allowClear: true,
         options: salesOption,
         placeholder: `${$t("common.choice")}`,
-        onSelect: (selectedKeys, event, node) => {
+        onSelect: (_selectedKeys: unknown, event: { code?: string; label?: string }, _node: unknown) => {
           if (modalType.value === "creator") {
             if (event && event.label) {
               creatorUerName.value = event.label;
@@ -319,14 +319,14 @@ const [Form, formApi] = useVbenForm({
   ]
 });
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<{ selectedRows: AdvertiserItem[]; modalType: TitleKey }>({
   centered: true,
   fullscreenButton: false,
   closeOnPressEscape: false,
   contentClass: "modalStyle",
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const data = modalApi.getData();
+      const data = modalApi.getData()!;
       selectedRows.value = data.selectedRows;
       modalType.value = data.modalType;
       const orgRes = await orgApi.fetchOrgTree();

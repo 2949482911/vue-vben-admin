@@ -11,15 +11,22 @@ const selectedProduct = ref<BytedanceDpaProductListItem | null>(null);
 const modalAdvertiserIds = ref<string[]>([]);
 const modalInitialProduct = ref<BytedanceDpaProductListItem | null>(null);
 
-const [Modal, modalApi] = useVbenModal({
+/** 弹窗共享数据类型 */
+interface DpaProductModalData {
+  advertiserIds?: string[];
+  initialProduct?: BytedanceDpaProductListItem | null;
+  selectedProduct?: BytedanceDpaProductListItem | null;
+}
+
+const [Modal, modalApi] = useVbenModal<DpaProductModalData>({
   closeOnClickModal: false,
   closeOnPressEscape: true,
   onOpenChange(isOpen) {
     if (isOpen) {
-      const data = modalApi.getData() || {};
-      modalAdvertiserIds.value = data.advertiserIds || [];
-      modalInitialProduct.value = data.initialProduct || null;
-      selectedProduct.value = data.initialProduct || null;
+      const data = modalApi.getData();
+      modalAdvertiserIds.value = data?.advertiserIds || [];
+      modalInitialProduct.value = data?.initialProduct || null;
+      selectedProduct.value = data?.initialProduct || null;
     }
   },
   async onConfirm() {

@@ -7,6 +7,7 @@ import type {
   AdvertiserDeveloperBindRequest,
   AdvertiserItem,
   DeveloperItem,
+  OrgItem,
   UpdateAdvertiserRequest,
   UserItem
 } from "#/api/models";
@@ -59,7 +60,7 @@ interface DeveloperOption {
 
 const developerOption = ref<DeveloperOption[]>([]);
 const salesOption = ref<DeveloperOption[]>([]);
-const menuData = ref([]);
+const menuData = ref<OrgItem[]>([]);
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -340,7 +341,7 @@ watch(
     }
   }
 );
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<AdvertiserItem>({
   fullscreenButton: false,
   closeOnPressEscape: false,
   async onCancel() {
@@ -370,7 +371,7 @@ const [Modal, modalApi] = useVbenModal({
       status: 0,
       updateTime: "",
       updateUsername: ""
-    };
+    } as AdvertiserItem;
     isUpdate.value = false;
     await modalApi.close();
   },
@@ -388,7 +389,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<AdvertiserItem>();
+      objectRequest.value = modalApi.getData()!;
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
@@ -400,7 +401,7 @@ const [Modal, modalApi] = useVbenModal({
       });
       developerOption.value = res.items.map((item: DeveloperItem) => ({
         label: item.name,
-        value: item.id
+        value: item.id!
       }));
       const orgRes = await orgApi.fetchOrgTree();
       menuData.value = orgRes;

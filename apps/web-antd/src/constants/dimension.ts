@@ -58,3 +58,19 @@ export function dimColumnKey(field: string, columns: string[]): string {
   const label = DIM_COLUMN_NAMES[field];
   return label && columns.includes(label) ? label : field;
 }
+
+/**
+ * 最多冻结的维度列数（序号列之外）。
+ * 维度列始终排在指标列之前，只是超出这个上限的维度不再冻结、跟随横向滚动。
+ * vxe 分组表头下分组的 fixed 会强制继承给全部子列，所以要冻结和非冻结维度必须分成两组。
+ */
+export const MAX_FROZEN_DIM_COUNT = 4;
+
+/**
+ * 该列是否为维度列。
+ * 指标列名（消耗、曝光、ROI…）以及「平台_消耗」这类带维度前缀的指标名都不在维度表里，
+ * 所以用维度表即可区分维度 / 指标，新增维度只要后端加进 Dimension.dimsCname 就能自动识别。
+ */
+export function isDimensionColumn(key: string): boolean {
+  return rawDimFieldOf(key) in DIM_COLUMN_NAMES;
+}

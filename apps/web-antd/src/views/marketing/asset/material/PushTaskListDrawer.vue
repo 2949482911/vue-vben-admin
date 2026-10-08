@@ -5,6 +5,7 @@ import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
 import type { VbenFormProps } from '#/adapter/form';
 import { materialPushApi } from '#/api/core';
 import type { PushMaterialTaskItem, PushTaskPageRequest } from '#/api/models/assert';
+import { getPlatformColor, getPlatformLabel } from '#/constants/platform';
 import { Tag } from 'ant-design-vue';
 import { h } from 'vue';
 
@@ -142,7 +143,13 @@ function renderStatusTag(taskStatus: number) {
   <Drawer class="w-[70%]" :title="$t(`${T}.title`)" :footer="false">
     <Grid>
       <template #platform="{ row }">
-        <Tag v-if="row.platform" color="blue">{{ row.platform }}</Tag>
+        <Tag
+          v-if="row.platform"
+          :bordered="false"
+          :color="getPlatformColor(row.platform)"
+        >
+          {{ getPlatformLabel(row.platform) }}
+        </Tag>
         <span v-else>-</span>
       </template>
       <template #progress="{ row }">

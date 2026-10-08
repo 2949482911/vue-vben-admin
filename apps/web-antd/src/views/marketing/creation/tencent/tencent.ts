@@ -12,6 +12,13 @@ import type {
   ProductData,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
+import type {
+  CreativeComponentState,
+  TencentActionButtonValue,
+  TencentBrandValue,
+  TencentFloatingZoneValue,
+  TencentLabelValue
+} from "#/views/marketing/creation/tencent/components/creative_components";
 
 import {AdGroupRuleKey, CampaignRuleKey, Platform} from "#/constants/enums";
 import {renderProjectTitle} from "#/utils/customName";
@@ -25,6 +32,8 @@ import {
   getRuleInfoCampaignCount,
   getTitleCount
 } from "#/views/marketing/creation/creation";
+import {RuleMethod} from "#/views/marketing/creation/creation_enums";
+import {ALL_ACCOUNT_KEY, DEFAULT_FLOATING_ZONE_INFO_TYPE, DEFAULT_FLOATING_ZONE_TYPE} from "#/views/marketing/creation/tencent/components/creative_components";
 
 
 export const TENCENT: string = "0.1";
@@ -260,7 +269,7 @@ export interface TencentAdgroupData {
   auto_derived_program_creative_switch: boolean;
   configured_status: string;
   site_set_validate_model: string;
-  creative_components: Array<TencentCreativeComponent>;
+  creative_components: TencentCreativeComponent;
   program_creative_info_switch: boolean;
   program_creative_info: TencentProgramCreativeInfo;
 
@@ -277,6 +286,20 @@ export interface TencentAdgroupData {
   mini_program_id?: string;
   /** 落地页微信小程序路径 */
   mini_program_path?: string;
+
+  /**
+   * 以下为创意组件的配置（品牌形象 / 行动按钮 / 标签）。
+   * 一个字段承载整个组件：开关、分配方式（全部相同 / 分账户匹配）、按账户的配置都在对象里，
+   * 提交时由 buildCreativeComponents 按当前账户取出，组装进 creative_components。
+   */
+  /** 品牌形象组件，对应 creative_components.brand */
+  brand_config?: CreativeComponentState<TencentBrandValue>;
+  /** 行动按钮组件，对应 creative_components.action_button */
+  action_button_config?: CreativeComponentState<TencentActionButtonValue>;
+  /** 标签组件，对应 creative_components.label */
+  label_config?: CreativeComponentState<TencentLabelValue>;
+  /** 浮层卡片组件，对应 creative_components.floating_zone */
+  floating_zone_config?: CreativeComponentState<TencentFloatingZoneValue>;
 }
 
 /**
@@ -287,7 +310,12 @@ export interface TencentWechatMiniProgramSpec {
   mini_program_path: string;
 }
 
-// 创意组件
+/**
+ * 创意组件集合（creative_components）
+ * dynamic_creatives/add 里它是 struct（对象）而不是数组：以组件类型为 key，每组的 value 是
+ * 「同结构数组」，数组项为 { component_id, value, is_deleted }。
+ * 哪些组件可用、value 里要哪些字段，由 creative_template_id 对应的创意形式决定。
+ */
 export interface TencentCreativeComponent {
   title: Array<TencentComponent>;
   description: Array<TencentComponent>;
@@ -328,6 +356,55 @@ export interface TencentCreativeComponent {
   video_list: Array<TencentComponent>;
   doctor_card: Array<TencentComponent>;
   channels_live_feed: Array<TencentComponent>;
+}
+
+
+/**
+ * 空创意组件集合
+ * 没有素材/未配置时也要保持对象结构，各组件类型留空数组（媒体侧允许长度 0）
+ */
+export function createEmptyCreativeComponents(): TencentCreativeComponent {
+  return {
+    title: [],
+    description: [],
+    image: [],
+    image_list: [],
+    video: [],
+    brand: [],
+    consult: [],
+    phone: [],
+    form: [],
+    action_button: [],
+    chosen_button: [],
+    label: [],
+    show_data: [],
+    marketing_pendant: [],
+    app_gift_pack_code: [],
+    shop_image: [],
+    count_down: [],
+    barrage: [],
+    floating_zone: [],
+    text_link: [],
+    end_page: [],
+    living_desc: [],
+    wechat_channels: [],
+    short_video: [],
+    element_story: [],
+    wxgame_playable_page: [],
+    main_jump_info: [],
+    app_promotion_video: [],
+    video_showcase: [],
+    image_showcase: [],
+    social_skill: [],
+    mini_card_link: [],
+    floating_zone_list: [],
+    video_channels_content: [],
+    audio: [],
+    wxgame_direct_page: [],
+    video_list: [],
+    doctor_card: [],
+    channels_live_feed: []
+  };
 }
 
 
@@ -477,7 +554,7 @@ export interface TencentAdgroup extends Adgroup {
   auto_derived_program_creative_switch: boolean;
   configured_status: string;
   site_set_validate_model: string;
-  creative_components: Array<TencentCreativeComponent>;
+  creative_components: TencentCreativeComponent;
   program_creative_info_switch: boolean;
   program_creative_info: TencentProgramCreativeInfo;
 }
@@ -554,7 +631,7 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
       );
 
       // 商品（商品库）：按分配方式（全部相同 / 按账户分配）取当前账户、当前下标对应的商品
-      const product = getProduct(
+      const { product, productCatalogId } = getProduct(
         createInfo.configData.product?.config?.method ?? "",
         createInfo.configData.product?.data ?? new Map(),
         advertiserId,
@@ -576,11 +653,16 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
         // 从定向包的 config 属性获取 targeting（config 可能是 JSON 字符串，需要解析）
         targeting: audience.config ? audience.config : {},
         // 外投商品：选择器里配了商品就用它覆盖，否则沿用表单里填的
+        // marketing_asset_outer_id 是商品库 id（product_catalog_id）
+        // marketing_asset_outer_sub_id 才是商品 id（product_outer_id）
         marketing_asset_outer_spec: {
           ...createInfo.configData.campaign.marketing_asset_outer_spec,
           marketing_asset_outer_id:
-            product?.product_outer_id
+            productCatalogId
             || createInfo.configData.campaign.marketing_asset_outer_spec.marketing_asset_outer_id,
+          marketing_asset_outer_sub_id:
+            product?.product_outer_id
+            || createInfo.configData.campaign.marketing_asset_outer_spec.marketing_asset_outer_sub_id,
           marketing_asset_outer_name:
             product?.product_name
             || createInfo.configData.campaign.marketing_asset_outer_spec.marketing_asset_outer_name
@@ -636,7 +718,8 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
             materialList,
             globalAdGroupIdx,
             title,
-            createInfo.configData.adgroup
+            createInfo.configData.adgroup,
+            advertiserId
           )
         };
         campaign.adGroupList.push(adgroup);
@@ -653,69 +736,48 @@ export function getPreviewTableData(createInfo: TencentCreation): Array<TencentC
 }
 
 /**
+ * 取某个创意组件配置在当前账户下的那一份
+ * 全部相同取 "0"，分账户匹配取该账户自己的；未开启或没配返回 undefined，不产出该组件
+ */
+function pickComponentValue<T>(
+  config: CreativeComponentState<T> | undefined,
+  advertiserId: string
+): T | undefined {
+  if (!config?.enabled) {
+    return undefined;
+  }
+  const key =
+    config.method === RuleMethod.ACCOUNT ? advertiserId : ALL_ACCOUNT_KEY;
+  return config.data?.[key];
+}
+
+/**
  * 构建创意组件
+ * creative_components 是对象（struct），按组件类型分组，不是组件数组
  * @param materialList 素材列表
  * @param index 索引
  * @param title 标题
  * @param config 动态创意配置，用于取场景化的内联组件取值（描述/视频号/小程序落地页）
+ * @param advertiserId 当前投放账户 id，用于取分账户匹配的创意组件配置
  */
 function buildCreativeComponents(
   materialList: Array<Material>,
   index: number,
   title: string,
-  config: TencentAdgroupData
-): Array<TencentCreativeComponent> {
+  config: TencentAdgroupData,
+  advertiserId: string
+): TencentCreativeComponent {
   if (!materialList || materialList.length === 0) {
-    return [];
+    return createEmptyCreativeComponents();
   }
 
   const material = materialList[index % materialList.length];
   if (!material) {
-    return [];
+    return createEmptyCreativeComponents();
   }
 
-  // 构建创意组件对象
-  const creativeComponent: TencentCreativeComponent = {
-    title: [],
-    description: [],
-    image: [],
-    image_list: [],
-    video: [],
-    brand: [],
-    consult: [],
-    phone: [],
-    form: [],
-    action_button: [],
-    chosen_button: [],
-    label: [],
-    show_data: [],
-    marketing_pendant: [],
-    app_gift_pack_code: [],
-    shop_image: [],
-    count_down: [],
-    barrage: [],
-    floating_zone: [],
-    text_link: [],
-    end_page: [],
-    living_desc: [],
-    wechat_channels: [],
-    short_video: [],
-    element_story: [],
-    wxgame_playable_page: [],
-    main_jump_info: [],
-    app_promotion_video: [],
-    video_showcase: [],
-    image_showcase: [],
-    social_skill: [],
-    mini_card_link: [],
-    floating_zone_list: [],
-    video_channels_content: [],
-    audio: [],
-    wxgame_direct_page: [],
-    video_list: [],
-    doctor_card: [],
-    channels_live_feed: []
-  };
+  // 构建创意组件对象：以组件类型为 key，值为同结构数组
+  const creativeComponent = createEmptyCreativeComponents();
 
   // 添加标题组件
   if (title) {
@@ -799,6 +861,119 @@ function buildCreativeComponents(
     });
   }
 
-  return [creativeComponent];
+  // 品牌形象组件：品牌名称走 value，品牌图片走 materialIdsList
+  // （后端按 materialIdsList 上传图片，再把返回的 brand_image_id 填进 value）
+  const brand = pickComponentValue(config.brand_config, advertiserId);
+  const brandMaterialIds = brand?.materialIdsList ?? [];
+  if (brand?.brand_name || brandMaterialIds.length > 0) {
+    const value = new Map<string, any>();
+    if (brand?.brand_name) {
+      value.set("brand_name", brand.brand_name);
+    }
+    creativeComponent.brand.push({
+      component_id: 0,
+      is_deleted: false,
+      value,
+      materialIdsList: brandMaterialIds
+    });
+  }
+
+  // 行动按钮组件：只提交填了的字段，空字符串会让媒体校验失败
+  const actionButton = pickComponentValue(
+    config.action_button_config,
+    advertiserId
+  );
+  if (actionButton) {
+    const value = new Map<string, any>();
+    if (actionButton.button_text) {
+      value.set("button_text", actionButton.button_text);
+    }
+    if (actionButton.mini_program_button_text) {
+      value.set("mini_program_button_text", actionButton.mini_program_button_text);
+    }
+    if (actionButton.jump_info) {
+      value.set("jump_info", actionButton.jump_info);
+    }
+    if (value.size > 0) {
+      creativeComponent.action_button.push({
+        component_id: 0,
+        is_deleted: false,
+        value,
+        materialIdsList: []
+      });
+    }
+  }
+
+  // 标签组件：value 是 { list: [{ content, type, display_content }] }，只提交填了内容的标签
+  const label = pickComponentValue(config.label_config, advertiserId);
+  const labelList = (label?.list ?? [])
+    .filter((item) => item?.content?.trim())
+    .map((item) => {
+      const detail: Record<string, any> = {
+        content: item.content,
+        type: item.type
+      };
+      if (item.display_content) {
+        detail.display_content = item.display_content;
+      }
+      return detail;
+    });
+  if (labelList.length > 0) {
+    creativeComponent.label.push({
+      component_id: 0,
+      is_deleted: false,
+      value: new Map<string, any>([["list", labelList]]),
+      materialIdsList: []
+    });
+  }
+
+  // 浮层卡片组件：面板开关即 floating_zone_switch
+  // 图片只提交 materialIdsList，由后端按 floating_zone_type 上传并回填
+  // floating_zone_image_id / floating_zone_single_image_id
+  const floatingZone = pickComponentValue(
+    config.floating_zone_config,
+    advertiserId
+  );
+  if (floatingZone) {
+    const value = new Map<string, any>([
+      [
+        "floating_zone_info_type",
+        floatingZone.floating_zone_info_type || DEFAULT_FLOATING_ZONE_INFO_TYPE
+      ],
+      ["floating_zone_switch", true],
+      [
+        "floating_zone_type",
+        floatingZone.floating_zone_type || DEFAULT_FLOATING_ZONE_TYPE
+      ]
+    ]);
+
+    if (floatingZone.floating_zone_name) {
+      value.set("floating_zone_name", floatingZone.floating_zone_name);
+    }
+    if (floatingZone.floating_zone_desc) {
+      value.set("floating_zone_desc", floatingZone.floating_zone_desc);
+    }
+    if (floatingZone.floating_zone_button_text) {
+      value.set(
+        "floating_zone_button_text",
+        floatingZone.floating_zone_button_text
+      );
+    }
+    if (floatingZone.button_base_text) {
+      value.set("button_base_text", floatingZone.button_base_text);
+    }
+    if (floatingZone.floating_zone_show_app_property_switch) {
+      value.set("floating_zone_show_app_property_switch", true);
+    }
+
+    creativeComponent.floating_zone.push({
+      component_id: 0,
+      is_deleted: false,
+      value,
+      materialIdsList: floatingZone.materialIdsList ?? []
+    });
+  }
+
+  return creativeComponent;
 }
 

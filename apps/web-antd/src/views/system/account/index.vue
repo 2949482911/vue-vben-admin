@@ -2,7 +2,8 @@
 import type { VbenFormProps } from "@vben/common-ui";
 
 import type { VxeTableGridOptions } from "#/adapter/vxe-table";
-import type { OrgItem, UserItem } from "#/api/models/users";
+import type { UserItem } from "#/api/models/users";
+import type { DataNode, EventDataNode } from "ant-design-vue/es/tree";
 
 import { onMounted, reactive, ref } from "vue";
 
@@ -35,7 +36,7 @@ const [DetailDrawer, detailDrawerApi] = useVbenDrawer({
   connectedComponent: Detail
 });
 
-const orgTreeData = ref<OrgItem[]>([]);
+const orgTreeData = ref<DataNode[]>([]);
 
 const props = reactive({
   leftCollapsedWidth: 5,
@@ -115,7 +116,7 @@ async function onStatusChange(newStatus: number, row: UserItem) {
     return false;
   }
   await userApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: toEnable ? BatchOptionsType.Enable : BatchOptionsType.DISABLE,
     values: new Map<string, any>()
   });
@@ -125,7 +126,7 @@ async function onStatusChange(newStatus: number, row: UserItem) {
 
 async function onDelete(row: UserItem) {
   await userApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>()
   });
@@ -248,13 +249,16 @@ const pageReload = () => {
  * @param selectedKeys 选中的节点ID
  * @param node 当前节点
  */
-function handlerOrgPageList(selectedKeys: string[], { node }) {
-  gridApi.reload({ orgId: node.id });
+function handlerOrgPageList(
+  _selectedKeys: (string | number)[],
+  info: { node: EventDataNode }
+) {
+  gridApi.reload({ orgId: info.node.id });
 }
 
 onMounted(() => {
   orgApi.fetchOrgTree().then((res) => {
-    orgTreeData.value = res;
+    orgTreeData.value = res as unknown as DataNode[];
   });
 });
 </script>

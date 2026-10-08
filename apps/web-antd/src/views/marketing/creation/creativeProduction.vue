@@ -134,37 +134,6 @@ function initLocalMaterialData(mode: string) {
   localMaterialData.value.config.method = mode;
 }
 
-/**
- * 添加素材到本地素材对象内
- * @param materialType 素材类型
- * @param currentGroupIndex 当前创意组下标
- * @param materialList 素材列表
- */
-async function addMaterial2LocalMaterialData(
-  materialType: string,
-  currentGroupIndex: number,
-  materialList: Array<LocalMaterialData>,
-) {
-  let localMaterial: Array<Material> = [];
-  if (distributionMode === 'all') {
-    localMaterial = localMaterialData.value.data.get('0') || [];
-  } else {
-    localMaterial = localMaterialData.value.data.get(currentCreativeAccountId.value) || [];
-  }
-  let tempMaterial: Material = localMaterial[currentGroupIndex] || {
-    image: [],
-    video: [],
-    active: materialType,
-    isExpanded: true,
-    brandName: '',
-  };
-  if (materialType === 'image') {
-    tempMaterial.image.push(...materialList);
-  } else {
-    tempMaterial.video.push(...materialList);
-  }
-}
-
 //---------选择素材框---------
 // const [SelMaterialModule, modalApi] = useVbenModal({
 //   connectedComponent: selMaterial,
@@ -180,6 +149,9 @@ async function addMaterial2LocalMaterialData(
 //     }
 //   },
 // });
+
+// 素材选择弹窗（selMaterial）组件已移除，此处保留弹窗 api 以维持 openModal 的调用
+const [, modalApi] = useVbenModal();
 
 /** 打开素材弹框 */
 async function openModal(type: 'image' | 'video', groupIndex: number) {
@@ -358,70 +330,6 @@ function collectAllAssets(maxGroups?: number): {
     }
   }
   return { images, videos };
-}
-
-/** 将素材按循环分配规则放入 N 个创意组 */
-function distributeToGroups(
-  images: LocalMaterialData[],
-  videos: LocalMaterialData[],
-  groupCount: number,
-): Material[] {
-  const count = Math.max(1, groupCount);
-  const groups: Material[] = Array.from({ length: count }, () => ({
-    image: [],
-    video: [],
-    active: images.length > 0 || videos.length > 0 ? 'video' : 'video',
-    isExpanded: true,
-    brandName: '',
-  }));
-
-  images.forEach((img, i) => {
-    groups[i % count]!.image.push(img);
-  });
-
-  videos.forEach((vid, i) => {
-    groups[i % count]!.video.push(vid);
-  });
-
-  return groups;
-}
-
-/** 应用创意分配规则：只重新分配规则范围内的素材，手动添加的组保持不变 */
-function applyCreativeRule() {
-  if (!hasCreativeRule.value) return;
-
-  const key = distributionMode === 'account' ? String(currentCreativeAccountId.value) : '0';
-  const existingGroups = localMaterialData.value.data.get(key) || [];
-
-  // 确定本次要生成的规则组数
-  let groupCount: number;
-  if (selectedCreativeTeamRule.value === 'custom') {
-    groupCount = creativeTeamNum.value ?? 1;
-    if (groupCount < 1) groupCount = 1;
-  } else {
-    // 按素材数量：只统计规则范围内的素材
-    const scope = ruleGroupCount.value > 0 ? ruleGroupCount.value : existingGroups.length;
-    const stats = collectAllAssets(scope);
-    groupCount = Math.max(1, stats.images.length + stats.videos.length);
-  }
-
-  // 收集规则范围内的素材
-  const scope = ruleGroupCount.value > 0 ? ruleGroupCount.value : existingGroups.length;
-  const { images, videos } = collectAllAssets(scope);
-  const totalCount = images.length + videos.length;
-
-  // 首次运行且无素材时不做分配
-  if (totalCount === 0 && ruleGroupCount.value === 0) return;
-
-  // 保留手动添加的组（超出规则范围的部分）
-  const keepFrom = ruleGroupCount.value > 0 ? ruleGroupCount.value : existingGroups.length;
-  const manualGroups = existingGroups.slice(keepFrom);
-
-  // 按规则重新分配
-  const newGroups = distributeToGroups(images, videos, groupCount);
-  ruleGroupCount.value = groupCount;
-
-  localMaterialData.value.data.set(key, [...newGroups, ...manualGroups]);
 }
 
 /** 保存分配规则配置，同时清空素材回到初始空创意组 */

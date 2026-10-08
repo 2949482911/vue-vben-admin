@@ -16,6 +16,7 @@ import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import { creationTaskApi } from "#/api";
 import { RuleType } from "#/constants/enums";
 import { TABLE_COMMON_COLUMNS, TASK_STATUS_SELECT } from "#/constants/locales";
+import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
 
 import TaskDetailPanel from "./task_drawer_detail.vue";
@@ -106,6 +107,7 @@ const gridOptions: VxeGridProps<CreationTaskItem> = {
     {
       field: "platform",
       title: `${$t("marketing.creation.columns.platform")}`,
+      slots: { default: "platform" },
       width: 100
     },
     {
@@ -190,14 +192,16 @@ const gridOptions: VxeGridProps<CreationTaskItem> = {
           ...params
         });
       },
-      queryAfter: (data) => {
-        // 检查是否有进行中任务，有则开启自动刷新
-        if (checkHasProcessingTasks(data.records)) {
-          startAutoRefresh();
-        } else {
-          stopAutoRefresh();
+      ...({
+        queryAfter: (data: { records: CreationTaskItem[] }) => {
+          // 检查是否有进行中任务，有则开启自动刷新
+          if (checkHasProcessingTasks(data.records)) {
+            startAutoRefresh();
+          } else {
+            stopAutoRefresh();
+          }
         }
-      }
+      } as { queryAfter: (data: { records: CreationTaskItem[] }) => void })
     }
   },
   checkboxConfig: {
@@ -250,6 +254,12 @@ onBeforeUnmount(() => {
 <template>
   <Page>
     <Grid>
+      <template #platform="{ row }">
+        <Tag v-if="row.platform" :bordered="false" :color="getPlatformColor(row.platform)">
+          {{ getPlatformLabel(row.platform) }}
+        </Tag>
+        <span v-else>-</span>
+      </template>
       <template #status="{ row }">
         <Tag v-if="row.taskStatus === 1" color="orange">待处理</Tag>
         <Tag v-if="row.taskStatus === 2" color="blue">处理中</Tag>
@@ -263,7 +273,7 @@ onBeforeUnmount(() => {
         <Tag v-if="row.taskStatus === 4" color="red">{{ $t("common.failed") }}</Tag>
       </template>
       <template #ruleType="{ row }">
-        {{ ruleLabels[row.ruleType] }}
+        {{ ruleLabels[row.ruleType!] }}
       </template>
       <template #progress="{ row }">
         <div class="flex items-center gap-2">

@@ -5,6 +5,7 @@ import { Page, useVbenDrawer } from "@vben/common-ui";
 import type { VxeGridProps } from "#/adapter/vxe-table";
 import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import type { NoticeItem } from "#/api/models";
+import type { BatchOptions } from "#/api/models/core";
 import { $t } from "@vben/locales";
 
 import { Button, Switch, Tag } from "ant-design-vue";
@@ -24,21 +25,21 @@ const [CreateNoticeDrawer, baseDrawerApi] = useVbenDrawer({
 async function handlerState(row: NoticeItem) {
   await (row.status == 1
     ? noticeApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE
-    })
+    } as BatchOptions)
     : noticeApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable
-    }));
+    } as BatchOptions));
   pageReload();
 }
 
 async function handlerDelete(row: NoticeItem) {
   await noticeApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete
-  });
+  } as BatchOptions);
   pageReload();
 }
 

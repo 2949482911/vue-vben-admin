@@ -4,12 +4,13 @@ import type { StrategyGropType } from "#/api/models";
 import { useVbenModal, type VbenFormProps } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 
-import { Button, message } from "ant-design-vue";
+import { Button, message, Tag } from "ant-design-vue";
 
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { projectApi, strategyGropApi } from "#/api/core";
 import { Platform } from "#/constants/enums";
 import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
 import { BYTEDANCE_STD } from "#/views/marketing/creation/bytedance_std/bytedance";
 import { HUAWEI_STORE } from "#/views/marketing/creation/huawei_store/huawei_store";
@@ -108,7 +109,9 @@ const gridOptions: VxeGridProps<StrategyGropType> = {
     {
       field: "platform",
       title: `平台`,
-      width: "auto"
+      width: "auto",
+      // 媒体列渲染成中文带色标签，映射取自 constants/platform
+      slots: { default: "platform" }
     },
     {
       field: "projectName",
@@ -151,7 +154,7 @@ function reuseStrategyGroup(row: StrategyGropType) {
 async function deleteStrategyGroup(row: StrategyGropType) {
   const params = {
     type: BatchOptionsType.Delete,
-    targetIds: [row.id],
+    targetIds: [row.id] as string[],
     values: {}
   };
   await strategyGropApi.fetchBatchStrategyGrop(params);
@@ -181,6 +184,11 @@ function openCreateModal(row: StrategyGropType) {
   <div>
     <Modal title="选择策略组" class="w-[73.2%]">
       <Grid>
+        <template #platform="{ row }">
+          <Tag :bordered="false" :color="getPlatformColor(row.platform)">
+            {{ getPlatformLabel(row.platform) }}
+          </Tag>
+        </template>
         <template #status="{ row }">
           <div>
             {{

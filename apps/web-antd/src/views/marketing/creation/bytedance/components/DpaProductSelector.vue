@@ -83,7 +83,8 @@ async function loadProducts() {
 }
 
 /** 处理商品库切换 */
-function handleLibraryChange(libId: number) {
+function handleLibraryChange(value: unknown) {
+  const libId = value as number;
   selectedLibraryId.value = libId;
   selectedProduct.value = null;
   emit('update:modelValue', null);
@@ -274,7 +275,7 @@ const filteredProducts = computed(() => {
                 size="small"
                 type="primary"
                 :disabled="record.status !== 1"
-                @click="handleProductSelect(record)"
+                @click="handleProductSelect(record as BytedanceDpaProductListItem)"
               >
                 选择
               </Button>

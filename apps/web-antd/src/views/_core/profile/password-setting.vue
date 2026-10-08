@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VbenFormSchema } from '#/adapter/form';
+import type { Recordable } from '@vben/types';
 import {authApi} from "#/api";
 import type { UpdatePasswordRequest } from "#/api/models";
 
@@ -52,8 +53,9 @@ const formSchema = computed((): VbenFormSchema[] => {
   ];
 });
 
-async function handleSubmit(values:  UpdatePasswordRequest) {
-  await authApi.updatePassword(values)
+async function handleSubmit(values: Recordable<any>) {
+  // 表单提交出参为通用对象，这里收敛为修改密码接口的入参类型
+  await authApi.updatePassword(values as unknown as UpdatePasswordRequest)
   message.success('密码修改成功');
 }
 </script>

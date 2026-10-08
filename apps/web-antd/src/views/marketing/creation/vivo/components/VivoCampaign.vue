@@ -14,7 +14,9 @@ const emit = defineEmits(["update:campaign", "adTypeChanged"]);
 /**
  * 计划编辑抽屉
  */
-const [CampaignDrawerModule, drawerApi] = useVbenDrawer({
+const [CampaignDrawerModule, drawerApi] = useVbenDrawer<
+  VivoCampaignData & { _isConfirmed?: boolean; _adTypeChanged?: boolean }
+>({
   connectedComponent: VivoCampaignDrawer,
   closeOnPressEscape: true,
   onOpenChange(isOpen) {
@@ -46,7 +48,7 @@ const [CampaignDrawerModule, drawerApi] = useVbenDrawer({
  * hasAccount 是否有账户
  * hasProduct 是否有产品
  */
-const { formFields, campaignShowLabel, campaign, accountInfo, hasAccount, hasProduct } = defineProps({
+const { formFields, campaignShowLabel, campaign, hasAccount, hasProduct } = defineProps({
   formFields: {
     type: Array,
     default: () => []
@@ -122,7 +124,7 @@ function openCampaignDrawer() {
           class="info-descriptions"
         >
           <DescriptionsItem v-for="(label, key) in campaignShowLabel" :key="key" :label="label">
-            {{ campaignInfo[key] }}
+            {{ (campaignInfo as Record<string, any>)[key] }}
           </DescriptionsItem>
         </Descriptions>
         <Alert v-else type="error" message="请先填写计划信息" class="empty-alert"></Alert>

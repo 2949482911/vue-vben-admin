@@ -1,7 +1,8 @@
 <script setup lang="ts" name="OppoAdgroupDrawer">
 import { nextTick } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
-import { useVbenForm } from '#/adapter/form';
+import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
+import type { OppoAdgroupData } from '#/views/marketing/creation/oppo/Oppo.types';
 
 const { formFields } = defineProps({
   formFields: {
@@ -25,8 +26,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
-      const adgroup = drawerApi.getData();
-      formApi.setState({ schema: formFields });
+      const adgroup = drawerApi.getData() as OppoAdgroupData;
+      formApi.setState({ schema: formFields as VbenFormSchema[] });
       await nextTick();
 
       // adsDpaProductDTO 平铺

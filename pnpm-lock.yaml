@@ -767,6 +767,10 @@ importers:
       vxe-table-plugin-export-xlsx:
         specifier: 'catalog:'
         version: 4.0.7(vxe-table@4.21.2)
+    devDependencies:
+      '@types/qs':
+        specifier: 'catalog:'
+        version: 6.15.1
 
   apps/web-antdv-next:
     dependencies:

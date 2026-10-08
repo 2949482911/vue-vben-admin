@@ -64,7 +64,11 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
       // 从 modalApi 中获取刚才 open 时传入的 data
-      const { advertiserQualification: latestData } = modalApi.getData();
+      const { advertiserQualification: latestData } = modalApi.getData() as {
+        advertiserQualification:
+          | Record<string, QualificationValue>
+          | Map<string, QualificationValue>;
+      };
       if (accountInfo.length > 0) {
         await initSelection(latestData);
         await nextTick();

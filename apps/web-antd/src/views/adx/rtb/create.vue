@@ -7,7 +7,7 @@ import {ref, watch} from 'vue'; // 添加 watch
 import {message} from 'ant-design-vue';
 import type {RtbItem, RtbUpdateItem} from '#/api/models';
 import {PLATFORM,} from '#/constants/locales';
-import {rtbApi} from '#/api/core/adx.ts';
+import {rtbApi} from '#/api/core/adx';
 
 const title = ref<string>('');
 const emit = defineEmits(['pageReload']);
@@ -93,14 +93,14 @@ const [Form, formApi] = useVbenForm({
     },
   ],
 });
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<RtbUpdateItem>({
   closeOnPressEscape: false,
   // 当抽屉打开状态改变时触发
   async onOpenChange(isOpen) {
     if (!isOpen) {
       await drawerApi.close();
     } else {
-      objectRequest.value = await drawerApi.getData<RtbUpdateItem>();
+      objectRequest.value = (await drawerApi.getData()) as RtbUpdateItem;
       formApi.setValues(objectRequest.value);
       isUpdate.value = !!objectRequest.value.id;
     }

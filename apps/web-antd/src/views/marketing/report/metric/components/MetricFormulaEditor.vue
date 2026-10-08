@@ -38,7 +38,7 @@ const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.'];
 const loadMetricList = async () => {
   const data = await metricApi.fetchMetric({
     reportType: props.reportType || 'ad'
-  }) as MetricItem[];
+  }) as unknown as MetricItem[];
   metricList.value = data;
 };
 
@@ -53,7 +53,7 @@ watch(() => props.reportType, async (newType) => {
 // 渲染内容（根据公式字符串和当前指标列表）
 const renderContent = (formula: string) => {
   if (!editorRef.value) return;
-  const html = formula.replace(/\{([^}]+)\}/g, (match, ename) => {
+  const html = formula.replace(/\{([^}]+)\}/g, (_match, ename) => {
     const metric = metricList.value.find(m => m.ename === ename);
     if (metric) {
       return `<input type="text" class="metric-input" readonly data-metric="${ename}" value="${metric.cname}" />`;
@@ -176,7 +176,7 @@ const handleSelectMetric = () => {
   }
   let posValid = false;
   if (pendingInsertPosition.value) {
-    const { node, offset } = pendingInsertPosition.value;
+    const { node } = pendingInsertPosition.value;
     if (document.body.contains(node)) {
       posValid = true;
     } else {
@@ -266,6 +266,10 @@ function appendMetricToEnd(ename: string, cname: string) {
 const handleBlur = () => {
   updateFormulaFromContent();
 };
+
+const handleFocus = () => {};
+const handleMouseEnter = () => {};
+const handleMouseLeave = () => {};
 
 // 插入运算符或数字
 const insertOperator = (operator: string) => {

@@ -21,7 +21,11 @@ import {
 
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { reportApi } from "#/api";
-import { rawDimFieldOf } from "#/constants/dimension";
+import {
+  isDimensionColumn,
+  MAX_FROZEN_DIM_COUNT,
+  rawDimFieldOf
+} from "#/constants/dimension";
 import { ACTIVE_PLATFORM, DIMS } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 
@@ -181,10 +185,10 @@ async function resetSortState() {
   });
 }
 
-/** 冻结列：序号 + 前 3 个维度列（日期 / 平台 / 账户） */
-const FROZEN_COLUMN_COUNT = 4;
-/** 冻结列宽：序号、日期、平台、账户 */
-const FROZEN_COLUMN_WIDTHS = [64, 120, 120, 200];
+/** 序号列宽 */
+const SEQ_COLUMN_WIDTH = 64;
+/** 维度 / 指标等字段列统一自适应宽度 */
+const FIELD_COLUMN_WIDTH = "auto";
 /** 指标格子的数字排印类，保证逐位对齐（项目内置工具类） */
 const METRIC_CELL_CLASS = "tabular-nums";
 
@@ -321,24 +325,30 @@ function updateTableStructure(columns: string[], footData: any, columnOrder?: st
       orderedKeys = columns;
     }
 
-    // 维度列冻结在左侧，指标列右对齐 + 千分位，横向滚动时维度不丢
-    const dimensionColumns = orderedKeys
-      .slice(0, FROZEN_COLUMN_COUNT - 1)
-      .map((key, index) => ({
-        ...columnDefMap.get(key)!,
-        fixed: "left",
-        width: FROZEN_COLUMN_WIDTHS[index + 1]
-      }));
-    const metricColumns = orderedKeys.slice(FROZEN_COLUMN_COUNT - 1).map((key) => ({
+    // 维度列始终排在指标列之前；前 N 个冻结在左侧，超出的维度留在原位跟随滚动
+    // （vxe 分组表头的 fixed 会继承给全部子列，所以冻结/非冻结维度必须拆成两组）
+    const dimKeys = orderedKeys.filter((key) => isDimensionColumn(key));
+    const frozenDimColumns = dimKeys.slice(0, MAX_FROZEN_DIM_COUNT).map((key) => ({
       ...columnDefMap.get(key)!,
-      align: "right",
-      headerAlign: "right",
-      minWidth: 120,
-      className: METRIC_CELL_CLASS,
-      headerClassName: METRIC_CELL_CLASS,
-      footerClassName: METRIC_CELL_CLASS,
-      formatter: ({ cellValue }: any) => formatMetricValue(cellValue)
+      fixed: "left",
+      width: FIELD_COLUMN_WIDTH
     }));
+    const scrollDimColumns = dimKeys.slice(MAX_FROZEN_DIM_COUNT).map((key) => ({
+      ...columnDefMap.get(key)!,
+      width: FIELD_COLUMN_WIDTH
+    }));
+    const metricColumns = orderedKeys
+      .filter((key) => !isDimensionColumn(key))
+      .map((key) => ({
+        ...columnDefMap.get(key)!,
+        align: "right",
+        headerAlign: "right",
+        width: FIELD_COLUMN_WIDTH,
+        className: METRIC_CELL_CLASS,
+        headerClassName: METRIC_CELL_CLASS,
+        footerClassName: METRIC_CELL_CLASS,
+        formatter: ({ cellValue }: any) => formatMetricValue(cellValue)
+      }));
 
     const newColumns: any[] = [
       {
@@ -347,17 +357,17 @@ function updateTableStructure(columns: string[], footData: any, columnOrder?: st
         fixed: "left",
         sortable: true,
         title: "序号",
-        width: FROZEN_COLUMN_WIDTHS[0]
+        width: SEQ_COLUMN_WIDTH
       },
-      ...(dimensionColumns.length > 0 && metricColumns.length > 0
-        ? [
-          { children: dimensionColumns, fixed: "left", title: "维度" },
-          { children: metricColumns, title: "指标" }
-        ]
-        : [
-          ...dimensionColumns,
-          ...metricColumns
-        ])
+      ...(frozenDimColumns.length > 0
+        ? [{ children: frozenDimColumns, fixed: "left", title: "维度" }]
+        : []),
+      ...(scrollDimColumns.length > 0
+        ? [{ children: scrollDimColumns, title: "维度" }]
+        : []),
+      ...(metricColumns.length > 0
+        ? [{ children: metricColumns, title: "指标" }]
+        : [])
     ];
 
     if (!columnOrder) {
@@ -795,6 +805,9 @@ const isShowActions = ref(true);
       <!-- 明细表：维度列冻结在左，指标列右对齐 -->
       <div class="min-h-[320px] min-w-0 flex-1">
         <Grid>
+          <!-- 空 tools 插槽：vben 的 VxeGrid 只有存在工具栏插槽时才渲染 toolbar，
+               否则 toolbarConfig 里的导出 / 自定义列 / 刷新 / 缩放按钮都不会显示 -->
+          <template #toolbar-tools></template>
           <!-- 平台列：中文名 + 平台色标签。取值走 column.field，兼容列名被翻译成中文 -->
           <template #platform="{ row, column }">
             <Tag

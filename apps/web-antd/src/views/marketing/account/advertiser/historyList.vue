@@ -14,7 +14,7 @@ const params = ref<{ platform: string, localAdvertiserId: string }>({
   localAdvertiserId: ""
 });
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<{ platform: string, id: string }>({
   fullscreenButton: false,
   closeOnPressEscape: true,
   async onCancel() {
@@ -27,7 +27,7 @@ const [Modal, modalApi] = useVbenModal({
 
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const data = modalApi.getData();
+      const data = modalApi.getData()!;
       params.value.platform = data.platform;
       params.value.localAdvertiserId = data.id;
     }
@@ -116,7 +116,7 @@ const formOptions: VbenFormProps = {
   submitOnEnter: false
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
 <template>

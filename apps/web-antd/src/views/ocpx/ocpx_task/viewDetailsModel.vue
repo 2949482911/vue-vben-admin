@@ -17,14 +17,14 @@ function colseEvent(){
 
 const callbackDetails = ref<CallbackInfo | null>()
 const clickDetails = ref<ClickInfo | null>()
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<OcpxBehavioracallbackRecordItem>({
   zIndex: 2000, 
   // 2. 明确开启 ESC 监听
   closeOnPressEscape: true,
   destroyOnClose: true,
   async onOpenChange(isOpen) {
     if(isOpen){
-      const data = await drawerApi.getData<OcpxBehavioracallbackRecordItem>()
+      const data = await drawerApi.getData()!
       const { taskId, platformCallbackId, behaviorPlatformId, requestId } = data
       const res = await ocpxTaskApi.fetchOxpcTransmissionRecord({
         taskId,

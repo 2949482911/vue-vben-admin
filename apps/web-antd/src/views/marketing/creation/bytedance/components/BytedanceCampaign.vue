@@ -128,7 +128,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
           <template v-if="campaignInfo.name">
             <Descriptions title="基本信息" :column="1" class="info-descriptions">
               <DescriptionsItem v-for="(label, key) in campaignShowLabel" :key="key" :label="label">
-                {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
+                {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key as keyof BytedanceCampaignData]) : campaignInfo[key as keyof BytedanceCampaignData] }}
               </DescriptionsItem>
             </Descriptions>
           </template>

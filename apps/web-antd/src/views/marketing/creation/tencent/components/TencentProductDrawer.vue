@@ -1,7 +1,11 @@
 <script lang="ts" setup name="TencentProductDrawer">
 // 商品选择抽屉：支持「全部相同」/「按账户分配」，商品数据来自后端腾讯商品库接口
 import type { TencentProductCatalogItem, TencentProductItem } from "#/api/models";
-import type { AccountInfo, ProductData } from "#/views/marketing/creation/creation";
+import type {
+  AccountInfo,
+  ProductData,
+  ProductSelection
+} from "#/views/marketing/creation/creation";
 
 import { computed, ref, watch } from "vue";
 
@@ -37,7 +41,7 @@ const keyword = ref("");
 
 const localProduct = ref<ProductData>({
   config: { method: RuleMethod.ALL },
-  data: new Map<string, Array<TencentProductItem>>()
+  data: new Map<string, ProductSelection>()
 });
 
 /** 当前停留账户已勾选的商品，切换账户/搜索前先暂存在这里 */
@@ -122,12 +126,19 @@ async function loadCatalogs() {
   const advertiserId = queryAdvertiserIds();
   if (advertiserId.length === 0) {
     catalogs.value = [];
+    currentCatalogId.value = "";
     return;
   }
   try {
     catalogs.value = await tencentAdvertisementApi.fetchProductCatalogs({ advertiserId });
-    if (catalogs.value.length === 1) {
+    // 已保存的商品库仍可用就继续用（回显），否则只有一个商品库时默认选中
+    const saved = savedCatalogId(currentKey());
+    if (saved && catalogs.value.some((item) => String(item.product_catalog_id) === saved)) {
+      currentCatalogId.value = saved;
+    } else if (catalogs.value.length === 1) {
       currentCatalogId.value = String(catalogs.value[0]?.product_catalog_id ?? "");
+    } else {
+      currentCatalogId.value = "";
     }
   } catch {
     catalogs.value = [];
@@ -166,14 +177,28 @@ async function syncGrid() {
   }
 }
 
+/** 某个位置（账户 id / 全部相同的 0）已保存的商品库 id */
+function savedCatalogId(key: string): string {
+  return localProduct.value.data.get(key)?.productCatalogId || "";
+}
+
+/** 某个位置已保存的商品 */
+function savedProducts(key: string): Array<TencentProductItem> {
+  return localProduct.value.data.get(key)?.products || [];
+}
+
 /**
  * 把当前停留位置的勾选落到 localProduct.data
  * @param key 账户 id / 全部相同的 0
  */
 function flushCurrent(key: string) {
   if (!key) return;
-  if (tempSelectedRows.value.length > 0) {
-    localProduct.value.data.set(key, [...tempSelectedRows.value]);
+  // 商品必须归属某个商品库，没选商品库视为未选择
+  if (tempSelectedRows.value.length > 0 && currentCatalogId.value) {
+    localProduct.value.data.set(key, {
+      productCatalogId: currentCatalogId.value,
+      products: [...tempSelectedRows.value]
+    });
   } else {
     localProduct.value.data.delete(key);
   }
@@ -191,19 +216,15 @@ function currentKey(): string {
  */
 async function changeMethod(e: any) {
   const value = e.target.value;
-  tempSelectedRows.value = [];
   if (value === RuleMethod.ALL) {
     currentAccountId.value = "";
     localProduct.value.data.clear();
   } else {
     currentAccountId.value = accountInfo[0]?.localAdvertiserId ?? "";
-    tempSelectedRows.value = [
-      ...(localProduct.value.data.get(currentAccountId.value) ?? [])
-    ];
   }
+  tempSelectedRows.value = [...savedProducts(currentKey())];
   await gridApi.grid?.clearCheckboxRow();
   await gridApi.grid?.clearCheckboxReserve();
-  currentCatalogId.value = "";
   await loadCatalogs();
   await loadProducts();
   await syncGrid();
@@ -215,12 +236,9 @@ async function handleAccountClick(account: AccountInfo) {
     flushCurrent(currentAccountId.value);
   }
   currentAccountId.value = account.localAdvertiserId;
-  tempSelectedRows.value = [
-    ...(localProduct.value.data.get(currentAccountId.value) ?? [])
-  ];
+  tempSelectedRows.value = [...savedProducts(currentAccountId.value)];
   await gridApi.grid?.clearCheckboxRow();
   await gridApi.grid?.clearCheckboxReserve();
-  currentCatalogId.value = "";
   await loadCatalogs();
   await loadProducts();
   await syncGrid();
@@ -244,7 +262,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     // 按账户分配：每个账户都必须选到商品
     if (localProduct.value.config.method === RuleMethod.ACCOUNT) {
       const unselected = accountInfo.filter(
-        (acc) => !localProduct.value.data.get(acc.localAdvertiserId)?.length
+        (acc) => !localProduct.value.data.get(acc.localAdvertiserId)?.products?.length
       );
       if (unselected.length > 0) {
         await message.warning(
@@ -265,15 +283,11 @@ const [Drawer, drawerApi] = useVbenDrawer({
       config: { ...data.config },
       data: new Map(data.data)
     };
-    if (localProduct.value.config.method === RuleMethod.ACCOUNT) {
-      currentAccountId.value = accountInfo[0]?.localAdvertiserId ?? "";
-      tempSelectedRows.value = [
-        ...(localProduct.value.data.get(currentAccountId.value) ?? [])
-      ];
-    } else {
-      currentAccountId.value = "";
-      tempSelectedRows.value = [...(localProduct.value.data.get(ALL_KEY) ?? [])];
-    }
+    currentAccountId.value =
+      localProduct.value.config.method === RuleMethod.ACCOUNT
+        ? accountInfo[0]?.localAdvertiserId ?? ""
+        : "";
+    tempSelectedRows.value = [...savedProducts(currentKey())];
     await loadCatalogs();
     await loadProducts();
     await syncGrid();

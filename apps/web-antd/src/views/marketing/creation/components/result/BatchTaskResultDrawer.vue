@@ -21,6 +21,7 @@ import type { CreationTaskItem } from '#/api/models/marketing';
  * 提交新任务时面板会自动重新加载并重新开始轮询。
  *
  * 轮询：由详情面板内部完成 —— 进入面板立即查一次，之后每 3s 一次，
+ *      任务未结束（1 待处理 / 2 处理中）就一直轮询，
  *      直到接口返回终态（3 完成 / 4 失败 / 5 超时）或超过 200 次上限才停止。
  *      这里不销毁抽屉内容（destroyOnClose: false），所以关掉抽屉后仍会继续轮询到任务停止；
  *      父级把 task 置空（点「生成预览」开启新一轮配置）时面板卸载，轮询随之结束。
@@ -69,6 +70,7 @@ const panelTask = computed<CreationTaskItem | null>(() => {
 const [Drawer] = useVbenDrawer({
   class: 'w-[75%]',
   contentClass: 'p-5',
+  closeOnPressEscape: true,
   // 关闭后不销毁内容，让详情面板继续轮询到任务停止
   destroyOnClose: false,
   footer: false,

@@ -65,7 +65,7 @@ function openCampaignDrawer() {
             :key="key"
             :label="label"
           >
-            {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
+            {{ fieldLabelMap[key] ? fieldLabelMap[key]((campaignInfo as any)[key]) : (campaignInfo as any)[key] }}
           </DescriptionsItem>
         </Descriptions>
         <Alert

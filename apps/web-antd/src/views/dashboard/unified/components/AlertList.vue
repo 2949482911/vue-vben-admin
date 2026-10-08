@@ -11,7 +11,7 @@ import {
   InfoCircleOutlined,
   WarningOutlined,
 } from '@ant-design/icons-vue';
-import type { AlertItem, AlertType } from '#/api/models';
+import type { AlertItem, AlertLevel, AlertType } from '#/api/models';
 
 const props = defineProps<{
   /** 告警数据 */
@@ -62,7 +62,7 @@ const sortedData = computed(() =>
             <!-- 左侧图标 -->
             <div class="alert-icon">
               <component
-                :is="levelIcon[item.level]"
+                :is="levelIcon[item.level as AlertLevel]"
                 :style="{
                   color:
                     item.level === 'error'
@@ -78,11 +78,11 @@ const sortedData = computed(() =>
             <div class="alert-body">
               <div class="alert-header">
                 <Tag
-                  :color="typeConfig[item.type]?.color || 'default'"
+                  :color="typeConfig[item.type as AlertType]?.color || 'default'"
                   :bordered="false"
                   class="alert-type-tag"
                 >
-                  {{ typeConfig[item.type]?.label || item.type }}
+                  {{ typeConfig[item.type as AlertType]?.label || item.type }}
                 </Tag>
                 <span class="alert-title">{{ item.title }}</span>
               </div>

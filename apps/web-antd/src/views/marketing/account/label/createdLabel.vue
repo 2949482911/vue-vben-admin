@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type {LabelItem, NewLabelItemType, EditLabelItemType} from '#/api/models/marketing'
-import { projectApi,  accountLabelApi } from '#/api';
-import { ACTIVE_PLATFORM } from '#/constants/locales';
+import { accountLabelApi } from '#/api';
 import { useVbenForm, useVbenModal } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 import {ref} from 'vue';
@@ -11,8 +10,8 @@ import { trimObject } from '#/utils/trim';
 const emit = defineEmits(['pageReload']);
 const objectRequest = ref<LabelItem>({});
 const isUpdate = ref<Boolean>(false);
-const title = ref<String>('');
-const [LabelModal, modalApi] = useVbenModal({
+const title = ref<string>('');
+const [LabelModal, modalApi] = useVbenModal<LabelItem>({
   fullscreenButton: false,
   async onCancel() {
     await formApi.resetForm();
@@ -43,7 +42,7 @@ const [LabelModal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<LabelItem>();
+      objectRequest.value = modalApi.getData()!;
       if (objectRequest.value.id) {
         title.value = "修改标签"
         isUpdate.value = true;

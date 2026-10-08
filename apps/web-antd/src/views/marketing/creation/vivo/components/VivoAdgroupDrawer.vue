@@ -1,7 +1,23 @@
 <script setup lang="ts" name="VivoAdgroupDrawer">
 import { ref } from "vue";
 import { useVbenDrawer } from "@vben/common-ui";
-import { useVbenForm } from "#/adapter/form";
+import { useVbenForm, type VbenFormSchema } from "#/adapter/form";
+import type {
+  VivoAdgroupData,
+  QualificationValue,
+  ChannelPackageValue
+} from "#/views/marketing/creation/vivo/vivo";
+
+/**
+ * 广告组编辑抽屉共享数据类型
+ */
+interface VivoAdgroupDrawerData {
+  adgroupData?: VivoAdgroupData;
+  localAdQualification?: Map<string, QualificationValue>;
+  localChannelPackage?: Map<string, ChannelPackageValue>;
+  finalParams?: VivoAdgroupData & { _isConfirmed?: boolean };
+  localAdvertiserQualification?: Map<string, QualificationValue>;
+}
 
 const { formFields } = defineProps({
   formFields: {
@@ -25,7 +41,7 @@ const [Form, formApi] = useVbenForm({
 const localAdvertiserQualification = ref<Map<string, any>>(new Map());
 const localChannelPackage = ref<Map<string, any>>(new Map());
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<VivoAdgroupDrawerData>({
   closeOnClickModal: false,
   closeOnPressEscape: true,
   class: "w-[70%]",
@@ -33,7 +49,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (isOpen) {
       const data = drawerApi.getData();
       formApi.setState({
-        schema: formFields
+        schema: formFields as VbenFormSchema[]
       });
 
       // 回显表单数据
@@ -63,7 +79,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     }
 
     const adgroupData = {
-      ...currentValues,
+      ...(currentValues as VivoAdgroupData),
       _isConfirmed: true
     };
 

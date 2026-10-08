@@ -5,6 +5,7 @@ import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
 import type { VxeGridProps } from "#/adapter/vxe-table";
 import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import type { MainBodyItem } from "#/api/models";
+import type { BatchOptions } from "#/api/models/core";
 import type { CreateMenuRequest, UpdateMenuRequest } from "#/api/models/menu";
 import { $t } from "@vben/locales";
 
@@ -22,7 +23,7 @@ const [CreateDrawer, createDrawerApi] = useVbenDrawer({
   connectedComponent: Create
 });
 
-function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
+function openBaseDrawer(row?: CreateMenuRequest | MainBodyItem | UpdateMenuRequest | null) {
   if (row) {
     createDrawerApi.setData(row);
   } else {
@@ -43,12 +44,12 @@ function openComboDrawer(row: MainBodyItem) {
 async function handlerState(row: MainBodyItem) {
   await (row.status == 1
     ? mainBodyApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>()
     })
     : mainBodyApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
 
@@ -58,9 +59,9 @@ async function handlerState(row: MainBodyItem) {
 
 async function handlerDelete(row: MainBodyItem) {
   await mainBodyApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete
-  });
+  } as BatchOptions);
   pageReload();
 }
 
@@ -209,7 +210,7 @@ function openBatchSetCombo() {
       </template>
 
       <template #sex="{ row }">
-        <Tag v-if="row.sex == 1">{{ $t("common.boy") }}</Tag>
+        <Tag v-if="(row as { sex?: number }).sex == 1">{{ $t("common.boy") }}</Tag>
         <Tag v-else>{{ $t("common.girl") }}</Tag>
       </template>
 

@@ -5,16 +5,15 @@ import { $t } from '@vben/locales';
 import { subscribeApi } from '#/api';
 import { trimObject } from '#/utils/trim';
 import dayjs from 'dayjs';
-import { ref, nextTick, watch } from 'vue'; // 添加 watch
+import { ref } from 'vue';
 import { message } from 'ant-design-vue';
 import type {
   searchDataFilter,
   ReportSubscriptionItem,
-  UpdateSubscribeType,
   TemplateDto
 } from '#/api/models';
 
-const objectRequest = ref<ReportSubscriptionItem>({});
+const objectRequest = ref<ReportSubscriptionItem>({} as ReportSubscriptionItem);
 const [Form, formApi] = useVbenForm({
   // 所有表单项共用，可单独在表单内覆盖
   commonConfig: {
@@ -26,7 +25,7 @@ const [Form, formApi] = useVbenForm({
   handleSubmit: async (formVal: Record<string, any>) => {
     const params = trimObject(formVal);
     const pushConfig = buildPushConfig(params.pushMethod, params.emailAddress);
-    const addSubmitParams: ReportSubscriptionItem = {
+    const addSubmitParams = {
       name: params.name,
       type: params.type,
       queryMetric: objectRequest.value.queryMetric,
@@ -34,7 +33,7 @@ const [Form, formApi] = useVbenForm({
       status: Number(params.status) === 1? 1 : 9,
       subscribeDateTimeRange: params.subscribeDateTimeRange,
       pushConfig
-    }
+    } as ReportSubscriptionItem;
     await subscribeApi.fetchNewSubscribe(addSubmitParams);
     message.success('订阅成功');
     await modalApi.close()
@@ -123,7 +122,7 @@ const [Form, formApi] = useVbenForm({
   ],
   showDefaultActions:false
 });
-const [Modal,modalApi] = useVbenModal({
+const [Modal,modalApi] = useVbenModal<TemplateDto>({
   onCancel() {
     modalApi.close();
   },
@@ -136,8 +135,8 @@ const [Modal,modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: Boolean) {
     if(isOpen) {
-      const row = modalApi.getData<TemplateDto>();
-      if(row.id) {
+      const row = modalApi.getData();
+      if(row?.id) {
         handleSetFormValue(row);
       }
     }
@@ -151,7 +150,7 @@ const buildPushConfig = (type: string, addressStr: string) => {
   return [{ [type]: addressList }];
 };
 const handleSetFormValue = (row: TemplateDto ) => {
-  objectRequest.value.config = row.template
+  objectRequest.value.config = row.template as unknown as searchDataFilter
   objectRequest.value.queryMetric = row.template.queryMetric
 }
 </script>

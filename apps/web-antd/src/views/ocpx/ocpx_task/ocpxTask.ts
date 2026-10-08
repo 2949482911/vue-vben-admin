@@ -70,11 +70,3 @@ export interface ClickInfo extends BaseMeta {
   traceTime: string;              // 追踪时间戳
   ua: string | null;              // User Agent
 }
-
-/**
- * 完整详情数据结构
- */
-interface DataDetail {
-  callbackInfo: CallbackInfo;
-  clickInfo: ClickInfo;
-}

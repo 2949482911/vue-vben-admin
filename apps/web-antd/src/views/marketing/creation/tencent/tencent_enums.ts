@@ -878,6 +878,10 @@ export const Tencent_bid_scene = [
   {
     label: "优先最大转化",
     value: "BID_SCENE_NORMAL_MAX"
+  },
+  {
+    label: '不限',
+    value: "BID_SCENE_UNKNOWN"
   }
 ];
 
@@ -1653,6 +1657,212 @@ export const Tencent_creative_delivery_mode = [
 
 // ======================== Label 辅助函数 ========================
 
+/**
+ * 创意标签类型（creative_components.label[].value.list[].type）
+ *
+ * LABEL_TYPE_UNKNOWN
+ * 未知
+ * LABEL_TYPE_COMMON
+ * 通用标签
+ * LABEL_TYPE_PROMOTIONAL
+ * 促销标签
+ * LABEL_TYPE_CUSTOMIZETEXT
+ * 自定义文本
+ * LABEL_TYPE_ICON
+ * 图标标签
+ */
+export const Tencent_label_type = [
+  {
+    label: "未知",
+    value: "LABEL_TYPE_UNKNOWN"
+  },
+  {
+    label: "通用标签",
+    value: "LABEL_TYPE_COMMON"
+  },
+  {
+    label: "促销标签",
+    value: "LABEL_TYPE_PROMOTIONAL"
+  },
+  {
+    label: "自定义文本",
+    value: "LABEL_TYPE_CUSTOMIZETEXT"
+  },
+  {
+    label: "图标标签",
+    value: "LABEL_TYPE_ICON"
+  }
+];
+
+/**
+ * 浮层卡片类型（creative_components.floating_zone[].value.floating_zone_type）
+ *
+ * FLOATING_ZONE_TYPE_UNKNOWN
+ * 未知
+ * FLOATING_ZONE_TYPE_IMAGE_TEXT
+ * 图文浮层
+ * FLOATING_ZONE_TYPE_SINGLE_IMAGE
+ * 单图浮层
+ * FLOATING_ZONE_TYPE_MULTI_BUTTON
+ * 多按钮浮层
+ * FLOATING_ZONE_TYPE_SLIDER_CARD
+ * 多卡轮播浮层
+ */
+export const Tencent_floating_zone_type = [
+  {
+    label: "未知",
+    value: "FLOATING_ZONE_TYPE_UNKNOWN"
+  },
+  {
+    label: "图文浮层",
+    value: "FLOATING_ZONE_TYPE_IMAGE_TEXT"
+  },
+  {
+    label: "单图浮层",
+    value: "FLOATING_ZONE_TYPE_SINGLE_IMAGE"
+  },
+  {
+    label: "多按钮浮层",
+    value: "FLOATING_ZONE_TYPE_MULTI_BUTTON"
+  },
+  {
+    label: "多卡轮播浮层",
+    value: "FLOATING_ZONE_TYPE_SLIDER_CARD"
+  }
+];
+
+/**
+ * 浮层卡片外显类型（creative_components.floating_zone[].value.floating_zone_info_type）
+ *
+ * FLOATING_ZONE_INFO_DEFAULT
+ * 默认
+ * FLOATING_ZONE_INFO_TYPE_NORMAL
+ * 普通
+ * FLOATING_ZONE_INFO_TYPE_PRODUCT
+ * 商品
+ */
+export const Tencent_floating_zone_info_type = [
+  {
+    label: "默认",
+    value: "FLOATING_ZONE_INFO_DEFAULT"
+  },
+  {
+    label: "普通",
+    value: "FLOATING_ZONE_INFO_TYPE_NORMAL"
+  },
+  {
+    label: "商品",
+    value: "FLOATING_ZONE_INFO_TYPE_PRODUCT"
+  }
+];
+
+/**
+ * 行动按钮支持的文案
+ * creative_components.action_button[].value 的 button_text / mini_program_button_text 只能取这批预设文案
+ */
+export const Tencent_action_button_text = [
+  {
+    label: "了解更多",
+    value: "了解更多"
+  },
+  {
+    label: "保险福利",
+    value: "保险福利"
+  },
+  {
+    label: "去逛逛",
+    value: "去逛逛"
+  },
+  {
+    label: "完善保障",
+    value: "完善保障"
+  },
+  {
+    label: "开启保障",
+    value: "开启保障"
+  },
+  {
+    label: "开通保障",
+    value: "开通保障"
+  },
+  {
+    label: "查看详情",
+    value: "查看详情"
+  },
+  {
+    label: "添加好友",
+    value: "添加好友"
+  },
+  {
+    label: "激活保障",
+    value: "激活保障"
+  },
+  {
+    label: "点此投保",
+    value: "点此投保"
+  },
+  {
+    label: "立即体验",
+    value: "立即体验"
+  },
+  {
+    label: "立即咨询",
+    value: "立即咨询"
+  },
+  {
+    label: "立即开通",
+    value: "立即开通"
+  },
+  {
+    label: "立即投保",
+    value: "立即投保"
+  },
+  {
+    label: "立即抢购",
+    value: "立即抢购"
+  },
+  {
+    label: "立即申请",
+    value: "立即申请"
+  },
+  {
+    label: "立即秒杀",
+    value: "立即秒杀"
+  },
+  {
+    label: "立即购买",
+    value: "立即购买"
+  },
+  {
+    label: "立即预定",
+    value: "立即预定"
+  },
+  {
+    label: "立即预约",
+    value: "立即预约"
+  },
+  {
+    label: "立即领取",
+    value: "立即领取"
+  },
+  {
+    label: "获取保障",
+    value: "获取保障"
+  },
+  {
+    label: "观看直播",
+    value: "观看直播"
+  },
+  {
+    label: "进入小程序",
+    value: "进入小程序"
+  },
+  {
+    label: "领取优惠",
+    value: "领取优惠"
+  }
+];
+
 /** 根据 value 从 options 数组中查找对应的 label */
 function findLabel(options: Array<{ label: string; value: any }>, value: any): string {
   const item = options.find((opt) => opt.value === value);
@@ -1678,6 +1888,9 @@ export function getCostConstraintSceneLabel(value: any) { return findLabel(Tence
 export function getShortPlayPayTypeLabel(value: any) { return findLabel(Tencent_short_play_pay_type, value); }
 export function getDynamicAdTypeLabel(value: any) { return findLabel(Tencent_dynamic_ad_type, value); }
 export function getSearchExpansionSwitchLabel(value: any) { return findLabel(Tencent_search_expansion_switch, value); }
+export function getLabelTypeLabel(value: any) { return findLabel(Tencent_label_type, value); }
+export function getFloatingZoneTypeLabel(value: any) { return findLabel(Tencent_floating_zone_type, value); }
+export function getFloatingZoneInfoTypeLabel(value: any) { return findLabel(Tencent_floating_zone_info_type, value); }
 export function getAdxRealtimeTypeLabel(value: any) { return findLabel(Tencent_adx_realtime_type, value); }
 export function getSmartTargetingModeLabel(value: any) { return findLabel(Tencent_smart_targeting_mode, value); }
 export function getSmartCouponModeLabel(value: any) { return findLabel(Tencent_smart_coupon_mode, value); }

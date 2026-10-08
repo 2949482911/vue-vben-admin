@@ -66,10 +66,10 @@ const currentEditingLink = ref<MonitoringLinkType>({
 const currentLink = computed((): MonitoringLinkType => {
   if (distributionMethod.value === RuleMethod.ACCOUNT) {
     const links = accountMonitoringLinks.value.get(currentAccountId.value) || [];
-    return links.length > 0 ? links[0] : currentEditingLink.value;
+    return links.length > 0 ? links[0]! : currentEditingLink.value;
   }
   const links = localMonitoringLink.value.data.get("0") || [];
-  return links.length > 0 ? links[0] : currentEditingLink.value;
+  return links.length > 0 ? links[0]! : currentEditingLink.value;
 });
 
 // 同步当前链接到编辑对象
@@ -96,12 +96,12 @@ function syncFromEditingLink() {
   if (distributionMethod.value === RuleMethod.ACCOUNT) {
     const links = accountMonitoringLinks.value.get(currentAccountId.value);
     if (links && links.length > 0) {
-      Object.assign(links[0], newValue);
+      Object.assign(links[0]!, newValue);
     }
   } else {
     const links = localMonitoringLink.value.data.get("0");
     if (links && links.length > 0) {
-      Object.assign(links[0], newValue);
+      Object.assign(links[0]!, newValue);
     }
   }
 }
@@ -165,8 +165,8 @@ function getAccountName(account: AccountInfo): string {
 }
 
 // 账户点击/切换
-async function handleAccountClick(accountId: string) {
-  currentAccountId.value = accountId;
+async function handleAccountClick(accountId: string | number) {
+  currentAccountId.value = String(accountId);
   // 切换账户时，同步该账户的链接到编辑对象
   // 使用 nextTick 确保 currentAccountId 更新后再同步数据
   await nextTick();
@@ -207,9 +207,8 @@ function linkTypeChange() {
 }
 
 // 抽屉
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<MonitoringLinkConfigData>({
   closeOnClickModal: false,
-  size: "large",
   class: "w-[75vw]",
   closeOnPressEscape: true,
   onOpenChange(isOpen: boolean) {
@@ -218,14 +217,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
       // 先恢复传入的数据
       if (data?.config?.method) {
-        distributionMethod.value = data.config.method;
+        distributionMethod.value = data.config.method as RuleMethod;
       } else {
         distributionMethod.value = RuleMethod.ALL;
       }
 
       // 恢复链接类型
       if (data?.linkType) {
-        linkModeType.value = data.linkType;
+        linkModeType.value = data.linkType as RuleMethod.MANUAL | RuleMethod.OCPX;
       } else {
         linkModeType.value = RuleMethod.MANUAL;
       }
@@ -249,7 +248,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
           // 恢复 OCPX 选中值（如果有的话）
           const firstAccountLinks = accountMonitoringLinks.value.get(currentAccountId.value);
           if (firstAccountLinks && firstAccountLinks.length > 0) {
-            const link: MonitoringLinkType = firstAccountLinks[0];
+            const link: MonitoringLinkType = firstAccountLinks[0]!;
             if (link.monitorLink) {
               currentOcpxValue.value = {
                 monitorLink: link.monitorLink,
@@ -265,7 +264,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
           // 恢复 OCPX 选中值（如果有的话）
           if (copiedLinks.length > 0) {
-            const link = copiedLinks[0];
+            const link = copiedLinks[0]!;
             if (link.monitorLink) {
               currentOcpxValue.value = {
                 monitorLink: link.monitorLink,
@@ -311,7 +310,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         acc => {
           const links = accountMonitoringLinks.value.get(String(acc.localAdvertiserId));
           if (!links || links.length === 0) return true;
-          const l: MonitoringLinkType = links[0];
+          const l: MonitoringLinkType = links[0]!;
           if (linkModeType.value === RuleMethod.MANUAL) {
             return !l.clickLink && !l.exposureLink;
           }

@@ -1,4 +1,6 @@
 <script setup lang="ts" name="TencentAdgroupDrawer">
+import type { TencentAdgroupData } from "#/views/marketing/creation/tencent/tencent";
+
 import { useVbenDrawer } from "@vben/common-ui";
 
 import { useVbenForm } from "#/adapter/form";
@@ -12,19 +14,32 @@ const { formFields } = defineProps({
 
 
 /**
- * 去掉各模板 schema 上写死的字段宽度（w-[300px]、w-[400px] 等）。
- * 框架会把 commonConfig.formItemClass 和 schema 的 formItemClass 拼在同一个 class 上，
- * 两个宽度类同时存在时谁生效取决于样式表顺序、结果不可控，
- * 所以统一去掉，宽度只由下面 commonConfig 的 formItemClass 决定。
+ * 表单元素加工：
+ * 1. Select 统一支持一键清空（实例 form 里也是这么给的）。
+ * 2. Switch 例外：ant-design 的 switch 是 inline-block，commonConfig 里的 w-full 会把开关拉满整行。
+ * 3. componentProps 是函数时（自定义组件用它懒取账户列表等）不能展开，展开会把函数本身丢掉，
+ *    这里原样保留成函数。
+ * 字段宽度不在这里统一设置，各模板按需在自己的 formItemClass 上单独写（w-[300px]、w-[600px]…）。
  */
-function stripSchemaWidths(fields: any[]): any[] {
-  return fields.map(({ formItemClass = "", ...rest }) => {
+function normalizeFields(fields: any[]): any[] {
+  return fields.map(({ component, componentProps, ...rest }) => {
+    const extra = {
+      ...(component === "Select" ? { allowClear: true } : {}),
+      ...(component === "Switch" ? { class: "w-auto" } : {})
+    };
+
+    if (typeof componentProps === "function") {
+      return {
+        ...rest,
+        component,
+        componentProps: (ctx: any) => ({ ...extra, ...componentProps(ctx) })
+      };
+    }
+
     return {
       ...rest,
-      formItemClass: String(formItemClass)
-        .split(" ")
-        .filter((cls) => cls && !cls.startsWith("w-["))
-        .join(" ")
+      component,
+      componentProps: { ...extra, ...(componentProps ?? {}) }
     };
   });
 }
@@ -35,8 +50,9 @@ const [Form, formApi] = useVbenForm({
   // 竖版布局：一行一个字段
   wrapperClass: "grid-cols-1",
   commonConfig: {
-    // 字段宽度：铺满抽屉并限制最大宽度，保证 Select 下拉能完整显示选项
-    formItemClass: "w-full max-w-[800px]"
+    // 控件铺满所属表单项，否则 antd 的 Select 只有内容宽度、下拉选项显示不全；
+    // 字段宽度由各模板的 formItemClass 逐个决定，不在这里统一限制
+    componentProps: { class: "w-full" }
   }
 });
 
@@ -47,9 +63,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
-      const adgroup = drawerApi.getData();
+      // getData() 返回 unknown，这里按抽屉的数据契约断言成广告
+      const adgroup = drawerApi.getData() as TencentAdgroupData;
       formApi.setState({
-        schema: stripSchemaWidths(formFields)
+        schema: normalizeFields(formFields)
       });
 
       // 将对象属性平铺出来，用于表单回显

@@ -25,6 +25,13 @@ import CreativeGroupSelector
 import TimeSelectionPeriod
   from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
+import {
+  actionButtonField,
+  brandField,
+  dividerField,
+  floatingZoneField,
+  labelField
+} from "#/views/marketing/creation/tencent/components/creative_components";
 import TencentAdgroup from "#/views/marketing/creation/tencent/components/TencentAdgroup.vue";
 import TencentCampaign from "#/views/marketing/creation/tencent/components/TencentCampaign.vue";
 import TencentProductSelector
@@ -186,22 +193,6 @@ const campaignFormFields = [
     label: "商品类型",
     help: "商品库(外投商品)类型，决定商品 id 的归属"
   },
-  // {
-  //   component: "InputNumber",
-  //   fieldName: "marketing_asset_id",
-  //   formItemClass: "w-[300px]",
-  //   label: "营销资产 id"
-  // },
-  // {
-  //   component: "Input",
-  //   fieldName: "marketing_asset_outer_id",
-  //   label: "商品 id"
-  // },
-  // {
-  //   component: "Input",
-  //   fieldName: "marketing_asset_outer_sub_id",
-  //   label: "商品子 id"
-  // },
   {
     component: "Select",
     fieldName: "optimization_goal",
@@ -222,6 +213,7 @@ const campaignFormFields = [
       format: "YYYY-MM-DD",
       valueFormat: "YYYY-MM-DD"
     },
+    formItemClass: "w-[300px]",
     label: "开始投放日期",
     rules: "required"
   },
@@ -271,6 +263,7 @@ const campaignFormFields = [
   {
     component: "InputNumber",
     fieldName: "bid_amount",
+    formItemClass: "w-[300px]",
     label: "出价(分)",
     rules: "required"
   },
@@ -287,6 +280,7 @@ const campaignFormFields = [
   {
     component: "InputNumber",
     fieldName: "daily_budget",
+    formItemClass: "w-[300px]",
     label: "日预算(分)",
     help: "0 表示不限预算"
   },
@@ -306,6 +300,7 @@ const campaignFormFields = [
       mode: "multiple"
     },
     defaultValue: DEFAULT_SITE_SET,
+    formItemClass: "w-[600px]",
     label: "投放版位",
     dependencies: {
       show: (val: any) => {
@@ -331,6 +326,7 @@ const campaignFormFields = [
       options: Tencent_priority_site_set,
       mode: "multiple"
     },
+    formItemClass: "w-[600px]",
     label: "优先探索版位",
     dependencies: {
       show: (val: any) => {
@@ -419,6 +415,7 @@ const campaignFormFields = [
   {
     component: "InputNumber",
     fieldName: "auto_acquisition_budget",
+    formItemClass: "w-[300px]",
     label: "一键起量预算",
     dependencies: {
       show: (val: any) => {
@@ -441,6 +438,7 @@ const campaignFormFields = [
       mode: "multiple"
     },
     defaultValue: ["AUTO_DERIVED_CREATIVE_METHOD_TYPE_UNKNOWN"],
+    formItemClass: "w-[600px]",
     label: "创意增强 MAX 偏好设置列表",
     dependencies: {
       show: (val: any) => {
@@ -497,7 +495,7 @@ const campaignShowLabel: Record<string, string> = {
   marketing_goal: "营销目的",
   marketing_carrier_type: "营销载体",
   optimization_goal: "优化目标",
-  marketing_asset_outer_id: "商品 id",
+  marketing_asset_outer_id: "商品库 id",
   begin_date: "开始时间",
   end_date: "结束时间",
   bid_mode: "出价方式",
@@ -511,6 +509,7 @@ const adgroupFormFields = [
   {
     component: "AdNameGen",
     fieldName: "dynamic_creative_name",
+    formItemClass: "w-[400px]",
     label: "动态创意名称",
     rules: "required"
   },
@@ -535,44 +534,6 @@ const adgroupFormFields = [
     label: "动态创意类型"
   },
   {
-    component: "Textarea",
-    fieldName: "description_content",
-    componentProps: {
-      autoSize: { minRows: 2, maxRows: 4 },
-      placeholder: "创意描述文案，会作为 description 创意组件提交"
-    },
-    label: "创意描述"
-  },
-  {
-    component: "Input",
-    fieldName: "mini_program_id",
-    label: "落地页小程序 id",
-    help: "与小程序路径同时填写才会生成创意主跳转组件"
-  },
-  {
-    component: "Input",
-    fieldName: "mini_program_path",
-    label: "落地页小程序路径"
-  },
-  {
-    component: "Input",
-    fieldName: "wechat_channels_username",
-    label: "视频号名称",
-    help: "投放含视频号版位时需要，作为品牌形象"
-  },
-  {
-    component: "Input",
-    fieldName: "creative_template_id",
-    formItemClass: "w-[300px]",
-    label: "创意形式 id"
-  },
-  {
-    component: "Switch",
-    fieldName: "auto_derived_program_creative_switch",
-    formItemClass: "w-[250px]",
-    label: "自动衍生"
-  },
-  {
     component: "Select",
     fieldName: "configured_status",
     componentProps: {
@@ -581,7 +542,14 @@ const adgroupFormFields = [
     defaultValue: "AD_STATUS_NORMAL",
     formItemClass: "w-[300px]",
     label: "状态"
-  }
+  },
+
+  // 创意组件：每个组件一个字段（开关、分配方式、按账户配置都在组件内），横线分组隔开
+  dividerField("creativeComponentDivider", "创意组件（选填）"),
+  brandField(() => creationInfo.accountInfo),
+  actionButtonField(() => creationInfo.accountInfo),
+  labelField(() => creationInfo.accountInfo),
+  floatingZoneField(() => creationInfo.accountInfo)
 ];
 
 const adgroupShowLabel: Record<string, string> = {

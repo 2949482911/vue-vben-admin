@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { 
   useVbenDrawer } from '@vben/common-ui';
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { Tabs , TabPane, RangePicker } from 'ant-design-vue'
 import type { EchartsUIType } from '@vben/plugins/echarts';
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 import type {OcpxDataStatisticsRequest, OcpxTaskItem, dayDataItem} from '#/api/models'
 import dayjs, { Dayjs } from 'dayjs';
 import { ocpxTaskApi } from '#/api/core';
-import type { EChartsOption } from 'echarts';
-type RangeValue = [Dayjs, Dayjs] | null;
+type RangeValue = [Dayjs, Dayjs] | undefined;
 const dateFormat = 'YYYY-MM-DD';
 const requestParams = ref<OcpxDataStatisticsRequest>();
 const timeList = ref<RangeValue>();
@@ -21,12 +20,13 @@ const chartRefDay = ref<EchartsUIType>();
 // const chartRefMonth = ref<EchartsUIType>(); 
 // const chartRefYear = ref<EchartsUIType>();
   const { renderEcharts: renderEchartsDay, updateData: updateDataDay} = useEcharts(chartRefDay);
+type DayChartOption = Parameters<typeof renderEchartsDay>[0];
 // const { renderEcharts: renderEchartsWeek } = useEcharts(chartRefWeek);
 // const { renderEcharts: renderEchartsMonth } = useEcharts(chartRefMonth);
 // const { renderEcharts: renderEchartsYear } = useEcharts(chartRefYear);
 
 const activeKey = ref<string>('day')
-const dayOptions = ref<EChartsOption>(
+const dayOptions = ref<DayChartOption>(
   {
     // ... 日统计的图表配置
     grid: {
@@ -76,7 +76,7 @@ const dayOptions = ref<EChartsOption>(
     ],
   }
 )
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<OcpxTaskItem>({
  async onOpenChange(isOpen: Boolean) {
     if(isOpen) {
       timeList.value = [
@@ -87,9 +87,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
         dayjs(timeList.value[0]).format(dateFormat),
         dayjs(timeList.value[1]).format(dateFormat)
       ];
-      const data = await drawerApi.getData<OcpxTaskItem>()
+      const data = await drawerApi.getData()!
       requestParams.value = {
-        taskId: data.id,
+        taskId: data.id!,
         behaviorPlatformId: data.behavioraPlatformIds.join(','),
         platformCallbackId: data.platformCallbackIds.join(','),
         dims:[activeKey.value],
@@ -104,11 +104,11 @@ const [Drawer, drawerApi] = useVbenDrawer({
     }
   }
 });
-function handleChange(key) {
+function handleChange() {
   
 }
 
-async function handleDayChange(day:RangeValue) {
+async function handleDayChange(day:RangeValue | [string, string]) {
   if (!day) return;
   const timeVal = [
     dayjs(day[0]).format(dateFormat),
@@ -130,8 +130,7 @@ function renderCharts(type: string, items:dayDataItem[]) {
   const xData = dataList.map((item: dayDataItem) => item.day);
   const clickData = dataList.map((item: dayDataItem) => Number(item.click_count));
   const callbackData = dataList.map((item: dayDataItem) => Number(item.callback_count));
-  dayOptions.value.series = [];
-  dayOptions.value.series.push(
+  dayOptions.value.series = [
     {
       areaStyle: {},
       name: '点击数',
@@ -154,12 +153,12 @@ function renderCharts(type: string, items:dayDataItem[]) {
         color: '#019680',
       },
     }
-  );
-  dayOptions.value.xAxis.data = xData;
+  ];
+  (dayOptions.value.xAxis as Record<string, unknown>).data = xData;
   if(type === 'init') {
-    renderEchartsDay(dayOptions.value)
+    renderEchartsDay(dayOptions.value as DayChartOption)
   } else if(type === 'change') {
-    updateDataDay(dayOptions.value)
+    updateDataDay(dayOptions.value as DayChartOption)
   }
 }
 </script>

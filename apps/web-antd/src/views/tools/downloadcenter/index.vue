@@ -112,7 +112,7 @@ const formOptions: VbenFormProps = {
   compact: true,
   collapsed: true
 };
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -187,7 +187,7 @@ const [Form, formApi] = useVbenForm({
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: false,
   // 当抽屉打开状态改变时触发
-  async onOpenChange(isOpen) {
+  async onOpenChange() {
   },
   async onConfirm() {
     const result = await formApi.validate();

@@ -1,5 +1,5 @@
 <script lang="ts" setup name="CreateRole">
-import type { BasicRole } from "@vben-core/typings/src/basic";
+import type { BasicRole } from "@vben/types";
 
 import type { CreateRoleRequest, UpdateRoleRequest } from "#/api/models";
 import type { MenuItem } from "#/api/models/menu";
@@ -127,7 +127,7 @@ function updateMenuTitle(menu: MenuItem) {
   });
 }
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<CreateRoleRequest | UpdateRoleRequest>({
   closeOnPressEscape: true,
   class: "w-[75%]",
   onCancel() {
@@ -146,7 +146,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       formApi.resetForm();
-      createObject.value = drawerApi.getData<Record<string, any>>() as CreateRoleRequest | UpdateRoleRequest;
+      createObject.value = drawerApi.getData() as CreateRoleRequest | UpdateRoleRequest;
       // 编辑：把角色已有的 menuIds 写进表单，树由表单值回显（角色列表接口已带回 menuIds）
       if (createObject.value.id) {
         isUpdate.value = true;

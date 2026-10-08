@@ -51,7 +51,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   async onOpenChange(isOpen) {
     if (isOpen) {
-      landingPageItem.value = modalApi.getData();
+      landingPageItem.value = modalApi.getData() as LandingPageData;
       if (landingPageItem.value.id) {
         newOrEdit.value = false;
         await formApi.setValues({

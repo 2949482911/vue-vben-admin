@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { loadingPageApi } from "#/api";
 import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
 import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { Button, message, Switch } from "ant-design-vue";
+import { Button, message, Switch, Tag } from "ant-design-vue";
 import CreateLoadingPage from "./createLoadingPage.vue";
 import type { LandingPageData } from "#/api/models";
 
@@ -76,7 +77,9 @@ const gridOptions: VxeGridProps = {
     {
       field: "platform",
       title: "平台",
-      width: "auto"
+      width: "auto",
+      // 媒体列渲染成中文带色标签，映射取自 constants/platform
+      slots: { default: "platform" }
     },
     {
       field: "pageUrl",
@@ -121,7 +124,7 @@ function pageReload() {
   gridApi.reload();
 }
 
-function handlerState(row: LandingPageData) {
+function handlerState(_row: LandingPageData) {
 }
 
 const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
@@ -130,6 +133,11 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 <template>
   <Page content-class="p-5">
     <Grid>
+      <template #platform="{ row }">
+        <Tag :bordered="false" :color="getPlatformColor(row.platform)">
+          {{ getPlatformLabel(row.platform) }}
+        </Tag>
+      </template>
       <template #pageUrl="{ row }">
         {{ row.config.pageUrl }}
       </template>

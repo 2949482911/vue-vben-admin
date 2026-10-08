@@ -9,10 +9,12 @@ import { $t } from "@vben/locales";
 import { useUserStore } from "@vben/stores";
 
 import { Empty, message, Spin, Transfer } from "ant-design-vue";
+import type { TransferItem as AntdTransferItem } from "ant-design-vue/es/transfer";
 
 import { useVbenForm } from "#/adapter/form";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { advertiserApi, materialPushApi } from "#/api/core";
+import { getPlatformLabel } from "#/constants/platform";
 
 // ==================== Props ====================
 const props = defineProps<{
@@ -224,7 +226,8 @@ async function loadAdvertiserList(platform: string) {
     accountDataSource.value = items.map((item: AdvertiserItem) => ({
       key: item.id,
       title: item.advertiserName || item.advertiserId || item.id,
-      description: `${item.platform || ""}  ${item.companyName || ""}`,
+      // 平台展示中文名（原样显示的是英文值）
+      description: `${getPlatformLabel(item.platform, "")}  ${item.companyName || ""}`,
       platform: item.platform || "",
       advertiserId: item.advertiserId || ""
     }));
@@ -325,7 +328,7 @@ async function handleSubmit() {
             <Transfer
               :data-source="accountDataSource"
               :target-keys="targetKeys"
-              :render="(item: TransferItem) => item.title"
+              :render="(item: AntdTransferItem) => item.title || ''"
               :titles="[
                 $t(`${T}.availableAccounts`),
                 $t(`${T}.selectedAccounts`),
@@ -333,11 +336,11 @@ async function handleSubmit() {
               :list-style="{ width: '260px', height: '320px' }"
               :show-search="true"
               :filter-option="
-                (inputValue: string, item: TransferItem) => {
+                (inputValue: string, item: AntdTransferItem) => {
                   const kw = inputValue.toLowerCase();
                   return (
-                    item.title.toLowerCase().includes(kw) ||
-                    item.description.toLowerCase().includes(kw)
+                    (item.title || '').toLowerCase().includes(kw) ||
+                    (item.description || '').toLowerCase().includes(kw)
                   );
                 }
               "

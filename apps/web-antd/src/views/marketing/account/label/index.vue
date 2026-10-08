@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LabelItem } from "#/api/models/marketing";
+import type { DelLabelItemType, LabelItem } from "#/api/models/marketing";
 import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 import { Button, message, Switch } from "ant-design-vue";
@@ -111,7 +111,7 @@ async function handlerDelete(data: LabelItem | LabelItem[]) {
   if (rows.length === 0) {
     return message.warning("请选择需要删除的数据！");
   }
-  const rowIds = rows.map((item) => item.id);
+  const rowIds = rows.map((item) => item.id) as string[];
   try {
     await accountLabelApi.fetchBatchOptions({
       targetIds: rowIds,
@@ -140,15 +140,15 @@ function pageReload() {
 async function handlerState(row: LabelItem) {
   await (row.status === 1
     ? accountLabelApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>()
-    })
+    } as DelLabelItemType)
     : accountLabelApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
-    }));
+    } as DelLabelItemType));
   pageReload();
 }
 </script>

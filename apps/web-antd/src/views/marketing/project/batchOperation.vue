@@ -5,13 +5,13 @@ import { computed, reactive, ref } from "vue";
 import { useVbenForm } from "#/adapter/form";
 import type { OrgItem, ProjectItem, UserItem } from "#/api/models";
 import { orgApi, projectApi, userApi } from "#/api";
-import type { FormSchema } from "@vben/components";
+import type { VbenFormSchema as FormSchema } from "#/adapter/form";
 
 const emit = defineEmits(["pageReload"]);
 
 //父组件传过来的advertiserId
 const selectedRows = ref<ProjectItem[]>([]);
-const modalType = ref<TitleKey>("");
+const modalType = ref<TitleKey>("" as TitleKey);
 const title = ref<string>("");
 const menuData = ref<OrgItem[]>([]);
 
@@ -53,7 +53,7 @@ const dynamicSchema = computed((): FormSchema[] => {
           allowClear: true,
           options: salesOption,
           placeholder: `${$t("common.choice")}`,
-          onSelect: (selectedKeys, event, node) => {
+          onSelect: (_selectedKeys: any, event: any, _node: any) => {
             if (modalType.value === "creator") {
               if (event && event.label) {
                 creatorUerName.value = event.label;
@@ -67,14 +67,14 @@ const dynamicSchema = computed((): FormSchema[] => {
         dependencies: {
           show: true,
           triggerFields: ["orgId"],
-          required: (value) => !!value.orgId,
-          rules: (value) => {
+          required: (value: any) => !!value.orgId,
+          rules: (value: any) => {
             if (value.orgId) {
               return "required";
             }
             return "";
           },
-          if: (value, formApi) => {
+          if: (value: any, formApi: any) => {
             if (value.orgId) {
               modalType.value === "creator" ? formApi.setFieldValue("creatorId", null) : formApi.setFieldValue("saleId", null);
               loadSalesByOrg(value.orgId);
@@ -119,7 +119,7 @@ const dynamicSchema = computed((): FormSchema[] => {
           value: "id",
           children: "children"
         },
-        onSelect: (selectedKeys, event, node) => {
+        onSelect: (_selectedKeys: any, event: any, _node: any) => {
           if (event && event.code) {
             selectedOrgCode.value = event.code;
           }
@@ -156,7 +156,7 @@ const [Form, formApi] = useVbenForm({
   },
   layout: "horizontal",
   handleSubmit: async (formVal) => {
-    const targetIds = selectedRows.value.map(item => item.id);
+    const targetIds = selectedRows.value.map(item => item.id!);
     let type = "";
     let values = {};
     if (modalType.value === "org") {
@@ -180,7 +180,7 @@ const [Form, formApi] = useVbenForm({
       values: values
     }));
   },
-  schema: dynamicSchema
+  schema: dynamicSchema as unknown as FormSchema[]
 });
 
 const [Modal, modalApi] = useVbenModal({
@@ -190,7 +190,7 @@ const [Modal, modalApi] = useVbenModal({
   contentClass: "modalStyle",
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const data = modalApi.getData();
+      const data = modalApi.getData() as { selectedRows: ProjectItem[]; modalType: TitleKey };
       selectedRows.value = data.selectedRows;
       modalType.value = data.modalType;
       const orgRes = await orgApi.fetchOrgTree();

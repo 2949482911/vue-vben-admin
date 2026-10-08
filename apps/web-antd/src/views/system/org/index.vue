@@ -1,7 +1,6 @@
 <script lang="ts" setup name="DeptManager">
-import type { VxeGridProps } from "#/adapter/vxe-table";
+import type { VxeTableGridOptions } from "#/adapter/vxe-table";
 import { useVbenVxeGrid } from "#/adapter/vxe-table";
-import type { CreateMenuRequest, MenuItem, UpdateMenuRequest } from "#/api/models/menu";
 import type { OrgItem } from "#/api/models/users";
 
 import { Page, useVbenDrawer } from "@vben/common-ui";
@@ -17,7 +16,7 @@ const [CreateDrawer, createDrawerApi] = useVbenDrawer({
   connectedComponent: Create
 });
 
-function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
+function openBaseDrawer(row?: any) {
   if (row) {
     createDrawerApi.setData(row);
   } else {
@@ -29,12 +28,12 @@ function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
 async function handlerState(row: OrgItem) {
   await (row.status === 1
     ? orgApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>()
     })
     : orgApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
     }));
@@ -43,14 +42,14 @@ async function handlerState(row: OrgItem) {
 
 async function handlerDelete(row: OrgItem) {
   await orgApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>()
   });
   pageReload();
 }
 
-const gridOptions: VxeGridProps<MenuItem> = {
+const gridOptions: VxeTableGridOptions<OrgItem> = {
   columns: [
     {
       field: "name",
@@ -58,7 +57,7 @@ const gridOptions: VxeGridProps<MenuItem> = {
       title: `${$t("system.org.columns.name")}`,
       treeNode: true
     },
-    ...TABLE_COMMON_COLUMNS
+    ...TABLE_COMMON_COLUMNS as any
   ],
   proxyConfig: {
     autoLoad: true,

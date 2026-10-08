@@ -6,7 +6,8 @@ import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { projectApi, titlePackApi } from "#/api";
 import { trimObject } from "#/utils/trim";
 import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
-import { Button, message, Switch } from "ant-design-vue";
+import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
+import { Button, message, Switch, Tag } from "ant-design-vue";
 import type { TitlePackItem } from "./titlePackageType";
 import CreatedTitlePackage from "./createdTitlePackage.vue";
 import { $t } from "#/locales";
@@ -100,7 +101,9 @@ const gridOptions: VxeGridProps = {
     {
       field: "platform",
       title: "平台",
-      width: "auto"
+      width: "auto",
+      // 媒体列渲染成中文带色标签，映射取自 constants/platform
+      slots: { default: "platform" }
     },
     ...(TABLE_COMMON_COLUMNS as any)
   ],
@@ -171,6 +174,11 @@ function handlerState(_row: TitlePackItem) {
 <template>
   <Page>
     <Grid>
+      <template #platform="{ row }">
+        <Tag :bordered="false" :color="getPlatformColor(row.platform)">
+          {{ getPlatformLabel(row.platform) }}
+        </Tag>
+      </template>
       <template #status="{ row }">
         <Switch :checked="row.status === 1" @click="handlerState(row)" />
       </template>

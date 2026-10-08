@@ -74,14 +74,14 @@ const [Form, formApi] = useVbenForm({
 });
 
 // Modal
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<{ id?: string; name?: string; remark?: string; type?: string }>({
   fullscreen: false,
   fullscreenButton: false,
   closeOnPressEscape: false,
   async onOpenChange(isOpen) {
     if (isOpen) {
       const data = modalApi.getData()
-      if(data.id) {
+      if(data?.id) {
         isUpdate.value = true;
         await formApi.setFieldValue('name',data.name);
         await formApi.setFieldValue('remark',data.remark);

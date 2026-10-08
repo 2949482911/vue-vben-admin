@@ -54,11 +54,7 @@ const gridOptions: VxeGridProps = {
   },
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
-
-function pageReload() {
-  gridApi.reload();
-}
+const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
 </script>
 
 <template>

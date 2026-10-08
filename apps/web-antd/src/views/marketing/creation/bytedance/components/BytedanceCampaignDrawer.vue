@@ -2,12 +2,26 @@
 import { computed, nextTick, reactive } from 'vue';
 import { message } from 'ant-design-vue';
 import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
+import type { VbenFormSchema } from '#/adapter/form';
 import { useVbenForm } from '#/adapter/form';
 import DpaProductModal from './DpaProductModal.vue';
 import type {
   BytedanceDpaProductListItem,
 } from '#/api/models/bytedance';
+import type { BytedanceCampaignData } from '#/views/marketing/creation/bytedance/bytedance';
 import type { AccountInfo } from '#/views/marketing/creation/creation';
+
+/** DPA 商品选择弹窗共享数据类型 */
+interface DpaModalData {
+  advertiserIds: string[];
+  initialProduct: BytedanceDpaProductListItem | null;
+  selectedProduct?: BytedanceDpaProductListItem | null;
+}
+
+/** 抽屉共享数据类型（项目数据 + DPA 商品展示信息） */
+type CampaignDrawerData = BytedanceCampaignData & {
+  _dpaProductInfo?: BytedanceDpaProductListItem | null;
+};
 
 const props = defineProps({
   formFields: {
@@ -31,14 +45,14 @@ const dpaContext = reactive<{ selectedProduct: BytedanceDpaProductListItem | nul
 });
 
 /** DPA 商品选择弹窗 */
-const [DpaProductModalModule, dpaModalApi] = useVbenModal({
+const [DpaProductModalModule, dpaModalApi] = useVbenModal<DpaModalData>({
   connectedComponent: DpaProductModal,
   onOpenChange(isOpen) {
     if (!isOpen) {
       // 弹窗关闭后，获取选中的商品并回填隐藏字段到表单
       const data = dpaModalApi.getData();
       if (data?.selectedProduct !== undefined) {
-        dpaContext.selectedProduct = data.selectedProduct;
+        dpaContext.selectedProduct = data.selectedProduct ?? null;
         if (data.selectedProduct) {
           formApi.setValues({
             related_product_platform_id: String(data.selectedProduct.platform_id),
@@ -83,14 +97,14 @@ const [Form, formApi] = useVbenForm({
   },
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<CampaignDrawerData>({
   closeOnClickModal: false,
   class: "w-[70%]",
   closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
-      const campaign = drawerApi.getData();
-      formApi.setState({ schema: props.formFields });
+      const campaign = drawerApi.getData()!;
+      formApi.setState({ schema: props.formFields as VbenFormSchema[] });
       await nextTick();
 
       // 初始化 DPA 商品选择器状态
@@ -268,7 +282,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       // DPA 商品展示信息（用于摘要卡片，不传给API）
       _dpaProductInfo: dpaContext.selectedProduct,
     };
-    drawerApi.setData(campaign);
+    drawerApi.setData(campaign as CampaignDrawerData);
     await drawerApi.close();
   },
   onClosed() {

@@ -31,7 +31,7 @@ const [CreateDrawer, createDrawerApi] = useVbenDrawer({
 
 const orgTreeData = ref<OrgItem[]>([]);
 
-function openBaseDrawer(row?: CreateDataRangeRequest | UpdateDataRangeRequest) {
+function openBaseDrawer(row?: CreateDataRangeRequest | UpdateDataRangeRequest | null) {
   if (row) {
     createDrawerApi.setData(row);
   } else {
@@ -43,12 +43,12 @@ function openBaseDrawer(row?: CreateDataRangeRequest | UpdateDataRangeRequest) {
 async function handlerState(row: DataRangeItem) {
   await (row.status == 1
     ? dataRangeApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>()
     })
     : dataRangeApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
 
@@ -173,12 +173,12 @@ onMounted(() => {
 
       <template #type="{ row }">
         <Tag>
-          {{ DATA_SCOPE.filter((x) => x.value == row.type)[0].label }}
+          {{ DATA_SCOPE.filter((x) => x.value == row.type)[0]!.label }}
         </Tag>
       </template>
 
       <template #sex="{ row }">
-        <Tag v-if="row.sex == 1">{{ $t("common.boy") }}</Tag>
+        <Tag v-if="(row as { sex?: number }).sex == 1">{{ $t("common.boy") }}</Tag>
         <Tag v-else>{{ $t("common.girl") }}</Tag>
       </template>
 
@@ -187,7 +187,7 @@ onMounted(() => {
           {{ $t("common.edit") }}
         </Button>
 
-        <Button type="link" @click="handlerDelete(row.id)">
+        <Button type="link" @click="handlerDelete(row.id!)">
           {{ $t("common.delete") }}
         </Button>
       </template>

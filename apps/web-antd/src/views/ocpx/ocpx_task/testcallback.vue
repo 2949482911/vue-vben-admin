@@ -53,20 +53,9 @@ const clickMonitor = ref<ClickMonitorResponse>({
   platformCallbackId: "",
   url: "",
   platform: ""
-});
+} as ClickMonitorResponse);
 
-/**
- * 联调回传
- */
-async function testCallback(behaviorType: string) {
-  await clickMonitorApi.fetchTestCallback({
-    ocpxTaskId: clickMonitor.value.ocpxTaskId,
-    platformCallbackId: clickMonitor.value.platformCallbackId,
-    behaviorType: behaviorType,
-  })
-}
-
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<ClickMonitorResponse>({
   bordered: false,
   fullscreenButton: false,
   onCancel() {
@@ -90,7 +79,7 @@ const [Modal, modalApi] = useVbenModal({
     if (!open) {
       await modalApi.close();
     }
-    clickMonitor.value = modalApi.getData();
+    clickMonitor.value = modalApi.getData()!;
   },
 });
 

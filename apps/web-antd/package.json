@@ -57,5 +57,8 @@
     "vxe-table": "catalog:",
     "vxe-table-plugin-export-xlsx": "catalog:",
     "qs": "catalog:"
+  },
+  "devDependencies": {
+    "@types/qs": "catalog:"
   }
 }

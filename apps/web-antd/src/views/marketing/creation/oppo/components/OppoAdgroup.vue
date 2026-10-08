@@ -113,7 +113,7 @@ function openAdgroupDrawer() {
               :key="key"
               :label="label"
             >
-              {{ fieldLabelMap[key] ? fieldLabelMap[key](adgroupInfo[key]) : adgroupInfo[key] }}
+              {{ fieldLabelMap[key] ? fieldLabelMap[key]((adgroupInfo as any)[key]) : (adgroupInfo as any)[key] }}
             </DescriptionsItem>
           </Descriptions>
           <Alert

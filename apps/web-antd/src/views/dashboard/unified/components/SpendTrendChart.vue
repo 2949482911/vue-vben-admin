@@ -5,7 +5,7 @@
  * 按天展示消耗和转化双折线趋势
  * 参考 analytics-trends.vue 的 useEcharts 用法
  */
-import type { EchartsUIType } from '@vben/plugins/echarts';
+import type { ECOption, EchartsUIType } from '@vben/plugins/echarts';
 
 import type { TrendDataPoint } from '#/api/models';
 
@@ -27,7 +27,7 @@ const chartRef = ref<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
 
 // 构建 ECharts 配置
-function buildOption(data: TrendDataPoint[]) {
+function buildOption(data: TrendDataPoint[]): ECOption {
   return {
     tooltip: {
       trigger: 'axis',

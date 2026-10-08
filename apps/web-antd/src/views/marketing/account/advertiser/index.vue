@@ -17,12 +17,14 @@ import { Button, Dropdown, Menu, MenuItem, message, SubMenu, Switch, Tag } from 
 import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import { accountLabelApi, developerApi, projectApi } from "#/api";
 import { advertiserApi, userApi } from "#/api/core";
+import { Platform } from "#/constants/enums";
 import {
   BatchOptionsType,
   PLATFORM,
   STATUS_SELECT,
   TABLE_COMMON_COLUMNS
 } from "#/constants/locales";
+import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
 
 import AuthAccount from "./authaccount.vue"; // 授权弹窗
@@ -43,6 +45,30 @@ const [AuthAccountModal, authAccountModalApi] = useVbenModal({
 });
 
 function openAuthAccountModal() {
+  authAccountModalApi.open();
+}
+
+/**
+ * 腾讯 userToken（实名认证令牌）授权
+ * 仅腾讯的 商务管家(bm) / 业务单元(unit) / 客户主体(mdm) 账户支持
+ */
+const TENCENT_USER_TOKEN_ROLES = ["bm", "mdm", "unit"];
+const TENCENT_USER_TOKEN_SUBTYPE = "user_token";
+
+function canUserTokenAuth(row: AdvertiserItem) {
+  return (
+    row.platform === Platform.TENCENT &&
+    TENCENT_USER_TOKEN_ROLES.includes(row.advertiserRole)
+  );
+}
+
+function openUserTokenAuthModal(row: AdvertiserItem) {
+  if (!row.id) return;
+  // subType 非空 => 后端返回腾讯 userToken 授权地址，advertiserId 为被授权账户主键（字符串）
+  authAccountModalApi.setData({
+    advertiserId: row.id,
+    subType: TENCENT_USER_TOKEN_SUBTYPE
+  });
   authAccountModalApi.open();
 }
 
@@ -92,7 +118,7 @@ async function exportAllData() {
 }
 
 async function cancelBatchOptions(opType: string) {
-  const targetIds = selectedRows.value.map((item) => item.id);
+  const targetIds = selectedRows.value.map((item) => item.id) as string[];
   let values = {};
   let type = "";
   if (opType === "edit") {
@@ -172,12 +198,12 @@ async function copyToken(text: string) {
 async function handlerState(row: AdvertiserItem) {
   await (row.status === 1
     ? advertiserApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>()
     })
     : advertiserApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
     }));
@@ -186,7 +212,7 @@ async function handlerState(row: AdvertiserItem) {
 
 async function handlerDelete(row: AdvertiserItem) {
   await advertiserApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>()
   });
@@ -196,7 +222,7 @@ async function handlerDelete(row: AdvertiserItem) {
 async function handlerPutState(row: AdvertiserItem) {
   const putStatue: string = row.putStatue == 1 ? "stop_put_status" : "start_put_status";
   await advertiserApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: putStatue,
     values: new Map<string, any>()
   });
@@ -206,7 +232,7 @@ async function handlerPutState(row: AdvertiserItem) {
 async function handlerHourlyState(row: AdvertiserItem) {
   const hourlyState = row.hourlyState === 1 ? 9 : 1;
   await advertiserApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: "update_advertiser_hourly",
     values: {
       hourly_state: hourlyState
@@ -234,7 +260,7 @@ onMounted(async () => {
   const resOption = await developerApi.fetchDeveloperList({ page: 1, pageSize: 200 });
   developerOption.value = resOption.items.map((item: DeveloperItem) => ({
     label: `${item.name}-${item.id}`,
-    value: item.id
+    value: item.id!
   }));
 });
 
@@ -492,7 +518,9 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     {
       field: "platform",
       title: `${$t("ocpx.platform.title")}`,
-      width: "auto"
+      width: "auto",
+      // 媒体列渲染成中文带色标签，映射取自 constants/platform
+      slots: { default: "platform" }
     },
     {
       field: "developerName",
@@ -716,6 +744,11 @@ async function loadAgentData(platform: string) {
 <template>
   <Page>
     <Grid>
+      <template #platform="{ row }">
+        <Tag :bordered="false" :color="getPlatformColor(row.platform)">
+          {{ getPlatformLabel(row.platform) }}
+        </Tag>
+      </template>
       <template #putStatue="{ row }">
         <Switch :checked="row.putStatue === 1" @click="handlerPutState(row)" />
       </template>
@@ -772,6 +805,12 @@ async function loadAgentData(platform: string) {
                 @click="openImportChildDrawer(row)"
               >
                 {{ $t("core.import") }}
+              </MenuItem>
+              <MenuItem
+                v-if="canUserTokenAuth(row)"
+                @click="openUserTokenAuthModal(row)"
+              >
+                userToken 授权
               </MenuItem>
               <MenuItem @click="openHistoryModal(row)"> 同步历史</MenuItem>
             </Menu>

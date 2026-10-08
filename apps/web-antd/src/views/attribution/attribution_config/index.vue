@@ -30,7 +30,7 @@ function openCreateDrawer(row?: AttributionConfigItem) {
 /** 状态切换 */
 async function handlerState(row: AttributionConfigItem) {
   await attributionConfigApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: row.status === 1 ? BatchOptionsType.DISABLE : BatchOptionsType.Enable,
     values: {}
   });
@@ -40,7 +40,7 @@ async function handlerState(row: AttributionConfigItem) {
 /** 删除 */
 async function handlerDelete(row: AttributionConfigItem) {
   await attributionConfigApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: {}
   });

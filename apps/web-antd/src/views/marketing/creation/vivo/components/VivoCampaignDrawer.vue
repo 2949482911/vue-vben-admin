@@ -1,6 +1,6 @@
 <script setup lang="ts" name="VivoCampaignDrawer">
 import { useVbenDrawer } from "@vben/common-ui";
-import { useVbenForm } from "#/adapter/form";
+import { useVbenForm, type VbenFormSchema } from "#/adapter/form";
 import type { VivoCampaignData } from "#/views/marketing/creation/vivo/vivo";
 
 const { formFields } = defineProps({
@@ -22,7 +22,9 @@ const [Form, formApi] = useVbenForm({
   },
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<
+  VivoCampaignData & { _isConfirmed?: boolean; _adTypeChanged?: boolean }
+>({
   closeOnClickModal: false,
   closeOnPressEscape: true,
   class: "w-[70%]",
@@ -30,7 +32,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (isOpen) {
       const campaign = drawerApi.getData();
       formApi.setState({
-        schema: formFields
+        schema: formFields as VbenFormSchema[]
       });
 
       // 回显表单数据
@@ -47,7 +49,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     const adTypeChanged = oldData && oldData.adType !== currentValues.adType;
 
     const campaignData = {
-      ...currentValues,
+      ...(currentValues as VivoCampaignData),
       _isConfirmed: true,
       _adTypeChanged: adTypeChanged
     };

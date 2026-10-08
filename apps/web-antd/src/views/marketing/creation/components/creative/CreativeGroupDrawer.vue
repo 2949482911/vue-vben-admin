@@ -20,10 +20,16 @@ import {
   Tabs,
 } from 'ant-design-vue';
 import {useVbenDrawer, useVbenModal} from '@vben/common-ui';
-import type {AccountInfo, Material, MaterialData, RuleInfo} from '#/views/marketing/creation/creation';
+import type {AccountInfo, LocalMaterialData, Material, MaterialData, RuleInfo} from '#/views/marketing/creation/creation';
 import {RuleKey, RuleMethod} from '#/views/marketing/creation/creation_enums';
 import MaterialSelector from '../material/MaterialSelector.vue';
 import type {MaterialItem} from "#/api/models/assert";
+
+/** 打开抽屉时传入的数据 */
+interface CreativeGroupDrawerData {
+  method?: RuleMethod;
+  data?: Map<string, Material[]> | Record<string, Material[]> | null;
+}
 
 /**
  * 素材选择组件
@@ -86,7 +92,8 @@ function initAccountGroups() {
 }
 
 // 切换账户Tab
-function onAccountTabChange(accountId: string) {
+function onAccountTabChange(key: string | number) {
+  const accountId = String(key);
   activeAccountId.value = accountId;
   activeCollapseKeys.value = [0];
   activeTabs.value.clear();
@@ -199,7 +206,7 @@ function allocationMethodChange() {
 
 
 // 抽屉
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<CreativeGroupDrawerData>({
   closeOnClickModal: false,
   placement: 'right',
   class: 'creative-group-drawer w-[75vw]',
@@ -216,8 +223,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
         const dataMap = data.data instanceof Map
           ? data.data
           : (data.data && typeof data.data === 'object'
-            ? new Map(Object.entries(data.data))
-            : new Map());
+            ? new Map<string, Material[]>(Object.entries(data.data))
+            : new Map<string, Material[]>());
 
         // 根据分配方式初始化创意组数据
         if (data.method === RuleMethod.ACCOUNT) {
@@ -433,7 +440,7 @@ function getMaterialCards(groupIndex: number, type: 'video' | 'image') {
  * 根据创意生成规则，将选中的素材自动分配到创意组中
  */
 function applyCreativeRule(
-  materials: Array<{ name: string; url: string; localMaterialId: number }>,
+  materials: Array<LocalMaterialData>,
   type: 'video' | 'image',
   groups: Material[],
 ) {
@@ -454,9 +461,9 @@ function applyCreativeRule(
         brandName: '',
       };
       if (type === 'video') {
-        group.video = [materials[i]];
+        group.video = [materials[i]!];
       } else {
-        group.image = [materials[i]];
+        group.image = [materials[i]!];
       }
       groups.push(group);
     }
@@ -501,7 +508,7 @@ function updateMaterial(selectedMaterials: Array<MaterialItem>, creativeGroupInd
   const materials = selectedMaterials.map(item => ({
     name: item.name,
     url: item.fileUrl,
-    localMaterialId: item.id,
+    localMaterialId: item.id!,
   }));
 
   // 根据分配模式更新素材

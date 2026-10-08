@@ -2,12 +2,12 @@
 import {trimObject} from '#/utils/trim';
 import type {VbenFormProps} from '@vben/common-ui';
 import {Page, useVbenDrawer} from '@vben/common-ui';
-import type {CampaignItem} from '#/api/models';
+import type {CampaignItem} from '#/api/models/adx';
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid} from '#/adapter/vxe-table';
 import {Button, Switch} from 'ant-design-vue';
 import {TABLE_COMMON_COLUMNS,} from '#/constants/locales';
-import {campaignApi} from '#/api/core/adx.ts';
+import {campaignApi} from '#/api/core/adx';
 import {$t} from '@vben/locales';
 import CreateDSpDrawer from './create.vue';
 
@@ -142,6 +142,8 @@ function openCreateDrawer(row?: CampaignItem) {
 function pageReload() {
   gridApi.reload();
 }
+// TODO: 模板已绑定但业务尚未实现，暂为空实现，待确认后补全
+function handlerState(_row: CampaignItem) {}
 </script>
 
 <template>

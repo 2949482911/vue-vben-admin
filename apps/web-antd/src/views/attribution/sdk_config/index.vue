@@ -29,7 +29,7 @@ function openCreateDrawer(row?: SdkAppConfigItem) {
 /** 状态切换 */
 async function handlerState(row: SdkAppConfigItem) {
   await sdkConfigApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: row.status === 1 ? BatchOptionsType.DISABLE : BatchOptionsType.Enable,
     values: {}
   });
@@ -39,7 +39,7 @@ async function handlerState(row: SdkAppConfigItem) {
 /** 删除 */
 async function handlerDelete(row: SdkAppConfigItem) {
   await sdkConfigApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: {}
   });

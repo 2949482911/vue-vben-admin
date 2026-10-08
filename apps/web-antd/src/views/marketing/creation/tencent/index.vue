@@ -6,7 +6,7 @@ import type {
   TencentCreationData
 } from "./tencent";
 
-import type { TargetedPackageTypeItem, TencentProductItem, TitlePackageItem } from "#/api/models";
+import type { TargetedPackageTypeItem, TitlePackageItem } from "#/api/models";
 import type {
   AccountInfo,
   AudienceConfigData,
@@ -15,6 +15,7 @@ import type {
   MonitoringLinkConfigData,
   MonitoringLinkType,
   ProductData,
+  ProductSelection,
   Project,
   RuleConfiguration,
   RuleInfo,
@@ -24,7 +25,7 @@ import type {
 
 import { nextTick, ref, watch } from "vue";
 
-import { useVbenModal } from "@vben/common-ui";
+import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
 
 import { message, Select } from "ant-design-vue";
 
@@ -32,6 +33,9 @@ import { Platform } from "#/constants/enums";
 import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
+import BatchTaskResultDrawer
+  from "#/views/marketing/creation/components/result/BatchTaskResultDrawer.vue";
+import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import TencentBaseTemplate
   from "#/views/marketing/creation/tencent/components/base/TencentBaseTemplate.vue";
@@ -44,7 +48,7 @@ import TencentMiniGameTemplate
 import { TENCENT_MARKETING_TYPE } from "#/views/marketing/creation/tencent/enums";
 
 import ConfigurationConfig from "../components/configurationArea.vue";
-import { getPreviewTableData, TENCENT } from "./tencent";
+import { createEmptyCreativeComponents, getPreviewTableData, TENCENT } from "./tencent";
 
 
 // 腾讯微信小游戏模板
@@ -58,6 +62,60 @@ const [CreateStrategyGroupModal, createStrategyGroupApi] = useVbenModal({
     createStrategyGroupApi.close();
   }
 });
+
+// 提交审核弹窗：内部上传配置区/预览表格 JSON 后调用创编任务提交接口
+const [SubmitModal, submitApi] = useVbenModal({
+  connectedComponent: Submit
+});
+
+// ==================== 批投任务结果跟踪 ====================
+/** 当前正在执行的批投任务信息 */
+const currentTask = ref<null | { platform: string; projectId: string; taskId: string; taskName: string }>(null);
+/** 是否有进行中的任务（控制工具栏「查看任务进度」按钮显隐） */
+const taskInProgress = ref(false);
+
+/** 结果抽屉（内部复用创编任务详情面板，自己轮询任务状态） */
+const [TaskResultDrawer, taskResultDrawerApi] = useVbenDrawer({
+  connectedComponent: BatchTaskResultDrawer
+});
+
+
+function openResultDrawer() {
+  if (!currentTask.value) return;
+  taskResultDrawerApi.open();
+}
+
+
+/**
+ * 提交成功回调 - 自动打开结果抽屉
+ */
+function handleTaskCreated(data: { taskId: string; taskName: string }) {
+  currentTask.value = {
+    platform: creationInfo.value.platform,
+    projectId: creationInfo.value.project.projectId,
+    taskId: data.taskId,
+    taskName: data.taskName
+  };
+  taskInProgress.value = true;
+  openResultDrawer();
+}
+
+
+/**
+ * 查看任务进度（从工具栏按钮触发）
+ */
+function viewTaskProgress() {
+  openResultDrawer();
+}
+
+
+/**
+ * 任务完成回调（由结果抽屉 emit）
+ * 按钮在任务完成后仍然显示（用户可能需要查看结果），但不再标记为进行中
+ */
+function onTaskCompleted(_status: number) {
+  // 无需额外处理：任务状态由结果抽屉内部轮询维护
+}
 
 /**
  * 腾讯平台的规则配置
@@ -201,18 +259,25 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 
 /**
  * 预览数据生成
+ * 点击生成预览即开启新一轮配置，清空上个任务进度信息并隐藏「查看任务进度」按钮
  */
 function genPreviewTableData() {
+  currentTask.value = null;
+  taskInProgress.value = false;
+  taskResultDrawerApi.close();
   adList.value = getPreviewTableData(creationInfo.value);
 }
 
 
+/**
+ * 提交审核
+ */
 function submitCreateBatch() {
-  // if (adList.value.length < 0) {
-  //   message.error("请求配置预览区数据");
-  //   return;
-  // }
-  // submitApi.open();
+  if (adList.value.length === 0) {
+    message.error("请先配置预览区数据");
+    return;
+  }
+  submitApi.open();
 }
 
 
@@ -368,7 +433,7 @@ async function initCreationInfo() {
         auto_derived_program_creative_switch: false,
         click_tracking_url: "",
         configured_status: "",
-        creative_components: [],
+        creative_components: createEmptyCreativeComponents(),
         creative_template_id: "",
         delivery_mode: "",
         dynamic_creative_name: "",
@@ -419,7 +484,7 @@ async function initCreationInfo() {
         config: {
           method: RuleMethod.ALL
         },
-        data: new Map<string, Array<TencentProductItem>>()
+        data: new Map<string, ProductSelection>()
       }
     },
     configurationConfig: {
@@ -654,7 +719,7 @@ const creationInfo = ref<TencentCreation>({
       auto_derived_program_creative_switch: false,
       click_tracking_url: "",
       configured_status: "",
-      creative_components: [],
+      creative_components: createEmptyCreativeComponents(),
       creative_template_id: "",
       delivery_mode: "",
       dynamic_creative_name: "",
@@ -705,7 +770,7 @@ const creationInfo = ref<TencentCreation>({
       config: {
         method: RuleMethod.ALL
       },
-      data: new Map<string, Array<TencentProductItem>>()
+      data: new Map<string, ProductSelection>()
     }
   },
   configurationConfig: {
@@ -817,10 +882,12 @@ function resetCreationInfo() {
       <Function
         :account-info="creationInfo.accountInfo"
         :monitoring-link="creationInfo.configData.monitoringLink"
+        :task-in-progress="taskInProgress"
         @update:monitoring-link="updateMonitoringLink"
         @save:create-strategy-group="createStrategyGroup"
         @gen:ad-list="genPreviewTableData"
         @submit:create-batch="submitCreateBatch"
+        @view:task-progress="viewTaskProgress"
       />
     </template>
 
@@ -833,6 +900,15 @@ function resetCreationInfo() {
     </template>
 
     <CreateStrategyGroupModal />
+
+    <SubmitModal
+      :creation-info="creationInfo"
+      :ad-list="adList"
+      @result:get-creation-task="handleTaskCreated"
+    />
+
+    <!-- 批投任务执行结果抽屉（内部复用创编任务详情面板） -->
+    <TaskResultDrawer :task="currentTask" @task-completed="onTaskCompleted" />
   </BatchCreateLayout>
 </template>
 

@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useVbenDrawer } from "@vben/common-ui";
 import { useVbenForm } from "#/adapter/form";
-import type { VivoCampaignData } from "#/views/marketing/creation/vivo/vivo";
+import type { VivoCampaignData, VivoPromotionData } from "#/views/marketing/creation/vivo/vivo";
 import type { AccountInfo } from "#/views/marketing/creation/creation";
 import { COMPREHENSIVESEARCH_SELECT } from "#/views/marketing/creation/vivo/projectEnum";
 import { adInvestmentApi } from "#/api";
@@ -175,7 +175,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
   class: "w-[70%]",
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
-      const promotion = drawerApi.getData();
+      const promotion = drawerApi.getData() as VivoPromotionData & {
+        _isConfirmed?: boolean;
+      };
 
       // 设置完整 schema（基础字段 + 联动字段）
       formApi.setState({
@@ -229,11 +231,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
         placeType: currentValues.placeType ?? 0,
         strongReminder: currentValues.config?.strongReminder ?? 0,
         virtualPositionId: currentValues.virtualPositionId ?? ''
-      }
+      },
+      // 标记为已确认提交
+      _isConfirmed: true
     };
-
-    // 标记为已确认提交
-    promotion._isConfirmed = true;
 
     drawerApi.setData(promotion);
     await drawerApi.close();

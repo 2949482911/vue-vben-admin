@@ -33,8 +33,8 @@ async function generateAccess(options: GenerateMenuAndRoutesOptions) {
       });
       const userStore = useUserStore();
       const authStore = useAuthStore();
-      const userInfo: UserInfo =
-        userStore.userInfo || (await authStore.fetchUserInfo());
+      const userInfo = (userStore.userInfo ||
+        (await authStore.fetchUserInfo())) as UserInfo;
       return userInfo.menu;
     },
     // 可以指定没有权限跳转403页面

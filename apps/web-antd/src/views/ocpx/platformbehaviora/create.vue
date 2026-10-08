@@ -2267,7 +2267,7 @@ const [Form, formApi] = useVbenForm({
       label: `${$t("ocpx.behavioraplatform.columns.type")}`,
       rules: "required",
       dependencies: {
-        show: async () => {
+        show: async (): Promise<boolean> => {
           const data = await formApi.getValues();
           return data["platform"] === Platform.KUAKE || data["platform"] === Platform.QWEN || data["platform"] === Platform.DY_DULIDUAN || data["platform"] === Platform.YOUKU;
         },
@@ -2309,7 +2309,7 @@ const [Form, formApi] = useVbenForm({
       rules: "required",
       defaultValue: "requestId",
       dependencies: {
-        show: async () => {
+        show: async (): Promise<boolean> => {
           const data = await formApi.getValues();
           return data["model"] != "async";
         },
@@ -2341,7 +2341,7 @@ const [Form, formApi] = useVbenForm({
       rules: "required",
       defaultValue: 0,
       dependencies: {
-        show: async () => {
+        show: async (): Promise<boolean> => {
           const data = await formApi.getValues();
           return data["model"] != "async";
         },
@@ -2396,7 +2396,7 @@ const [Form, formApi] = useVbenForm({
       // 界面显示的label
       label: "过滤事件",
       dependencies: {
-        show: async () => {
+        show: async (): Promise<boolean> => {
           const data = await formApi.getValues();
           return data["platform"] !== Platform.JD && data["platform"] !== Platform.TB && data["platform"] !== Platform.CSJP;
         },
@@ -2445,7 +2445,10 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const data = modalApi.getData();
+      const data = modalApi.getData() as {
+        row: BehavioraPlatformItem;
+        type: string;
+      };
       objectRequest.value = data.row as BehavioraPlatformItem;
       modalType.value = data.type;
       if (objectRequest.value?.id) {

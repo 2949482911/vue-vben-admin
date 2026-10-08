@@ -214,7 +214,7 @@ const [Form, formApi] = useVbenForm({
   wrapperClass: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
 });
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<Partial<OcpxTaskItem>>({
   fullscreen: true,
   fullscreenButton: false,
   onCancel() {
@@ -234,7 +234,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<Record<string, any>>();
+      objectRequest.value = modalApi.getData()!;
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);

@@ -6,22 +6,17 @@ import { $t } from '@vben/locales';
 import { ref, watch } from 'vue'; // 添加 watch
 import { message } from 'ant-design-vue';
 import type {
-  searchDataFilter,
   DspUpdateItem,
-  UpdateSubscribeType,
   DspItem
 } from '#/api/models';
 import {
-  BatchOptionsType,
   PLATFORM,
-  STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
 } from '#/constants/locales';
-import { dspApi } from '#/api/core/adx.ts';
+import { dspApi } from '#/api/core/adx';
 
 const title = ref<string>('');
 const emit = defineEmits(['pageReload']);
-const objectRequest = ref<DspUpdateItem>({});
+const objectRequest = ref<DspUpdateItem>({} as DspUpdateItem);
 const isUpdate = ref<Boolean>(false);
   watch(isUpdate,(newVal) => {
   if(newVal) {
@@ -129,14 +124,14 @@ const [Form, formApi] = useVbenForm({
     },
   ],
 });
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<DspUpdateItem>({
   closeOnPressEscape: false,
   // 当抽屉打开状态改变时触发
   async onOpenChange(isOpen) {
     if (!isOpen) {
       await drawerApi.close();
     } else {
-      objectRequest.value = await drawerApi.getData<DspUpdateItem>();
+      objectRequest.value = (await drawerApi.getData()) as DspUpdateItem;
       formApi.setValues(objectRequest.value);
       isUpdate.value = !!objectRequest.value.id;
     }

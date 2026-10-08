@@ -2,6 +2,8 @@
 import type { VbenFormSchema } from '@vben/common-ui';
 import type { Recordable } from '@vben/types';
 
+import type { RegisterUser } from '#/api/models';
+
 import { computed, h, ref } from 'vue';
 import {useRouter} from "vue-router";
 
@@ -98,7 +100,8 @@ const formSchema = computed((): VbenFormSchema[] => {
 });
 
 async function handleSubmit(value: Recordable<any>) {
-  await authApi.register(value)
+  // 表单提交出参为通用对象，这里收敛为注册接口的入参类型
+  await authApi.register(value as unknown as RegisterUser)
   await router.push({
     path: "/auth/login"
   })

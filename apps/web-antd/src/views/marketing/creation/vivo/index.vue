@@ -229,7 +229,8 @@ const creationInfo = ref<VivoCreation>({
     projectId: "",
     projectName: "",
     icon: "",
-    packageName: ""
+    packageName: "",
+    appId: ""
   },
   accountInfo: [],
   configData: {

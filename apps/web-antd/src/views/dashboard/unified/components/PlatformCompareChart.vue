@@ -4,7 +4,7 @@
  *
  * 展示各平台的消耗和ROI对比
  */
-import type { EchartsUIType } from '@vben/plugins/echarts';
+import type { ECOption, EchartsUIType } from '@vben/plugins/echarts';
 
 import type { PlatformCompareItem } from '#/api/models';
 
@@ -25,14 +25,14 @@ const props = defineProps<{
 const chartRef = ref<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
 
-function buildOption(data: PlatformCompareItem[]) {
+function buildOption(data: PlatformCompareItem[]): ECOption {
   return {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      formatter(params: any[]) {
+      formatter(params: any) {
         let html = params[0]?.axisValue || '';
-        params.forEach((p) => {
+        params.forEach((p: any) => {
           const val = p.seriesName === '消耗' ? `¥${(p.value).toFixed(2)}` : p.value;
           html += `<br/>${p.marker}${p.seriesName}: ${val}`;
         });

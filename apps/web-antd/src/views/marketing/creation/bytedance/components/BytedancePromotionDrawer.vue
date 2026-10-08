@@ -2,6 +2,7 @@
 import { nextTick, ref } from 'vue';
 import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { useVbenForm } from '#/adapter/form';
+import type { BytedancePromotionData } from '#/views/marketing/creation/bytedance/bytedance';
 import MaterialSelector from '#/views/marketing/creation/components/material/MaterialSelector.vue';
 
 const { formFields } = defineProps({
@@ -51,13 +52,13 @@ const [Form, formApi] = useVbenForm({
   },
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<BytedancePromotionData>({
   closeOnClickModal: false,
   class: "w-[70%]",
   closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
-      const promotion = drawerApi.getData();
+      const promotion = drawerApi.getData()!;
 
       // 同步当前已选主图 ID，用于后续打开素材选择器时回显（防御非数组值）
       const rawImageIds = promotion?.promotion_materials?.product_info?.image_ids;
@@ -190,7 +191,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     ];
     flatFormKeys.forEach((key) => delete (promotion as any)[key]);
 
-    drawerApi.setData(promotion);
+    drawerApi.setData(promotion as BytedancePromotionData);
     await drawerApi.close();
   },
   onClosed() {

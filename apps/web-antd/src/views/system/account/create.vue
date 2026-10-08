@@ -1,5 +1,13 @@
 <script lang="ts" setup name="CreateOrg">
-import type { OrgCreateRequest } from '#/api/models/users';
+import type {
+  CreateUserRequest,
+  DataRangeItem,
+  DataRangeSearchRequest,
+  OrgCreateRequest,
+  OrgItem,
+  UpdateUserRequest,
+} from '#/api/models/users';
+import type { RoleItem } from '#/api/models/role';
 
 import {computed, ref} from 'vue';
 
@@ -15,9 +23,9 @@ const emit = defineEmits(['pageReload']);
 const notice = ref<OrgCreateRequest>({
   id: "", name: "", parentId: ""
 });
-const menuData = ref([]);
-const roleData = ref([]);
-const dataRangeData = ref([]);
+const menuData = ref<OrgItem[]>([]);
+const roleData = ref<RoleItem[]>([]);
+const dataRangeData = ref<DataRangeItem[]>([]);
 const isUpdate = ref<Boolean>(false);
 
 const [Form, formApi] = useVbenForm({
@@ -192,6 +200,7 @@ const [Form, formApi] = useVbenForm({
         required: () => {
           return !isUpdate.value;
         },
+        triggerFields: [],
       },
     },
   ],
@@ -199,13 +208,17 @@ const [Form, formApi] = useVbenForm({
   wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
     await (isUpdate.value
-      ? userApi.fetchUpdateUser(JSON.stringify(values))
-      : userApi.fetchCreateUser(JSON.stringify(values)));
+      ? userApi.fetchUpdateUser(
+          JSON.stringify(values) as unknown as UpdateUserRequest,
+        )
+      : userApi.fetchCreateUser(
+          JSON.stringify(values) as unknown as CreateUserRequest,
+        ));
     await drawerApi.close();
   },
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<Record<string, any>>({
   closeOnPressEscape: true,
   class: "w-[75%]",
   onCancel() {
@@ -224,7 +237,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       formApi.resetForm();
-      notice.value = drawerApi.getData<Record<string, any>>();
+      notice.value = drawerApi.getData() as unknown as OrgCreateRequest;
       if (notice.value.id) {
         isUpdate.value = true;
         handleSetFormValue(notice.value);
@@ -235,18 +248,23 @@ const [Drawer, drawerApi] = useVbenDrawer({
         menuData.value = res;
       });
       roleApi.fetchRoleList({ page: 1, pageSize: 10_000 }).then((res) => {
-        roleData.value = res.items;
+        roleData.value = (res as unknown as { items: RoleItem[] }).items;
       });
       dataRangeApi
-        .fetchDataRangeList({ page: 1, pageSize: 10_000 })
+        .fetchDataRangeList({
+          page: 1,
+          pageSize: 10_000,
+        } as DataRangeSearchRequest)
         .then((res) => {
-          dataRangeData.value = res.items;
+          dataRangeData.value = (
+            res as unknown as { items: DataRangeItem[] }
+          ).items;
         });
     }
   },
 });
 
-function handleSetFormValue(row) {
+function handleSetFormValue(row: any) {
   formApi.setValues(row);
 }
 

@@ -22,7 +22,8 @@ import type {
  *
  * 数据：进入面板即查一次 create_result，之后每 3s 轮询一次；
  *      计数与状态以接口返回为准，未就绪时回落到列表行快照 props.task。
- *      是否停止由接口状态决定（3 完成 / 4 失败 / 5 超时），或达到 200 次上限。
+ *      轮询只服务于「任务还没结束」：1 待处理 / 2 处理中继续轮询，
+ *      3 完成 / 4 失败 / 5 超时属于终态，拿到即停轮询。
  *      查询期间整个面板盖上 Loading 遮罩（带「加载中...」文案），查完自动淡出。
  */
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
@@ -48,7 +49,7 @@ import {
 
 import { creationTaskApi } from '#/api';
 import { RuleType } from '#/constants/enums';
-import { PLATFORM } from '#/constants/locales';
+import { getPlatformColor, getPlatformLabel } from '#/constants/platform';
 
 /** 结果层级：计划 / 广告组 / 广告 / 创意 */
 type LayerKey = 'adGroup' | 'campaign' | 'creative' | 'promotion';
@@ -82,8 +83,8 @@ const MAX_POLL_COUNT = 200;
 
 /**
  * 查询一次任务结果
- * 是否继续由接口返回的状态决定：拿到终态（3 完成 / 4 失败 / 5 超时）就停轮询并通知父级，
- * 否则保持轮询；接口异常也继续重试，直到达到次数上限。
+ * 轮询与否只看任务是否已结束：1 待处理 / 2 处理中继续轮询，
+ * 拿到终态（3 完成 / 4 失败 / 5 超时）就停并通知父级，接口异常也继续重试到次数上限。
  */
 async function fetchTaskResult() {
   if (!props.task?.id) return;
@@ -175,12 +176,8 @@ const statusMeta = computed(
     STATUS_META[liveStatus.value] ?? { badge: 'default' as const, text: '未知' },
 );
 
-/** 平台展示文案（复用项目 PLATFORM 常量，带多语言） */
-const platformText = computed(() => {
-  const value = props.task?.platform;
-  if (!value) return '';
-  return PLATFORM.find((item) => item.value === value)?.label ?? value;
-});
+/** 平台展示文案（复用全站通用平台枚举，带多语言） */
+const platformText = computed(() => getPlatformLabel(props.task?.platform, ''));
 
 /** 任务生成规则文案 */
 const RULE_TYPE_TEXT: Record<string, string> = {
@@ -533,7 +530,7 @@ onBeforeUnmount(stopPolling);
               <Copy class="size-3.5" />
             </VbenIconButton>
             <span class="hero-sep"></span>
-            <Tag v-if="platformText" :bordered="false" color="blue">{{ platformText }}</Tag>
+            <Tag v-if="platformText" :bordered="false" :color="getPlatformColor(task.platform)">{{ platformText }}</Tag>
             <span class="hero-sep"></span>
             <span>项目 {{ task.projectId || '-' }}</span>
           </div>

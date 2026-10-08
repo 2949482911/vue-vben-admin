@@ -169,12 +169,12 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
 
-      objectRequest.value = modalApi.getData();
-      const creation = modalApi.getData() as PlatformCreation;
+      objectRequest.value = modalApi.getData() as StrategyGropType;
+      const creation = modalApi.getData() as PlatformCreation<any>;
       configUrl.value = await uploadJson(objectRequest.value, "strategyGroup");
       formApi.setFieldValue("config", configUrl.value);
       formApi.setFieldValue("version",  creation.version)
-      handleSetFormValue(objectRequest.value);
+      handleSetFormValue(objectRequest.value as UpdateStrategyGropType);
       if (objectRequest.value.id) {
         isUpdate.value = true;
       }

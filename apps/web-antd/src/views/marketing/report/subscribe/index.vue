@@ -4,7 +4,7 @@ import { Page, useVbenDrawer } from "@vben/common-ui";
 
 import type { VxeGridProps } from "#/adapter/vxe-table";
 import { useVbenVxeGrid } from "#/adapter/vxe-table";
-import type { ReportSubscriptionItem, UpdateSubscribeType } from "#/api/models/marketing";
+import type { UpdateSubscribeType } from "#/api/models/marketing";
 import { PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { $t } from "@vben/locales";
 
@@ -42,7 +42,7 @@ const formOptions: VbenFormProps = {
   collapsed: true
 };
 
-const gridOptions: VxeGridProps<ReportSubscriptionItem> = {
+const gridOptions: VxeGridProps<UpdateSubscribeType> = {
   columns: [
     {
       field: "name",

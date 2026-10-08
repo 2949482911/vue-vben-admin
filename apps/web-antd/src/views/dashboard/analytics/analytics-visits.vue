@@ -13,6 +13,12 @@ const respData = ref<PageIndexReportResponse>({
   cname: {}, items: [], summary: []
 });
 
+type TrafficMonthRow = {
+  month: string;
+  AdClick: number;
+  AdShow: number;
+};
+
 async function getTraffic_report_month() {
   respData.value = await dashboardApi.fetchPageIndexReport({
     reportType: "traffic_report_month"
@@ -27,9 +33,10 @@ onMounted(async () => {
   const y_data: Array<any> = [];
 
   respData.value.items.forEach(x => {
-      x_line.push(x["month"]);
-      x_data.push(x["AdClick"])
-      y_data.push(x["AdShow"])
+      const row = x as TrafficMonthRow;
+      x_line.push(row["month"]);
+      x_data.push(row["AdClick"])
+      y_data.push(row["AdShow"])
   });
 
 

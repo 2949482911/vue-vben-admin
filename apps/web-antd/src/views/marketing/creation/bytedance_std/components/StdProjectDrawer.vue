@@ -11,6 +11,7 @@
  */
 import { nextTick, ref } from 'vue';
 import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
+import type { VbenFormSchema } from '#/adapter/form';
 import { useVbenForm } from '#/adapter/form';
 import MaterialSelector from '#/views/marketing/creation/components/material/MaterialSelector.vue';
 import type { AccountInfo } from '#/views/marketing/creation/creation';
@@ -44,7 +45,7 @@ const [Form, formApi] = useVbenForm({
       class: 'w-full',
     },
   },
-  handleValuesChange: async (values: Record<string, any>) => {
+  handleValuesChange: async (_values: Record<string, any>) => {
     // const { landing_type, ad_type, external_action } = values;
 
     // // landing_type 或 ad_type 变了 → 重新请求优化目标，清空已选值
@@ -214,7 +215,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       const project = drawerApi.getData() as StdProjectData;
 
       // 用 props.formFields 设置 schema
-      formApi.setState({ schema: props.formFields });
+      formApi.setState({ schema: props.formFields as VbenFormSchema[] });
       await nextTick();
 
       // 动态注入产品主图回调

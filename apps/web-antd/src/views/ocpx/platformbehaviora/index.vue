@@ -53,12 +53,12 @@ function openCreateModal(row?: BehavioraPlatformItem, type?: string) {
 async function handlerState(row: BehavioraPlatformItem) {
   await (row.status === 1
     ? behavioraPlatformApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>()
     })
     : behavioraPlatformApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
     }));
@@ -67,7 +67,7 @@ async function handlerState(row: BehavioraPlatformItem) {
 
 async function handlerDelete(row: BehavioraPlatformItem) {
   await behavioraPlatformApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>()
   });

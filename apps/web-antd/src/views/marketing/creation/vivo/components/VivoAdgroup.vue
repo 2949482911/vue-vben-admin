@@ -27,14 +27,26 @@ const emit = defineEmits([
 ]);
 
 /**
+ * 广告组编辑抽屉共享数据类型
+ */
+interface VivoAdgroupDrawerData {
+  adgroupData?: VivoAdgroupData;
+  localAdQualification?: Map<string, QualificationValue>;
+  localChannelPackage?: Map<string, ChannelPackageValue>;
+  finalParams?: VivoAdgroupData & { _isConfirmed?: boolean };
+  localAdvertiserQualification?: Map<string, QualificationValue>;
+}
+
+/**
  * 广告组编辑抽屉
  */
-const [AdgroupDrawerModule, drawerApi] = useVbenDrawer({
+const [AdgroupDrawerModule, drawerApi] = useVbenDrawer<VivoAdgroupDrawerData>({
   connectedComponent: VivoAdgroupDrawer,
   closeOnPressEscape: true,
   onOpenChange(isOpen) {
     if (!isOpen) {
-      const { finalParams, localAdvertiserQualification, localChannelPackage } = drawerApi.getData();
+      const { finalParams, localAdvertiserQualification, localChannelPackage } =
+        drawerApi.getData() as VivoAdgroupDrawerData;
       if (finalParams && finalParams._isConfirmed) {
         adgroupInfo.value = finalParams;
         emit('update:adgroup', adgroupInfo.value);
@@ -159,10 +171,12 @@ watch(
   () => [advertiserQualification, channelPackage],
   ([newQualification, newChannel]) => {
     if (newQualification) {
-      localAdvertiserQualification.value = new Map(newQualification);
+      localAdvertiserQualification.value = new Map(
+        newQualification as Map<string, QualificationValue>
+      );
     }
     if (newChannel) {
-      localChannelPackage.value = new Map(newChannel);
+      localChannelPackage.value = new Map(newChannel as Map<string, ChannelPackageValue>);
     }
   },
   { immediate: true, deep: true }
@@ -203,7 +217,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
               :key="key"
               :label="label"
             >
-              {{ adgroupInfo[key] }}
+              {{ (adgroupInfo as Record<string, any>)[key] }}
             </DescriptionsItem>
           </Descriptions>
           <Alert v-else type="error" message="请先填写广告组信息" class="empty-alert"></Alert>

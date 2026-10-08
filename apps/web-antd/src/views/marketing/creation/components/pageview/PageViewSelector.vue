@@ -1,6 +1,7 @@
 <script setup lang="ts" name="PageViewSelector">
 // 落地页选择组件 - 供后续全媒体批投公用
 import type { AccountInfo, PageViewConfigData } from "#/views/marketing/creation/creation";
+import type { PageViewItem } from "#/api/models/assert";
 import { Alert, Button, Card } from "ant-design-vue";
 import { useVbenDrawer } from "@vben/common-ui";
 import { computed, ref, watch } from "vue";
@@ -79,7 +80,7 @@ watch(
       // 处理普通对象转换为 Map（复用策略组时 JSON 序列化后 Map 变成普通对象）
       const dataMap = newPageView.data instanceof Map
         ? newPageView.data
-        : new Map(Object.entries(newPageView.data || {}));
+        : new Map<string, PageViewItem[]>(Object.entries(newPageView.data || {}) as Array<[string, PageViewItem[]]>);
 
       localPageView.value = {
         ...newPageView,

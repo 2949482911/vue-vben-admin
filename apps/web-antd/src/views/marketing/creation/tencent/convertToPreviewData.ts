@@ -2,7 +2,8 @@ import type { AccountTabData } from "#/views/marketing/creation/components/previ
 import type { AccountInfo } from "#/views/marketing/creation/creation";
 import type {
   TencentCampaign,
-  TencentCreationData
+  TencentCreationData,
+  TencentCreativeComponent
 } from "#/views/marketing/creation/tencent/tencent";
 
 import {
@@ -83,38 +84,28 @@ function flattenData(campaignList: TencentCampaign[]): any[] {
 
 /**
  * 格式化创意组件信息为平铺文本
- * @param creativeComponents 创意组件数组
+ * creative_components 是对象（struct）：以组件类型为 key，取到的数组里才是各个组件
+ * @param creativeComponents 创意组件集合
  * @param type 类型：image、video、title
  */
 function formatCreativeComponents(
-  creativeComponents: any[] | undefined,
+  creativeComponents: TencentCreativeComponent | undefined,
   type: 'image' | 'title' | 'video'
 ): string {
-  if (!creativeComponents || creativeComponents.length === 0) {
+  const items = creativeComponents?.[type] || [];
+  if (items.length === 0) {
     return '';
   }
 
-  const lines: string[] = [];
+  if (type === 'title') {
+    // 标题：提取文本内容
+    return items
+      .map((item) => item.value?.get?.('content') || '')
+      .filter(Boolean)
+      .join('\n');
+  }
 
-  creativeComponents.forEach((component, index) => {
-    const items = component[type] || [];
-
-    if (type === 'title') {
-      // 标题：提取文本内容
-      items.forEach((item: any) => {
-        const text = item.value?.get?.('content') || '';
-        if (text) {
-          lines.push(text);
-        }
-      });
-    } else {
-      // 图片或视频：显示个数
-      if (items.length > 0) {
-        const typeName = type === 'image' ? '图片' : '视频';
-        lines.push(`创意组${index + 1}：${typeName} ${items.length}个`);
-      }
-    }
-  });
-
-  return lines.join('\n');
+  // 图片或视频：显示个数
+  const typeName = type === 'image' ? '图片' : '视频';
+  return `${typeName} ${items.length}个`;
 }

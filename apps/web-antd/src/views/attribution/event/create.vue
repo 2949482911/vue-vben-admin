@@ -32,13 +32,14 @@ const transferTargetKeys = ref<string[]>([]);
 
 /** 加载全部属性列表供 Transfer 使用 */
 async function loadAttributes() {
-  const { items } = await eventAttributeApi.fetchAttributeList({
+  // 该接口实际返回分页结构 { items, total }（类型声明成数组，与实现不符），按真实结构取值
+  const { items } = (await eventAttributeApi.fetchAttributeList({
     category: "",
     displayName: "",
     name: "",
     type: "",
     page: 1, pageSize: 9999
-  });
+  })) as unknown as { items: EventAttributeItem[] };
   transferDataSource.value = (items || []).map((item: EventAttributeItem) => ({
     key: item.id,
     title: item.displayName || item.name,
@@ -187,7 +188,7 @@ const [Form, formApi] = useVbenForm({
   ]
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<UpdateEventConfigRequest>({
   closeOnPressEscape: true,
   async onCancel() {
     await formApi.resetForm();
@@ -211,7 +212,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       // 加载属性列表
       await loadAttributes();
 
-      const data = drawerApi.getData<UpdateEventConfigRequest>();
+      const data = drawerApi.getData();
       if (data?.id) {
         isUpdate.value = true;
         // 回显表单

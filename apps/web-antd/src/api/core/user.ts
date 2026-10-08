@@ -17,7 +17,7 @@ import type {
   UserItem,
   UserSearchRequest
 } from "#/api/models/users";
-import {qs} from "qs";
+import qs from "qs";
 import type {BatchOptions} from "#/api/models/core";
 
 class UserApi extends BaseApi {

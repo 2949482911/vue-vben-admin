@@ -61,13 +61,6 @@ function handleCancel() {
 function handleRemove(index: number) {
   modelValue.value = modelValue.value.filter((_, i) => i !== index);
 }
-
-// 打开弹窗
-function handleOpen() {
-  tempMin.value = 18;
-  tempMax.value = 66;
-  visible.value = true;
-}
 </script>
 
 <template>

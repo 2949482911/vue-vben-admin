@@ -1,5 +1,5 @@
 <script setup lang="ts" name="SelectMetricModal">
-import type { MetricGroupType, MetricItem } from "#/api/models";
+import type { MetricGroupPageRequest, MetricGroupType, MetricItem } from "#/api/models";
 
 import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 
@@ -80,7 +80,7 @@ const [Modal, modalApi] = useVbenModal({
       const res = await metricGroupApi.fetchGetMetricGroupList({
         page: 1,
         pageSize: 1000
-      });
+      } as unknown as MetricGroupPageRequest);
       metricGropList.value = res.items;
       nextTick(() => {
         state.checkedList = props.selectedMetrics ? [...props.selectedMetrics] : [];
@@ -143,7 +143,7 @@ watch(
       state.indeterminate = true;
     }
     selectdMetricList.value = metricList.value
-      .filter((item) => val.includes(item.id))
+      .filter((item) => val.includes(item.id!))
       .map((item) => item);
   },
   { deep: true }
@@ -175,13 +175,13 @@ const handleInsertMetric = () => {
 const isClickAll = ref<Boolean>(false);
 // 当前选中的是「指标分组」，字段为 name（分组没有 ename）
 const currentItem = ref<MetricGroupType>();
-const handleClick = (row: MetricGroupType) => {
+const handleClick = (row?: MetricGroupType) => {
   const list = metricGropList.value;
-  const targetId = row.id;
+  const targetId = row?.id;
   if (targetId) {
     isClickAll.value = false;
     currentItem.value = row;
-    getMetricList(row.id);
+    getMetricList(row?.id);
     metricGropList.value = list.map((item) => ({
       ...item,
       isChecked: item.id === targetId
@@ -229,7 +229,7 @@ onMounted(() => {
             <div class="metric-list">
               <div
                 class="metric-list-item"
-                @click="handleClick"
+                @click="handleClick()"
                 :class="{ itemActive: isClickAll }"
               >
                 全部指标

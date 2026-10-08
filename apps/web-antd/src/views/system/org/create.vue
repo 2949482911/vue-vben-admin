@@ -1,5 +1,5 @@
 <script lang="ts" setup name="CreateOrg">
-import type { OrgCreateRequest } from '#/api/models/users';
+import type { OrgCreateRequest, OrgItem, OrgUpdateRequest } from '#/api/models/users';
 
 import {computed, ref} from 'vue';
 
@@ -11,8 +11,8 @@ import { orgApi } from '#/api';
 
 const emit = defineEmits(['pageReload']);
 
-const notice = ref<OrgCreateRequest>({});
-const menuData = ref([]);
+const notice = ref<OrgCreateRequest>({} as OrgCreateRequest);
+const menuData = ref<OrgItem[]>([]);
 const isUpdate = ref<Boolean>(false);
 
 const [Form, formApi] = useVbenForm({
@@ -80,13 +80,17 @@ const [Form, formApi] = useVbenForm({
   wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
     await (isUpdate.value
-      ? orgApi.fetchOrgUpdate(JSON.stringify(values))
-      : orgApi.fetchOrgCreate(JSON.stringify(values)));
+      ? orgApi.fetchOrgUpdate(
+          JSON.stringify(values) as unknown as OrgUpdateRequest,
+        )
+      : orgApi.fetchOrgCreate(
+          JSON.stringify(values) as unknown as OrgCreateRequest,
+        ));
     await drawerApi.close();
   },
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<Record<string, any>>({
   closeOnPressEscape: true,
   class: "w-[75%]",
   onCancel() {
@@ -105,7 +109,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       formApi.resetForm();
-      notice.value = drawerApi.getData<Record<string, any>>();
+      notice.value = drawerApi.getData() as unknown as OrgCreateRequest;
       if (notice.value.id) {
         isUpdate.value = true;
         handleSetFormValue(notice.value);
@@ -119,7 +123,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
 });
 
-function handleSetFormValue(row) {
+function handleSetFormValue(row: any) {
   formApi.setValues(row);
 }
 

@@ -39,7 +39,9 @@ function updatePageView(landingPage: PageViewConfigData) {
 /**
  * 广告编辑抽屉
  */
-const [PromotionDrawerModule, drawerApi] = useVbenDrawer({
+const [PromotionDrawerModule, drawerApi] = useVbenDrawer<
+  VivoPromotionData & { _isConfirmed?: boolean }
+>({
   connectedComponent: VivoPromotionDrawer,
   closeOnPressEscape: true,
   onOpenChange(isOpen) {
@@ -167,7 +169,7 @@ function openPromotionDrawer() {
             class="info-descriptions"
           >
             <DescriptionsItem v-for="(label, key) in promotionShowLabel" :key="key" :label="label">
-              {{ promotionInfo[key] }}
+              {{ (promotionInfo as Record<string, any>)[key] }}
             </DescriptionsItem>
           </Descriptions>
           <Alert v-else type="error" message="请先填写广告信息" class="empty-alert"></Alert>

@@ -53,7 +53,7 @@ async function onStatusChange(newStatus: number, row: DeveloperItem) {
     return false;
   }
   await developerApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: toEnable ? BatchOptionsType.Enable : BatchOptionsType.DISABLE,
     values: new Map<string, any>()
   });
@@ -63,7 +63,7 @@ async function onStatusChange(newStatus: number, row: DeveloperItem) {
 
 async function handlerDelete(row: DeveloperItem) {
   await developerApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>()
 

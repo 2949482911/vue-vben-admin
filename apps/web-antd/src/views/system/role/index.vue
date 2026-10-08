@@ -13,8 +13,6 @@ import {ROLE_TYPE_OPTIONS, STATUS_SELECT, TABLE_COMMON_COLUMNS,} from '#/constan
 import CreateRole from '#/views/system/role/create-role.vue';
 
 const formOptions: VbenFormProps = {
-  // 默认展开
-  collapsed: false,
   schema: [
     {
       component: 'Input',
@@ -80,8 +78,8 @@ function handlerDelete(id: string) {
 
 async function handlerState(row: RoleItem) {
   await (row.status == 1
-    ? roleApi.fetchDisableRole(row.id)
-    : roleApi.fetchEnableRole(row.id));
+    ? roleApi.fetchDisableRole(row.id!)
+    : roleApi.fetchEnableRole(row.id!));
   pageReload();
 }
 
@@ -160,7 +158,7 @@ function pageReload() {
       <template #roleType="{ row }">
         <Tag>
           {{
-            ROLE_TYPE_OPTIONS.filter((x) => x.value === row.roleType)[0].label
+            ROLE_TYPE_OPTIONS.filter((x) => x.value === row.roleType)[0]!.label
           }}
         </Tag>
       </template>
@@ -169,13 +167,13 @@ function pageReload() {
         <Button type="link" @click="openCreateModal(row)">
           {{ $t('common.edit') }}
         </Button>
-        <Button type="link" @click="handlerDelete(row.id)">
+        <Button type="link" @click="handlerDelete(row.id!)">
           {{ $t('common.delete') }}
         </Button>
       </template>
 
       <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="openCreateModal">
+        <Button class="mr-2" type="primary" @click="() => openCreateModal({} as RoleItem)">
           {{ $t('common.create') }}
         </Button>
       </template>

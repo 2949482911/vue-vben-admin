@@ -1,7 +1,7 @@
 <script setup lang="ts" name="HuaweiStoreTask">
 import {ref, watch} from 'vue';
 import type {HuaWeiStoreCampaignData} from "#/views/marketing/creation/huawei_store/huawei_store";
-import {Card, Divider, Descriptions, DescriptionsItem, Alert, Button, Space} from 'ant-design-vue';
+import {Card, Descriptions, DescriptionsItem, Alert, Button} from 'ant-design-vue';
 import {useVbenDrawer} from '@vben/common-ui';
 import HuaweiStoreTaskDrawer from './HuaweiStoreTaskDrawer.vue'
 
@@ -88,7 +88,7 @@ function openCampaignDrawer() {
         <Descriptions title="基本信息" v-if="campaignInfo.taskName" :column="1" class="info-descriptions">
           <DescriptionsItem v-for="(label, key ) in taskShowLabel"
                             :key="key" :label="label">
-            {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
+            {{ fieldLabelMap[key] ? fieldLabelMap[key]((campaignInfo as any)[key]) : (campaignInfo as any)[key] }}
           </DescriptionsItem>
         </Descriptions>
         <Alert v-else type="error" message="请先填写任务信息" class="empty-alert"></Alert>

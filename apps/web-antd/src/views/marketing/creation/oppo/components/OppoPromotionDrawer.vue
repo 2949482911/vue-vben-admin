@@ -1,7 +1,21 @@
 <script setup lang="ts" name="OppoPromotionDrawer">
 import { nextTick } from 'vue';
 import { useVbenDrawer } from '@vben/common-ui';
-import { useVbenForm } from '#/adapter/form';
+import { useVbenForm, type VbenFormSchema } from '#/adapter/form';
+import type { OppoPromotionData } from '#/views/marketing/creation/oppo/Oppo.types';
+
+type OppoPromotionConfig = {
+  imageMaxCount: number;
+  materialNormId: number;
+  placeType: number;
+  strongReminder: number;
+  videoMaxCount: number;
+  virtualPositionId: string;
+};
+
+type OppoPromotionDrawerData = OppoPromotionData & {
+  config?: OppoPromotionConfig;
+};
 
 const { formFields } = defineProps({
   formFields: {
@@ -25,12 +39,12 @@ const [Drawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,
   onOpenChange: async (isOpen: boolean) => {
     if (isOpen) {
-      const promotion = drawerApi.getData();
-      formApi.setState({ schema: formFields });
+      const promotion = drawerApi.getData() as OppoPromotionDrawerData;
+      formApi.setState({ schema: formFields as VbenFormSchema[] });
       await nextTick();
 
       // config 平铺
-      const cfg = promotion.config || {};
+      const cfg = (promotion.config || {}) as OppoPromotionConfig;
 
       const flattenedData = {
         ...promotion,

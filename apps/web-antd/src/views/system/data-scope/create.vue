@@ -1,10 +1,9 @@
 <script lang="ts" setup name="CreateOrg">
-import type {UserInfo} from '@vben/types';
-
 import type {
   CreateDataRangeRequest,
   UpdateDataRangeRequest,
-  UserItem
+  UserItem,
+  UserSearchRequest
 } from '#/api/models/users';
 
 import {computed, ref} from 'vue';
@@ -26,18 +25,18 @@ const notice = ref<CreateDataRangeRequest | UpdateDataRangeRequest>({
   remark: "",
   type: 0
 });
-const menuData = ref<MenuItem>([]);
+const menuData = ref<MenuItem[]>([]);
 const isUpdate = ref<Boolean>(false);
-const userList = ref<UserItem>([]);
+const userList = ref<UserItem[]>([]);
 // 用户信息
-const userInfo: UserInfo = useUserStore().userInfo;
+const userInfo = useUserStore().userInfo;
 const dataScope = ref<{ label: string, value: number }[]>();
 
 
 // // 过滤筛选项
 function filterDataScope() {
   dataScope.value = [...DATA_SCOPE];
-  if (userInfo.mainAdmin) {
+  if (userInfo?.mainAdmin) {
     let newDataScope: { label: string, value: number }[] = [];
     dataScope.value.forEach((item) => {
       if (item.value != 5 && item.value != 8) {
@@ -135,9 +134,9 @@ const [Form, formApi] = useVbenForm({
               .fetchUserList({
                 page: 1,
                 pageSize: 1000,
-              })
+              } as UserSearchRequest)
               .then((res) => {
-                userList.value = res.items;
+                userList.value = (res as unknown as { items: UserItem[] }).items;
               });
             return true;
           }
@@ -192,7 +191,7 @@ const [Form, formApi] = useVbenForm({
         show: (val) => {
           if (val.type == 3 || val.type == 4) {
             orgApi.fetchOrgTree().then((res) => {
-              menuData.value = res;
+              menuData.value = res as unknown as MenuItem[];
             });
             return true;
           }
@@ -219,7 +218,7 @@ const [Form, formApi] = useVbenForm({
   },
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<CreateDataRangeRequest | UpdateDataRangeRequest>({
   closeOnPressEscape: true,
   class: "w-[75%]",
   onCancel() {
@@ -238,8 +237,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       formApi.resetForm();
-      notice.value = drawerApi.getData<Record<string, any>>() as UpdateDataRangeRequest | CreateDataRangeRequest;
-      if (notice.value.id) {
+      notice.value = drawerApi.getData() as UpdateDataRangeRequest | CreateDataRangeRequest;
+      if ((notice.value as UpdateDataRangeRequest).id) {
         isUpdate.value = true;
         handleSetFormValue(notice.value);
       } else {

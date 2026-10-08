@@ -70,7 +70,7 @@ const [Form, formApi] = useVbenForm({
 
           // 手动构建文件列表项（用于显示）
           const fileItem = {
-            uid: file.uid,
+            uid: (file as File & { uid?: string }).uid,
             name: file.name,
             status: "done", // 显示为上传成功样式，实际未上传
             url: "",
@@ -106,7 +106,7 @@ const handleCancel = async () => {
   await formApi.resetForm();
   await modalApi.close();
 };
-const submitting = ref<Boolean>(false);
+const submitting = ref<boolean>(false);
 const handleConfirm = async () => {
   // 1. 表单验证
   try {
@@ -125,13 +125,17 @@ const handleConfirm = async () => {
   const formData = new FormData();
   formData.append("file", file);
   try {
-    const res = await advertiserApi.fetchImportData(formData, platform);
+    const res = (await advertiserApi.fetchImportData(formData, platform)) as unknown as {
+      errors: Array<{ errorMsg: string }>;
+      successCount: number;
+      failCount: number;
+    };
     if (res.errors.length === 0) {
       const successCount = res.successCount;
       const failCount = res.failCount;
       message.success(`成功导入数据${successCount}条，导入失败${failCount}条`);
     } else {
-      message.error(`导入失败,${res.errors[0].errorMsg}`);
+      message.error(`导入失败,${res.errors[0]!.errorMsg}`);
     }
     await modalApi.close();
     emit("pageReload");

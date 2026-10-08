@@ -28,7 +28,13 @@ interface eventType {
 }
 const eventList = ref<eventType[]>([]);
 let TYPE_LABEL_MAP: Record<string, string> = {};
-const [Modal, modalApi] = useVbenModal({
+interface CallbackRecordModalData {
+  taskId: string;
+  platform: string;
+  behavioraPlatformIds: string[];
+  platformCallbackIds: string[];
+}
+const [Modal, modalApi] = useVbenModal<CallbackRecordModalData>({
   fullscreen: true,
   fullscreenButton: false,
   onCancel() {
@@ -39,13 +45,14 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const modalData = modalApi.getData();
+      const modalData = modalApi.getData()!;
       taskId.value = modalData.taskId;
       platform.value = modalData.platform;
       defalutPlatformCallbackId.value = modalData.platformCallbackIds[0];
       defalutBehaviorPlatformId.value = modalData.behavioraPlatformIds[0];
-      queryBehaviora.value.ids =
-        modalData.behavioraPlatformIds.length > 0 ? modalData.behavioraPlatformIds.join(',') : [];
+      queryBehaviora.value.ids = (
+        modalData.behavioraPlatformIds.length > 0 ? modalData.behavioraPlatformIds.join(',') : []
+      ) as string;
     }
   },
 });

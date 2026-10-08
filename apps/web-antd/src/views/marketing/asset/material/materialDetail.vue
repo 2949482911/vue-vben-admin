@@ -49,7 +49,11 @@ import {
   type VxeTableGridColumns,
 } from '#/adapter/vxe-table';
 import { metricApi, reportApi } from '#/api';
-import { dimColumnKey, rawDimFieldOf } from '#/constants/dimension';
+import {
+  dimColumnKey,
+  MAX_FROZEN_DIM_COUNT,
+  rawDimFieldOf,
+} from '#/constants/dimension';
 import { ACTIVE_PLATFORM } from '#/constants/locales';
 import {
   getPlatformChartColor,
@@ -847,16 +851,15 @@ function buildMetricColumn(field: string, title: string) {
  * adapter 里注册的 CellTag 渲染器在本项目内实际不生效。
  */
 function buildDimColumn(field: string, title: string) {
-  if (rawFieldOf(field) === 'platform') {
-    return {
-      field,
-      showOverflow: true,
-      slots: { default: 'platform' },
-      title,
-      width: 120,
-    };
-  }
-  return { field, showOverflow: true, title, width: 140 };
+  const baseColumn = {
+    field,
+    minWidth: 120,
+    showOverflow: true,
+    title,
+  };
+  return rawFieldOf(field) === 'platform'
+    ? { ...baseColumn, width: 120, slots: { default: 'platform' } }
+    : baseColumn;
 }
 
 const gridColumns = computed<VxeTableGridColumns>(() => {
@@ -899,20 +902,25 @@ const gridColumns = computed<VxeTableGridColumns>(() => {
     width: 64,
   };
 
-  // 与素材报表一致：两层表头区分维度与指标，维度列固定左侧
+  // 与素材报表一致：两层表头区分维度与指标；维度列始终排在指标之前，前 N 个冻结在左侧
+  // （vxe 分组表头的 fixed 会继承给全部子列，所以冻结/非冻结维度必须拆成两组）
+  const frozenDims = dims
+    .slice(0, MAX_FROZEN_DIM_COUNT)
+    .map((column) => ({ ...column, fixed: 'left' as const }));
+  const scrollDims = dims.slice(MAX_FROZEN_DIM_COUNT);
+
   return [
     seqColumn,
-    ...(dims.length > 0 && metrics.length > 0
-      ? [
-          { children: dims, fixed: 'left' as const, title: '维度' },
-          { children: metrics, title: '指标' },
-        ]
-      : [...dims, ...metrics]),
+    ...(frozenDims.length > 0
+      ? [{ children: frozenDims, fixed: 'left' as const, title: '维度' }]
+      : []),
+    ...(scrollDims.length > 0 ? [{ children: scrollDims, title: '维度' }] : []),
+    ...(metrics.length > 0 ? [{ children: metrics, title: '指标' }] : []),
   ];
 });
 
 /** 明细行数据：补上序号列的值 */
-const gridData = computed(() =>
+const gridData = computed<Record<string, any>[]>(() =>
   reportItems.value.map((row, index) => ({ ...row, seq: index + 1 })),
 );
 

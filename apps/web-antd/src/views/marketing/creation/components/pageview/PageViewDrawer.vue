@@ -8,6 +8,7 @@ import {ref} from 'vue';
 import {RuleMethod} from '#/views/marketing/creation/creation_enums';
 import type {AccountInfo, PageViewConfigData} from '#/views/marketing/creation/creation';
 import type {PageViewItem} from '#/api/models/assert';
+import type {LandingPageQuery} from '#/api/models';
 import {trimObject} from '#/utils/trim';
 import {RadioGroup, RadioButton, type RadioChangeEvent, Tag, message, Tabs, TabPane} from 'ant-design-vue';
 import {ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS} from '#/constants/locales';
@@ -96,8 +97,8 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, args) => {
-        const params: Record<string, any> = trimObject(args);
+      query: async (_, args) => {
+        const params = trimObject(args) as LandingPageQuery & {platformAdvertiserId?: string};
         // 按账户分配模式注入当前账户 ID
         if (distributionMethod.value === RuleMethod.ACCOUNT) {
           params.platformAdvertiserId = currentAccountId.value;
@@ -107,7 +108,7 @@ const gridOptions: VxeGridProps = {
         setTimeout(() => {
           const grid = gridApi.grid;
           if (grid && tempSelectedRows.value.length > 0) {
-            const ids = tempSelectedRows.value.map(item => item.id);
+            const ids = tempSelectedRows.value.map(item => item.id!);
             grid.setCheckboxRowKey(ids, true);
           }
         }, 100);
@@ -158,7 +159,7 @@ function allocationMethodChange(e: RadioChangeEvent) {
 }
 
 // 账户点击/切换
-async function handleAccountClick(account: AccountInfo) {
+async function handleAccountClick(account: AccountInfo | string | number) {
   const grid = gridApi.grid;
   if (!grid) return;
   // 保存上一个账户的数据
@@ -169,8 +170,8 @@ async function handleAccountClick(account: AccountInfo) {
       accountPageViews.value.delete(currentAccountId.value);
     }
   }
-  // 更新当前指向
-  currentAccountId.value = String(account.localAdvertiserId);
+  // 更新当前指向（Tabs 的 change 回调传入 activeKey，保持原有取值方式不变）
+  currentAccountId.value = String((account as AccountInfo).localAdvertiserId);
   // 恢复新账户的存档数据
   const nextData = accountPageViews.value.get(currentAccountId.value) || [];
   tempSelectedRows.value = [...nextData];
@@ -185,16 +186,15 @@ function getAccountName(account: AccountInfo): string {
 }
 
 // 抽屉
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<PageViewConfigData>({
   closeOnClickModal: false,
-  size: 'large',
   class: 'w-[75vw]',
   closeOnPressEscape: true,
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const data = drawerApi.getData();
       if (data) {
-        distributionMethod.value = data.config?.method || RuleMethod.ALL;
+        distributionMethod.value = (data.config?.method || RuleMethod.ALL) as RuleMethod;
         tempSelectedRows.value = [];
         accountPageViews.value.clear();
 
@@ -206,7 +206,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
               accountPageViews.value.set(accountId, items || []);
             });
             if (props.accountInfo.length > 0) {
-              currentAccountId.value = String(props.accountInfo[0].localAdvertiserId);
+              currentAccountId.value = String(props.accountInfo[0]!.localAdvertiserId);
               tempSelectedRows.value = accountPageViews.value.get(currentAccountId.value) || [];
             }
           } else {

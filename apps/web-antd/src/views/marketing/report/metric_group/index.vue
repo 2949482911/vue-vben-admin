@@ -92,11 +92,11 @@ const [CreateObjectModal, createObjectApi] = useVbenModal({
 
 });
 
-function handlerState(row: MetricGroupType) {
+function handlerState(_row: MetricGroupType) {
 
 }
 
-function openCreateModal(row: MetricGroupType) {
+function openCreateModal(row?: MetricGroupType) {
   if (row?.id) {
     createObjectApi.setData(row);
   }
@@ -105,7 +105,7 @@ function openCreateModal(row: MetricGroupType) {
 
 async function handlerDelete(row: MetricGroupType) {
   await metricGroupApi.fetchDelMetricGroupList({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: {}
   });

@@ -23,7 +23,10 @@ function openTestCallbackModal(row: ClickMonitorResponse) {
 }
 
 
-const gridOptions: VxeGridProps<ClickMonitorResponse> = {
+interface ClickMonitorRow extends ClickMonitorResponse {
+  exposureUrl?: string;
+}
+const gridOptions: VxeGridProps<ClickMonitorRow> = {
   border: true,
   checkboxConfig: {
     highlight: true,
@@ -83,7 +86,7 @@ const gridOptions: VxeGridProps<ClickMonitorResponse> = {
 const [Grid, gridApi] = useVbenVxeGrid({gridOptions});
 
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<{ taskId: string }>({
   fullscreen: true,
   fullscreenButton: false,
   bordered: false,
@@ -104,7 +107,7 @@ const [Modal, modalApi] = useVbenModal({
       await modalApi.close();
     }
     gridApi.setLoading(true);
-    const dataList = await clickMonitorApi.fetchGenClickUrl(modalApi.getData()["taskId"])
+    const dataList = await clickMonitorApi.fetchGenClickUrl(modalApi.getData()!["taskId"])
     gridApi.setGridOptions({
       data: dataList,
     });
@@ -170,7 +173,7 @@ function copyCallback(text: string) {
         <div style="display: flex; flex-direction: column; gap: 6px;">
           <Button
           type="link"
-          @click="copyCallback(row.exposureUrl)"
+          @click="copyCallback(row.exposureUrl ?? '')"
           >
             一键复制
           </Button>

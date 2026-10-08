@@ -7,7 +7,7 @@ import type { PageViewItem } from "#/api/models/assert";
 import { RuleMethod } from "#/views/marketing/creation/creation_enums";
 import type { AccountInfo, PageViewConfigData } from "#/views/marketing/creation/creation";
 
-const { accountInfo, landingPage } = defineProps<{
+const { landingPage } = defineProps<{
   landingPage: PageViewConfigData,
   accountInfo: Array<AccountInfo>;
 }>();

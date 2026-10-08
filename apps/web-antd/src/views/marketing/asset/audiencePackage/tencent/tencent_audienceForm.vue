@@ -1,5 +1,6 @@
 <script setup lang="ts" name="TencentAudienceForm">
-import { useVbenForm } from "@vben/common-ui";
+import { type ExtendedFormApi } from "@vben/common-ui";
+import { useVbenForm } from "#/adapter/form";
 import {
   App_install_status,
   Conversion_behavior_list,
@@ -64,7 +65,9 @@ defineExpose({
   popUpCancel
 });
 
-const [Form, formApi] = useVbenForm({
+let formApi: ExtendedFormApi<any, any, any, any>;
+
+const [Form, formApiInstance] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
     componentProps: {
@@ -393,6 +396,8 @@ const [Form, formApi] = useVbenForm({
     }
   ]
 });
+
+formApi = formApiInstance;
 </script>
 
 <template>

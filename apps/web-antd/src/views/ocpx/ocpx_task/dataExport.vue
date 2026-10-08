@@ -7,8 +7,7 @@ import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
 
 import {useVbenForm} from '#/adapter/form';
-import {behavioraPlatformApi, ocpxTaskApi, platformCallbackApi} from '#/api/core/ocpx';
-import {PLATFORM, STATUS_SELECT} from '#/constants/locales';
+import {ocpxTaskApi} from '#/api/core/ocpx';
 import { trimObject } from '#/utils/trim';
 import dayjs from 'dayjs';
 const emit = defineEmits(['pageReload']);
@@ -82,7 +81,7 @@ const [Form, formApi] = useVbenForm({
   ],
 });
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<Partial<OcpxTaskItem>>({
   centered: true,
   fullscreenButton: false,
   closeOnPressEscape: false,
@@ -102,7 +101,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<Record<string, any>>();
+      objectRequest.value = modalApi.getData()!;
       if (objectRequest.value.id) {
         handleSetFormValue(objectRequest.value);
       } else {

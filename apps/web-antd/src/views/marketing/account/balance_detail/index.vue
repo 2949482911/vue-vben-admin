@@ -11,7 +11,7 @@ import {
 import dayjs from "dayjs";
 import { nextTick, onMounted, ref } from "vue";
 import { advertiserApi, developerApi } from "#/api";
-import type { AdvertiserItem } from "#/api/models";
+import type { AdvertiserItem, AdvertiserPageRequest } from "#/api/models";
 import { useClientPagination } from "#/utils/pagination";
 import { Platform } from "#/constants/enums";
 
@@ -78,7 +78,7 @@ async function loadAdvertiserOptions(platform: string) {
     putStatue: 1,
     page: 1,
     pageSize: 100000
-  });
+  } as unknown as AdvertiserPageRequest);
 
   developerOption.value = res.items.map((item) => ({
     label: `${item.advertiserName}-${item.advertiserId}`,
@@ -167,17 +167,6 @@ function generateColumns(columnsKeys: string[]) {
 
   cachedColumns.value = newColumns;
   return newColumns;
-}
-
-// 优化5：原生防抖函数
-function debounce(fn: Function, delay: number) {
-  let timer: ReturnType<typeof setTimeout> | null = null;
-  return function(this: any, ...args: any[]) {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(() => {
-      fn.apply(this, args);
-    }, delay);
-  };
 }
 
 // 优化6：使用 requestAnimationFrame 优化渲染时机
@@ -479,8 +468,6 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
   scrollY: { enabled: true, gt: 0 },
   showOverflow: true,
   showHeaderOverflow: true,
-  // 优化12：禁用动画效果提升性能
-  animate: false,
   // 优化13：优化渲染性能
   rowConfig: {
     useKey: true, // 使用 key 优化渲染
@@ -502,7 +489,7 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents })
       <template #toolbar-tools></template>
       <template #推广产品="{row}">
         <div class="app-list">
-          <div class="app-item" v-for="app in row['推广产品']" :key="app.appId">
+          <div class="app-item" v-for="app in (row as any)['推广产品']" :key="app.appId">
             <div class="app-name">{{ app.product_name }}</div>
           </div>
         </div>

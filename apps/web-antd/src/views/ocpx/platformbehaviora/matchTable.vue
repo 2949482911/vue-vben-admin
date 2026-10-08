@@ -1,5 +1,4 @@
 <script setup lang="ts" name="MatchTable">
-import {Page} from '@vben/common-ui';
 import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
 import type {OcpxPlatformMatch} from "#/api/models";
 import {$t} from "@vben/locales";

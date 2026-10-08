@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {Page, useVbenModal,type VbenFormProps} from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 import { ref } from 'vue';
 import { useVbenForm } from '#/adapter/form';
 import {$t} from '@vben/locales';
@@ -9,12 +9,12 @@ import { metricGroupApi } from '#/api/core';
 const emit = defineEmits(['pageReload']);
 
 const isUpdate = ref<boolean>(false)
-const [Modal,modalApi] = useVbenModal({
+const [Modal,modalApi] = useVbenModal<MetricGroupType>({
   onOpenChange(isOpen: Boolean) {
     if(isOpen) {
-      const modalData:MetricGroupType = modalApi.getData()
+      const modalData = modalApi.getData()
       console.log('modaldata',modalData)
-      if(modalData.id) {
+      if(modalData?.id) {
         handleResetFormVal(modalData)
         isUpdate.value = true
       } else {

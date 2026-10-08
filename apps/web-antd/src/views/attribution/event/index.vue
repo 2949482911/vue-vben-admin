@@ -35,7 +35,7 @@ function openCreateDrawer(row?: EventConfigItem) {
 /** 状态切换 */
 async function handlerState(row: EventConfigItem) {
   await eventConfigApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: row.status === 1 ? BatchOptionsType.DISABLE : BatchOptionsType.Enable,
     values: {}
   });
@@ -45,7 +45,7 @@ async function handlerState(row: EventConfigItem) {
 /** 删除 */
 async function handlerDelete(row: EventConfigItem) {
   await eventConfigApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: {}
   });

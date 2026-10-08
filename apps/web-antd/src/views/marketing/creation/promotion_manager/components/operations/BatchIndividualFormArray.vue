@@ -10,6 +10,7 @@
  * 逐行配置（去掉内部名称字段）同步回父级，供父级校验与组装提交参数。
  */
 import type { VbenFormSchema } from '#/adapter/form';
+import type { VbenFormFieldSchema } from '@vben/common-ui';
 
 import { useVbenForm } from '#/adapter/form';
 
@@ -67,7 +68,7 @@ const schema: VbenFormSchema[] = [
         fieldName: '__name',
         label: $t('marketing.promotionManager.form.elementName'),
       },
-      ...props.children,
+      ...(props.children as VbenFormFieldSchema[]),
     ],
     defaultValue: buildInitialConfigs(),
     fieldName: 'configs',

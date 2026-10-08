@@ -1,27 +1,18 @@
 <script setup lang="ts">
-import { trimObject } from '#/utils/trim';
 import { useVbenForm } from '#/adapter/form';
 import { useVbenDrawer, Page } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { ref, watch } from 'vue'; // 添加 watch
 import { message } from 'ant-design-vue';
 import type {
-  searchDataFilter,
   CampaignUpdateItem,
-  UpdateSubscribeType,
   CampaignItem
-} from '#/api/models';
-import {
-  BatchOptionsType,
-  PLATFORM,
-  STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
-import { campaignApi } from '#/api/core/adx.ts';
+} from '#/api/models/adx';
+import { campaignApi } from '#/api/core/adx';
 
 const title = ref<string>('');
 const emit = defineEmits(['pageReload']);
-const objectRequest = ref<CampaignUpdateItem>({});
+const objectRequest = ref<CampaignUpdateItem>({} as CampaignUpdateItem);
 const isUpdate = ref<Boolean>(false);
   watch(isUpdate,(newVal) => {
   if(newVal) {
@@ -178,14 +169,14 @@ const [Form, formApi] = useVbenForm({
     },
   ],
 });
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<CampaignUpdateItem>({
   closeOnPressEscape: false,
   // 当抽屉打开状态改变时触发
   async onOpenChange(isOpen) {
     if (!isOpen) {
       await drawerApi.close();
     } else {
-      objectRequest.value = await drawerApi.getData<CampaignUpdateItem>();
+      objectRequest.value = (await drawerApi.getData()) as CampaignUpdateItem;
       formApi.setValues(objectRequest.value);
       isUpdate.value = !!objectRequest.value.id;
     }

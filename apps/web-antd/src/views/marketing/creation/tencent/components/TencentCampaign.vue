@@ -209,6 +209,12 @@ function openCampaignDrawer() {
   drawerApi.open();
 }
 
+
+/** 卡片回显取值：campaignShowLabel 的 key 是动态的，直接索引会报 TS7053，这里放宽成字符串索引 */
+function campaignValue(key: string) {
+  return (campaignInfo.value as Record<string, any>)[key];
+}
+
 </script>
 
 <template>
@@ -220,7 +226,7 @@ function openCampaignDrawer() {
             v-for="(label, key ) in campaignShowLabel"
             :key="key" :label="label"
           >
-            {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignInfo[key]) : campaignInfo[key] }}
+            {{ fieldLabelMap[key] ? fieldLabelMap[key](campaignValue(key)) : campaignValue(key) }}
           </DescriptionsItem>
         </Descriptions>
         <Alert v-else type="error" message="请先填写营销单元信息" class="empty-alert" />

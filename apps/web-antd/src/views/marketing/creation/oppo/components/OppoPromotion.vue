@@ -49,7 +49,7 @@ const promotionInfo = ref<OppoPromotionData>({
     strongReminder: 0,
     virtualPositionId: '',
   },
-});
+} as unknown as OppoPromotionData);
 
 watch(
   () => promotion,
@@ -82,7 +82,7 @@ function openPromotionDrawer() {
             :key="key"
             :label="label"
           >
-            {{ fieldLabelMap[key] ? fieldLabelMap[key](promotionInfo[key]) : promotionInfo[key] }}
+            {{ fieldLabelMap[key] ? fieldLabelMap[key]((promotionInfo as any)[key]) : (promotionInfo as any)[key] }}
           </DescriptionsItem>
         </Descriptions>
         <Alert

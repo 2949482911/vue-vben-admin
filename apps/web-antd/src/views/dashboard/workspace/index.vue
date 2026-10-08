@@ -2,6 +2,7 @@
 import type {
   WorkbenchProjectItem,
   WorkbenchQuickNavItem,
+  WorkbenchTodoItem,
   WorkbenchTrendItem,
 } from '@vben/common-ui';
 import {
@@ -21,6 +22,7 @@ import {openWindow} from '@vben/utils';
 
 import AnalyticsVisitsSource from '../analytics/analytics-visits-source.vue';
 import type {NoticeItem, RepresentativeItem} from "#/api/models";
+import type {PageResult} from "#/api/models/core";
 import {noticeApi, taskApi} from "#/api";
 import { $t } from "#/locales";
 import {noticeLevelText, noticeLevelTextClass, noticePlainText} from "#/utils/notice";
@@ -240,7 +242,7 @@ function navTo(nav: WorkbenchProjectItem | WorkbenchQuickNavItem) {
  * 代办任务
  */
 const getRepresentative = async () => {
-  const { items } = await taskApi.fetchRepresentative({page: 1, pageSize: 20})
+  const { items } = (await taskApi.fetchRepresentative({page: 1, pageSize: 20})) as unknown as PageResult<RepresentativeItem>
   todoItems.value = items
 }
 
@@ -372,7 +374,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <WorkbenchTodo :items="todoItems" class="mt-5" title="待办事项"/>
+        <WorkbenchTodo :items="todoItems as unknown as WorkbenchTodoItem[]" class="mt-5" title="待办事项"/>
         <AnalysisChartCard class="mt-5" title="访问来源">
           <AnalyticsVisitsSource/>
         </AnalysisChartCard>

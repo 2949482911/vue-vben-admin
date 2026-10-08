@@ -26,7 +26,9 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
 import { Select, Spin } from 'ant-design-vue';
+import type { DefaultOptionType, SelectValue } from 'ant-design-vue/es/select';
 import { advertiserApi } from '#/api';    // 请根据实际路径修改
+import type { AdvertiserPageRequest } from '#/api/models/marketing';
 import {Platform} from '#/constants/enums';               // 请根据实际枚举修改
 import { LoadingOutlined } from '@ant-design/icons-vue';
 import { h } from 'vue';
@@ -80,7 +82,7 @@ const requestData = async (pageNum: number, keywordVal: string) => {
     platform: Platform.VIVO,
     advertiserName: keywordVal,
   };
-  const res = await advertiserApi.fetchAdvertiserList(params);
+  const res = await advertiserApi.fetchAdvertiserList(params as AdvertiserPageRequest);
   return res.items || [];
 };
 
@@ -139,11 +141,11 @@ const handleSearch = (searchKeyword: string) => {
 };
 
 // 选中值变化
-const handleChange = (val: string, option: any) => {
-  innerValue.value = val;
-  emit('update:value', val);
+const handleChange = (val: SelectValue, option: DefaultOptionType | DefaultOptionType[]) => {
+  innerValue.value = val as string;
+  emit('update:value', val as string);
   if (props.onSelect) {
-    props.onSelect(val, option);
+    props.onSelect(val as string, option);
   }
 };
 

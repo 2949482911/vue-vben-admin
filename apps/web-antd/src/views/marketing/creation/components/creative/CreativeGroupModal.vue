@@ -7,7 +7,17 @@ import { useVbenModal } from "@vben/common-ui";
 import type { Material } from "#/views/marketing/creation/creation";
 import { RuleMethod } from "#/views/marketing/creation/creation_enums";
 
-const {formSchema} = defineProps({
+/** 打开弹窗时传入的创意组配置 */
+interface CreativeGroupModalData {
+  groups?: Material[];
+  method?: RuleMethod;
+  videoCount?: number;
+  imageCount?: number;
+  autoGenerateCover?: boolean;
+  videoSyncHomepage?: boolean;
+}
+
+defineProps({
   formSchema: {
     type: Array,
     default: () => [],
@@ -67,12 +77,12 @@ const totalMaterials = computed(() => {
   return total;
 });
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<CreativeGroupModalData>({
   async onConfirm() {
     for (let i = 0; i < creativeGroups.value.length; i++) {
       const group = creativeGroups.value[i];
-      const videoLen = group.video?.length || 0;
-      const imageLen = group.image?.length || 0;
+      const videoLen = group?.video?.length || 0;
+      const imageLen = group?.image?.length || 0;
       if (videoLen + imageLen === 0) {
         return message.warning(`创意组${String(i + 1).padStart(2, '0')} 未选择任何素材`);
       }

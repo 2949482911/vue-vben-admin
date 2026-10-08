@@ -1,6 +1,6 @@
 <script lang="ts" setup name="MenuManager">
-import type { VxeGridProps } from "#/adapter/vxe-table";
-import type { CreateMenuRequest, MenuItem, UpdateMenuRequest } from "#/api/models/menu";
+import type { VxeTableGridOptions } from "#/adapter/vxe-table";
+import type { MenuItem } from "#/api/models/menu";
 
 import { computed } from "vue";
 
@@ -34,7 +34,7 @@ const [CreateMenuDrawer, createMenuDrawerApi] = useVbenDrawer({
   connectedComponent: CreateMenu
 });
 
-function openBaseDrawer(row?: CreateMenuRequest | UpdateMenuRequest) {
+function openBaseDrawer(row?: any) {
   if (row) {
     createMenuDrawerApi.setData(row);
   } else {
@@ -55,7 +55,7 @@ function getMenuTypeOptions() {
   ];
 }
 //@ts-ignore
-const gridOptions: VxeGridProps<MenuItem> = {
+const gridOptions: VxeTableGridOptions<MenuItem> = {
   columns: [
     {
       field: "title",
@@ -200,7 +200,7 @@ const pageReload = () => {
           v-if="row.badgeType"
           class="menu-badge"
           :badge="row.badge"
-          :badge-type="row.badgeType"
+          :badge-type="row.badgeType as 'dot' | 'normal'"
           :badge-variants="row.badgeVariants"
         />
       </template>

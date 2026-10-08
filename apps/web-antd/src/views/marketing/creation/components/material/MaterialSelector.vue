@@ -12,8 +12,23 @@ import {
 import {useVbenModal} from '@vben/common-ui';
 import {useVbenForm} from '#/adapter/form';
 import {materialLibraryApi, uploadEditApi} from '#/api';
-import type {VivoMaterialLibrary} from '#/views/marketing/creation/vivo/vivo';
 import type {AlbumItem, MaterialItem} from "#/api/models/assert";
+
+
+/** 素材行：在 MaterialItem 基础上补充列表展示用的标记字段 */
+type MaterialRow = MaterialItem & {
+  selected?: boolean;
+  duration?: string;
+};
+
+/** MaterialSelector 打开时传入的参数 */
+interface MaterialSelectorData {
+  maxCount?: number;
+  materialType?: 'image' | 'video';
+  currentMaterialGroupIndex?: number;
+  preSelectedMaterials?: Array<MaterialItem>;
+  preSelectedIds?: Array<number | string>;
+}
 
 
 // 弹出事件
@@ -46,8 +61,8 @@ const [Form, formApi] = useVbenForm({
 
 // 参数
 const loading = ref(false);
-const listData = ref<Array<MaterialItem>>([]);
-const selectedAssets = ref<Array<MaterialItem>>([]);
+const listData = ref<Array<MaterialRow>>([]);
+const selectedAssets = ref<Array<MaterialRow>>([]);
 /** 跨分页追踪所有已选素材 ID（含预选 + 新选），解决翻页后丢失选中状态的问题 */
 const selectedIds = ref<Set<string | number>>(new Set());
 const queryParam = ref({page: 1, pageSize: 20, total: 0});
@@ -87,7 +102,7 @@ async function fetchList() {
       needAlbum: false,
       name: formValues?.name || '',
     });
-    listData.value = res.items.map((item: VivoMaterialLibrary) => {
+    listData.value = res.items.map((item: MaterialRow) => {
       const isPicked = selectedIds.value.has(String(item.id));
       if (isPicked && !selectedAssets.value.some((s) => s.id === item.id)) {
         selectedAssets.value.push(item);
@@ -135,13 +150,13 @@ const isCheckAll = computed({
       const currentPageIds = listData.value.map((i) => String(i.id));
       currentPageIds.forEach((id) => selectedIds.value.delete(id));
       selectedAssets.value = selectedAssets.value.filter(
-        (s) => !currentPageIds.includes(s.id)
+        (s) => !currentPageIds.includes(s.id as string)
       );
     }
   },
 });
 
-function handleSelect(item: VivoMaterialLibrary) {
+function handleSelect(item: MaterialRow) {
   if (isReachQuota.value && !item.selected) return;
   item.selected = !item.selected;
   if (item.selected) {
@@ -177,7 +192,7 @@ function clearSelection() {
   listData.value.forEach((item) => (item.selected = false));
 }
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<MaterialSelectorData>({
   closeOnClickModal: false,
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {

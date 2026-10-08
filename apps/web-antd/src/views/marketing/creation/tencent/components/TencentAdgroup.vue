@@ -13,6 +13,8 @@ import {
   DescriptionsItem
 } from "ant-design-vue";
 
+import { createEmptyCreativeComponents } from "#/views/marketing/creation/tencent/tencent";
+
 import TencentAdgroupDrawer from "./TencentAdgroupDrawer.vue";
 
 /**
@@ -74,7 +76,7 @@ const adgroupInfo = ref<TencentAdgroupData>({
   auto_derived_program_creative_switch: false,
   configured_status: "",
   site_set_validate_model: "",
-  creative_components: [],
+  creative_components: createEmptyCreativeComponents(),
   program_creative_info_switch: false,
   program_creative_info: {
     material_derive_id: 0,
@@ -107,6 +109,12 @@ function openAdgroupDrawer() {
   drawerApi.open();
 }
 
+
+/** 卡片回显取值：adgroupShowLabel 的 key 是动态的，直接索引会报 TS7053，这里放宽成字符串索引 */
+function adgroupValue(key: string) {
+  return (adgroupInfo.value as Record<string, any>)[key];
+}
+
 </script>
 
 <template>
@@ -118,7 +126,7 @@ function openAdgroupDrawer() {
 v-for="(label, key ) in adgroupShowLabel"
                             :key="key" :label="label"
 >
-            {{ fieldLabelMap[key] ? fieldLabelMap[key](adgroupInfo[key]) : adgroupInfo[key] }}
+            {{ fieldLabelMap[key] ? fieldLabelMap[key](adgroupValue(key)) : adgroupValue(key) }}
           </DescriptionsItem>
         </Descriptions>
         <Alert v-else type="error" message="请先填写广告信息" class="empty-alert" />

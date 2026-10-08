@@ -186,7 +186,8 @@ const [Grid, gridApi] = useVbenVxeGrid({
 });
 
 // 切换账户 Tab
-async function handleTabChange(accountId: string) {
+async function handleTabChange(key: string | number) {
+  const accountId = String(key);
   activeAccountId.value = accountId;
   gridApi.setLoading(true);
 
@@ -216,7 +217,7 @@ watch(
     if (newData && newData.length > 0) {
       // 设置第一个账户为默认选中
       if (!activeAccountId.value) {
-        activeAccountId.value = newData[0].advertiserId;
+        activeAccountId.value = newData[0]!.advertiserId;
       }
       // 更新当前账户的数据
       handleTabChange(activeAccountId.value);
@@ -282,9 +283,9 @@ function updateCell(row: any | number, field: string, value: any) {
   if (!$grid) return;
 
   if (typeof row === "number") {
-    $grid.updateRow($grid.getRowByIndex(row), { [field]: value });
+    $grid.setRow($grid.getData(row), { [field]: value });
   } else {
-    $grid.updateRow(row, { [field]: value });
+    $grid.setRow(row, { [field]: value });
   }
 
   emit("cellEdit", typeof row === "number" ? null : row, field, value);

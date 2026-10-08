@@ -7,6 +7,7 @@ import type {
   AttributionConfigItem,
   CreateSdkAppRequest,
   EventConfigItem,
+  SdkAppConfigItem,
   UpdateSdkAppRequest,
   UpdateTrackingLinkRequest
 } from "#/api/models/attribution";
@@ -206,7 +207,7 @@ const [Form, formApi] = useVbenForm({
   ]
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<SdkAppConfigItem>({
   closeOnPressEscape: true,
   async onCancel() {
     await formApi.resetForm();
@@ -233,9 +234,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (isOpen) {
       await Promise.all([loadProjects(), loadConfigs(), loadEvents()]);
 
-      const data = drawerApi.getData<
-        CreateSdkAppRequest | UpdateSdkAppRequest | any
-      >();
+      const data = drawerApi.getData();
       if (data?.id) {
         isUpdate.value = true;
         await formApi.setValues(data);
@@ -253,7 +252,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
             callbackUrl: (item as any).callbackUrl || "",
             remark: (item as any).remark || ""
           })
-        );
+        ) as UpdateTrackingLinkRequest[];
         trackingGridApi.setGridOptions({ data: [...trackingLinks.value] });
       } else {
         isUpdate.value = false;

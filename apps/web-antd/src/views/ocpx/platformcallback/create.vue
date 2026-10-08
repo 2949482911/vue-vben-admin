@@ -23,6 +23,14 @@ import {trimObject} from '#/utils/trim';
 import {eventSettlementApi} from '#/api';
 import eventMatching from './components/eventMatching.vue'
 
+// 编辑态事件映射规则的真实运行时形状（共享类型 eventMappingType 未覆盖）
+interface EditEventMappingRule {
+  behaviorPlatformId: string;
+  behaviorPlatform: string;
+  behaviorPlatformName?: string;
+  behaviorEventTypes: Array<{ value: string; label: string }>;
+  callbackEventType: { value: string; label: string };
+}
 
 async function handleGetActionSetId(value: string) {
   const basicInfo = await formApi.getValues();
@@ -694,12 +702,12 @@ const behaviorTypeList = ref<Array<PlatformCallbackBehaviorTypeItem>>([]);
 const eventSettlementList = ref<Array<EventSettlementItem>>([]);
 
 async function getEventSettlementList() {
-  const {items} = await eventSettlementApi.fetchEventSettlementList(
+  const {items} = (await eventSettlementApi.fetchEventSettlementList(
     {
       page: 1,
       pageSize: 10000,
     }
-  );
+  )) as unknown as { items: EventSettlementItem[] };
   eventSettlementList.value = items;
 }
 
@@ -992,7 +1000,10 @@ const [Form, formApi] = useVbenForm({
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
 });
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<{
+  row: CreatePlatformCallbackRequest | UpdatePlatformCallbackRequest;
+  type: string;
+}>({
   fullscreen: true,
   fullscreenButton: false,
   async onCancel() {
@@ -1031,7 +1042,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const data = modalApi.getData();
+      const data = modalApi.getData()!;
       objectRequest.value = data.row as
         | CreatePlatformCallbackRequest
         | UpdatePlatformCallbackRequest;
@@ -1067,13 +1078,14 @@ function handleSetFormValue(
   callbackPlatform.value = row.platform;
   editEventMappingRules.value = row.eventMappingRules ?? [];
   eventMappingRules.value = row.eventMappingRules?.map(item => {
+    const rule = item as unknown as EditEventMappingRule;
     return {
-      behaviorPlatformId: item.behaviorPlatformId,
-      behaviorPlatform: item.behaviorPlatform,
-      behaviorEventTypes: item.behaviorEventTypes.map(el => el.value),
-      callbackEventType: item.callbackEventType.value
+      behaviorPlatformId: rule.behaviorPlatformId,
+      behaviorPlatform: rule.behaviorPlatform,
+      behaviorEventTypes: rule.behaviorEventTypes.map(el => el.value),
+      callbackEventType: rule.callbackEventType.value
     }
-  })
+  }) as eventMappingType[]
   configFormApi.setState((_) => {
     return {
       schema: platformConfigForm.get(row.platform),

@@ -27,7 +27,12 @@ const queryCallback = ref({
   ids:'',
   name:''
 })
-const [Modal, modalApi] = useVbenModal({
+interface BehaviorRecordModalData {
+  taskId: string;
+  behavioraPlatformIds: string[];
+  platformCallbackIds: string[];
+}
+const [Modal, modalApi] = useVbenModal<BehaviorRecordModalData>({
   fullscreen: true,
   fullscreenButton: false,
   onCancel() {
@@ -38,12 +43,12 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const modalData = modalApi.getData()
+      const modalData = modalApi.getData()!
       taskId.value = modalData.taskId
       defalutBehavioraPlatformId.value = modalData.behavioraPlatformIds[0]
       defalutPlatformCallbackId.value = modalData.platformCallbackIds[0]
-      queryCallback.value.ids = modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : []
-      queryBehaviora.value.ids = modalData.behavioraPlatformIds.length > 0? modalData.behavioraPlatformIds.join(',') : []
+      queryCallback.value.ids = (modalData.platformCallbackIds.length > 0 ? modalData.platformCallbackIds.join(',') : []) as string
+      queryBehaviora.value.ids = (modalData.behavioraPlatformIds.length > 0? modalData.behavioraPlatformIds.join(',') : []) as string
     }
   },
 });
@@ -185,7 +190,7 @@ const gridOptions: VxeGridProps<OcpxBehaviorRecordItem> = {
           page: page.currentPage,
           pageSize: page.pageSize,
           ...params,
-          taskId: modalApi.getData().taskId,
+          taskId: modalApi.getData()!.taskId,
         });
       },
     },

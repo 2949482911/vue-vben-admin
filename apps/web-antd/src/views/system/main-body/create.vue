@@ -1,5 +1,7 @@
 <script lang="ts" setup name="CreateOrg">
-import type { OrgCreateRequest } from '#/api/models/users';
+import type { OrgCreateRequest, OrgItem } from '#/api/models/users';
+import type { MainBodyCreateRequest, MainBodyUpdateRequest } from '#/api/models/main-body';
+import type { RoleItem } from '#/api/models/role';
 
 import {computed, ref} from 'vue';
 
@@ -11,9 +13,9 @@ import { mainBodyApi, orgApi, roleApi } from '#/api';
 
 const emit = defineEmits(['pageReload']);
 
-const notice = ref<OrgCreateRequest>({});
-const menuData = ref([]);
-const roleData = ref([]);
+const notice = ref<OrgCreateRequest>({} as OrgCreateRequest);
+const menuData = ref<OrgItem[]>([]);
+const roleData = ref<RoleItem[]>([]);
 const isUpdate = ref<Boolean>(false);
 
 const [Form, formApi] = useVbenForm({
@@ -85,13 +87,13 @@ const [Form, formApi] = useVbenForm({
   wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
     await (isUpdate.value
-      ? mainBodyApi.fetchMainUpdate(JSON.stringify(values))
-      : mainBodyApi.fetchMainCreate(JSON.stringify(values)));
+      ? mainBodyApi.fetchMainUpdate(JSON.stringify(values) as unknown as MainBodyUpdateRequest)
+      : mainBodyApi.fetchMainCreate(JSON.stringify(values) as unknown as MainBodyCreateRequest));
     await drawerApi.close();
   },
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<OrgCreateRequest>({
   closeOnPressEscape: true,
   onCancel() {
     drawerApi.close();
@@ -109,7 +111,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       formApi.resetForm();
-      notice.value = drawerApi.getData<Record<string, any>>();
+      notice.value = drawerApi.getData()!;
       if (notice.value.id) {
         isUpdate.value = true;
         handleSetFormValue(notice.value);
@@ -120,13 +122,13 @@ const [Drawer, drawerApi] = useVbenDrawer({
         menuData.value = res;
       });
       roleApi.fetchRoleList({ page: 1000 }).then((res) => {
-        roleData.value = res.items;
+        roleData.value = (res as unknown as { items: RoleItem[] }).items;
       });
     }
   },
 });
 
-function handleSetFormValue(row) {
+function handleSetFormValue(row: OrgCreateRequest) {
   formApi.setValues(row);
 }
 

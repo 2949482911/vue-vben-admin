@@ -158,12 +158,12 @@ function openClickRecord(row: OcpxTaskItem) {
 async function handlerState(row: OcpxTaskItem) {
   await (row.status === 1
     ? ocpxTaskApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.DISABLE,
       values: new Map<string, any>()
     })
     : ocpxTaskApi.fetchBatchOptions({
-      targetIds: [row.id],
+      targetIds: [row.id!],
       type: BatchOptionsType.Enable,
       values: new Map<string, any>()
     }));
@@ -176,7 +176,7 @@ async function handlerState(row: OcpxTaskItem) {
  */
 async function handlerDelete(row: OcpxTaskItem) {
   await ocpxTaskApi.fetchBatchOptions({
-    targetIds: [row.id],
+    targetIds: [row.id!],
     type: BatchOptionsType.Delete,
     values: new Map<string, any>()
   });

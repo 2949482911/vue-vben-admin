@@ -12,7 +12,6 @@ import {menuApi} from '#/api';
 const emit = defineEmits(['pageReload']);
 
 const createObject = ref<CreateMenuRequest | UpdateMenuRequest>({
-  id: "",
   activeIcon: "",
   affixTab: false,
   affixTabOrder: 0,
@@ -44,8 +43,8 @@ const createObject = ref<CreateMenuRequest | UpdateMenuRequest>({
   title: "",
   type: 0
 });
-const menuData = ref([]);
-const isUpdate = ref<Boolean>(false);
+const menuData = ref<MenuItem[]>([]);
+const isUpdate = ref(false);
 
 // menuTypeOptions
 function getMenuTypeOptions() {
@@ -124,7 +123,7 @@ const [Form, formApi] = useVbenForm({
           children: 'children',
         },
       },
-      renderComponentContent: (value, _) => {
+      renderComponentContent: (value: { fieldName?: string; title?: string }) => {
         return {
           strengthText: () => $t(`${value.title}`),
         };
@@ -156,15 +155,15 @@ const [Form, formApi] = useVbenForm({
           $t('ui.formRules.maxLength', [$t('system.menu.columns.title'), 30]),
         )
         .refine(
-          async (value: string) => {
+          async () => {
             return true;
           },
-          (value) => ({
+          ((value: string) => ({
             message: $t('ui.formRules.alreadyExists', [
               $t('system.menu.menuName'),
               value,
             ]),
-          }),
+          })) as unknown as string,
         ),
     },
     {
@@ -204,7 +203,8 @@ const [Form, formApi] = useVbenForm({
       label: `${$t('system.menu.columns.type')}`,
       rules: 'required',
       dependencies: {
-        disabled: isUpdate.value
+        disabled: isUpdate.value,
+        triggerFields: []
       }
     },
 
@@ -569,13 +569,17 @@ const [Form, formApi] = useVbenForm({
   wrapperClass: 'grid-cols-1',
   handleSubmit: async (values: Record<string, any>) => {
     await (isUpdate.value
-      ? menuApi.fetchUpdateMenu(JSON.stringify(values))
-      : menuApi.fetchCreateMenu(JSON.stringify(values)));
+      ? menuApi.fetchUpdateMenu(
+          JSON.stringify(values) as unknown as UpdateMenuRequest,
+        )
+      : menuApi.fetchCreateMenu(
+          JSON.stringify(values) as unknown as CreateMenuRequest,
+        ));
     await drawerApi.close();
   },
 });
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<Record<string, any>>({
   closeOnPressEscape: true,
   class: 'w-[75%]',
   onCancel() {
@@ -594,7 +598,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       formApi.resetForm();
-      createObject.value = drawerApi.getData<Record<string, any>>();
+      createObject.value = drawerApi.getData() as unknown as CreateMenuRequest;
       if (createObject.value.id) {
         isUpdate.value = true;
         handleSetFormValue(createObject.value);
@@ -615,7 +619,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
 });
 
-function handleSetFormValue(row) {
+function handleSetFormValue(row: any) {
   formApi.setValues(row);
 }
 

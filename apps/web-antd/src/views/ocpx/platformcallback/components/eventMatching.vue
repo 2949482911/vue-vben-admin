@@ -4,7 +4,7 @@ import { message, Button } from 'ant-design-vue';
 import {platformCallbackApi, behavioraPlatformApi} from "#/api/core/ocpx";
 import {$t} from '@vben/locales';
 import {useVbenForm} from '#/adapter/form';
-import type { eventMappingType, BehavioraPlatformItem } from '#/api/models/ocpx';
+import type { eventMappingType } from '#/api/models/ocpx';
 // 定义数据类型接口
 interface EventItem {
   id: string;
@@ -21,11 +21,19 @@ interface BehaviorPlatformInfo  {
   label: string;
   platform: string;
 }
+// 编辑态事件映射规则的真实运行时形状（共享类型 eventMappingType 未覆盖）
+interface EditEventMappingRule {
+  behaviorPlatformId: string;
+  behaviorPlatform: string;
+  behaviorPlatformName?: string;
+  behaviorEventTypes: Array<{ value: string; label: string }>;
+  callbackEventType: { value: string; label: string };
+}
 const props = defineProps<{
   callbackPlatform: string;
   editEventMappingRules: eventMappingType[];
 }>();
-const behaviorPlatfrom = ref<BehaviorPlatformInfo>({});
+const behaviorPlatfrom = ref<BehaviorPlatformInfo>({} as BehaviorPlatformInfo);
 const emit = defineEmits(['eventSubmit']);
 const mappingList = ref<any[]>([]);
 const [Form, formApi] = useVbenForm({
@@ -59,7 +67,7 @@ const [Form, formApi] = useVbenForm({
         valueField: 'id',
         labelField: 'name',        // 两个接口返回的数据都有 name 字段，直接固定
         resultField: 'items',
-        onSelect: async (value: string, node: any) => {
+        onSelect: async (_value: string, node: any) => {
           behaviorPlatfrom.value = node;
           const res =  await platformCallbackApi.fetchPlatformCallbackBehaviorTypeItem(node.platform);
           leftItems.value = res.map(item => {
@@ -91,7 +99,7 @@ const selectedLeftList = ref<string[]>([]);
 // 检查左侧事件是否已经存在于已确认的对应关系中
 function isLeftEventMapped(leftId: string): boolean {
   return mappingList.value.some(group => 
-    group.leftItems.some((item: EventItem) => item.value === leftId)
+    group.leftItems.some((item: { value: string }) => item.value === leftId)
   );
 }
 function handleLeftClick(item: LeftEventItem) {
@@ -124,7 +132,7 @@ function handleRightClick(item: EventItem) {
   selectedRightId.value = item.id;
   // 重新为所有已选中的左侧事件建立连线
   for (let i = 0; i < selectedLeftList.value.length; i++) {
-    const leftId = selectedLeftList.value[i];
+    const leftId = selectedLeftList.value[i]!;
     addConnection(leftId, item.id);
   }
   nextTick(() => {
@@ -192,7 +200,7 @@ function connectAll() {
   const arrowSize = 6;
   const offset = 4;
   for(let i = 0; i < connections.value.length; i++) {
-    const conn = connections.value[i];
+    const conn = connections.value[i]!;
     const leftItem = document.querySelector(`.left-item[data-id="${conn.leftId}"]`);
     const rightItem = document.querySelector(`.right-item[data-id="${conn.rightId}"]`);
     const rightColumn = document.querySelector('.right-column');
@@ -233,7 +241,8 @@ function connectAll() {
   }
 }
 function setMappingList(value: eventMappingType[]) {
-  value.forEach(item => {
+  value.forEach((raw) => {
+    const item = raw as unknown as EditEventMappingRule;
     if(item.callbackEventType.value) {
       mappingList.value.push({
         label: item.behaviorPlatformName,
@@ -261,20 +270,20 @@ function setMappingList(value: eventMappingType[]) {
       })
     }
     const group = map.get(conn.rightId)
-    if (!group.leftItems.some(l => l.value === conn.leftId)) {
+    if (!group.leftItems.some((l: { value: string }) => l.value === conn.leftId)) {
       group.leftItems.push({ value: conn.leftId, label: leftItem.name })
     }
   })
   const mappingData = Array.from(map.values())
   mappingList.value = [...mappingData, ...mappingList.value]
 }
-function deleteConnection(leftId: string, leftValue:string,rightId: string) {
+function deleteConnection(leftId: string, leftValue:string,_rightId: string) {
   // connections.value = connections.value.filter(
   //   conn => conn.leftId !== leftId || conn.rightId !== rightId
   // );
   // selectedLeftList.value = selectedLeftList.value.filter(id => id !== leftId);
   mappingList.value = mappingList.value.filter(item => {
-    item.leftItems = item.leftItems.filter(l => l.label !== leftId);
+    item.leftItems = item.leftItems.filter((l: { label: string }) => l.label !== leftId);
     return item.leftItems.length > 0;
   });
   eventMappingRules.value = eventMappingRules.value.filter(item => {
@@ -356,12 +365,13 @@ watch(() => props.callbackPlatform,async (val) => {
 watch(() => props.editEventMappingRules,async (val) => { 
   if(val) {
     eventMappingRules.value = val.map(item => {
+      const rule = item as unknown as EditEventMappingRule;
       return {
-        behaviorPlatformId: item.behaviorPlatformId,
-        behaviorPlatform: item.behaviorPlatform,
-        behaviorPlatformName: item.behaviorPlatformName,
-        behaviorEventTypes: item.behaviorEventTypes.map(item => item.value),
-        callbackEventType: item.callbackEventType.value
+        behaviorPlatformId: rule.behaviorPlatformId,
+        behaviorPlatform: rule.behaviorPlatform,
+        behaviorPlatformName: rule.behaviorPlatformName,
+        behaviorEventTypes: rule.behaviorEventTypes.map(el => el.value),
+        callbackEventType: rule.callbackEventType.value
       }
     });
     setMappingList(val);

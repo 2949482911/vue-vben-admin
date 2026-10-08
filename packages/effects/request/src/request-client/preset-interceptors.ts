@@ -59,7 +59,7 @@ export const authenticateResponseInterceptor = ({
 }): ResponseInterceptorConfig => {
   return {
     rejected: async (error) => {
-      const { config, response, data } = error;
+      const { config, data } = error;
       // 如果不是 401 错误，直接抛出异常
       if (data?.code !== 401) {
         throw error;

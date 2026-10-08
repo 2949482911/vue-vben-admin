@@ -10,12 +10,6 @@ import type {
   DspUpdateItem,
   PushCampaignItem
 } from '#/api/models';
-import {
-  BatchOptionsType,
-  PLATFORM,
-  STATUS_SELECT,
-  TABLE_COMMON_COLUMNS,
-} from '#/constants/locales';
 import { huaweiCampaignApi, honorCampaignApi, pushCampaignApi } from '#/api/core';
 import {
   tagsNameOptions,
@@ -45,7 +39,7 @@ interface selectOptions {
 }
 const title = ref<string>('');
 const emit = defineEmits(['pageReload']);
-const objectRequest = ref<DspUpdateItem>({});
+const objectRequest = ref<DspUpdateItem>({} as DspUpdateItem);
 const isUpdate = ref<Boolean>(false);
 const TypeOptions = ref<selectOptions[]>()
 const titleColor = ref('');
@@ -226,7 +220,7 @@ const [Form, formApi] = useVbenForm({
               if (!tagSetMap[categoryName]) {
                 tagSetMap[categoryName] = [];
               }
-              if (singleSelectTags.includes(categoryName)) {
+              if (singleSelectTags.includes(categoryName as TagsName)) {
                 if (tagSetMap[categoryName].length === 0) {
                   tagSetMap[categoryName] = [value];
                 }
@@ -309,9 +303,9 @@ const [Form, formApi] = useVbenForm({
     } else {
       // 调用新增接口
       if(modalType.value === 'huawei') {  
-        await huaweiCampaignApi.fetchCreateCampaign(addRequest as PushCampaignItem);
+        await huaweiCampaignApi.fetchCreateCampaign(addRequest as unknown as PushCampaignItem);
       } else if(modalType.value === 'honor') {
-        await honorCampaignApi.fetchCreateCampaign(addRequest as PushCampaignItem);
+        await honorCampaignApi.fetchCreateCampaign(addRequest as unknown as PushCampaignItem);
       }
       message.success('新增成功');
      }
@@ -1234,7 +1228,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (!isOpen) {
       await drawerApi.close();
     } else {
-      const data = await drawerApi.getData();
+      const data = (await drawerApi.getData()) as DspUpdateItem & { type: string };
       if(data.id) {
         objectRequest.value = data as DspUpdateItem;
         formApi.setValues(objectRequest.value);

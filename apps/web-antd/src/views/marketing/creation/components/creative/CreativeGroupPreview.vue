@@ -47,12 +47,6 @@ const groupEntries = computed(() => {
   return entries;
 });
 
-// 判断是否为视频
-function isVideo(fileName: string): boolean {
-  const ext = fileName.split('.').pop()?.toLowerCase();
-  return ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext || '');
-}
-
 // 获取每个创意组中视频数量最多的那个作为显示
 function getGroupMaterialCount(group: Material): number {
   return group.video?.length || group.image?.length || 0;

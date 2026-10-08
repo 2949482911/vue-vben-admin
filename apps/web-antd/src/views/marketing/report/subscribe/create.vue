@@ -13,7 +13,7 @@ import MetricTemplate from "./components/metricTemplate.vue";
 import { DAYLIST, TIMELIST, WEEKLIST } from "#/constants/locales.js";
 
 const emit = defineEmits(["pageReload"]);
-const objectRequest = ref<ReportSubscriptionItem>({});
+const objectRequest = ref<UpdateSubscribeType>({} as UpdateSubscribeType);
 const isUpdate = ref<Boolean>(false);
 const metricList = ref<string[]>([]);
 const filterCriteria = ref<searchDataFilter>();
@@ -248,9 +248,9 @@ const parsePushConfig = (pushConfig: { [key: string]: string[] }[] = []) => {
   return { pushMethod, emailAddress };
 };
 
-async function handleSetFormValue(row: ReportSubscriptionItem) {
+async function handleSetFormValue(row: UpdateSubscribeType) {
   const metricIds = Array.isArray(row.queryMetric) ? row.queryMetric : [];
-  const subscribeDateTimeRange = row.subscribeDateTimeRange?.split("~");
+  const subscribeDateTimeRange = (row.subscribeDateTimeRange as unknown as string)?.split("~");
   const { pushMethod, emailAddress } = parsePushConfig(row.pushConfig);
   const status = row.status === 1 ? true : false;
   formApi.setValues({
@@ -270,7 +270,7 @@ async function handleSetFormValue(row: ReportSubscriptionItem) {
   filterCriteria.value = row.config;
 }
 
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<UpdateSubscribeType>({
   closeOnPressEscape: false,
   async onCancel() {
     await formApi.setFieldValue("queryMetric", null);
@@ -293,7 +293,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = drawerApi.getData<ReportSubscriptionItem>();
+      objectRequest.value = drawerApi.getData()!;
       if (objectRequest.value?.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
@@ -301,7 +301,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         isUpdate.value = false;
         metricList.value = [];
         await formApi.resetForm();
-        filterCriteria.value = {};
+        filterCriteria.value = {} as searchDataFilter;
       }
     }
   }

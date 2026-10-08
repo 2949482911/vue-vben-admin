@@ -1,5 +1,5 @@
 <script lang="ts" setup name="CreateEventSettlement">
-import type {CreateEventSettlementRequest, UpdateEventSettlementRequest,} from '#/api/models';
+import type {UpdateEventSettlementRequest,} from '#/api/models';
 import {Page, useVbenModal} from '@vben/common-ui';
 import {ref} from 'vue';
 import {$t} from '@vben/locales';
@@ -22,7 +22,8 @@ const settlementsRule = ref<{
 
 
 
-const objectRequest = ref<CreateEventSettlementRequest>({
+const objectRequest = ref<UpdateEventSettlementRequest>({
+  id: '',
   name: '',
   platform: '',
   remark: '',
@@ -137,7 +138,7 @@ const [Form, formApi] = useVbenForm({
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
 });
 
-const [Modal, modalApi] = useVbenModal({
+const [Modal, modalApi] = useVbenModal<UpdateEventSettlementRequest>({
   fullscreen: true,
   fullscreenButton: false,
   closeOnPressEscape: false,
@@ -163,7 +164,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      objectRequest.value = modalApi.getData<Record<string, any>>();
+      objectRequest.value = modalApi.getData()!;
       if (objectRequest.value.id) {
         isUpdate.value = true;
         handleSetFormValue(objectRequest.value);
@@ -229,7 +230,7 @@ function handlePriceChange(row: any, newValue: number) {
   if (index !== -1) {
     // 创建新对象触发响应式更新
     const updatedItem = {
-      ...settlementsRule.value[index],
+      ...settlementsRule.value[index]!,
       price: newValue
     };
     settlementsRule.value.splice(index, 1, updatedItem);
@@ -255,7 +256,7 @@ const title: string = objectRequest.value
       <Card>
         <Grid>
           <template #price="{ row }">
-            <InputNumber :value="row.price" @change="(value) => handlePriceChange(row, value)"/>
+            <InputNumber :value="row.price" @change="(value) => handlePriceChange(row, value as number)"/>
           </template>
         </Grid>
       </Card>
