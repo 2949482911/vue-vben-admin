@@ -5,14 +5,14 @@ import type { TencentActionButtonValue } from "./actionButton";
 /**
  * 行动按钮组件（腾讯 creative_components.action_button）
  * 字段：button_text（按钮文案）、mini_program_button_text（小程序按钮文案）、jump_info（落地页结构）
- * 文案只能从媒体预设的文案里选，见 Tencent_action_button_text
+ * 文案只能从媒体预设的文案里选，见 Tencent_preset_button_text
  */
 import type { AccountInfo } from "#/views/marketing/creation/creation";
 
 import { Select } from "ant-design-vue";
 
 import { RuleMethod } from "#/views/marketing/creation/creation_enums";
-import { Tencent_action_button_text } from "#/views/marketing/creation/tencent/tencent_enums";
+import { Tencent_preset_button_text } from "#/views/marketing/creation/tencent/tencent_enums";
 
 import CreativeComponentPanel from "../CreativeComponentPanel.vue";
 
@@ -60,7 +60,7 @@ function previewText(value?: TencentActionButtonValue) {
         <div class="min-w-0">
           <Select
             :value="value.button_text"
-            :options="Tencent_action_button_text"
+            :options="Tencent_preset_button_text"
             allow-clear
             class="w-[300px]"
             placeholder="请选择按钮文案"
@@ -79,7 +79,7 @@ function previewText(value?: TencentActionButtonValue) {
         <div class="min-w-0">
           <Select
             :value="value.mini_program_button_text"
-            :options="Tencent_action_button_text"
+            :options="Tencent_preset_button_text"
             allow-clear
             class="w-[300px]"
             placeholder="请选择按钮文案"

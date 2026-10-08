@@ -14,7 +14,8 @@ import { Input, Select, Switch } from "ant-design-vue";
 import { RuleMethod } from "#/views/marketing/creation/creation_enums";
 import {
   Tencent_floating_zone_info_type,
-  Tencent_floating_zone_type
+  Tencent_floating_zone_type,
+  Tencent_preset_button_text
 } from "#/views/marketing/creation/tencent/tencent_enums";
 
 import CreativeComponentPanel from "../CreativeComponentPanel.vue";
@@ -153,18 +154,18 @@ function setZoneImage(
           按钮文案
         </span>
         <div class="min-w-0">
-          <Input
+          <Select
             :value="value.floating_zone_button_text"
-            :maxlength="10"
-            class="!w-[300px]"
-            placeholder="如：立即查看"
+            :options="Tencent_preset_button_text"
+            allow-clear
+            class="w-[300px]"
+            placeholder="请选择按钮文案"
             @update:value="
-              (val: string) =>
-                patch((d) => (d.floating_zone_button_text = val))
+              (val: any) => patch((d) => (d.floating_zone_button_text = val))
             "
           />
           <div class="mt-1 text-xs text-black/45">
-            floating_zone_button_text，最多 10 个等宽字符
+            floating_zone_button_text，只能取媒体预设文案
           </div>
         </div>
       </div>

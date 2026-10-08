@@ -1757,10 +1757,10 @@ export const Tencent_floating_zone_info_type = [
 ];
 
 /**
- * 行动按钮支持的文案
- * creative_components.action_button[].value 的 button_text / mini_program_button_text 只能取这批预设文案
+ * 媒体预设的按钮文案
+ * 行动按钮的 button_text / mini_program_button_text、浮层卡片的 floating_zone_button_text 共用这一套
  */
-export const Tencent_action_button_text = [
+export const Tencent_preset_button_text = [
   {
     label: "了解更多",
     value: "了解更多"

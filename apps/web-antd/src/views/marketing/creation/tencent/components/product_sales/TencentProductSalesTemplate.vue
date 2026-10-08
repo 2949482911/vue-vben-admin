@@ -574,21 +574,6 @@ const adgroupShowLabel: Record<string, string> = {
         />
       </div>
       <div class="pane">
-        <TencentProductSelector
-          :product="creationInfo?.configData.product"
-          :account-info="creationInfo.accountInfo"
-          @update:product="updateProduct"
-        />
-      </div>
-      <div class="pane">
-        <AudiencePackageSelector
-          :audience="creationInfo?.configData.audience"
-          :account-info="creationInfo.accountInfo"
-          :platform="Platform.TENCENT"
-          @update:audience="updateAudiencePackage"
-        />
-      </div>
-      <div class="pane">
         <TencentAdgroup
           :form-fields="adgroupFormFields"
           :adgroup-show-label="adgroupShowLabel"
@@ -598,10 +583,27 @@ const adgroupShowLabel: Record<string, string> = {
         />
       </div>
       <div class="pane">
+        <TencentProductSelector
+          :product="creationInfo?.configData.product"
+          :account-info="creationInfo.accountInfo"
+          @update:product="updateProduct"
+        />
+      </div>
+
+
+      <div class="pane">
         <CreativeGroupSelector
           :account-info="creationInfo.accountInfo"
           :material="creationInfo.configData.material"
           @update:material="updateMaterial"
+        />
+      </div>
+      <div class="pane">
+        <AudiencePackageSelector
+          :audience="creationInfo?.configData.audience"
+          :account-info="creationInfo.accountInfo"
+          :platform="Platform.TENCENT"
+          @update:audience="updateAudiencePackage"
         />
       </div>
       <div class="pane">

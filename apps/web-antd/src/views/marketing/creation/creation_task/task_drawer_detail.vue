@@ -26,7 +26,7 @@ import type {
  *      3 完成 / 4 失败 / 5 超时属于终态，拿到即停轮询。
  *      查询期间整个面板盖上 Loading 遮罩（带「加载中...」文案），查完自动淡出。
  */
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import { Loading, VbenButton, VbenIconButton } from '@vben/common-ui';
 import { CircleAlert, Copy, RotateCw } from '@vben/icons';
@@ -73,9 +73,19 @@ const emit = defineEmits<{
 const taskResult = ref<AdvertiserCreateResultResponse | null>(null);
 const loading = ref(false);
 const error = ref<null | string>(null);
-let pollTimer: null | ReturnType<typeof setInterval> = null;
+/** 轮询定时器：每次查完再排下一次，不用 setInterval（避免请求慢时堆叠、也便于随时停） */
+let pollTimer: null | ReturnType<typeof setTimeout> = null;
+/** 本轮轮询锁定的任务 id：开始轮询时确定，循环内部只认它，不依赖 props 的实时状态 */
+let pollingTaskId: null | string = null;
+/** 是否自动继续下一次（false 表示只查一次） */
+let autoNext = true;
 /** 已轮询次数，用于兜底上限 */
 let pollCount = 0;
+/** 轮询进度（展示用）：累计查询次数与最近一次查询时间 */
+const polledCount = ref(0);
+const lastPolledAt = ref('');
+/** 是否仍在轮询：终态（3 完成 / 4 失败 / 5 超时）或到达次数上限后置 false */
+const pollingActive = ref(false);
 /** 轮询间隔（毫秒） */
 const POLL_INTERVAL = 3000;
 /** 最大轮询次数（3s × 200 次 = 10 分钟），避免任务长期无回调时无限轮询 */
@@ -87,13 +97,14 @@ const MAX_POLL_COUNT = 200;
  * 拿到终态（3 完成 / 4 失败 / 5 超时）就停并通知父级，接口异常也继续重试到次数上限。
  */
 async function fetchTaskResult() {
-  if (!props.task?.id) return;
+  if (!pollingTaskId) return;
+  const startedAt = Date.now();
   loading.value = true;
   error.value = null;
   let status: null | number = null;
   try {
     taskResult.value = await creationTaskApi.fetchVivoSubmitResult({
-      id: String(props.task.id),
+      id: pollingTaskId,
     });
     status = liveStatus.value;
   } catch (e: any) {
@@ -103,32 +114,77 @@ async function fetchTaskResult() {
   }
 
   pollCount++;
+  polledCount.value = pollCount;
+  lastPolledAt.value = new Date().toLocaleTimeString();
 
   if (status === 3 || status === 4 || status === 5) {
     stopPolling();
     emit('taskCompleted', status);
-  } else if (pollCount >= MAX_POLL_COUNT) {
+    return;
+  }
+  if (pollCount >= MAX_POLL_COUNT) {
     stopPolling();
+    return;
+  }
+  // 排下一次：按本次查询的「开始时间」对齐 3s 一跳，接口耗时不计入间隔
+  // （请求本身超过 3s 时下一次立即执行，不会堆积请求）
+  if (autoNext) {
+    scheduleNext(Math.max(0, POLL_INTERVAL - (Date.now() - startedAt)));
+  }
+}
+
+function scheduleNext(delay: number) {
+  clearTimer();
+  pollTimer = setTimeout(fetchTaskResult, delay);
+}
+
+function clearTimer() {
+  if (pollTimer) {
+    clearTimeout(pollTimer);
+    pollTimer = null;
   }
 }
 
 /**
  * 开始轮询：先立即查一次，之后每 3s 一次
  * 不复用列表行快照里的状态做预判（快照可能已过期），是否停止只由接口状态决定。
+ * @param id 任务 id
+ * @param auto 是否继续排下一次，false 表示只查一次
  */
-function startPolling() {
-  stopPolling();
+function startPolling(id: string, auto = true) {
+  clearTimer();
   pollCount = 0;
+  polledCount.value = 0;
+  pollingTaskId = id;
+  autoNext = auto;
+  pollingActive.value = auto;
   fetchTaskResult();
-  pollTimer = setInterval(fetchTaskResult, POLL_INTERVAL);
 }
 
 function stopPolling() {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
+  clearTimer();
+  pollingTaskId = null;
+  pollingActive.value = false;
+}
+
+/**
+ * 标签页重新可见时补查一次
+ * 浏览器会对后台标签页的定时器降频甚至冻结，回到前台时立刻对齐一次状态
+ */
+function onVisibilityChange() {
+  if (document.visibilityState === 'visible' && pollingTaskId) {
+    fetchTaskResult();
   }
 }
+
+onMounted(() => {
+  document.addEventListener('visibilitychange', onVisibilityChange);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', onVisibilityChange);
+  stopPolling();
+});
 
 // ==================== 状态与计数（taskResult 优先，回落列表快照） ====================
 
@@ -478,17 +534,18 @@ watch(
   (id) => {
     stopPolling();
     taskResult.value = null;
+    polledCount.value = 0;
+    lastPolledAt.value = '';
     if (!id) return;
     if (props.autoPoll === false) {
-      fetchTaskResult();
+      // 不自动轮询：只查一次
+      startPolling(String(id), false);
     } else {
-      startPolling();
+      startPolling(String(id));
     }
   },
   { immediate: true },
 );
-
-onBeforeUnmount(stopPolling);
 </script>
 
 <template>
@@ -627,6 +684,14 @@ onBeforeUnmount(stopPolling);
         </Descriptions.Item>
         <Descriptions.Item label="开始时间">{{ task.startTime || '-' }}</Descriptions.Item>
         <Descriptions.Item label="结束时间">{{ task.endTime || '-' }}</Descriptions.Item>
+        <!-- 轮询进度：任务还在处理中时可以据此确认结果查询是否还在跑 -->
+        <Descriptions.Item label="结果轮询">
+          <span v-if="polledCount > 0" class="inline-flex items-center gap-2">
+            已查询 {{ polledCount }} 次 · 最近 {{ lastPolledAt }}
+            <Tag v-if="!pollingActive" :bordered="false">已停止</Tag>
+          </span>
+          <span v-else class="text-muted-foreground">未开始</span>
+        </Descriptions.Item>
       </Descriptions>
     </Card>
 
