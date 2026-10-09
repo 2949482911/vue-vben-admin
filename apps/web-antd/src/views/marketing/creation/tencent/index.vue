@@ -29,7 +29,7 @@ import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
 
 import { message, Select } from "ant-design-vue";
 
-import { Platform } from "#/constants/enums";
+import { Platform, SubType } from "#/constants/enums";
 import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
@@ -488,9 +488,11 @@ async function initCreationInfo() {
       }
     },
     configurationConfig: {
-      platform: Platform.TENCENT
+      platform: Platform.TENCENT,
+      subType: SubType.TENCENT
     },
     platform: Platform.TENCENT,
+    subType: SubType.TENCENT,
     project: {
       appId: "",
       downloadUrl: "",
@@ -775,9 +777,11 @@ const creationInfo = ref<TencentCreation>({
   },
   configurationConfig: {
     platform: Platform.TENCENT,
+    subType: SubType.TENCENT,
     template: "wechat_mini_game"
   },
   platform: Platform.TENCENT,
+  subType: SubType.TENCENT,
   project: {
     projectId: "",
     projectName: "",

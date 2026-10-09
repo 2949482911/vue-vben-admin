@@ -69,6 +69,24 @@ export enum Platform {
   TAQU = "taqu"
 }
 
+/**
+ * 创编媒体子类型：同一平台下的不同版本/产品线
+ * 策略组按此区分存、查、筛选，避免同平台不同版本混在一起
+ */
+export enum SubType {
+  /** VIVO 旧版 */
+  VIVO = "vivo",
+  /** VIVO 新版 */
+  VIVO_NEW = "vivo2.0",
+  /** 巨量引擎（标准/竞价） */
+  BYTEDANCE = "bytedance",
+  /** 巨量引擎-智擎 */
+  BYTEDANCE_STD = "bytedance_std",
+  OPPO = "oppo",
+  TENCENT = "tencent",
+  HUAWEI_STORE = "huawei_store",
+}
+
 export enum RuleType {
   IMMEDIATELY = "immediately",
 }

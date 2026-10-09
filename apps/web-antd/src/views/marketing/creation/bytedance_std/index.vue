@@ -36,7 +36,7 @@ import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
 
 import { message, Select } from "ant-design-vue";
 
-import { Platform } from "#/constants/enums";
+import { Platform, SubType } from "#/constants/enums";
 import { BYTEDANCE_STD_MARKETING_TYPE } from "#/views/marketing/creation/bytedance_std/enums";
 import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
@@ -409,9 +409,12 @@ const creationInfo = ref<StdCreation>({
   },
   configurationConfig: {
     platform: Platform.BYTEDANCE,
+    subType: SubType.BYTEDANCE_STD,
+    showSubType: true,
     template: "base_template"
   },
   platform: Platform.BYTEDANCE,
+  subType: SubType.BYTEDANCE_STD,
   project: {
     projectId: "",
     projectName: "",

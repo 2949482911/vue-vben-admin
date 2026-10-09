@@ -15,6 +15,7 @@ const props = withDefaults(defineProps<{
 });
 
 const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnPressEscape: true,
   onCancel() {
     reportStr.value = ''
     drawerApi.close();

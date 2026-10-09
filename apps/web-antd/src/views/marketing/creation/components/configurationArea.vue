@@ -557,7 +557,7 @@ function reuseStrategyGroup() {
       </div>
     </RuleModal>
 
-    <StrategyGroupModal @update:reuse="updateStrategyReuse" :platform="configurationConfig.platform"/>
+    <StrategyGroupModal @update:reuse="updateStrategyReuse" :platform="configurationConfig.platform" :sub-type="configurationConfig.subType" :show-sub-type="configurationConfig.showSubType"/>
   </div>
 </template>
 <style lang="scss">

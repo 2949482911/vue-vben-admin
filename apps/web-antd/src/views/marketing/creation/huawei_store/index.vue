@@ -28,7 +28,7 @@ import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
 
 import { message, Select, Space } from "ant-design-vue";
 
-import { Platform } from "#/constants/enums";
+import { Platform, SubType } from "#/constants/enums";
 import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
 import BatchTaskResultDrawer
@@ -417,6 +417,7 @@ const creationInfo = ref<HuaWeiStoreCreation>({
     }
   },
   platform: Platform.HUAWEI_STORE,
+  subType: SubType.HUAWEI_STORE,
   project: {
     projectId: "",
     projectName: "",
@@ -435,7 +436,8 @@ const creationInfo = ref<HuaWeiStoreCreation>({
     creativeCount: 1
   },
   configurationConfig: {
-    platform: Platform.HUAWEI_STORE
+    platform: Platform.HUAWEI_STORE,
+    subType: SubType.HUAWEI_STORE
   }
 });
 

@@ -11,7 +11,7 @@ import type {
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
 
-import { AdRuleKey, CampaignRuleKey, Platform } from "#/constants/enums";
+import { AdRuleKey, CampaignRuleKey, Platform, SubType } from "#/constants/enums";
 import { renderProjectTitle } from "#/utils/customName";
 import {
   getAudience,
@@ -604,6 +604,7 @@ export function defaultVivoV2ConfigData(): VivoV2ConfigData {
 export function defaultVivoV2Creation(): VivoV2Creation {
   return {
     platform: Platform.VIVO,
+    subType: SubType.VIVO_NEW,
     version: VIVO_V2_VERSION,
     project: {
       projectId: "",
@@ -634,6 +635,8 @@ export function defaultVivoV2Creation(): VivoV2Creation {
     },
     configurationConfig: {
       platform: Platform.VIVO,
+      subType: SubType.VIVO_NEW,
+      showSubType: true,
       template: "base_template"
     }
   };

@@ -9,7 +9,7 @@ import { Button, message, Tag } from "ant-design-vue";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { projectApi, strategyGropApi } from "#/api/core";
 import { Platform } from "#/constants/enums";
-import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { BatchOptionsType, PLATFORM, SUB_TYPE, TABLE_COMMON_COLUMNS, getSubTypeLabel } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
 import { BYTEDANCE_STD } from "#/views/marketing/creation/bytedance_std/bytedance";
@@ -45,6 +45,9 @@ function getLasterVersion(platform: string, version: string): boolean {
 interface Props {
   projectId?: string;
   platform?: string;
+  subType?: string;
+  /** 是否展示子类型查询与列，默认不展示（单子类型媒体无需） */
+  showSubType?: boolean;
   config?: Object;
 }
 
@@ -81,7 +84,22 @@ const formOptions: VbenFormProps = {
       },
       fieldName: "platform",
       label: "平台"
-    }
+    },
+    ...(props.showSubType
+      ? [
+          {
+            component: "Select",
+            defaultValue: props.subType,
+            componentProps: {
+              allowClear: true,
+              options: SUB_TYPE,
+              placeholder: `${$t("common.choice")}`
+            },
+            fieldName: "subType",
+            label: "子类型"
+          }
+        ]
+      : [])
   ],
   // 控制表单是否显示折叠按钮
   showCollapseButton: true,
@@ -113,6 +131,16 @@ const gridOptions: VxeGridProps<StrategyGropType> = {
       // 媒体列渲染成中文带色标签，映射取自 constants/platform
       slots: { default: "platform" }
     },
+    ...(props.showSubType
+      ? [
+          {
+            field: "subType",
+            title: `子类型`,
+            width: "auto",
+            slots: { default: "subType" }
+          }
+        ]
+      : []),
     {
       field: "projectName",
       title: `项目`,
@@ -175,7 +203,7 @@ function openCreateModal(row: StrategyGropType) {
   if (row.id) {
     createObjectApi.setData(row);
   } else {
-    createObjectApi.setData({ projectId: props.projectId });
+    createObjectApi.setData({ projectId: props.projectId, subType: props.subType });
   }
   createObjectApi.open();
 }
@@ -188,6 +216,9 @@ function openCreateModal(row: StrategyGropType) {
           <Tag :bordered="false" :color="getPlatformColor(row.platform)">
             {{ getPlatformLabel(row.platform) }}
           </Tag>
+        </template>
+        <template #subType="{ row }">
+          {{ getSubTypeLabel(row.subType) }}
         </template>
         <template #status="{ row }">
           <div>

@@ -8,9 +8,11 @@
 import type {
   ActionType,
   ExecutionMode,
+  HostingDecisionStatus,
   HostingStatus,
   HostingTarget,
   LogResult,
+  RiskLevel,
   RulesMode,
   RuleType
 } from "#/api/models/ai_hosting";
@@ -93,7 +95,8 @@ export const LOG_RESULT_OPTIONS = [
   { label: "成功", value: "success" as LogResult, color: "green" },
   { label: "失败", value: "failed" as LogResult, color: "red" },
   { label: "执行中", value: "pending" as LogResult, color: "blue" },
-  { label: "已回滚", value: "rollback" as LogResult, color: "orange" }
+  { label: "已回滚", value: "rollback" as LogResult, color: "orange" },
+  { label: "上报失败", value: "report_failed" as LogResult, color: "red" }
 ];
 
 // ==================== 标签映射 ====================
@@ -149,3 +152,84 @@ export const OPERATOR_OPTIONS = [
   { label: "等于", value: "eq" },
   { label: "不等于", value: "neq" }
 ];
+
+// ==================== 决策单 / 审核台 ====================
+
+/** 决策单状态选项（含 Tag 颜色） */
+export const DECISION_STATUS_OPTIONS: Array<{
+  color: string;
+  label: string;
+  value: HostingDecisionStatus;
+}> = [
+  { label: "待审核", value: "pending", color: "orange" },
+  { label: "已批准", value: "approved", color: "blue" },
+  { label: "已拒绝", value: "rejected", color: "default" },
+  { label: "执行中", value: "executing", color: "cyan" },
+  { label: "已执行", value: "executed", color: "green" },
+  { label: "执行失败", value: "failed", color: "red" },
+  { label: "已过期", value: "expired", color: "default" }
+];
+
+/** 决策单状态 → { label, color } */
+export const DECISION_STATUS_MAP: Record<string, { color: string; label: string }> =
+  Object.fromEntries(DECISION_STATUS_OPTIONS.map((s) => [s.value, s]));
+
+/** 风险等级选项 */
+export const RISK_LEVEL_OPTIONS: Array<{
+  color: string;
+  label: string;
+  value: RiskLevel;
+}> = [
+  { label: "高风险", value: "high", color: "red" },
+  { label: "中风险", value: "medium", color: "orange" },
+  { label: "低风险", value: "low", color: "green" }
+];
+
+/** 风险等级 → { label, color } */
+export const RISK_LEVEL_MAP: Record<string, { color: string; label: string }> =
+  Object.fromEntries(RISK_LEVEL_OPTIONS.map((r) => [r.value, r]));
+
+/** 审核留痕结论 → 中文 */
+export const AUDIT_CONCLUSION_MAP: Record<string, string> = {
+  created: "创建决策单",
+  ai_approve: "AI 审核通过",
+  ai_reject: "AI 审核拒绝",
+  human_approve: "人工通过",
+  human_reject: "人工拒绝",
+  execute_success: "执行成功",
+  execute_failed: "执行失败"
+};
+
+/** 审核者类型 → 中文 */
+export const AUDITOR_TYPE_MAP: Record<string, string> = {
+  SYSTEM: "系统",
+  AI: "AI",
+  HUMAN: "人工"
+};
+
+/** 本期后端可自动执行的动作 */
+export const AUTO_EXECUTABLE_ACTIONS: string[] = ["pause_ad", "resume_ad"];
+
+/** 监控层级 → 中文（含决策单可能出现的 adgroup） */
+export const TARGET_LEVEL_LABEL: Record<string, string> = {
+  advertiser: "账户",
+  campaign: "计划",
+  adgroup: "广告组",
+  promotion: "广告"
+};
+
+// ==================== 触发留痕（airflow 上报） ====================
+
+/** 触发留痕结果选项 */
+export const TRIGGER_RESULT_OPTIONS: Array<{
+  color: string;
+  label: string;
+  value: LogResult;
+}> = [
+  { label: "待审核", value: "pending", color: "orange" },
+  { label: "上报失败", value: "report_failed", color: "red" }
+];
+
+/** 触发留痕结果 → { label, color } */
+export const TRIGGER_RESULT_MAP: Record<string, { color: string; label: string }> =
+  Object.fromEntries(TRIGGER_RESULT_OPTIONS.map((r) => [r.value, r]));

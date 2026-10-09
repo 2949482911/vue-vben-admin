@@ -23,7 +23,7 @@ import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
 
 import { message, Select } from "ant-design-vue";
 
-import { Platform } from "#/constants/enums";
+import { Platform, SubType } from "#/constants/enums";
 import BytedanceBaseTemplate
   from "#/views/marketing/creation/bytedance/components/base/base_template.vue";
 import BytedancePreviewArea
@@ -445,9 +445,12 @@ async function initCreationInfo() {
       awemeConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
     },
     configurationConfig: {
-      platform: Platform.BYTEDANCE
+      platform: Platform.BYTEDANCE,
+      subType: SubType.BYTEDANCE,
+      showSubType: true
     },
     platform: Platform.BYTEDANCE,
+    subType: SubType.BYTEDANCE,
     project: {
       projectId: "",
       projectName: "",
@@ -731,9 +734,12 @@ const creationInfo = ref<BytedanceCreation>({
   },
   configurationConfig: {
     platform: Platform.BYTEDANCE,
+    subType: SubType.BYTEDANCE,
+    showSubType: true,
     template: "base_template"
   },
   platform: Platform.BYTEDANCE,
+  subType: SubType.BYTEDANCE,
   project: {
     projectId: "",
     projectName: "",

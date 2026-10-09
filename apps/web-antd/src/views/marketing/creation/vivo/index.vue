@@ -27,7 +27,7 @@ import { useVbenModal } from "@vben/common-ui";
 
 import { message, Select } from "ant-design-vue";
 
-import { Platform } from "#/constants/enums";
+import { Platform, SubType } from "#/constants/enums";
 import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 import { VIVO_MARKETING_TYPE } from "#/views/marketing/creation/vivo/components/enums";
@@ -172,6 +172,7 @@ async function initCreationInfo() {
       }
     },
     platform: Platform.VIVO,
+    subType: SubType.VIVO,
     ruleInfo: {
       projectRuleKey: RuleKey.TARGET,
       projectCount: 1,
@@ -192,6 +193,8 @@ async function initCreationInfo() {
     },
     configurationConfig: {
       platform: Platform.VIVO,
+      subType: SubType.VIVO,
+      showSubType: true,
       template: "base_template"
     }
   };
@@ -340,6 +343,7 @@ const creationInfo = ref<VivoCreation>({
     }
   },
   platform: Platform.VIVO,
+  subType: SubType.VIVO,
   ruleInfo: {
     projectRuleKey: RuleKey.TARGET,
     projectCount: 1,
@@ -360,6 +364,8 @@ const creationInfo = ref<VivoCreation>({
   },
   configurationConfig: {
     platform: Platform.VIVO,
+    subType: SubType.VIVO,
+    showSubType: true,
     template: "base_template"
   }
 });

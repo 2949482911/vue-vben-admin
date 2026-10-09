@@ -5,6 +5,11 @@ import type {
   HostingTaskQueryParams,
   HostingLog,
   HostingLogQueryParams,
+  HostingAudit,
+  HostingDecision,
+  HostingDecisionQueryParams,
+  HostingReviewRequest,
+  HostingStats,
 } from '#/api/models/ai_hosting';
 import type { BatchOptions } from '#/api/models/core';
 import type { PageResponse } from '#/api/models/marketing';
@@ -14,12 +19,15 @@ import type { PageResponse } from '#/api/models/marketing';
  *
  * 后端服务前缀：/platform/ai_hosting
  * 需要后端配合实现以下接口：
- * - GET  /platform/ai_hosting/list          托管任务列表
- * - POST /platform/ai_hosting/create         创建托管任务
- * - POST /platform/ai_hosting/update         更新托管任务
- * - POST /platform/ai_hosting/batch_options  批量操作（暂停/恢复/删除）
- * - GET  /platform/ai_hosting/log/list       执行日志列表
- * - GET  /platform/ai_hosting/stats          托管统计概览
+ * - GET  /platform/ai_hosting/list                托管任务列表
+ * - POST /platform/ai_hosting/create               创建托管任务
+ * - POST /platform/ai_hosting/update               更新托管任务
+ * - POST /platform/ai_hosting/batch_options        批量操作（暂停/恢复/删除）
+ * - GET  /platform/ai_hosting/log/list             执行日志列表
+ * - GET  /platform/ai_hosting/stats                托管统计概览
+ * - GET  /platform/ai_hosting/decision/list        决策单列表（返回数组，非分页对象）
+ * - POST /platform/ai_hosting/decision/review      人工审核（批量）
+ * - GET  /platform/ai_hosting/decision/audits      审核与执行留痕
  */
 class AiHostingApi extends BaseApi {
   /** 托管任务列表 */
@@ -59,7 +67,28 @@ class AiHostingApi extends BaseApi {
 
   /** 托管统计概览 */
   fetchStats(params: { taskId?: string }) {
-    return requestClient.get(this.getServiceUrl('stats'), { params });
+    return requestClient.get<HostingStats>(this.getServiceUrl('stats'), { params });
+  }
+
+  /** 决策单列表（后端返回数组，非分页对象） */
+  fetchDecisionList(params: HostingDecisionQueryParams) {
+    return requestClient.get<HostingDecision[]>(
+      this.getServiceUrl('decision/list'),
+      { params },
+    );
+  }
+
+  /** 人工审核（批量）：通过并执行 / 拒绝，返回本次审批通过并执行成功的数量 */
+  fetchReviewDecision(data: HostingReviewRequest) {
+    return requestClient.post<number>(this.getServiceUrl('decision/review'), data);
+  }
+
+  /** 审核与执行留痕（按时间升序） */
+  fetchDecisionAudits(decisionId: number | string) {
+    return requestClient.get<HostingAudit[]>(
+      this.getServiceUrl('decision/audits'),
+      { params: { decisionId } },
+    );
   }
 }
 

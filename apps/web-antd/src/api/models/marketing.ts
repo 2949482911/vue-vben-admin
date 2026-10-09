@@ -830,12 +830,15 @@ export interface StrategyGropType<T = any> extends BaseItem {
   config: string;
   configObj: PlatformCreation<T>;
   version: string;
+  /** 媒体子类型，区分同平台下不同版本（如 vivo/vivo2.0、bytedance/bytedance_std） */
+  subType?: string;
 }
 
 export interface GetStrategyGropType extends PageRequestParams {
   name: string;
   platform: string;
   projectId: string;
+  subType?: string;
 }
 
 export interface UpdateStrategyGropType extends StrategyGropType {

@@ -1,256 +1,165 @@
 <script setup lang="ts" name="AiHostingList">
 /**
- * AI 智能托管 — 任务列表页
+ * AI 智能托管 — 页面
  *
- * 展示托管任务列表，支持创建/编辑/暂停/恢复/删除
- * 参考 metric/index.vue 的 useVbenVxeGrid + proxyConfig 模式
+ * 实时托管概览（KPI 驾驶舱）+ 分段切换（托管任务 / 审核台 / 触发留痕）。
+ * 切换使用 ant-design-vue 的 Segmented（对应用户原型图的分段按钮风格）。
+ * 三个视图共用同一块「锁高」区域，各自内部滚动，与页面其余部分保持一致。
  */
-import type { VbenFormProps } from '@vben/common-ui';
-import { Page, useVbenDrawer } from '@vben/common-ui';
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { Button, message, Tag } from 'ant-design-vue';
-import { aiHostingApi } from '#/api/core';
-import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
-import { trimObject } from '#/utils/trim';
-import type { HostingTask } from '#/api/models/ai_hosting';
-import type { BatchOptions } from '#/api/models/core';
+import type { HostingStats } from "#/api/models/ai_hosting";
+import { computed, h, nextTick, onMounted, ref } from "vue";
 
-import {
-  EXECUTION_MODE_MAP,
-  HOSTING_STATUS_MAP,
-  HOSTING_STATUS_OPTIONS,
-  RULE_TYPE_MAP,
-} from './constants';
-import CreateHostingTask from './create.vue';
-import HostingLogDrawer from './HostingLogDrawer.vue';
+import { Page } from "@vben/common-ui";
 
-// ==================== 创建/编辑抽屉 ====================
-const [CreateDrawer, createApi] = useVbenDrawer({
-  connectedComponent: CreateHostingTask,
-});
+import { Badge, Segmented, Space } from "ant-design-vue";
 
-function openCreateDrawer(row?: HostingTask) {
-  createApi.setData(row?.id ? row : {});
-  createApi.open();
-}
+import { aiHostingApi } from "#/api/core";
 
-// ==================== 日志抽屉 ====================
-const [LogDrawer, logApi] = useVbenDrawer({
-  connectedComponent: HostingLogDrawer,
-});
+import HostingCockpit from "./components/HostingCockpit.vue";
+import HostingReviewConsole from "./components/HostingReviewConsole.vue";
+import HostingTaskList from "./components/HostingTaskList.vue";
+import HostingTriggerHistory from "./components/HostingTriggerHistory.vue";
 
-/** 查看日志 — 打开日志抽屉 */
-function viewLog(row: HostingTask) {
-  logApi.setData({ taskId: row.id, taskName: row.name });
-  logApi.open();
-}
+/** 当前视图 */
+const activeTab = ref<string>("tasks");
 
-// ==================== 状态操作 ====================
+/** 统计概览（后端 P1 修复前可能恒为 0） */
+const stats = ref<HostingStats | null>(null);
+const statsLoading = ref(false);
 
-/** 暂停/恢复 */
-async function toggleStatus(row: HostingTask) {
-  const action =
-    row.taskStatus === "running"
-      ? BatchOptionsType.DISABLE
-      : BatchOptionsType.Enable;
-  await aiHostingApi.fetchBatchOptions({
-    targetIds: [row.id],
-    type: action,
-    values: new Map<string, any>()
-  } as BatchOptions);
-  message.success(action === BatchOptionsType.DISABLE ? "已暂停" : "已恢复");
-  gridApi.reload();
-}
+/** 待审核决策数（供概览与分段角标联动） */
+const pendingCount = ref(0);
 
-/** 删除 */
-async function handleDelete(row: HostingTask) {
-  await aiHostingApi.fetchBatchOptions({
-    targetIds: [row.id],
-    type: BatchOptionsType.Delete,
-    values: new Map<string, any>()
-  } as BatchOptions);
-  message.success("删除成功");
-  await gridApi.reload();
-}
+const reviewRef = ref<null | { focusPending: () => void }>(null);
 
-// ==================== 表格配置 ====================
+/** 分段选项（审核台带待审核角标） */
+const segmentOptions = computed(() => [
+  { label: "托管任务", value: "tasks" },
+  {
+    label: () =>
+      h(
+        Space,
+        { size: 4 },
+        {
+          default: () => [
+            h("span", "审核台"),
+            pendingCount.value > 0
+              ? h(Badge, { count: pendingCount.value, overflowCount: 99 })
+              : null
+          ]
+        }
+      ),
+    value: "review"
+  },
+  { label: "触发留痕", value: "trigger" }
+]);
 
-const formOptions: VbenFormProps = {
-  schema: [
-    {
-      component: "Input",
-      fieldName: "name",
-      label: "任务名称"
-    },
-    {
-      component: "Select",
-      componentProps: { options: PLATFORM },
-      fieldName: "platform",
-      label: "平台"
-    },
-    {
-      component: "Select",
-      componentProps: {
-        allowClear: true,
-        options: HOSTING_STATUS_OPTIONS
-      },
-      fieldName: "taskStatus",
-      label: "状态"
-    }
-  ],
-  showCollapseButton: true,
-  submitOnEnter: false
-};
-
-const gridOptions: VxeGridProps<HostingTask> = {
-  border: true,
-  checkboxConfig: { highlight: true, labelField: "id" },
-  toolbarConfig: { custom: true, export: false, refresh: true, zoom: true },
-  columns: [
-    { field: "name", title: "任务名称", minWidth: 180 },
-    { field: "platform", title: "平台", width: 100 },
-    {
-      field: "executionMode",
-      title: "执行模式",
-      width: 100,
-      slots: { default: "executionMode" }
-    },
-    {
-      field: "rules",
-      title: "规则数量",
-      width: 90,
-      slots: { default: "rules" }
-    },
-    {
-      field: "taskStatus",
-      title: "任务状态",
-      width: 90,
-      slots: { default: "taskStatus" }
-    },
-    {
-      field: "lastPollTime",
-      title: "上次执行",
-      width: 'auto',
-    },
-    {
-      field: "nextPollTime",
-      title: "下次执行",
-      width: 'auto',
-    },
-    {
-      field: "stats.todayExecCount",
-      title: "今日执行",
-      width: 90
-    },
-    {
-      field: "stats.managedAdCount",
-      title: "管理计划数",
-      width: 100
-    },
-    ...(TABLE_COMMON_COLUMNS as any),
-  ],
-  height: "auto",
-  keepSource: true,
-  pagerConfig: {},
-  proxyConfig: {
-    ajax: {
-      query: async ({ page }, args) => {
-        const params = trimObject(args);
-        return await aiHostingApi.fetchTaskList({
-          page: page.currentPage,
-          pageSize: page.pageSize,
-          ...params
-        });
-      }
-    }
+async function fetchStats() {
+  statsLoading.value = true;
+  try {
+    stats.value = await aiHostingApi.fetchStats({});
+  } catch {
+    stats.value = null;
+  } finally {
+    statsLoading.value = false;
   }
-};
-
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
-
-function pageReload() {
-  gridApi.reload();
 }
+
+/** 待审核数量：页面自行拉取一次，保证未进入审核台时角标也已就绪 */
+async function fetchPendingCount() {
+  try {
+    const res = await aiHostingApi.fetchDecisionList({
+      page: 1,
+      pageSize: 1000,
+      decisionStatus: "pending"
+    });
+    pendingCount.value = Array.isArray(res) ? res.length : 0;
+  } catch {
+    pendingCount.value = 0;
+  }
+}
+
+/** 审核台回传的待审核数量（审批后联动角标） */
+function handlePendingChange(count: number) {
+  pendingCount.value = count;
+}
+
+/** 概览「待审核」点击：切到审核台并回到待审核视图 */
+async function goReview() {
+  activeTab.value = "review";
+  await nextTick();
+  reviewRef.value?.focusPending();
+}
+
+onMounted(() => {
+  void fetchStats();
+  void fetchPendingCount();
+});
 </script>
 
 <template>
-  <Page>
-    <Grid>
-      <!-- 表格状态列 -->
-      <template #taskStatus="{ row }">
-        <Tag
-          :color="HOSTING_STATUS_MAP[row.taskStatus]?.color || 'default'"
-          :bordered="false"
-        >
-          {{ HOSTING_STATUS_MAP[row.taskStatus]?.label || row.status }}
-        </Tag>
-      </template>
+  <Page auto-content-height>
+    <div class="hosting-page">
+      <!-- 实时托管概览（按内容高度固定） -->
+      <HostingCockpit
+        class="hosting-cockpit"
+        :loading="statsLoading"
+        :pending-count="pendingCount"
+        :stats="stats"
+        @open-pending="goReview"
+      />
 
-      <!-- 执行模式列 -->
-      <template #executionMode="{ row }">
-        <Tag
-          :color="row.executionMode === 'auto' ? 'green' : row.executionMode === 'manual' ? 'orange' : 'blue'"
-          :bordered="false"
-        >
-          {{ EXECUTION_MODE_MAP[row.executionMode] || row.executionMode }}
-        </Tag>
-      </template>
+      <!-- 视图切换：分段按钮（对齐原型图） -->
+      <Segmented
+        v-model:value="activeTab"
+        class="hosting-segmented"
+        :options="segmentOptions"
+      />
 
-      <!-- 规则数量列 -->
-      <template #rules="{ row }">
-        <div class="rule-tags">
-          <Tag
-            v-for="rule in (row.rules || []).slice(0, 3)"
-            :key="rule.id"
-            :color="RULE_TYPE_MAP[rule.type]?.color || 'default'"
-            :bordered="false"
-            size="small"
-          >
-            {{ RULE_TYPE_MAP[rule.type]?.label || rule.type }}
-          </Tag>
-          <Tag v-if="(row.rules || []).length > 3" :bordered="false" size="small">
-            +{{ row.rules.length - 3 }}
-          </Tag>
-        </div>
-      </template>
-
-      <!-- 操作列 -->
-      <template #action="{ row }">
-        <Button type="link" size="small" @click="toggleStatus(row)">
-          {{ row.taskStatus === "running" ? "暂停" : "恢复" }}
-        </Button>
-        <Button type="link" size="small" @click="openCreateDrawer(row)">
-          编辑
-        </Button>
-        <Button type="link" size="small" @click="viewLog(row)">
-          日志
-        </Button>
-        <Button type="link" size="small" danger @click="handleDelete(row)">
-          删除
-        </Button>
-      </template>
-
-      <!-- 工具栏 -->
-      <template #toolbar-tools>
-        <Button class="mr-2" type="primary" @click="openCreateDrawer()">
-          创建托管任务
-        </Button>
-      </template>
-    </Grid>
-
-    <!-- 创建/编辑抽屉 -->
-    <CreateDrawer @page-reload="pageReload" />
-
-    <!-- 日志抽屉 -->
-    <LogDrawer />
+      <!-- 视图区：占满剩余高度，各视图内部滚动 -->
+      <div class="hosting-views">
+        <HostingTaskList v-if="activeTab === 'tasks'" class="hosting-view" />
+        <HostingReviewConsole
+          v-else-if="activeTab === 'review'"
+          ref="reviewRef"
+          class="hosting-view"
+          @pending-change="handlePendingChange"
+        />
+        <HostingTriggerHistory v-else class="hosting-view" />
+      </div>
+    </div>
   </Page>
 </template>
 
 <style scoped lang="scss">
-.rule-tags {
+/*
+ * 仅保留 antd 组件无法表达的锁高布局：整页 flex 列，视图区占满剩余高度。
+ * 其余视觉全部由组件实现。对齐 material / ai_copilot 页的锁高范式。
+ */
+.hosting-page {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.hosting-cockpit {
+  flex: none;
+}
+
+.hosting-segmented {
+  flex: none;
+  align-self: flex-start;
+  margin-bottom: 16px;
+}
+
+.hosting-views {
+  flex: 1;
+  min-height: 0;
+}
+
+.hosting-view {
+  height: 100%;
 }
 </style>

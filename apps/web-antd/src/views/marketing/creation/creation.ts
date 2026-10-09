@@ -18,6 +18,8 @@ import {
 export interface PlatformCreation<C> {
   platform: string;
   version: string;
+  /** 媒体子类型，区分同平台下不同版本（如 vivo/vivo2.0、bytedance/bytedance_std） */
+  subType?: string;
   accountInfo: Array<AccountInfo>;
   ruleInfo: RuleInfo;
   configData: C;
@@ -618,6 +620,10 @@ export interface MethodConfig {
 export interface ConfigurationConfig {
   platform: string;
   template?: string;
+  /** 媒体子类型，创编策略组按此过滤 */
+  subType?: string;
+  /** 是否展示子类型查询/列；仅同平台存在多子类型（如 vivo/巨量）时才需要，默认不展示 */
+  showSubType?: boolean;
 }
 
 

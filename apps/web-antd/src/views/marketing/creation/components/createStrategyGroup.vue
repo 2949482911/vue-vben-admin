@@ -22,7 +22,8 @@ const objectRequest = ref<StrategyGropType>(<StrategyGropType>{
   name: "",
   platform: "",
   id: "",
-  version: ""
+  version: "",
+  subType: ""
 });
 
 const isUpdate = ref<Boolean>(false);
@@ -46,14 +47,16 @@ const [Form, formApi] = useVbenForm({
           projectId: params.projectId,
           platform: params.platform,
           config: params.config,
-          version: params.version
+          version: params.version,
+          subType: params.subType
         })
         : strategyGropApi.fetchNewStrategyGrop(<StrategyGropType>{
           name: params.name,
           projectId: params.projectId,
           platform: params.platform,
           config: params.config,
-          version: params.version
+          version: params.version,
+          subType: params.subType
         }));
       message.success("保存策略组成功");
     } catch (err) {
@@ -115,6 +118,15 @@ const [Form, formApi] = useVbenForm({
       }
     },
     {
+      component: "Input",
+      label: "子类型",
+      fieldName: "subType",
+      dependencies: {
+        show: false,
+        triggerFields: ["*"]
+      }
+    },
+    {
       component: "ApiSelect",
       componentProps: {
         showSearch: true,
@@ -151,7 +163,8 @@ const [Modal, modalApi] = useVbenModal({
       name: "",
       id: "",
       platform: "",
-      version: ""
+      version: "",
+      subType: ""
     } as StrategyGropType;
     isUpdate.value = false;
     await modalApi.close();
@@ -174,6 +187,7 @@ const [Modal, modalApi] = useVbenModal({
       configUrl.value = await uploadJson(objectRequest.value, "strategyGroup");
       formApi.setFieldValue("config", configUrl.value);
       formApi.setFieldValue("version",  creation.version)
+      formApi.setFieldValue("subType", creation.subType)
       handleSetFormValue(objectRequest.value as UpdateStrategyGropType);
       if (objectRequest.value.id) {
         isUpdate.value = true;

@@ -47,8 +47,9 @@ export type ActionType =
 
 /**
  * 日志执行结果
+ * pending / report_failed 为 airflow 规则触发上报的结果（触发留痕）
  */
-export type LogResult = 'success' | 'failed' | 'pending' | 'rollback';
+export type LogResult = 'success' | 'failed' | 'pending' | 'rollback' | 'report_failed';
 
 /**
  * 监控目标层级
@@ -226,4 +227,155 @@ export interface HostingLogQueryParams extends PageRequestParams {
   result?: LogResult;
   /** 日期范围 */
   dateRange?: [string, string];
+}
+
+// ==================== 决策单（AI 审核台） ====================
+
+/**
+ * 决策单状态
+ */
+export type HostingDecisionStatus =
+  | 'pending'    // 待审核
+  | 'approved'   // 已批准
+  | 'rejected'   // 已拒绝
+  | 'executing'  // 执行中
+  | 'executed'   // 已执行
+  | 'failed'     // 执行失败
+  | 'expired';   // 已过期
+
+/**
+ * 风险等级
+ */
+export type RiskLevel = 'high' | 'low' | 'medium';
+
+/**
+ * 审核留痕结论
+ */
+export type AuditConclusion =
+  | 'created'          // 规则创建决策单
+  | 'ai_approve'       // AI 通过
+  | 'ai_reject'        // AI 拒绝
+  | 'human_approve'    // 人工通过
+  | 'human_reject'     // 人工拒绝
+  | 'execute_success'  // 执行成功
+  | 'execute_failed';  // 执行失败
+
+/**
+ * 审核者类型
+ */
+export type AuditorType = 'AI' | 'HUMAN' | 'SYSTEM';
+
+/**
+ * 人工审核结论
+ */
+export type ReviewConclusion = 'approve' | 'reject';
+
+/**
+ * 决策单（列表项）
+ */
+export interface HostingDecision extends BaseItem {
+  /** 所属托管任务ID */
+  taskId?: string;
+  /** 媒体：oppo/tencent/bytedance/vivo */
+  platform?: string;
+  /** 广告主ID */
+  advertiserId?: string;
+  /** 广告主名称 */
+  advertiserName?: string;
+  /** 层级：advertiser/campaign/adgroup/promotion */
+  targetLevel?: string;
+  /** 目标ID（计划/广告组/广告） */
+  targetId?: string;
+  /** 目标名称 */
+  targetName?: string;
+  /** 命中的规则名称 */
+  ruleName?: string;
+  /** 规则类型（stop_loss/budget_optimize/bid_adjust/scale_up…） */
+  ruleType?: string;
+  /** 建议动作（pause_ad/resume_ad/increase_bid…） */
+  action?: string;
+  /** 动作参数（如 { ratio: 10 }） */
+  params?: Record<string, any>;
+  /** 判定时指标快照（如 { cost, roi }） */
+  metricSnapshot?: Record<string, any>;
+  /** 风险：low/medium/high */
+  riskLevel?: RiskLevel;
+  /** 决策单状态 */
+  decisionStatus?: HostingDecisionStatus;
+  /** AI 审核理由（全自动/混合模式才有） */
+  aiReason?: string;
+  /** 拒绝原因 */
+  rejectReason?: string;
+  /** 执行结果（batchId/optionType/code/targetId/requestId） */
+  execResult?: null | Record<string, any>;
+  /** 执行失败信息 */
+  errorMsg?: string;
+}
+
+/**
+ * 审核留痕
+ */
+export interface HostingAudit {
+  id?: string;
+  /** 决策单ID */
+  decisionId?: number | string;
+  /** 任务ID */
+  taskId?: number | string;
+  /** 审核者类型 */
+  auditorType?: AuditorType;
+  /** 审核者标识（用户ID 或 AI） */
+  auditorId?: string;
+  /** 审核者名称 */
+  auditorName?: string;
+  /** 结论 */
+  conclusion?: AuditConclusion;
+  /** 理由 */
+  reason?: string;
+  /** 审核依据（重查指标快照 / AI 原始输出） */
+  evidence?: Record<string, any>;
+  /** 原状态 */
+  fromStatus?: string;
+  /** 新状态 */
+  toStatus?: string;
+  createTime?: string;
+}
+
+/**
+ * 决策单查询参数
+ */
+export interface HostingDecisionQueryParams extends PageRequestParams {
+  taskId?: string;
+  platform?: string;
+  decisionStatus?: HostingDecisionStatus;
+  riskLevel?: RiskLevel;
+}
+
+/**
+ * 人工审核（批量）请求
+ */
+export interface HostingReviewRequest {
+  ids: Array<number | string>;
+  conclusion: ReviewConclusion;
+  /** 拒绝时建议必填 */
+  reason?: string;
+}
+
+/**
+ * 托管统计概览（后端 P1 修复前可能恒为 0）
+ */
+export interface HostingStats {
+  /** 托管账户数 */
+  managedAccountCount?: number;
+  /** 管理的计划/广告数 */
+  managedAdCount?: number;
+  /** 今日执行次数 */
+  todayExecCount?: number;
+  /** 今日自动执行次数 */
+  todayAutoExecCount?: number;
+  /** 待审核决策数 */
+  pendingCount?: number;
+  /** 今日拦截/节省消耗（分） */
+  todaySavedSpend?: number;
+  /** AI 平均响应（秒） */
+  avgLatency?: number;
 }

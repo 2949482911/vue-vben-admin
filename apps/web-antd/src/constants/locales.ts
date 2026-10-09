@@ -1,5 +1,5 @@
 import { $t } from '@vben/locales';
-import {Platform} from "#/constants/enums";
+import {Platform, SubType} from "#/constants/enums";
 
 export const TABLE_COMMON_COLUMNS = [
   { title: '序号', type: 'checkbox', fixed: 'left', width: 'auto' },
@@ -232,6 +232,27 @@ export const PLATFORM = [
     value: 'aps',
   },
 ];
+
+/**
+ * 创编-策略组媒体子类型（区分同一平台下的不同版本）
+ */
+export const SUB_TYPE = [
+  { label: 'VIVO营销', value: SubType.VIVO },
+  { label: '新版-VIVO营销', value: SubType.VIVO_NEW },
+  { label: '巨量引擎', value: SubType.BYTEDANCE },
+  { label: '巨量引擎-智擎', value: SubType.BYTEDANCE_STD },
+  { label: 'Oppo营销', value: SubType.OPPO },
+  { label: '腾讯广告', value: SubType.TENCENT },
+  { label: '华为商店', value: SubType.HUAWEI_STORE },
+];
+
+/** 子类型中文名；未收录时回退原始值 */
+export function getSubTypeLabel(value?: string, fallback = '-'): string {
+  if (!value) {
+    return fallback;
+  }
+  return SUB_TYPE.find((item) => item.value === value)?.label ?? value;
+}
 
 /**
  * 回传媒体

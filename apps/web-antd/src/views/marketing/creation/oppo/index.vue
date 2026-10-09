@@ -29,7 +29,7 @@ import { useVbenDrawer, useVbenModal } from "@vben/common-ui";
 
 import { message, Select } from "ant-design-vue";
 
-import { Platform } from "#/constants/enums";
+import { Platform, SubType } from "#/constants/enums";
 import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
 import Function from "#/views/marketing/creation/components/Function.vue";
@@ -374,9 +374,11 @@ async function initCreationInfo() {
       }
     },
     configurationConfig: {
-      platform: Platform.OPPO
+      platform: Platform.OPPO,
+      subType: SubType.OPPO
     },
     platform: Platform.OPPO,
+    subType: SubType.OPPO,
     project: {
       projectId: "",
       projectName: "",
@@ -531,9 +533,10 @@ const creationInfo = ref<OppoCreation>({
     deepLinkList: { deepLinkConfig: { method: RuleMethod.ALL }, data: new Map() }
   },
   configurationConfig: {
-    platform: Platform.OPPO, template: "base_template"
+    platform: Platform.OPPO, subType: SubType.OPPO, template: "base_template"
   },
   platform: Platform.OPPO,
+  subType: SubType.OPPO,
   project: {
     projectId: "", projectName: "", icon: "", packageName: "", appId: ""
   },
