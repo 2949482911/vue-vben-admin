@@ -12,6 +12,7 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { Button, message, Space, Tag } from 'ant-design-vue';
 import { aiHostingApi } from '#/api/core';
 import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from '#/utils/trim';
 import type { HostingTask } from '#/api/models/ai_hosting';
 import type { BatchOptions } from '#/api/models/core';
@@ -110,8 +111,14 @@ const gridOptions: VxeGridProps<HostingTask> = {
   checkboxConfig: { highlight: true, labelField: "id" },
   toolbarConfig: { custom: true, export: false, refresh: true, zoom: true },
   columns: [
+    {
+      field: "platform",
+      title: "平台",
+      width: 100,
+      slots: { default: "platform" }
+    },
     { field: "name", title: "任务名称", minWidth: 180 },
-    { field: "platform", title: "平台", width: 100 },
+
     {
       field: "executionMode",
       title: "执行模式",
@@ -185,6 +192,13 @@ function pageReload() {
 <template>
    <div class="task-list-page">
      <Grid>
+     <!-- 平台列 -->
+     <template #platform="{ row }">
+       <Tag :bordered="false" :color="getPlatformColor(row.platform)">
+         {{ getPlatformLabel(row.platform) }}
+       </Tag>
+     </template>
+
      <!-- 表格状态列 -->
      <template #taskStatus="{ row }">
        <Tag

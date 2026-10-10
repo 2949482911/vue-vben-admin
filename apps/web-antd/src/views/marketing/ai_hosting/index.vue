@@ -2,7 +2,7 @@
 /**
  * AI 智能托管 — 页面
  *
- * 实时托管概览（KPI 驾驶舱）+ 分段切换（托管任务 / 审核台 / 触发留痕）。
+ * 实时托管概览（KPI 驾驶舱）+ 分段切换（托管任务 / 审核台）。触发留痕已并入审核台。
  * 切换使用 ant-design-vue 的 Segmented（对应用户原型图的分段按钮风格）。
  * 三个视图共用同一块「锁高」区域，各自内部滚动，与页面其余部分保持一致。
  */
@@ -18,7 +18,6 @@ import { aiHostingApi } from "#/api/core";
 import HostingCockpit from "./components/HostingCockpit.vue";
 import HostingReviewConsole from "./components/HostingReviewConsole.vue";
 import HostingTaskList from "./components/HostingTaskList.vue";
-import HostingTriggerHistory from "./components/HostingTriggerHistory.vue";
 
 /** 当前视图 */
 const activeTab = ref<string>("tasks");
@@ -50,8 +49,7 @@ const segmentOptions = computed(() => [
         }
       ),
     value: "review"
-  },
-  { label: "触发留痕", value: "trigger" }
+  }
 ]);
 
 async function fetchStats() {
@@ -70,10 +68,10 @@ async function fetchPendingCount() {
   try {
     const res = await aiHostingApi.fetchDecisionList({
       page: 1,
-      pageSize: 1000,
+      pageSize: 1,
       decisionStatus: "pending"
     });
-    pendingCount.value = Array.isArray(res) ? res.length : 0;
+    pendingCount.value = res?.total ?? 0;
   } catch {
     pendingCount.value = 0;
   }
@@ -125,7 +123,6 @@ onMounted(() => {
           class="hosting-view"
           @pending-change="handlePendingChange"
         />
-        <HostingTriggerHistory v-else class="hosting-view" />
       </div>
     </div>
   </Page>

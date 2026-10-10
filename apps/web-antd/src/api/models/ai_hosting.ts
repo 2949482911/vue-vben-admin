@@ -93,6 +93,22 @@ export interface RuleAction {
 }
 
 /**
+ * 通知方式渠道
+ * 仅告警（action=alert）与执行成功时，按规则配置的通知方式推送
+ */
+export type AlertMethod = 'email' | 'feishu' | 'dingtalk';
+
+/**
+ * 单条通知方式配置（后端按 rules[].alertMethods 落库，key 固定为 alert_method / alert_value）
+ */
+export interface AlertMethodItem {
+  /** 渠道：email 邮箱 / feishu 飞书 webhook / dingtalk 钉钉 webhook */
+  alert_method: AlertMethod;
+  /** 目标地址：邮箱地址 或 webhook 地址 */
+  alert_value: string;
+}
+
+/**
  * 托管规则
  */
 export interface HostingRule {
@@ -112,6 +128,8 @@ export interface HostingRule {
   enabled: boolean;
   /** 监控指标的数据时间范围 1表示 当天 3 表示三天内历史数据(包含当天) 7表示7天内历史数据(包含当天) */
   report_day: number;
+  /** 命中后的通知方式（可多种并存；后端按规则名从 tasks 查库读取） */
+  alertMethods?: AlertMethodItem[];
 }
 
 /**
@@ -175,58 +193,6 @@ export interface HostingTaskQueryParams extends PageRequestParams {
   name?: string;
   platform?: string;
   taskStatus?: HostingStatus;
-}
-
-// ==================== 执行日志 ====================
-
-/**
- * 执行日志
- */
-export interface HostingLog extends BaseItem {
-  /** 所属托管任务ID */
-  taskId: string;
-  /** 任务名称 */
-  taskName: string;
-  /** 平台 */
-  platform: string;
-  /** 广告主ID */
-  advertiserId: string;
-  /** 广告主名称 */
-  advertiserName: string;
-  /** 计划/广告ID */
-  adId: string;
-  /** 计划/广告名称 */
-  adName: string;
-  /** 触发的规则名称 */
-  ruleName: string;
-  /** 规则类型 */
-  ruleType: RuleType;
-  /** 执行动作 */
-  action: ActionType;
-  /** 触发原因 */
-  reason: string;
-  /** 执行前的值（JSON） */
-  beforeValue: string;
-  /** 执行后的值（JSON） */
-  afterValue: string;
-  /** 执行结果 */
-  result: LogResult;
-  /** 错误信息（执行失败时） */
-  errorMsg?: string;
-  /** 执行时间 */
-  executedAt: string;
-}
-
-/**
- * 日志查询参数
- */
-export interface HostingLogQueryParams extends PageRequestParams {
-  taskId?: string;
-  platform?: string;
-  ruleType?: RuleType;
-  result?: LogResult;
-  /** 日期范围 */
-  dateRange?: [string, string];
 }
 
 // ==================== 决策单（AI 审核台） ====================
@@ -304,6 +270,8 @@ export interface HostingDecision extends BaseItem {
   decisionStatus?: HostingDecisionStatus;
   /** AI 审核理由（全自动/混合模式才有） */
   aiReason?: string;
+  /** AI 思考过程（分步） */
+  aiThinking?: string;
   /** 拒绝原因 */
   rejectReason?: string;
   /** 执行结果（batchId/optionType/code/targetId/requestId） */
@@ -348,6 +316,10 @@ export interface HostingDecisionQueryParams extends PageRequestParams {
   platform?: string;
   decisionStatus?: HostingDecisionStatus;
   riskLevel?: RiskLevel;
+  /** 建议动作筛选 */
+  action?: string;
+  /** 仅看"可自动执行"(pause_ad/resume_ad) */
+  autoExecutable?: boolean;
 }
 
 /**

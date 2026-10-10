@@ -3,8 +3,6 @@ import { BaseApi } from '#/api/core/baseapi';
 import type {
   HostingTask,
   HostingTaskQueryParams,
-  HostingLog,
-  HostingLogQueryParams,
   HostingAudit,
   HostingDecision,
   HostingDecisionQueryParams,
@@ -18,16 +16,18 @@ import type { PageResponse } from '#/api/models/marketing';
  * AI 智能托管 API
  *
  * 后端服务前缀：/platform/ai_hosting
- * 需要后端配合实现以下接口：
- * - GET  /platform/ai_hosting/list                托管任务列表
+ * 接口：
+ * - GET  /platform/ai_hosting/list                托管任务列表（分页）
  * - POST /platform/ai_hosting/create               创建托管任务
  * - POST /platform/ai_hosting/update               更新托管任务
  * - POST /platform/ai_hosting/batch_options        批量操作（暂停/恢复/删除）
- * - GET  /platform/ai_hosting/log/list             执行日志列表
  * - GET  /platform/ai_hosting/stats                托管统计概览
- * - GET  /platform/ai_hosting/decision/list        决策单列表（返回数组，非分页对象）
+ * - GET  /platform/ai_hosting/decision/list        决策单列表（分页）
  * - POST /platform/ai_hosting/decision/review      人工审核（批量）
  * - GET  /platform/ai_hosting/decision/audits      审核与执行留痕
+ *
+ * 说明：原 `log/list`（触发留痕）已随数据模型收敛移除；
+ *       「触发留痕」并入审核台，统一读 `decision/list`。
  */
 class AiHostingApi extends BaseApi {
   /** 托管任务列表 */
@@ -55,24 +55,18 @@ class AiHostingApi extends BaseApi {
     return requestClient.post(this.getServiceUrl('batch_options'), params);
   }
 
-  /** 执行日志列表 */
-  fetchLogList(
-    params: HostingLogQueryParams,
-  ): Promise<PageResponse<HostingLog>> {
-    return requestClient.get<PageResponse<HostingLog>>(
-      this.getServiceUrl('log/list'),
-      { params },
-    );
-  }
-
   /** 托管统计概览 */
   fetchStats(params: { taskId?: string }) {
-    return requestClient.get<HostingStats>(this.getServiceUrl('stats'), { params });
+    return requestClient.get<HostingStats>(this.getServiceUrl('stats'), {
+      params,
+    });
   }
 
-  /** 决策单列表（后端返回数组，非分页对象） */
-  fetchDecisionList(params: HostingDecisionQueryParams) {
-    return requestClient.get<HostingDecision[]>(
+  /** 决策单列表（分页对象，与 list 一致） */
+  fetchDecisionList(
+    params: HostingDecisionQueryParams,
+  ): Promise<PageResponse<HostingDecision>> {
+    return requestClient.get<PageResponse<HostingDecision>>(
       this.getServiceUrl('decision/list'),
       { params },
     );
@@ -80,7 +74,10 @@ class AiHostingApi extends BaseApi {
 
   /** 人工审核（批量）：通过并执行 / 拒绝，返回本次审批通过并执行成功的数量 */
   fetchReviewDecision(data: HostingReviewRequest) {
-    return requestClient.post<number>(this.getServiceUrl('decision/review'), data);
+    return requestClient.post<number>(
+      this.getServiceUrl('decision/review'),
+      data,
+    );
   }
 
   /** 审核与执行留痕（按时间升序） */
@@ -92,5 +89,6 @@ class AiHostingApi extends BaseApi {
   }
 }
 
-export const aiHostingApi: AiHostingApi =
-  new AiHostingApi('/platform/ai_hosting');
+export const aiHostingApi: AiHostingApi = new AiHostingApi(
+  '/platform/ai_hosting',
+);

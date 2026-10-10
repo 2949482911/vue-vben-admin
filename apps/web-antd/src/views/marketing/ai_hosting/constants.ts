@@ -7,6 +7,8 @@
 
 import type {
   ActionType,
+  AlertMethod,
+  AlertMethodItem,
   ExecutionMode,
   HostingDecisionStatus,
   HostingStatus,
@@ -98,6 +100,53 @@ export const LOG_RESULT_OPTIONS = [
   { label: "已回滚", value: "rollback" as LogResult, color: "orange" },
   { label: "上报失败", value: "report_failed" as LogResult, color: "red" }
 ];
+
+// ==================== 通知方式 ====================
+
+/** 通知方式选项（邮箱 / 飞书 webhook / 钉钉 webhook），命中告警与执行成功时推送 */
+export const ALERT_METHOD_OPTIONS: Array<{
+  color: string;
+  label: string;
+  placeholder: string;
+  value: AlertMethod;
+}> = [
+  {
+    color: "blue",
+    label: "邮箱",
+    placeholder: "请输入邮箱地址",
+    value: "email"
+  },
+  {
+    color: "cyan",
+    label: "飞书",
+    placeholder: "请输入飞书机器人 Webhook 地址",
+    value: "feishu"
+  },
+  {
+    color: "purple",
+    label: "钉钉",
+    placeholder: "请输入钉钉机器人 Webhook 地址",
+    value: "dingtalk"
+  }
+];
+
+/** 通知方式 → { color, label } */
+export const ALERT_METHOD_MAP: Record<
+  string,
+  { color: string; label: string }
+> = Object.fromEntries(ALERT_METHOD_OPTIONS.map((m) => [m.value, m]));
+
+/** 通知方式 → 地址输入占位提示 */
+export const ALERT_VALUE_PLACEHOLDER: Record<AlertMethod, string> = {
+  email: "请输入邮箱地址",
+  dingtalk: "请输入钉钉机器人 Webhook 地址",
+  feishu: "请输入飞书机器人 Webhook 地址"
+};
+
+/** 新增一条默认通知方式（邮箱、空地址） */
+export function createDefaultAlertMethod(): AlertMethodItem {
+  return { alert_method: "email", alert_value: "" };
+}
 
 // ==================== 标签映射 ====================
 
@@ -205,6 +254,24 @@ export const AUDITOR_TYPE_MAP: Record<string, string> = {
   SYSTEM: "系统",
   AI: "AI",
   HUMAN: "人工"
+};
+
+/** 审核者类型 → Tag 颜色（antd 预设色名） */
+export const AUDITOR_TYPE_COLOR: Record<string, string> = {
+  SYSTEM: "default",
+  AI: "geekblue",
+  HUMAN: "purple"
+};
+
+/** 留痕结论 → Tag 颜色（antd 预设色名） */
+export const AUDIT_CONCLUSION_COLOR: Record<string, string> = {
+  created: "geekblue",
+  ai_approve: "blue",
+  ai_reject: "volcano",
+  human_approve: "green",
+  human_reject: "orange",
+  execute_success: "cyan",
+  execute_failed: "red"
 };
 
 /** 本期后端可自动执行的动作 */

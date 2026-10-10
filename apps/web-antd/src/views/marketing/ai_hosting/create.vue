@@ -14,25 +14,31 @@ import type { ReportFilter } from "#/api/models/marketing";
 /**
  * AI 智能托管 — 创建/编辑托管任务抽屉
  *
- * 配置任务名称、平台、执行模式、监控目标（账户/计划/广告三级任选其一）、规则判定方式与规则列表
- * 监控目标使用 antd 原生 Transfer 穿梭框选择，计划/广告层级额外提供账户、计划筛选
+ * 配置任务名称、平台、执行模式、监控目标（账户/计划/广告三级任选其一）、规则判定方式与规则列表；
+ * 每条规则下可配置「通知方式」（邮箱/飞书/钉钉 webhook，可多种并存，命中告警与执行成功时推送）。
+ * 监控目标使用 antd 原生 Transfer 穿梭框选择，计划/广告层级额外提供账户、计划筛选。
+ *
+ * UI：全部由 ant-design-vue / vben 组件搭建（Card / Segmented / Row / Col / Transfer / Tag …），
+ * 仅保留「AI 高级感」所需的样式微调，颜色取设计 token。
  */
 import { computed, h, reactive, ref } from "vue";
 
 import { useVbenDrawer } from "@vben/common-ui";
 
+import { BellOutlined, ThunderboltOutlined } from "@ant-design/icons-vue";
 import {
   Button,
   Card,
   Col,
   Empty,
+  Flex,
   Form,
   FormItem,
   Input,
   InputNumber,
   message,
-  Radio,
   Row,
+  Segmented,
   Select,
   Spin,
   Switch,
@@ -46,6 +52,9 @@ import { PLATFORM } from "#/constants/locales";
 
 import {
   ACTION_TYPE_OPTIONS,
+  ALERT_METHOD_OPTIONS,
+  ALERT_VALUE_PLACEHOLDER,
+  createDefaultAlertMethod,
   EXECUTION_MODE_OPTIONS,
   MAX_TARGET_COUNT,
   METRIC_OPTIONS,
@@ -76,7 +85,7 @@ async function withPageLoading(task: Promise<void>) {
 }
 
 const [Drawer, drawerApi] = useVbenDrawer({
-  class: "w-[900px]",
+  class: "w-[75%]",
   closeOnClickModal: false,
   closeOnPressEscape: true,
   loading: true,
@@ -118,9 +127,15 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
     Object.assign(formData, buildTargetPayload());
 
-    // 显式带上监控层级与规则模式，避免提交体缺字段
+    // 显式带上监控层级与规则模式，避免提交体缺字段；通知方式剔除空地址行
     const payload: Partial<HostingTask> = {
       ...formData,
+      rules: (formData.rules ?? []).map((rule) => ({
+        ...rule,
+        alertMethods: (rule.alertMethods ?? []).filter(
+          (item) => item.alert_value && item.alert_value.trim()
+        )
+      })),
       target: currentTarget.value,
       rulesMode: formData.rulesMode ?? "all"
     };
@@ -528,7 +543,8 @@ function addRule() {
     conditionLogic: "AND",
     actions: [createDefaultAction()],
     enabled: true,
-    report_day: 1
+    report_day: 1,
+    alertMethods: []
   };
   formData.rules!.push(rule);
 }
@@ -576,90 +592,123 @@ function onRuleTypeChange(rule: HostingRule) {
   };
   rule.actions = [{ type: defaultActions[type] || "alert", params: {} }];
 }
+
+// ==================== 通知方式 ====================
+
+/** 添加一条通知方式（邮箱/飞书/钉钉） */
+function addAlertMethod(rule: HostingRule) {
+  rule.alertMethods = rule.alertMethods ?? [];
+  rule.alertMethods.push(createDefaultAlertMethod());
+}
+
+/** 删除指定通知方式 */
+function removeAlertMethod(rule: HostingRule, index: number) {
+  rule.alertMethods?.splice(index, 1);
+}
+
+/** 需「调整比例」的动作 */
+const RATIO_ACTIONS: ActionType[] = [
+  "increase_budget",
+  "decrease_budget",
+  "increase_bid",
+  "decrease_bid"
+];
+/** 媒体可直接自动执行的动作 */
+const AUTO_ACTIONS: ActionType[] = ["pause_ad", "resume_ad"];
 </script>
 
 <template>
   <Drawer :title="isEdit ? '编辑托管任务' : '创建托管任务'">
     <div class="create-hosting-form">
-      <!-- 基本信息 -->
-      <Card title="基本信息" size="small" class="form-section">
+      <!-- AI 头部条 -->
+      <Flex class="ai-strip" align="center" :gap="12">
+        <span class="ai-badge">
+          <ThunderboltOutlined />
+          AI
+        </span>
+        <Flex vertical :gap="0">
+          <Typography.Text strong>AI 盯盘托管</Typography.Text>
+          <Typography.Text class="ai-strip__sub" type="secondary">
+            配置规则 · 命中后自动处置，并按通知方式提醒
+          </Typography.Text>
+        </Flex>
+      </Flex>
+
+      <!-- ==================== 01 基本信息 ==================== -->
+      <Card size="small" class="sec">
+        <template #title>
+          <span class="sec-title"><span class="step">01</span>基本信息</span>
+        </template>
         <Form layout="vertical">
-          <FormItem label="任务名称" required>
-            <Input
-              v-model:value="formData.name"
-              placeholder="请输入任务名称"
-            />
-          </FormItem>
-
-          <FormItem label="媒体">
-            <Select
-              v-model:value="formData.platform"
-              :options="PLATFORM"
-              placeholder="请选择媒体"
-              @change="handlePlatformChange"
-            />
-          </FormItem>
-
-          <FormItem label="执行模式">
-            <Select
-              v-model:value="formData.executionMode"
-              :options="EXECUTION_MODE_OPTIONS"
-            />
-            <div class="mode-hint">
-              <span v-if="formData.executionMode === 'auto'">
-                系统自动执行所有规则，无需人工确认
-              </span>
-              <span v-else-if="formData.executionMode === 'manual'">
-                所有规则触发后需人工确认才执行
-              </span>
-              <span v-else>
-                小操作自动执行，大操作需人工确认
-              </span>
-            </div>
-          </FormItem>
-
-          <FormItem label="轮询间隔（分钟）">
-            <InputNumber
-              v-model:value="formData.pollInterval"
-              :min="5"
-              :max="60"
-              :step="5"
-              style="width: 100%"
-            />
-          </FormItem>
+          <Row :gutter="16">
+            <Col :span="12">
+              <FormItem label="任务名称" required>
+                <Input v-model:value="formData.name" placeholder="请输入任务名称" />
+              </FormItem>
+            </Col>
+            <Col :span="12">
+              <FormItem label="媒体">
+                <Select
+                  v-model:value="formData.platform"
+                  :options="PLATFORM"
+                  placeholder="请选择媒体"
+                  @change="handlePlatformChange"
+                />
+              </FormItem>
+            </Col>
+          </Row>
+          <Row :gutter="16">
+            <Col :span="12">
+              <FormItem label="执行模式">
+                <Segmented
+                  v-model:value="formData.executionMode"
+                  :options="EXECUTION_MODE_OPTIONS"
+                  block
+                />
+                <div class="mode-hint">
+                  <span v-if="formData.executionMode === 'auto'">
+                    系统自动执行所有规则，无需人工确认
+                  </span>
+                  <span v-else-if="formData.executionMode === 'manual'">
+                    所有规则触发后需人工确认才执行
+                  </span>
+                  <span v-else>小操作自动执行，大操作需人工确认</span>
+                </div>
+              </FormItem>
+            </Col>
+            <Col :span="12">
+              <FormItem label="轮询间隔（分钟）">
+                <InputNumber
+                  v-model:value="formData.pollInterval"
+                  :min="5"
+                  :max="60"
+                  :step="5"
+                  style="width: 100%"
+                />
+                <div class="mode-hint">建议 5–60 分钟，越短越灵敏、成本略高</div>
+              </FormItem>
+            </Col>
+          </Row>
         </Form>
       </Card>
 
-      <!-- 监控目标 -->
-      <Card title="监控目标" size="small" class="form-section">
-        <div class="target-header">
-          <Radio.Group
-            :value="currentTarget"
-            button-style="solid"
-            @change="(e: any) => handleTargetLevelChange(e.target.value)"
-          >
-            <Radio.Button
-              v-for="opt in TARGET_LEVEL_OPTIONS"
-              :key="opt.value"
-              :value="opt.value"
-            >
-              {{ opt.label }}
-            </Radio.Button>
-          </Radio.Group>
-          <span>
-            <Typography.Text type="secondary">已选 </Typography.Text>
-            <Typography.Text
-              strong
-              :type="targetKeys.length >= MAX_TARGET_COUNT ? 'danger' : undefined"
-            >
-              {{ targetKeys.length }}
-            </Typography.Text>
-            <Typography.Text type="secondary">
-              / {{ MAX_TARGET_COUNT }}
-            </Typography.Text>
+      <!-- ==================== 02 监控目标 ==================== -->
+      <Card size="small" class="sec">
+        <template #title>
+          <span class="sec-title">
+            <span class="step">02</span>监控目标
+            <span class="sec-count">
+              已选 <b>{{ targetKeys.length }}</b> / {{ MAX_TARGET_COUNT }}
+            </span>
           </span>
-        </div>
+        </template>
 
+        <Segmented
+          :options="TARGET_LEVEL_OPTIONS"
+          :value="currentTarget"
+          block
+          @change="(val: any) => handleTargetLevelChange(val as HostingTarget)"
+        />
         <div class="mode-hint">{{ TARGET_LEVEL_HINT[currentTarget] }}</div>
 
         <Form v-if="needAdvertiserFilter" layout="vertical" class="target-filter">
@@ -724,24 +773,23 @@ function onRuleTypeChange(rule: HostingRule) {
         </div>
       </Card>
 
-      <!-- 规则配置 -->
-      <Card title="规则配置" size="small" class="form-section">
-        <Form layout="vertical">
-          <FormItem label="规则判定方式">
-            <Radio.Group v-model:value="formData.rulesMode">
-              <Radio
-                v-for="opt in RULES_MODE_OPTIONS"
-                :key="opt.value"
-                :value="opt.value"
-              >
-                {{ opt.label }}
-              </Radio>
-            </Radio.Group>
-            <div class="mode-hint">
-              {{ RULES_MODE_HINT[formData.rulesMode ?? 'all'] }}
-            </div>
-          </FormItem>
-        </Form>
+      <!-- ==================== 03 规则与通知 ==================== -->
+      <Card size="small" class="sec">
+        <template #title>
+          <span class="sec-title"><span class="step">03</span>规则与通知</span>
+        </template>
+
+        <Flex class="rule-mode" align="center" :gap="10">
+          <span class="k">规则判定方式</span>
+          <Segmented
+            v-model:value="formData.rulesMode"
+            :options="RULES_MODE_OPTIONS"
+            size="small"
+          />
+          <Typography.Text class="mode-hint-inline" type="secondary">
+            {{ RULES_MODE_HINT[formData.rulesMode ?? 'all'] }}
+          </Typography.Text>
+        </Flex>
 
         <Empty
           v-if="formData.rules!.length === 0"
@@ -751,43 +799,42 @@ function onRuleTypeChange(rule: HostingRule) {
         <div
           v-for="(rule, ruleIndex) in formData.rules"
           :key="ruleIndex"
-          class="rule-card"
+          class="rule"
         >
-          <div class="rule-header">
-            <Tag :color="RULE_TYPE_MAP[rule.type]?.color" :bordered="false">
+          <div class="rule-head">
+            <Tag :bordered="false" :color="RULE_TYPE_MAP[rule.type]?.color">
               {{ RULE_TYPE_MAP[rule.type]?.label }}
             </Tag>
             <Input
               v-model:value="rule.name"
+              class="rule-name"
               size="small"
-              style="width: 200px"
               placeholder="规则名称"
             />
-            <div class="rule-controls">
-              <span class="rule-enabled-label">启用</span>
-              <Switch v-model:checked="rule.enabled" size="small" />
-              <Button type="link" size="small" danger @click="removeRule(ruleIndex)">
-                删除规则
-              </Button>
-            </div>
+            <span class="spacer"></span>
+            <span class="rule-enabled-label">启用</span>
+            <Switch v-model:checked="rule.enabled" size="small" />
+            <Button type="link" size="small" danger @click="removeRule(ruleIndex)">
+              删除规则
+            </Button>
           </div>
 
-          <!-- 规则类型选择 -->
+          <!-- 规则类型 -->
           <div class="rule-row">
-            <span class="rule-label">规则类型</span>
+            <span class="k">规则类型</span>
             <Select
               v-model:value="rule.type"
               :options="RULE_TYPE_OPTIONS"
+              class="w-160"
               size="small"
-              style="width: 160px"
               @change="onRuleTypeChange(rule)"
             />
           </div>
 
           <!-- 触发条件 -->
-          <div class="rule-section">
-            <div class="rule-section-header">
-              <span class="rule-label">触发条件</span>
+          <div class="block">
+            <div class="block-head">
+              <span class="k">触发条件</span>
               <Button type="link" size="small" @click="addCondition(rule)">
                 + 添加条件
               </Button>
@@ -795,36 +842,37 @@ function onRuleTypeChange(rule: HostingRule) {
             <div
               v-for="(cond, condIdx) in rule.conditions"
               :key="condIdx"
-              class="condition-row"
+              class="cond-row"
             >
               <Select
                 v-model:value="cond.metric"
                 :options="METRIC_OPTIONS"
+                class="w-130"
                 size="small"
-                style="width: 120px"
                 placeholder="指标"
               />
               <Select
                 v-model:value="cond.operator"
                 :options="OPERATOR_OPTIONS"
+                class="w-110"
                 size="small"
-                style="width: 100px"
                 placeholder="比较"
               />
               <InputNumber
                 v-model:value="cond.threshold"
+                class="w-110"
                 size="small"
-                style="width: 120px"
                 placeholder="阈值"
               />
-              <span class="condition-text">持续</span>
+              <span class="cond-tx">持续</span>
               <InputNumber
                 v-model:value="cond.duration"
+                class="w-80"
                 size="small"
-                style="width: 80px"
                 placeholder="分钟"
               />
-              <span class="condition-text">分钟</span>
+              <span class="cond-tx">分钟</span>
+              <span class="spacer"></span>
               <Button
                 v-if="rule.conditions.length > 1"
                 type="link"
@@ -835,24 +883,24 @@ function onRuleTypeChange(rule: HostingRule) {
                 删除
               </Button>
             </div>
-            <div v-if="rule.conditions.length > 1" class="logic-select">
-              <span class="rule-label">条件关系</span>
+            <div v-if="rule.conditions.length > 1" class="cond-row">
+              <span class="k">条件关系</span>
               <Select
                 v-model:value="rule.conditionLogic"
+                class="w-120"
                 size="small"
-                style="width: 80px"
                 :options="[
                   { label: '且 (AND)', value: 'AND' },
-                  { label: '或 (OR)', value: 'OR' },
+                  { label: '或 (OR)', value: 'OR' }
                 ]"
               />
             </div>
           </div>
 
           <!-- 执行动作 -->
-          <div class="rule-section">
-            <div class="rule-section-header">
-              <span class="rule-label">执行动作</span>
+          <div class="block">
+            <div class="block-head">
+              <span class="k">执行动作</span>
               <Button type="link" size="small" @click="addAction(rule)">
                 + 添加动作
               </Button>
@@ -860,29 +908,31 @@ function onRuleTypeChange(rule: HostingRule) {
             <div
               v-for="(act, actIdx) in rule.actions"
               :key="actIdx"
-              class="action-row"
+              class="cond-row"
             >
               <Select
                 v-model:value="act.type"
                 :options="ACTION_TYPE_OPTIONS"
+                class="w-140"
                 size="small"
-                style="width: 140px"
                 placeholder="动作"
               />
-              <template
-                v-if="act.type === 'increase_budget' || act.type === 'decrease_budget' || act.type === 'increase_bid' || act.type === 'decrease_bid'"
->
-                <span class="condition-text">调整比例</span>
+              <template v-if="RATIO_ACTIONS.includes(act.type)">
+                <span class="cond-tx">调整比例</span>
                 <InputNumber
                   v-model:value="act.params.ratio"
+                  class="w-100"
                   size="small"
-                  style="width: 100px"
                   placeholder="百分比"
                   :min="1"
                   :max="100"
                 />
-                <span class="condition-text">%</span>
+                <span class="cond-tx">%</span>
               </template>
+              <Tag v-if="AUTO_ACTIONS.includes(act.type)" :bordered="false" color="cyan">
+                可自动执行
+              </Tag>
+              <span class="spacer"></span>
               <Button
                 v-if="rule.actions.length > 1"
                 type="link"
@@ -894,14 +944,62 @@ function onRuleTypeChange(rule: HostingRule) {
               </Button>
             </div>
           </div>
+
+          <!-- 通知方式（数组表单） -->
+          <div class="block notify">
+            <div class="block-head">
+              <span class="k k--notify">
+                <BellOutlined />
+                通知方式
+              </span>
+              <Button type="link" size="small" @click="addAlertMethod(rule)">
+                + 添加通知方式
+              </Button>
+            </div>
+
+            <Typography.Text
+              v-if="!rule.alertMethods?.length"
+              class="notify-empty"
+              type="secondary"
+            >
+              未配置通知方式：仅记录留痕，不做消息推送
+            </Typography.Text>
+
+            <div
+              v-for="(am, amIdx) in rule.alertMethods"
+              :key="amIdx"
+              class="notify-row"
+              :class="`notify-row--${am.alert_method}`"
+            >
+              <Select
+                v-model:value="am.alert_method"
+                :options="ALERT_METHOD_OPTIONS"
+                class="w-110"
+                size="small"
+              />
+              <Input
+                v-model:value="am.alert_value"
+                :placeholder="ALERT_VALUE_PLACEHOLDER[am.alert_method]"
+                class="notify-value"
+                size="small"
+              />
+              <Button
+                type="link"
+                size="small"
+                danger
+                @click="removeAlertMethod(rule, amIdx)"
+              >
+                删除
+              </Button>
+            </div>
+
+            <div class="mode-hint">
+              仅告警、以及执行成功时，按上述方式推送；可多种并存
+            </div>
+          </div>
         </div>
 
-        <Button
-          type="dashed"
-          block
-          class="add-rule-btn"
-          @click="addRule"
-        >
+        <Button type="dashed" block class="add-rule-btn" @click="addRule">
           + 添加规则
         </Button>
       </Card>
@@ -916,102 +1014,268 @@ function onRuleTypeChange(rule: HostingRule) {
   gap: 16px;
 }
 
-.form-section {
+/* ---- AI 头部条 ---- */
+.ai-strip {
+  padding: 10px 14px;
+  background: linear-gradient(
+    180deg,
+    hsl(var(--primary) / 6%),
+    hsl(var(--primary) / 2%)
+  );
+  border: 1px solid hsl(var(--primary) / 18%);
+  border-radius: calc(var(--radius, 0.75rem) - 4px);
+}
+
+.ai-badge {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  color: hsl(var(--primary-foreground));
+  letter-spacing: 0.5px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary)),
+    hsl(var(--primary) / 70%)
+  );
+  border-radius: 7px;
+}
+
+.ai-strip__sub {
+  font-size: 12px;
+}
+
+/* ---- 分区卡片 ---- */
+.sec {
+  :deep(.ant-card-head) {
+    min-height: auto;
+    padding: 0 16px;
+  }
+
+  :deep(.ant-card-head-title) {
+    padding: 12px 0;
+  }
+
   :deep(.ant-card-body) {
     padding: 16px;
   }
 }
 
+.sec-title {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  font-weight: 700;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 10%);
+  border-radius: 7px;
+}
+
+.sec-count {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
+
+.sec-count b {
+  color: hsl(var(--primary));
+}
+
 .mode-hint {
   margin-top: 4px;
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.45);
+  color: hsl(var(--muted-foreground));
 }
 
-.target-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
+.mode-hint-inline {
+  font-size: 12px;
 }
 
 .target-filter {
   margin-top: 12px;
 }
 
-.rule-card {
-  border-radius: 8px;
-  padding: 12px;
+.rule-mode {
+  margin-bottom: 10px;
+}
+
+/* ---- 规则卡 ---- */
+.rule {
+  position: relative;
+  padding: 12px 14px 14px 16px;
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius, 0.75rem) - 4px);
+}
+
+.rule::before {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    hsl(var(--primary)),
+    hsl(var(--primary) / 40%)
+  );
+  content: '';
+}
+
+.rule-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
   margin-bottom: 12px;
 }
 
-.rule-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.rule-controls {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.rule-name {
+  width: 180px;
 }
 
 .rule-enabled-label {
   font-size: 13px;
-  color: rgba(0, 0, 0, 0.65);
+  color: hsl(var(--foreground) / 65%);
+}
+
+.spacer {
+  margin-left: auto;
 }
 
 .rule-row {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
   margin-bottom: 12px;
 }
 
-.rule-label {
+.k {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.65);
+  color: hsl(var(--foreground) / 70%);
   white-space: nowrap;
 }
 
-.rule-section {
-  margin-bottom: 12px;
+.block {
+  padding: 10px 12px;
+  margin-top: 10px;
+  background: hsl(var(--accent));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius, 0.75rem) - 4px);
 }
 
-.rule-section-header {
+.block-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
 }
 
-.condition-row,
-.action-row {
+.cond-row {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
   flex-wrap: wrap;
-}
-
-.condition-text {
-  font-size: 13px;
-  color: rgba(0, 0, 0, 0.45);
-}
-
-.logic-select {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  margin-top: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.cond-row:last-child {
+  margin-bottom: 0;
+}
+
+.cond-tx {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+
+.w-80 {
+  width: 80px;
+}
+
+.w-100 {
+  width: 100px;
+}
+
+.w-110 {
+  width: 110px;
+}
+
+.w-120 {
+  width: 120px;
+}
+
+.w-130 {
+  width: 130px;
+}
+
+.w-140 {
+  width: 140px;
+}
+
+.w-160 {
+  width: 160px;
+}
+
+/* ---- 通知方式 ---- */
+.notify {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--primary) / 5%),
+    hsl(var(--primary) / 2%)
+  );
+  border-color: hsl(var(--primary) / 16%);
+}
+
+.k--notify {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: hsl(var(--primary));
+}
+
+.notify-empty {
+  font-size: 12px;
+}
+
+.notify-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding-left: 8px;
+  margin-bottom: 8px;
+  border-left: 3px solid hsl(var(--border));
+}
+
+.notify-row--email {
+  border-left-color: hsl(var(--primary));
+}
+
+.notify-row--feishu {
+  border-left-color: hsl(var(--success));
+}
+
+.notify-row--dingtalk {
+  border-left-color: hsl(var(--warning));
+}
+
+.notify-value {
+  flex: 1;
 }
 
 .add-rule-btn {
-  margin-top: 8px;
+  margin-top: 12px;
 }
 </style>

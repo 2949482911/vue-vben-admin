@@ -9,7 +9,7 @@
  *
  * UI 全部由 ant-design-vue / vben 组件实现（Card / Statistic / Row / Col / Space /
  * Tag / Avatar / Typography / Alert / Modal / Timeline 等），仅保留锁定高度的布局声明。
- * 数据：decision/list（后端返回数组，前端分页）、decision/review、decision/audits
+ * 数据：decision/list（分页）、decision/review、decision/audits
  */
 import type { VbenFormProps } from "@vben/common-ui";
 import type {
@@ -197,8 +197,8 @@ async function fetchPendingSnapshot() {
     pageSize: 1000,
     decisionStatus: "pending"
   });
-  pendingSnapshot.value = Array.isArray(res) ? res : [];
-  emit("pendingChange", pendingSnapshot.value.length);
+  pendingSnapshot.value = res?.items ?? [];
+  emit("pendingChange", res?.total ?? pendingSnapshot.value.length);
 }
 
 function syncSelected() {
@@ -242,6 +242,8 @@ const gridOptions: VxeGridProps<HostingDecision> = {
       align: "left",
       field: "aiReason",
       minWidth: 220,
+      // 该列依赖单行省略 + 悬浮提示，单独保留裁剪
+      showOverflow: true,
       slots: { default: "aiReason" },
       title: "AI 理由"
     },
@@ -255,6 +257,9 @@ const gridOptions: VxeGridProps<HostingDecision> = {
     { fixed: "right", slots: { default: "operation" }, title: "操作", width: 84 }
   ],
   height: "auto",
+  // 全局默认 showOverflow: true 会把「主信息+次信息」两行单元格裁成单行（指标快照列的第二行被截）；
+  // 放开后按内容自适应行高，AI 理由列已单独保留省略
+  showOverflow: false,
   keepSource: true,
   pagerConfig: { pageSize: 10 },
   proxyConfig: {
@@ -267,23 +272,11 @@ const gridOptions: VxeGridProps<HostingDecision> = {
           decisionStatus: params.decisionStatus as HostingDecisionStatus,
           platform: params.platform,
           riskLevel: params.riskLevel as RiskLevel,
-          taskId: params.taskId
+          taskId: params.taskId,
+          action: params.action,
+          autoExecutable: onlyAuto.value || undefined
         });
-        let list: HostingDecision[] = Array.isArray(res) ? res : [];
-        // 服务端无 action / 可自动执行 参数，这里叠加前端过滤
-        if (params.action) {
-          list = list.filter((d) => d.action === params.action);
-        }
-        if (onlyAuto.value) {
-          list = list.filter((d) =>
-            AUTO_EXECUTABLE_ACTIONS.includes(d.action ?? "")
-          );
-        }
-        const start = (page.currentPage - 1) * page.pageSize;
-        return {
-          items: list.slice(start, start + page.pageSize),
-          total: list.length
-        };
+        return { items: res?.items ?? [], total: res?.total ?? 0 };
       }
     }
   },
@@ -296,17 +289,27 @@ const [Grid, gridApi] = useVbenVxeGrid({
   gridEvents
 });
 
+/**
+ * 应用表单筛选并刷新列表。
+ * 注意：vben 的 vxe Grid 代理查询取的是 formApi.getLatestSubmissionValues()
+ * （仅点「搜索」提交时才更新），程序化 setValues 后必须同步提交值，否则新筛选不会进请求。
+ */
+async function applyFormFilters(values: Record<string, any>) {
+  await gridApi.formApi?.resetForm();
+  await gridApi.formApi?.setValues(values);
+  gridApi.formApi?.setLatestSubmissionValues(values as any);
+  selected.value = [];
+  gridApi.reload();
+}
+
 /** 风险概览卡 → 表单筛选联动 */
 async function applyRiskCard(key: "all" | "auto" | "high" | "medium") {
   riskQuick.value = key;
   onlyAuto.value = key === "auto";
-  await gridApi.formApi?.resetForm();
-  await gridApi.formApi?.setValues({
+  await applyFormFilters({
     decisionStatus: "pending",
     riskLevel: key === "high" || key === "medium" ? key : undefined
   });
-  selected.value = [];
-  gridApi.reload();
 }
 
 // ==================== 展示辅助 ====================
@@ -366,10 +369,11 @@ const audits = ref<HostingAudit[]>([]);
 const auditsLoading = ref(false);
 
 const [DecisionDrawer, decisionDrawerApi] = useVbenDrawer({
-  class: "w-[620px]",
+  class: "w-[75%]",
   footer: true,
   showCancelButton: false,
   showConfirmButton: false,
+  closeOnPressEscape: true,
   onOpenChange(isOpen) {
     if (!isOpen) {
       selectedDecision.value = null;
@@ -484,10 +488,7 @@ async function submitReview() {
 async function focusPending() {
   riskQuick.value = "all";
   onlyAuto.value = false;
-  selected.value = [];
-  await gridApi.formApi?.resetForm();
-  await gridApi.formApi?.setValues({ decisionStatus: "pending" });
-  gridApi.reload();
+  await applyFormFilters({ decisionStatus: "pending" });
 }
 
 defineExpose({ focusPending, reload: () => gridApi.reload() });

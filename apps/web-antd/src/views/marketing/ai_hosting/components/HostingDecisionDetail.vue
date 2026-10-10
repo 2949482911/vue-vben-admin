@@ -39,7 +39,9 @@ import {
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import {
   ACTION_TYPE_MAP,
+  AUDITOR_TYPE_COLOR,
   AUDITOR_TYPE_MAP,
+  AUDIT_CONCLUSION_COLOR,
   AUDIT_CONCLUSION_MAP,
   AUTO_EXECUTABLE_ACTIONS,
   DECISION_STATUS_MAP,
@@ -184,12 +186,89 @@ function auditColor(conclusion?: string): string {
   }
 }
 
+/** 留痕结论 → 节点色调 class（决定圆点配色） */
+function auditTone(conclusion?: string): string {
+  switch (conclusion) {
+    case "ai_approve":
+    case "ai_reject": {
+      return "ai";
+    }
+    case "human_approve":
+    case "human_reject": {
+      return "human";
+    }
+    case "execute_success": {
+      return "ok";
+    }
+    case "execute_failed": {
+      return "err";
+    }
+    default: {
+      return "system";
+    }
+  }
+}
+
 function evidenceEntries(evidence?: Record<string, any>) {
   if (!evidence) {
     return [];
   }
   return Object.entries(evidence).filter(
-    ([, v]) => v !== null && v !== undefined && v !== ""
+    ([k, v]) => k !== "aiThinking" && v !== null && v !== undefined && v !== ""
+  );
+}
+
+/** 依据字段名 → 中文标签 */
+const EVIDENCE_LABEL: Record<string, string> = {
+  aiReason: "AI 判定依据",
+  aiRiskLevel: "AI 风险",
+  aiExecute: "可自动执行",
+  aiAction: "AI 动作",
+  aiParams: "AI 参数",
+  aiConfidence: "AI 置信度",
+  aiThinking: "AI 思考"
+};
+
+function evidenceLabel(key: string): string {
+  return EVIDENCE_LABEL[key] ?? key;
+}
+
+/** 依据 chip 颜色（antd 预设色名）：风险 / 布尔 / 指标 语义着色 */
+function evidenceTone(key: string, value: unknown): string {
+  const k = String(key).toLowerCase();
+  const v = String(value ?? "").trim().toLowerCase();
+  if (k.includes("risk")) {
+    if (v === "high") {
+      return "red";
+    }
+    if (v === "medium") {
+      return "orange";
+    }
+    if (v === "low") {
+      return "green";
+    }
+  }
+  if (k === "aiexecute") {
+    return v === "true" ? "green" : "red";
+  }
+  if (/平台_|roi|消耗|展现|点击|转化/i.test(String(key))) {
+    return "blue";
+  }
+  return "default";
+}
+
+/** 过长取值（叙事 / 名称）不塞 chip，改为「标签 + 可换行文本」 */
+const EVIDENCE_LONG_LEN = 24;
+
+function evidenceShort(evidence?: Record<string, any>) {
+  return evidenceEntries(evidence).filter(
+    ([, v]) => String(v).length <= EVIDENCE_LONG_LEN
+  );
+}
+
+function evidenceLong(evidence?: Record<string, any>) {
+  return evidenceEntries(evidence).filter(
+    ([, v]) => String(v).length > EVIDENCE_LONG_LEN
   );
 }
 </script>
@@ -246,7 +325,7 @@ function evidenceEntries(evidence?: Record<string, any>) {
 
     <!-- ==================== 指标快照 ==================== -->
     <Flex v-if="metricItems.length" vertical :gap="12">
-      <Typography.Title :level="5">指标快照</Typography.Title>
+      <Typography.Title :level="5" class="section-title">指标快照</Typography.Title>
       <Row :gutter="[12, 12]">
         <Col v-for="item in metricItems" :key="item.key" :sm="8" :xs="12">
           <div class="metric-tile">
@@ -266,6 +345,14 @@ function evidenceEntries(evidence?: Record<string, any>) {
       :message="decision.aiReason"
     />
 
+    <!-- ==================== AI 思考 ==================== -->
+    <Flex v-if="decision.aiThinking" vertical :gap="8">
+      <Typography.Title :level="5" class="section-title">AI 思考</Typography.Title>
+      <Typography.Paragraph class="ai-thinking">
+        {{ decision.aiThinking }}
+      </Typography.Paragraph>
+    </Flex>
+
     <!-- ==================== 拒绝原因 ==================== -->
     <Alert
       v-if="decision.rejectReason"
@@ -276,54 +363,80 @@ function evidenceEntries(evidence?: Record<string, any>) {
 
     <!-- ==================== 审核与执行留痕 ==================== -->
     <Flex vertical :gap="12">
-      <Typography.Title :level="5">审核与执行留痕</Typography.Title>
+      <Typography.Title :level="5" class="section-title">审核与执行留痕</Typography.Title>
       <Spin :spinning="auditsLoading">
-        <Timeline v-if="audits.length">
+        <Timeline v-if="audits.length" class="audit-timeline">
           <Timeline.Item
             v-for="(audit, index) in audits"
             :key="audit.id ?? index"
             :color="auditColor(audit.conclusion)"
           >
             <template #dot>
-              <component :is="auditIcon(audit.conclusion)" />
+              <span
+                class="audit-dot"
+                :class="`audit-dot--${auditTone(audit.conclusion)}`"
+              >
+                <component :is="auditIcon(audit.conclusion)" />
+              </span>
             </template>
-            <Flex vertical :gap="4">
-              <Space :size="8" wrap>
-                <Typography.Text strong>
-                  {{ AUDITOR_TYPE_MAP[audit.auditorType || ""] || audit.auditorType }}
+            <div class="audit-card">
+              <div class="audit-card__head">
+                <Space :size="8" wrap>
+                  <Tag
+                    :bordered="false"
+                    :color="AUDITOR_TYPE_COLOR[audit.auditorType || ''] || 'default'"
+                  >
+                    {{ AUDITOR_TYPE_MAP[audit.auditorType || ""] || audit.auditorType || "-" }}
+                  </Tag>
+                  <Typography.Text strong>
+                    {{ audit.auditorName || "-" }}
+                  </Typography.Text>
+                </Space>
+                <Typography.Text class="audit-time" type="secondary">
+                  {{ audit.createTime || "-" }}
                 </Typography.Text>
-                <Typography.Text type="secondary">
-                  · {{ audit.auditorName || "-" }}
-                </Typography.Text>
-                <Typography.Text type="secondary">
-                  {{ audit.createTime }}
-                </Typography.Text>
-              </Space>
+              </div>
 
-              <Space :size="4" wrap>
-                <Tag :bordered="false">
-                  {{ AUDIT_CONCLUSION_MAP[audit.conclusion || ""] || audit.conclusion }}
-                </Tag>
-              </Space>
+              <Tag
+                :bordered="false"
+                :color="AUDIT_CONCLUSION_COLOR[audit.conclusion || ''] || 'default'"
+              >
+                {{ AUDIT_CONCLUSION_MAP[audit.conclusion || ""] || audit.conclusion || "-" }}
+              </Tag>
 
-              <Typography.Text v-if="audit.reason" type="secondary">
+              <Typography.Text
+                v-if="audit.reason"
+                class="audit-reason"
+                type="secondary"
+              >
                 {{ audit.reason }}
               </Typography.Text>
 
-              <Space
-                v-if="evidenceEntries(audit.evidence).length"
-                :size="4"
-                wrap
+              <div
+                v-if="evidenceShort(audit.evidence).length"
+                class="audit-evidence"
               >
                 <Tag
-                  v-for="[key, val] in evidenceEntries(audit.evidence)"
+                  v-for="[key, val] in evidenceShort(audit.evidence)"
                   :key="key"
                   :bordered="false"
+                  :color="evidenceTone(key, val)"
                 >
-                  {{ key }} {{ val }}
+                  {{ evidenceLabel(key) }} {{ val }}
                 </Tag>
-              </Space>
-            </Flex>
+              </div>
+
+              <div
+                v-for="[key, val] in evidenceLong(audit.evidence)"
+                :key="key"
+                class="audit-evidence-row"
+              >
+                <span class="audit-evidence-row__k">
+                  {{ evidenceLabel(key) }}
+                </span>
+                <span class="audit-evidence-row__v">{{ val }}</span>
+              </div>
+            </div>
           </Timeline.Item>
         </Timeline>
         <Empty v-else :image="Empty.PRESENTED_IMAGE_SIMPLE" description="暂无留痕" />
@@ -332,7 +445,7 @@ function evidenceEntries(evidence?: Record<string, any>) {
 
     <!-- ==================== 执行结果 ==================== -->
     <Flex v-if="decision.execResult || decision.errorMsg" vertical :gap="12">
-      <Typography.Title :level="5">执行结果</Typography.Title>
+      <Typography.Title :level="5" class="section-title">执行结果</Typography.Title>
       <Alert v-if="decision.errorMsg" show-icon type="error" :message="decision.errorMsg" />
       <Descriptions v-else bordered :column="1" size="small">
         <Descriptions.Item
@@ -365,5 +478,117 @@ function evidenceEntries(evidence?: Record<string, any>) {
     font-size: 18px;
     font-weight: 600;
   }
+}
+
+/* 分区标题：主题色前缀条 */
+.section-title {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+
+  &::before {
+    width: 3px;
+    height: 14px;
+    background: hsl(var(--primary));
+    border-radius: 2px;
+    content: '';
+  }
+}
+
+/* 审核留痕时间线：节点着色 + 卡片化 */
+.audit-timeline {
+  :deep(.ant-timeline-item) {
+    padding-bottom: 16px;
+  }
+
+  :deep(.ant-timeline-item:last-child) {
+    padding-bottom: 0;
+  }
+
+  :deep(.ant-timeline-item-tail) {
+    border-inline-start-color: hsl(var(--border));
+  }
+}
+
+.audit-dot {
+  display: inline-flex;
+  font-size: 14px;
+}
+
+.audit-dot--system {
+  color: hsl(var(--muted-foreground));
+}
+
+.audit-dot--ai {
+  color: hsl(var(--primary));
+}
+
+.audit-dot--human {
+  color: hsl(var(--warning));
+}
+
+.audit-dot--ok {
+  color: hsl(var(--success));
+}
+
+.audit-dot--err {
+  color: hsl(var(--destructive));
+}
+
+.audit-card {
+  padding: 12px 14px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius, 0.75rem) - 4px);
+}
+
+.audit-card__head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.audit-time {
+  font-size: 12px;
+}
+
+.audit-reason {
+  display: block;
+  margin-top: 8px;
+}
+
+.audit-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.audit-evidence-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.audit-evidence-row__k {
+  flex: none;
+  color: hsl(var(--muted-foreground));
+}
+
+.audit-evidence-row__v {
+  color: hsl(var(--foreground));
+  word-break: break-word;
+}
+
+/* AI 思考：保留分步换行 */
+.ai-thinking {
+  margin: 0;
+  color: hsl(var(--foreground));
+  white-space: pre-wrap;
 }
 </style>
