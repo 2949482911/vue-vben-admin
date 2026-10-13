@@ -7,6 +7,10 @@ import { onMounted, ref } from "vue";
 
 import { EchartsUI, useEcharts } from "@vben/plugins/echarts";
 
+import { chartPalette } from '#/utils/chart-colors';
+
+const palette = chartPalette();
+
 import { Empty, message } from "ant-design-vue";
 
 import { dashboardApi } from "#/api";
@@ -64,7 +68,7 @@ onMounted(async () => {
         areaStyle: {},
         data: AdClick,
         itemStyle: {
-          color: "#5ab1ef",
+          color: palette.primary,
         },
         smooth: true,
         type: "line",
@@ -74,7 +78,7 @@ onMounted(async () => {
         areaStyle: {},
         data: AdShow,
         itemStyle: {
-          color: "#019680"
+          color: palette.primary
         },
         smooth: true,
         type: "line",
@@ -84,7 +88,7 @@ onMounted(async () => {
     tooltip: {
       axisPointer: {
         lineStyle: {
-          color: "#019680",
+          color: palette.primary,
           width: 1
         }
       },

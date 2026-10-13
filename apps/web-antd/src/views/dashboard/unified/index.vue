@@ -3,14 +3,14 @@
  * 统一数据看板
  *
  * 跨平台投放数据聚合展示，对标创量/引力引擎的数据看板能力
- * 包含：核心指标概览、消耗趋势、平台对比、账户排行、素材排行、智能告警
+ * 包含：核心指标概览、消耗趋势、平台对比、账户排行、素材排行
  *
  * 布局参考 analytics/index.vue 的 Card 堆叠模式
  * 数据流：DashboardFilter → index.vue(中央状态) → 各子组件(props)
  */
 import { onMounted, ref } from 'vue';
 import { Page } from '@vben/common-ui';
-import { Card, Col, Row } from 'ant-design-vue';
+import { Col, Row } from 'ant-design-vue';
 import { dashboardApi } from '#/api/core/dashboard';
 import type {
   DashboardQueryParams,
@@ -19,7 +19,6 @@ import type {
   PlatformCompareItem,
   AccountTopItem,
   MaterialRankItem,
-  AlertItem,
 } from '#/api/models';
 
 // 子组件
@@ -29,7 +28,6 @@ import SpendTrendChart from './components/SpendTrendChart.vue';
 import PlatformCompareChart from './components/PlatformCompareChart.vue';
 import AccountTopTable from './components/AccountTopTable.vue';
 import MaterialRankList from './components/MaterialRankList.vue';
-import AlertList from './components/AlertList.vue';
 
 // ==================== 状态管理 ====================
 
@@ -41,7 +39,6 @@ const trendData = ref<TrendDataPoint[]>([]);
 const platformCompareData = ref<PlatformCompareItem[]>([]);
 const accountTopData = ref<AccountTopItem[]>([]);
 const materialRankData = ref<MaterialRankItem[]>([]);
-const alertData = ref<AlertItem[]>([]);
 
 // 各模块加载状态
 const loading = ref({
@@ -50,7 +47,6 @@ const loading = ref({
   platformCompare: false,
   accountTop: false,
   materialRank: false,
-  alerts: false,
 });
 
 // ==================== 数据加载 ====================
@@ -141,25 +137,6 @@ async function loadMaterialRank(params: DashboardQueryParams) {
 }
 
 /**
- * 加载告警列表
- */
-async function loadAlerts(params: DashboardQueryParams) {
-  loading.value.alerts = true;
-  try {
-    const res = await dashboardApi.fetchAlerts({
-      ...params,
-      page: 1,
-      pageSize: 20,
-    });
-    alertData.value = res.items;
-  } catch (e) {
-    console.error('[Dashboard] 加载告警失败:', e);
-  } finally {
-    loading.value.alerts = false;
-  }
-}
-
-/**
  * 加载全部看板数据
  */
 async function loadAllData() {
@@ -171,7 +148,6 @@ async function loadAllData() {
     loadPlatformCompare(params),
     loadAccountTop(params),
     loadMaterialRank(params),
-    loadAlerts(params),
   ]);
 }
 
@@ -224,27 +200,11 @@ onMounted(() => {
         />
       </Col>
     </Row>
-
-    <!-- 智能告警 -->
-    <Card class="alert-section">
-      <AlertList
-        :data="alertData"
-        :loading="loading.alerts"
-      />
-    </Card>
   </Page>
 </template>
 
 <style scoped lang="scss">
 .chart-row {
   margin-bottom: 16px;
-}
-
-.alert-section {
-  margin-bottom: 16px;
-
-  :deep(.ant-card-body) {
-    padding: 0;
-  }
 }
 </style>

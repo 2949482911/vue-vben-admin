@@ -2,6 +2,10 @@
 import type { EchartsUIType } from "@vben/plugins/echarts";
 import { EchartsUI, useEcharts } from "@vben/plugins/echarts";
 
+import { chartPalette } from '#/utils/chart-colors';
+
+const palette = chartPalette();
+
 import { onMounted, ref } from "vue";
 import type { PageIndexReportResponse } from "#/api/models";
 import { dashboardApi } from "#/api";
@@ -51,14 +55,14 @@ onMounted(async () => {
     series: [
       {
         barMaxWidth: 80,
-        color: '#4f69fd',
+        color: palette.primary,
         data: x_data,
         type: "bar",
         name: "点击量"
       },
       {
         barMaxWidth: 80,
-        color: '#4f692d',
+        color: palette.violet,
         data: y_data,
         type: "bar",
         name: "曝光量"
@@ -67,7 +71,7 @@ onMounted(async () => {
     tooltip: {
       axisPointer: {
         lineStyle: {
-          // color: '#4f69fd',
+          // color: palette.primary,
           width: 1
         }
       },

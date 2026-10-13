@@ -7,7 +7,9 @@
  * 审批动作由使用方（HostingReviewConsole）在抽屉 footer 中承载。
  */
 import type { HostingAudit, HostingDecision } from "#/api/models/ai_hosting";
+
 import { computed } from "vue";
+
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -15,8 +17,9 @@ import {
   InfoCircleOutlined,
   PauseCircleOutlined,
   PlayCircleOutlined,
-  RobotOutlined,
   RiseOutlined,
+  RobotOutlined,
+  RollbackOutlined,
   SettingOutlined,
   UserOutlined,
   WalletOutlined
@@ -37,15 +40,20 @@ import {
 } from "ant-design-vue";
 
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
+
 import {
   ACTION_TYPE_MAP,
-  AUDITOR_TYPE_COLOR,
-  AUDITOR_TYPE_MAP,
   AUDIT_CONCLUSION_COLOR,
   AUDIT_CONCLUSION_MAP,
+  AUDITOR_TYPE_COLOR,
+  AUDITOR_TYPE_MAP,
   AUTO_EXECUTABLE_ACTIONS,
   DECISION_STATUS_MAP,
+  EFFECT_VERDICT_MAP,
+  EXECUTED_BY_MAP,
+  isQuotaBlocked,
   RISK_LEVEL_MAP,
+  ROLLBACK_STATUS_MAP,
   RULE_TYPE_MAP,
   TARGET_LEVEL_LABEL
 } from "../constants";
@@ -71,7 +79,17 @@ const METRIC_LABEL: Record<string, string> = {
 };
 
 /** 金额类指标（分 → 元） */
-const MONEY_KEYS = new Set(["cost", "spend", "cpa", "clickCost"]);
+const MONEY_KEYS = new Set(["clickCost", "cost", "cpa", "spend"]);
+
+function fmtNumber(value: number): string {
+  return Number(value).toLocaleString("zh-CN", { maximumFractionDigits: 2 });
+}
+
+function fmtMoney(cents: number): string {
+  return `¥${(cents / 100).toLocaleString("zh-CN", {
+    maximumFractionDigits: 2
+  })}`;
+}
 
 const statusMeta = computed(() =>
   DECISION_STATUS_MAP[props.decision?.decisionStatus ?? ""] ?? {
@@ -106,6 +124,36 @@ const metricItems = computed(() => {
       return { key, label: METRIC_LABEL[key] ?? key, value: display };
     });
 });
+
+/** 效果回评：before→after 展示项（有值才出） */
+const effectRows = computed(() => {
+  const d = props.decision;
+  if (!d) {
+    return [];
+  }
+  const rows: { key: string; label: string; value: string }[] = [];
+  if (d.beforeRoi !== null && d.beforeRoi !== undefined) {
+    rows.push({ key: "beforeRoi", label: "操作前 ROI", value: fmtNumber(d.beforeRoi) });
+  }
+  if (d.afterRoi !== null && d.afterRoi !== undefined) {
+    rows.push({ key: "afterRoi", label: "操作后 ROI", value: fmtNumber(d.afterRoi) });
+  }
+  if (d.beforeCost !== null && d.beforeCost !== undefined) {
+    rows.push({ key: "beforeCost", label: "操作前消耗", value: fmtMoney(d.beforeCost) });
+  }
+  if (d.afterCost !== null && d.afterCost !== undefined) {
+    rows.push({ key: "afterCost", label: "操作后消耗", value: fmtMoney(d.afterCost) });
+  }
+  return rows;
+});
+
+/** 是否展示「效果回评」区块 */
+const hasEffect = computed(
+  () =>
+    !!props.decision?.effectVerdict ||
+    (props.decision?.feedbackEvaluated ?? 0) === 1 ||
+    effectRows.value.length > 0
+);
 
 const actionMeta = computed(() => {
   const action = props.decision?.action ?? "";
@@ -158,6 +206,9 @@ function auditIcon(conclusion?: string) {
     case "execute_failed": {
       return CloseCircleOutlined;
     }
+    case "rollback": {
+      return RollbackOutlined;
+    }
     default: {
       return SettingOutlined;
     }
@@ -179,6 +230,9 @@ function auditColor(conclusion?: string): string {
     case "ai_reject":
     case "execute_failed": {
       return "red";
+    }
+    case "rollback": {
+      return "cyan";
     }
     default: {
       return "gray";
@@ -202,6 +256,9 @@ function auditTone(conclusion?: string): string {
     }
     case "execute_failed": {
       return "err";
+    }
+    case "rollback": {
+      return "human";
     }
     default: {
       return "system";
@@ -282,8 +339,25 @@ function evidenceLong(evidence?: Record<string, any>) {
           {{ getPlatformLabel(decision.platform) }}
         </Tag>
         <Tag :bordered="false" :color="statusMeta.color">{{ statusMeta.label }}</Tag>
+        <Tag v-if="isQuotaBlocked(decision.errorMsg)" :bordered="false" color="orange">
+          限额拦截
+        </Tag>
         <Tag v-if="riskMeta" :bordered="false" :color="riskMeta.color">
           {{ riskMeta.label }}
+        </Tag>
+        <Tag
+          v-if="decision.executedBy"
+          :bordered="false"
+          :color="EXECUTED_BY_MAP[decision.executedBy || '']?.color || 'default'"
+        >
+          {{ EXECUTED_BY_MAP[decision.executedBy || '']?.label || decision.executedBy }}
+        </Tag>
+        <Tag
+          v-if="decision.rollbackStatus && decision.rollbackStatus !== 'none'"
+          :bordered="false"
+          :color="ROLLBACK_STATUS_MAP[decision.rollbackStatus || '']?.color || 'default'"
+        >
+          {{ ROLLBACK_STATUS_MAP[decision.rollbackStatus || '']?.label || decision.rollbackStatus }}
         </Tag>
         <Typography.Text type="secondary">决策单 #{{ decision.id }}</Typography.Text>
       </Space>
@@ -302,6 +376,9 @@ function evidenceLong(evidence?: Record<string, any>) {
         </Typography.Text>
         <Typography.Text v-if="decision.taskId" type="secondary">
           任务 {{ decision.taskId }}
+        </Typography.Text>
+        <Typography.Text v-if="decision.rollbackDeadline" type="secondary">
+          可回滚至 {{ decision.rollbackDeadline }}
         </Typography.Text>
       </Space>
     </Flex>
@@ -335,6 +412,37 @@ function evidenceLong(evidence?: Record<string, any>) {
           </div>
         </Col>
       </Row>
+    </Flex>
+
+    <!-- ==================== 效果回评（执行后回评） ==================== -->
+    <Flex v-if="hasEffect" vertical :gap="12">
+      <Space :size="8" align="center" wrap>
+        <Typography.Title :level="5" class="section-title">效果回评</Typography.Title>
+        <Tag
+          v-if="decision.effectVerdict"
+          :bordered="false"
+          :color="EFFECT_VERDICT_MAP[decision.effectVerdict || '']?.color || 'default'"
+        >
+          {{ EFFECT_VERDICT_MAP[decision.effectVerdict || '']?.label || decision.effectVerdict }}
+        </Tag>
+      </Space>
+
+      <Row v-if="effectRows.length" :gutter="[12, 12]">
+        <Col v-for="item in effectRows" :key="item.key" :sm="8" :xs="12">
+          <div class="metric-tile">
+            <Statistic :value="item.value">
+              <template #title>{{ item.label }}</template>
+            </Statistic>
+          </div>
+        </Col>
+      </Row>
+
+      <Typography.Text v-if="decision.effectEvaluatedAt" type="secondary">
+        回评时间：{{ decision.effectEvaluatedAt }}
+      </Typography.Text>
+      <Typography.Text v-else type="secondary">
+        尚未回评（真实执行后按观察窗口自动回评）
+      </Typography.Text>
     </Flex>
 
     <!-- ==================== AI 审核理由 ==================== -->
@@ -446,7 +554,12 @@ function evidenceLong(evidence?: Record<string, any>) {
     <!-- ==================== 执行结果 ==================== -->
     <Flex v-if="decision.execResult || decision.errorMsg" vertical :gap="12">
       <Typography.Title :level="5" class="section-title">执行结果</Typography.Title>
-      <Alert v-if="decision.errorMsg" show-icon type="error" :message="decision.errorMsg" />
+      <Alert
+        v-if="decision.errorMsg"
+        show-icon
+        :type="isQuotaBlocked(decision.errorMsg) ? 'warning' : 'error'"
+        :message="decision.errorMsg"
+      />
       <Descriptions v-else bordered :column="1" size="small">
         <Descriptions.Item
           v-for="(val, key) in decision.execResult"

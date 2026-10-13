@@ -8,6 +8,7 @@ import type {
   HostingDecisionQueryParams,
   HostingReviewRequest,
   HostingStats,
+  HostingInsight,
 } from '#/api/models/ai_hosting';
 import type { BatchOptions } from '#/api/models/core';
 import type { PageResponse } from '#/api/models/marketing';
@@ -77,6 +78,20 @@ class AiHostingApi extends BaseApi {
     return requestClient.post<number>(
       this.getServiceUrl('decision/review'),
       data,
+    );
+  }
+
+  /** 人工回滚（批量），返回成功回滚数量 */
+  fetchRollbackDecision(ids: Array<number | string>) {
+    return requestClient.post<number>(this.getServiceUrl('decision/rollback'), {
+      ids,
+    });
+  }
+
+  /** 决策洞察（命中率 / 平均 ROI 变化） */
+  fetchInsight() {
+    return requestClient.get<HostingInsight>(
+      this.getServiceUrl('decision/insight'),
     );
   }
 

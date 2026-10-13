@@ -76,11 +76,11 @@ defineExpose({ getValues });
         <span class="filter-label">平台</span>
         <Select
           v-model:value="selectedPlatforms"
+          class="filter-select"
           mode="multiple"
           :options="platformOptions"
           placeholder="全部平台"
           allow-clear
-          style="min-width: 200px"
         />
       </div>
 
@@ -89,10 +89,10 @@ defineExpose({ getValues });
         <span class="filter-label">账户</span>
         <Select
           v-model:value="selectedAdvertisers"
+          class="filter-select"
           mode="multiple"
           placeholder="全部账户"
           allow-clear
-          style="min-width: 200px"
           :options="[]"
         />
       </div>
@@ -123,7 +123,11 @@ defineExpose({ getValues });
 
 .filter-label {
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.65);
+  color: hsl(var(--muted-foreground));
   white-space: nowrap;
+}
+
+.filter-select {
+  min-width: 200px;
 }
 </style>

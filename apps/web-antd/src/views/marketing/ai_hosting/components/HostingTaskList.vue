@@ -6,16 +6,20 @@
  * 由 ai_hosting/index.vue 的「托管任务」Tab 承载。
  */
 import type { VbenFormProps } from '@vben/common-ui';
-import { useVbenDrawer } from '@vben/common-ui';
+
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import type { HostingTask } from '#/api/models/ai_hosting';
+import type { BatchOptions } from '#/api/models/core';
+
+import { useVbenDrawer } from '@vben/common-ui';
+
 import { Button, message, Space, Tag } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { aiHostingApi } from '#/api/core';
 import { BatchOptionsType, PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from '#/utils/trim';
-import type { HostingTask } from '#/api/models/ai_hosting';
-import type { BatchOptions } from '#/api/models/core';
 // import { Page } from "@vben/common-ui";
 
 import {
@@ -60,7 +64,7 @@ async function toggleStatus(row: HostingTask) {
   await aiHostingApi.fetchBatchOptions({
     targetIds: [row.id],
     type: action,
-    values: new Map<string, any>()
+    values: {}
   } as BatchOptions);
   message.success(action === BatchOptionsType.DISABLE ? "已暂停" : "已恢复");
   gridApi.reload();
@@ -71,7 +75,7 @@ async function handleDelete(row: HostingTask) {
   await aiHostingApi.fetchBatchOptions({
     targetIds: [row.id],
     type: BatchOptionsType.Delete,
-    values: new Map<string, any>()
+    values: {}
   } as BatchOptions);
   message.success("删除成功");
   await gridApi.reload();

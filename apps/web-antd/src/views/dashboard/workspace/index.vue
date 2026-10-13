@@ -43,7 +43,7 @@ const projectItems: WorkbenchProjectItem[] = [
     url: 'https://github.com',
   },
   {
-    color: '#3fb27f',
+    color: '#2fa36b',
     content: '现在的你决定将来的你。',
     date: '2021-04-01',
     group: '算法组',
@@ -52,7 +52,7 @@ const projectItems: WorkbenchProjectItem[] = [
     url: 'https://vuejs.org',
   },
   {
-    color: '#e18525',
+    color: '#d99a2b',
     content: '没有什么才能比努力更重要。',
     date: '2021-04-01',
     group: '上班摸鱼',
@@ -61,7 +61,7 @@ const projectItems: WorkbenchProjectItem[] = [
     url: 'https://developer.mozilla.org/zh-CN/docs/Web/HTML',
   },
   {
-    color: '#bf0c2c',
+    color: '#e5484d',
     content: '热情和欲望可以突破一切难关。',
     date: '2021-04-01',
     group: 'UI',
@@ -70,7 +70,7 @@ const projectItems: WorkbenchProjectItem[] = [
     url: 'https://angular.io',
   },
   {
-    color: '#00d8ff',
+    color: '#159aa8',
     content: '健康的身体是实现目标的基石。',
     date: '2021-04-01',
     group: '技术牛',
@@ -79,7 +79,7 @@ const projectItems: WorkbenchProjectItem[] = [
     url: 'https://reactjs.org',
   },
   {
-    color: '#EBD94E',
+    color: '#d99a2b',
     content: '路是走出来的，而不是空想出来的。',
     date: '2021-04-01',
     group: '架构组',
@@ -92,37 +92,37 @@ const projectItems: WorkbenchProjectItem[] = [
 // 同样，这里的 url 也可以使用以 http 开头的外部链接
 const quickNavItems: WorkbenchQuickNavItem[] = [
   {
-    color: '#1fdaca',
+    color: '#159aa8',
     icon: 'ion:home-outline',
     title: '首页',
     url: '/',
   },
   {
-    color: '#bf0c2c',
+    color: '#e5484d',
     icon: 'ion:grid-outline',
     title: '仪表盘',
     url: '/dashboard',
   },
   {
-    color: '#e18525',
+    color: '#d99a2b',
     icon: 'ion:layers-outline',
     title: '组件',
     url: '/demos/features/icons',
   },
   {
-    color: '#3fb27f',
+    color: '#2fa36b',
     icon: 'ion:settings-outline',
     title: '系统管理',
     url: '/demos/features/login-expired', // 这里的 URL 是示例，实际项目中需要根据实际情况进行调整
   },
   {
-    color: '#4daf1bc9',
+    color: '#2fa36b',
     icon: 'ion:key-outline',
     title: '权限管理',
     url: '/demos/access/page-control',
   },
   {
-    color: '#00d8ff',
+    color: '#159aa8',
     icon: 'ion:bar-chart-outline',
     title: '图表',
     url: '/analytics',
@@ -276,12 +276,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-5">
+  <div class="workbench-page p-5">
     <WorkbenchHeader
       :avatar="userStore.userInfo?.avatar || preferences.app.defaultAvatar"
     >
       <template #title>
-        早安, {{ userStore.userInfo?.realName }}, 开始您一天的工作吧！
+        早安, {{ userStore.userInfo?.nickname }}, 开始您一天的工作吧！
       </template>
       <template #description> 今日晴，20℃ - 32℃！</template>
     </WorkbenchHeader>
@@ -382,3 +382,20 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+/*
+ * 仅本页适配：工作台头图卡加一层主题色柔光。
+ * :deep() 作用域限定本页，不修改 @vben/common-ui 的 WorkbenchHeader 组件。
+ */
+.workbench-page {
+  :deep(.card-box) {
+    border: 1px solid color-mix(in srgb, hsl(var(--primary)) 22%, transparent);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, hsl(var(--primary)) 10%, hsl(var(--card))) 0%,
+      color-mix(in srgb, hsl(var(--primary)) 3%, hsl(var(--card))) 100%
+    );
+  }
+}
+</style>

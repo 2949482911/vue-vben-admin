@@ -101,7 +101,7 @@ const chartTabs: TabOption[] = [
 </script>
 
 <template>
-  <div class="p-5">
+  <div class="analytics-page p-5">
     <AnalysisOverview :items="overviewItems" />
     <AnalysisChartsTabs :tabs="chartTabs" class="mt-5">
       <template #trends>
@@ -125,3 +125,43 @@ const chartTabs: TabOption[] = [
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+/*
+ * 仅本页适配：给 vben 的 AnalysisOverview 四张卡按顺序上主题色。
+ * 不修改 @vben/common-ui 组件本身，:`deep()` 作用域限定在本页。
+ * 颜色取 vben token，cyan / violet 为本站补充强调色（vben 无内置）。
+ */
+.analytics-page {
+  :deep(.grid.grid-cols-1 > *:nth-child(1)) {
+    --tint: hsl(var(--primary));
+  }
+
+  :deep(.grid.grid-cols-1 > *:nth-child(2)) {
+    --tint: hsl(187 78% 38%);
+  }
+
+  :deep(.grid.grid-cols-1 > *:nth-child(3)) {
+    --tint: hsl(var(--success));
+  }
+
+  :deep(.grid.grid-cols-1 > *:nth-child(4)) {
+    --tint: hsl(258 84% 62%);
+  }
+
+  :deep(.grid.grid-cols-1 > *) {
+    border-color: color-mix(in srgb, var(--tint) 22%, transparent);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--tint) 10%, hsl(var(--card))) 0%,
+      color-mix(in srgb, var(--tint) 3%, hsl(var(--card))) 100%
+    );
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  :deep(.grid.grid-cols-1 > *:hover) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px color-mix(in srgb, var(--tint) 18%, transparent);
+  }
+}
+</style>

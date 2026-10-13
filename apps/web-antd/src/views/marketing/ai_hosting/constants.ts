@@ -13,7 +13,6 @@ import type {
   HostingDecisionStatus,
   HostingStatus,
   HostingTarget,
-  LogResult,
   RiskLevel,
   RulesMode,
   RuleType
@@ -89,16 +88,9 @@ export const ACTION_TYPE_OPTIONS = [
   { label: "提高出价", value: "increase_bid" as ActionType },
   { label: "降低出价", value: "decrease_bid" as ActionType },
   { label: "复制计划", value: "duplicate_ad" as ActionType },
+  { label: "删除广告", value: "delete_promotion" as ActionType },
+  { label: "删除广告组", value: "delete_adgroup" as ActionType },
   { label: "仅告警", value: "alert" as ActionType }
-];
-
-/** 日志结果选项 */
-export const LOG_RESULT_OPTIONS = [
-  { label: "成功", value: "success" as LogResult, color: "green" },
-  { label: "失败", value: "failed" as LogResult, color: "red" },
-  { label: "执行中", value: "pending" as LogResult, color: "blue" },
-  { label: "已回滚", value: "rollback" as LogResult, color: "orange" },
-  { label: "上报失败", value: "report_failed" as LogResult, color: "red" }
 ];
 
 // ==================== 通知方式 ====================
@@ -129,12 +121,6 @@ export const ALERT_METHOD_OPTIONS: Array<{
     value: "dingtalk"
   }
 ];
-
-/** 通知方式 → { color, label } */
-export const ALERT_METHOD_MAP: Record<
-  string,
-  { color: string; label: string }
-> = Object.fromEntries(ALERT_METHOD_OPTIONS.map((m) => [m.value, m]));
 
 /** 通知方式 → 地址输入占位提示 */
 export const ALERT_VALUE_PLACEHOLDER: Record<AlertMethod, string> = {
@@ -170,10 +156,6 @@ export const HOSTING_STATUS_MAP: Record<string, { label: string; color: string }
 export const ACTION_TYPE_MAP: Record<string, string> =
   Object.fromEntries(ACTION_TYPE_OPTIONS.map((a) => [a.value, a.label]));
 
-/** 日志结果 → { label, color } */
-export const LOG_RESULT_MAP: Record<string, { label: string; color: string }> =
-  Object.fromEntries(LOG_RESULT_OPTIONS.map((r) => [r.value, r]));
-
 // ==================== 可监控指标 ====================
 
 /** 规则条件可选的指标字段 */
@@ -181,7 +163,6 @@ export const METRIC_OPTIONS = [
   { label: "平台_展现", value: "AdShow" },
   { label: "平台_消耗", value: "AdCost" },
   { label: "平台_点击", value: "AdClick" },
-  { label: "平台_曝光", value: "AdShow" },
   { label: "平台_注册量", value: "AdRegister" },
   { label: "平台_点击率", value: "AdCtr" },
   { label: "平台_ECPM", value: "AdEcpm" },
@@ -246,7 +227,8 @@ export const AUDIT_CONCLUSION_MAP: Record<string, string> = {
   human_approve: "人工通过",
   human_reject: "人工拒绝",
   execute_success: "执行成功",
-  execute_failed: "执行失败"
+  execute_failed: "执行失败",
+  rollback: "回滚"
 };
 
 /** 审核者类型 → 中文 */
@@ -271,11 +253,46 @@ export const AUDIT_CONCLUSION_COLOR: Record<string, string> = {
   human_approve: "green",
   human_reject: "orange",
   execute_success: "cyan",
-  execute_failed: "red"
+  execute_failed: "red",
+  rollback: "cyan"
 };
 
 /** 本期后端可自动执行的动作 */
 export const AUTO_EXECUTABLE_ACTIONS: string[] = ["pause_ad", "resume_ad"];
+
+// ==================== 执行来源 / 回滚 / 效果回评 ====================
+
+/** 执行来源 → { label, color }（AI 自动执行 / 人工审批执行） */
+export const EXECUTED_BY_MAP: Record<string, { color: string; label: string }> = {
+  AI: { color: "geekblue", label: "AI 执行" },
+  HUMAN: { color: "purple", label: "人工执行" }
+};
+
+/** 回滚状态 → { label, color } */
+export const ROLLBACK_STATUS_MAP: Record<
+  string,
+  { color: string; label: string }
+> = {
+  none: { color: "default", label: "不可回滚" },
+  available: { color: "orange", label: "可回滚" },
+  rolled_back: { color: "cyan", label: "已回滚" },
+  failed: { color: "red", label: "回滚失败" }
+};
+
+/** 效果判定 → { label, color } */
+export const EFFECT_VERDICT_MAP: Record<
+  string,
+  { color: string; label: string }
+> = {
+  improved: { color: "green", label: "有效" },
+  flat: { color: "default", label: "持平" },
+  worse: { color: "red", label: "无效" }
+};
+
+/** 限额拦截判定：后端 errorMsg 以「限额拦截」开头（见 DecisionExecutor） */
+export function isQuotaBlocked(errorMsg?: string): boolean {
+  return !!errorMsg && errorMsg.startsWith("限额拦截");
+}
 
 /** 监控层级 → 中文（含决策单可能出现的 adgroup） */
 export const TARGET_LEVEL_LABEL: Record<string, string> = {
@@ -286,17 +303,3 @@ export const TARGET_LEVEL_LABEL: Record<string, string> = {
 };
 
 // ==================== 触发留痕（airflow 上报） ====================
-
-/** 触发留痕结果选项 */
-export const TRIGGER_RESULT_OPTIONS: Array<{
-  color: string;
-  label: string;
-  value: LogResult;
-}> = [
-  { label: "待审核", value: "pending", color: "orange" },
-  { label: "上报失败", value: "report_failed", color: "red" }
-];
-
-/** 触发留痕结果 → { label, color } */
-export const TRIGGER_RESULT_MAP: Record<string, { color: string; label: string }> =
-  Object.fromEntries(TRIGGER_RESULT_OPTIONS.map((r) => [r.value, r]));

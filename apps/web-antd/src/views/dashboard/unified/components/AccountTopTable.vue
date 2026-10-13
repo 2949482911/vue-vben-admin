@@ -2,10 +2,13 @@
 /**
  * 账户排行表格
  *
- * 展示消耗 Top N 的账户数据
+ * 展示消耗 Top N 的账户数据。排行榜前三用主题色徽章，平台标签复用全站平台色，
+ * 其余沿用 antd 表格与 vben token，不覆盖全局样式。
  */
 import { Card, Table, Tag } from 'ant-design-vue';
+import { TrophyOutlined } from '@ant-design/icons-vue';
 import type { AccountTopItem } from '#/api/models';
+import { getPlatformColor, getPlatformLabel } from '#/constants/platform';
 
 defineProps<{
   /** 账户排行数据 */
@@ -14,41 +17,19 @@ defineProps<{
   loading?: boolean;
 }>();
 
-// 格式化金额
 function formatMoney(cents: number): string {
   return `¥${cents}`;
 }
 
-// 平台标签颜色
-function platformColor(value: string): string {
-  const colorMap: Record<string, string> = {
-    bytedance: 'blue',
-    tencent: 'green',
-    oppo: 'orange',
-    vivo: 'purple',
-    huawei_store: 'red',
-  };
-  return colorMap[value] || 'default';
+/** 前三名的徽章主题色 class，其余走中性 */
+function rankClass(index: number): string {
+  return [`rank-badge--gold`, `rank-badge--violet`, `rank-badge--cyan`][index] ?? 'rank-badge--plain';
 }
 
-// 表格列配置
 const columns = [
-  {
-    title: '排名',
-    key: 'rank',
-    width: 60,
-  },
-  {
-    title: '账户名称',
-    dataIndex: 'advertiserName',
-    ellipsis: true,
-  },
-  {
-    title: '平台',
-    dataIndex: 'platform',
-    key: 'platform',
-    width: 100,
-  },
+  { title: '排名', key: 'rank', width: 72 },
+  { title: '账户名称', dataIndex: 'advertiserName', ellipsis: true },
+  { title: '平台', dataIndex: 'platform', key: 'platform', width: 110 },
   {
     title: '消耗',
     dataIndex: 'adCost',
@@ -60,7 +41,8 @@ const columns = [
     title: '转化',
     dataIndex: 'adConvertAppCustom',
     width: 100,
-    sorter: (a: AccountTopItem, b: AccountTopItem) => a.adConvertAppCustom - b.adConvertAppCustom,
+    sorter: (a: AccountTopItem, b: AccountTopItem) =>
+      a.adConvertAppCustom - b.adConvertAppCustom,
   },
   {
     title: 'ROI',
@@ -78,26 +60,28 @@ const columns = [
 </script>
 
 <template>
-  <Card title="账户排行 Top 10" class="data-card" :loading="loading">
+  <Card class="data-card" :loading="loading">
+    <template #title>
+      <span class="pt-ic pt-ic--blue"><TrophyOutlined /></span>
+      账户排行 Top 10
+    </template>
+
     <Table
       :columns="columns"
       :data-source="data"
       :pagination="false"
-      size="small"
       :scroll="{ y: 260 }"
       row-key="platform_account_id"
+      size="small"
     >
       <template #bodyCell="{ column, index, text }">
         <template v-if="column.key === 'rank'">
-          <Tag
-            :color="index < 3 ? ['gold', 'silver', 'orange'][index] : 'default'"
-            :bordered="false"
-          >
-            {{ index + 1 }}
-          </Tag>
+          <span class="rank-badge" :class="rankClass(index)">{{ index + 1 }}</span>
         </template>
         <template v-else-if="column.key === 'platform'">
-          <Tag :color="platformColor(text)" :bordered="false">{{ text }}</Tag>
+          <Tag :bordered="false" :color="getPlatformColor(text)">
+            {{ getPlatformLabel(text) }}
+          </Tag>
         </template>
       </template>
     </Table>
@@ -113,5 +97,55 @@ const columns = [
     padding: 12px 16px;
     overflow: hidden;
   }
+}
+
+/* 卡片标题前的主题色图标块（与 KPI 卡同一套视觉语言） */
+.pt-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  color: #fff;
+  background: hsl(var(--primary));
+  border-radius: 8px;
+  box-shadow: 0 3px 10px hsl(var(--primary) / 32%);
+}
+
+.pt-ic--blue {
+  background: hsl(var(--primary));
+}
+
+/* 排名徽章：前三用强调色，其余中性 */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.rank-badge--gold {
+  color: #fff;
+  background: linear-gradient(135deg, hsl(var(--warning)), hsl(35 92% 58%));
+}
+
+.rank-badge--violet {
+  color: #fff;
+  background: linear-gradient(135deg, hsl(258 84% 62%), hsl(262 84% 70%));
+}
+
+.rank-badge--cyan {
+  color: #fff;
+  background: linear-gradient(135deg, hsl(187 78% 38%), hsl(187 72% 50%));
+}
+
+.rank-badge--plain {
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted));
 }
 </style>

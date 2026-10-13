@@ -2,8 +2,8 @@
 /**
  * 消耗趋势折线图
  *
- * 按天展示消耗和转化双折线趋势
- * 参考 analytics-trends.vue 的 useEcharts 用法
+ * 按天展示消耗和转化双折线趋势。配色从 vben 设计 token 取（见 utils/chart-colors），
+ * 深浅主题一致；卡片标题带主题色图标块。
  */
 import type { ECOption, EchartsUIType } from '@vben/plugins/echarts';
 
@@ -14,7 +14,10 @@ import { onMounted, ref, watch } from 'vue';
 import { Loading } from '@vben/common-ui';
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 
+import { LineChartOutlined } from '@ant-design/icons-vue';
 import { Card, Empty } from 'ant-design-vue';
+
+import { chartPalette } from '#/utils/chart-colors';
 
 const props = defineProps<{
   /** 趋势数据 */
@@ -28,6 +31,7 @@ const { renderEcharts } = useEcharts(chartRef);
 
 // 构建 ECharts 配置
 function buildOption(data: TrendDataPoint[]): ECOption {
+  const c = chartPalette();
   return {
     tooltip: {
       trigger: 'axis',
@@ -69,8 +73,10 @@ function buildOption(data: TrendDataPoint[]): ECOption {
         name: '消耗',
         type: 'line',
         smooth: true,
-        areaStyle: { opacity: 0.15 },
-        itemStyle: { color: '#1668dc' },
+        // 主色描边 + 同色低透明度面积，避免在 canvas 里拼 alpha 字符串
+        itemStyle: { color: c.primary },
+        lineStyle: { color: c.primary, width: 2 },
+        areaStyle: { color: c.primary, opacity: 0.14 },
         data: data.map((d) => d.adCost), // 分 → 元
       },
       {
@@ -78,7 +84,8 @@ function buildOption(data: TrendDataPoint[]): ECOption {
         type: 'line',
         smooth: true,
         yAxisIndex: 1,
-        itemStyle: { color: '#00b96b' },
+        itemStyle: { color: c.success },
+        lineStyle: { color: c.success, width: 2 },
         data: data.map((d) => d.adConvertAppCustom),
       },
     ],
@@ -107,7 +114,11 @@ watch(
 </script>
 
 <template>
-  <Card title="消耗趋势" class="chart-card">
+  <Card class="chart-card">
+    <template #title>
+      <span class="pt-ic"><LineChartOutlined /></span>
+      消耗趋势
+    </template>
     <!-- 用 Loading 覆盖层而不是 Card 的 loading：
          Card 的 loading 会把子节点换成 Skeleton，导致 EchartsUI 被卸载、图表实例失联 -->
     <Loading :spinning="loading">
@@ -125,5 +136,19 @@ watch(
     height: calc(100% - 57px);
     padding: 12px 16px;
   }
+}
+
+/* 卡片标题前的主题色图标块 */
+.pt-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  color: #fff;
+  background: hsl(var(--primary));
+  border-radius: 8px;
+  box-shadow: 0 3px 10px hsl(var(--primary) / 32%);
 }
 </style>

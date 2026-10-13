@@ -70,7 +70,7 @@ import {
 
 // ==================== 抽屉逻辑 ====================
 
-const emit = defineEmits(["page-reload"]);
+const emit = defineEmits(["pageReload"]);
 
 const isEdit = ref(false);
 
@@ -151,7 +151,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         await aiHostingApi.fetchCreateTask(payload);
         await message.success("创建成功");
       }
-      emit("page-reload");
+      emit("pageReload");
       await drawerApi.close();
     } catch (e) {
       console.error("[AI Hosting] 保存失败:", e);
@@ -556,7 +556,7 @@ function removeRule(index: number) {
 
 /** 添加条件 */
 function createDefaultCondition(): RuleCondition {
-  return { metric: "cost", operator: "gt", threshold: 0, duration: 30 };
+  return { metric: "AdCost", operator: "gt", threshold: 0, duration: 30 };
 }
 
 function addCondition(rule: HostingRule) {

@@ -2,6 +2,10 @@
 import type { EchartsUIType } from "@vben/plugins/echarts";
 import { EchartsUI, useEcharts } from "@vben/plugins/echarts";
 
+import { chartPalette } from '#/utils/chart-colors';
+
+const palette = chartPalette();
+
 import { onMounted, ref } from "vue";
 import type { PageIndexReportResponse } from "#/api/models";
 import { dashboardApi } from "#/api";
@@ -66,14 +70,14 @@ onMounted(async () => {
         data: [
           {
             itemStyle: {
-              color: "#b6a2de"
+              color: palette.violet
             },
             name: "点击量",
             value: x_data
           },
           {
             itemStyle: {
-              color: "#5ab1ef"
+              color: palette.primary
             },
             name: "曝光",
             value: y_data

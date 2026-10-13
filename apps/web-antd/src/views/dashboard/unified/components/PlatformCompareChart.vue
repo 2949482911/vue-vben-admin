@@ -2,7 +2,8 @@
 /**
  * 平台对比柱状图
  *
- * 展示各平台的消耗和ROI对比
+ * 展示各平台的消耗和 ROI 对比。配色从 vben 设计 token 取（见 utils/chart-colors），
+ * 消耗柱用主色→强调色的纵向渐变，ROI 线用警告色；卡片标题带主题色图标块。
  */
 import type { ECOption, EchartsUIType } from '@vben/plugins/echarts';
 
@@ -13,7 +14,10 @@ import { onMounted, ref, watch } from 'vue';
 import { Loading } from '@vben/common-ui';
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 
+import { BarChartOutlined } from '@ant-design/icons-vue';
 import { Card, Empty } from 'ant-design-vue';
+
+import { chartPalette } from '#/utils/chart-colors';
 
 const props = defineProps<{
   /** 平台对比数据 */
@@ -26,6 +30,7 @@ const chartRef = ref<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
 
 function buildOption(data: PlatformCompareItem[]): ECOption {
+  const c = chartPalette();
   return {
     tooltip: {
       trigger: 'axis',
@@ -33,7 +38,8 @@ function buildOption(data: PlatformCompareItem[]): ECOption {
       formatter(params: any) {
         let html = params[0]?.axisValue || '';
         params.forEach((p: any) => {
-          const val = p.seriesName === '消耗' ? `¥${(p.value).toFixed(2)}` : p.value;
+          const val =
+            p.seriesName === '消耗' ? `¥${(p.value).toFixed(2)}` : p.value;
           html += `<br/>${p.marker}${p.seriesName}: ${val}`;
         });
         return html;
@@ -77,10 +83,13 @@ function buildOption(data: PlatformCompareItem[]): ECOption {
         itemStyle: {
           color: {
             type: 'linear',
-            x: 0, y: 0, x2: 0, y2: 1,
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
             colorStops: [
-              { offset: 0, color: '#1668dc' },
-              { offset: 1, color: '#69b1ff' },
+              { offset: 0, color: c.primary },
+              { offset: 1, color: c.cyan },
             ],
           },
           borderRadius: [4, 4, 0, 0],
@@ -92,8 +101,8 @@ function buildOption(data: PlatformCompareItem[]): ECOption {
         type: 'line',
         yAxisIndex: 1,
         smooth: true,
-        itemStyle: { color: '#fa8c16' },
-        lineStyle: { width: 2 },
+        itemStyle: { color: c.warning },
+        lineStyle: { color: c.warning, width: 2 },
         data: data.map((d) => d.adPayRoi),
       },
     ],
@@ -122,7 +131,11 @@ watch(
 </script>
 
 <template>
-  <Card title="平台对比" class="chart-card">
+  <Card class="chart-card">
+    <template #title>
+      <span class="pt-ic"><BarChartOutlined /></span>
+      平台对比
+    </template>
     <!-- 用 Loading 覆盖层而不是 Card 的 loading：
          Card 的 loading 会把子节点换成 Skeleton，导致 EchartsUI 被卸载、图表实例失联 -->
     <Loading :spinning="loading">
@@ -140,5 +153,19 @@ watch(
     height: calc(100% - 57px);
     padding: 12px 16px;
   }
+}
+
+/* 卡片标题前的主题色图标块 */
+.pt-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  color: #fff;
+  background: hsl(var(--primary));
+  border-radius: 8px;
+  box-shadow: 0 3px 10px hsl(var(--primary) / 32%);
 }
 </style>

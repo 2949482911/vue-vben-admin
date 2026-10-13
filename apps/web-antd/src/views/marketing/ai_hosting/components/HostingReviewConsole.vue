@@ -12,13 +12,17 @@
  * 数据：decision/list（分页）、decision/review、decision/audits
  */
 import type { VbenFormProps } from "@vben/common-ui";
+
+import type { VxeGridProps } from "#/adapter/vxe-table";
 import type {
   HostingAudit,
   HostingDecision,
   HostingDecisionStatus,
+  HostingInsight,
   ReviewConclusion,
   RiskLevel
 } from "#/api/models/ai_hosting";
+
 import { computed, onMounted, ref } from "vue";
 
 import { useVbenDrawer } from "@vben/common-ui";
@@ -47,7 +51,6 @@ import {
 } from "ant-design-vue";
 
 import { useVbenVxeGrid } from "#/adapter/vxe-table";
-import type { VxeGridProps } from "#/adapter/vxe-table";
 import { aiHostingApi } from "#/api/core";
 import { PLATFORM } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
@@ -59,9 +62,14 @@ import {
   AUTO_EXECUTABLE_ACTIONS,
   DECISION_STATUS_MAP,
   DECISION_STATUS_OPTIONS,
+  EFFECT_VERDICT_MAP,
+  EXECUTED_BY_MAP,
+  isQuotaBlocked,
   RISK_LEVEL_MAP,
   RISK_LEVEL_OPTIONS,
+  ROLLBACK_STATUS_MAP,
   RULE_TYPE_MAP,
+  RULE_TYPE_OPTIONS,
   TARGET_LEVEL_LABEL
 } from "../constants";
 import HostingDecisionDetail from "./HostingDecisionDetail.vue";
@@ -129,6 +137,17 @@ const formOptions: VbenFormProps = {
       },
       fieldName: "action",
       label: "建议动作"
+    },
+    {
+      component: "Select",
+      componentProps: {
+        allowClear: true,
+        class: "w-full",
+        options: RULE_TYPE_OPTIONS,
+        placeholder: "全部规则类型"
+      },
+      fieldName: "ruleType",
+      label: "规则类型"
     }
   ],
   showCollapseButton: true,
@@ -201,6 +220,17 @@ async function fetchPendingSnapshot() {
   emit("pendingChange", res?.total ?? pendingSnapshot.value.length);
 }
 
+/** AI 决策成效（价值展示） */
+const insight = ref<HostingInsight | null>(null);
+
+async function fetchInsight() {
+  try {
+    insight.value = await aiHostingApi.fetchInsight();
+  } catch {
+    insight.value = null;
+  }
+}
+
 function syncSelected() {
   selected.value = gridApi.grid?.getCheckboxRecords?.() ?? [];
 }
@@ -251,7 +281,25 @@ const gridOptions: VxeGridProps<HostingDecision> = {
       field: "decisionStatus",
       slots: { default: "status" },
       title: "状态",
-      width: 100
+      width: 120
+    },
+    {
+      field: "executedBy",
+      slots: { default: "executedBy" },
+      title: "执行来源",
+      width: 96
+    },
+    {
+      field: "effectVerdict",
+      slots: { default: "effect" },
+      title: "回评",
+      width: 84
+    },
+    {
+      field: "rollbackStatus",
+      slots: { default: "rollback" },
+      title: "回滚",
+      width: 88
     },
     { field: "createTime", minWidth: 165, title: "创建时间" },
     { fixed: "right", slots: { default: "operation" }, title: "操作", width: 84 }
@@ -272,6 +320,7 @@ const gridOptions: VxeGridProps<HostingDecision> = {
           decisionStatus: params.decisionStatus as HostingDecisionStatus,
           platform: params.platform,
           riskLevel: params.riskLevel as RiskLevel,
+          ruleType: params.ruleType,
           taskId: params.taskId,
           action: params.action,
           autoExecutable: onlyAuto.value || undefined
@@ -324,7 +373,7 @@ const METRIC_LABEL: Record<string, string> = {
   frequency: "频次",
   show: "曝光"
 };
-const MONEY_KEYS = new Set(["cost", "spend", "cpa"]);
+const MONEY_KEYS = new Set(["cost", "cpa", "spend"]);
 
 function snapshotItems(snapshot?: Record<string, any>) {
   if (!snapshot) {
@@ -407,6 +456,11 @@ const drawerActionable = computed(
   () => selectedDecision.value?.decisionStatus === "pending"
 );
 
+/** 已真实下发且在回滚窗口内 */
+const drawerRollbackable = computed(
+  () => selectedDecision.value?.rollbackStatus === "available"
+);
+
 // ==================== 审批（二次确认） ====================
 
 const review = ref<{
@@ -456,6 +510,27 @@ function reviewSingle(conclusion: ReviewConclusion) {
   };
 }
 
+/** 抽屉内的单条回滚（二次确认） */
+function rollbackSingle() {
+  const id = selectedDecision.value?.id;
+  if (id === undefined || id === null) {
+    return;
+  }
+  Modal.confirm({
+    title: "确认回滚",
+    content: "将对本次真实下发执行反向动作，把广告恢复到改动前状态。",
+    okText: "确认回滚",
+    okButtonProps: { danger: true },
+    async onOk() {
+      const n = await aiHostingApi.fetchRollbackDecision([id]);
+      message.success(`已回滚 ${n ?? 0} 条`);
+      decisionDrawerApi.close();
+      gridApi.reload();
+      await fetchPendingSnapshot();
+    }
+  });
+}
+
 async function submitReview() {
   const { conclusion, ids, reason } = review.value;
   if (conclusion === "reject" && !reason.trim()) {
@@ -495,12 +570,32 @@ defineExpose({ focusPending, reload: () => gridApi.reload() });
 
 onMounted(() => {
   void fetchPendingSnapshot();
+  void fetchInsight();
 });
 </script>
 
 <template>
   <!-- 锁高：概览固定、表格占满剩余高度并在内部滚动（与托管任务 Tab 一致） -->
   <div class="review-console">
+    <!-- ==================== AI 决策成效（价值） ==================== -->
+    <Flex
+      v-if="insight && (insight.evaluatedCount ?? 0) > 0"
+      align="center"
+      :gap="8"
+      class="insight-strip"
+    >
+      <Typography.Text type="secondary">AI 决策成效：</Typography.Text>
+      <Tag :bordered="false" color="green">
+        命中率 {{ Math.round((insight.hitRate ?? 0) * 100) }}%
+      </Tag>
+      <Tag :bordered="false" color="blue">
+        平均 ROI {{ (insight.avgRoiDelta ?? 0) >= 0 ? "+" : "" }}{{ (insight.avgRoiDelta ?? 0).toFixed(2) }}
+      </Tag>
+      <Typography.Text type="secondary">
+        （已回评 {{ insight.evaluatedCount }} 条）
+      </Typography.Text>
+    </Flex>
+
     <!-- ==================== 风险概览卡 ==================== -->
     <Row :gutter="[16, 16]" class="risk-strip">
       <Col
@@ -613,14 +708,55 @@ onMounted(() => {
           <Typography.Text>{{ row.aiReason || "-" }}</Typography.Text>
         </template>
 
-        <!-- 状态 -->
+        <!-- 状态（含限额拦截标记） -->
         <template #status="{ row }">
+          <Space :size="4" wrap>
+            <Tag
+              :bordered="false"
+              :color="DECISION_STATUS_MAP[row.decisionStatus || '']?.color || 'default'"
+            >
+              {{ DECISION_STATUS_MAP[row.decisionStatus || '']?.label || row.decisionStatus }}
+            </Tag>
+            <Tag v-if="isQuotaBlocked(row.errorMsg)" :bordered="false" color="orange">
+              限额拦截
+            </Tag>
+          </Space>
+        </template>
+
+        <!-- 执行来源 -->
+        <template #executedBy="{ row }">
           <Tag
+            v-if="row.executedBy"
             :bordered="false"
-            :color="DECISION_STATUS_MAP[row.decisionStatus || '']?.color || 'default'"
+            :color="EXECUTED_BY_MAP[row.executedBy]?.color || 'default'"
           >
-            {{ DECISION_STATUS_MAP[row.decisionStatus || '']?.label || row.decisionStatus }}
+            {{ EXECUTED_BY_MAP[row.executedBy]?.label || row.executedBy }}
           </Tag>
+          <Typography.Text v-else type="secondary">-</Typography.Text>
+        </template>
+
+        <!-- 效果回评 -->
+        <template #effect="{ row }">
+          <Tag
+            v-if="row.effectVerdict"
+            :bordered="false"
+            :color="EFFECT_VERDICT_MAP[row.effectVerdict]?.color || 'default'"
+          >
+            {{ EFFECT_VERDICT_MAP[row.effectVerdict]?.label || row.effectVerdict }}
+          </Tag>
+          <Typography.Text v-else type="secondary">-</Typography.Text>
+        </template>
+
+        <!-- 回滚状态 -->
+        <template #rollback="{ row }">
+          <Tag
+            v-if="row.rollbackStatus && row.rollbackStatus !== 'none'"
+            :bordered="false"
+            :color="ROLLBACK_STATUS_MAP[row.rollbackStatus]?.color || 'default'"
+          >
+            {{ ROLLBACK_STATUS_MAP[row.rollbackStatus]?.label || row.rollbackStatus }}
+          </Tag>
+          <Typography.Text v-else type="secondary">-</Typography.Text>
         </template>
 
         <!-- 操作 -->
@@ -675,6 +811,10 @@ onMounted(() => {
             <Button type="primary" @click="reviewSingle('approve')">
               通过并执行
             </Button>
+          </template>
+          <template v-else-if="drawerRollbackable">
+            <Button danger @click="rollbackSingle()">回滚</Button>
+            <Button @click="decisionDrawerApi.close()">关闭</Button>
           </template>
           <Button v-else @click="decisionDrawerApi.close()">关闭</Button>
         </Space>
@@ -742,6 +882,12 @@ onMounted(() => {
   flex: none;
   /* 与下方表格留出间距，避免卡片贴住表头 */
   margin-bottom: 16px;
+}
+
+/* AI 决策成效条 */
+.insight-strip {
+  flex: none;
+  margin-bottom: 12px;
 }
 
 .grid-wrap {

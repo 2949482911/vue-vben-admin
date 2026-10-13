@@ -5,6 +5,10 @@ import { onMounted, ref } from 'vue';
 
 import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 
+import { chartPalette } from '#/utils/chart-colors';
+
+const palette = chartPalette();
+
 const chartRef = ref<EchartsUIType>();
 const { renderEcharts } = useEcharts(chartRef);
 
@@ -18,7 +22,7 @@ onMounted(() => {
         animationEasing: 'exponentialInOut',
         animationType: 'scale',
         center: ['50%', '50%'],
-        color: ['#5ab1ef', '#b6a2de', '#67e0e3', '#2ec7c9'],
+        color: [palette.primary, palette.violet, palette.cyan, palette.success],
         data: [
           { name: '外包', value: 500 },
           { name: '定制', value: 310 },
