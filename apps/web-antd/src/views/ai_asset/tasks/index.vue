@@ -17,6 +17,7 @@ import { Button, message, Modal, Tag } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { aiAssetApi } from '#/api';
+import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
 
 import {
   ASSET_SKILL_MAP,
@@ -49,15 +50,18 @@ const formOptions: VbenFormProps = {
 
 const gridOptions: VxeGridProps<GenerationTaskItem> = {
   columns: [
-    { field: 'id', title: '任务ID', width: 100 },
     { field: 'skill', slots: { default: 'skill' }, title: 'Skill', width: 110 },
     { field: 'model', title: '模型', minWidth: 160 },
-    { field: 'status', slots: { default: 'status' }, title: '状态', width: 130 },
     { field: 'cost', title: '成本', width: 100 },
+    { field: 'prompt', title: '提示词', width: 100 },
+    { field: 'quantity', title: '数量', width: 100 },
+    { field: 'spec', title: '规格', width: 100 },
+    { field: 'resolution', title: '分辨率', width: 100 },
+    { field: 'modelId', title: '模型ID', width: 100 },
+
     { field: 'errorMsg', title: '错误信息', minWidth: 180, showOverflow: true },
     { field: 'finishedAt', formatter: 'formatDateTime', title: '完成时间', minWidth: 170 },
-    { field: 'createTime', formatter: 'formatDateTime', title: '创建时间', minWidth: 170 },
-    { slots: { default: 'action' }, title: '操作', width: 100 },
+    ...(TABLE_COMMON_COLUMNS as any)
   ],
   height: 'auto',
   pagerConfig: { enabled: true },

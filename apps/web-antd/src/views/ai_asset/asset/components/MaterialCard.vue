@@ -62,12 +62,35 @@ const statusLabel = computed(
   () => MATERIAL_STATUS_MAP[props.item.status ?? 1]?.label ?? '-',
 );
 
-const specs = computed(() =>
-  Object.entries(props.item.mediaSpec ?? {})
+/**
+ * 展示规格：优先用后端媒体字段（横竖版 / 尺寸 / 时长 / 大小）；
+ * 老数据没有这些字段时回落 mediaSpec。
+ */
+const specs = computed(() => {
+  const item = props.item;
+  const parts: string[] = [];
+  if (item.format === 2) {
+    parts.push('竖版');
+  } else if (item.format === 1) {
+    parts.push('横版');
+  }
+  if (item.width && item.height) {
+    parts.push(`${item.width}×${item.height}`);
+  }
+  if (item.videoDuration) {
+    parts.push(item.videoDuration);
+  }
+  if (item.fileSizeStr) {
+    parts.push(item.fileSizeStr);
+  }
+  if (parts.length > 0) {
+    return parts;
+  }
+  return Object.entries(item.mediaSpec ?? {})
     .filter(([, v]) => v !== null && v !== undefined && v !== '')
     .slice(0, 2)
-    .map(([k, v]) => `${k}: ${String(v)}`),
-);
+    .map(([k, v]) => `${k}: ${String(v)}`);
+});
 </script>
 
 <template>
@@ -280,6 +303,7 @@ const specs = computed(() =>
 
 .media-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
   margin-top: 6px;

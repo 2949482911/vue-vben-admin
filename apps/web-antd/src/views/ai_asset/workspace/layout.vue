@@ -4,6 +4,10 @@
  *
  * 域上下文条：‹ 全部工作区 + 当前工作区名 + 🔒 数据隔离域。
  * vben 侧边栏没有可插入的插槽（改它要动 packages），所以这条放在域内页面顶部，效果等价。
+ *
+ * 页面缓存：vben 的 keep-alive 是跟**页签**绑定的（content.vue 的 :include 来自 cachedTabs，
+ * 只有 meta.keepAlive 的页签才会被缓存），域内页为了不堆页签设了 hideInTab，因此这里不做缓存，
+ * 页签一开 keep-alive 自然生效。详见 router/routes/ai-asset-workspace.ts 的说明。
  */
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
@@ -16,7 +20,8 @@ const router = useRouter();
 const workspaceStore = useWorkspaceStore();
 
 const workspaceName = computed(
-  () => workspaceStore.workspaceName || `工作区 #${workspaceStore.workspaceId ?? '-'}`,
+  () =>
+    workspaceStore.workspaceName || `工作区 #${workspaceStore.workspaceId ?? '-'}`,
 );
 
 function exitWorkspace() {

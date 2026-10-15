@@ -70,13 +70,15 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
       config.headers['Accept-Language'] = preferences.app.locale;
 
       // 工作区隔离域：平台 AI 资产接口统一带工作区 ID
-      // （workspace/create、workspace/list 是在域外用的，后端不识别该头，跳过）
+      // 注意：BaseApi.getServiceUrl() 在非微服务模式下会去掉 /platform 前缀，
+      // 实际请求路径是 `/ai_asset/**`（不是 /platform/ai_asset），这里按实际路径匹配。
+      // workspace/create、workspace/list 是域外接口，后端不识别该头，跳过。
       const url = config.url ?? '';
       const isWorkspaceMeta =
         url.endsWith('/workspace/create') || url.endsWith('/workspace/list');
       if (
         workspaceStore.workspaceId !== undefined &&
-        url.includes('/platform/ai_asset/') &&
+        url.includes('/ai_asset/') &&
         !isWorkspaceMeta
       ) {
         config.headers['X-Workspace-Id'] = String(workspaceStore.workspaceId);

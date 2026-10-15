@@ -11,14 +11,41 @@ export const WORKSPACE_BASE_PATH = '/ai_asset/workspace';
 
 /** 工作区内部菜单项（key 同时是子路由 path 段，labelKey 是 i18n 词条） */
 export const WORKSPACE_INTERNAL_MENU: Array<{
+  activeIcon: string;
+  icon: string;
   key: string;
   labelKey: string;
 }> = [
-  { key: 'studio', labelKey: 'page.ai_asset.menu.studio' },
-  { key: 'draft', labelKey: 'page.ai_asset.menu.draft' },
-  { key: 'queue', labelKey: 'page.ai_asset.menu.queue' },
-  { key: 'assets', labelKey: 'page.ai_asset.menu.assets' },
-  { key: 'settings', labelKey: 'page.ai_asset.menu.settings' },
+  {
+    activeIcon: 'lucide:wand-sparkles',
+    icon: 'lucide:sparkles',
+    key: 'studio',
+    labelKey: 'page.ai_asset.menu.studio',
+  },
+  {
+    activeIcon: 'lucide:file-pen-line',
+    icon: 'lucide:file-text',
+    key: 'draft',
+    labelKey: 'page.ai_asset.menu.draft',
+  },
+  {
+    activeIcon: 'lucide:clipboard-check',
+    icon: 'lucide:list-checks',
+    key: 'queue',
+    labelKey: 'page.ai_asset.menu.queue',
+  },
+  {
+    activeIcon: 'lucide:folder',
+    icon: 'lucide:folder-open',
+    key: 'assets',
+    labelKey: 'page.ai_asset.menu.assets',
+  },
+  {
+    activeIcon: 'lucide:settings-2',
+    icon: 'lucide:settings',
+    key: 'settings',
+    labelKey: 'page.ai_asset.menu.settings',
+  },
 ];
 
 /** 域内某个页面的绝对路径 */
@@ -34,7 +61,8 @@ export function parseWorkspaceId(path: string): string | undefined {
   if (!path.startsWith(`${WORKSPACE_BASE_PATH}/`)) {
     return undefined;
   }
-  const [, wsId] = path.slice(WORKSPACE_BASE_PATH.length + 1).split('/');
+  // /ai_asset/workspace/{wsId}/{page} → 取第一段，别写成 [, wsId]（那会取到第二段的页面 key）
+  const [wsId] = path.slice(WORKSPACE_BASE_PATH.length + 1).split('/');
   return wsId || undefined;
 }
 
@@ -45,6 +73,8 @@ export function parseWorkspaceId(path: string): string | undefined {
  */
 export function buildWorkspaceMenus(workspaceId: number | string) {
   return WORKSPACE_INTERNAL_MENU.map((item, index) => ({
+    activeIcon: item.activeIcon,
+    icon: item.icon,
     name: $t(item.labelKey),
     order: index,
     path: workspacePagePath(workspaceId, item.key),

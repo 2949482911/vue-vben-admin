@@ -45,13 +45,21 @@ type QueueState = 'err' | 'ok' | 'pending' | 'registering' | 'uploading';
 type QueueItem = {
   error?: string;
   file: File;
+  /** 字节 */
+  fileSize: number;
+  /** 可读大小，如 "12.3 MB" */
+  fileSizeStr: string;
+  height?: number;
   name: string;
   percent: number;
-  size: string;
   state: QueueState;
   storageUrl?: string;
   type: MaterialType;
   uid: string;
+  /** 视频时长（秒）/ 可读 "00:15" */
+  videoDuration?: string;
+  videoDurationSecond?: number;
+  width?: number;
 };
 
 const queue = ref<QueueItem[]>([]);
@@ -115,19 +123,97 @@ function humanSize(bytes: number): string {
   return `${bytes} B`;
 }
 
+/** 秒 → "00:15" */
+function humanDuration(seconds: number): string {
+  const total = Math.max(0, Math.round(seconds));
+  const mm = String(Math.floor(total / 60)).padStart(2, '0');
+  const ss = String(total % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
+}
+
+/** 取图片宽高（自然尺寸） */
+function probeImage(file: File): Promise<{ height: number; width: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({ height: image.naturalHeight, width: image.naturalWidth });
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('图片解码失败，取不到尺寸'));
+    };
+    image.src = url;
+  });
+}
+
+/** 取视频宽高与时长 */
+function probeVideo(
+  file: File,
+): Promise<{ duration: number; height: number; width: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      const result = {
+        duration: Number.isFinite(video.duration) ? video.duration : 0,
+        height: video.videoHeight,
+        width: video.videoWidth,
+      };
+      URL.revokeObjectURL(url);
+      resolve(result);
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('视频元数据读取失败'));
+    };
+    video.src = url;
+  });
+}
+
+/**
+ * 上传前把媒体信息算好（后端 material/upload 需要）：
+ * 图片取自然宽高、视频取宽高 + 时长、大小取字节（另给可读串）
+ */
+async function buildQueueItem(file: File, type: MaterialType): Promise<QueueItem> {
+  const item: QueueItem = {
+    file,
+    fileSize: file.size,
+    fileSizeStr: humanSize(file.size),
+    name: file.name,
+    percent: 0,
+    state: 'pending',
+    type,
+    uid: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  };
+  try {
+    if (type === 'image') {
+      const { height, width } = await probeImage(file);
+      item.height = height;
+      item.width = width;
+    } else if (type === 'video') {
+      const { duration, height, width } = await probeVideo(file);
+      item.height = height;
+      item.width = width;
+      if (duration > 0) {
+        item.videoDuration = humanDuration(duration);
+        item.videoDurationSecond = Math.round(duration);
+      }
+    }
+  } catch {
+    // 取不到尺寸/时长不阻塞上传，后端可自行按文件推断
+  }
+  return item;
+}
+
 /** 选择文件：阻断 antd 自动上传，纳入自有队列 */
 async function beforeUpload(file: File) {
   const values = await formApi.getValues();
   const t = (values.uploadType ?? 'auto') as 'auto' | MaterialType;
-  queue.value.push({
-    file,
-    name: file.name,
-    percent: 0,
-    size: humanSize(file.size),
-    state: 'pending',
-    type: t === 'auto' ? detectType(file) : t,
-    uid: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-  });
+  const type = t === 'auto' ? detectType(file) : t;
+  queue.value.push(await buildQueueItem(file, type));
   return false;
 }
 
@@ -156,14 +242,26 @@ async function submit() {
         item.storageUrl = `${OSS_BASE}/${objectKey}`;
         item.state = 'registering';
         await aiAssetApi.uploadMaterial({
+          // 媒体字段（后端按这些入库；format 后端也会按宽高推断，这里直接给准确值）
+          fileSize: item.fileSize,
+          fileSizeStr: item.fileSizeStr,
+          format:
+            item.height && item.width
+              ? item.width >= item.height
+                ? 1
+                : 2
+              : undefined,
+          height: item.height,
           materialType: item.type,
-          mediaSpec: { size: item.size },
           name: values.namePrefix
             ? `${values.namePrefix}${item.name}`
             : item.name,
           remark: values.remark || undefined,
           storageUrl: item.storageUrl,
           thumbnailUrl: item.storageUrl,
+          videoDuration: item.videoDuration,
+          videoDurationSecond: item.videoDurationSecond,
+          width: item.width,
         });
         item.state = 'ok';
         ok += 1;
@@ -225,7 +323,11 @@ const [Drawer, drawerApi] = useVbenDrawer({
         <div class="file-main">
           <div class="file-name">{{ f.name }}</div>
           <div class="file-meta">
-            {{ MATERIAL_TYPE_MAP[f.type] || f.type }} · {{ f.size }}
+            {{ MATERIAL_TYPE_MAP[f.type] || f.type }} · {{ f.fileSizeStr }}
+            <template v-if="f.width && f.height">
+              · {{ f.width }}×{{ f.height }}
+            </template>
+            <template v-if="f.videoDuration"> · {{ f.videoDuration }}</template>
           </div>
           <Progress
             :percent="f.percent"

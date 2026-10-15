@@ -12,6 +12,10 @@ import {
  * （见 packages/utils/src/helpers/generate-routes-backend.ts），本地 router/routes/modules 不参与生成；
  * 而「进入工作区换内部菜单」要求内部菜单项是带 :wsId 的真实路由。
  * 这里把它们注册到布局根路由 Root 下，做法与 vben generateAccessible 内部一致。
+ *
+ * 注意：域内页设了 hideInTab（不堆页签），因此**没有 vben 的 keep-alive 页面缓存**
+ * （vben 的 KeepAlive :include 来自页签列表，见 packages/effects/layouts/src/basic/content/content.vue）：
+ * 切内部菜单会重新挂载并重新拉数据。要让它们被缓存，就得让域内页进页签（去掉 hideInTab）。
  */
 const WORKSPACE_DOMAIN_NAME = 'AiAssetWorkspaceDomain';
 
@@ -34,12 +38,19 @@ function pageComponent(key: string): NonNullable<RouteRecordRaw['component']> {
 const workspaceDomainRoute: RouteRecordRaw = {
   children: WORKSPACE_INTERNAL_MENU.map((item) => ({
     component: pageComponent(item.key),
-    meta: { title: item.labelKey },
+    // 域内页不进页签/面包屑（内部菜单，由工作区导航自己承载；否则每次进工作区都堆一个页签）
+    meta: {
+      activeIcon: item.activeIcon,
+      hideInBreadcrumb: true,
+      hideInTab: true,
+      icon: item.icon,
+      title: item.labelKey,
+    },
     name: `AiAssetWs_${item.key}`,
     path: item.key,
   })),
   component: () => import('#/views/ai_asset/workspace/layout.vue'),
-  meta: { title: '工作区' },
+  meta: { hideInBreadcrumb: true, hideInTab: true, title: '工作区' },
   name: WORKSPACE_DOMAIN_NAME,
   path: `${WORKSPACE_BASE_PATH}/:wsId`,
   // 进入工作区默认落在「创作工作台」
