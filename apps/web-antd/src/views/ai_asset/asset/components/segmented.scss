@@ -1,0 +1,45 @@
+/* antd Segmented 微调（素材库 / 资产 分段共用）
+   原型样式：胶囊外形 + 选中态主色渐变 + 右侧计数徽标
+   由 scoped <style> @use 引入：`.library-segmented` 直接落在 Segmented 根元素上，
+   `.ant-segmented-*` 是其后代，需要 :deep 穿透 */
+.library-segmented {
+  padding: 4px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+
+  :deep(.ant-segmented-item),
+  :deep(.ant-segmented-thumb) {
+    border-radius: 999px;
+  }
+
+  :deep(.ant-segmented-item-selected),
+  :deep(.ant-segmented-thumb) {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(187 78% 38%));
+  }
+
+  :deep(.ant-segmented-item-selected) {
+    color: #fff;
+  }
+}
+
+.seg-label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.seg-count {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 6px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--accent));
+  border-radius: 999px;
+}
+
+:deep(.ant-segmented-item-selected) .seg-count {
+  color: hsl(var(--primary));
+  background: rgb(255 255 255 / 88%);
+}

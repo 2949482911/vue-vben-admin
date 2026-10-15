@@ -24,7 +24,9 @@
     "org": "Dept",
     "role": "Role",
     "profile": "Account Profile",
-    "main_body_combo": "Marketing Combo"
+    "main_body_combo": "Marketing Combo",
+    "models": "Ai Models",
+    "Skill": "Ai Skills"
   },
   "profile": {
     "currentCombo": "Current Plan",
@@ -177,5 +179,20 @@
     "properties": "Properties",
     "attribution_config": "Attribution Config",
     "sdk_config": "Sdk Config"
+  },
+  "ai_asset": {
+    "title": "Ai Asset Workspace",
+    "drafts": "Ai Assets Drafts",
+    "assets": "Ai Assets",
+    "studio": "Ai studio",
+    "tasks": "Ai Tasks",
+    "workspace": "Ai Workspace",
+    "menu": {
+      "studio": "Creation Studio",
+      "draft": "Drafts",
+      "queue": "Task Queue",
+      "assets": "Assets",
+      "settings": "Workspace Settings"
+    }
   }
 }

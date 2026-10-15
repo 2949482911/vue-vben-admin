@@ -33,8 +33,9 @@ export const overridesPreferences = defineOverridesPreferences({
     builtinType: 'deep-blue',
     radius: '0.75'
   },
+  // 页面自带标题层级（如 AI 资产各页的 H1 + 说明），不展示面包屑
   breadcrumb: {
-    enable: true,
+    enable: false,
     showIcon: true,
     styleType: 'background'
   },

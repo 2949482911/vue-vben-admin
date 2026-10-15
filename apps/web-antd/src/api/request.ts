@@ -15,7 +15,7 @@ import { useAccessStore } from '@vben/stores';
 
 import { message } from 'ant-design-vue';
 
-import { useAuthStore } from '#/store';
+import { useAuthStore, useWorkspaceStore } from '#/store';
 
 import { authApi } from './core';
 
@@ -64,9 +64,23 @@ function createRequestClient(baseURL: string, options?: RequestClientOptions) {
   client.addRequestInterceptor({
     fulfilled: async (config) => {
       const accessStore = useAccessStore();
+      const workspaceStore = useWorkspaceStore();
 
       config.headers.Authorization = formatToken(accessStore.accessToken);
       config.headers['Accept-Language'] = preferences.app.locale;
+
+      // 工作区隔离域：平台 AI 资产接口统一带工作区 ID
+      // （workspace/create、workspace/list 是在域外用的，后端不识别该头，跳过）
+      const url = config.url ?? '';
+      const isWorkspaceMeta =
+        url.endsWith('/workspace/create') || url.endsWith('/workspace/list');
+      if (
+        workspaceStore.workspaceId !== undefined &&
+        url.includes('/platform/ai_asset/') &&
+        !isWorkspaceMeta
+      ) {
+        config.headers['X-Workspace-Id'] = String(workspaceStore.workspaceId);
+      }
       return config;
     },
   });

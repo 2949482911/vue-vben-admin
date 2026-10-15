@@ -16,3 +16,5 @@ export * from "./bytedance";
 export * from "./ai_hosting";
 export * from "./material_analysis";
 export * from "./ai_chat";
+export * from "./ai_model";
+export * from "./ai_asset";

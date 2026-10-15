@@ -24,7 +24,9 @@
     "org": "组织",
     "role": "角色",
     "profile": "个人中心",
-    "main_body_combo": "套餐"
+    "main_body_combo": "套餐",
+    "models": "AI模型",
+    "skill": "AI技能"
   },
   "profile": {
     "currentCombo": "当前套餐",
@@ -177,5 +179,20 @@
     "properties": "属性",
     "attribution_config": "归因配置",
     "sdk_config": "Sdk配置"
+  },
+  "ai_asset": {
+    "title": "Ai 资产工作台",
+    "studio": "创作工作台",
+    "drafts": "草稿区",
+    "asset": "资产",
+    "tasks": "任务队列",
+    "workspace": "工作区",
+    "menu": {
+      "studio": "创作工作台",
+      "draft": "草稿区",
+      "queue": "任务队列",
+      "assets": "资产",
+      "settings": "工作区设置"
+    }
   }
 }

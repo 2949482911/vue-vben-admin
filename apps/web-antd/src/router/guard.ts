@@ -1,5 +1,6 @@
-import type { UserInfo } from '@vben/types';
 import type { Router } from 'vue-router';
+
+import type { UserInfo } from '@vben/types';
 
 import { LOGIN_PATH } from '@vben/constants';
 import { preferences } from '@vben/preferences';
@@ -7,7 +8,7 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 import { startProgress, stopProgress } from '@vben/utils';
 
 import { accessRoutes, coreRouteNames } from '#/router/routes';
-import { useAuthStore } from '#/store';
+import { useAuthStore, useWorkspaceStore } from '#/store';
 
 import { generateAccess } from './access';
 
@@ -121,6 +122,18 @@ function setupAccessGuard(router: Router) {
 }
 
 /**
+ * 工作区守卫（B 方案）：按当前路由切换左侧菜单
+ *
+ * 在 /ai_asset/workspace/:wsId/** 内 → 换成工作区内部菜单；离开 → 还原后端生成的全局菜单。
+ * 放在 afterEach：此时动态路由与菜单都已生成（刷新/深链也能还原）。
+ */
+function setupWorkspaceGuard(router: Router) {
+  router.afterEach((to) => {
+    useWorkspaceStore().syncByRoute(to.path);
+  });
+}
+
+/**
  * 项目守卫配置
  * @param router
  */
@@ -129,6 +142,8 @@ function createRouterGuard(router: Router) {
   setupCommonGuard(router);
   /** 权限访问 */
   setupAccessGuard(router);
+  /** 工作区（菜单切换） */
+  setupWorkspaceGuard(router);
 }
 
 export { createRouterGuard };
