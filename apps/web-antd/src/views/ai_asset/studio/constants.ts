@@ -34,6 +34,18 @@ export const IMAGE_SKILL_OPTIONS = ASSET_SKILL_OPTIONS.filter((option) =>
   ['edit', 'img2img', 'text2img'].includes(option.value),
 );
 
+/** 参考素材（图生图 / 图编辑）：URL 直接进 GenerateRequest.refImages */
+export interface RefAsset {
+  id: number | string;
+  name: string;
+  url: string;
+  /** 卡片副标题：尺寸 / 大小 / 状态 */
+  description?: string;
+}
+
+/** 参考图上限（与原型一致） */
+export const MAX_REF_COUNT = 3;
+
 /** 一张卡的生成结果（前端聚合，非后端实体） */
 export interface ChatTaskItem {
   id: number | string;
@@ -46,8 +58,11 @@ export interface ChatTaskItem {
   /** 后端任务状态 1~6（见 TASK_STATUS_MAP） */
   status: number;
   errorMsg?: string;
-  materialId?: number | string;
-  /** 成功后回查到的产物地址 */
+  /** 产物素材 ID：多图时多个（一个 task 出 N 张） */
+  materialIds?: Array<number | string>;
+  /** 本条用的参考图数量 */
+  refCount?: number;
+  /** 成功后回查到的产物地址（与 materialIds 对应，按就绪顺序填） */
   outputs?: string[];
   createTime?: string;
 }

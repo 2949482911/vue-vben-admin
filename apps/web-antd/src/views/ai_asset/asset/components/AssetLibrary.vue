@@ -17,7 +17,8 @@ import { computed, onMounted, ref, watch } from 'vue';
 
 import { VbenLoading } from '@vben/common-ui';
 
-import { Pagination, Segmented } from 'ant-design-vue';
+import { PlusOutlined } from '@ant-design/icons-vue';
+import { Button, Card, Pagination, Segmented } from 'ant-design-vue';
 
 import { aiAssetApi } from '#/api';
 
@@ -138,8 +139,14 @@ defineExpose({ addLabel, openCreate });
 </script>
 
 <template>
-  <div class="library-body">
-    <div class="filterbar">
+  <Card class="library-card">
+    <div class="library-body">
+      <div class="library-toolbar">
+      <Button type="primary" @click="openCreate">
+        <template #icon><PlusOutlined /></template>
+        {{ addLabel }}
+      </Button>
+
       <Segmented
         class="library-segmented"
         :options="tabOptions"
@@ -153,56 +160,87 @@ defineExpose({ addLabel, openCreate });
           </span>
         </template>
       </Segmented>
+      </div>
+
+      <!-- 资产列表：占满剩余高度，自身滚动 -->
+      <div class="library-scroll">
+        <CharacterPanel
+          v-if="activeTab === 'character'"
+          ref="panelRef"
+          :items="characters"
+          @changed="onChanged"
+        />
+        <ScenePanel
+          v-else-if="activeTab === 'scene'"
+          ref="panelRef"
+          :items="scenes"
+          @changed="onChanged"
+        />
+        <EpisodePanel
+          v-else
+          ref="panelRef"
+          :items="episodes"
+          @changed="onChanged"
+        />
+      </div>
+
+      <div v-if="total > 0" class="pager">
+        <Pagination
+          :current="page"
+          :page-size="pageSize"
+          show-size-changer
+          :show-total="(t: number) => `共 ${t} 项`"
+          :total="total"
+          @change="handlePageChange"
+        />
+      </div>
+
+      <VbenLoading :spinning="loading" />
     </div>
-
-    <CharacterPanel
-      v-if="activeTab === 'character'"
-      ref="panelRef"
-      :items="characters"
-      @changed="onChanged"
-    />
-    <ScenePanel
-      v-else-if="activeTab === 'scene'"
-      ref="panelRef"
-      :items="scenes"
-      @changed="onChanged"
-    />
-    <EpisodePanel
-      v-else
-      ref="panelRef"
-      :items="episodes"
-      @changed="onChanged"
-    />
-
-    <div v-if="total > 0" class="pager">
-      <Pagination
-        :current="page"
-        :page-size="pageSize"
-        show-size-changer
-        :show-total="(t: number) => `共 ${t} 项`"
-        :total="total"
-        @change="handlePageChange"
-      />
-    </div>
-
-    <VbenLoading :spinning="loading" />
-  </div>
+  </Card>
 </template>
 
 <style scoped lang="scss">
 @use './segmented.scss';
 
-.library-body {
-  position: relative;
-  min-height: 200px;
+/* 整张卡占满页面剩余高度：工具栏/翻页固定，列表区自己滚 */
+.library-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+
+  :deep(.ant-card-body) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: 14px 16px;
+  }
 }
 
-.filterbar {
+.library-body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.library-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* 顶部工具栏（对齐营销素材库：操作按钮 + 类型分段，不做左侧目录树） */
+.library-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .pager {

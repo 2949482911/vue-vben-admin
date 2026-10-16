@@ -4,7 +4,9 @@
  *
  * 工作区 = 租户（main_id）下的二级数据隔离域；进入后左侧换成工作区内部菜单
  * （/ai_asset/workspace/:wsId/**，见 workspace/menu.ts 与 router/routes/ai-asset-workspace.ts）。
- * 接口：workspace/list（分页，域外不带 X-Workspace-Id）、workspace/create。
+ * 接口：workspace/list（分页 + name 模糊，域外不带 X-Workspace-Id）、workspace/create。
+ *
+ * 布局与「素材库」一致：顶部一张 Card 放搜索/新建，下面一张 Card 网格 + 分页、锁高内部滚动。
  */
 import type { WorkspaceItem } from "#/api/models/ai_asset";
 
@@ -13,12 +15,14 @@ import { useRouter } from "vue-router";
 
 import { Page, useVbenModal, VbenLoading } from "@vben/common-ui";
 
+import { PlusOutlined, SearchOutlined } from "@ant-design/icons-vue";
 import {
   Button,
   Card,
   CardMeta,
   Col,
   Empty,
+  Input,
   Pagination,
   Row,
   Tag,
@@ -49,18 +53,39 @@ const workspaces = ref<WorkspaceItem[]>([]);
 const total = ref(0);
 const page = ref(1);
 const pageSize = ref(12);
+/** 输入框里的关键词 / 已提交给接口的关键词 */
+const keyword = ref("");
+const searchName = ref("");
 
 async function load() {
   loading.value = true;
   try {
     const res = await aiAssetApi.fetchWorkspaces({
+      name: searchName.value || undefined,
       page: page.value,
       pageSize: pageSize.value
     });
     workspaces.value = res?.items ?? [];
     total.value = res?.total ?? workspaces.value.length;
+    // 同步给工作区下拉的缓存（进工作区后切换下拉不用再请求一次）；搜索态不同步
+    if (!searchName.value) {
+      workspaceStore.setWorkspaceOptions(workspaces.value);
+    }
   } finally {
     loading.value = false;
+  }
+}
+
+function handleSearch() {
+  searchName.value = keyword.value.trim();
+  page.value = 1;
+  void load();
+}
+
+/** 清空搜索时立刻恢复全量 */
+function handleKeywordChange() {
+  if (!keyword.value) {
+    handleSearch();
   }
 }
 
@@ -73,6 +98,12 @@ function handlePageChange(current: number, size: number) {
 function openCreate() {
   createModalApi.setData({});
   createModalApi.open();
+}
+
+/** 新建成功后回到第一页（新工作区排前面） */
+function handleCreated() {
+  page.value = 1;
+  void load();
 }
 
 /** 进入工作区：先写工作区上下文（内部菜单 + 请求头），再跳域内首页 */
@@ -95,101 +126,171 @@ onMounted(load);
 </script>
 
 <template>
-  <Page
-    auto-content-height
-  >
-    <!--    <template #extra>-->
-    <!--      <Button type="primary" @click="openCreate">-->
-    <!--        <template #icon><PlusOutlined /></template>-->
-    <!--        新建工作区-->
-    <!--      </Button>-->
-    <!--    </template>-->
+  <Page auto-content-height>
+    <div class="library-shell">
+      <!-- 顶部工具栏：新建 + 搜索 -->
+      <Card class="library-tabs">
+        <Button type="primary" @click="openCreate">
+          <template #icon>
+            <PlusOutlined />
+          </template>
+          新建工作区
+        </Button>
 
-    <div>
-      <Empty
-        v-if="!loading && workspaces.length === 0"
-        class="panel-empty"
-        description="暂无工作区，点击右上角「新建工作区」创建"
-      />
-      <Row v-else :gutter="[14, 14]">
-        <Col
-          v-for="(ws, index) in workspaces"
-          :key="ws.id"
-          :lg="6"
-          :md="8"
-          :sm="12"
-          :xs="24"
+        <Input
+          v-model:value="keyword"
+          allow-clear
+          class="ws-search"
+          placeholder="搜索工作区名称"
+          @change="handleKeywordChange"
+          @press-enter="handleSearch"
         >
-          <Card class="ws-card" hoverable @click="enterWorkspace(ws)">
-            <template #cover>
-              <div
-                class="ws-card__cover"
-                :style="{ background: COVERS[index % COVERS.length] }"
+          <template #prefix><SearchOutlined /></template>
+        </Input>
+      </Card>
+
+      <!-- 工作区网格：占满剩余高度，自身滚动 -->
+      <Card class="library-card">
+        <div class="library-body">
+          <div class="library-scroll">
+            <Empty
+              v-if="!loading && workspaces.length === 0"
+              class="panel-empty"
+              description="暂无工作区，点击左上角「新建工作区」创建"
+            />
+            <Row v-else :gutter="[14, 14]">
+              <Col
+                v-for="(ws, index) in workspaces"
+                :key="ws.id"
+                :lg="6"
+                :md="8"
+                :sm="12"
+                :xs="24"
               >
-                {{ ws.name || `工作区 #${ws.id}` }}
-              </div>
-            </template>
+                <Card class="ws-card" hoverable @click="enterWorkspace(ws)">
+                  <template #cover>
+                    <div
+                      class="ws-card__cover"
+                      :style="{ background: COVERS[index % COVERS.length] }"
+                    >
+                      {{ ws.name || `工作区 #${ws.id}` }}
+                    </div>
+                  </template>
 
-            <CardMeta>
-              <template #title>
-                <div class="ws-card__hd">
-                  <span class="ws-card__name">
-                    {{ ws.name || `工作区 #${ws.id}` }}
-                  </span>
-                  <Tag v-if="roleLabel(ws.role)" :bordered="false">
-                    {{ roleLabel(ws.role) }}
-                  </Tag>
-                </div>
-              </template>
-              <template #description>
-                <span class="ws-card__meta">
-                  工作区 ID：{{ ws.id }} · 创建于 {{ ws.createTime || "-" }}
-                </span>
-              </template>
-            </CardMeta>
+                  <CardMeta>
+                    <template #title>
+                      <div class="ws-card__hd">
+                        <span class="ws-card__name">
+                          {{ ws.name || `工作区 #${ws.id}` }}
+                        </span>
+                        <Tag v-if="roleLabel(ws.role)" :bordered="false">
+                          {{ roleLabel(ws.role) }}
+                        </Tag>
+                      </div>
+                    </template>
+                    <template #description>
+                      <span class="ws-card__meta">
+                        工作区 ID：{{ ws.id }} · 创建于
+                        {{ ws.createTime || "-" }}
+                      </span>
+                    </template>
+                  </CardMeta>
 
-            <div class="ws-card__stats">
-              <span>素材 <b>{{ ws.materialCount ?? "-" }}</b></span>
-              <span>资产 <b>{{ ws.assetCount ?? "-" }}</b></span>
-              <span>成员 <b>{{ ws.memberCount ?? "-" }}</b></span>
-            </div>
+                  <div class="ws-card__stats">
+                    <span>素材 <b>{{ ws.materialCount ?? "-" }}</b></span>
+                    <span>资产 <b>{{ ws.assetCount ?? "-" }}</b></span>
+                    <span>成员 <b>{{ ws.memberCount ?? "-" }}</b></span>
+                  </div>
 
-            <Button class="ws-card__enter" size="small" type="primary">
-              进入工作区 →
-            </Button>
-          </Card>
-        </Col>
+                  <Button class="ws-card__enter" size="small" type="primary">
+                    进入工作区 →
+                  </Button>
+                </Card>
+              </Col>
 
-        <Col :lg="6" :md="8" :sm="12" :xs="24">
-          <Card class="ws-card ws-card--new" hoverable @click="openCreate">
-            <span class="ws-card__plus">＋</span>
-            <span>新建工作区</span>
-          </Card>
-        </Col>
-      </Row>
+              <Col :lg="6" :md="8" :sm="12" :xs="24">
+                <Card class="ws-card ws-card--new" hoverable @click="openCreate">
+                  <span class="ws-card__plus">＋</span>
+                  <span>新建工作区</span>
+                </Card>
+              </Col>
+            </Row>
+          </div>
 
-      <div v-if="total > pageSize" class="pager">
-        <Pagination
-          :current="page"
-          :page-size="pageSize"
-          show-size-changer
-          :show-total="(t: number) => `共 ${t} 个工作区`"
-          :total="total"
-          @change="handlePageChange"
-        />
-      </div>
+          <div v-if="total > 0" class="pager">
+            <Pagination
+              :current="page"
+              :page-size="pageSize"
+              show-size-changer
+              :show-total="(t: number) => `共 ${t} 个工作区`"
+              :total="total"
+              @change="handlePageChange"
+            />
+          </div>
 
-      <VbenLoading :spinning="loading" />
+          <VbenLoading :spinning="loading" />
+        </div>
+      </Card>
     </div>
 
-    <CreateModal @success="load" />
+    <CreateModal @success="handleCreated" />
   </Page>
 </template>
 
 <style scoped lang="scss">
+/* 锁高：工具栏卡固定高度，下面的网格卡占满剩余高度并内部滚动 */
+.library-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.library-tabs {
+  flex: none;
+
+  :deep(.ant-card-body) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+}
+
+.ws-search {
+  width: 240px;
+  margin-left: auto;
+}
+
+.library-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+
+  :deep(.ant-card-body) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: 14px 16px;
+  }
+}
+
 .library-body {
   position: relative;
-  min-height: 200px;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.library-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* 卡片外壳用 antd Card（cover / Meta / 悬浮效果），这里只做内容排版微调 */
@@ -280,7 +381,8 @@ onMounted(load);
 
 .pager {
   display: flex;
+  flex: none;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 </style>

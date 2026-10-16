@@ -50,7 +50,7 @@ export interface MaterialItem {
   /** 备注 */
   remark?: string;
   mediaSpec?: null | Record<string, any>;
-  /** 1=草稿 2=已确认入库 */
+  /** 1=草稿 2=已确认入库 3=已入库（推进营销素材库） */
   status?: number;
   createTime?: string;
   /** 媒体字段（后端按上传时登记的元数据返回） */
@@ -90,6 +90,8 @@ export interface MaterialUploadRequest {
   remark?: string;
   /** 媒体信息（尺寸/时长/大小等） */
   mediaSpec?: Record<string, any>;
+  /** 文件 MD5（传 OSS 直传返回的 etag；缺省后端自行下载计算） */
+  fileMd5?: string;
   /** 1 横版 / 2 竖版（不传后端按 width/height 推断） */
   format?: number;
   width?: number;
@@ -102,6 +104,25 @@ export interface MaterialUploadRequest {
   videoDurationSecond?: number;
   /** 可读时长，如 "00:15" */
   videoDuration?: string;
+}
+
+/** 素材入库请求（推送到营销素材库；仅「已确认」素材可入库） */
+export interface MaterialPushRequest {
+  materialIds: Array<number | string>;
+  /** 目标文件夹；与 newAlbumName 二选一 */
+  albumId?: number | string;
+  /** 内联新建文件夹：名称 + 父级 */
+  newAlbumName?: string;
+  newAlbumParentId?: number | string;
+}
+
+/** 素材入库逐条结果 */
+export interface MaterialPushResult {
+  materialId: number | string;
+  /** 营销素材库里的素材 ID */
+  pushedMaterialId?: number | string;
+  success: boolean;
+  message?: string;
 }
 
 /** 素材版本 */
@@ -121,7 +142,10 @@ export interface VersionItem {
 export interface GenerationTaskItem {
   id: number | string;
   idempotentKey?: string;
+  /** 产物素材 ID（兼容：= materialIds[0]） */
   materialId?: number | string;
+  /** 产物素材 ID 列表（一个 task 出 N 张时 N 个） */
+  materialIds?: Array<number | string>;
   skill?: string;
   model?: string;
   /** 1=submitted 2=queued 3=running 4=succeeded 5=failed 6=cancelled */

@@ -293,12 +293,15 @@ const specs = computed(() => {
   padding: 10px 12px 12px;
 }
 
+/* 文件名最多两行（对齐营销素材库的卡片） */
 .media-name {
+  display: -webkit-box;
   overflow: hidden;
   font-size: 14px;
   font-weight: 550;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.5;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .media-meta {

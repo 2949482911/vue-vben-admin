@@ -2,27 +2,79 @@
 /**
  * 工作区域布局（/ai_asset/workspace/:wsId/**）
  *
- * 域上下文条：‹ 全部工作区 + 当前工作区名 + 🔒 数据隔离域。
+ * 域上下文条：‹ 全部工作区 + 工作区下拉切换（workspace/list）+ 🔒 数据隔离域。
  * vben 侧边栏没有可插入的插槽（改它要动 packages），所以这条放在域内页面顶部，效果等价。
  *
- * 页面缓存：vben 的 keep-alive 是跟**页签**绑定的（content.vue 的 :include 来自 cachedTabs，
- * 只有 meta.keepAlive 的页签才会被缓存），域内页为了不堆页签设了 hideInTab，因此这里不做缓存，
- * 页签一开 keep-alive 自然生效。详见 router/routes/ai-asset-workspace.ts 的说明。
+ * 切换工作区：改工作区上下文（菜单 + X-Workspace-Id）并停在同一个内部页，
+ * 全程盖一层 loading，跳转完成后关闭。
+ *
+ * 页面缓存：vben 的 keep-alive 跟**页签**绑定，域内页设了 hideInTab 所以不做缓存，
+ * 切内部菜单会重新拉数据（详见 router/routes/ai-asset-workspace.ts）。
  */
-import { computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { computed, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+import { VbenLoading } from '@vben/common-ui';
+
+import { Card, Select } from 'ant-design-vue';
 
 import { useWorkspaceStore } from '#/store';
 
-import { WORKSPACE_BASE_PATH } from './menu';
+import {
+  WORKSPACE_BASE_PATH,
+  WORKSPACE_INTERNAL_MENU,
+  workspacePagePath,
+} from './menu';
 
+const route = useRoute();
 const router = useRouter();
 const workspaceStore = useWorkspaceStore();
 
-const workspaceName = computed(
-  () =>
-    workspaceStore.workspaceName || `工作区 #${workspaceStore.workspaceId ?? '-'}`,
+/** 当前内部页 key（路径末段） */
+const currentKey = computed(() => String(route.path.split('/').pop() ?? ''));
+
+const switching = ref(false);
+
+/** 下拉选项来自 store 缓存（只请求一次）；当前工作区不在列表里也补上，保证能显示 */
+const workspaceOptions = computed<Array<{ label: string; value: number | string }>>(
+  () => {
+    const options = workspaceStore.options;
+    const current = workspaceStore.workspaceId;
+    if (
+      current !== undefined &&
+      !options.some((item) => String(item.value) === String(current))
+    ) {
+      return [
+        {
+          label: workspaceStore.workspaceName || `工作区 #${current}`,
+          value: current,
+        },
+        ...options,
+      ];
+    }
+    return options;
+  },
 );
+
+/** 切换工作区：改上下文 → 停在同一内部页；全程盖 loading */
+async function switchWorkspace(value: any) {
+  if (String(value) === String(workspaceStore.workspaceId)) {
+    return;
+  }
+  switching.value = true;
+  try {
+    const option = workspaceOptions.value.find(
+      (item) => String(item.value) === String(value),
+    );
+    const key = WORKSPACE_INTERNAL_MENU.some((item) => item.key === currentKey.value)
+      ? currentKey.value
+      : 'studio';
+    workspaceStore.enter(value, option?.label);
+    await router.push(workspacePagePath(value, key));
+  } finally {
+    switching.value = false;
+  }
+}
 
 function exitWorkspace() {
   // 优先回全局菜单里那个「工作区」节点的真实路径，拿不到再用约定的基路径
@@ -32,43 +84,64 @@ function exitWorkspace() {
     )?.path ?? WORKSPACE_BASE_PATH;
   void router.push(target);
 }
+
+onMounted(() => {
+  // store 已缓存则不再请求（域布局会随路径重挂载）
+  void workspaceStore.loadWorkspaceOptions();
+});
 </script>
 
 <template>
   <div class="ws-domain">
-    <div class="ws-ctx">
+    <Card class="ws-ctx">
       <button class="ws-ctx__back" type="button" @click="exitWorkspace">
-        ‹ 全部工作区 · 切换
+        ‹ 全部工作区
       </button>
-      <span class="ws-ctx__name">{{ workspaceName }}</span>
+
+      <Select
+        class="ws-ctx__pick"
+        :options="workspaceOptions"
+        :value="workspaceStore.workspaceId"
+        @change="switchWorkspace"
+      />
+
       <span class="ws-ctx__flag">🔒 数据隔离域</span>
-    </div>
+    </Card>
 
     <div class="ws-domain__body">
       <RouterView />
     </div>
+
+    <!-- 切工作区时整页 loading -->
+    <VbenLoading :spinning="switching" text="正在切换工作区…" />
   </div>
 </template>
 
 <style scoped lang="scss">
 .ws-domain {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
 }
 
+/* 域上下文条也用 Card 呈现（与页面内其它卡片同一风格）；
+   左右留白与页面内容对齐——Page 自己有 16px 内边距，所以这里也用 16px margin */
 .ws-ctx {
-  display: flex;
   flex: none;
-  gap: 10px;
-  align-items: center;
-  padding: 8px 16px;
-  background: color-mix(in srgb, hsl(var(--primary)) 6%, hsl(var(--card)));
-  border-bottom: 1px solid hsl(var(--border));
+  margin: 12px 16px 0;
+
+  :deep(.ant-card-body) {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 16px;
+  }
 }
 
 .ws-ctx__back {
+  flex: none;
   font-size: 12px;
   color: hsl(var(--primary));
   cursor: pointer;
@@ -76,12 +149,31 @@ function exitWorkspace() {
   border: none;
 }
 
-.ws-ctx__name {
-  font-size: 13px;
-  font-weight: 600;
+/* 工作区切换下拉：伪装成纯文本（跟原设计一致，但可点开切换） */
+.ws-ctx__pick {
+  min-width: 160px;
+  max-width: 320px;
+
+  :deep(.ant-select-selector) {
+    padding: 0 4px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  :deep(.ant-select-selection-item) {
+    font-size: 13px;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  :deep(.ant-select-arrow) {
+    color: hsl(var(--muted-foreground));
+  }
 }
 
 .ws-ctx__flag {
+  flex: none;
   padding: 1px 8px;
   font-size: 12px;
   color: hsl(var(--muted-foreground));

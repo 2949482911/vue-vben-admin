@@ -45,6 +45,8 @@ type QueueState = 'err' | 'ok' | 'pending' | 'registering' | 'uploading';
 type QueueItem = {
   error?: string;
   file: File;
+  /** 文件 MD5（取 OSS 直传返回的 etag，后端就不用再下载算一遍） */
+  fileMd5?: string;
   /** 字节 */
   fileSize: number;
   /** 可读大小，如 "12.3 MB" */
@@ -236,13 +238,23 @@ async function submit() {
         const objectKey = `ai-asset/upload/${Date.now()}-${Math.random()
           .toString(36)
           .slice(2, 8)}-${safe}`;
-        await uploadToOss(client, item.file, objectKey, (p) => {
-          item.percent = p;
-        });
+        const ossResult: any = await uploadToOss(
+          client,
+          item.file,
+          objectKey,
+          (p) => {
+            item.percent = p;
+          },
+        );
+        // 简单上传的 etag 就是文件 MD5（去掉引号），交给后端登记
+        const etag = ossResult?.res?.headers?.etag ?? ossResult?.headers?.etag;
+        item.fileMd5 =
+          typeof etag === 'string' ? etag.replaceAll('"', '') : undefined;
         item.storageUrl = `${OSS_BASE}/${objectKey}`;
         item.state = 'registering';
         await aiAssetApi.uploadMaterial({
           // 媒体字段（后端按这些入库；format 后端也会按宽高推断，这里直接给准确值）
+          fileMd5: item.fileMd5,
           fileSize: item.fileSize,
           fileSizeStr: item.fileSizeStr,
           format:

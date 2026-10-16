@@ -18,13 +18,14 @@ export const MATERIAL_TYPE_MAP: Record<string, string> = Object.fromEntries(
   MATERIAL_TYPE_OPTIONS.map((item) => [item.value, item.label]),
 );
 
-/** 素材状态 → { label, color }（1=草稿 2=已确认） */
+/** 素材状态 → { label, color }（1=草稿 2=已确认 3=已入库） */
 export const MATERIAL_STATUS_MAP: Record<
   number,
   { color: string; label: string }
 > = {
   1: { color: 'default', label: '草稿' },
   2: { color: 'green', label: '已确认' },
+  3: { color: 'blue', label: '已入库' },
 };
 
 /** 生成任务状态 → { label, color }（后端 TaskStatus 1~6） */

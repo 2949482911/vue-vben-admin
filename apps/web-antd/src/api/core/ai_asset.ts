@@ -10,6 +10,8 @@ import type {
   GenerateRequest,
   GenerationTaskItem,
   MaterialItem,
+  MaterialPushRequest,
+  MaterialPushResult,
   MaterialQuery,
   MaterialUploadRequest,
   NodeItem,
@@ -247,6 +249,18 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 素材入库：推送到营销素材库（仅「已确认」可入库；返回逐条结果） */
+  pushMaterials(
+    data: MaterialPushRequest,
+  ): Promise<MaterialPushResult[]> {
+    return requestClient.post<MaterialPushResult[]>(
+      this.getServiceUrl('material/push'),
+      data,
+    );
+  }
+
+  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
+
   /** 运行工作流（返回 runId） */
   runWorkflow(workflowId: number | string): Promise<number | string> {
     return requestClient.post<number | string>(
@@ -255,8 +269,6 @@ class AiAssetApi extends BaseApi {
       { params: { workflowId } },
     );
   }
-
-  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
 
   /** 角色 新增/更新 */
   saveCharacter(data: CharacterSaveRequest) {

@@ -25,7 +25,7 @@ export const overridesPreferences = defineOverridesPreferences({
     compact: true,
     defaultHomePath: '/dashboard',
     authPageLayout: 'panel-center',
-    layout: "sidebar-mixed-nav",
+    layout: "header-nav",
   },
   copyright: appCopyrightPreferences,
   theme: {

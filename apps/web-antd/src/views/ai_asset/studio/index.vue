@@ -1,5 +1,5 @@
 <script lang="ts" setup name="AiAssetStudio">
-import type { ChatTaskItem, GalleryTile } from './constants';
+import type { ChatTaskItem, GalleryTile, RefAsset } from './constants';
 
 /**
  * 创作工作台
@@ -12,7 +12,7 @@ import type { ChatTaskItem, GalleryTile } from './constants';
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
-import { Page } from '@vben/common-ui';
+import { Page, useVbenDrawer } from '@vben/common-ui';
 
 import { Card, CardMeta, Col, message, Row, Segmented } from 'ant-design-vue';
 
@@ -21,6 +21,7 @@ import { useWorkspaceStore } from '#/store';
 
 import { PICKER_PAGE_SIZE, TASK_STATUS_MAP } from '../constants';
 import ChatComposer from './components/ChatComposer.vue';
+import RefPickerDrawer from './components/RefPickerDrawer.vue';
 import {
   IMAGE_SKILL_OPTIONS,
   PLACEHOLDER_WORKS,
@@ -75,6 +76,21 @@ const resolution = ref('2K');
 const count = ref(1);
 const skill = ref('text2img');
 const submitting = ref(false);
+/** 参考图（图生图 / 图编辑） */
+const refs = ref<RefAsset[]>([]);
+
+const [RefPicker, refPickerApi] = useVbenDrawer({
+  connectedComponent: RefPickerDrawer,
+});
+
+function openRefPicker() {
+  refPickerApi.setData({ selected: refs.value });
+  refPickerApi.open();
+}
+
+function handleRefsConfirm(list: RefAsset[]) {
+  refs.value = list;
+}
 
 // ==================== 生成记录 / 展示区 ====================
 
@@ -95,6 +111,10 @@ const galleryTiles = computed<GalleryTile[]>(() => {
     description: task.errorMsg
       ? `生成失败：${task.errorMsg}`
       : [
+          (task.outputs?.length ?? 0) > 1
+            ? `${task.outputs?.length} 张`
+            : undefined,
+          task.refCount ? `参考图 ${task.refCount} 张` : undefined,
           task.modelLabel,
           task.ratio === SMART_RATIO ? '智能比例' : task.ratio,
           task.resolution,
@@ -125,8 +145,14 @@ async function submit() {
       params: { count: count.value, resolution: resolution.value },
       prompt: text,
       // 与画布节点同一约定：size 传比例字符串，「智能」则由模型决定
+      // 有参考图 → 走图生图（用户切成「修图」则按 edit 提交）
+      refImages:
+        refs.value.length > 0 ? refs.value.map((item) => item.url) : undefined,
       size: ratio.value === SMART_RATIO ? undefined : ratio.value,
-      skill: skill.value,
+      skill:
+        refs.value.length > 0 && skill.value === 'text2img'
+          ? 'img2img'
+          : skill.value,
     });
     tasks.value.unshift({
       count: count.value,
@@ -135,6 +161,7 @@ async function submit() {
       modelLabel:
         modelLabels.value[String(modelId.value)] ?? String(modelId.value),
       prompt: text,
+      refCount: refs.value.length,
       ratio: ratio.value,
       resolution: resolution.value,
       skill: skill.value,
@@ -165,8 +192,14 @@ async function poll() {
     }
     item.status = remote.status ?? item.status;
     item.errorMsg = remote.errorMsg;
-    if (remote.materialId !== undefined && item.materialId === undefined) {
-      item.materialId = remote.materialId;
+    // 多图契约：优先用 materialIds（列表），兼容旧的单个 materialId
+    const ids = remote.materialIds?.length
+      ? remote.materialIds
+      : remote.materialId === undefined
+        ? []
+        : [remote.materialId];
+    if (ids.length > (item.materialIds?.length ?? 0)) {
+      item.materialIds = ids;
       needOutputs = true;
     }
   }
@@ -175,10 +208,11 @@ async function poll() {
   }
 }
 
-/** 用产物 materialId 回查素材地址（生成物是草稿） */
+/** 用产物素材 ID 回查素材地址（生成物是草稿；多图按 id 逐个取） */
 async function attachOutputs() {
   const pending = tasks.value.filter(
-    (item) => item.materialId !== undefined && !item.outputs?.length,
+    (item) =>
+      (item.materialIds?.length ?? 0) > (item.outputs?.length ?? 0),
   );
   if (pending.length === 0) {
     return;
@@ -192,10 +226,14 @@ async function attachOutputs() {
       (res?.items ?? []).map((item) => [String(item.id), item]),
     );
     for (const item of pending) {
-      const material = byId.get(String(item.materialId));
-      const url = material?.thumbnailUrl ?? material?.storageUrl;
-      if (url) {
-        item.outputs = [url];
+      const urls = (item.materialIds ?? [])
+        .map((id) => {
+          const material = byId.get(String(id));
+          return material?.thumbnailUrl ?? material?.storageUrl;
+        })
+        .filter((url): url is string => Boolean(url));
+      if (urls.length > 0) {
+        item.outputs = urls;
       }
     }
   } catch {
@@ -243,9 +281,11 @@ onBeforeUnmount(stopPolling);
             v-model:resolution="resolution"
             v-model:count="count"
             v-model:skill="skill"
+            v-model:refs="refs"
             :loading="submitting"
             :models="models"
             :skills="IMAGE_SKILL_OPTIONS"
+            @pick="openRefPicker"
             @submit="submit"
           />
         </div>
@@ -290,6 +330,8 @@ onBeforeUnmount(stopPolling);
         </section>
       </Card>
     </div>
+
+    <RefPicker @confirm="handleRefsConfirm" />
   </Page>
 </template>
 

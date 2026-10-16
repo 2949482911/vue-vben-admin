@@ -15,9 +15,10 @@ import { computed, onMounted, ref, watch } from 'vue';
 
 import { useVbenDrawer, VbenLoading } from '@vben/common-ui';
 
-import { SearchOutlined } from '@ant-design/icons-vue';
+import { SearchOutlined, UploadOutlined } from '@ant-design/icons-vue';
 import {
   Button,
+  Card,
   Col,
   Empty,
   Input,
@@ -25,7 +26,7 @@ import {
   Pagination,
   Row,
   Segmented,
-  Select,
+  Select
 } from 'ant-design-vue';
 
 import { aiAssetApi } from '#/api';
@@ -38,11 +39,15 @@ import {
 } from '../../constants';
 import MaterialCard from './MaterialCard.vue';
 import MaterialUploadDrawer from './MaterialUploadDrawer.vue';
+import MaterialPushDrawer from './PushToAlbumDrawer.vue';
 
 const MEDIA_TYPES: MaterialType[] = ['image', 'video', 'audio'];
 
 const [UploadDrawer, uploadDrawerApi] = useVbenDrawer({
   connectedComponent: MaterialUploadDrawer,
+});
+const [PushDrawer, pushDrawerApi] = useVbenDrawer({
+  connectedComponent: MaterialPushDrawer,
 });
 
 const loading = ref(false);
@@ -143,6 +148,14 @@ function toggleSelect(item: MaterialItem) {
   selected.value = new Set(selected.value);
 }
 
+/** 全选当前页（与营销素材库一致，避免误全量勾选） */
+function selectAllCurrentPage() {
+  selected.value = new Set([
+    ...selected.value,
+    ...visibleRows.value.map((item) => item.id),
+  ]);
+}
+
 function download(item: MaterialItem) {
   if (item.storageUrl) {
     window.open(item.storageUrl, '_blank');
@@ -174,15 +187,45 @@ function openCreate() {
   uploadDrawerApi.open();
 }
 
+/** 入库：把当前选中的素材交给入库抽屉（选择目标文件夹 → material/push） */
+function openPush() {
+  const items = rows.value.filter((item) => selected.value.has(item.id));
+  if (items.length === 0) {
+    return;
+  }
+  pushDrawerApi.setData({ items });
+  pushDrawerApi.open();
+}
+
 watch([activeType, statusFilter], reload);
 onMounted(reload);
-
-defineExpose({ addLabel: '新增素材', openCreate });
 </script>
 
 <template>
-  <div class="library-body">
-    <div class="filterbar">
+  <Card class="library-card">
+    <div class="library-body">
+      <!-- 顶部工具栏：操作 + 类型分段 + 搜索/状态（对齐营销素材库，不做左目录树） -->
+      <div class="library-toolbar">
+      <Button type="primary" @click="openCreate">
+        <template #icon><UploadOutlined /></template>
+        新增素材
+      </Button>
+      <Button :disabled="visibleRows.length === 0" @click="selectAllCurrentPage">
+        全选当前页
+      </Button>
+      <Button
+        :disabled="selected.size === 0"
+        @click="selected = new Set()"
+      >
+        清空选择
+      </Button>
+      <Button danger :disabled="selected.size === 0" @click="removeSelected">
+        批量删除{{ selected.size > 0 ? `（${selected.size}）` : '' }}
+      </Button>
+      <Button :disabled="selected.size === 0" type="primary" ghost @click="openPush">
+        入库到素材库
+      </Button>
+
       <Segmented
         v-model:value="activeType"
         class="library-segmented"
@@ -195,86 +238,118 @@ defineExpose({ addLabel: '新增素材', openCreate });
           </span>
         </template>
       </Segmented>
-      <Input
-        v-model:value="keyword"
-        allow-clear
-        class="media-search"
-        placeholder="搜索素材名称"
-      >
-        <template #prefix><SearchOutlined /></template>
-      </Input>
-      <Select
-        v-model:value="statusFilter"
-        allow-clear
-        class="status-select"
-        :options="MATERIAL_STATUS_OPTIONS"
-        placeholder="全部状态"
-      />
-    </div>
 
-    <div v-if="selected.size > 0" class="bulk">
-      <span>已选 <b>{{ selected.size }}</b> 项</span>
-      <div class="bulk-actions">
-        <Button @click="selected = new Set()">取消选择</Button>
-        <Button danger @click="removeSelected">批量删除</Button>
+      <div class="library-toolbar__right">
+        <Input
+          v-model:value="keyword"
+          allow-clear
+          class="media-search"
+          placeholder="搜索素材名称"
+        >
+          <template #prefix><SearchOutlined /></template>
+        </Input>
+        <Select
+          v-model:value="statusFilter"
+          allow-clear
+          class="status-select"
+          :options="MATERIAL_STATUS_OPTIONS"
+          placeholder="全部状态"
+        />
       </div>
     </div>
 
-    <Empty
-      v-if="!loading && visibleRows.length === 0"
-      class="panel-empty"
-      description="暂无素材，点击右上角「新增素材」上传本地文件"
-    />
-    <Row v-else :gutter="[14, 14]">
-      <Col
-        v-for="item in visibleRows"
-        :key="item.id"
-        :lg="6"
-        :md="8"
-        :sm="12"
-        :xs="24"
-      >
-        <MaterialCard
-          :item="item"
-          :selected="selected.has(item.id)"
-          @download="download(item)"
-          @remove="removeMaterial(item)"
-          @toggle="toggleSelect(item)"
-        />
-      </Col>
-    </Row>
-
-    <div v-if="total > 0" class="pager">
-      <Pagination
-        :current="page"
-        :page-size="pageSize"
-        show-size-changer
-        :show-total="(t: number) => `共 ${t} 个素材`"
-        :total="total"
-        @change="handlePageChange"
+    <!-- 素材网格：占满剩余高度，自身滚动 -->
+    <div class="library-scroll">
+      <Empty
+        v-if="!loading && visibleRows.length === 0"
+        class="panel-empty"
+        description="暂无素材，点击左上角「新增素材」上传本地文件"
       />
+      <Row v-else :gutter="[14, 14]">
+        <Col
+          v-for="item in visibleRows"
+          :key="item.id"
+          :lg="6"
+          :md="8"
+          :sm="12"
+          :xs="24"
+        >
+          <MaterialCard
+            :item="item"
+            :selected="selected.has(item.id)"
+            @download="download(item)"
+            @remove="removeMaterial(item)"
+            @toggle="toggleSelect(item)"
+          />
+        </Col>
+      </Row>
     </div>
 
-    <VbenLoading :spinning="loading" />
-  </div>
+      <div v-if="total > 0" class="pager">
+        <Pagination
+          :current="page"
+          :page-size="pageSize"
+          show-size-changer
+          :show-total="(t: number) => `共 ${t} 个素材`"
+          :total="total"
+          @change="handlePageChange"
+        />
+      </div>
+      <VbenLoading :spinning="loading" />
+    </div>
+  </Card>
 
   <UploadDrawer @success="reload" />
+  <PushDrawer @success="reload" />
 </template>
 
 <style scoped lang="scss">
 @use './segmented.scss';
 
-.library-body {
-  position: relative;
-  min-height: 200px;
+/* 整张卡占满页面剩余高度：工具栏/翻页固定，网格区自己滚 */
+.library-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+
+  :deep(.ant-card-body) {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    padding: 14px 16px;
+  }
 }
 
-.filterbar {
+.library-body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.library-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* 顶部工具栏（对齐营销素材库：操作按钮 + 类型分段 + 搜索，不做左侧目录树） */
+.library-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+}
+
+.library-toolbar__right {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .media-search {
@@ -283,26 +358,6 @@ defineExpose({ addLabel: '新增素材', openCreate });
 
 .status-select {
   width: 160px;
-}
-
-.bulk {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  margin-bottom: 14px;
-  background: color-mix(in srgb, hsl(var(--primary)) 8%, hsl(var(--card)));
-  border: 1px solid color-mix(in srgb, hsl(var(--primary)) 28%, transparent);
-  border-radius: 12px;
-
-  b {
-    color: hsl(var(--primary));
-  }
-}
-
-.bulk-actions {
-  display: flex;
-  gap: 10px;
 }
 
 .panel-empty {
