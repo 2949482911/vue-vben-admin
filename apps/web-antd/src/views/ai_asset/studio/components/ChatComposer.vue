@@ -1,6 +1,8 @@
 <script lang="ts" setup name="StudioChatComposer">
 import type { RefAsset } from '../constants';
 
+import { computed, watch } from 'vue';
+
 /**
  * 对话式创作的输入区
  *
@@ -12,19 +14,33 @@ import {
   CloseOutlined,
   PlusOutlined,
 } from '@ant-design/icons-vue';
-import { Button, Select, Textarea, Tooltip } from 'ant-design-vue';
+import { Button, Select, Switch, Textarea, Tooltip } from 'ant-design-vue';
 
 import {
   COUNT_OPTIONS,
   MAX_REF_COUNT,
+  MAX_VIDEO_REF_COUNT,
+  RATIO_OPTIONS,
   RESOLUTION_OPTIONS,
+  skillKind,
+  SMART_RATIO,
+  VIDEO_DURATION_DEFAULT,
+  VIDEO_DURATION_OPTIONS,
+  VIDEO_RATIO_DEFAULT,
+  VIDEO_RATIO_OPTIONS,
+  VIDEO_RESOLUTION_DEFAULT,
+  VIDEO_RESOLUTION_OPTIONS,
 } from '../constants';
 import RatioPicker from './RatioPicker.vue';
 
 const props = withDefaults(
   defineProps<{
     loading?: boolean;
-    models: Array<{ label: string; value: number | string }>;
+    models: Array<{
+      capability?: string;
+      label: string;
+      value: number | string;
+    }>;
     skills: Array<{ label: string; value: string }>;
   }>(),
   { loading: false },
@@ -38,8 +54,43 @@ const prompt = defineModel<string>('prompt', { default: '' });
 const ratio = defineModel<string>('ratio', { default: 'smart' });
 const resolution = defineModel<string>('resolution', { default: '2K' });
 const skill = defineModel<string>('skill', { default: 'text2img' });
+const duration = defineModel<number>('duration', { default: VIDEO_DURATION_DEFAULT });
+const audio = defineModel<boolean>('audio', { default: true });
 /** 参考图（图生图 / 图编辑）：由页面持有的抽屉写入 */
 const refs = defineModel<RefAsset[]>('refs', { default: () => [] });
+
+const isVideo = computed(() => skillKind(skill.value) === 'video');
+
+/** 视频只能传首帧；文生视频不需要参考图 */
+const maxRefs = computed(() =>
+  isVideo.value ? MAX_VIDEO_REF_COUNT : MAX_REF_COUNT,
+);
+const refEnabled = computed(() => skill.value !== 'text2video');
+
+/** 模型按技能类型过滤（视频 → capability=video；图片 → image/edit 或未标注） */
+const modelOptions = computed(() =>
+  props.models.filter((item) =>
+    isVideo.value
+      ? item.capability === 'video'
+      : !item.capability || ['edit', 'image'].includes(item.capability),
+  ),
+);
+
+const ratioOptions = computed(() =>
+  isVideo.value ? VIDEO_RATIO_OPTIONS : RATIO_OPTIONS,
+);
+const resolutionOptions = computed(() =>
+  isVideo.value ? VIDEO_RESOLUTION_OPTIONS : RESOLUTION_OPTIONS,
+);
+
+/** 切图片/视频时重置比例与清晰度（两套取值不通用） */
+watch(isVideo, (video) => {
+  ratio.value = video ? VIDEO_RATIO_DEFAULT : SMART_RATIO;
+  resolution.value = video ? VIDEO_RESOLUTION_DEFAULT : '2K';
+  if (refs.value.length > maxRefs.value) {
+    refs.value = refs.value.slice(0, maxRefs.value);
+  }
+});
 
 function removeRef(id: number | string) {
   refs.value = refs.value.filter((item) => String(item.id) !== String(id));
@@ -52,13 +103,13 @@ function removeRef(id: number | string) {
       <!-- 参考素材：入口 + 已选缩略图（取代即梦的上传位） -->
       <div class="composer__refs">
         <button
-          v-if="refs.length < MAX_REF_COUNT"
+          v-if="refEnabled && refs.length < maxRefs"
           class="ref-add"
           type="button"
           @click="emit('pick')"
         >
           <PlusOutlined />
-          <span>选择素材</span>
+          <span>{{ isVideo ? '选择首帧' : '选择素材' }}</span>
         </button>
 
         <span v-for="ref in refs" :key="ref.id" class="ref-chip">
@@ -69,7 +120,7 @@ function removeRef(id: number | string) {
         </span>
 
         <span v-if="refs.length > 0" class="ref-count">
-          {{ refs.length }}/{{ MAX_REF_COUNT }}
+          {{ refs.length }}/{{ maxRefs }}
         </span>
       </div>
 
@@ -88,24 +139,42 @@ function removeRef(id: number | string) {
             v-model:value="modelId"
             class="chip chip--model"
             option-filter-prop="label"
-            :options="props.models"
+            :options="modelOptions"
             placeholder="选择模型"
             show-search
           />
         </Tooltip>
 
-        <RatioPicker v-model:value="ratio" />
+        <RatioPicker v-model:value="ratio" :options="ratioOptions" />
 
         <Tooltip title="清晰度">
           <Select
             v-model:value="resolution"
             class="chip"
-            :options="RESOLUTION_OPTIONS"
+            :options="resolutionOptions"
           />
         </Tooltip>
 
-        <Tooltip title="生成数量">
-          <Select v-model:value="count" class="chip chip--count" :options="COUNT_OPTIONS" />
+        <Tooltip :title="isVideo ? '生成时长' : '生成数量'">
+          <Select
+            v-if="isVideo"
+            v-model:value="duration"
+            class="chip chip--count"
+            :options="VIDEO_DURATION_OPTIONS"
+          />
+          <Select
+            v-else
+            v-model:value="count"
+            class="chip chip--count"
+            :options="COUNT_OPTIONS"
+          />
+        </Tooltip>
+
+        <Tooltip v-if="isVideo" title="是否生成音频">
+          <span class="composer__audio">
+            <span>音频</span>
+            <Switch v-model:checked="audio" size="small" />
+          </span>
         </Tooltip>
 
         <Tooltip title="生成（Enter 生成 · Shift+Enter 换行）">
@@ -245,6 +314,15 @@ function removeRef(id: number | string) {
     border: none;
     border-radius: 50%;
   }
+}
+
+.composer__audio {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0 6px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
 }
 
 .ref-count {

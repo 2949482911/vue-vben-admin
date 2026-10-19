@@ -1,5 +1,10 @@
 <script lang="ts" setup name="AiAssetStudio">
-import type { ChatTaskItem, GalleryTile, RefAsset } from './constants';
+import type {
+  ChatOutput,
+  ChatTaskItem,
+  GalleryTile,
+  RefAsset,
+} from './constants';
 
 /**
  * 创作工作台
@@ -11,6 +16,7 @@ import type { ChatTaskItem, GalleryTile, RefAsset } from './constants';
  * 画布式创作沿用原实现，已封装为 CanvasStudio.vue，本期先以禁用分段占位。
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 import { Page, useVbenDrawer } from '@vben/common-ui';
 
@@ -22,12 +28,16 @@ import { useWorkspaceStore } from '#/store';
 import { PICKER_PAGE_SIZE, TASK_STATUS_MAP } from '../constants';
 import ChatComposer from './components/ChatComposer.vue';
 import RefPickerDrawer from './components/RefPickerDrawer.vue';
+import ResultDrawer from './components/ResultDrawer.vue';
 import {
-  IMAGE_SKILL_OPTIONS,
+  CHAT_SKILL_OPTIONS,
   PLACEHOLDER_WORKS,
+  skillKind,
   SMART_RATIO,
+  VIDEO_DURATION_DEFAULT,
 } from './constants';
 
+const route = useRoute();
 const workspaceStore = useWorkspaceStore();
 
 const workspaceName = computed(
@@ -52,16 +62,14 @@ async function loadModels() {
   const usable = (res?.items ?? []).filter(
     (item) => item.status === undefined || item.status === 1,
   );
-  const imageModels = usable.filter(
-    (item) => !item.capability || ['edit', 'image'].includes(item.capability),
-  );
   modelLabels.value = Object.fromEntries(
-    imageModels.map((item) => [
+    usable.map((item) => [
       String(item.id),
       `${item.model ?? ''}（${item.provider ?? item.source ?? ''}）`,
     ]),
   );
-  models.value = imageModels.map((item) => ({
+  models.value = usable.map((item) => ({
+    capability: item.capability,
     label: modelLabels.value[String(item.id)]!,
     value: item.id,
   }));
@@ -74,6 +82,8 @@ const modelId = ref<number | string | undefined>();
 const ratio = ref(SMART_RATIO);
 const resolution = ref('2K');
 const count = ref(1);
+const duration = ref(VIDEO_DURATION_DEFAULT);
+const audio = ref(true);
 const skill = ref('text2img');
 const submitting = ref(false);
 /** 参考图（图生图 / 图编辑） */
@@ -82,6 +92,131 @@ const refs = ref<RefAsset[]>([]);
 const [RefPicker, refPickerApi] = useVbenDrawer({
   connectedComponent: RefPickerDrawer,
 });
+
+/** 迭代目标：重新编辑时带回 materialId，下一次生成即产生新版本 */
+const iterationTarget = ref<null | { id: number | string; preview: string }>(null);
+
+const [Result, resultApi] = useVbenDrawer({
+  connectedComponent: ResultDrawer,
+});
+
+function openResult(task: ChatTaskItem, index = 0) {
+  resultApi.setData({ index, task });
+  resultApi.open();
+}
+
+function cancelIteration() {
+  iterationTarget.value = null;
+}
+
+/** 用任务卡参数回填输入框（兜底） */
+function applyTaskParams(task: ChatTaskItem) {
+  prompt.value = task.prompt;
+  if (task.modelId !== undefined) {
+    modelId.value = task.modelId;
+  }
+  ratio.value = task.ratio;
+  resolution.value = task.resolution;
+  count.value = task.count;
+  skill.value = task.skill;
+  if (task.duration !== undefined) {
+    duration.value = task.duration;
+  }
+  if (task.audio !== undefined) {
+    audio.value = task.audio;
+  }
+  refs.value = (task.refImages ?? []).map((url, index) => ({
+    id: `task-ref-${index}`,
+    name: `参考图 ${index + 1}`,
+    url,
+  }));
+}
+
+/** 用最近一次任务的 skill + paramsSnapshot 回填（比任务卡更准） */
+function applySnapshot(
+  skillType?: string,
+  snapshot?: null | Record<string, any>,
+) {
+  if (skillType) {
+    skill.value = skillType;
+  }
+  if (!snapshot) {
+    return;
+  }
+  if (snapshot.prompt) {
+    prompt.value = String(snapshot.prompt);
+  }
+  if (snapshot.modelId !== undefined) {
+    modelId.value = snapshot.modelId;
+  }
+  if (snapshot.ratio || snapshot.size) {
+    ratio.value = String(snapshot.ratio ?? snapshot.size);
+  }
+  if (snapshot.resolution) {
+    resolution.value = String(snapshot.resolution);
+  }
+  if (snapshot.count) {
+    count.value = Number(snapshot.count) || count.value;
+  }
+  if (Array.isArray(snapshot.refImages)) {
+    refs.value = snapshot.refImages.map((url: string, index: number) => ({
+      id: `task-ref-${index}`,
+      name: `参考图 ${index + 1}`,
+      url,
+    }));
+  }
+}
+
+/**
+ * 按 materialId 回填参数并进入「迭代」状态（草稿区「重新编辑」与结果抽屉共用）
+ *
+ * - 先立即记下迭代目标，避免异步取参期间点生成漏带 materialId
+ * - 参数优先取该素材最近一次任务（task/list?materialId=），保留原 skill
+ */
+async function reeditByMaterialId(
+  materialId: number | string,
+  fallback?: ChatTaskItem,
+) {
+  const output = fallback?.outputs?.find(
+    (item) => String(item.materialId) === String(materialId),
+  );
+  iterationTarget.value = { id: materialId, preview: output?.url ?? '' };
+
+  if (fallback) {
+    applyTaskParams(fallback);
+  }
+
+  try {
+    const res = await aiAssetApi.fetchTaskList({
+      materialId,
+      page: 1,
+      pageSize: 1,
+    });
+    const latest = res?.items?.[0];
+    if (latest) {
+      applySnapshot(latest.skill, latest.paramsSnapshot);
+    }
+  } catch {
+    // 取不到最近任务就用兜底参数
+  }
+}
+
+/** 结果抽屉「重新编辑」 */
+function handleReedit(task: ChatTaskItem, materialId: number | string) {
+  void reeditByMaterialId(materialId, task);
+}
+
+/** 再次生成：同参数 + 新 requestId（不带 materialId，出全新一版） */
+async function handleRegenerate(task: ChatTaskItem) {
+  applyTaskParams(task);
+  iterationTarget.value = null;
+  await submit();
+}
+
+/** 确认入库后刷新产物状态 */
+function handleConfirmed() {
+  void attachOutputs(true);
+}
 
 function openRefPicker() {
   refPickerApi.setData({ selected: refs.value });
@@ -107,7 +242,9 @@ const galleryTiles = computed<GalleryTile[]>(() => {
       task.status === 4
         ? undefined
         : (TASK_STATUS_MAP[task.status]?.label ?? '处理中'),
-    cover: task.outputs?.[0],
+    cover: task.outputs?.[0]?.url,
+    covers: (task.outputs ?? []).slice(0, 4).map((output) => output.url),
+    isVideo: task.outputs?.[0]?.materialType === 'video',
     description: task.errorMsg
       ? `生成失败：${task.errorMsg}`
       : [
@@ -123,10 +260,17 @@ const galleryTiles = computed<GalleryTile[]>(() => {
           .filter(Boolean)
           .join(' · '),
     id: `task-${task.id}`,
+    task,
     tintIndex: index % 4,
     title: task.prompt,
   }));
 });
+
+function newRequestId(): string {
+  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 async function submit() {
   if (!prompt.value.trim()) {
@@ -141,8 +285,15 @@ async function submit() {
   try {
     const text = prompt.value.trim();
     const task = await aiAssetApi.generateMaterial({
+      // 每次点击都必须换新的 requestId（否则会被后端幂等命中，拿回旧任务）
+      requestId: newRequestId(),
+      // 迭代：带 materialId 会基于该素材出新版本
+      materialId: iterationTarget.value?.id,
       modelId: modelId.value,
-      params: { count: count.value, resolution: resolution.value },
+      params:
+        skillKind(skill.value) === 'video'
+          ? { audio: audio.value, count: 1, duration: duration.value, resolution: resolution.value }
+          : { count: count.value, resolution: resolution.value },
       prompt: text,
       // 与画布节点同一约定：size 传比例字符串，「智能」则由模型决定
       // 有参考图 → 走图生图（用户切成「修图」则按 edit 提交）
@@ -158,16 +309,21 @@ async function submit() {
       count: count.value,
       createTime: new Date().toLocaleTimeString('zh-CN', { hour12: false }),
       id: task?.id ?? Date.now(),
+      modelId: modelId.value,
       modelLabel:
         modelLabels.value[String(modelId.value)] ?? String(modelId.value),
       prompt: text,
       refCount: refs.value.length,
+      refImages: refs.value.map((item) => item.url),
+      duration: duration.value,
+      audio: audio.value,
       ratio: ratio.value,
       resolution: resolution.value,
       skill: skill.value,
       status: task?.status ?? 1,
     });
     message.success('已提交生成，产物落草稿区');
+    iterationTarget.value = null;
     startPolling();
   } finally {
     submitting.value = false;
@@ -209,10 +365,11 @@ async function poll() {
 }
 
 /** 用产物素材 ID 回查素材地址（生成物是草稿；多图按 id 逐个取） */
-async function attachOutputs() {
+async function attachOutputs(force = false) {
   const pending = tasks.value.filter(
     (item) =>
-      (item.materialIds?.length ?? 0) > (item.outputs?.length ?? 0),
+      (item.materialIds?.length ?? 0) > 0 &&
+      (force || (item.materialIds?.length ?? 0) > (item.outputs?.length ?? 0)),
   );
   if (pending.length === 0) {
     return;
@@ -226,14 +383,23 @@ async function attachOutputs() {
       (res?.items ?? []).map((item) => [String(item.id), item]),
     );
     for (const item of pending) {
-      const urls = (item.materialIds ?? [])
-        .map((id) => {
-          const material = byId.get(String(id));
-          return material?.thumbnailUrl ?? material?.storageUrl;
-        })
-        .filter((url): url is string => Boolean(url));
-      if (urls.length > 0) {
-        item.outputs = urls;
+      const outputs: ChatOutput[] = [];
+      for (const id of item.materialIds ?? []) {
+        const material = byId.get(String(id));
+        const url = material?.thumbnailUrl ?? material?.storageUrl;
+        if (url) {
+          outputs.push({
+            cover: material?.thumbnailUrl,
+            duration: material?.videoDuration,
+            materialId: id,
+            materialType: material?.materialType,
+            status: material?.status,
+            url,
+          });
+        }
+      }
+      if (outputs.length > 0) {
+        item.outputs = outputs;
       }
     }
   } catch {
@@ -258,7 +424,15 @@ function stopPolling() {
   }
 }
 
-onMounted(loadModels);
+onMounted(async () => {
+  await loadModels();
+  // 从草稿区「重新编辑」跳转过来时带 ?materialId=（保留在 URL 里：
+  // 清 query 会改变 fullPath，vben 按 key 渲染路由视图会整页重挂载、把输入状态冲掉）
+  const materialId = route.query.materialId;
+  if (typeof materialId === 'string' && materialId) {
+    await reeditByMaterialId(materialId);
+  }
+});
 onBeforeUnmount(stopPolling);
 </script>
 
@@ -273,6 +447,12 @@ onBeforeUnmount(stopPolling);
             <Segmented v-model:value="mode" :options="MODE_TABS" />
           </div>
 
+          <div v-if="iterationTarget" class="studio-hero__iter">
+            <img v-if="iterationTarget.preview" alt="参考" :src="iterationTarget.preview" />
+            <span>将基于该素材生成新版本（v{{ 'N+1' }}）</span>
+            <button type="button" @click="cancelIteration">取消迭代</button>
+          </div>
+
           <ChatComposer
             v-if="mode === 'chat'"
             v-model:prompt="prompt"
@@ -280,11 +460,13 @@ onBeforeUnmount(stopPolling);
             v-model:ratio="ratio"
             v-model:resolution="resolution"
             v-model:count="count"
+            v-model:duration="duration"
+            v-model:audio="audio"
             v-model:skill="skill"
             v-model:refs="refs"
             :loading="submitting"
             :models="models"
-            :skills="IMAGE_SKILL_OPTIONS"
+            :skills="CHAT_SKILL_OPTIONS"
             @pick="openRefPicker"
             @submit="submit"
           />
@@ -310,17 +492,36 @@ onBeforeUnmount(stopPolling);
               :sm="12"
               :xs="24"
             >
-              <Card class="work-card" hoverable>
+              <Card
+                class="work-card"
+                hoverable
+                @click="tile.task ? openResult(tile.task) : undefined"
+              >
                 <template #cover>
                   <div
                     class="work-card__cover"
                     :class="`work-card__cover--${tile.tintIndex ?? index % 4}`"
                   >
-                    <img v-if="tile.cover" :alt="tile.title" :src="tile.cover" />
+                    <div
+                      v-if="tile.covers?.length"
+                      class="work-grid"
+                      :class="`work-grid--${Math.min(tile.covers.length, 4)}`"
+                    >
+                      <template v-for="url in tile.covers" :key="url">
+                        <video
+                          v-if="tile.isVideo"
+                          muted
+                          playsinline
+                          preload="metadata"
+                          :src="url"
+                        ></video>
+                        <img v-else :alt="tile.title" :src="url" />
+                      </template>
+                    </div>
                     <span v-else class="work-card__ph">占位图</span>
                     <span v-if="tile.badge" class="work-card__badge">
-                    {{ tile.badge }}
-                  </span>
+                      {{ tile.badge }}
+                    </span>
                   </div>
                 </template>
                 <CardMeta :description="tile.description" :title="tile.title" />
@@ -332,6 +533,11 @@ onBeforeUnmount(stopPolling);
     </div>
 
     <RefPicker @confirm="handleRefsConfirm" />
+    <Result
+      @confirm="handleConfirmed"
+      @reedit="handleReedit"
+      @regenerate="handleRegenerate"
+    />
   </Page>
 </template>
 
@@ -359,6 +565,36 @@ onBeforeUnmount(stopPolling);
   font-size: 20px;
   font-weight: 600;
   text-align: center;
+}
+
+/* 迭代提示（重新编辑后、下一次生成前） */
+.studio-hero__iter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  background: color-mix(in srgb, hsl(var(--primary)) 8%, transparent);
+  border: 1px solid color-mix(in srgb, hsl(var(--primary)) 25%, transparent);
+  border-radius: 10px;
+
+  img {
+    width: 28px;
+    height: 28px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  button {
+    margin-left: auto;
+    font-size: 12px;
+    color: hsl(var(--primary));
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
 }
 
 .studio-hero__mode {
@@ -448,6 +684,33 @@ onBeforeUnmount(stopPolling);
     hsl(var(--accent)),
     color-mix(in srgb, hsl(var(--success)) 16%, hsl(var(--accent)))
   );
+}
+
+.work-grid {
+  display: grid;
+  width: 100%;
+  height: 150px;
+  gap: 2px;
+}
+
+.work-grid--1 {
+  grid-template-columns: 1fr;
+}
+
+.work-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.work-grid--3,
+.work-grid--4 {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.work-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .work-card__ph {

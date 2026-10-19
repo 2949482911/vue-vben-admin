@@ -11,6 +11,8 @@ import type { VbenFormProps } from '@vben/common-ui';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { MaterialItem } from '#/api/models/ai_asset';
 
+import { useRouter } from 'vue-router';
+
 import { Page, useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 
@@ -18,14 +20,32 @@ import { Button, Image, message, Modal, Tag } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { aiAssetApi } from '#/api';
+import { useWorkspaceStore } from '#/store';
 
 import { MATERIAL_STATUS_MAP, MATERIAL_TYPE_MAP, MATERIAL_TYPE_OPTIONS } from '../constants';
+import { workspacePagePath } from '../workspace/menu';
 import VersionDrawer from './VersionDrawer.vue';
 
 // ==================== 版本抽屉 ====================
 const [Version, versionApi] = useVbenDrawer({
   connectedComponent: VersionDrawer,
 });
+
+const router = useRouter();
+const workspaceStore = useWorkspaceStore();
+
+/** 重新编辑：跳创作台并带上 materialId（创作台会自动回填参数并进入迭代态） */
+function handleReedit(row: any) {
+  const wsId = workspaceStore.workspaceId;
+  if (wsId === undefined) {
+    message.warning('请先进入工作区');
+    return;
+  }
+  void router.push({
+    path: workspacePagePath(wsId, 'studio'),
+    query: { materialId: String(row.id) },
+  });
+}
 
 function openVersion(row: MaterialItem) {
   versionApi.setData({ materialId: row.id });
@@ -55,7 +75,7 @@ const gridOptions: VxeGridProps<MaterialItem> = {
     { field: 'materialType', slots: { default: 'type' }, title: '素材类型', width: 110 },
     { field: 'status', slots: { default: 'status' }, title: '状态', width: 100 },
     { field: 'createTime', formatter: 'formatDateTime', title: '创建时间', minWidth: 170 },
-    { slots: { default: 'action' }, title: '操作', width: 180 },
+    { slots: { default: 'action' }, title: '操作', width: 240 },
   ],
   height: 'auto',
   pagerConfig: { enabled: true },
@@ -83,12 +103,13 @@ function pageReload() {
 
 async function handleConfirm(row: MaterialItem) {
   Modal.confirm({
-    title: '确认入库',
-    content: '确认后该素材将单向进入正式素材库，并由 AI 生成标签，且不可退回草稿。',
-    okText: '确认入库',
+    title: '确认定稿',
+    content:
+      '确认后素材进入「已确认」（设计定稿）；之后可在素材库勾选后「入库到素材库」推到营销素材库。',
+    okText: '确认定稿',
     async onOk() {
       await aiAssetApi.confirmMaterial(row.id);
-      message.success('已确认入库');
+      message.success('已确认定稿');
       pageReload();
     },
   });
@@ -121,7 +142,8 @@ async function handleConfirm(row: MaterialItem) {
 
       <template #action="{ row }">
         <Button type="link" @click="openVersion(row)">版本</Button>
-        <Button type="link" @click="handleConfirm(row)">确认入库</Button>
+        <Button type="link" @click="handleReedit(row)">重新编辑</Button>
+        <Button type="link" @click="handleConfirm(row)">确认定稿</Button>
       </template>
     </Grid>
 

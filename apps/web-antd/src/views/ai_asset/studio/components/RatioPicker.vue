@@ -10,14 +10,20 @@ import { Popover } from 'ant-design-vue';
 
 import { RATIO_OPTIONS, SMART_RATIO } from '../constants';
 
-const props = defineProps<{ value: string }>();
+const props = withDefaults(
+  defineProps<{
+    options?: Array<{ label: string; value: string }>;
+    value: string;
+  }>(),
+  { options: () => RATIO_OPTIONS },
+);
 const emit = defineEmits<{ 'update:value': [value: string] }>();
 
 const open = ref(false);
 
 const currentLabel = computed(
   () =>
-    RATIO_OPTIONS.find((option) => option.value === props.value)?.label ??
+    props.options.find((option) => option.value === props.value)?.label ??
     props.value,
 );
 
@@ -51,7 +57,7 @@ function pick(value: string) {
     <template #content>
       <div class="ratio-grid">
         <button
-          v-for="option in RATIO_OPTIONS"
+          v-for="option in props.options"
           :key="option.value"
           class="ratio-item"
           :class="{ 'is-on': option.value === props.value }"

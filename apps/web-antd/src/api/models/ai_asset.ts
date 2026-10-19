@@ -394,6 +394,8 @@ export interface RunQuery extends PageRequestParams {
  * 生成请求（首轮生成 / 多轮调整共用；modelId 为模型库 ID，baseUrl/apiKey 后端配置）
  */
 export interface GenerateRequest {
+  /** 每次点击都要新的 requestId（后端幂等键 = materialId + requestId + 参数） */
+  requestId?: string;
   skill: string;
   modelId: number | string;
   prompt?: string;
