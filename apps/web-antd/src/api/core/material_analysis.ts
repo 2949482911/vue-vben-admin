@@ -1,13 +1,14 @@
-import { requestClient } from '#/api/request';
-import { BaseApi } from '#/api/core/baseapi';
-import type {
-  MaterialAnalysisQuery,
-  MaterialAnalysisItem,
-  MaterialOverview,
-  LifecycleDistribution,
-  MaterialCompareItem,
-} from '#/api/models/material_analysis';
 import type { PageResponse } from '#/api/models/marketing';
+import type {
+  LifecycleDistribution,
+  MaterialAnalysisItem,
+  MaterialAnalysisQuery,
+  MaterialCompareItem,
+  MaterialOverview,
+} from '#/api/models/material_analysis';
+
+import { BaseApi } from '#/api/core/baseapi';
+import { requestClient } from '#/api/request';
 
 /**
  * 素材智能分析 API
@@ -22,6 +23,46 @@ import type { PageResponse } from '#/api/models/marketing';
  * - POST /platform/material_analysis/tag/batch      批量打标签
  */
 class MaterialAnalysisApi extends BaseApi {
+  /** 添加标签 */
+  fetchAddTag(params: {
+    materialId: string;
+    tag: string;
+    group?: string;
+  }) {
+    return requestClient.post(this.getServiceUrl('tag'), params);
+  }
+
+  /** 批量打标签 */
+  fetchBatchTag(params: {
+    materialIds: string[];
+    tags: string[];
+    group?: string;
+  }) {
+    return requestClient.post(this.getServiceUrl('tag/batch'), params);
+  }
+
+  /** 素材对比 */
+  fetchCompare(params: {
+    materialIds: string[];
+    dateRange: [string, string];
+  }): Promise<MaterialCompareItem[]> {
+    return requestClient.post<MaterialCompareItem[]>(
+      this.getServiceUrl('compare'),
+      params,
+    );
+  }
+
+  /** 生命周期分布 */
+  fetchLifecycle(params: {
+    platform?: string;
+    dateRange?: [string, string];
+  }): Promise<LifecycleDistribution> {
+    return requestClient.get<LifecycleDistribution>(
+      this.getServiceUrl('lifecycle'),
+      { params },
+    );
+  }
+
   /** 素材效果列表 */
   fetchList(
     params: MaterialAnalysisQuery,
@@ -41,46 +82,6 @@ class MaterialAnalysisApi extends BaseApi {
       this.getServiceUrl('overview'),
       { params },
     );
-  }
-
-  /** 生命周期分布 */
-  fetchLifecycle(params: {
-    platform?: string;
-    dateRange?: [string, string];
-  }): Promise<LifecycleDistribution> {
-    return requestClient.get<LifecycleDistribution>(
-      this.getServiceUrl('lifecycle'),
-      { params },
-    );
-  }
-
-  /** 素材对比 */
-  fetchCompare(params: {
-    materialIds: string[];
-    dateRange: [string, string];
-  }): Promise<MaterialCompareItem[]> {
-    return requestClient.post<MaterialCompareItem[]>(
-      this.getServiceUrl('compare'),
-      params,
-    );
-  }
-
-  /** 添加标签 */
-  fetchAddTag(params: {
-    materialId: string;
-    tag: string;
-    group?: string;
-  }) {
-    return requestClient.post(this.getServiceUrl('tag'), params);
-  }
-
-  /** 批量打标签 */
-  fetchBatchTag(params: {
-    materialIds: string[];
-    tags: string[];
-    group?: string;
-  }) {
-    return requestClient.post(this.getServiceUrl('tag/batch'), params);
   }
 }
 

@@ -26,7 +26,8 @@
     "profile": "Account Profile",
     "main_body_combo": "Marketing Combo",
     "models": "Ai Models",
-    "Skill": "Ai Skills"
+    "Skill": "Ai Skills",
+    "dict": "Dictionary"
   },
   "profile": {
     "currentCombo": "Current Plan",
@@ -192,7 +193,8 @@
       "draft": "Drafts",
       "queue": "Task Queue",
       "assets": "Assets",
-      "settings": "Workspace Settings"
+      "settings": "Workspace Settings",
+      "novel": "Novel Studio"
     }
   }
 }

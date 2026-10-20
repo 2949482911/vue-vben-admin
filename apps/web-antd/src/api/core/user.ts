@@ -1,5 +1,4 @@
-import {requestClient} from '#/api/request';
-import {BaseApi} from "#/api/core/baseapi";
+import type {BatchOptions} from "#/api/models/core";
 import type {
   CreateDataRangeRequest,
   CreateUserRequest,
@@ -17,53 +16,62 @@ import type {
   UserItem,
   UserSearchRequest
 } from "#/api/models/users";
+
 import qs from "qs";
-import type {BatchOptions} from "#/api/models/core";
+
+import {BaseApi} from "#/api/core/baseapi";
+import {requestClient} from '#/api/request';
 
 class UserApi extends BaseApi {
-
-  fetchUserList(params: UserSearchRequest): Promise<UserItem> {
-    return requestClient.get<UserItem>(this.getServiceUrl("list"), {params})
-  }
-
-  fetchCreateUser(params: CreateUserRequest) {
-    return requestClient.post(this.getServiceUrl("create"), params);
-  }
-
-  fetchUpdateUser(params: UpdateUserRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
-  }
-
-
-  fetchUpdatePassword(params: UpdatePasswordRequest) {
-    return requestClient.post(this.getServiceUrl("updatePassword"), params)
-  }
 
   fetchBatchOptions(params: BatchOptions) {
     return requestClient.post(this.getServiceUrl("batch_options"), params)
 
   }
 
+  fetchCreateUser(params: CreateUserRequest) {
+    return requestClient.post(this.getServiceUrl("create"), params);
+  }
+
+  fetchUpdatePassword(params: UpdatePasswordRequest) {
+    return requestClient.post(this.getServiceUrl("updatePassword"), params)
+  }
+
+
+  fetchUpdateUser(params: UpdateUserRequest) {
+    return requestClient.post(this.getServiceUrl("update"), params);
+  }
+
+  fetchUserList(params: UserSearchRequest): Promise<UserItem> {
+    return requestClient.get<UserItem>(this.getServiceUrl("list"), {params})
+  }
+
 }
 
 class OrgApi extends BaseApi {
 
-  fetchOrgTree(): Promise<OrgItem[]> {
-    return requestClient.get<OrgItem[]>(this.getServiceUrl("list"));
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params)
   }
 
   fetchOrgCreate(params: OrgCreateRequest) {
     return requestClient.post(this.getServiceUrl("save"), params);
   }
 
-  fetchOrgUpdate(params: OrgUpdateRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
+  fetchOrgDelete(ids: string[]) {
+    return requestClient.get(this.getServiceUrl("delete"),
+      {
+        params: {ids},
+        paramsSerializer (params) {
+          return qs.stringify(params, {arrayFormat: 'repeat'});
+        },
+      });
   }
 
   fetchOrgDisable(ids: string[]) {
     return requestClient.get(this.getServiceUrl("disable"), {
-      params: {ids: ids},
-      paramsSerializer: function (params) {
+      params: {ids},
+      paramsSerializer (params) {
         return qs.stringify(params, {arrayFormat: 'repeat'});
       },
     });
@@ -71,25 +79,19 @@ class OrgApi extends BaseApi {
 
   fetchOrgEnable(ids: string[]) {
     return requestClient.get(this.getServiceUrl("enable"), {
-      params: {ids: ids},
-      paramsSerializer: function (params) {
+      params: {ids},
+      paramsSerializer (params) {
         return qs.stringify(params, {arrayFormat: 'repeat'});
       },
     });
   }
 
-  fetchOrgDelete(ids: string[]) {
-    return requestClient.get(this.getServiceUrl("delete"),
-      {
-        params: {ids: ids},
-        paramsSerializer: function (params) {
-          return qs.stringify(params, {arrayFormat: 'repeat'});
-        },
-      });
+  fetchOrgTree(): Promise<OrgItem[]> {
+    return requestClient.get<OrgItem[]>(this.getServiceUrl("list"));
   }
 
-  fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("batch_options"), params)
+  fetchOrgUpdate(params: OrgUpdateRequest) {
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 }
 
@@ -97,27 +99,27 @@ class OrgApi extends BaseApi {
 class DataRangeApi extends BaseApi {
 
 
-  fetchDataRangeList(params: DataRangeSearchRequest) {
-    return requestClient.get<DataRangeItem>(this.getServiceUrl("list"), {params});
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params)
   }
 
   fetchCreateDataRange(params: CreateDataRangeRequest) {
     return requestClient.post(this.getServiceUrl("create"), params);
   }
 
-  fetchUpdateDataRange(params: UpdateDataRangeRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
+  fetchDataRangeList(params: DataRangeSearchRequest) {
+    return requestClient.get<DataRangeItem>(this.getServiceUrl("list"), {params});
   }
 
   fetchDeleteDataRange(id: string) {
-    return requestClient.post(this.getServiceUrl("delete"), {params: {id: id}});
+    return requestClient.post(this.getServiceUrl("delete"), {params: {id}});
   }
 
   fetchDisableDataRange(ids: string[]) {
     return requestClient.get(this.getServiceUrl("disable"),
       {
-        params: {ids: ids},
-        paramsSerializer: function (params) {
+        params: {ids},
+        paramsSerializer (params) {
           return qs.stringify(params, {arrayFormat: 'repeat'});
         },
       },
@@ -126,8 +128,8 @@ class DataRangeApi extends BaseApi {
 
   fetchEnableDataRange(ids: string[]) {
     return requestClient.get(this.getServiceUrl("enable"), {
-      params: {ids: ids},
-      paramsSerializer: function (params) {
+      params: {ids},
+      paramsSerializer (params) {
         return qs.stringify(params, {arrayFormat: 'repeat'});
       },
     });
@@ -137,8 +139,8 @@ class DataRangeApi extends BaseApi {
     return requestClient.post(this.getServiceUrl("sudr"), params)
   }
 
-  fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("batch_options"), params)
+  fetchUpdateDataRange(params: UpdateDataRangeRequest) {
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 }
 

@@ -1,14 +1,15 @@
-import { requestClient } from '#/api/request';
-import { BaseApi } from '#/api/core/baseapi';
 import type {
-  ChatSession,
   ChatMessage,
+  ChatSession,
   CreateSessionRequest,
   SendMessageRequest,
   SuggestionExecuteRequest,
   SuggestionExecuteResponse,
 } from '#/api/models/ai_chat';
 import type { PageResponse } from '#/api/models/marketing';
+
+import { BaseApi } from '#/api/core/baseapi';
+import { requestClient } from '#/api/request';
 
 /**
  * AI 投手对话助手 API
@@ -23,18 +24,6 @@ import type { PageResponse } from '#/api/models/marketing';
  * - POST /ai_chat/suggestion/execute   审批执行建议（确认/取消）
  */
 class AiChatApi extends BaseApi {
-  /** 会话列表 */
-  fetchSessions(params: {
-    page?: number;
-    pageSize?: number;
-    keyword?: string;
-  }): Promise<PageResponse<ChatSession>> {
-    return requestClient.get<PageResponse<ChatSession>>(
-      this.getServiceUrl('sessions'),
-      { params },
-    );
-  }
-
   /** 创建会话 */
   fetchCreateSession(data: CreateSessionRequest) {
     return requestClient.post<ChatSession>(
@@ -48,6 +37,14 @@ class AiChatApi extends BaseApi {
     return requestClient.post(this.getServiceUrl('session/delete'), {
       sessionId,
     });
+  }
+
+  /** 审批执行建议（确认/取消） */
+  fetchExecuteSuggestion(data: SuggestionExecuteRequest) {
+    return requestClient.post<SuggestionExecuteResponse>(
+      this.getServiceUrl('suggestion/execute'),
+      data,
+    );
   }
 
   /** 消息历史 */
@@ -66,11 +63,15 @@ class AiChatApi extends BaseApi {
     );
   }
 
-  /** 审批执行建议（确认/取消） */
-  fetchExecuteSuggestion(data: SuggestionExecuteRequest) {
-    return requestClient.post<SuggestionExecuteResponse>(
-      this.getServiceUrl('suggestion/execute'),
-      data,
+  /** 会话列表 */
+  fetchSessions(params: {
+    page?: number;
+    pageSize?: number;
+    keyword?: string;
+  }): Promise<PageResponse<ChatSession>> {
+    return requestClient.get<PageResponse<ChatSession>>(
+      this.getServiceUrl('sessions'),
+      { params },
     );
   }
 }

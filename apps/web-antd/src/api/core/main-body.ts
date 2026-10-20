@@ -1,5 +1,4 @@
-import { requestClient } from "#/api/request";
-import { BaseApi } from "#/api/core/baseapi";
+import type { BatchOptions } from "#/api/models/core";
 import type {
   MainBodyComboCreateRequest,
   MainBodyComboPageItem,
@@ -10,13 +9,16 @@ import type {
   MainBodySearchRequest,
   MainBodyUpdateRequest
 } from "#/api/models/main-body";
+
 // @ts-ignore
 import qs from "qs";
-import type { BatchOptions } from "#/api/models/core";
+
+import { BaseApi } from "#/api/core/baseapi";
+import { requestClient } from "#/api/request";
 
 class MainBodyApi extends BaseApi {
-  fetchMainList(params: MainBodySearchRequest): Promise<MainBodyItem[]> {
-    return requestClient.get<MainBodyItem[]>(this.getServiceUrl("list"), { params });
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
 
@@ -24,14 +26,19 @@ class MainBodyApi extends BaseApi {
     return requestClient.post(this.getServiceUrl("save"), params);
   }
 
-  fetchMainUpdate(params: MainBodyUpdateRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
+  fetchMainDelete(ids: string[]) {
+    return requestClient.get(this.getServiceUrl("delete"), {
+      params: { ids },
+      paramsSerializer(params) {
+        return qs.stringify(params, { arrayFormat: "repeat" });
+      }
+    });
   }
 
   fetchMainDisable(ids: string[]) {
     return requestClient.get(this.getServiceUrl("disable"), {
-      params: { ids: ids },
-      paramsSerializer: function(params) {
+      params: { ids },
+      paramsSerializer(params) {
         return qs.stringify(params, { arrayFormat: "repeat" });
       }
     });
@@ -39,24 +46,19 @@ class MainBodyApi extends BaseApi {
 
   fetchMainEnable(ids: string[]) {
     return requestClient.get(this.getServiceUrl("enable"), {
-      params: { ids: ids },
-      paramsSerializer: function(params) {
+      params: { ids },
+      paramsSerializer(params) {
         return qs.stringify(params, { arrayFormat: "repeat" });
       }
     });
   }
 
-  fetchMainDelete(ids: string[]) {
-    return requestClient.get(this.getServiceUrl("delete"), {
-      params: { ids: ids },
-      paramsSerializer: function(params) {
-        return qs.stringify(params, { arrayFormat: "repeat" });
-      }
-    });
+  fetchMainList(params: MainBodySearchRequest): Promise<MainBodyItem[]> {
+    return requestClient.get<MainBodyItem[]>(this.getServiceUrl("list"), { params });
   }
 
-  fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("batch_options"), params);
+  fetchMainUpdate(params: MainBodyUpdateRequest) {
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 
 }
@@ -69,20 +71,20 @@ export const mainBodyApi: MainBodyApi = new MainBodyApi("/sys/main");
  */
 class MainBodyComboApi extends BaseApi {
 
-  fetchMainBodyComboList(params: MainBodyComboPageRequest): Promise<MainBodyComboPageItem[]> {
-    return requestClient.get<MainBodyComboPageItem[]>(this.getServiceUrl("list"), { params });
+  fetchMainBodyComboBatchOption(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 
   fetchMainBodyComboCreate(params: MainBodyComboCreateRequest) {
     return requestClient.post(this.getServiceUrl("create"), params);
   }
 
-  fetchMainBodyComboUpdate(params: MainBodyComboUpdateRequest) {
-    return requestClient.post(this.getServiceUrl("update"), params);
+  fetchMainBodyComboList(params: MainBodyComboPageRequest): Promise<MainBodyComboPageItem[]> {
+    return requestClient.get<MainBodyComboPageItem[]>(this.getServiceUrl("list"), { params });
   }
 
-  fetchMainBodyComboBatchOption(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("batch_options"), params);
+  fetchMainBodyComboUpdate(params: MainBodyComboUpdateRequest) {
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 }
 

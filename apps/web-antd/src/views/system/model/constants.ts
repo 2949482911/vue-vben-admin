@@ -5,6 +5,7 @@ export const CAPABILITY_OPTIONS = [
   { label: '图片', value: 'image' as ModelCapability },
   { label: '视频', value: 'video' as ModelCapability },
   { label: '修图', value: 'edit' as ModelCapability },
+  { label: '文本', value: 'text' as ModelCapability },
   { label: '打标', value: 'tag' as ModelCapability },
 ];
 
@@ -13,6 +14,7 @@ export const CAPABILITY_MAP: Record<string, { color: string; label: string }> = 
   image: { color: 'blue', label: '图片' },
   video: { color: 'purple', label: '视频' },
   edit: { color: 'cyan', label: '修图' },
+  text: { color: 'gold', label: '文本' },
   tag: { color: 'geekblue', label: '打标' },
 };
 

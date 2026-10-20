@@ -1,3 +1,4 @@
+import type { ProjectItem } from "#/api/models";
 import type {
   AttributionConfigItem,
   AttributionConfigPageRequest,
@@ -15,32 +16,32 @@ import type {
   UpdateEventConfigRequest,
   UpdateSdkAppRequest
 } from "#/api/models/attribution";
+import type { BatchOptions } from "#/api/models/core";
+
 import { BaseApi } from "#/api/core/baseapi";
 import { requestClient } from "#/api/request";
-import type { BatchOptions } from "#/api/models/core";
-import type { ProjectItem } from "#/api/models";
 
 
 /**
  * 事件配置
  */
 class EventConfigApi extends BaseApi {
-  fetchGetEventConfigList(params: EventConfigPageRequest) {
-    return requestClient.get<EventConfigItem[]>(this.getServiceUrl("event_config/list"), {
-      params
-    });
+  fetchBatchOptions(data: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("event_config/batch_options"), data);
   }
 
   fetchCreateEventConfigRequest(data: CreateEventConfigRequest) {
     return requestClient.post(this.getServiceUrl("event_config/create"), data);
   }
 
-  fetchUpdateEventConfigRequest(data: UpdateEventConfigRequest) {
-    return requestClient.post(this.getServiceUrl("event_config/update"), data);
+  fetchGetEventConfigList(params: EventConfigPageRequest) {
+    return requestClient.get<EventConfigItem[]>(this.getServiceUrl("event_config/list"), {
+      params
+    });
   }
 
-  fetchBatchOptions(data: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("event_config/batch_options"), data);
+  fetchUpdateEventConfigRequest(data: UpdateEventConfigRequest) {
+    return requestClient.post(this.getServiceUrl("event_config/update"), data);
   }
 
 }
@@ -58,16 +59,16 @@ class EventAttributeApi extends BaseApi {
     });
   }
 
+  fetchBatchOptionsVO(data: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("properties/batch_options"), data);
+  }
+
   fetchCreateEventAttributeRequest(data: CreateEventAttributeRequest) {
     return requestClient.post(this.getServiceUrl("properties/create"), data);
   }
 
   fetchUpdateEventConfigRequest(data: UpdateEventConfigRequest) {
     return requestClient.post(this.getServiceUrl("properties/update"), data);
-  }
-
-  fetchBatchOptionsVO(data: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("properties/batch_options"), data);
   }
 }
 
@@ -78,6 +79,10 @@ export const eventAttributeApi: EventAttributeApi = new EventAttributeApi("/plat
  * 归因配置模板
  */
 class AttributionConfigApi extends BaseApi {
+  fetchBatchOptions(data: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("config/batch_options"), data);
+  }
+
   fetchConfigList(params: AttributionConfigPageRequest) {
     return requestClient.get<AttributionConfigItem[]>(this.getServiceUrl("config/list"), { params });
   }
@@ -90,10 +95,6 @@ class AttributionConfigApi extends BaseApi {
     return requestClient.post(this.getServiceUrl("config/update"), data);
   }
 
-  fetchBatchOptions(data: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("config/batch_options"), data);
-  }
-
 }
 
 
@@ -104,26 +105,26 @@ export const attributionConfigApi: AttributionConfigApi = new AttributionConfigA
  * sdk config api
  */
 class SdkConfigApi extends BaseApi {
-  fetchSdkConfigList(params: SdkAppConfigListPageRequest) {
-    return requestClient.get<SdkAppConfigItem[]>(this.getServiceUrl("list"), {
-      params
-    });
-  }
-
-  fetchCreateSdkAppRequest(data: CreateSdkAppRequest) {
-    return requestClient.post(this.getServiceUrl("create"), data);
-  }
-
-  fetchUpdateSdkAppRequest(data: UpdateSdkAppRequest) {
-    return requestClient.post(this.getServiceUrl("update"), data);
+  fetchAvailableProjects() {
+    return requestClient.get<ProjectItem[]>(this.getServiceUrl("available_projects"));
   }
 
   fetchBatchOptions(data: BatchOptions) {
     return requestClient.post(this.getServiceUrl("batch_options"), data);
   }
 
-  fetchAvailableProjects() {
-    return requestClient.get<ProjectItem[]>(this.getServiceUrl("available_projects"));
+  fetchCreateSdkAppRequest(data: CreateSdkAppRequest) {
+    return requestClient.post(this.getServiceUrl("create"), data);
+  }
+
+  fetchSdkConfigList(params: SdkAppConfigListPageRequest) {
+    return requestClient.get<SdkAppConfigItem[]>(this.getServiceUrl("list"), {
+      params
+    });
+  }
+
+  fetchUpdateSdkAppRequest(data: UpdateSdkAppRequest) {
+    return requestClient.post(this.getServiceUrl("update"), data);
   }
 }
 

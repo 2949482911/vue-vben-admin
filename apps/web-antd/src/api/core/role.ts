@@ -1,12 +1,41 @@
-import {requestClient} from '#/api/request';
 import type {CreateRoleRequest, RoleItem, RoleSearchParams, UpdateRoleRequest,} from "#/api/models";
+
 import {BaseApi} from "#/api/core/baseapi";
+import {requestClient} from '#/api/request';
 
 
 /**
  *
  */
 class RoleApi extends BaseApi {
+
+
+  /**
+   * create role
+   * @param params
+   */
+  public fetchCreateRole(params: CreateRoleRequest) {
+    return requestClient.post(this.getServiceUrl("save"), params);
+  }
+
+  /**
+   * delete role
+   * @param id
+   */
+  public fetchDeleteRole(id: string) {
+    return requestClient.get(this.getServiceUrl("delete"), {params: {
+      id
+      },
+    })
+  }
+
+  fetchDisableRole(id: string) {
+    return requestClient.get(this.getServiceUrl("disable"), {params: {id}})
+  }
+
+  fetchEnableRole(id: string) {
+    return requestClient.get(this.getServiceUrl("enable"), {params: {id}})
+  }
 
 
   /**
@@ -18,39 +47,11 @@ class RoleApi extends BaseApi {
   }
 
   /**
-   * create role
-   * @param params
-   */
-  public fetchCreateRole(params: CreateRoleRequest) {
-    return requestClient.post(this.getServiceUrl("save"), params);
-  }
-
-  /**
    * update
    * @param params
    */
   public fetchUpdateRole(params: UpdateRoleRequest) {
     return requestClient.post(this.getServiceUrl("update"), params)
-  }
-
-  /**
-   * delete role
-   * @param id
-   */
-  public fetchDeleteRole(id: string) {
-    return requestClient.get(this.getServiceUrl("delete"), {params: {
-      id: id
-      },
-    })
-  }
-
-
-  fetchEnableRole(id: string) {
-    return requestClient.get(this.getServiceUrl("enable"), {params: {id: id}})
-  }
-
-  fetchDisableRole(id: string) {
-    return requestClient.get(this.getServiceUrl("disable"), {params: {id: id}})
   }
 
 }

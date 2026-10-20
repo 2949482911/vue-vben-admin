@@ -41,6 +41,12 @@ export const WORKSPACE_INTERNAL_MENU: Array<{
     labelKey: 'page.ai_asset.menu.assets',
   },
   {
+    activeIcon: 'lucide:book-open-text',
+    icon: 'lucide:book-open',
+    key: 'novel',
+    labelKey: 'page.ai_asset.menu.novel',
+  },
+  {
     activeIcon: 'lucide:settings-2',
     icon: 'lucide:settings',
     key: 'settings',

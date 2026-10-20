@@ -1,6 +1,3 @@
-import { BaseApi } from "#/api/core/baseapi";
-import { requestClient } from "#/api/request";
-
 import type {
   BytedanceAssetsRequest,
   BytedanceAwemeAuthListRequest,
@@ -16,19 +13,14 @@ import type {
   BytedanceToolsAwemeAuthListList
 } from "#/api/models/bytedance";
 
+import { BaseApi } from "#/api/core/baseapi";
+import { requestClient } from "#/api/request";
+
 
 /**
  * 巨量引擎广告API
  */
 class BytedanceAdvertisementApi extends BaseApi {
-
-
-  /**
-   * 获取账户可用的优化目标
-   */
-  fetchOptimizedGoalList(data: BytedanceOptimizedGoalRequest) {
-    return requestClient.post<Array<BytedanceEventManagerOptimizedGoalGetGoal>>(this.getServiceUrl("goal_list"), data);
-  }
 
 
   /**
@@ -41,17 +33,11 @@ class BytedanceAdvertisementApi extends BaseApi {
 
 
   /**
-   * 获取商品库列表
+   * 获取资产列表
+   * @param data
    */
-  fetchDpaProductAvailables(data: BytedanceDpaProductAvailablesRequest) {
-    return requestClient.post<Array<BytedanceDpaProductAvailablesItem>>(this.getServiceUrl("dpa_product_availables"), data);
-  }
-
-  /**
-   * 获取商品库中的商品列表
-   */
-  fetchDpaProductList(data: BytedanceDpaProductListRequest) {
-    return requestClient.post<Array<BytedanceDpaProductListItem>>(this.getServiceUrl("dpa_product_list"), data);
+  fetchBytedanceAssertsList(data: BytedanceAssetsRequest) {
+    return requestClient.post<Array<BytedanceEventAllAssetsList>>(this.getServiceUrl("assets_list"), data);
   }
 
 
@@ -63,13 +49,27 @@ class BytedanceAdvertisementApi extends BaseApi {
     return requestClient.post<Array<BytedanceDpaClueProduct>>(this.getServiceUrl("dpa_clue_product_list"), data);
   }
 
+  /**
+   * 获取商品库列表
+   */
+  fetchDpaProductAvailables(data: BytedanceDpaProductAvailablesRequest) {
+    return requestClient.post<Array<BytedanceDpaProductAvailablesItem>>(this.getServiceUrl("dpa_product_availables"), data);
+  }
+
 
   /**
-   * 获取资产列表
-   * @param data
+   * 获取商品库中的商品列表
    */
-  fetchBytedanceAssertsList(data: BytedanceAssetsRequest) {
-    return requestClient.post<Array<BytedanceEventAllAssetsList>>(this.getServiceUrl("assets_list"), data);
+  fetchDpaProductList(data: BytedanceDpaProductListRequest) {
+    return requestClient.post<Array<BytedanceDpaProductListItem>>(this.getServiceUrl("dpa_product_list"), data);
+  }
+
+
+  /**
+   * 获取账户可用的优化目标
+   */
+  fetchOptimizedGoalList(data: BytedanceOptimizedGoalRequest) {
+    return requestClient.post<Array<BytedanceEventManagerOptimizedGoalGetGoal>>(this.getServiceUrl("goal_list"), data);
   }
 }
 

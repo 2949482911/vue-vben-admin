@@ -1,7 +1,8 @@
-import axios from 'axios';
 import { useAppConfig } from '@vben/hooks';
-import { useAccessStore } from '@vben/stores';
 import { preferences } from '@vben/preferences';
+import { useAccessStore } from '@vben/stores';
+
+import axios from 'axios';
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 // 创建自定义 axios 实例
 export const customRequest = axios.create({

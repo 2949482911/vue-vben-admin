@@ -105,8 +105,34 @@ function openResult(task: ChatTaskItem, index = 0) {
   resultApi.open();
 }
 
+/**
+ * 从地址栏移除 materialId
+ *
+ * 用 history.replaceState 而不是 router.replace：后者会改 fullPath，
+ * vben 按 key 渲染路由视图会整页重挂载，把输入状态冲掉。
+ */
+function clearMaterialIdFromUrl() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  const url = new URL(window.location.href);
+  if (url.hash.includes('?')) {
+    // hash 路由：query 在 #/path?xxx 里
+    const [path, search] = url.hash.split('?');
+    const params = new URLSearchParams(search);
+    params.delete('materialId');
+    const rest = params.toString();
+    url.hash = rest ? `${path}?${rest}` : (path ?? '');
+  } else {
+    url.searchParams.delete('materialId');
+  }
+  window.history.replaceState(window.history.state, '', url.toString());
+}
+
+/** 取消迭代：清状态 + 清地址栏里的 materialId（否则刷新会重新进入迭代） */
 function cancelIteration() {
   iterationTarget.value = null;
+  clearMaterialIdFromUrl();
 }
 
 /** 用任务卡参数回填输入框（兜底） */
@@ -184,6 +210,23 @@ async function reeditByMaterialId(
 
   if (fallback) {
     applyTaskParams(fallback);
+  }
+
+  // 没有任务卡时（草稿区跳过来）用版本链取原图，回显「当前素材」
+  if (!iterationTarget.value.preview) {
+    try {
+      const versions = (await aiAssetApi.fetchVersions(materialId)) ?? [];
+      const base =
+        versions.find((item) => (item.versionNo ?? 1) === 1) ?? versions[0];
+      if (base?.storageUrl) {
+        iterationTarget.value = {
+          ...iterationTarget.value,
+          preview: base.storageUrl,
+        };
+      }
+    } catch {
+      // 取不到预览不影响迭代
+    }
   }
 
   try {
@@ -324,6 +367,7 @@ async function submit() {
     });
     message.success('已提交生成，产物落草稿区');
     iterationTarget.value = null;
+    clearMaterialIdFromUrl();
     startPolling();
   } finally {
     submitting.value = false;
@@ -341,13 +385,19 @@ async function poll() {
     (res?.items ?? []).map((item) => [String(item.id), item]),
   );
   let needOutputs = false;
+  /** 刚变 SUCCEEDED：异步视频/迭代 vN 的 materialIds 数量可能不变，必须强制回查刷新产物 */
+  let needForceRefresh = false;
   for (const item of tasks.value) {
     const remote = remoteMap.get(String(item.id));
     if (!remote) {
       continue;
     }
+    const previousStatus = item.status;
     item.status = remote.status ?? item.status;
     item.errorMsg = remote.errorMsg;
+    if (item.status === 4 && previousStatus !== 4) {
+      needForceRefresh = true;
+    }
     // 多图契约：优先用 materialIds（列表），兼容旧的单个 materialId
     const ids = remote.materialIds?.length
       ? remote.materialIds
@@ -359,7 +409,9 @@ async function poll() {
       needOutputs = true;
     }
   }
-  if (needOutputs) {
+  if (needForceRefresh) {
+    await attachOutputs(true);
+  } else if (needOutputs) {
     await attachOutputs();
   }
 }
@@ -464,6 +516,7 @@ onBeforeUnmount(stopPolling);
             v-model:audio="audio"
             v-model:skill="skill"
             v-model:refs="refs"
+            :iteration-target="iterationTarget"
             :loading="submitting"
             :models="models"
             :skills="CHAT_SKILL_OPTIONS"

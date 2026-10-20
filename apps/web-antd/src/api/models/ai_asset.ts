@@ -66,12 +66,37 @@ export interface MaterialItem {
   videoDurationSecond?: number;
   /** 可读时长，如 "00:15" */
   videoDuration?: string;
+
+  // ---- 草稿区 UI 所需聚合字段（后端 material/list 待补充）----
+  /** 生成提示词快照 */
+  prompt?: string;
+  /** 生成技能（text2img / img2video …） */
+  skill?: string;
+  /** 模型名 */
+  model?: string;
+  /** 模型库 ID */
+  modelId?: number | string;
+  /** 当前版本号（版本链 v1→v2→v3） */
+  versionNo?: number;
+  /** 生成态：由最近一次生成任务推导 */
+  generationStatus?: 'draft' | 'failed' | 'ready' | 'running';
+  /** 工作区（数据隔离域） */
+  workspaceId?: number | string;
+  workspaceName?: string;
+  /** 更新时间（列表按此倒序，迭代生成会推进） */
+  updateTime?: string;
 }
 
 /** 素材分页查询 */
 export interface MaterialQuery extends PageRequestParams {
   materialType?: MaterialType;
   status?: number;
+  /** 名称模糊搜索 */
+  name?: string;
+  /** 工作区筛选（不传 = 当前用户全部工作区） */
+  workspaceId?: number | string;
+  /** 生成态筛选（结果集与展示口径一致） */
+  generationStatus?: 'draft' | 'failed' | 'ready' | 'running';
 }
 
 /**
@@ -150,6 +175,10 @@ export interface GenerationTaskItem {
   model?: string;
   /** 1=submitted 2=queued 3=running 4=succeeded 5=failed 6=cancelled */
   status?: number;
+  /** 执行模式：同步（Java 内联）/ 异步（如视频，Airflow 轮询回调） */
+  execMode?: 'async' | 'sync';
+  /** 开始执行时间 */
+  startedAt?: string;
   paramsSnapshot?: null | Record<string, any>;
   cost?: number;
   errorMsg?: string;
@@ -193,9 +222,45 @@ export interface EpisodeItem {
   /** 集号 */
   seq?: number;
   title?: string;
+  /** 剧情摘要（LLM 生成） */
+  summary?: string;
   /** 剧本 / 分镜文本 */
   script?: string;
   createTime?: string;
+}
+
+// ==================== 小说 / 分集 LLM 生成 ====================
+
+/** 小说生成（同步 LLM，20~120s） */
+export interface NovelGenerateRequest {
+  modelId: number | string;
+  prompt?: string;
+  genre?: string;
+  style?: string;
+  episodeCount?: number;
+}
+
+/** 小说生成结果：novel（含正文）+ 章节分集 */
+export interface NovelGenerateResult {
+  novel: NovelDetailItem;
+  episodes: EpisodeItem[];
+}
+
+/** 分集（章节）批量生成 */
+export interface EpisodeGenerateRequest {
+  modelId: number | string;
+  novelId: number | string;
+  count?: number;
+  fromSeq?: number;
+  requirements?: string;
+}
+
+/** 单集剧本生成（回写 EpisodeItem.script） */
+export interface EpisodeScriptGenerateRequest {
+  modelId: number | string;
+  episodeId: number | string;
+  durationSeconds?: number;
+  requirements?: string;
 }
 
 /** 小说 / 原著（列表项，不含正文） */

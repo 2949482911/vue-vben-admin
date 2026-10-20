@@ -1,5 +1,3 @@
-import { requestClient } from "#/api/request";
-import { BaseApi } from "#/api/core/baseapi";
 import type {
   AccountTopItem,
   AlertListResponse,
@@ -15,23 +13,26 @@ import type {
   TrendDataPoint
 } from "#/api/models";
 
+import { BaseApi } from "#/api/core/baseapi";
+import { requestClient } from "#/api/request";
+
 // ==================== BPM 待办任务（原有，保持不变） ====================
 
 class TaskApi extends BaseApi {
-  fetchRepresentative(
-    params: RepresentativeSearchParams
-  ): Promise<RepresentativeItem[]> {
-    return requestClient.get<RepresentativeItem[]>(
-      this.getServiceUrl("representative"),
-      { params }
-    );
-  }
-
   fetchDoneRepresentative(
     params: RepresentativeSearchParams
   ): Promise<RepresentativeItem[]> {
     return requestClient.get<RepresentativeItem[]>(
       this.getServiceUrl("done_representative"),
+      { params }
+    );
+  }
+
+  fetchRepresentative(
+    params: RepresentativeSearchParams
+  ): Promise<RepresentativeItem[]> {
+    return requestClient.get<RepresentativeItem[]>(
+      this.getServiceUrl("representative"),
       { params }
     );
   }
@@ -54,42 +55,22 @@ export const taskApi: TaskApi = new TaskApi("/sys/task");
  * - GET  /platform/dashboard/alerts             告警列表
  */
 class DashboardDataApi extends BaseApi {
-  /** 核心指标概览 */
-  fetchOverview(
-    data: DashboardQueryParams
-  ): Promise<OverviewMetrics> {
-    return requestClient.post<OverviewMetrics>(
-      this.getServiceUrl("dashboard/overviewew"),
-      data
-    );
-  }
-
-  /** 消耗趋势（按天） */
-  fetchTrend(
-    data: DashboardQueryParams
-  ): Promise<TrendDataPoint[]> {
-    return requestClient.post<TrendDataPoint[]>(
-      this.getServiceUrl("dashboard/trend"),
-      data
-    );
-  }
-
-  /** 平台对比 */
-  fetchPlatformCompare(
-    data: DashboardQueryParams
-  ): Promise<PlatformCompareItem[]> {
-    return requestClient.post<PlatformCompareItem[]>(
-      this.getServiceUrl("dashboard/platform_compare"),
-      data
-    );
-  }
-
   /** 账户排行 Top N */
   fetchAccountTop(
     data: DashboardQueryParams & { topN?: number }
   ): Promise<AccountTopItem[]> {
     return requestClient.post<AccountTopItem[]>(
       this.getServiceUrl("dashboard/account_top"),
+      data
+    );
+  }
+
+  /** 告警列表 */
+  fetchAlerts(
+    data: AlertQueryParams
+  ): Promise<AlertListResponse> {
+    return requestClient.post<AlertListResponse>(
+      this.getServiceUrl("dashboard/alerts"),
       data
     );
   }
@@ -104,12 +85,12 @@ class DashboardDataApi extends BaseApi {
     );
   }
 
-  /** 告警列表 */
-  fetchAlerts(
-    data: AlertQueryParams
-  ): Promise<AlertListResponse> {
-    return requestClient.post<AlertListResponse>(
-      this.getServiceUrl("dashboard/alerts"),
+  /** 核心指标概览 */
+  fetchOverview(
+    data: DashboardQueryParams
+  ): Promise<OverviewMetrics> {
+    return requestClient.post<OverviewMetrics>(
+      this.getServiceUrl("dashboard/overviewew"),
       data
     );
   }
@@ -119,6 +100,26 @@ class DashboardDataApi extends BaseApi {
    */
   fetchPageIndexReport(data: PageIndexReportRequest) {
     return requestClient.post<PageIndexReportResponse>(this.getServiceUrl("page_index_report"), data);
+  }
+
+  /** 平台对比 */
+  fetchPlatformCompare(
+    data: DashboardQueryParams
+  ): Promise<PlatformCompareItem[]> {
+    return requestClient.post<PlatformCompareItem[]>(
+      this.getServiceUrl("dashboard/platform_compare"),
+      data
+    );
+  }
+
+  /** 消耗趋势（按天） */
+  fetchTrend(
+    data: DashboardQueryParams
+  ): Promise<TrendDataPoint[]> {
+    return requestClient.post<TrendDataPoint[]>(
+      this.getServiceUrl("dashboard/trend"),
+      data
+    );
   }
 }
 

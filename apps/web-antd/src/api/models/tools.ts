@@ -1,5 +1,5 @@
 import type { BaseItem } from '#/api/models/core';
-/**穿山甲商品查询 */
+/** 穿山甲商品查询 */
 export interface CreateSystemMetric {
   page: number;
   pageSize: number;
@@ -19,7 +19,7 @@ export interface CreateSystemMetric {
   activityId: number;
 }
 
-/**穿山甲商品列表 */
+/** 穿山甲商品列表 */
 export interface ProductPangolinItem {
   activity_id: number;
   cos_fee: number;
@@ -43,14 +43,14 @@ export interface ProductPangolinItem {
   title: string;
 }
 
-/**工具-下载中心列表 */
+/** 工具-下载中心列表 */
 export interface DownloadCenterItem extends BaseItem {
   name: string;
   type: string;
   taskState: number;
   downloadUrl: string;
 }
-/**工具-下载中心列表-查询参数 */
+/** 工具-下载中心列表-查询参数 */
 export interface GetDownloadCenterItem extends BaseItem {
   name: string;
   type: string;

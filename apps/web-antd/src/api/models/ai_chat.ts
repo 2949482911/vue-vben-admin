@@ -5,7 +5,7 @@ import type { BaseItem } from '#/api/models/core';
 /**
  * 消息角色
  */
-export type ChatRole = 'user' | 'assistant' | 'system';
+export type ChatRole = 'assistant' | 'system' | 'user';
 
 /**
  * 工具执行记录
@@ -16,7 +16,7 @@ export interface ToolRecord {
   /** 步骤名称 */
   stepName: string;
   /** 状态: success / failed */
-  status: 'success' | 'failed';
+  status: 'failed' | 'success';
   /** 入参 */
   params: Record<string, any>;
   /** 返回结果摘要 */
@@ -68,11 +68,11 @@ export interface ChatSuggestion {
   /** 操作参数 */
   params: Record<string, any>;
   /** 风险等级 */
-  riskLevel: 'low' | 'medium' | 'high';
+  riskLevel: 'high' | 'low' | 'medium';
   /** 是否已执行 */
   executed: boolean;
   /** 执行状态: pending / executed / cancelled / failed */
-  status?: 'pending' | 'executed' | 'cancelled' | 'failed';
+  status?: 'cancelled' | 'executed' | 'failed' | 'pending';
   /** 执行结果 */
   execResult?: string;
 }
@@ -123,11 +123,11 @@ export interface SendMessageRequest {
  */
 export interface SuggestionExecuteRequest {
   /** 消息ID */
-  messageId: string | number;
+  messageId: number | string;
   /** 建议ID */
   suggestionId: string;
   /** 审批动作: confirm / cancel */
-  action: 'confirm' | 'cancel';
+  action: 'cancel' | 'confirm';
 }
 
 /**
@@ -139,7 +139,7 @@ export interface SuggestionExecuteResponse {
   /** 审批动作 */
   action: string;
   /** 执行状态: success / cancelled / failed */
-  status: 'success' | 'cancelled' | 'failed';
+  status: 'cancelled' | 'failed' | 'success';
   /** 执行消息 */
   message: string;
 }

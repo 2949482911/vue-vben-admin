@@ -1,7 +1,9 @@
-import { baseRequestClient, requestClient } from '#/api/request';
-import {BaseApi} from "#/api/core/baseapi";
 import type {UserInfo} from "@vben/types";
+
 import type {RegisterUser} from "#/api/models/users";
+
+import {BaseApi} from "#/api/core/baseapi";
+import { baseRequestClient, requestClient } from '#/api/request';
 
 export namespace AuthApi {
   /** 登录接口参数 */
@@ -34,8 +36,18 @@ export namespace AuthApi {
 class AuthApi extends BaseApi {
 
 
+  getUserInfoApi() {
+    return requestClient.get<UserInfo>(this.getServiceUrl("user/info"));
+  }
+
   loginApi(data: AuthApi.LoginParams) {
     return requestClient.post<AuthApi.LoginResult>(this.getServiceUrl("login"), data);
+  }
+
+  logoutApi() {
+    return baseRequestClient.get(this.getServiceUrl("loginOut"), {
+      withCredentials: true,
+    });
   }
 
   refreshTokenApi() {
@@ -45,16 +57,6 @@ class AuthApi extends BaseApi {
         withCredentials: true,
       },
     );
-  }
-
-  logoutApi() {
-    return baseRequestClient.get(this.getServiceUrl("loginOut"), {
-      withCredentials: true,
-    });
-  }
-
-  getUserInfoApi() {
-    return requestClient.get<UserInfo>(this.getServiceUrl("user/info"));
   }
 
   register(params: RegisterUser) {

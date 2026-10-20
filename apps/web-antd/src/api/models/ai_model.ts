@@ -5,7 +5,7 @@ import type { PageRequestParams } from '#/api/models/core';
 /**
  * 模型能力
  */
-export type ModelCapability = 'edit' | 'image' | 'tag' | 'video';
+export type ModelCapability = 'edit' | 'image' | 'tag' | 'text' | 'video';
 
 /**
  * 模型来源：平台托管 / 用户自持 Key / 自建网关(newapi)

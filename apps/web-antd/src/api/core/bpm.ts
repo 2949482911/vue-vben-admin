@@ -1,5 +1,3 @@
-import {requestClient} from '#/api/request';
-import {BaseApi} from "#/api/core/baseapi";
 import type {
   CreateUpdateForm,
   CreateUpdateProcess,
@@ -9,31 +7,34 @@ import type {
 } from "#/api/models";
 import type {BatchOptions} from "#/api/models/core";
 
+import {BaseApi} from "#/api/core/baseapi";
+import {requestClient} from '#/api/request';
+
 
 class FlowableProcessApi extends BaseApi {
-
-  fetchProcessList(params: ProcessSearchRequest): Promise<FlowableFormItem[]> {
-    return requestClient.get<FlowableFormItem[]>(this.getServiceUrl("list"), {params});
-  }
 
   fetchCreateProcess(params: CreateUpdateProcess) {
     return requestClient.post(this.getServiceUrl("create"), params);
   }
 
-  fetchUpdateProcess(params: CreateUpdateProcess) {
-    return requestClient.post(this.getServiceUrl("update"), params);
+  fetchLoadFlowableProcess(id: string) {
+    return requestClient.get(this.getServiceUrl("load"), {params: {id}});
   }
 
   fetchOptionsFlowableProcess(batchOptions: BatchOptions) {
     return requestClient.post(this.getServiceUrl("batch_options"), batchOptions)
   }
 
-  fetchLoadFlowableProcess(id: string) {
-    return requestClient.get(this.getServiceUrl("load"), {params: {id: id}});
+  fetchProcessList(params: ProcessSearchRequest): Promise<FlowableFormItem[]> {
+    return requestClient.get<FlowableFormItem[]>(this.getServiceUrl("list"), {params});
   }
 
   fetchUnLoadFlowableProcess(id: string) {
-    return requestClient.get(this.getServiceUrl("unload"), {params: {id: id}});
+    return requestClient.get(this.getServiceUrl("unload"), {params: {id}});
+  }
+
+  fetchUpdateProcess(params: CreateUpdateProcess) {
+    return requestClient.post(this.getServiceUrl("update"), params);
   }
 }
 
@@ -46,16 +47,16 @@ class FlowableFormApi extends BaseApi {
     return requestClient.get<FlowableFormItem[]>(this.getServiceUrl("list"), {params})
   }
 
+  fetchFormBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
+  }
+
   fetchFormCreateForm(params: CreateUpdateForm) {
     return requestClient.post(this.getServiceUrl("create"), params);
   }
 
   fetchFormUpdateForm(params: CreateUpdateForm) {
     return requestClient.post(this.getServiceUrl("update"), params);
-  }
-
-  fetchFormBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl("batch_options"), params);
   }
 }
 

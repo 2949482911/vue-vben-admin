@@ -13,7 +13,7 @@ export interface MaterialAnalysisQuery extends PageRequestParams {
   /** 日期范围 */
   dateRange?: [string, string];
   /** 排序字段 */
-  sortBy?: 'spend' | 'ctr' | 'cvr' | 'roi';
+  sortBy?: 'ctr' | 'cvr' | 'roi' | 'spend';
   /** 排序方向 */
   sortOrder?: 'asc' | 'desc';
 }
@@ -53,7 +53,7 @@ export interface MaterialAnalysisItem extends BaseItem {
   /** 投放状态 */
   deliveryStatus: string;
   /** 生命周期阶段 */
-  lifecycle: 'new' | 'growing' | 'peak' | 'declining' | 'dead';
+  lifecycle: 'dead' | 'declining' | 'growing' | 'new' | 'peak';
   /** 标签列表 */
   tags: MaterialTag[];
   /** 首次投放时间 */

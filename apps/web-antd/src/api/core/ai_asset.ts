@@ -4,9 +4,11 @@ import type {
   CharacterItem,
   CharacterSaveRequest,
   EdgeItem,
+  EpisodeGenerateRequest,
   EpisodeItem,
   EpisodeQuery,
   EpisodeSaveRequest,
+  EpisodeScriptGenerateRequest,
   GenerateRequest,
   GenerationTaskItem,
   MaterialItem,
@@ -16,6 +18,8 @@ import type {
   MaterialUploadRequest,
   NodeItem,
   NovelDetailItem,
+  NovelGenerateRequest,
+  NovelGenerateResult,
   NovelItem,
   NovelSaveRequest,
   RunItem,
@@ -241,11 +245,42 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 分集（章节）批量 LLM 生成 */
+  generateEpisodes(data: EpisodeGenerateRequest): Promise<EpisodeItem[]> {
+    return requestClient.post<EpisodeItem[]>(
+      this.getServiceUrl('novel/episodes/generate'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
+  /** 单集剧本 LLM 生成（回写 script） */
+  generateEpisodeScript(
+    data: EpisodeScriptGenerateRequest,
+  ): Promise<EpisodeItem> {
+    return requestClient.post<EpisodeItem>(
+      this.getServiceUrl('episode/script/generate'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
+  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
+
   /** 提交生成（首轮生成 / 多轮调整；返回 TaskItem） */
   generateMaterial(data: GenerateRequest): Promise<GenerationTaskItem> {
     return requestClient.post<GenerationTaskItem>(
       this.getServiceUrl('material/generate'),
       data,
+    );
+  }
+
+  /** 小说 LLM 生成（同步，20~120s，前端超时 ≥300s） */
+  generateNovel(data: NovelGenerateRequest): Promise<NovelGenerateResult> {
+    return requestClient.post<NovelGenerateResult>(
+      this.getServiceUrl('novel/generate'),
+      data,
+      { timeout: 300_000 },
     );
   }
 
@@ -258,8 +293,6 @@ class AiAssetApi extends BaseApi {
       data,
     );
   }
-
-  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
 
   /** 运行工作流（返回 runId） */
   runWorkflow(workflowId: number | string): Promise<number | string> {

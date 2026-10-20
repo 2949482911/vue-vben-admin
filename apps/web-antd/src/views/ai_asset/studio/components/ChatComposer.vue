@@ -41,9 +41,11 @@ const props = withDefaults(
       label: string;
       value: number | string;
     }>;
+    /** 迭代目标：仅展示「当前素材」，不参与 refImages */
+    iterationTarget?: null | { id: number | string; preview: string };
     skills: Array<{ label: string; value: string }>;
   }>(),
-  { loading: false },
+  { iterationTarget: null, loading: false },
 );
 
 const emit = defineEmits<{ pick: []; submit: [] }>();
@@ -102,6 +104,20 @@ function removeRef(id: number | string) {
     <div class="composer__box">
       <!-- 参考素材：入口 + 已选缩略图（取代即梦的上传位） -->
       <div class="composer__refs">
+        <!-- 迭代目标：当前正在编辑的素材（只展示，不当作参考图提交） -->
+        <span
+          v-if="props.iterationTarget"
+          class="ref-chip ref-chip--target"
+          :title="`当前素材 #${props.iterationTarget.id}`"
+        >
+          <img
+            v-if="props.iterationTarget.preview"
+            alt="当前素材"
+            :src="props.iterationTarget.preview"
+          />
+          <i class="ref-chip__tag">当前</i>
+        </span>
+
         <button
           v-if="refEnabled && refs.length < maxRefs"
           class="ref-add"
@@ -323,6 +339,27 @@ function removeRef(id: number | string) {
   padding: 0 6px;
   font-size: 12px;
   color: hsl(var(--muted-foreground));
+}
+
+.ref-chip--target {
+  outline: 2px solid color-mix(in srgb, hsl(var(--primary)) 55%, transparent);
+  outline-offset: 1px;
+  border-radius: 8px;
+}
+
+.ref-chip__tag {
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  padding: 0 6px;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 14px;
+  color: #fff;
+  white-space: nowrap;
+  background: hsl(var(--primary));
+  border-radius: 999px;
+  transform: translateX(-50%);
 }
 
 .ref-count {

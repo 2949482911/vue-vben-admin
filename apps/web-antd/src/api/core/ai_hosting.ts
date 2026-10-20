@@ -1,17 +1,18 @@
-import { requestClient } from '#/api/request';
-import { BaseApi } from '#/api/core/baseapi';
 import type {
-  HostingTask,
-  HostingTaskQueryParams,
   HostingAudit,
   HostingDecision,
   HostingDecisionQueryParams,
+  HostingInsight,
   HostingReviewRequest,
   HostingStats,
-  HostingInsight,
+  HostingTask,
+  HostingTaskQueryParams,
 } from '#/api/models/ai_hosting';
 import type { BatchOptions } from '#/api/models/core';
 import type { PageResponse } from '#/api/models/marketing';
+
+import { BaseApi } from '#/api/core/baseapi';
+import { requestClient } from '#/api/request';
 
 /**
  * AI 智能托管 API
@@ -31,14 +32,9 @@ import type { PageResponse } from '#/api/models/marketing';
  *       「触发留痕」并入审核台，统一读 `decision/list`。
  */
 class AiHostingApi extends BaseApi {
-  /** 托管任务列表 */
-  fetchTaskList(
-    params: HostingTaskQueryParams,
-  ): Promise<PageResponse<HostingTask>> {
-    return requestClient.get<PageResponse<HostingTask>>(
-      this.getServiceUrl('list'),
-      { params },
-    );
+  /** 批量操作（暂停/恢复/删除） */
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl('batch_options'), params);
   }
 
   /** 创建托管任务 */
@@ -46,21 +42,12 @@ class AiHostingApi extends BaseApi {
     return requestClient.post(this.getServiceUrl('create'), data);
   }
 
-  /** 更新托管任务 */
-  fetchUpdateTask(data: Partial<HostingTask>) {
-    return requestClient.post(this.getServiceUrl('update'), data);
-  }
-
-  /** 批量操作（暂停/恢复/删除） */
-  fetchBatchOptions(params: BatchOptions) {
-    return requestClient.post(this.getServiceUrl('batch_options'), params);
-  }
-
-  /** 托管统计概览 */
-  fetchStats(params: { taskId?: string }) {
-    return requestClient.get<HostingStats>(this.getServiceUrl('stats'), {
-      params,
-    });
+  /** 审核与执行留痕（按时间升序） */
+  fetchDecisionAudits(decisionId: number | string) {
+    return requestClient.get<HostingAudit[]>(
+      this.getServiceUrl('decision/audits'),
+      { params: { decisionId } },
+    );
   }
 
   /** 决策单列表（分页对象，与 list 一致） */
@@ -70,6 +57,13 @@ class AiHostingApi extends BaseApi {
     return requestClient.get<PageResponse<HostingDecision>>(
       this.getServiceUrl('decision/list'),
       { params },
+    );
+  }
+
+  /** 决策洞察（命中率 / 平均 ROI 变化） */
+  fetchInsight() {
+    return requestClient.get<HostingInsight>(
+      this.getServiceUrl('decision/insight'),
     );
   }
 
@@ -88,19 +82,26 @@ class AiHostingApi extends BaseApi {
     });
   }
 
-  /** 决策洞察（命中率 / 平均 ROI 变化） */
-  fetchInsight() {
-    return requestClient.get<HostingInsight>(
-      this.getServiceUrl('decision/insight'),
+  /** 托管统计概览 */
+  fetchStats(params: { taskId?: string }) {
+    return requestClient.get<HostingStats>(this.getServiceUrl('stats'), {
+      params,
+    });
+  }
+
+  /** 托管任务列表 */
+  fetchTaskList(
+    params: HostingTaskQueryParams,
+  ): Promise<PageResponse<HostingTask>> {
+    return requestClient.get<PageResponse<HostingTask>>(
+      this.getServiceUrl('list'),
+      { params },
     );
   }
 
-  /** 审核与执行留痕（按时间升序） */
-  fetchDecisionAudits(decisionId: number | string) {
-    return requestClient.get<HostingAudit[]>(
-      this.getServiceUrl('decision/audits'),
-      { params: { decisionId } },
-    );
+  /** 更新托管任务 */
+  fetchUpdateTask(data: Partial<HostingTask>) {
+    return requestClient.post(this.getServiceUrl('update'), data);
   }
 }
 

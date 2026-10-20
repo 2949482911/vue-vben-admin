@@ -26,7 +26,8 @@
     "profile": "个人中心",
     "main_body_combo": "套餐",
     "models": "AI模型",
-    "skill": "AI技能"
+    "skill": "AI技能",
+    "dict": "字典"
   },
   "profile": {
     "currentCombo": "当前套餐",
@@ -192,7 +193,8 @@
       "draft": "草稿区",
       "queue": "任务队列",
       "assets": "资产",
-      "settings": "工作区设置"
+      "settings": "工作区设置",
+      "novel": "小说创作"
     }
   }
 }

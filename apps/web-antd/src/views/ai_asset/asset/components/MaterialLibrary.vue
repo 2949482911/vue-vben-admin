@@ -58,6 +58,8 @@ const pageSize = ref(12);
 const activeType = ref<string>('all');
 const statusFilter = ref<number | undefined>();
 const keyword = ref('');
+/** 已提交给接口的搜索词（回车/清空时生效） */
+const searchName = ref('');
 const selected = ref<Set<number | string>>(new Set());
 const typeCounts = ref<Record<string, number>>({ all: 0 });
 
@@ -72,7 +74,7 @@ function labelOf(value: any): string {
   return tabOptions.value.find((option) => option.value === value)?.label ?? '';
 }
 
-/** 后端不支持名称检索，这里只过滤当前页已加载的素材 */
+/** 接口已按 name 检索；这里再兜一层，防止后端忽略该参数时展示不匹配结果 */
 const visibleRows = computed(() => {
   const q = keyword.value.trim().toLowerCase();
   if (!q) {
@@ -116,6 +118,7 @@ async function load() {
         activeType.value === 'all'
           ? undefined
           : (activeType.value as MaterialType),
+      name: searchName.value || undefined,
       page: page.value,
       pageSize: pageSize.value,
       status: statusFilter.value,
@@ -131,6 +134,18 @@ async function load() {
 function reload() {
   page.value = 1;
   void Promise.all([load(), loadCounts()]);
+}
+
+/** 名称搜索：回车提交；清空立即恢复 */
+function handleSearch() {
+  searchName.value = keyword.value.trim();
+  reload();
+}
+
+function handleKeywordChange() {
+  if (!keyword.value) {
+    handleSearch();
+  }
 }
 
 function handlePageChange(current: number, size: number) {
@@ -245,6 +260,8 @@ onMounted(reload);
           allow-clear
           class="media-search"
           placeholder="搜索素材名称"
+          @change="handleKeywordChange"
+          @press-enter="handleSearch"
         >
           <template #prefix><SearchOutlined /></template>
         </Input>

@@ -138,21 +138,22 @@ export interface MaterialRankItem {
  * 告警类型
  */
 export type AlertType =
-  | "over_cost"        // 超成本
-  | "empty_spend"      // 空耗
+  | "account_anomaly" // 账户异常
   | "budget_limit"     // 预算撞线
+  | "empty_spend"      // 空耗
   | "material_decline" // 素材衰退
-  | "account_anomaly"; // 账户异常
+  | "over_cost"        // 超成本
+;
 
 /**
  * 告警级别
  */
-export type AlertLevel = "info" | "warning" | "error";
+export type AlertLevel = "error" | "info" | "warning";
 
 /**
  * 告警状态
  */
-export type AlertStatus = "unread" | "read" | "resolved";
+export type AlertStatus = "read" | "resolved" | "unread";
 
 /**
  * 告警数据项

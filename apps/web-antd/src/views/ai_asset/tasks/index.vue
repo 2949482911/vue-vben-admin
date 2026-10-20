@@ -52,6 +52,9 @@ const gridOptions: VxeGridProps<GenerationTaskItem> = {
   columns: [
     { field: 'skill', slots: { default: 'skill' }, title: 'Skill', width: 110 },
     { field: 'model', title: '模型', minWidth: 160 },
+    { field: 'execMode', slots: { default: 'execMode' }, title: '执行模式', width: 110 },
+    { field: 'startedAt', formatter: 'formatDateTime', title: '开始时间', minWidth: 170 },
+    { field: 'elapsed', slots: { default: 'elapsed' }, title: '耗时', minWidth: 120 },
     { field: 'cost', title: '成本', width: 100 },
     { field: 'prompt', title: '提示词', width: 100 },
     { field: 'quantity', title: '数量', width: 100 },
@@ -60,7 +63,7 @@ const gridOptions: VxeGridProps<GenerationTaskItem> = {
     { field: 'modelId', title: '模型ID', width: 100 },
 
     { field: 'errorMsg', title: '错误信息', minWidth: 180, showOverflow: true },
-    { field: 'finishedAt', formatter: 'formatDateTime', title: '完成时间', minWidth: 170 },
+    { field: 'finishedAt', formatter: 'formatDateTime', title: '结束时间', minWidth: 170 },
     ...(TABLE_COMMON_COLUMNS as any)
   ],
   height: 'auto',
@@ -90,6 +93,25 @@ function canCancel(status?: number) {
   return CANCELABLE_TASK_STATUS.includes(status ?? 0);
 }
 
+/**
+ * 耗时：finishedAt - startedAt；异步任务回调前只有 startedAt → 显示「等待结果」
+ */
+function elapsedText(row: GenerationTaskItem): string {
+  const start = row.startedAt ? new Date(row.startedAt).getTime() : Number.NaN;
+  const end = row.finishedAt ? new Date(row.finishedAt).getTime() : Number.NaN;
+  if (!Number.isFinite(start)) {
+    return '-';
+  }
+  if (!Number.isFinite(end)) {
+    return row.execMode === 'async' ? '等待结果' : '运行中';
+  }
+  const seconds = Math.max(0, Math.round((end - start) / 1000));
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
+  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+}
+
 function handleCancel(row: GenerationTaskItem) {
   Modal.confirm({
     title: '取消任务',
@@ -109,6 +131,21 @@ function handleCancel(row: GenerationTaskItem) {
     <Grid>
       <template #skill="{ row }">
         {{ ASSET_SKILL_MAP[row.skill || ''] || row.skill || '-' }}
+      </template>
+
+      <template #execMode="{ row }">
+        <Tag
+          v-if="row.execMode"
+          :bordered="false"
+          :color="row.execMode === 'async' ? 'purple' : 'default'"
+        >
+          {{ row.execMode === 'async' ? '异步' : '同步' }}
+        </Tag>
+        <span v-else>-</span>
+      </template>
+
+      <template #elapsed="{ row }">
+        {{ elapsedText(row) }}
       </template>
 
       <template #status="{ row }">

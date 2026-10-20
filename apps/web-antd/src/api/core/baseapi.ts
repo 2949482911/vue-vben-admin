@@ -1,21 +1,21 @@
 export class BaseApi {
 
   /**
-   * 基础服务url
-   * @private
-   */
-  public serviceUrl: string;
-
-  /**
    * 开启微服务
    * @protected
    */
   public openService: boolean;
 
-  private serviceUrlList: string[];
+  /**
+   * 基础服务url
+   * @private
+   */
+  public serviceUrl: string;
+
   // @ts-ignore
   private baseUrl: string;
   private requestUrl: string = "";
+  private serviceUrlList: string[];
 
   /**
    * 构造器

@@ -51,6 +51,9 @@ const typeLabel = computed(
 
 const displayName = computed(() => materialDisplayName(props.item));
 
+/** 视频素材：缩略图直接用 <video>，自带播放控件 */
+const isVideo = computed(() => props.item.materialType === 'video');
+
 /** 图片类素材展示缩略图，其余类型展示类型图标 */
 const thumbUrl = computed(() =>
   props.item.materialType === 'image'
@@ -101,8 +104,18 @@ const specs = computed(() => {
         {{ typeLabel }}
       </span>
 
+      <video
+        v-if="isVideo && props.item.storageUrl"
+        class="thumb-img"
+        controls
+        muted
+        playsinline
+        preload="metadata"
+        :src="props.item.storageUrl"
+        @click.stop
+      ></video>
       <img
-        v-if="thumbUrl"
+        v-else-if="thumbUrl"
         :alt="displayName"
         class="thumb-img"
         :src="thumbUrl"
@@ -144,6 +157,10 @@ const specs = computed(() => {
         <span class="media-tag" :class="`media-tag--${props.item.status ?? 1}`">
           {{ statusLabel }}
         </span>
+        <span
+          v-if="(props.item.versionNo ?? 1) > 1"
+          class="media-tag"
+        >v{{ props.item.versionNo }}</span>
         <template v-for="(spec, index) in specs" :key="spec">
           <span v-if="index > 0" class="dot">·</span>
           <span>{{ spec }}</span>
@@ -154,7 +171,7 @@ const specs = computed(() => {
           {{ props.item.remark }}
         </span>
         <span v-if="props.item.remark" class="dot">·</span>
-        <span>{{ props.item.createTime || '-' }}</span>
+        <span>{{ props.item.updateTime || props.item.createTime || '-' }}</span>
       </div>
     </div>
   </article>
@@ -328,6 +345,10 @@ const specs = computed(() => {
   padding: 1px 6px;
   font-size: 12px;
   border-radius: 5px;
+}
+
+.media-tag {
+  flex: none;
 }
 
 .media-tag--1 {

@@ -1,6 +1,7 @@
+import type {CreateSystemMetric, ExportRTADataItem, GetDownloadCenterItem} from "#/api/models/tools";
+
 import {BaseApi} from "#/api/core/baseapi";
 import {requestClient} from "#/api/request";
-import type {CreateSystemMetric, GetDownloadCenterItem, ExportRTADataItem} from "#/api/models/tools";
 
 /**
  * 穿山甲商品
@@ -16,11 +17,11 @@ export const pangolinApi = new PangolinApi("/csjp");
  * 工具-下载中心获取列表数据
  */
 class DownloadCenterApi extends BaseApi {
-  fetchDownloadList(params: GetDownloadCenterItem) {
-    return requestClient.get(this.getServiceUrl("list"), {params})
-  }
   exportRtaData(params: ExportRTADataItem) {
     return requestClient.post(this.getServiceUrl("create_export_task"), params)
+  }
+  fetchDownloadList(params: GetDownloadCenterItem) {
+    return requestClient.get(this.getServiceUrl("list"), {params})
   }
 }
 
