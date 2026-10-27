@@ -16,6 +16,7 @@ import {
   LIBRARY_PAGE_TABS,
   useLibraryPage,
 } from '../asset/components/useLibraryPage';
+import ElementsLibrary from '../elements/components/ElementsLibrary.vue';
 
 const { topTab } = useLibraryPage('media');
 </script>
@@ -32,7 +33,8 @@ const { topTab } = useLibraryPage('media');
       </Card>
 
       <MaterialLibrary v-if="topTab === 'media'" />
-      <AssetLibrary v-else />
+      <AssetLibrary v-else-if="topTab === 'catalog'" />
+      <ElementsLibrary v-else />
     </div>
   </Page>
 </template>

@@ -25,6 +25,8 @@ const PAGE_COMPONENTS: Record<string, RouteRecordRaw['component']> = {
   queue: () => import('#/views/ai_asset/tasks/index.vue'),
   assets: () => import('#/views/ai_asset/workspace/assets.vue'),
   novel: () => import('#/views/ai_asset/novel/index.vue'),
+  tools: () => import('#/views/ai_asset/tools/index.vue'),
+  persona: () => import('#/views/ai_asset/persona/index.vue'),
   settings: () => import('#/views/ai_asset/workspace/settings.vue'),
 };
 

@@ -1,14 +1,29 @@
 import type {
+  AssetImageGenerateRequest,
+  AssetImageGenerateResult,
   AssetType,
   CatalogNameQuery,
   CharacterItem,
   CharacterSaveRequest,
   EdgeItem,
+  ElementItem,
+  ElementQuery,
+  ElementSaveRequest,
+  EntityExtractRequest,
+  EntityExtractResult,
+  EpisodeAiActionRequest,
+  EpisodeAiActionResponse,
+  EpisodeContentGenerateRequest,
   EpisodeGenerateRequest,
   EpisodeItem,
+  EpisodeMemoryGenerateRequest,
+  EpisodePlanRequest,
+  EpisodePlanResponse,
   EpisodeQuery,
   EpisodeSaveRequest,
+  EpisodeSceneBindRequest,
   EpisodeScriptGenerateRequest,
+  EpisodeVersionItem,
   GenerateRequest,
   GenerationTaskItem,
   MaterialItem,
@@ -17,11 +32,17 @@ import type {
   MaterialQuery,
   MaterialUploadRequest,
   NodeItem,
+  NovelAssetExtractRequest,
+  NovelAssetGraph,
   NovelDetailItem,
   NovelGenerateRequest,
   NovelGenerateResult,
   NovelItem,
   NovelSaveRequest,
+  PersonaCopyRequest,
+  PersonaItem,
+  PersonaQuery,
+  PersonaSaveRequest,
   RunItem,
   RunNodeItem,
   RunQuery,
@@ -29,6 +50,14 @@ import type {
   ScenarioQuery,
   SceneItem,
   SceneSaveRequest,
+  SettingItem,
+  SettingQuery,
+  ShotImageGenerateRequest,
+  ShotItem,
+  ShotVideoGenerateRequest,
+  StoryboardGenerateRequest,
+  StoryboardGenerateResult,
+  StoryboardValidateResult,
   TaskQuery,
   VersionItem,
   WorkflowItem,
@@ -37,6 +66,12 @@ import type {
   WorkspaceCreateRequest,
   WorkspaceItem,
   WorkspaceQuery,
+  WritingToolItem,
+  WritingToolQuery,
+  WritingToolRunItem,
+  WritingToolRunQuery,
+  WritingToolRunRequest,
+  WritingToolRunResult,
 } from '#/api/models/ai_asset';
 import type { BatchOptions } from '#/api/models/core';
 import type { PageResponse } from '#/api/models/marketing';
@@ -58,6 +93,60 @@ import { requestClient } from '#/api/request';
  *          workflow/node、workflow/edge、workflow/run/node、material/version 为结构性列表，不分页。
  */
 class AiAssetApi extends BaseApi {
+  /** 创作素材：批量操作（删除等） */
+  batchElementOptions(params: BatchOptions) {
+    return requestClient.post(
+      this.getServiceUrl('element/batch_options'),
+      params,
+    );
+  }
+
+  /** 人设批量操作（删除等） */
+  batchPersonaOptions(params: BatchOptions) {
+    return requestClient.post(
+      this.getServiceUrl('persona/batch_options'),
+      params,
+    );
+  }
+
+  /** 角色绑定生成素材 */
+  bindCharacterMaterial(data: { id: number | string; materialId?: null | number | string }) {
+    return requestClient.post(
+      this.getServiceUrl('character/bind_material'),
+      data,
+    );
+  }
+
+  /** 创作素材：绑定生成素材 */
+  bindElementMaterial(data: { id: number | string; materialId?: null | number | string }) {
+    return requestClient.post(
+      this.getServiceUrl('element/bind_material'),
+      data,
+    );
+  }
+
+  /** 分集场景与场景资产绑定 */
+  bindEpisodeScenes(data: EpisodeSceneBindRequest) {
+    return requestClient.post(this.getServiceUrl('episode/scenes/bind'), data);
+  }
+
+  /** 场景绑定生成素材 */
+  bindSceneMaterial(data: { id: number | string; materialId?: null | number | string }) {
+    return requestClient.post(
+      this.getServiceUrl('scene/bind_material'),
+      data,
+    );
+  }
+
+  /** P3：分镜绑定图片/视频素材（null 解绑） */
+  bindShotMaterial(data: {
+    id: number | string;
+    imageMaterialId?: null | number | string;
+    videoMaterialId?: null | number | string;
+  }) {
+    return requestClient.post(this.getServiceUrl('shot/bind_material'), data);
+  }
+
   /** 取消生成任务 */
   cancelTask(taskId: number | string) {
     return requestClient.post(this.getServiceUrl('task/cancel'), null, {
@@ -74,9 +163,43 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 复制人设 */
+  copyPersona(data: PersonaCopyRequest) {
+    return requestClient.post(this.getServiceUrl('persona/copy'), data);
+  }
+
   /** 创建工作区 */
   createWorkspace(data: WorkspaceCreateRequest) {
     return requestClient.post(this.getServiceUrl('workspace/create'), data);
+  }
+
+  /** 编辑器 AI 动作（续写/润色/校对/审校/检测/想法/标题） */
+  episodeAiAction(
+    data: EpisodeAiActionRequest,
+  ): Promise<EpisodeAiActionResponse> {
+    return requestClient.post<EpisodeAiActionResponse>(
+      this.getServiceUrl('episode/ai/action'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
+  /** 剧本实体抽取（角色/场景/道具 upsert） */
+  extractEpisodeEntities(
+    data: EntityExtractRequest,
+  ): Promise<EntityExtractResult> {
+    return requestClient.post<EntityExtractResult>(
+      this.getServiceUrl('episode/entity/extract'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
+  /** 从小说/分集/剧本提炼角色、场景、道具 */
+  extractNovelAssets(data: NovelAssetExtractRequest) {
+    return requestClient.post(this.getServiceUrl('novel/assets/extract'), data, {
+      timeout: 300_000,
+    });
   }
 
   /** 资产（角色/场景/分集/小说）批量操作（删除/启停） */
@@ -95,11 +218,45 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 创作素材分页列表（element 类型） */
+  fetchElements(params: ElementQuery): Promise<PageResponse<ElementItem>> {
+    return requestClient.get<PageResponse<ElementItem>>(
+      this.getServiceUrl('novel/element/list'),
+      { params },
+    );
+  }
+
+  /** 分集详情（含 content/beats/scenes 全量） */
+  fetchEpisodeDetail(id: number | string): Promise<EpisodeItem> {
+    return requestClient.get<EpisodeItem>(
+      this.getServiceUrl('episode/detail'),
+      { params: { id } },
+    );
+  }
+
   /** 分集列表（分页；可按小说 / 标题过滤） */
   fetchEpisodes(params: EpisodeQuery): Promise<PageResponse<EpisodeItem>> {
     return requestClient.get<PageResponse<EpisodeItem>>(
       this.getServiceUrl('episode/list'),
       { params },
+    );
+  }
+
+  /** 章节版本详情（含 content） */
+  fetchEpisodeVersionDetail(id: number | string): Promise<EpisodeVersionItem> {
+    return requestClient.get<EpisodeVersionItem>(
+      this.getServiceUrl('episode/version/detail'),
+      { params: { id } },
+    );
+  }
+
+  /** 章节版本列表（不含 content） */
+  fetchEpisodeVersions(
+    episodeId: number | string,
+  ): Promise<EpisodeVersionItem[]> {
+    return requestClient.get<EpisodeVersionItem[]>(
+      this.getServiceUrl('episode/version/list'),
+      { params: { episodeId } },
     );
   }
 
@@ -119,6 +276,14 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 小说设定资产图谱 + 准备度 */
+  fetchNovelAssetGraph(novelId: number | string): Promise<NovelAssetGraph> {
+    return requestClient.get<NovelAssetGraph>(
+      this.getServiceUrl('novel/asset/graph'),
+      { params: { novelId } },
+    );
+  }
+
   /** 小说详情（含正文，编辑回显用） */
   fetchNovelDetail(id: number | string): Promise<NovelDetailItem> {
     return requestClient.get<NovelDetailItem>(
@@ -131,6 +296,30 @@ class AiAssetApi extends BaseApi {
   fetchNovelList(params: CatalogNameQuery): Promise<PageResponse<NovelItem>> {
     return requestClient.get<PageResponse<NovelItem>>(
       this.getServiceUrl('novel/list'),
+      { params },
+    );
+  }
+
+  /** 统一设定视图：角色 + 场景 + 创作素材 */
+  fetchNovelSettings(params: SettingQuery): Promise<SettingItem[]> {
+    return requestClient.get<SettingItem[]>(
+      this.getServiceUrl('novel/setting/list'),
+      { params },
+    );
+  }
+
+  /** 作者人设详情 */
+  fetchPersonaDetail(id: number | string): Promise<PersonaItem> {
+    return requestClient.get<PersonaItem>(
+      this.getServiceUrl('persona/detail'),
+      { params: { id } },
+    );
+  }
+
+  /** 作者人设列表 */
+  fetchPersonas(params: PersonaQuery): Promise<PageResponse<PersonaItem>> {
+    return requestClient.get<PageResponse<PersonaItem>>(
+      this.getServiceUrl('persona/list'),
       { params },
     );
   }
@@ -167,7 +356,20 @@ class AiAssetApi extends BaseApi {
     );
   }
 
-  // ==================== 工作流（创作工作台画布） ====================
+  /** P3：分镜详情（轮询视频状态） */
+  fetchShotDetail(id: number | string): Promise<ShotItem> {
+    return requestClient.get<ShotItem>(this.getServiceUrl('shot/detail'), {
+      params: { id },
+    });
+  }
+
+  /** P3：分镜列表 */
+  fetchStoryboard(episodeId: number | string): Promise<ShotItem[]> {
+    return requestClient.get<ShotItem[]>(
+      this.getServiceUrl('episode/storyboard/list'),
+      { params: { episodeId } },
+    );
+  }
 
   /** 生成任务列表（分页） */
   fetchTaskList(
@@ -229,6 +431,8 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  // ==================== 工作流（创作工作台画布） ====================
+
   /** 工作区详情（含名称等；域外接口，不带 X-Workspace-Id） */
   fetchWorkspaceDetail(id: number | string): Promise<WorkspaceItem> {
     return requestClient.get<WorkspaceItem>(
@@ -242,6 +446,78 @@ class AiAssetApi extends BaseApi {
     return requestClient.get<PageResponse<WorkspaceItem>>(
       this.getServiceUrl('workspace/list'),
       { params },
+    );
+  }
+
+  /** 写作工具箱：工具详情（含 paramsSchema） */
+  fetchWritingToolDetail(id: number | string): Promise<WritingToolItem> {
+    return requestClient.get<WritingToolItem>(
+      this.getServiceUrl('writing/tool/detail'),
+      { params: { id } },
+    );
+  }
+
+  /** 写作工具箱：运行记录 */
+  fetchWritingToolRuns(
+    params: WritingToolRunQuery,
+  ): Promise<PageResponse<WritingToolRunItem>> {
+    return requestClient.get<PageResponse<WritingToolRunItem>>(
+      this.getServiceUrl('writing/run/list'),
+      { params },
+    );
+  }
+
+  /** 写作工具箱：工具列表 */
+  fetchWritingTools(
+    params: WritingToolQuery,
+  ): Promise<PageResponse<WritingToolItem>> {
+    return requestClient.get<PageResponse<WritingToolItem>>(
+      this.getServiceUrl('writing/tool/list'),
+      { params },
+    );
+  }
+
+  /** 生成角色/场景形象图 */
+  generateAssetImage(
+    data: AssetImageGenerateRequest,
+  ): Promise<AssetImageGenerateResult> {
+    return requestClient.post<AssetImageGenerateResult>(
+      this.getServiceUrl('asset/image/generate'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
+  /** 按集懒生成正文（回写 content/words） */
+  generateEpisodeContent(
+    data: EpisodeContentGenerateRequest,
+  ): Promise<EpisodeItem> {
+    return requestClient.post<EpisodeItem>(
+      this.getServiceUrl('episode/content/generate'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
+  /** 生成章节记忆（定稿压缩；force 覆盖已有） */
+  generateEpisodeMemory(
+    data: EpisodeMemoryGenerateRequest,
+  ): Promise<EpisodeItem> {
+    return requestClient.post<EpisodeItem>(
+      this.getServiceUrl('episode/memory/generate'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
+  /** 章节规划（默认只返回，persist=true 直接回写） */
+  generateEpisodePlan(
+    data: EpisodePlanRequest,
+  ): Promise<EpisodePlanResponse> {
+    return requestClient.post<EpisodePlanResponse>(
+      this.getServiceUrl('episode/plan/generate'),
+      data,
+      { timeout: 300_000 },
     );
   }
 
@@ -265,8 +541,6 @@ class AiAssetApi extends BaseApi {
     );
   }
 
-  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
-
   /** 提交生成（首轮生成 / 多轮调整；返回 TaskItem） */
   generateMaterial(data: GenerateRequest): Promise<GenerationTaskItem> {
     return requestClient.post<GenerationTaskItem>(
@@ -284,6 +558,36 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** P3：生成镜头关键帧（角色/场景参考图） */
+  generateShotImage(data: ShotImageGenerateRequest): Promise<ShotItem> {
+    return requestClient.post<ShotItem>(
+      this.getServiceUrl('shot/image/generate'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
+  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
+
+  /** P3：分镜生成视频 */
+  generateShotVideo(data: ShotVideoGenerateRequest): Promise<ShotItem> {
+    return requestClient.post<ShotItem>(
+      this.getServiceUrl('shot/video/generate'),
+      data,
+    );
+  }
+
+  /** P3：生成分镜 */
+  generateStoryboard(
+    data: StoryboardGenerateRequest,
+  ): Promise<StoryboardGenerateResult> {
+    return requestClient.post<StoryboardGenerateResult>(
+      this.getServiceUrl('episode/storyboard/generate'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
   /** 素材入库：推送到营销素材库（仅「已确认」可入库；返回逐条结果） */
   pushMaterials(
     data: MaterialPushRequest,
@@ -292,6 +596,13 @@ class AiAssetApi extends BaseApi {
       this.getServiceUrl('material/push'),
       data,
     );
+  }
+
+  /** 恢复历史版本（恢复前自动备份） */
+  restoreEpisodeVersion(versionId: number | string) {
+    return requestClient.post(this.getServiceUrl('episode/version/restore'), {
+      versionId,
+    });
   }
 
   /** 运行工作流（返回 runId） */
@@ -303,9 +614,23 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 写作工具箱：执行工具 */
+  runWritingTool(data: WritingToolRunRequest): Promise<WritingToolRunResult> {
+    return requestClient.post<WritingToolRunResult>(
+      this.getServiceUrl('writing/tool/run'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
   /** 角色 新增/更新 */
   saveCharacter(data: CharacterSaveRequest) {
     return requestClient.post(this.getServiceUrl('character/save'), data);
+  }
+
+  /** 创作素材：新增/更新（element 类型） */
+  saveElement(data: ElementSaveRequest) {
+    return requestClient.post(this.getServiceUrl('element/save'), data);
   }
 
   /** 分集 新增/更新 */
@@ -318,9 +643,19 @@ class AiAssetApi extends BaseApi {
     return requestClient.post(this.getServiceUrl('novel/save'), data);
   }
 
+  /** 作者人设 新增/更新 */
+  savePersona(data: PersonaSaveRequest) {
+    return requestClient.post(this.getServiceUrl('persona/save'), data);
+  }
+
   /** 场景 新增/更新 */
   saveScene(data: SceneSaveRequest) {
     return requestClient.post(this.getServiceUrl('scene/save'), data);
+  }
+
+  /** P3：保存分镜（手动编辑/排序） */
+  saveShot(data: Partial<ShotItem>) {
+    return requestClient.post(this.getServiceUrl('shot/save'), data);
   }
 
   /** 保存工作流（覆盖式；返回 workflowId） */
@@ -331,11 +666,30 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 设为默认人设 */
+  setDefaultPersona(id: number | string) {
+    return requestClient.post(
+      this.getServiceUrl('persona/set_default'),
+      null,
+      { params: { id } },
+    );
+  }
+
   /** 素材：上传登记（OSS STS 直传后，把完整地址交后端登记） */
   uploadMaterial(data: MaterialUploadRequest): Promise<MaterialItem> {
     return requestClient.post<MaterialItem>(
       this.getServiceUrl('material/upload'),
       data,
+    );
+  }
+
+  /** P3：分镜一致性校验 */
+  validateStoryboard(
+    episodeId: number | string,
+  ): Promise<StoryboardValidateResult> {
+    return requestClient.get<StoryboardValidateResult>(
+      this.getServiceUrl('episode/storyboard/validate'),
+      { params: { episodeId } },
     );
   }
 }

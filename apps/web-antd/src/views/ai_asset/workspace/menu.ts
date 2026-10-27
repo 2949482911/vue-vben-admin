@@ -47,6 +47,18 @@ export const WORKSPACE_INTERNAL_MENU: Array<{
     labelKey: 'page.ai_asset.menu.novel',
   },
   {
+    activeIcon: 'lucide:wrench',
+    icon: 'lucide:wrench',
+    key: 'tools',
+    labelKey: 'page.ai_asset.menu.tools',
+  },
+  {
+    activeIcon: 'lucide:user-check',
+    icon: 'lucide:user',
+    key: 'persona',
+    labelKey: 'page.ai_asset.menu.persona',
+  },
+  {
     activeIcon: 'lucide:settings-2',
     icon: 'lucide:settings',
     key: 'settings',

@@ -7,6 +7,7 @@ export * from './auth';
 export * from "./bpm";
 export * from "./bytedance";
 export * from "./dashboard";
+export * from "./dict";
 export * from "./main-body";
 export * from "./marketing";
 export * from "./material_analysis";

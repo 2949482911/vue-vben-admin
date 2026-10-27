@@ -20,6 +20,7 @@ import {
   useLibraryPage,
 } from '../asset/components/useLibraryPage';
 import WorkspaceRequired from '../asset/components/WorkspaceRequired.vue';
+import ElementsLibrary from '../elements/components/ElementsLibrary.vue';
 
 const { topTab } = useLibraryPage('media');
 
@@ -44,7 +45,8 @@ const hasWorkspace = computed(
         </Card>
 
         <MaterialLibrary v-if="topTab === 'media'" />
-        <AssetLibrary v-else />
+        <AssetLibrary v-else-if="topTab === 'catalog'" />
+        <ElementsLibrary v-else />
       </template>
     </div>
   </Page>

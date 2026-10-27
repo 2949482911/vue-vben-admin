@@ -14,9 +14,12 @@ import { $t, setupI18n } from '#/locales';
 import { initComponentAdapter } from './adapter/component';
 import { initSetupVbenForm } from './adapter/form';
 import App from './app.vue';
+import { initDict } from './dict-init';
 import { router } from './router';
 
 async function bootstrap(namespace: string) {
+  // 字典 store 接到后端字典接口（登录后预加载）
+  initDict();
   // 初始化组件适配器
   await initComponentAdapter();
 

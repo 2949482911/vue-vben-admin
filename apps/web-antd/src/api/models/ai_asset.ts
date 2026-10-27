@@ -214,6 +214,27 @@ export interface SceneItem {
   createTime?: string;
 }
 
+/** 分集节拍（结构化细纲） */
+export interface EpisodeBeat {
+  type: string;
+  title: string;
+  content: string;
+}
+
+/** 剧本场次 */
+export interface ScriptScene {
+  assetSceneId?: number | string;
+  seq: number;
+  heading: string;
+  sceneType?: string;
+  location?: string;
+  timeOfDay?: string;
+  characters?: string[];
+  action?: string;
+  dialogue?: Array<{ emotion?: string; line: string; role: string }>;
+  durationSeconds?: number;
+}
+
 /** 分集（归属小说） */
 export interface EpisodeItem {
   id: number | string;
@@ -226,23 +247,77 @@ export interface EpisodeItem {
   summary?: string;
   /** 剧本 / 分镜文本 */
   script?: string;
+  /** 本集正文（按集懒生成） */
+  content?: string;
+  /** 结构化节拍 */
+  beats?: EpisodeBeat[];
+  /** 结构化剧本场次 */
+  scenes?: ScriptScene[];
+  /** 本集字数 */
+  words?: number;
+  /** 卷号 */
+  volumeNo?: number;
+  /** 本章走向要求（轻控制） */
+  plotDirection?: string;
+  /** 定稿后压缩的历史记忆（<=300字） */
+  memory?: string;
+  /** 是否已有历史记忆（列表/详情均返回） */
+  hasMemory?: boolean;
+  /** 乐观锁版本号 */
+  version?: number;
   createTime?: string;
 }
 
 // ==================== 小说 / 分集 LLM 生成 ====================
 
+/** 建书向导第 1~5 步的创作设定（后端白名单校验） */
+export interface NovelConfig {
+  theme?: string[];
+  tropes?: string[];
+  languageStyle?: string;
+  narrativeStructure?: string[];
+  literaryGenre?: string[];
+  tone?: string[];
+  era?: string;
+  narrativeTime?: string;
+  narrativePov?: string;
+  protagonist?: string[];
+  conflict?: string[];
+  payoff?: string[];
+  taboo?: string[];
+  openingType?: string;
+  heroEntrance?: string;
+  hook?: string;
+  outlineType?: string;
+  corePhilosophy?: string;
+  storySummary?: string;
+  rhythm?: string;
+  loveLine?: string;
+}
+
 /** 小说生成（同步 LLM，20~120s） */
 export interface NovelGenerateRequest {
   modelId: number | string;
-  prompt?: string;
-  genre?: string;
-  style?: string;
+  name?: string;
+  author?: string;
+  personaId?: number | string;
+  audience?: string;
+  genres?: string[];
+  styles?: string[];
   episodeCount?: number;
+  wordsPerEpisode?: number;
+  volumeEnabled?: boolean;
+  episodeDuration?: number;
+  synopsis?: string;
+  refNovelId?: number | string;
+  config?: NovelConfig;
+  prompt?: string;
 }
 
-/** 小说生成结果：novel（含正文）+ 章节分集 */
+/** 小说生成结果：novel（含世界观/总纲）+ 章节分集 */
 export interface NovelGenerateResult {
   novel: NovelDetailItem;
+  characters?: CharacterItem[];
   episodes: EpisodeItem[];
 }
 
@@ -255,18 +330,379 @@ export interface EpisodeGenerateRequest {
   requirements?: string;
 }
 
-/** 单集剧本生成（回写 EpisodeItem.script） */
-export interface EpisodeScriptGenerateRequest {
-  modelId: number | string;
+/** 按集懒生成正文 */
+export interface EpisodeContentGenerateRequest {
+  autoExtractAssets?: boolean;
   episodeId: number | string;
-  durationSeconds?: number;
+  modelId: number | string;
   requirements?: string;
+  targetWords?: number;
+}
+
+/** 单集剧本生成（回写 EpisodeItem.script/scenes） */
+export interface EpisodeScriptGenerateRequest {
+  autoExtractAssets?: boolean;
+  durationSeconds?: number;
+  episodeId: number | string;
+  modelId: number | string;
+  requirements?: string;
+}
+
+/** 创作素材（element，非人物/场景） */
+export interface ElementItem {
+  attributes?: Record<string, any>;
+  createTime?: string;
+  description?: string;
+  elementType?: string;
+  id: number | string;
+  materialId?: number | string;
+  name: string;
+  novelId?: number | string;
+  refUrl?: string;
+  status?: number;
+  tags?: string[];
+  updateTime?: string;
+}
+
+export interface ElementQuery extends PageRequestParams {
+  keyword?: string;
+  novelId: number | string;
+  type?: string;
+}
+
+export interface ElementSaveRequest {
+  attributes?: Record<string, any>;
+  description?: string;
+  elementType: string;
+  id?: number | string;
+  materialId?: number | string;
+  name: string;
+  novelId: number | string;
+  refUrl?: string;
+  tags?: string[];
+}
+
+/** 统一设定视图（character/scene/element 合并） */
+export interface SettingItem {
+  attributes?: Record<string, any>;
+  createTime?: string;
+  description?: string;
+  hasMaterial?: boolean;
+  id: number | string;
+  materialId?: number | string;
+  materialThumbnailUrl?: string;
+  materialUrl?: string;
+  name: string;
+  novelId?: number | string;
+  refUrl?: string;
+  source: 'character' | 'element' | 'scene';
+  tags?: string[];
+  type: string;
+  updateTime?: string;
+}
+
+export interface SettingQuery {
+  keyword?: string;
+  novelId: number | string;
+  type?: string;
+}
+
+/** 剧本实体抽取 */
+export interface EntityExtractRequest {
+  episodeId: number | string;
+  modelId?: number | string;
+  overwrite?: boolean;
+  source?: 'auto' | 'content' | 'scenes' | 'script';
+}
+
+export interface ExtractedEntity {
+  created: boolean;
+  description?: string;
+  elementType?: string;
+  id: number | string;
+  name: string;
+  role?: string;
+}
+
+export interface EntityExtractResult {
+  characters: ExtractedEntity[];
+  elements: ExtractedEntity[];
+  episodeId: number | string;
+  scenes: ExtractedEntity[];
+}
+
+/** P3 分镜 */
+export interface ShotItem {
+  assetsStale?: boolean;
+  blankShot?: null | number;
+  blankShotSource?: 'auto' | 'manual';
+  camera?: string;
+  characterIds?: Array<number | string>;
+  characters?: string[];
+  config?: Record<string, any>;
+  createTime?: string;
+  description?: string;
+  dialogue?: string;
+  durationSeconds?: number;
+  episodeId?: number | string;
+  generationStatus?: number;
+  hasImage?: boolean;
+  hasVideo?: boolean;
+  id: number | string;
+  imageMaterialId?: number | string;
+  imagePrompt?: string;
+  imageTaskId?: number | string;
+  imageThumbnailUrl?: string;
+  imageUrl?: string;
+  refImageMaterialIds?: Array<number | string>;
+  novelId?: number | string;
+  sceneId?: number | string;
+  sceneSeq?: number;
+  seq?: number;
+  shotType?: string;
+  updateTime?: string;
+  videoMaterialId?: number | string;
+  videoPrompt?: string;
+  videoTaskId?: number | string;
+  videoThumbnailUrl?: string;
+  videoUrl?: string;
+}
+
+export interface StoryboardGenerateRequest {
+  episodeId: number | string;
+  modelId?: number | string;
+  replace?: boolean;
+  requirements?: string;
+  style?: string;
+}
+
+export interface StoryboardGenerateResult {
+  episodeId: number | string;
+  shotCount: number;
+  shots: ShotItem[];
+}
+
+export interface ShotImageGenerateRequest {
+  modelId?: number | string;
+  promptOverride?: string;
+  referenceMaterialIds?: Array<number | string>;
+  shotId: number | string;
+}
+
+export interface StoryboardIssue {
+  characters?: string[];
+  level: 'error' | 'warning' | string;
+  message: string;
+  sceneSeq?: number;
+  seq?: number;
+  shotId?: number | string;
+  type: string;
+}
+
+export interface StoryboardValidateResult {
+  episodeId: number | string;
+  issues: StoryboardIssue[];
+  passed: boolean;
+}
+
+export interface ShotVideoGenerateRequest {
+  duration?: number;
+  modelId?: number | string;
+  promptOverride?: string;
+  shotId: number | string;
+}
+
+export interface ShotVideoGenerateResult {
+  shotId: number | string;
+  status?: number | string;
+  videoMaterialId?: number | string;
+}
+
+/** 小说设定资产图谱 */
+export interface AssetReadinessStat {
+  missing: number;
+  total: number;
+  withImage: number;
+}
+
+export interface NovelAssetBase {
+  appearanceTags?: Record<string, any>;
+  attributes?: Record<string, any>;
+  description?: string;
+  hasImage?: boolean;
+  id: number | string;
+  materialId?: number | string;
+  materialThumbnailUrl?: string;
+  materialUrl?: string;
+  name: string;
+  sceneTags?: Record<string, any>;
+  visualPrompt?: string;
+}
+
+export interface NovelCharacterAsset extends NovelAssetBase {
+  appearance?: string;
+  avatarUrl?: string;
+  consistencyAnchor?: Record<string, any>;
+  episodeIds?: Array<number | string>;
+  prompt?: string;
+  role?: string;
+  shotCount?: number;
+}
+
+export interface NovelSceneAsset extends NovelAssetBase {
+  episodeIds?: Array<number | string>;
+  location?: string;
+  sceneSeqs?: number[];
+  shotCount?: number;
+}
+
+export interface NovelElementAsset extends NovelAssetBase {
+  elementType?: string;
+}
+
+export interface NovelAssetGraph {
+  characters: NovelCharacterAsset[];
+  elements: NovelElementAsset[];
+  novelId: number | string;
+  readiness: {
+    characters: AssetReadinessStat;
+    elements: AssetReadinessStat;
+    ready: boolean;
+    scenes: AssetReadinessStat;
+  };
+  scenes: NovelSceneAsset[];
+}
+
+export interface NovelAssetExtractRequest {
+  autoCreateElement?: boolean;
+  autoCreateScene?: boolean;
+  modelId?: number | string;
+  novelId: number | string;
+  overwrite?: boolean;
+  sources?: Array<'episodes' | 'outline' | 'script'>;
+}
+
+export interface AssetImageGenerateRequest {
+  assetId: number | string;
+  assetType: 'character' | 'scene';
+  modelId?: number | string;
+  promptOverride?: string;
+}
+
+export interface AssetImageGenerateResult {
+  assetId: number | string;
+  assetType: string;
+  hasImage?: boolean;
+  materialId?: number | string;
+  url?: string;
+}
+
+export interface EpisodeSceneBindRequest {
+  episodeId: number | string;
+  mappings: Array<{ sceneId: number | string; sceneSeq: number }>;
+}
+
+/** 写作工具参数字段 */
+export interface WritingToolParamField {
+  default?: any;
+  key: string;
+  label: string;
+  options?: Array<string | { label: string; value: any }>;
+  placeholder?: string;
+  required?: boolean;
+  type: 'number' | 'select' | 'text' | 'textarea';
+}
+
+export interface WritingToolItem {
+  code: string;
+  createTime?: string;
+  description?: string;
+  groupCode?: string;
+  icon?: string;
+  id: number | string;
+  name: string;
+  paramsSchema?: { fields: WritingToolParamField[] };
+  sort?: number;
+  status?: number;
+}
+
+export interface WritingToolQuery extends PageRequestParams {
+  groupCode?: string;
+  keyword?: string;
+}
+
+export interface WritingToolRunRequest {
+  inputs: Record<string, any>;
+  modelId?: number | string;
+  refId?: number | string;
+  refType?: 'episode' | 'novel';
+  toolCode: string;
+}
+
+export interface WritingToolRunResult {
+  content: string;
+  createTime?: string;
+  durationMs?: number;
+  runId: number | string;
+  toolCode: string;
+}
+
+export interface WritingToolRunItem extends WritingToolRunResult {
+  groupCode?: string;
+  inputs?: Record<string, any>;
+  status?: number;
+  toolName?: string;
+}
+
+export interface WritingToolRunQuery extends PageRequestParams {
+  toolCode?: string;
+}
+
+/** 作者人设 */
+export interface PersonaItem {
+  createTime?: string;
+  description?: string;
+  id: number | string;
+  isDefault?: boolean;
+  name: string;
+  profile?: Record<string, any>;
+  status?: number;
+  updateTime?: string;
+  workspaceId?: number | string;
+}
+
+export interface PersonaQuery extends PageRequestParams {
+  name?: string;
+  workspaceId?: number | string;
+}
+
+export interface PersonaSaveRequest {
+  description?: string;
+  id?: number | string;
+  isDefault?: boolean;
+  name: string;
+  profile?: Record<string, any>;
+}
+
+export interface PersonaCopyRequest {
+  isDefault?: boolean;
+  name?: string;
+  sourceId: number | string;
 }
 
 /** 小说 / 原著（列表项，不含正文） */
 export interface NovelItem {
   id: number | string;
   name?: string;
+  author?: string;
+  audience?: string;
+  genres?: string[];
+  styles?: string[];
+  episodeCount?: number;
+  episodeDuration?: number;
+  wordsPerEpisode?: number;
+  targetWords?: number;
+  wordCount?: number;
   synopsis?: string;
   coverUrl?: string;
   createTime?: string;
@@ -275,6 +711,8 @@ export interface NovelItem {
 /** 小说 / 原著（详情，含正文） */
 export interface NovelDetailItem extends NovelItem {
   content?: string;
+  worldSetting?: string;
+  config?: NovelConfig;
 }
 
 /** 资产目录分页查询（角色 / 场景 / 小说：后端均支持 name 模糊） */
@@ -314,20 +752,28 @@ export interface NovelSaveRequest {
 
 /** 角色 新增/更新 */
 export interface CharacterSaveRequest {
+  appearance?: string;
+  attributes?: Record<string, any>;
+  appearanceTags?: Record<string, any>;
+  avatarUrl?: string;
+  consistencyAnchor?: Record<string, any>;
+  description?: string;
   id?: number | string;
   name: string;
-  avatarUrl?: string;
   prompt?: string;
-  /** 一致性锚（键:值） */
-  consistencyAnchor?: Record<string, any>;
+  visualPrompt?: string;
 }
 
 /** 场景 新增/更新 */
 export interface SceneSaveRequest {
+  attributes?: Record<string, any>;
+  description?: string;
   id?: number | string;
+  location?: string;
   name: string;
   refUrl?: string;
-  description?: string;
+  sceneTags?: Record<string, any>;
+  visualPrompt?: string;
 }
 
 /** 分集 新增/更新（归属小说 novelId） */
@@ -336,7 +782,78 @@ export interface EpisodeSaveRequest {
   novelId?: number | string;
   seq?: number;
   title?: string;
+  summary?: string;
   script?: string;
+  content?: string;
+  words?: number;
+  beats?: EpisodeBeat[];
+  scenes?: ScriptScene[];
+  plotDirection?: string;
+  /** 乐观锁：库里不一致时返回 409 */
+  version?: number;
+  /** 保存前把当前正文存一版手动历史 */
+  saveVersion?: boolean;
+}
+
+/** 编辑器 AI 动作 */
+export interface EpisodeAiActionRequest {
+  action: 'continue' | 'detect' | 'idea' | 'polish' | 'proofread' | 'review' | 'title';
+  episodeId: number | string;
+  modelId: number | string;
+  selection?: { end: number; start: number; text: string };
+  instruction?: string;
+  targetWords?: number;
+  usePersona?: boolean;
+}
+
+export interface EpisodeAiIssue {
+  end?: number;
+  message: string;
+  start?: number;
+  suggestion?: string;
+  type: string;
+}
+
+export interface EpisodeAiActionResponse {
+  issues?: EpisodeAiIssue[];
+  text?: string;
+  title?: string;
+}
+
+/** 生成章节记忆（定稿压缩） */
+export interface EpisodeMemoryGenerateRequest {
+  episodeId: number | string;
+  modelId?: number | string;
+  force?: boolean;
+}
+
+/** 章节规划 */
+export interface EpisodePlanRequest {
+  episodeId: number | string;
+  modelId: number | string;
+  requirements?: string;
+  usePersona?: boolean;
+  /** true=直接回写 summary+beats */
+  persist?: boolean;
+}
+
+export interface EpisodePlanResponse {
+  beats?: EpisodeBeat[];
+  episodeId?: number | string;
+  persisted?: boolean;
+  summary?: string;
+}
+
+/** 章节版本 */
+export interface EpisodeVersionItem {
+  content?: string;
+  createTime?: string;
+  episodeId?: number | string;
+  id: number | string;
+  remark?: string;
+  source?: string;
+  versionNo?: number;
+  words?: number;
 }
 
 /** 资产类型（用于 save / batch_options 路径） */

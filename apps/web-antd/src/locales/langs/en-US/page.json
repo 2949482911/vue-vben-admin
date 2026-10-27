@@ -192,9 +192,11 @@
       "studio": "Creation Studio",
       "draft": "Drafts",
       "queue": "Task Queue",
-      "assets": "Assets",
+      "assets": "Asset Library",
       "settings": "Workspace Settings",
-      "novel": "Novel Studio"
+      "novel": "Novel Studio",
+      "tools": "Writing Tools",
+      "persona": "Author Persona"
     }
   }
 }

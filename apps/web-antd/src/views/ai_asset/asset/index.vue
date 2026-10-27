@@ -13,6 +13,7 @@ import { Card, Segmented } from "ant-design-vue";
 
 import { useWorkspaceStore } from "#/store";
 
+import ElementsLibrary from "../elements/components/ElementsLibrary.vue";
 import AssetLibrary from "./components/AssetLibrary.vue";
 import MaterialLibrary from "./components/MaterialLibrary.vue";
 import { LIBRARY_PAGE_TABS, useLibraryPage } from "./components/useLibraryPage";
@@ -41,7 +42,8 @@ const hasWorkspace = computed(
         </Card>
 
         <MaterialLibrary v-if="topTab === 'media'" />
-        <AssetLibrary v-else />
+        <AssetLibrary v-else-if="topTab === 'catalog'" />
+        <ElementsLibrary v-else />
       </template>
     </div>
   </Page>

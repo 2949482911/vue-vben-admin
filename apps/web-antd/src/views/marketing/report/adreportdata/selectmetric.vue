@@ -58,7 +58,7 @@ const visibleMetricIds = computed(() => {
 
 // 实际用于展示的 checkbox options
 const checkboxOptionTypeList = ref<{ label: string; value: string }[]>([]);
-const decimalPoint = ref<number>(4);
+const decimalPlaces = ref<number>(4);
 
 // 新增自定义指标弹窗显隐（弹窗与表单已拆到 CreateMetricModal.vue）
 const createMetricOpen = ref(false);
@@ -72,7 +72,7 @@ const [Modal, modalApi] = useVbenModal({
     await modalApi.close();
   },
   async onConfirm() {
-    emit("confirmMetric", state.checkedList, decimalPoint.value);
+    emit("confirmMetric", state.checkedList, decimalPlaces.value);
     await modalApi.close();
   },
   async onOpenChange(isOpen) {
@@ -84,7 +84,7 @@ const [Modal, modalApi] = useVbenModal({
       metricGropList.value = res.items;
       nextTick(() => {
         state.checkedList = props.selectedMetrics ? [...props.selectedMetrics] : [];
-        decimalPoint.value = props.decimalPoint ?? 4;
+        decimalPlaces.value = props.decimalPoint ?? 4;
       });
     }
   }
@@ -258,7 +258,7 @@ onMounted(() => {
           <Divider />
           <div>
             <span style="font-size: 12px" class="mr-5">保留小数位</span>
-            <RadioGroup v-model:value="decimalPoint" class="metric-radio-group">
+            <RadioGroup v-model:value="decimalPlaces" class="metric-radio-group">
               <Radio :value="4">4位</Radio>
               <Radio :value="5">5位</Radio>
             </RadioGroup>
@@ -307,7 +307,7 @@ onMounted(() => {
               @dragover.prevent
               @drop="handleDrop(index)"
             >
-              <ArrowUpOutlined v-if="index == 0" />
+              <ArrowUpOutlined v-if="index === 0" />
               <ArrowDownOutlined v-else />
               {{ item.cname }}
             </div>
@@ -326,18 +326,21 @@ onMounted(() => {
 //指标全选按钮分列排序每行三个，一起三列
 .metric-content {
   display: flex;
-  justify-content: space-around;
+  gap: 12px;
   width: 100%;
   height: 100%;
 
   &-left {
-    width: 18%;
-    padding: 0 5px;
+    flex: 0 0 220px;
+    padding: 0 8px;
+    overflow: hidden;
     text-align: center;
-    border: 1px solid rgb(233 228 228);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
 
     .metric-search {
-      width: 200px;
+      width: 100%;
       margin-top: 10px;
     }
 
@@ -353,6 +356,12 @@ onMounted(() => {
         line-height: 30px;
         cursor: pointer;
         list-style: none;
+        border-radius: 6px;
+        transition: background-color 0.2s, color 0.2s;
+
+        &:hover {
+          background: hsl(var(--accent));
+        }
       }
     }
 
@@ -364,11 +373,14 @@ onMounted(() => {
   }
 
   &-center {
-    width: 65%;
+    flex: 1;
+    min-width: 0;
     height: 650px;
-    padding: 5px;
+    padding: 12px;
     overflow-y: auto;
-    border: 1px solid rgb(233 228 228);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
 
     .metric-checkbox-group {
       display: grid;
@@ -389,8 +401,11 @@ onMounted(() => {
   }
 
   &-right {
-    width: 15%;
-    border: 1px solid rgb(233 228 228);
+    flex: 0 0 208px;
+    overflow: hidden;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
 
     .header {
       display: flex;
@@ -398,7 +413,7 @@ onMounted(() => {
       justify-content: space-around;
       height: 40px;
       line-height: 40px;
-      background: hsl(var(--border));
+      background: hsl(var(--muted));
 
       &-left {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
@@ -418,7 +433,7 @@ onMounted(() => {
     .tips {
       margin: 10px 0;
       font-size: 12px;
-      color: #a8abb2;
+      color: hsl(var(--muted-foreground));
       text-align: center;
     }
 
@@ -442,10 +457,15 @@ onMounted(() => {
         line-height: 36px;
         cursor: move;
         user-select: none;
-        // background: #f7f7f7;
-        border: 1px solid rgb(233 228 228);
-        border-radius: 2px;
-        transition: all 0.3s;
+        background: hsl(var(--accent) / 45%);
+        border: 1px solid hsl(var(--border));
+        border-radius: 6px;
+        transition: background-color 0.2s, border-color 0.2s;
+
+        &:hover {
+          background: hsl(var(--accent));
+          border-color: hsl(var(--primary) / 40%);
+        }
       }
     }
   }

@@ -6,6 +6,7 @@ export * from "./ai_model";
 export * from "./bpm"
 export * from "./bytedance";
 export * from "./dashboard";
+export * from "./dict";
 export * from "./main-body"
 export * from "./marketing";
 // marketing 与 adx 都导出了 CampaignItem，这里显式指定以 marketing 为准消除歧义；

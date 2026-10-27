@@ -25,11 +25,13 @@ import { MATERIAL_STATUS_MAP, materialDisplayName } from "../../constants";
 
 const emit = defineEmits<{ confirm: [refs: RefAsset[]] }>();
 
-const MAX_COUNT = 3;
-
 type SourceTab = "album" | "workspace";
 
 const activeTab = ref<SourceTab>("album");
+const maxCount = ref(3);
+const sources = ref<SourceTab[]>(["album", "workspace"]);
+const drawerTitle = ref("选择参考素材");
+const drawerHint = ref("最多选 3 张 · 用于图生图 / 图编辑（选中后作为 refImages 提交）");
 
 // ==================== 素材库（营销素材库） ====================
 
@@ -164,8 +166,8 @@ function toggle(item: RefAsset) {
   if (selectedMap.value.has(key)) {
     selectedMap.value.delete(key);
   } else {
-    if (selectedMap.value.size >= MAX_COUNT) {
-      message.warning(`最多选 ${MAX_COUNT} 张参考图`);
+    if (selectedMap.value.size >= maxCount.value) {
+      message.warning(`最多选 ${maxCount.value} 张`);
       return;
     }
     selectedMap.value.set(key, item);
@@ -212,27 +214,44 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (!isOpen) {
       return;
     }
-    const data = drawerApi.getData() as undefined | { selected?: RefAsset[] };
+    const data = drawerApi.getData() as
+      | undefined
+      | {
+          hint?: string;
+          max?: number;
+          selected?: RefAsset[];
+          sources?: SourceTab[];
+          title?: string;
+        };
     selectedMap.value = new Map(
       (data?.selected ?? []).map((item) => [String(item.id), item])
     );
-    if (albumOptions.value.length === 0) {
-      void loadAlbums();
+    maxCount.value = data?.max ?? 3;
+    sources.value = data?.sources ?? ["album", "workspace"];
+    drawerTitle.value = data?.title ?? "选择参考素材";
+    drawerHint.value =
+      data?.hint ?? `最多选 ${maxCount.value} 张 · 选中后作为参考素材`;
+    activeTab.value = sources.value[0] ?? "workspace";
+    if (activeTab.value === "album") {
+      if (albumOptions.value.length === 0) {
+        void loadAlbums();
+      }
+      void loadAlbumRows();
+    } else {
+      void loadWorkspaceRows();
     }
-    void loadAlbumRows();
   }
 });
 </script>
 
 <template>
-  <Drawer title="选择参考素材">
-    <p class="ref-hint">
-      最多选 {{ MAX_COUNT }} 张 · 用于图生图 / 图编辑（选中后作为 refImages 提交）
-    </p>
+  <Drawer :title="drawerTitle">
+    <p class="ref-hint">{{ drawerHint }}</p>
 
     <!-- 来源切换 -->
     <div class="ref-tabs">
       <button
+        v-if="sources.includes('album')"
         class="ref-tab"
         :class="{ 'is-on': activeTab === 'album' }"
         type="button"
@@ -241,6 +260,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         素材库
       </button>
       <button
+        v-if="sources.includes('workspace')"
         class="ref-tab"
         :class="{ 'is-on': activeTab === 'workspace' }"
         type="button"
@@ -356,7 +376,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     <!-- 已选：固定在分页下方 -->
     <div class="ref-picked">
       <span class="ref-picked__label">
-        已选 <b>{{ selectedList.length }}</b> / {{ MAX_COUNT }}
+        已选 <b>{{ selectedList.length }}</b> / {{ maxCount }}
       </span>
       <span v-for="item in selectedList" :key="item.id" class="ref-picked__item">
         <img :alt="item.name" :src="item.url" />

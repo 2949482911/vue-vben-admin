@@ -6,12 +6,13 @@
  */
 import { ref } from 'vue';
 
-export type LibraryTab = 'catalog' | 'media';
+export type LibraryTab = 'catalog' | 'media' | 'setting';
 
 /** 页面级分段（素材库 / 资产） */
 export const LIBRARY_PAGE_TABS: Array<{ label: string; value: LibraryTab }> = [
   { label: '素材库', value: 'media' },
   { label: '资产', value: 'catalog' },
+  { label: '创作素材', value: 'setting' },
 ];
 
 export function useLibraryPage(defaultTab: LibraryTab) {
