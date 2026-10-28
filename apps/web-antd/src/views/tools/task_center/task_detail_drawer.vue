@@ -8,8 +8,8 @@ import type {
 
 import { computed, h, ref } from "vue";
 
-import { useVbenDrawer } from "@vben/common-ui";
-import { formatDateTime } from "@vben/utils";
+import { useVbenDrawer } from "../../../../../../packages/effects/common-ui/src";
+import { formatDateTime } from "../../../../../../packages/utils/src";
 
 import {
   Badge,
@@ -30,7 +30,7 @@ import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import { taskCenterApi } from "#/api";
 import { $t } from "#/locales";
 
-import { getBatchOperationLabel } from "../creation/promotion_manager/platformOptions";
+import { getBatchOperationLabel } from "../../marketing/creation/promotion_manager/platformOptions";
 
 /** 任务状态 → Tag 色 + i18n 子键，key 对应后端 taskStatus */
 const TASK_STATUS_META: Record<number, { color: string; key: string }> = {

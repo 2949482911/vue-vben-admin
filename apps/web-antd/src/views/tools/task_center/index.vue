@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import type { VbenFormProps } from "@vben/common-ui";
+import type { VbenFormProps } from "../../../../../../packages/effects/common-ui/src";
 
 import type { VxeGridProps } from "#/adapter/vxe-table";
 import type { TaskBatchCenterItem } from "#/api/models/marketing";
-
-import { Page, useVbenDrawer } from "@vben/common-ui";
-import { formatDateTime } from "@vben/utils";
 
 import { Button, Progress, Space, Tag } from "ant-design-vue";
 
@@ -15,10 +12,12 @@ import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { $t } from "#/locales";
 import { trimObject } from "#/utils/trim";
 
+import { Page, useVbenDrawer } from "../../../../../../packages/effects/common-ui/src";
+import { formatDateTime } from "../../../../../../packages/utils/src";
 import {
   getBatchOperationLabel,
   getBatchOperationOptions
-} from "../creation/promotion_manager/platformOptions";
+} from "../../marketing/creation/promotion_manager/platformOptions";
 import TaskDetailDrawer from "./task_detail_drawer.vue";
 
 // 操作类型选项：取值与文案统一走批量操作枚举，避免各模块各维护一份
@@ -44,6 +43,27 @@ const TASK_STATUS_MAP: Record<number, { color: string; text: string }> = {
 const [TaskDetailDrawerModule, taskDetailDrawerApi] = useVbenDrawer({
   connectedComponent: TaskDetailDrawer
 });
+
+/**
+ * 进度百分比：列表接口未返回 progressPercent 时，用成功/失败数量兜底计算，
+ * 已结束（完成/失败）但计数缺失时按 100% 处理。
+ */
+function progressOf(row: TaskBatchCenterItem) {
+  const percent = Number(row.progressPercent);
+  if (Number.isFinite(percent) && percent > 0) {
+    return Math.min(100, Math.round(percent));
+  }
+  const total = Number(row.totalCount) || 0;
+  const done = (Number(row.successCount) || 0) + (Number(row.failedCount) || 0);
+  const finished = row.taskStatus === 3 || row.taskStatus === 4;
+  if (total > 0) {
+    if (done === 0 && finished) {
+      return 100;
+    }
+    return Math.min(100, Math.round((done / total) * 100));
+  }
+  return finished ? 100 : 0;
+}
 
 function openDetail(row: TaskBatchCenterItem) {
   taskDetailDrawerApi.setData(row);
@@ -135,7 +155,7 @@ const gridOptions: VxeGridProps<TaskBatchCenterItem> = {
     {
       title: $t("marketing.taskCenter.columns.progress"),
       slots: { default: "progress" },
-      width: "auto"
+      width: "200px"
     },
     {
       field: "startTime",
@@ -202,13 +222,13 @@ const [Grid] = useVbenVxeGrid({ formOptions, gridOptions });
       <template #progress="{ row }">
         <div class="flex items-center gap-2">
           <Progress
-            :percent="row.progressPercent ?? 0"
+            :percent="progressOf(row)"
             :size="20"
             :stroke-width="14"
             :status="row.taskStatus === 4 ? 'exception' : row.taskStatus === 3 ? 'success' : 'active'"
-            style="width: 120px; margin-bottom: 0;"
+
           />
-          <span class="text-xs text-gray-500">{{ row.progressPercent }}</span>
+          <span class="text-xs text-gray-500">{{ progressOf(row) }}%</span>
         </div>
       </template>
       <template #action="{ row }">

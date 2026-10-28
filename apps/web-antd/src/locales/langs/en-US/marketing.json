@@ -234,7 +234,10 @@
       "updateAdgroupRoi": "Update ROI",
       "addPromotion": "Add Promotion",
       "updatePromotionStatus": "Promotion Start/Stop",
-      "updatePromotionMonitorUrl": "Update Monitor URL"
+      "updatePromotionMonitorUrl": "Update Monitor URL",
+      "aiAssetKeyframeNew": "Batch Generate Keyframes",
+      "aiAssetVideoNew": "Batch Generate Videos",
+      "aiAssetKeyframeStale": "Batch Regenerate Keyframes"
     },
     "status": {
       "enable": "Enable",

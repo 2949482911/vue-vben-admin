@@ -275,7 +275,10 @@
       "updateAdgroupRoi": "批量改ROI系数",
       "addPromotion": "批量新增广告创意",
       "updatePromotionStatus": "批量启停广告创意",
-      "updatePromotionMonitorUrl": "批量改监测链接"
+      "updatePromotionMonitorUrl": "批量改监测链接",
+      "aiAssetKeyframeNew": "批量生成关键帧",
+      "aiAssetVideoNew": "批量生成视频",
+      "aiAssetKeyframeStale": "批量重生成关键帧"
     },
     "status": {
       "enable": "启用",

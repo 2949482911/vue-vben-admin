@@ -13,6 +13,10 @@ import type {
   EntityExtractResult,
   EpisodeAiActionRequest,
   EpisodeAiActionResponse,
+  EpisodeBindResult,
+  EpisodeCharacterBindRequest,
+  EpisodeComposeRequest,
+  EpisodeComposeStatus,
   EpisodeContentGenerateRequest,
   EpisodeGenerateRequest,
   EpisodeItem,
@@ -55,6 +59,13 @@ import type {
   ShotImageGenerateRequest,
   ShotItem,
   ShotVideoGenerateRequest,
+  StoryboardBatchActiveResult,
+  StoryboardBatchPlan,
+  StoryboardBatchPlanQuery,
+  StoryboardBatchSubmitRequest,
+  StoryboardBatchSubmitResult,
+  StoryboardBatchTarget,
+  StoryboardBindingReport,
   StoryboardGenerateRequest,
   StoryboardGenerateResult,
   StoryboardValidateResult,
@@ -125,9 +136,24 @@ class AiAssetApi extends BaseApi {
     );
   }
 
-  /** 分集场景与场景资产绑定 */
-  bindEpisodeScenes(data: EpisodeSceneBindRequest) {
-    return requestClient.post(this.getServiceUrl('episode/scenes/bind'), data);
+  /** 分集人物名与角色资产绑定（补绑未匹配角色） */
+  bindEpisodeCharacters(
+    data: EpisodeCharacterBindRequest,
+  ): Promise<EpisodeBindResult | undefined> {
+    return requestClient.post<EpisodeBindResult>(
+      this.getServiceUrl('episode/characters/bind'),
+      data,
+    );
+  }
+
+  /** 分集场景与场景资产绑定（applyToShots=true 时同步套用到已生成分镜） */
+  bindEpisodeScenes(
+    data: EpisodeSceneBindRequest,
+  ): Promise<EpisodeBindResult | undefined> {
+    return requestClient.post<EpisodeBindResult>(
+      this.getServiceUrl('episode/scenes/bind'),
+      data,
+    );
   }
 
   /** 场景绑定生成素材 */
@@ -152,6 +178,16 @@ class AiAssetApi extends BaseApi {
     return requestClient.post(this.getServiceUrl('task/cancel'), null, {
       params: { taskId },
     });
+  }
+
+  /** 合成成片（P1 纯拼接）：预检失败抛 400，调用方从错误体读取 missingShots */
+  composeEpisode(
+    data: EpisodeComposeRequest,
+  ): Promise<EpisodeComposeStatus | undefined> {
+    return requestClient.post<EpisodeComposeStatus>(
+      this.getServiceUrl('episode/compose'),
+      data,
+    );
   }
 
   /** 确认入库（AI 打标 + 单向进正式素材库） */
@@ -202,6 +238,17 @@ class AiAssetApi extends BaseApi {
     });
   }
 
+  /** 当前分集某 target 的活动批量任务（无则 null），用于刷新后恢复进度 */
+  fetchActiveStoryboardBatch(params: {
+    episodeId: number | string;
+    target: StoryboardBatchTarget;
+  }): Promise<null | StoryboardBatchActiveResult> {
+    return requestClient.get<null | StoryboardBatchActiveResult>(
+      this.getServiceUrl('episode/storyboard/batch/active'),
+      { params },
+    );
+  }
+
   /** 资产（角色/场景/分集/小说）批量操作（删除/启停） */
   fetchAssetBatchOptions(assetType: AssetType, params: BatchOptions) {
     return requestClient.post(
@@ -223,6 +270,16 @@ class AiAssetApi extends BaseApi {
     return requestClient.get<PageResponse<ElementItem>>(
       this.getServiceUrl('novel/element/list'),
       { params },
+    );
+  }
+
+  /** 成片合成状态（前端 2s 轮询；页面离开即停） */
+  fetchEpisodeComposeStatus(
+    episodeId: number | string,
+  ): Promise<EpisodeComposeStatus> {
+    return requestClient.get<EpisodeComposeStatus>(
+      this.getServiceUrl('episode/compose/status'),
+      { params: { episodeId } },
     );
   }
 
@@ -371,6 +428,26 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 分镜批量生成计划（后端规则为准；未就绪时调用方本地粗筛降级） */
+  fetchStoryboardBatchPlan(
+    params: StoryboardBatchPlanQuery,
+  ): Promise<StoryboardBatchPlan> {
+    return requestClient.get<StoryboardBatchPlan>(
+      this.getServiceUrl('episode/storyboard/batch/plan'),
+      { params },
+    );
+  }
+
+  /** 分镜资产绑定报告（进入分镜页/生成后刷新） */
+  fetchStoryboardBindingReport(
+    episodeId: number | string,
+  ): Promise<StoryboardBindingReport> {
+    return requestClient.get<StoryboardBindingReport>(
+      this.getServiceUrl('episode/storyboard/binding/report'),
+      { params: { episodeId } },
+    );
+  }
+
   /** 生成任务列表（分页） */
   fetchTaskList(
     params: TaskQuery,
@@ -431,8 +508,6 @@ class AiAssetApi extends BaseApi {
     );
   }
 
-  // ==================== 工作流（创作工作台画布） ====================
-
   /** 工作区详情（含名称等；域外接口，不带 X-Workspace-Id） */
   fetchWorkspaceDetail(id: number | string): Promise<WorkspaceItem> {
     return requestClient.get<WorkspaceItem>(
@@ -440,6 +515,8 @@ class AiAssetApi extends BaseApi {
       { params: { id } },
     );
   }
+
+  // ==================== 工作流（创作工作台画布） ====================
 
   /** 工作区列表（当前租户，分页；域外接口，不带 X-Workspace-Id） */
   fetchWorkspaces(params: WorkspaceQuery): Promise<PageResponse<WorkspaceItem>> {
@@ -567,8 +644,6 @@ class AiAssetApi extends BaseApi {
     );
   }
 
-  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
-
   /** P3：分镜生成视频 */
   generateShotVideo(data: ShotVideoGenerateRequest): Promise<ShotItem> {
     return requestClient.post<ShotItem>(
@@ -576,6 +651,8 @@ class AiAssetApi extends BaseApi {
       data,
     );
   }
+
+  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
 
   /** P3：生成分镜 */
   generateStoryboard(
@@ -672,6 +749,16 @@ class AiAssetApi extends BaseApi {
       this.getServiceUrl('persona/set_default'),
       null,
       { params: { id } },
+    );
+  }
+
+  /** 提交分镜批量任务（立即返回 taskId，生成由后端批次任务异步执行） */
+  submitStoryboardBatch(
+    data: StoryboardBatchSubmitRequest,
+  ): Promise<StoryboardBatchSubmitResult> {
+    return requestClient.post<StoryboardBatchSubmitResult>(
+      this.getServiceUrl('episode/storyboard/batch/submit'),
+      data,
     );
   }
 

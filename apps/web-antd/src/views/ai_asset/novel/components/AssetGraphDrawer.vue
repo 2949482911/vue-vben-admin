@@ -1,4 +1,9 @@
 <script lang="ts" setup name="NovelAssetGraphDrawer">
+/**
+ * 设定资产抽屉：创作台「设定资产」与分镜校验打开，处于小说 → 分镜链路中的资产准备环节。
+ * 负责提炼角色/场景/道具、生成形象、按角色类型筛选；角色类型与群演免图策略在此展示。
+ * 依赖接口：novel/asset/graph、novel/asset/extract、asset/image/generate、character|scene|element save。
+ */
 import type {
   NovelAssetGraph,
   NovelCharacterAsset,
@@ -6,7 +11,7 @@ import type {
   NovelSceneAsset,
 } from '#/api/models/ai_asset';
 
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
 
@@ -17,6 +22,7 @@ import {
   Image,
   message,
   Modal,
+  Pagination,
   Progress,
   Spin,
   Tag,
@@ -24,6 +30,7 @@ import {
 
 import { aiAssetApi } from '#/api';
 
+import { CHARACTER_TYPE_OPTIONS, characterTypeLabel, isExtraCharacter } from '../characterTypes';
 import AssetEditDrawerContent from './AssetEditDrawer.vue';
 
 const emit = defineEmits<{ success: [] }>();
@@ -51,14 +58,92 @@ const TABS = [
   { key: 'elements', label: '道具' },
 ] as const;
 
+/** 角色类型筛选值：'' 表示全部，其余对应 characterType */
+const characterFilter = ref<'' | number>('');
+const characterTypeFilters = computed(() => [
+  { label: '全部', value: '' as const },
+  ...CHARACTER_TYPE_OPTIONS.map((item) => ({
+    label: item.label,
+    value: item.value as number,
+  })),
+]);
+
 const items = computed<AssetItem[]>(() => {
   if (!graph.value) {
     return [];
   }
-  return (graph.value[activeTab.value] ?? []) as AssetItem[];
+  const list = (graph.value[activeTab.value] ?? []) as AssetItem[];
+  // 只有角色 Tab 支持按角色类型筛选，场景/道具保持全量
+  if (activeTab.value !== 'characters' || characterFilter.value === '') {
+    return list;
+  }
+  return (list as NovelCharacterAsset[]).filter(
+    (item) => item.characterType === characterFilter.value,
+  );
 });
 
+const PAGE_SIZE_OPTIONS = [30, 60, 90];
+const currentPage = ref(1);
+const pageSize = ref(30);
+const scrollEl = ref<HTMLElement>();
+
+/** 当前 Tab/筛选下的分页切片（数据一次性来自 graph，前端分页） */
+const pagedItems = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  return items.value.slice(start, start + pageSize.value);
+});
+
+function scrollToTop() {
+  scrollEl.value?.scrollTo({ top: 0 });
+}
+
+function onPageChange(page: number, size: number) {
+  currentPage.value = page;
+  pageSize.value = size;
+  scrollToTop();
+}
+
+watch([activeTab, characterFilter], () => {
+  currentPage.value = 1;
+  scrollToTop();
+});
+
+watch(
+  () => items.value.length,
+  (length) => {
+    const maxPage = Math.max(1, Math.ceil(length / pageSize.value));
+    if (currentPage.value > maxPage) {
+      currentPage.value = maxPage;
+    }
+  },
+);
+
 const readiness = computed(() => graph.value?.readiness);
+
+function characterTypeCount(type: '' | number) {
+  const list = graph.value?.characters ?? [];
+  return type === ''
+    ? list.length
+    : list.filter((item) => item.characterType === type).length;
+}
+
+function isExtra(item: AssetItem) {
+  return (
+    activeTab.value === 'characters' &&
+    isExtraCharacter((item as NovelCharacterAsset).characterType)
+  );
+}
+
+/** 群演未出图不告警，统一显示灰色「无需形象」，避免用户误以为缺资产 */
+function statusTag(item: AssetItem): { color?: string; text: string } {
+  if (item.hasImage) {
+    return { color: 'green', text: '已生成形象' };
+  }
+  if (isExtra(item)) {
+    return { text: '无需形象' };
+  }
+  return { color: 'orange', text: '待生成' };
+}
 
 function itemImage(item: AssetItem) {
   return item.materialThumbnailUrl || item.materialUrl || '';
@@ -68,6 +153,7 @@ function itemMeta(item: AssetItem) {
   if (activeTab.value === 'characters') {
     const character = item as NovelCharacterAsset;
     return [
+      characterTypeLabel(character.characterType),
       character.role,
       character.appearance,
       character.shotCount ? `${character.shotCount} 个镜头` : '',
@@ -160,8 +246,9 @@ async function generateImage(item: AssetItem, type: 'character' | 'scene') {
 }
 
 function missingList() {
+  // 群演允许不出形象，批量补图跳过，避免无意义消耗
   const characters = (graph.value?.characters ?? [])
-    .filter((item) => !item.hasImage)
+    .filter((item) => !item.hasImage && !isExtraCharacter(item.characterType))
     .map((item) => ({ item, type: 'character' as const }));
   const scenes = (graph.value?.scenes ?? [])
     .filter((item) => !item.hasImage)
@@ -205,12 +292,14 @@ function batchGenerate() {
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[920px]',
   contentClass: 'flex min-h-0 flex-col gap-3 p-3',
+  closeOnPressEscape: true,
   async onOpenChange(open) {
     if (!open) {
       return;
     }
     graph.value = undefined;
     activeTab.value = 'characters';
+    currentPage.value = 1;
     await load();
   },
 });
@@ -218,140 +307,171 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
 <template>
   <Drawer title="设定资产">
-    <Spin :spinning="loading">
-      <div class="asset-graph">
-        <div v-if="readiness" class="asset-graph__readiness">
-          <div class="asset-graph__stats">
-            <span>
-              角色 {{ readiness.characters.withImage }}/{{ readiness.characters.total }}
-            </span>
-            <span>
-              场景 {{ readiness.scenes.withImage }}/{{ readiness.scenes.total }}
-            </span>
-            <span>
-              道具 {{ readiness.elements.withImage }}/{{ readiness.elements.total }}
-            </span>
-            <Tag :bordered="false" :color="readiness.ready ? 'green' : 'orange'">
-              {{ readiness.ready ? '可生成分镜视频' : '仍有缺图' }}
-            </Tag>
-          </div>
-          <Progress
-            :percent="
-              readiness.characters.total + readiness.scenes.total === 0
-                ? 0
-                : Math.round(
-                    ((readiness.characters.withImage + readiness.scenes.withImage) /
-                      (readiness.characters.total + readiness.scenes.total)) *
-                      100,
-                  )
-            "
+    <div class="asset-graph">
+      <div v-if="readiness" class="asset-graph__readiness">
+        <div class="asset-graph__stats">
+          <span>
+            角色 {{ readiness.characters.withImage }}/{{ readiness.characters.total }}
+          </span>
+          <span>
+            场景 {{ readiness.scenes.withImage }}/{{ readiness.scenes.total }}
+          </span>
+          <span>
+            道具 {{ readiness.elements.withImage }}/{{ readiness.elements.total }}
+          </span>
+          <Tag :bordered="false" :color="readiness.ready ? 'green' : 'orange'">
+            {{ readiness.ready ? '可生成分镜视频' : '仍有缺图' }}
+          </Tag>
+        </div>
+        <Progress
+          :percent="
+            readiness.characters.total + readiness.scenes.total === 0
+              ? 0
+              : Math.round(
+                  ((readiness.characters.withImage + readiness.scenes.withImage) /
+                    (readiness.characters.total + readiness.scenes.total)) *
+                    100,
+                )
+          "
+          size="small"
+        />
+        <div class="asset-graph__actions">
+          <Button size="small" :loading="extracting" @click="extract">
+            初始化 / 重新提炼设定
+          </Button>
+          <Button
             size="small"
-          />
-          <div class="asset-graph__actions">
-            <Button size="small" :loading="extracting" @click="extract">
-              初始化 / 重新提炼设定
-            </Button>
-            <Button
-              size="small"
-              type="primary"
-              :loading="batchRunning"
-              :disabled="batchRunning"
-              @click="batchGenerate"
-            >
-              一键补图
-            </Button>
-            <span v-if="batchRunning" class="asset-graph__progress">
-              {{ batchDone }}/{{ batchTotal }}
-            </span>
-          </div>
-        </div>
-
-        <div class="asset-graph__tabs">
-          <button
-            v-for="tab in TABS"
-            :key="tab.key"
-            type="button"
-            class="asset-graph__tab"
-            :class="{ 'is-on': activeTab === tab.key }"
-            @click="activeTab = tab.key"
+            type="primary"
+            :loading="batchRunning"
+            :disabled="batchRunning"
+            @click="batchGenerate"
           >
-            {{ tab.label }}
-            <span>{{ graph?.[tab.key]?.length ?? 0 }}</span>
-          </button>
-        </div>
-
-        <div class="asset-graph__scroll">
-          <Empty
-            v-if="!items.length"
-            :image="Empty.PRESENTED_IMAGE_SIMPLE"
-            description="还没有设定资产；先「初始化 / 重新提炼设定」"
-          />
-          <div v-else class="asset-graph__grid">
-            <Card v-for="item in items" :key="item.id" size="small" class="asset-card">
-              <div class="asset-card__hd">
-                <span class="asset-card__thumb">
-                  <Image
-                    v-if="itemImage(item)"
-                    :preview="false"
-                    :src="itemImage(item)"
-                  />
-                  <template v-else>{{ item.name.slice(0, 1) }}</template>
-                </span>
-                <div class="asset-card__name">
-                  <b>{{ item.name }}</b>
-                  <span>{{ itemMeta(item) }}</span>
-                </div>
-                <Tag
-                  :bordered="false"
-                  :color="item.hasImage ? 'green' : 'orange'"
-                >
-                  {{ item.hasImage ? '已生成形象' : '待生成' }}
-                </Tag>
-              </div>
-              <div v-if="!item.visualPrompt && activeTab !== 'elements'" class="asset-card__warn">
-                <Tag :bordered="false" color="orange">缺提示词</Tag>
-              </div>
-              <p class="asset-card__desc">{{ item.description || '暂无描述' }}</p>
-              <div class="asset-card__foot">
-                <span class="asset-card__usage">
-                  {{ (item as any).episodeIds?.length ? `出现在 ${(item as any).episodeIds.length} 集` : '未关联分集' }}
-                </span>
-                <Button
-                  type="link"
-                  size="small"
-                  @click="
-                    openEdit(
-                      item,
-                      activeTab === 'characters'
-                        ? 'character'
-                        : activeTab === 'scenes'
-                          ? 'scene'
-                          : 'element',
-                    )
-                  "
-                >
-                  编辑设定
-                </Button>
-                <Button
-                  v-if="activeTab !== 'elements'"
-                  type="link"
-                  size="small"
-                  :loading="generatingId === String(item.id)"
-                  @click="
-                    generateImage(
-                      item,
-                      activeTab === 'characters' ? 'character' : 'scene',
-                    )
-                  "
-                >
-                  {{ item.hasImage ? '重新生成形象' : '生成形象' }}
-                </Button>
-              </div>
-            </Card>
-          </div>
+            一键补图
+          </Button>
+          <span v-if="batchRunning" class="asset-graph__progress">
+            {{ batchDone }}/{{ batchTotal }}
+          </span>
         </div>
       </div>
-    </Spin>
+
+      <div class="asset-graph__tabs">
+        <button
+          v-for="tab in TABS"
+          :key="tab.key"
+          type="button"
+          class="asset-graph__tab"
+          :class="{ 'is-on': activeTab === tab.key }"
+          @click="activeTab = tab.key"
+        >
+          {{ tab.label }}
+          <span>{{ graph?.[tab.key]?.length ?? 0 }}</span>
+        </button>
+      </div>
+
+      <div v-if="activeTab === 'characters'" class="asset-graph__filters">
+        <button
+          v-for="filter in characterTypeFilters"
+          :key="String(filter.value)"
+          type="button"
+          class="asset-filter"
+          :class="{ 'is-on': characterFilter === filter.value }"
+          @click="characterFilter = filter.value"
+        >
+          {{ filter.label }}
+          <span>{{ characterTypeCount(filter.value) }}</span>
+        </button>
+      </div>
+
+      <div ref="scrollEl" class="asset-graph__scroll">
+        <Empty
+          v-if="!items.length"
+          :image="Empty.PRESENTED_IMAGE_SIMPLE"
+          description="还没有设定资产；先「初始化 / 重新提炼设定」"
+        />
+        <div v-else class="asset-graph__grid">
+          <Card v-for="item in pagedItems" :key="item.id" size="small" class="asset-card">
+            <div class="asset-card__hd">
+              <span class="asset-card__thumb">
+                <Image
+                  v-if="itemImage(item)"
+                  :preview="false"
+                  :src="itemImage(item)"
+                />
+                <template v-else>{{ item.name.slice(0, 1) }}</template>
+              </span>
+              <div class="asset-card__name">
+                <b>{{ item.name }}</b>
+                <span>{{ itemMeta(item) }}</span>
+              </div>
+              <Tag
+                :bordered="false"
+                :color="statusTag(item).color"
+              >
+                {{ statusTag(item).text }}
+              </Tag>
+            </div>
+            <div v-if="!item.visualPrompt && activeTab !== 'elements'" class="asset-card__warn">
+              <Tag :bordered="false" color="orange">缺提示词</Tag>
+            </div>
+            <p class="asset-card__desc">{{ item.description || '暂无描述' }}</p>
+            <p v-if="isExtra(item)" class="asset-card__hint">
+              群演可不生成形象，关键帧将用场景图 + 文字生成
+            </p>
+            <div class="asset-card__foot">
+              <span class="asset-card__usage">
+                {{ (item as any).episodeIds?.length ? `出现在 ${(item as any).episodeIds.length} 集` : '未关联分集' }}
+              </span>
+              <Button
+                type="link"
+                size="small"
+                @click="
+                  openEdit(
+                    item,
+                    activeTab === 'characters'
+                      ? 'character'
+                      : activeTab === 'scenes'
+                        ? 'scene'
+                        : 'element',
+                  )
+                "
+              >
+                编辑设定
+              </Button>
+              <Button
+                v-if="activeTab !== 'elements'"
+                type="link"
+                size="small"
+                :loading="generatingId === String(item.id)"
+                @click="
+                  generateImage(
+                    item,
+                    activeTab === 'characters' ? 'character' : 'scene',
+                  )
+                "
+              >
+                {{ item.hasImage ? '重新生成形象' : isExtra(item) ? '生成群演形象' : '生成形象' }}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      <div v-if="items.length" class="asset-graph__pager">
+        <Pagination
+          :current="currentPage"
+          :page-size="pageSize"
+          :page-size-options="PAGE_SIZE_OPTIONS.map(String)"
+          show-size-changer
+          :show-total="(total: number) => `共 ${total} 个资产`"
+          :total="items.length"
+          @change="onPageChange"
+        />
+      </div>
+
+      <div v-if="loading" class="asset-graph__loading">
+        <Spin />
+      </div>
+    </div>
   </Drawer>
 
   <AssetEditDrawer @success="load" />
@@ -359,11 +479,23 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
 <style scoped lang="scss">
 .asset-graph {
+  position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 12px;
   height: 100%;
   min-height: 0;
+}
+
+.asset-graph__loading {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, hsl(var(--card)) 65%, transparent);
 }
 
 .asset-graph__readiness {
@@ -430,6 +562,44 @@ const [Drawer, drawerApi] = useVbenDrawer({
   overflow-y: auto;
 }
 
+/* 与素材库分页一致：右对齐、无分割线，与列表留 16px 间距 */
+.asset-graph__pager {
+  display: flex;
+  flex: none;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.asset-graph__filters {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.asset-filter {
+  padding: 3px 10px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  background: hsl(var(--accent));
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  span {
+    margin-left: 4px;
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
+  &.is-on {
+    font-weight: 600;
+    color: hsl(var(--primary));
+    background: color-mix(in srgb, hsl(var(--primary)) 10%, transparent);
+    border-color: color-mix(in srgb, hsl(var(--primary)) 35%, transparent);
+  }
+}
+
 .asset-graph__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -492,6 +662,13 @@ const [Drawer, drawerApi] = useVbenDrawer({
     color: hsl(var(--muted-foreground));
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+  }
+
+  &__hint {
+    margin: 0 0 8px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
   }
 
   &__foot {

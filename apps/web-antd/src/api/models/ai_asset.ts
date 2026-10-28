@@ -201,6 +201,8 @@ export interface CharacterItem {
   name?: string;
   avatarUrl?: string;
   prompt?: string;
+  /** 角色类型：0 主角 / 1 配角 / 2 反派 / 3 群演 / 4 功能性角色 */
+  characterType?: number;
   consistencyAnchor?: null | Record<string, any>;
   createTime?: string;
 }
@@ -265,6 +267,10 @@ export interface EpisodeItem {
   hasMemory?: boolean;
   /** 乐观锁版本号 */
   version?: number;
+  /** 成片素材 ID（后端可能回填，用于成片地址兼容回查） */
+  finalMaterialId?: number | string;
+  /** 成片直链（后端可能回填，优先使用） */
+  finalUrl?: string;
   createTime?: string;
 }
 
@@ -476,10 +482,110 @@ export interface StoryboardGenerateRequest {
   style?: string;
 }
 
+export interface StoryboardBindingCharacterGroup {
+  bound: number;
+  total: number;
+  unmatched: string[];
+}
+
+export interface StoryboardBindingCharacterStat
+  extends StoryboardBindingCharacterGroup {
+  /** 群演分组（后端按 characterType 返回；缺省时前端用资产图谱兜底拆分） */
+  extra?: StoryboardBindingCharacterGroup;
+  /** 主要角色分组（主角/配角/反派/功能性） */
+  main?: StoryboardBindingCharacterGroup;
+}
+
+export interface StoryboardBindingSceneStat {
+  bound: number;
+  total: number;
+  unmatched: Array<{ heading?: string; sceneSeq: number }>;
+}
+
+/** 分镜生成后的资产绑定报告（后端未就绪时可能为空） */
+export interface StoryboardBindingReport {
+  characters: StoryboardBindingCharacterStat;
+  scenes: StoryboardBindingSceneStat;
+  shotsMissingCharacter?: Array<{
+    characters: string[];
+    seq?: number;
+    shotId: number | string;
+  }>;
+  shotsMissingScene?: Array<{
+    sceneSeq: number;
+    seq?: number;
+    shotId: number | string;
+  }>;
+}
+
 export interface StoryboardGenerateResult {
+  binding?: StoryboardBindingReport;
   episodeId: number | string;
   shotCount: number;
   shots: ShotItem[];
+}
+
+/** 批量生成目标：关键帧 / 视频 */
+export type StoryboardBatchTarget = 'keyframe' | 'video';
+/** 批量生成范围：补新 / 重生成（资产已更新） */
+export type StoryboardBatchMode = 'new' | 'stale';
+
+export interface StoryboardBatchPlanQuery {
+  episodeId: number | string;
+  mode: StoryboardBatchMode;
+  target: StoryboardBatchTarget;
+}
+
+export interface StoryboardBatchPlanItem {
+  seq: number;
+  shotId: number | string;
+}
+
+export interface StoryboardBatchSkippedItem extends StoryboardBatchPlanItem {
+  /** blank_unconfirmed / character_unbound / no_keyframe / already_has_image / already_has_video / generating / not_person_shot / scene_unbound */
+  reason: string;
+}
+
+/** 批量生成计划：eligible/skipped 由后端规则决定，前端不重算 eligibility */
+export interface StoryboardBatchPlan {
+  eligible: StoryboardBatchPlanItem[];
+  mode: StoryboardBatchMode;
+  skipped: StoryboardBatchSkippedItem[];
+  target: StoryboardBatchTarget;
+}
+
+/** 提交后端批量任务（立即返回，生成在 Kafka 批次任务里异步执行） */
+export interface StoryboardBatchSubmitRequest {
+  duration?: null | number;
+  episodeId: number | string;
+  mode: StoryboardBatchMode;
+  modelId?: null | number | string;
+  target: StoryboardBatchTarget;
+}
+
+export interface StoryboardBatchSubmitResult {
+  episodeId: number | string;
+  /** 同分集同 target 已有活动任务时为 true，并返回旧 taskId */
+  existing: boolean;
+  mode: StoryboardBatchMode;
+  optionType: string;
+  /** 仅 submit 返回；不进任务总数 */
+  skipped: StoryboardBatchSkippedItem[];
+  target: StoryboardBatchTarget;
+  taskId: number | string;
+  totalCount: number;
+}
+
+/** 页面恢复：当前分集某 target 的活动批次（无任务时后端返回 null） */
+export interface StoryboardBatchActiveResult {
+  failedCount: number;
+  optionType: string;
+  pendingCount: number;
+  progressPercent: number;
+  successCount: number;
+  taskId: number | string;
+  taskStatus: number;
+  totalCount: number;
 }
 
 export interface ShotImageGenerateRequest {
@@ -500,8 +606,12 @@ export interface StoryboardIssue {
 }
 
 export interface StoryboardValidateResult {
+  /** 成片就绪（全部镜头有视频）；后端未部署时前端按分镜数据兜底 */
+  composeReady?: boolean;
   episodeId: number | string;
   issues: StoryboardIssue[];
+  /** 缺视频的镜头 seq（后端未返回时前端按镜头兜底） */
+  missingVideoSeqs?: number[];
   passed: boolean;
 }
 
@@ -542,6 +652,8 @@ export interface NovelAssetBase {
 export interface NovelCharacterAsset extends NovelAssetBase {
   appearance?: string;
   avatarUrl?: string;
+  /** 角色类型：0 主角 / 1 配角 / 2 反派 / 3 群演 / 4 功能性角色 */
+  characterType?: number;
   consistencyAnchor?: Record<string, any>;
   episodeIds?: Array<number | string>;
   prompt?: string;
@@ -598,8 +710,57 @@ export interface AssetImageGenerateResult {
 }
 
 export interface EpisodeSceneBindRequest {
+  applyToShots?: boolean;
   episodeId: number | string;
   mappings: Array<{ sceneId: number | string; sceneSeq: number }>;
+}
+
+export interface EpisodeCharacterBindRequest {
+  applyToShots?: boolean;
+  episodeId: number | string;
+  mappings: Array<{ characterId: number | string; name: string }>;
+}
+
+export interface EpisodeBindResult {
+  affectedShots?: number;
+  /** 按场套用分镜时，跳过已单独绑定场景的镜头数（后端只填空，不覆盖） */
+  skippedBoundShots?: number;
+  /** 不在 episode.scenes 中的场次（仅写入镜头，重新生成分镜后失效） */
+  episodeUnpersisted?: Array<number | string> | number | string;
+  [key: string]: any;
+}
+
+/** 成片合成请求（P1 纯拼接，不含字幕与配音） */
+export interface EpisodeComposeRequest {
+  bgmMaterialId?: number | string;
+  burnSubtitle?: boolean;
+  episodeId: number | string;
+  resolution?: string;
+}
+
+/** 成片合成状态：0 排队 / 1 合成中 / 2 成功 / 3 失败（与后端 AiAssetComposeStatus 一致） */
+export interface EpisodeComposeStatus {
+  durationSeconds?: number;
+  episodeId?: number | string;
+  errorMsg?: string;
+  finalMaterialId?: number | string;
+  finalUrl?: string;
+  progress?: number;
+  /** 分辨率（后端字段待确认，缺省时不展示） */
+  resolution?: string;
+  /** 本集镜头数（后端状态接口返回） */
+  shotCount?: number;
+  status: number;
+  taskId?: number | string;
+  /** 成片封面（后端字段待确认，缺省时用视频首帧） */
+  thumbnailUrl?: string;
+}
+
+/** 合成预检失败时后端返回的缺失镜头 */
+export interface EpisodeComposeMissingShot {
+  reason?: string;
+  seq?: number;
+  shotId: number | string;
 }
 
 /** 写作工具参数字段 */
@@ -756,6 +917,8 @@ export interface CharacterSaveRequest {
   attributes?: Record<string, any>;
   appearanceTags?: Record<string, any>;
   avatarUrl?: string;
+  /** 角色类型：0 主角 / 1 配角 / 2 反派 / 3 群演 / 4 功能性角色 */
+  characterType?: number;
   consistencyAnchor?: Record<string, any>;
   description?: string;
   id?: number | string;
@@ -771,6 +934,8 @@ export interface SceneSaveRequest {
   id?: number | string;
   location?: string;
   name: string;
+  /** 归属小说（新建小说场景资产时必传，保证进入 asset/graph） */
+  novelId?: number | string;
   refUrl?: string;
   sceneTags?: Record<string, any>;
   visualPrompt?: string;

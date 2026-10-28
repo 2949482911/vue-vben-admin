@@ -68,6 +68,10 @@ export const BatchOperationType = {
   ADD_PROMOTION: 'add_promotion',
   UPDATE_PROMOTION_STATUS: 'update_promotion_status',
   UPDATE_PROMOTION_MONITOR_URL: 'update_promotion_monitor_url',
+  // AI 素材分镜批量任务（platform=system / biz_type=ai_asset），任务中心与进度页共用文案
+  AI_ASSET_KEYFRAME_NEW: 'ai_shot_keyframe',
+  AI_ASSET_VIDEO_NEW: 'ai_shot_video',
+  AI_ASSET_KEYFRAME_STALE: 'ai_shot_keyframe_stale',
 } as const;
 export type BatchOperationType = (typeof BatchOperationType)[keyof typeof BatchOperationType];
 
@@ -104,6 +108,12 @@ export const BATCH_OPERATION_LABEL_KEYS: Record<BatchOperationType, string> = {
     'marketing.promotionManager.optionTypes.updatePromotionStatus',
   [BatchOperationType.UPDATE_PROMOTION_MONITOR_URL]:
     'marketing.promotionManager.optionTypes.updatePromotionMonitorUrl',
+  [BatchOperationType.AI_ASSET_KEYFRAME_NEW]:
+    'marketing.promotionManager.optionTypes.aiAssetKeyframeNew',
+  [BatchOperationType.AI_ASSET_VIDEO_NEW]:
+    'marketing.promotionManager.optionTypes.aiAssetVideoNew',
+  [BatchOperationType.AI_ASSET_KEYFRAME_STALE]:
+    'marketing.promotionManager.optionTypes.aiAssetKeyframeStale',
 };
 
 // ==================== 操作类型 → 「全部应用」提示 i18n key ====================

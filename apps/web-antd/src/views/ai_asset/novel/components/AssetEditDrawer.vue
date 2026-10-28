@@ -1,4 +1,9 @@
 <script lang="ts" setup name="AssetEditDrawer">
+/**
+ * 设定编辑抽屉：由资产图谱抽屉「编辑设定」打开，处于资产准备 → 分镜生成之前。
+ * 角色在此维护外观标签、一致性锚点与 visualPrompt；群演允许不出形象，不强制身高/年龄。
+ * 保存走 character|scene|element save，可选保存后立即提交形象生成。
+ */
 import type {
   NovelCharacterAsset,
   NovelElementAsset,
@@ -14,6 +19,7 @@ import { Button, Input, message, Select } from 'ant-design-vue';
 
 import { aiAssetApi } from '#/api';
 
+import { CHARACTER_TYPE_EXTRA, CHARACTER_TYPE_OPTIONS } from '../characterTypes';
 import { useAssetTagDicts } from '../useAssetTagDicts';
 import TagDimensionChips from './TagDimensionChips.vue';
 
@@ -32,6 +38,7 @@ const original = ref<AssetItem>();
 
 const form = reactive({
   appearance: '',
+  characterType: 0,
   description: '',
   elementType: 'prop',
   id: '' as number | string,
@@ -57,6 +64,11 @@ const dimensions = computed(() =>
   assetType.value === 'character'
     ? characterDimensions
     : sceneDimensions,
+);
+
+/** 群演不指定具体面容，隐藏身高/年龄等强一致项，允许不出形象 */
+const isExtraCharacter = computed(
+  () => assetType.value === 'character' && form.characterType === CHARACTER_TYPE_EXTRA,
 );
 
 const elementTypeOptions = computed(() => {
@@ -153,6 +165,7 @@ function fill(item: AssetItem) {
   const element = item as NovelElementAsset;
   Object.assign(form, {
     appearance: character.appearance ?? '',
+    characterType: character.characterType ?? 0,
     description: item.description ?? '',
     elementType: element.elementType ?? 'prop',
     id: item.id,
@@ -188,6 +201,7 @@ async function save(generateAfter = false) {
           ...(source?.attributes ?? {}),
           role: form.role || undefined,
         },
+        characterType: form.characterType,
         consistencyAnchor: {
           ...(source?.consistencyAnchor ?? {}),
           age: anchor.age || undefined,
@@ -244,6 +258,7 @@ async function save(generateAfter = false) {
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[760px]',
   contentClass: 'flex min-h-0 flex-col gap-3 p-3',
+  closeOnPressEscape: true,
   onConfirm: () => save(false),
   async onOpenChange(open) {
     if (!open) {
@@ -278,6 +293,13 @@ const [Drawer, drawerApi] = useVbenDrawer({
         <label>
           <span>名称</span>
           <Input v-model:value="form.name" />
+        </label>
+        <label v-if="assetType === 'character'">
+          <span>角色类型</span>
+          <Select
+            v-model:value="form.characterType"
+            :options="CHARACTER_TYPE_OPTIONS"
+          />
         </label>
         <label v-if="assetType === 'character'">
           <span>身份</span>
@@ -337,11 +359,11 @@ const [Drawer, drawerApi] = useVbenDrawer({
             <span>特征</span>
             <Input v-model:value="anchor.features" @input="anchorManual = true" />
           </label>
-          <label>
+          <label v-if="!isExtraCharacter">
             <span>身高</span>
             <Input v-model:value="anchor.height" @input="anchorManual = true" />
           </label>
-          <label>
+          <label v-if="!isExtraCharacter">
             <span>年龄</span>
             <Input v-model:value="anchor.age" @input="anchorManual = true" />
           </label>
@@ -360,6 +382,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
           :rows="4"
           @input="promptManual = true"
         />
+        <span v-if="isExtraCharacter" class="asset-edit__hint">
+          群像不设具体面容；未生成群演形象时，关键帧将用场景图 + 此提示词生成。
+        </span>
       </label>
 
       <div class="asset-edit__actions">
@@ -419,6 +444,12 @@ const [Drawer, drawerApi] = useVbenDrawer({
     align-items: center;
     justify-content: space-between;
     width: 100%;
+  }
+
+  &__hint {
+    font-size: 12px;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
   }
 
   &__actions {
