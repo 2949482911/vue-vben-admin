@@ -5,6 +5,8 @@
  * 主要接口：episode/*（详情、生成、绑定、compose）、storyboard/*、shot/*、novel/asset/graph。
  */
 import type {
+  AiContextConflict,
+  AiReferenceSource,
   EntityExtractResult,
   EpisodeAiIssue,
   EpisodeComposeMissingShot,
@@ -13,7 +15,10 @@ import type {
   EpisodePlanResponse,
   EpisodeSaveRequest,
   EpisodeVersionItem,
+  MediaRef,
   NovelDetailItem,
+  NovelMemoryOverview,
+  SegmentItem,
   ShotItem,
   StoryboardBatchActiveResult,
   StoryboardBatchMode,
@@ -25,11 +30,14 @@ import type {
   StoryboardIssue,
   StoryboardValidateResult,
 } from '#/api/models/ai_asset';
+import type { ModelCapabilities, ModelCapabilityCheck } from '#/api/models/ai_model';
 import type { TaskBatchCenterDetailItem } from '#/api/models/marketing';
 import type { RefAsset } from '#/views/ai_asset/studio/constants';
 
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
+import { useAccess } from '@vben/access';
 import { useVbenDrawer } from '@vben/common-ui';
 import { VbenTiptap } from '@vben/plugins/tiptap';
 
@@ -73,20 +81,36 @@ import {
   Select,
   Space,
   Spin,
+  Switch,
   Tag,
+  Tooltip,
 } from 'ant-design-vue';
 
-import { aiAssetApi, taskCenterApi } from '#/api';
+import { aiAssetApi, aiModelApi, taskCenterApi } from '#/api';
 
 import RefPickerDrawer from '../../studio/components/RefPickerDrawer.vue';
 import { isExtraCharacter } from '../characterTypes';
 import AssetGraphDrawerContent from './AssetGraphDrawer.vue';
+import ChapterMemoryDrawer from './ChapterMemoryDrawer.vue';
+import ContinuousPreviewModal from './ContinuousPreviewModal.vue';
+import DirectorPlanModal from './DirectorPlanModal.vue';
+import NovelMemoryDrawer from './NovelMemoryDrawer.vue';
+import SegmentReferenceModal from './SegmentReferenceModal.vue';
 
 const props = defineProps<{
   models: Array<{ label: string; value: number | string }>;
   novelId: number | string;
 }>();
 const emit = defineEmits<{ back: [] }>();
+
+const router = useRouter();
+const { hasAccessByRoles } = useAccess();
+/** 模型管理只对超级管理员开放入口，无权限时不渲染跳转 */
+const canManageModel = computed(() => hasAccessByRoles(['1']));
+
+function goModelConfig() {
+  void router.push('/system/model');
+}
 
 type TabKey = 'content' | 'script' | 'storyboard' | 'summary';
 type AiAction =
@@ -172,9 +196,18 @@ const saving = ref(false);
 const savedAt = ref('');
 const aiLoading = ref<AiAction>();
 const issues = ref<EpisodeAiIssue[]>([]);
-const memoryLoading = ref(false);
-const memoryPending = ref(false);
-const memoryStale = ref(false);
+const memoryOverview = ref<NovelMemoryOverview>();
+const chapterMemoryOpen = ref(false);
+const novelMemoryOpen = ref(false);
+const finalizing = ref(false);
+const aiReferences = ref<AiReferenceSource>();
+const aiConflicts = ref<AiContextConflict[]>([]);
+const aiStaleEpisodes = ref<number[]>([]);
+const showAiReferences = ref(false);
+const planReferences = ref<AiReferenceSource>();
+const planConflicts = ref<AiContextConflict[]>([]);
+const planStaleEpisodes = ref<number[]>([]);
+const showPlanReferences = ref(false);
 const extractLoading = ref(false);
 const extractOpen = ref(false);
 const extractResult = ref<EntityExtractResult>();
@@ -190,12 +223,37 @@ const validationResult = ref<StoryboardValidateResult>();
 const validationWarningsOpen = ref(false);
 const keyframeGenerating = ref<string>();
 
+// ==================== 段落 / 导演规划 / 模型能力（P1） ====================
+const segments = ref<SegmentItem[]>([]);
+const segmentsLoading = ref(false);
+/** segments 接口返回且非空才启用三层视图；否则回退平铺镜头 */
+const segmentsAvailable = ref(false);
+const flatView = ref(false);
+const expandedScenes = ref<number[]>([]);
+const expandedSegments = ref<string[]>([]);
+const segmentGeneratingId = ref<string>();
+/** segment/save 返回的 capabilityWarning，按段落 id 展示黄色提示条 */
+const segmentRuntimeWarnings = ref<Record<string, string>>({});
+const segmentRefOpen = ref(false);
+const segmentRefTarget = ref<SegmentItem>();
+const segmentRefSubmitting = ref(false);
+const shotRefOpen = ref(false);
+const shotRefTarget = ref<ShotItem>();
+const shotRefSubmitting = ref(false);
+const previewOpen = ref(false);
+const previewSceneSeq = ref<number>();
+const videoModels = ref<
+  Array<{
+    capabilities?: ModelCapabilities;
+    label: string;
+    value: number | string;
+  }>
+>([]);
+const videoModelId = ref<number | string>();
+/** 后端能力自检结果（含 configured 与 rawCapabilities），优先于模型列表里的 capabilities */
+const capabilityCheck = ref<ModelCapabilityCheck>();
+
 // ==================== 分镜批量生成（后端批次任务） ====================
-/**
- * 默认走后端批次任务；接口异常需要回退时改为 false，
- * 会切到下方本地执行器（并发 2 逐镜提交），两者不会同时运行。
- */
-const USE_SERVER_BATCH = true;
 const BATCH_SKIP_REASON_LABELS: Record<string, string> = {
   already_has_image: '已有图片',
   already_has_video: '已有视频',
@@ -208,6 +266,7 @@ const BATCH_SKIP_REASON_LABELS: Record<string, string> = {
   scene_unbound: '场景未绑定',
 };
 const BATCH_TASK_OPTION_LABELS: Record<string, string> = {
+  ai_asset_image: '批量资产补图',
   ai_shot_keyframe: '批量生成关键帧',
   ai_shot_keyframe_stale: '批量重生成关键帧',
   ai_shot_video: '批量生成视频',
@@ -244,6 +303,9 @@ const batchPlanLoading = ref(false);
 const batchPlanLoadingTarget = ref<string>();
 const batchSubmitting = ref(false);
 const batchShowSkipped = ref(false);
+/** 单镜模式下「生成全部镜头」只针对该段：scope 仅用于前端过滤与 submit 预留字段 */
+const batchScopeSegmentId = ref<string>();
+const batchScopeSegmentSeq = ref<number>();
 /** 后端批次任务状态：进入分镜页按 active 恢复，提交后按 taskId 轮询 */
 const batchTasks = ref<BatchTaskState[]>([]);
 const batchTaskTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -252,20 +314,7 @@ const batchTaskPollFails = new Map<string, number>();
 const batchExpandedIds = ref<string[]>([]);
 const batchFailuresExpandedIds = ref<string[]>([]);
 
-// ---- 本地执行器：仅 USE_SERVER_BATCH=false 时使用（备用路径） ----
-const localBatchRunning = ref(false);
-const localBatchTarget = ref<StoryboardBatchTarget>('keyframe');
-const localBatchTotal = ref(0);
-const localBatchDone = ref(0);
-const localBatchSuccess = ref(0);
-const localBatchFailed = ref(0);
-const localBatchFailures = ref<
-  Array<{ message: string; seq: number; shotId: number | string }>
->([]);
-let localBatchToken = 0;
-
-const promptOpen = ref(false);
-const promptSaving = ref(false);
+const promptOpen = ref(false);const promptSaving = ref(false);
 const promptForm = reactive({
   camera: '',
   description: '',
@@ -286,6 +335,22 @@ const [ShotMaterialDrawer, shotDrawerApi] = useVbenDrawer({
 const [AssetGraphDrawer, assetGraphApi] = useVbenDrawer({
   connectedComponent: AssetGraphDrawerContent,
 });
+
+const [DirectorPlanDrawer, directorPlanApi] = useVbenDrawer({
+  connectedComponent: DirectorPlanModal,
+});
+
+/** 打开导演规划：优先带 episode.config 里的已保存规划，抽屉内再拉一次后端 */
+function openDirectorPlan() {
+  directorPlanApi.setData({
+    episodeId: episode.value?.id,
+    initialPlan:
+      episode.value?.config?.directorPlan ?? episode.value?.config,
+    maxDurationSeconds: maxSegmentDuration.value,
+    modelId: videoModelId.value,
+  });
+  directorPlanApi.open();
+}
 
 function openAssetGraph() {
   assetGraphApi.setData({ novelId: props.novelId });
@@ -361,6 +426,103 @@ const stats = computed(() => {
   const scripts = episodes.value.filter((item) => item.script).length;
   return { total, scripts, progress: total ? Math.round((scripts / total) * 100) : 0 };
 });
+
+const MEMORY_STATUS_META: Record<number, { color: string; label: string }> = {
+  0: { color: 'default', label: '记忆未生成' },
+  1: { color: 'blue', label: '记忆生成中' },
+  2: { color: 'green', label: '记忆成功' },
+  3: { color: 'orange', label: '记忆已过期' },
+  4: { color: 'red', label: '记忆生成失败' },
+};
+
+/** 记忆状态唯一来源：后端 memory_status */
+function memoryStatusOf(item: EpisodeItem) {
+  // 记忆状态只认后端 memory_status 一套元数据
+  return item.memoryStatus ?? 0;
+}
+
+function memoryStatusLabel(item: EpisodeItem) {
+  return MEMORY_STATUS_META[memoryStatusOf(item)]?.label ?? '记忆状态未知';
+}
+
+function memoryDotClass(item: EpisodeItem) {
+  return `is-${memoryStatusOf(item)}`;
+}
+
+const aiHardConflicts = computed(() =>
+  aiConflicts.value.filter((item) => item.level === 'error'),
+);
+const planHardConflicts = computed(() =>
+  planConflicts.value.filter((item) => item.level === 'error'),
+);
+const hasAiReferencePanel = computed(
+  () =>
+    Boolean(aiReferences.value) ||
+    aiConflicts.value.length > 0 ||
+    aiStaleEpisodes.value.length > 0,
+);
+const hasPlanReferencePanel = computed(
+  () =>
+    Boolean(planReferences.value) ||
+    planConflicts.value.length > 0 ||
+    planStaleEpisodes.value.length > 0,
+);
+
+function referenceSummary(refs?: AiReferenceSource) {
+  if (!refs) {
+    return '';
+  }
+  const parts: string[] = [];
+  if (refs.episodes?.length) {
+    parts.push(`引用第 ${refs.episodes.join('、')} 集`);
+  }
+  if (refs.volumeNo) {
+    parts.push(`第 ${refs.volumeNo} 卷摘要`);
+  }
+  if (refs.storyBible) {
+    parts.push('Story Bible');
+  }
+  if (refs.foreshadows?.length) {
+    parts.push(`${refs.foreshadows.length} 条伏笔`);
+  }
+  return parts.join(' · ');
+}
+
+function staleEpisodeSeqs(seqs?: Array<number | string>) {
+  const candidates =
+    seqs?.length
+      ? seqs
+      : episodes.value
+          .filter(
+            (item) =>
+              Number(item.seq ?? 0) < Number(episode.value?.seq ?? 0) &&
+              Number(item.seq ?? 0) >=
+                Number(episode.value?.seq ?? 0) - 3,
+          )
+          .map((item) => item.seq ?? 0);
+  return candidates
+    .filter((seq) => {
+      const target = episodes.value.find(
+        (item) => Number(item.seq) === Number(seq),
+      );
+      if (!target) {
+        return false;
+      }
+      const status = memoryStatusOf(target);
+      return status === 3 || status === 4;
+    })
+    .map((seq) => Number(seq));
+}
+
+async function loadMemoryOverview() {
+  try {
+    memoryOverview.value = await aiAssetApi.fetchNovelMemoryOverview(
+      props.novelId,
+    );
+  } catch {
+    // 概览接口未就绪时隐藏顶部记忆条
+  }
+}
 
 const characterBindStat = computed(
   () => bindingReport.value?.characters ?? { bound: 0, total: 0, unmatched: [] },
@@ -517,15 +679,35 @@ const composePlayable = computed(
   () => composeDone.value && Boolean(composeStatus.value?.finalUrl),
 );
 
-/** 前端兜底：没有 videoMaterialId/hasVideo 的镜头视为缺视频 */
+/**
+ * 前端兜底缺视频列表（无段落时看镜头）。
+ * 有段落时只看段落视频，不把镜头级缺视频当阻断。
+ */
 const localMissingVideoSeqs = computed(() =>
   shots.value
     .filter((shot) => !shot.videoMaterialId && !shot.hasVideo)
-    .map((shot) => Number(shot.seq ?? shot.id)),
+    .map((shot) => Number(shot.seq ?? shot.id))
+    .sort((a, b) => a - b),
 );
-const composeReady = computed(
-  () => shots.value.length > 0 && localMissingVideoSeqs.value.length === 0,
+const localMissingSegmentSeqs = computed(() =>
+  segments.value
+    .filter((segment) => !segmentComposeReady(segment))
+    .map((segment) => Number(segment.seq))
+    .sort((a, b) => a - b),
 );
+
+/** 成片就绪：有段落只看段落；完全无段落才看镜头（all-or-nothing，不静默回退） */
+const composeReady = computed(() => {
+  if (segments.value.length) {
+    return localMissingSegmentSeqs.value.length === 0;
+  }
+  if (!shots.value.length) {
+    return false;
+  }
+  return shots.value.every(
+    (shot) => Boolean(shot.videoMaterialId || shot.hasVideo),
+  );
+});
 
 const validationErrors = computed(
   () =>
@@ -539,20 +721,39 @@ const validationWarnings = computed(
       (issue) => issue.level !== 'error',
     ) ?? [],
 );
-/** 一致性≠成片就绪：composeReady 后端未返回时按镜头视频状态兜底 */
+/** 一致性≠成片就绪：有段落只看段落，无段落按镜头兜底 */
 const validationComposeReady = computed(() => {
   const value = validationResult.value?.composeReady;
   return typeof value === 'boolean' ? value : composeReady.value;
 });
+const validationHasSegments = computed(() => segments.value.length > 0);
+const validationMissingSegmentSeqs = computed(() => {
+  if (!validationHasSegments.value) {
+    return [];
+  }
+  const value = validationResult.value?.missingSegmentSeqs;
+  return Array.isArray(value) ? value : localMissingSegmentSeqs.value;
+});
 const validationMissingVideoSeqs = computed(() => {
+  if (validationHasSegments.value) {
+    return [];
+  }
   const value = validationResult.value?.missingVideoSeqs;
   return Array.isArray(value) ? value : localMissingVideoSeqs.value;
 });
+const validationMissingSeqs = computed(() =>
+  validationHasSegments.value
+    ? validationMissingSegmentSeqs.value
+    : validationMissingVideoSeqs.value,
+);
+const validationMissingUnit = computed(() =>
+  validationHasSegments.value ? '段' : '镜',
+);
 const missingVideoPreview = computed(() =>
-  validationMissingVideoSeqs.value.slice(0, 20),
+  validationMissingSeqs.value.slice(0, 20),
 );
 const missingVideoExtra = computed(() =>
-  Math.max(0, validationMissingVideoSeqs.value.length - 20),
+  Math.max(0, validationMissingSeqs.value.length - 20),
 );
 
 /** 任务是否仍在执行：1 待处理 / 2 处理中 */
@@ -582,25 +783,15 @@ const videoTask = computed(() =>
     (task) => task.target === 'video' && isBatchTaskRunning(task.batchTaskStatus),
   ),
 );
-/** 合并本地备用执行器状态：开关关闭时同样锁住入口与单镜按钮 */
-const keyframeBusy = computed(
-  () =>
-    keyframeTaskBusy.value ||
-    (localBatchRunning.value && localBatchTarget.value === 'keyframe'),
-);
-const videoBusy = computed(
-  () =>
-    videoTaskBusy.value ||
-    (localBatchRunning.value && localBatchTarget.value === 'video'),
-);
-const localBatchPercent = computed(() =>
-  localBatchTotal.value
-    ? Math.round((localBatchDone.value / localBatchTotal.value) * 100)
-    : 0,
-);
+/** 批量任务按 target 锁住入口与单镜按钮 */
+const keyframeBusy = computed(() => keyframeTaskBusy.value);
+const videoBusy = computed(() => videoTaskBusy.value);
 const batchTitle = computed(() => {
   const action = batchMode.value === 'stale' ? '批量重生成' : '批量生成';
-  return `${action}${batchTarget.value === 'keyframe' ? '关键帧' : '视频'}`;
+  const scope = batchScopeSegmentSeq.value
+    ? `（第 ${batchScopeSegmentSeq.value} 段）`
+    : '';
+  return `${action}${batchTarget.value === 'keyframe' ? '关键帧' : '视频'}${scope}`;
 });
 /** 跳过原因聚合：确认框里按原因给出数量，避免 20 条逐条看 */
 const batchSkipSummary = computed(() => {
@@ -615,10 +806,10 @@ const batchSkipSummary = computed(() => {
   }));
 });
 const keyframeEstimate = computed(
-  () => localBatchPlan('keyframe', 'new').eligible.length,
+  () => localPlanFallback('keyframe', 'new').eligible.length,
 );
 const videoEstimate = computed(
-  () => localBatchPlan('video', 'new').eligible.length,
+  () => localPlanFallback('video', 'new').eligible.length,
 );
 /** 分镜里若带过模型名就展示；没有则明确写默认模型，不猜具体模型 */
 const batchModelLabel = computed(() => {
@@ -653,6 +844,22 @@ const batchReq = ref('');
 const ideaOpen = ref(false);
 const ideaText = ref('');
 
+/** 空章续写引导 + 后端上下文提示 */
+const continueGuideOpen = ref(false);
+const continueGuideInstruction = ref<string>();
+const aiHint = ref('');
+const aiHistoryEpisodes = ref<Array<number | string>>([]);
+const aiContextNotice = computed(() => {
+  const parts: string[] = [];
+  if (aiHint.value) {
+    parts.push(aiHint.value);
+  }
+  if (aiHistoryEpisodes.value.length) {
+    parts.push(`已承接第 ${aiHistoryEpisodes.value.join('、')} 集结尾`);
+  }
+  return parts.join(' ');
+});
+
 watch(
   () => props.models,
   (list) => {
@@ -665,6 +872,7 @@ watch(
 
 async function load() {
   loading.value = true;
+  void loadMemoryOverview();
   try {
     const [detail, page] = await Promise.all([
       aiAssetApi.fetchNovelDetail(props.novelId),
@@ -710,7 +918,10 @@ function syncFromEpisode(item: EpisodeItem) {
   dirty.value = false;
   savedAt.value = '';
   lastSavedContent = draft.value;
-  memoryStale.value = false;
+  aiHint.value = '';
+  aiHistoryEpisodes.value = [];
+  continueGuideOpen.value = false;
+  continueGuideInstruction.value = undefined;
   syncEditor();
 }
 
@@ -740,6 +951,12 @@ async function loadEpisode(item: EpisodeItem) {
   composeMissingShots.value = [];
   stopAllBatchTaskPolls();
   batchTasks.value = [];
+  segments.value = [];
+  segmentsAvailable.value = false;
+  expandedScenes.value = [];
+  expandedSegments.value = [];
+  flatView.value = false;
+  segmentGeneratingId.value = undefined;
   try {
     const detail = await aiAssetApi.fetchEpisodeDetail(item.id);
     if (detail) {
@@ -831,7 +1048,6 @@ function updateEpisodeRow(item: EpisodeItem) {
 async function saveDraft(
   saveVersion = false,
   extra: Partial<EpisodeSaveRequest> = {},
-  refreshMemory = false,
 ) {
   if (!episode.value) {
     return false;
@@ -873,10 +1089,10 @@ async function saveDraft(
     dirty.value = false;
     lastSavedContent = draft.value;
     savedAt.value = new Date().toLocaleTimeString();
-    if (contentChanged && refreshMemory && !memoryPending.value) {
-      void generateMemory(Boolean(episode.value.hasMemory));
-    } else if (contentChanged && episode.value.hasMemory) {
-      memoryStale.value = true;
+    if (contentChanged && memoryStatusOf(episode.value) > 0) {
+      // 普通保存只标过期，不自动烧 token；定稿/重建才生成记忆
+      episode.value.memoryStatus = 3;
+      updateEpisodeRow(episode.value);
     }
     return true;
   } catch (error: any) {
@@ -911,8 +1127,6 @@ onBeforeUnmount(() => {
   stopComposePoll();
   // 后端批量任务独立运行，页面卸载只停前端轮询
   stopAllBatchTaskPolls();
-  // 本地备用执行器卸载后不再继续提交
-  localBatchToken += 1;
   clearTimeout(saveTimer);
   if (dirty.value) {
     void saveDraft(false);
@@ -954,7 +1168,40 @@ function replaceSelection(selection: { end: number; start: number }, text: strin
   syncEditor();
 }
 
-async function runAi(action: AiAction, instruction?: string) {
+function editorPlainText() {
+  return draft.value
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .trim();
+}
+
+/** 第 2 集起、正文为空且没有细纲时，续写前先给一次轻引导 */
+function shouldGuideEmptyContinue() {
+  return (
+    Number(episode.value?.seq ?? 0) > 1 &&
+    !editorPlainText() &&
+    !episode.value?.summary?.trim() &&
+    !(episode.value?.beats?.length)
+  );
+}
+
+function focusPlanFromContinue() {
+  continueGuideOpen.value = false;
+  tab.value = 'summary';
+  void generatePlan();
+}
+
+async function continueAnyway() {
+  const instruction = continueGuideInstruction.value;
+  continueGuideOpen.value = false;
+  await runAi('continue', instruction, true);
+}
+
+async function runAi(
+  action: AiAction,
+  instruction?: string,
+  skipContinueGuide = false,
+) {
   if (!episode.value || !requireModel()) {
     return;
   }
@@ -963,10 +1210,25 @@ async function runAi(action: AiAction, instruction?: string) {
     message.warning('先选中要润色的文字');
     return;
   }
+  if (
+    action === 'continue' &&
+    !skipContinueGuide &&
+    shouldGuideEmptyContinue()
+  ) {
+    continueGuideInstruction.value = instruction;
+    continueGuideOpen.value = true;
+    return;
+  }
   if (!(await saveDraft(false))) {
     return;
   }
   aiLoading.value = action;
+  aiHint.value = '';
+  aiHistoryEpisodes.value = [];
+  aiReferences.value = undefined;
+  aiConflicts.value = [];
+  aiStaleEpisodes.value = [];
+  showAiReferences.value = false;
   try {
     const res = await aiAssetApi.episodeAiAction({
       action,
@@ -977,6 +1239,15 @@ async function runAi(action: AiAction, instruction?: string) {
       targetWords: action === 'continue' ? 300 : undefined,
       usePersona: true,
     });
+    aiHint.value = res.hint ?? '';
+    aiHistoryEpisodes.value = Array.isArray(res.historyEpisodes)
+      ? res.historyEpisodes
+      : [];
+    aiReferences.value = res.references;
+    aiConflicts.value = res.conflicts ?? [];
+    aiStaleEpisodes.value = staleEpisodeSeqs(
+      res.references?.episodes ?? res.historyEpisodes,
+    );
     if (res.title) {
       episode.value.title = res.title;
       updateEpisodeRow(episode.value);
@@ -1002,7 +1273,7 @@ async function runAi(action: AiAction, instruction?: string) {
     } else {
       insertText(res.text);
     }
-    await saveDraft(true, {}, true);
+    await saveDraft(true, {});
   } catch (error: any) {
     message.error(error?.message || 'AI 动作失败');
   } finally {
@@ -1095,6 +1366,8 @@ async function loadStoryboard() {
     void loadComposeStatus();
     // 场景下拉与镜头卡展示都需要场景资产名；失败不影响分镜主流程
     void ensureSceneAssets().catch(() => {});
+    void loadSegments();
+    void loadVideoModels();
   } catch (error: any) {
     if (token === storyboardToken) {
       message.error(error?.message || '加载分镜失败');
@@ -1816,6 +2089,762 @@ function sceneOf(shot: ShotItem) {
   );
 }
 
+interface SegmentSceneGroup {
+  heading: string;
+  sceneSeq: number;
+  segments: SegmentItem[];
+  shots: ShotItem[];
+  unsegmentedShots: ShotItem[];
+}
+
+type StoryboardRow =
+  | { key: string; sceneSeq: number; type: 'divider' | 'scene' }
+  | { key: string; segment: SegmentItem; type: 'segment' }
+  | { key: string; shot: ShotItem; type: 'shot' };
+
+/** 段落包含的镜头：优先 shotIds，旧数据用 shot.segmentId 反查 */
+function shotsOfSegment(segment: SegmentItem) {
+  const ids = new Set((segment.shotIds ?? []).map((id) => String(id)));
+  if (ids.size) {
+    return shots.value.filter((shot) => ids.has(String(shot.id)));
+  }
+  return shots.value.filter(
+    (shot) => String(shot.segmentId ?? '') === String(segment.id),
+  );
+}
+
+const segmentById = computed(() => {
+  const map = new Map<string, SegmentItem>();
+  for (const segment of segments.value) {
+    map.set(String(segment.id), segment);
+  }
+  return map;
+});
+
+/** 镜头 → 段落，用于判断段落模式下禁用单镜视频生成 */
+const shotSegmentMap = computed(() => {
+  const map = new Map<string, SegmentItem>();
+  for (const segment of segments.value) {
+    for (const shot of shotsOfSegment(segment)) {
+      map.set(String(shot.id), segment);
+    }
+  }
+  for (const shot of shots.value) {
+    if (!shot.segmentId) {
+      continue;
+    }
+    const segment = segmentById.value.get(String(shot.segmentId));
+    if (segment) {
+      map.set(String(shot.id), segment);
+    }
+  }
+  return map;
+});
+
+function isSegmentModeShot(shot: ShotItem) {
+  return shotSegmentMap.value.get(String(shot.id))?.generationMode === 'segment';
+}
+
+function sceneHeadingBySeq(sceneSeq: number) {
+  return (
+    episode.value?.scenes?.find(
+      (scene) => Number(scene.seq) === Number(sceneSeq),
+    )?.heading ?? ''
+  );
+}
+
+/** 按场聚合段落与镜头；分镜里出现但无段落的场次也要显示 */
+const sceneGroups = computed<SegmentSceneGroup[]>(() => {
+  const map = new Map<number, SegmentSceneGroup>();
+  const ensure = (sceneSeq: number) => {
+    const seq = Number(sceneSeq);
+    let group = map.get(seq);
+    if (!group) {
+      group = {
+        heading: sceneHeadingBySeq(seq),
+        sceneSeq: seq,
+        segments: [],
+        shots: [],
+        unsegmentedShots: [],
+      };
+      map.set(seq, group);
+    }
+    return group;
+  };
+  for (const segment of segments.value) {
+    ensure(segment.sceneSeq).segments.push(segment);
+  }
+  const coveredShotIds = new Set<string>();
+  for (const segment of segments.value) {
+    for (const shot of shotsOfSegment(segment)) {
+      coveredShotIds.add(String(shot.id));
+    }
+  }
+  for (const shot of shots.value) {
+    if (!shot.sceneSeq) {
+      continue;
+    }
+    const group = ensure(shot.sceneSeq);
+    if (!group.shots.some((item) => String(item.id) === String(shot.id))) {
+      group.shots.push(shot);
+    }
+    if (!coveredShotIds.has(String(shot.id))) {
+      group.unsegmentedShots.push(shot);
+    }
+  }
+  return [...map.values()]
+    .sort((a, b) => a.sceneSeq - b.sceneSeq)
+    .map((group) => ({
+      ...group,
+      segments: [...group.segments].sort((a, b) => a.seq - b.seq),
+    }));
+});
+
+/** 三层视图的行数据：场头 / 段落卡 / 镜头卡，按展开状态摊平渲染 */
+const displayRows = computed<StoryboardRow[]>(() => {
+  if (flatView.value || !segments.value.length) {
+    return shots.value.map((shot) => ({
+      key: `shot-${shot.id}`,
+      shot,
+      type: 'shot' as const,
+    }));
+  }
+  const rows: StoryboardRow[] = [];
+  for (const group of sceneGroups.value) {
+    rows.push({
+      key: `scene-${group.sceneSeq}`,
+      sceneSeq: group.sceneSeq,
+      type: 'scene',
+    });
+    if (!expandedScenes.value.includes(group.sceneSeq)) {
+      continue;
+    }
+    for (const segment of group.segments) {
+      rows.push({
+        key: `segment-${segment.id}`,
+        segment,
+        type: 'segment',
+      });
+      if (!expandedSegments.value.includes(String(segment.id))) {
+        continue;
+      }
+      for (const shot of shotsOfSegment(segment)) {
+        rows.push({ key: `shot-${shot.id}`, shot, type: 'shot' });
+      }
+    }
+    if (group.unsegmentedShots.length) {
+      rows.push({
+        key: `divider-${group.sceneSeq}`,
+        sceneSeq: group.sceneSeq,
+        type: 'divider',
+      });
+      for (const shot of group.unsegmentedShots) {
+        rows.push({ key: `shot-${shot.id}`, shot, type: 'shot' });
+      }
+    }
+  }
+  return rows;
+});
+
+function toggleScene(sceneSeq: number) {
+  expandedScenes.value = expandedScenes.value.includes(sceneSeq)
+    ? expandedScenes.value.filter((item) => item !== sceneSeq)
+    : [...expandedScenes.value, sceneSeq];
+}
+
+function isSegmentExpanded(segment: SegmentItem) {
+  return expandedSegments.value.includes(String(segment.id));
+}
+
+function toggleSegment(segment: SegmentItem) {
+  const key = String(segment.id);
+  expandedSegments.value = isSegmentExpanded(segment)
+    ? expandedSegments.value.filter((item) => item !== key)
+    : [...expandedSegments.value, key];
+}
+
+function sceneStats(sceneSeq: number) {
+  const group = sceneGroups.value.find((item) => item.sceneSeq === sceneSeq);
+  if (!group) {
+    return { chain: false, dialogueChars: 0, duration: 0, ready: 0, segmentCount: 0, shotCount: 0 };
+  }
+  const duration = group.segments.length
+    ? group.segments.reduce(
+        (sum, segment) =>
+          sum +
+          (Number(segment.durationSeconds) ||
+            shotsOfSegment(segment).reduce(
+              (value, shot) => value + Number(shot.durationSeconds ?? 0),
+              0,
+            )),
+        0,
+      )
+    : group.shots.reduce(
+        (sum, shot) => sum + Number(shot.durationSeconds ?? 0),
+        0,
+      );
+  const dialogueChars = group.segments.length
+    ? group.segments.reduce(
+        (sum, segment) =>
+          sum +
+          (segment.dialogue ?? []).reduce(
+            (value, line) => value + (line.line?.length ?? 0),
+            0,
+          ),
+        0,
+      )
+    : group.shots.reduce(
+        (sum, shot) => sum + (shot.dialogue?.length ?? 0),
+        0,
+      );
+  return {
+    chain:
+      group.segments.length > 0 &&
+      group.segments.every(
+        (segment) =>
+          Boolean(segment.firstFrameMaterialId) &&
+          Boolean(segment.lastFrameMaterialId),
+      ),
+    dialogueChars,
+    duration,
+    ready: group.segments.filter(segmentComposeReady).length,
+    segmentCount: group.segments.length,
+    shotCount: group.shots.length,
+  };
+}
+
+function segmentModeLabel(segment: SegmentItem) {
+  return segment.generationMode === 'shot' ? '单镜生成' : '段落生成';
+}
+
+function segmentDialogueChars(segment: SegmentItem) {
+  return (segment.dialogue ?? []).reduce(
+    (sum, line) => sum + (line.line?.length ?? 0),
+    0,
+  );
+}
+
+function segmentShotCount(segment: SegmentItem) {
+  return shotsOfSegment(segment).length || segment.shotIds?.length || 0;
+}
+
+function segmentChain(segment: SegmentItem) {
+  return Boolean(
+    segment.firstFrameMaterialId && segment.lastFrameMaterialId,
+  );
+}
+
+function shotDialogueChars(shot: ShotItem) {
+  return (shot.dialogue ?? '').replace(/\s/g, '').length;
+}
+
+/** 建议时长：后端优先，缺省 ceil(字数/4)+1，段落 clamp 5–12s */
+function segmentSuggestedDuration(segment: SegmentItem) {
+  if (typeof segment.suggestedDurationSeconds === 'number') {
+    return segment.suggestedDurationSeconds;
+  }
+  const chars = (segment.dialogue ?? []).reduce(
+    (sum, line) => sum + (line.line?.length ?? 0),
+    0,
+  );
+  return Math.min(12, Math.max(5, Math.ceil(chars / 4) + 1));
+}
+
+/** 单镜建议时长：后端优先，缺省 clamp 2–6s */
+function shotSuggestedDuration(shot: ShotItem) {
+  if (typeof shot.suggestedDurationSeconds === 'number') {
+    return shot.suggestedDurationSeconds;
+  }
+  return Math.min(
+    6,
+    Math.max(2, Math.ceil(shotDialogueChars(shot) / 4) + 1),
+  );
+}
+
+function segmentDurationMismatch(segment: SegmentItem) {
+  return Number(segment.durationSeconds ?? 0) !== segmentSuggestedDuration(segment);
+}
+
+function shotDurationMismatch(shot: ShotItem) {
+  return Number(shot.durationSeconds ?? 0) !== shotSuggestedDuration(shot);
+}
+
+/** 场头预计时长：段落优先级高于镜头，单镜段按段内镜头求和 */
+function sceneExpectedDuration(sceneSeq: number) {
+  const group = sceneGroups.value.find((item) => item.sceneSeq === sceneSeq);
+  if (!group) {
+    return 0;
+  }
+  if (group.segments.length) {
+    return group.segments.reduce((sum, segment) => {
+      if (segment.generationMode === 'shot') {
+        return (
+          sum +
+          shotsOfSegment(segment).reduce(
+            (value, shot) => value + shotSuggestedDuration(shot),
+            0,
+          )
+        );
+      }
+      return sum + segmentSuggestedDuration(segment);
+    }, 0);
+  }
+  return group.shots.reduce(
+    (sum, shot) => sum + shotSuggestedDuration(shot),
+    0,
+  );
+}
+
+async function applySegmentDuration(segment: SegmentItem) {
+  try {
+    const res = await aiAssetApi.saveSegment({
+      durationSeconds: segmentSuggestedDuration(segment),
+      id: segment.id,
+      modelId: videoModelId.value,
+    });
+    rememberSegmentWarning(segment.id, res?.capabilityWarning);
+    message.success('已应用建议时长');
+    await loadStoryboard();
+  } catch (error: any) {
+    message.error(error?.message || '应用建议时长失败');
+  }
+}
+
+function rememberSegmentWarning(
+  segmentId: number | string,
+  warning?: null | string,
+) {
+  const key = String(segmentId);
+  if (warning) {
+    segmentRuntimeWarnings.value = {
+      ...segmentRuntimeWarnings.value,
+      [key]: warning,
+    };
+  } else if (segmentRuntimeWarnings.value[key]) {
+    const next = { ...segmentRuntimeWarnings.value };
+    delete next[key];
+    segmentRuntimeWarnings.value = next;
+  }
+}
+
+function segmentWarningText(segment: SegmentItem) {
+  return (
+    segment.capabilityWarning ??
+    segmentRuntimeWarnings.value[String(segment.id)] ??
+    ''
+  );
+}
+
+async function applyShotDuration(shot: ShotItem) {
+  if (!episode.value) {
+    return;
+  }
+  try {
+    await aiAssetApi.saveShot({
+      durationSeconds: shotSuggestedDuration(shot),
+      episodeId: episode.value.id,
+      id: shot.id,
+      novelId: props.novelId,
+    });
+    message.success('已应用建议时长');
+    await loadStoryboard();
+  } catch (error: any) {
+    message.error(error?.message || '应用建议时长失败');
+  }
+}
+
+/** 连续预览：不落库、不生成，只连播已有视频；传场次=只播该场 */
+function openContinuousPreview(sceneSeq?: number) {
+  previewSceneSeq.value = sceneSeq;
+  previewOpen.value = true;
+}
+
+function segmentStatus(segment: SegmentItem) {
+  if (segment.errorMsg) {
+    return { color: 'red', label: '失败' };
+  }
+  if (segment.videoMaterialId) {
+    return { color: 'green', label: '已生成' };
+  }
+  if (Number(segment.generationStatus) === 1) {
+    return { color: 'blue', label: '生成中' };
+  }
+  return { color: 'default', label: '未生成' };
+}
+
+/** 段落是否已有可用视频：单镜模式看镜头，段落模式看段落视频 */
+function segmentComposeReady(segment: SegmentItem) {
+  if (segment.generationMode === 'shot') {
+    const list = shotsOfSegment(segment);
+    if (list.length) {
+      return list.every((shot) => Boolean(shot.videoMaterialId || shot.hasVideo));
+    }
+    return Boolean(segment.videoMaterialId);
+  }
+  return Boolean(segment.videoMaterialId);
+}
+
+const modelListCapabilities = computed<ModelCapabilities | undefined>(() =>
+  videoModels.value.find(
+    (item) => String(item.value) === String(videoModelId.value),
+  )?.capabilities,
+);
+/** 能力自检优先，切换模型后立即以此重算段落卡可用态 */
+const videoCapabilities = computed<
+  ModelCapabilities | ModelCapabilityCheck | undefined
+>(() => capabilityCheck.value ?? modelListCapabilities.value);
+const capabilitiesConfigured = computed(() => {
+  if (capabilityCheck.value) {
+    return capabilityCheck.value.configured !== false;
+  }
+  return Boolean(modelListCapabilities.value);
+});
+const maxSegmentDuration = computed(
+  () => videoCapabilities.value?.maxDurationSeconds,
+);
+const segmentCapabilityReason = computed(() => {
+  if (!capabilitiesConfigured.value) {
+    return '当前模型未配置能力声明';
+  }
+  const capabilities = videoCapabilities.value;
+  if (!capabilities?.supportsLastFrame) {
+    return '当前模型不支持尾帧';
+  }
+  if (!capabilities.supportsAudio) {
+    return '当前模型不支持原生音频（段落固定 audio=true）';
+  }
+  return '';
+});
+const capabilitiesWarning = computed(() => {
+  if (!capabilitiesConfigured.value) {
+    return '当前模型未配置能力，已按保守模式（单镜 + 8s）运行；配置后可启用段落生成';
+  }
+  const capabilities = videoCapabilities.value;
+  if (!capabilities?.supportsLastFrame) {
+    return '当前模型不支持尾帧，已按保守模式（单镜）运行；配置后可启用段落生成';
+  }
+  if (!capabilities.supportsAudio) {
+    return '当前模型不支持原生音频，段落模式不可用；请更换模型或使用单镜生成';
+  }
+  return '';
+});
+const videoModelOptions = computed(() =>
+  videoModels.value.map((item) => ({ label: item.label, value: item.value })),
+);
+
+function segmentTooLong(segment: SegmentItem) {
+  const max = maxSegmentDuration.value;
+  return Boolean(
+    max && segment.durationSeconds && segment.durationSeconds > max,
+  );
+}
+
+function segmentCapabilityBlocked() {
+  return Boolean(segmentCapabilityReason.value);
+}
+
+async function loadCapabilityCheck() {
+  const id = videoModelId.value;
+  if (!id) {
+    capabilityCheck.value = undefined;
+    return;
+  }
+  try {
+    capabilityCheck.value = await aiAssetApi.fetchModelCapabilityCheck(id);
+  } catch {
+    // 自检接口不可用时退回模型列表里的 capabilities
+    capabilityCheck.value = undefined;
+  }
+}
+
+watch(videoModelId, () => {
+  void loadCapabilityCheck();
+});
+
+async function loadVideoModels() {
+  if (videoModels.value.length) {
+    return;
+  }
+  try {
+    const res = await aiModelApi.fetchModelConfigList({
+      capability: 'video',
+      page: 1,
+      pageSize: 50,
+    });
+    const list: any[] = Array.isArray(res) ? res : (res?.items ?? []);
+    videoModels.value = list.map((item) => ({
+      capabilities: item.capabilities,
+      label: item.model || `视频模型 ${item.id}`,
+      value: item.id,
+    }));
+    if (!videoModelId.value && videoModels.value.length) {
+      videoModelId.value = videoModels.value[0]!.value;
+    }
+  } catch {
+    // 模型能力接口未就绪时静默降级：仍按默认模型生成，不做能力阻断
+  }
+}
+
+function normalizeSegments(payload: any): SegmentItem[] {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+  if (Array.isArray(payload?.segments)) {
+    return payload.segments;
+  }
+  if (Array.isArray(payload?.items)) {
+    return payload.items;
+  }
+  return [];
+}
+
+/** 段落接口不可用时静默回退平铺镜头，不阻塞旧数据 */
+async function loadSegments() {
+  const current = episode.value;
+  if (!current) {
+    return;
+  }
+  segmentsLoading.value = true;
+  try {
+    const res = await aiAssetApi.fetchEpisodeSegments(current.id);
+    if (String(episode.value?.id) !== String(current.id)) {
+      return;
+    }
+    const wasAvailable = segmentsAvailable.value;
+    segments.value = normalizeSegments(res);
+    segmentsAvailable.value = segments.value.length > 0;
+    if (!segmentsAvailable.value) {
+      flatView.value = true;
+      return;
+    }
+    // 首次拿到段落数据时自动切回三层视图；用户手动平铺后刷新保持选择
+    if (!wasAvailable) {
+      flatView.value = false;
+    }
+    // 场次默认展开，段落默认折叠，镜头点开段落才出现
+    const sceneSeqs = segments.value.map((segment) => Number(segment.sceneSeq));
+    expandedScenes.value = [
+      ...new Set([...expandedScenes.value, ...sceneSeqs]),
+    ];
+  } catch {
+    segments.value = [];
+    segmentsAvailable.value = false;
+    flatView.value = true;
+  } finally {
+    segmentsLoading.value = false;
+  }
+}
+
+const ERROR_TYPE_SUFFIX =
+  /\s*\((?:String|Integer|Long|Double|Float|Boolean|BigDecimal|List|Map|Object)\)/gi;
+
+/** 清洗后端异常串：去掉 (String)/(Long) 之类类型名和纯数字 ID，只留人话 */
+function normalizeErrorText(value: string) {
+  const cleaned = value.replace(ERROR_TYPE_SUFFIX, '').trim();
+  const parts = cleaned
+    .split(/[,，;；|]+/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter(
+      (part) =>
+        !/^-?\d+$/.test(part) && !/^(null|undefined)$/i.test(part),
+    );
+  return parts.join('；');
+}
+
+function readableErrorText(value: unknown): string {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (/^[[{]/.test(trimmed)) {
+      try {
+        return readableErrorText(JSON.parse(trimmed));
+      } catch {
+        // 非 JSON 字符串按普通文本清洗
+      }
+    }
+    return normalizeErrorText(trimmed);
+  }
+  if (Array.isArray(value)) {
+    return value.map(readableErrorText).filter(Boolean).join('；');
+  }
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    for (const key of ['message', 'error', 'msg', 'detail', 'reason', 'data']) {
+      const text = readableErrorText(record[key]);
+      if (text) {
+        return text;
+      }
+    }
+  }
+  return '';
+}
+
+/**
+ * 段落生成错误：优先后端原文；404 才是接口未就绪；400 追加能力/时长建议。
+ * 同一次调用只由这里弹一条，全局拦截器通过 skipErrorMessage 静默。
+ */
+function segmentGenerateErrorMessage(error: any) {
+  const status = Number(error?.response?.status ?? error?.status ?? 0);
+  const text =
+    readableErrorText(error?.response?.data) ||
+    readableErrorText(error?.data) ||
+    readableErrorText(error?.message) ||
+    '段落生成失败';
+  if (status === 404) {
+    return '段落生成接口未就绪，请稍后再试';
+  }
+  const tips: string[] = [];
+  if (text.includes('未配置能力')) {
+    tips.push('请到模型管理配置能力');
+  }
+  if (text.includes('不支持尾帧')) {
+    tips.push('请切换支持尾帧的模型，或拆分为单镜生成');
+  }
+  if (/时长上限|超过.*时长/.test(text)) {
+    tips.push('请缩短段落时长或切换模型');
+  }
+  if (text.includes('模式')) {
+    tips.push('可拆分为单镜生成');
+  }
+  if (!tips.length && status === 400) {
+    tips.push('请检查模型能力或拆分为单镜生成');
+  }
+  return tips.length ? `${text}；${tips.join('；')}` : text;
+}
+
+async function submitSegmentGeneration(
+  segment: SegmentItem,
+  options?: { mediaRefs?: MediaRef[]; promptOverride?: string },
+) {
+  if (segmentTooLong(segment)) {
+    message.warning(
+      `段落时长超过模型上限 ${maxSegmentDuration.value} 秒，请调整后再生成`,
+    );
+    return false;
+  }
+  if (segment.generationMode === 'shot') {
+    message.warning('单镜模式请按镜头生成');
+    return false;
+  }
+  if (segmentCapabilityBlocked()) {
+    message.warning(
+      `${segmentCapabilityReason.value}：请配置模型，或拆分为单镜生成`,
+    );
+    return false;
+  }
+  if ((options?.promptOverride?.length ?? 0) > 20_000) {
+    message.warning('prompt 最多 20000 字符');
+    return false;
+  }
+  segmentGeneratingId.value = String(segment.id);
+  try {
+    const res = await aiAssetApi.generateSegmentVideo({
+      mediaRefs: options?.mediaRefs?.length ? options.mediaRefs : undefined,
+      modelId: videoModelId.value,
+      promptOverride: options?.promptOverride,
+      segmentId: segment.id,
+    });
+    rememberSegmentWarning(segment.id, res?.capabilityWarning);
+    message.success('段落生成任务已提交');
+    return true;
+  } catch (error: any) {
+    message.error(segmentGenerateErrorMessage(error));
+    return false;
+  } finally {
+    segmentGeneratingId.value = undefined;
+  }
+}
+
+async function generateSegment(segment: SegmentItem) {
+  const ok = await submitSegmentGeneration(segment);
+  if (ok) {
+    await loadStoryboard();
+  }
+}
+
+function openSegmentReference(segment: SegmentItem) {
+  segmentRefTarget.value = segment;
+  segmentRefOpen.value = true;
+}
+
+async function submitSegmentReference(payload: {
+  mediaRefs: MediaRef[];
+  promptOverride?: string;
+}) {
+  const segment = segmentRefTarget.value;
+  if (!segment) {
+    return;
+  }
+  segmentRefSubmitting.value = true;
+  try {
+    const ok = await submitSegmentGeneration(segment, payload);
+    if (ok) {
+      segmentRefOpen.value = false;
+      await loadStoryboard();
+    }
+  } finally {
+    segmentRefSubmitting.value = false;
+  }
+}
+
+async function splitSegmentToShot(segment: SegmentItem) {
+  try {
+    const res = await aiAssetApi.saveSegment({
+      generationMode: 'shot',
+      id: segment.id,
+      modelId: videoModelId.value,
+    });
+    rememberSegmentWarning(segment.id, res?.capabilityWarning);
+    message.success('已切为单镜生成，可按镜头生成视频');
+    await loadStoryboard();
+  } catch (error: any) {
+    message.error(error?.message || '段落模式切换失败');
+  }
+}
+
+async function onDirectorSaved() {
+  const current = episode.value;
+  if (current) {
+    // 只合并详情里的 config，避免 loadEpisode 清空分镜与批量任务状态
+    try {
+      const detail = await aiAssetApi.fetchEpisodeDetail(current.id);
+      if (detail) {
+        episode.value = { ...episode.value, ...detail };
+        updateEpisodeRow(episode.value);
+      }
+    } catch {
+      // 详情刷新失败不影响段落/分镜刷新
+    }
+  }
+  await loadStoryboard();
+  await loadSegments();
+}
+
+function segmentShotsPending(segment: SegmentItem) {
+  const list = shotsOfSegment(segment);
+  if (!list.length) {
+    return !segment.videoMaterialId;
+  }
+  return list.some((shot) => !shot.videoMaterialId && !shot.hasVideo);
+}
+
+/** 单镜模式：展开并滚动到该段镜头卡 */
+function expandSegmentShots(segment: SegmentItem) {
+  if (!isSegmentExpanded(segment)) {
+    expandedSegments.value = [...expandedSegments.value, String(segment.id)];
+  }
+  void nextTick(() => {
+    document
+      .querySelector(`[data-segment-id="${segment.id}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+/** 单镜模式：只针对本段镜头打开批量视频确认 */
+function openSegmentBatchVideo(segment: SegmentItem) {
+  void openBatch('video', 'new', segment);
+}
+
 function needsKeyframe(shot: ShotItem) {
   const hasPeople =
     (shot.characterIds?.length ?? 0) > 0 ||
@@ -1903,6 +2932,25 @@ function handleIssue(issue: StoryboardIssue) {
   if (issue.type === 'video_missing') {
     validationOpen.value = false;
     void openBatch('video', 'new');
+    return;
+  }
+  if (issue.type === 'segment_video_missing') {
+    validationOpen.value = false;
+    void openBatch('video', 'new');
+    return;
+  }
+  if (
+    [
+      'segment_dialogue_cross',
+      'segment_dialogue_too_long',
+      'segment_duration_exceeded',
+      'segment_frame_missing',
+      'segment_mode_unsupported',
+      'segment_shot_overlap',
+    ].includes(issue.type)
+  ) {
+    validationOpen.value = false;
+    openDirectorPlan();
   }
 }
 
@@ -1919,6 +2967,13 @@ const ISSUE_ACTION_LABELS: Record<string, string> = {
   scene_seq_missing: '补绑场景',
   scene_tags_drift: '去资产编辑',
   scene_unresolved: '补绑场景',
+  segment_dialogue_cross: '去导演规划',
+  segment_dialogue_too_long: '去导演规划',
+  segment_duration_exceeded: '去导演规划',
+  segment_frame_missing: '编辑段落',
+  segment_mode_unsupported: '去导演规划',
+  segment_shot_overlap: '去导演规划',
+  segment_video_missing: '去生成视频',
   video_missing: '去生成视频',
 };
 
@@ -1926,10 +2981,23 @@ function issueActionLabel(type: string) {
   return ISSUE_ACTION_LABELS[type] ?? '';
 }
 
-/** video_missing 统一文案：第 N 镜缺少视频 */
+/** 后端未回 message 时的兜底文案（段落级 issue type 与后端枚举一致） */
+const SEGMENT_ISSUE_MESSAGES: Record<string, string> = {
+  segment_dialogue_cross: '台词跨段落，请拆分后再生成',
+  segment_dialogue_too_long: '段落台词超出时长（建议 ≤ 4 字/秒）',
+  segment_duration_exceeded: '段落时长超过模型上限',
+  segment_frame_missing: '段落首尾帧缺失',
+  segment_mode_unsupported: '段落生成模式与模型能力不匹配',
+  segment_shot_overlap: '段落内镜头重叠',
+  segment_video_missing: '段落缺少视频',
+};
+
 function issueMessage(issue: StoryboardIssue) {
   if (issue.type === 'video_missing') {
     return `第 ${issue.seq ?? '-'} 镜缺少视频`;
+  }
+  if (!issue.message && SEGMENT_ISSUE_MESSAGES[issue.type]) {
+    return SEGMENT_ISSUE_MESSAGES[issue.type]!;
   }
   return issue.message;
 }
@@ -1995,10 +3063,18 @@ async function generateShotKeyframe(shot: ShotItem) {
 }
 
 /** 单镜视频提交：只负责提交/合并/轮询 */
-async function submitShotVideo(shot: ShotItem) {
+/** 单镜视频提交：传 mediaRefs 时接管自动首帧，后端跳过关键帧前置校验 */
+async function submitShotVideo(
+  shot: ShotItem,
+  options?: { mediaRefs?: MediaRef[]; promptOverride?: string },
+) {
   const updated = await aiAssetApi.generateShotVideo({
     duration: shot.durationSeconds,
-    promptOverride: shot.videoPrompt || undefined,
+    mediaRefs: options?.mediaRefs?.length ? options.mediaRefs : undefined,
+    modelId: videoModelId.value,
+    promptOverride: options
+      ? options.promptOverride
+      : shot.videoPrompt || undefined,
     shotId: shot.id,
   });
   if (updated) {
@@ -2012,11 +3088,48 @@ async function submitShotVideo(shot: ShotItem) {
   return updated;
 }
 
+function openShotReference(shot: ShotItem) {
+  shotRefTarget.value = shot;
+  shotRefOpen.value = true;
+}
+
+async function submitShotReference(payload: {
+  mediaRefs: MediaRef[];
+  promptOverride?: string;
+}) {
+  const shot = shotRefTarget.value;
+  if (!shot) {
+    return;
+  }
+  if (videoBusy.value) {
+    message.info('视频批量任务进行中，请等待完成');
+    return;
+  }
+  if (isSegmentModeShot(shot)) {
+    message.warning('段落模式下需整段重生成，不能单独生成该镜头视频');
+    return;
+  }
+  if (Number(shot.generationStatus) === 1) {
+    message.info('该镜头视频正在生成中');
+    return;
+  }
+  shotRefSubmitting.value = true;
+  try {
+    await submitShotVideo(shot, payload);
+    shotRefOpen.value = false;
+    message.success('视频任务已提交，正在生成');
+  } catch (error: any) {
+    message.error(error?.message || '视频生成失败');
+  } finally {
+    shotRefSubmitting.value = false;
+  }
+}
+
 /**
  * 批量计划接口未就绪时的本地粗筛：只做明显可判断的规则，
  * 最终 eligibility 以后端计划接口为准，避免与单镜校验漂移。
  */
-function localBatchPlan(
+function localPlanFallback(
   target: StoryboardBatchTarget,
   mode: StoryboardBatchMode,
 ): StoryboardBatchPlan {
@@ -2073,14 +3186,16 @@ function localBatchPlan(
 async function fetchBatchPlan(
   target: StoryboardBatchTarget,
   mode: StoryboardBatchMode,
+  segmentId?: number | string,
 ): Promise<StoryboardBatchPlan> {
   if (!episode.value) {
-    return localBatchPlan(target, mode);
+    return localPlanFallback(target, mode);
   }
   try {
     const res = await aiAssetApi.fetchStoryboardBatchPlan({
       episodeId: episode.value.id,
       mode,
+      segmentId,
       target,
     });
     if (res && Array.isArray(res.eligible) && Array.isArray(res.skipped)) {
@@ -2089,21 +3204,44 @@ async function fetchBatchPlan(
   } catch {
     // 计划接口未就绪：直接走本地粗筛，控制台不报错
   }
-  return localBatchPlan(target, mode);
+  return localPlanFallback(target, mode);
 }
 
 async function openBatch(
   target: StoryboardBatchTarget,
   mode: StoryboardBatchMode,
+  scopeSegment?: SegmentItem,
 ) {
   if (!episode.value || batchPlanLoading.value) {
     return;
   }
+  batchScopeSegmentId.value = scopeSegment
+    ? String(scopeSegment.id)
+    : undefined;
+  batchScopeSegmentSeq.value = scopeSegment?.seq;
   batchPlanLoading.value = true;
   batchPlanLoadingTarget.value = `${target}-${mode}`;
   try {
-    const plan = await fetchBatchPlan(target, mode);
+    let plan = await fetchBatchPlan(target, mode, scopeSegment?.id);
+    if (scopeSegment) {
+      // 后端即使暂未支持 segmentId，前端也先按段内镜头收窄，避免确认框显示整集
+      const ids = new Set(
+        (shotsOfSegment(scopeSegment).length
+          ? shotsOfSegment(scopeSegment).map((shot) => shot.id)
+          : scopeSegment.shotIds ?? []
+        ).map((id) => String(id)),
+      );
+      plan = {
+        ...plan,
+        eligible: plan.eligible.filter((item) =>
+          ids.has(String(item.shotId)),
+        ),
+        skipped: plan.skipped.filter((item) => ids.has(String(item.shotId))),
+      };
+    }
     if (!plan.eligible.length) {
+      batchScopeSegmentId.value = undefined;
+      batchScopeSegmentSeq.value = undefined;
       message.info(
         `没有需要生成的镜头${plan.skipped.length ? `，跳过 ${plan.skipped.length} 个` : ''}`,
       );
@@ -2308,9 +3446,6 @@ function scheduleBatchTaskPoll(taskId: number | string) {
 
 /** 进入分镜页恢复：keyframe/video 各查一次活动任务，有则直接展示并轮询 */
 async function loadActiveBatchTasks() {
-  if (!USE_SERVER_BATCH) {
-    return;
-  }
   const current = episode.value;
   if (!current) {
     return;
@@ -2353,84 +3488,6 @@ async function loadActiveBatchTasks() {
   }
 }
 
-/**
- * 本地备用执行器：仅 USE_SERVER_BATCH=false 时使用。
- * 同步模型不能一次跑完整批，所以并发 2 逐镜提交；单镜失败不中断整批。
- */
-async function runLocalBatch(plan: StoryboardBatchPlan) {
-  if (!episode.value || localBatchRunning.value) {
-    return;
-  }
-  const token = ++localBatchToken;
-  localBatchRunning.value = true;
-  localBatchTarget.value = plan.target;
-  localBatchTotal.value = plan.eligible.length;
-  localBatchDone.value = 0;
-  localBatchSuccess.value = 0;
-  localBatchFailed.value = 0;
-  localBatchFailures.value = [];
-
-  const queue = [...plan.eligible];
-  let cursor = 0;
-  const runOne = async (item: StoryboardBatchPlanItem) => {
-    if (token !== localBatchToken) {
-      return;
-    }
-    const shot = findShot(item.shotId);
-    if (!shot) {
-      localBatchFailed.value += 1;
-      localBatchDone.value += 1;
-      localBatchFailures.value.push({
-        message: '镜头已不存在，请刷新后重试',
-        seq: item.seq,
-        shotId: item.shotId,
-      });
-      return;
-    }
-    try {
-      if (plan.target === 'keyframe') {
-        await submitShotKeyframe(shot);
-      } else {
-        await submitShotVideo(shot);
-      }
-      if (token === localBatchToken) {
-        localBatchSuccess.value += 1;
-      }
-    } catch (error: any) {
-      if (token === localBatchToken) {
-        localBatchFailed.value += 1;
-        localBatchFailures.value.push({
-          message: error?.message || '提交失败',
-          seq: item.seq,
-          shotId: item.shotId,
-        });
-      }
-    } finally {
-      if (token === localBatchToken) {
-        localBatchDone.value += 1;
-      }
-    }
-  };
-  const worker = async () => {
-    while (token === localBatchToken) {
-      const item = queue[cursor++];
-      if (!item) {
-        return;
-      }
-      await runOne(item);
-    }
-  };
-  await Promise.all(
-    Array.from({ length: Math.min(2, queue.length) }, () => worker()),
-  );
-  if (token !== localBatchToken) {
-    return;
-  }
-  localBatchRunning.value = false;
-  await loadStoryboard();
-  await loadBindingReport();
-}
-
 async function submitStoryboardBatch() {
   const plan = batchPlan.value;
   const current = episode.value;
@@ -2446,17 +3503,15 @@ async function submitStoryboardBatch() {
     return;
   }
   batchConfirmOpen.value = false;
-  if (!USE_SERVER_BATCH) {
-    await runLocalBatch(plan);
-    return;
-  }
   batchSubmitting.value = true;
+  const scopeId = batchScopeSegmentId.value;
   try {
     const res = await aiAssetApi.submitStoryboardBatch({
       duration: null,
       episodeId: current.id,
       mode: batchMode.value,
       modelId: null,
+      segmentId: scopeId,
       target: batchTarget.value,
     });
     const index = batchTasks.value.findIndex(
@@ -2487,6 +3542,10 @@ async function submitStoryboardBatch() {
         ? '该分集已有进行中的批次，已为你打开进度'
         : '批量任务已提交，可在任务中心查看',
     );
+    // 按段提交依赖后端支持 segmentId；总数为整集时提示用户核对
+    if (scopeId && Number(res.totalCount) > Number(plan.eligible.length)) {
+      message.warning('后端暂未按段过滤，本次批次可能包含整集镜头，请在任务中心确认');
+    }
     // 复用旧任务时主动拉一次 active，立即拿到已有计数
     if (res.existing) {
       await loadActiveBatchTasks();
@@ -2498,6 +3557,8 @@ async function submitStoryboardBatch() {
     message.error(error?.message || '提交批量任务失败');
   } finally {
     batchSubmitting.value = false;
+    batchScopeSegmentId.value = undefined;
+    batchScopeSegmentSeq.value = undefined;
   }
 }
 
@@ -2708,6 +3769,10 @@ async function generateShotVideo(shot: ShotItem) {
     message.info('视频批量任务进行中，请等待完成');
     return;
   }
+  if (isSegmentModeShot(shot)) {
+    message.warning('段落模式下需整段重生成，不能单独生成该镜头视频');
+    return;
+  }
   if (shot.sceneSeq && !shot.sceneId) {
     message.warning('请先绑定场景，再生成视频');
     void toggleShotScenePick(shot, true);
@@ -2757,40 +3822,100 @@ async function runExtract() {
 }
 
 function manualSave() {
-  return saveDraft(false, {}, true);
+  return saveDraft(false, {});
 }
 
-async function generateMemory(force = false) {
-  if (!episode.value || memoryLoading.value) {
+function openChapterMemory() {
+  chapterMemoryOpen.value = true;
+}
+
+function onChapterMemoryUpdated() {
+  if (episode.value) {
+    episode.value.memoryStatus = 2;
+    updateEpisodeRow(episode.value);
+  }
+  void loadMemoryOverview();
+}
+
+/** 全书记忆操作后只刷新章节目录状态，不重载当前正文 */
+async function onNovelMemoryUpdated() {
+  try {
+    const page = await aiAssetApi.fetchEpisodes({
+      novelId: props.novelId,
+      page: 1,
+      pageSize: 200,
+    });
+    episodes.value = page?.items ?? episodes.value;
+    if (episode.value) {
+      const latest = episodes.value.find(
+        (item) => String(item.id) === String(episode.value?.id),
+      );
+      if (latest) {
+        episode.value.memoryStatus = latest.memoryStatus;
+      }
+    }
+  } catch {
+    // 目录刷新失败不影响当前编辑
+  }
+  void loadMemoryOverview();
+}
+
+/** 定稿本章：保存当前正文后显式触发记忆流水线；普通保存不再自动生成 */
+async function finalizeChapter() {
+  if (!episode.value || finalizing.value) {
     return;
   }
-  memoryLoading.value = true;
-  memoryPending.value = true;
+  if (aiHardConflicts.value.length) {
+    message.warning('存在硬冲突，请先处理后再定稿');
+    return;
+  }
+  if (!(await saveDraft(false))) {
+    return;
+  }
+  finalizing.value = true;
   try {
-    const updated = await aiAssetApi.generateEpisodeMemory({
+    const updated = await aiAssetApi.finalizeEpisode({
       episodeId: episode.value.id,
-      force,
       modelId: modelId.value || undefined,
     });
-    if (updated?.memory !== undefined) {
+    if (updated) {
       episode.value = {
         ...episode.value,
-        hasMemory: true,
-        memory: updated.memory,
+        ...updated,
       };
       updateEpisodeRow(episode.value);
-      memoryStale.value = false;
     }
-    if (force) {
-      message.success('章节记忆已更新');
-    }
+    message.success('本章已定稿，结构化记忆生成中');
+    await loadMemoryOverview();
   } catch (error: any) {
-    if (force) {
-      message.error(error?.message || '生成章节记忆失败');
-    }
+    message.error(error?.message || '定稿失败，请稍后重试');
   } finally {
-    memoryLoading.value = false;
-    memoryPending.value = false;
+    finalizing.value = false;
+  }
+}
+
+/** 章节目录失败/过期状态点：点一下重建该章记忆 */
+async function retryEpisodeMemory(item: EpisodeItem) {
+  const status = memoryStatusOf(item);
+  if (status !== 3 && status !== 4) {
+    return;
+  }
+  try {
+    const updated = await aiAssetApi.rebuildChapterMemory({
+      episodeId: item.id,
+      force: true,
+      modelId: modelId.value || undefined,
+    });
+    if (updated) {
+      item.memoryStatus = updated.memoryStatus ?? 2;
+      item.memorySource = updated.memorySource;
+      item.memoryError = updated.errorMsg;
+    }
+    updateEpisodeRow(item);
+    message.success('该章记忆已重建');
+    await loadMemoryOverview();
+  } catch (error: any) {
+    message.error(error?.message || '重建章节记忆失败');
   }
 }
 
@@ -2835,6 +3960,10 @@ async function generatePlan(optimize = false) {
     });
     planSummary.value = res.summary || '';
     planBeats.value = res.beats || [];
+    planReferences.value = res.references;
+    planConflicts.value = res.conflicts ?? [];
+    planStaleEpisodes.value = staleEpisodeSeqs(res.references?.episodes);
+    showPlanReferences.value = false;
     planOpen.value = true;
   } catch (error: any) {
     message.error(error?.message || '生成章节规划失败');
@@ -2844,6 +3973,10 @@ async function generatePlan(optimize = false) {
 }
 
 async function applyPlan() {
+  if (planHardConflicts.value.length) {
+    message.warning('存在硬冲突，请先处理后再应用本章规划');
+    return;
+  }
   planApplying.value = true;
   try {
     const ok = await saveDraft(true, {
@@ -2979,6 +4112,7 @@ onMounted(() => {
         </div>
         <div class="nwb-actions">
           <Button @click="openAssetGraph">设定资产</Button>
+          <Button @click="novelMemoryOpen = true">全书记忆</Button>
           <Button :disabled="!episodes.length" @click="batchOpen = true">
             <template #icon><PlusOutlined /></template>批量生成分集
           </Button>
@@ -2989,6 +4123,16 @@ onMounted(() => {
             <template #icon><ExportOutlined /></template>导出
           </Button>
         </div>
+      </div>
+      <div v-if="memoryOverview" class="nwb-memory-bar">
+        <span>人物 {{ memoryOverview.characterCount ?? '—' }}</span>
+        <span>未回收伏笔 {{ memoryOverview.openForeshadowCount ?? '—' }}</span>
+        <span>
+          记忆同步至第 {{ memoryOverview.syncedEpisodeSeq ?? '—' }} 章
+        </span>
+        <Button type="link" size="small" @click="novelMemoryOpen = true">
+          查看全书记忆
+        </Button>
       </div>
     </Card>
 
@@ -3018,6 +4162,12 @@ onMounted(() => {
                       {{ item.script ? '剧本已生成' : item.content ? '正文已写' : '待创作' }}
                     </span>
                   </span>
+                  <i
+                    class="nwb-mem-dot"
+                    :class="memoryDotClass(item)"
+                    :title="memoryStatusLabel(item)"
+                    @click.stop="retryEpisodeMemory(item)"
+                  ></i>
                   <i class="nwb-dot" :class="{ done: item.script }"></i>
                 </List.Item>
               </template>
@@ -3120,6 +4270,13 @@ onMounted(() => {
                 </span>
                 <Button
                   size="small"
+                  :loading="finalizing"
+                  @click="finalizeChapter"
+                >
+                  定稿本章
+                </Button>
+                <Button
+                  size="small"
                   type="primary"
                   :loading="saving"
                   @click="manualSave"
@@ -3133,6 +4290,58 @@ onMounted(() => {
                   size="small"
                   style="width: 160px"
                 />
+              </div>
+
+              <div v-if="aiContextNotice" class="ed-context-hint">
+                {{ aiContextNotice }}
+              </div>
+
+              <div
+                v-if="hasAiReferencePanel"
+                class="ai-reference"
+                :class="{ 'has-error': aiHardConflicts.length > 0 }"
+              >
+                <div class="ai-reference__hd">
+                  <Button
+                    v-if="aiReferences"
+                    type="link"
+                    size="small"
+                    @click="showAiReferences = !showAiReferences"
+                  >
+                    {{ showAiReferences ? '收起参考来源' : '参考来源' }}
+                  </Button>
+                  <span
+                    v-if="aiStaleEpisodes.length"
+                    class="ai-reference__warn"
+                  >
+                    参考的第 {{ aiStaleEpisodes.join('、') }} 集记忆可能已过期
+                  </span>
+                </div>
+                <div v-if="showAiReferences" class="ai-reference__detail">
+                  <p v-if="referenceSummary(aiReferences)">
+                    {{ referenceSummary(aiReferences) }}
+                  </p>
+                  <p
+                    v-for="(item, index) in aiReferences?.foreshadows ?? []"
+                    :key="index"
+                  >
+                    伏笔：{{ item.text }}
+                  </p>
+                </div>
+                <div
+                  v-for="(conflict, index) in aiConflicts"
+                  :key="index"
+                  class="ai-conflict"
+                  :class="conflict.level === 'error' ? 'is-error' : 'is-warn'"
+                >
+                  <Tag
+                    :bordered="false"
+                    :color="conflict.level === 'error' ? 'red' : 'orange'"
+                  >
+                    {{ conflict.level === 'error' ? '硬冲突' : '软冲突' }}
+                  </Tag>
+                  <span>{{ conflict.message }}</span>
+                </div>
               </div>
 
               <div ref="editorHost" class="ed-editor">
@@ -3252,6 +4461,91 @@ onMounted(() => {
                 </div>
               </div>
 
+              <!-- 视图与模型能力：段落数据未就绪时只保留平铺镜头 -->
+              <div class="sb-toolbar">
+                <span class="sb-toolbar__label">视图</span>
+                <Switch
+                  v-model:checked="flatView"
+                  :disabled="!segmentsAvailable"
+                  size="small"
+                />
+                <span>平铺镜头</span>
+                <span class="sb-toolbar__sep"></span>
+                <span class="sb-toolbar__label">视频模型</span>
+                <Select
+                  v-model:value="videoModelId"
+                  :options="videoModelOptions"
+                  :placeholder="videoModels.length ? '选择视频模型' : '默认模型'"
+                  size="small"
+                  style="width: 180px"
+                />
+                <template v-if="videoCapabilities">
+                  <Tag
+                    v-if="videoCapabilities.supportsFirstFrame"
+                    :bordered="false"
+                  >
+                    首帧
+                  </Tag>
+                  <Tag
+                    v-if="videoCapabilities.supportsLastFrame"
+                    :bordered="false"
+                    color="green"
+                  >
+                    尾帧
+                  </Tag>
+                  <Tag
+                    v-if="videoCapabilities.supportsAudio"
+                    :bordered="false"
+                  >
+                    音频
+                  </Tag>
+                  <Tag
+                    v-if="videoCapabilities.supportsRefVideo"
+                    :bordered="false"
+                  >
+                    参考视频
+                  </Tag>
+                  <Tag
+                    v-if="videoCapabilities.supportsRefAudio"
+                    :bordered="false"
+                  >
+                    参考音频
+                  </Tag>
+                  <Tag
+                    v-if="maxSegmentDuration"
+                    :bordered="false"
+                  >
+                    最长 {{ maxSegmentDuration }}s
+                  </Tag>
+                </template>
+                <span v-if="capabilitiesWarning" class="sb-cap-warning">
+                  {{ capabilitiesWarning }}
+                  <Button
+                    v-if="canManageModel"
+                    type="link"
+                    size="small"
+                    @click="goModelConfig"
+                  >
+                    去配置模型
+                  </Button>
+                </span>
+                <span class="spacer"></span>
+                <Button
+                  size="small"
+                  :loading="segmentsLoading"
+                  :disabled="!segmentsAvailable"
+                  @click="loadSegments"
+                >
+                  刷新段落
+                </Button>
+                <Button size="small" @click="openDirectorPlan">
+                  导演规划
+                </Button>
+                <Button size="small" @click="openContinuousPreview()">
+                  连续预览
+                </Button>
+              </div>
+
               <!-- 后端批次任务进度：离开页面任务继续跑，这里只展示不提供假停止 -->
               <div
                 v-for="task in batchTasks"
@@ -3332,39 +4626,6 @@ onMounted(() => {
                         失败明细暂未返回，可在任务中心查看
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 本地备用执行器：仅 USE_SERVER_BATCH=false 时出现 -->
-              <div
-                v-if="!USE_SERVER_BATCH && (localBatchRunning || localBatchDone > 0)"
-                class="sb-batch"
-              >
-                <span class="sb-batch__text">
-                  本地备用生成 ·
-                  {{ localBatchTarget === 'keyframe' ? '关键帧' : '视频' }}
-                  <b>{{ localBatchDone }}/{{ localBatchTotal }}</b>
-                </span>
-                <Progress
-                  :percent="localBatchPercent"
-                  :show-info="false"
-                  class="sb-batch__progress"
-                  size="small"
-                />
-                <span class="sb-batch__meta">
-                  成功 {{ localBatchSuccess }} · 失败 {{ localBatchFailed }}
-                </span>
-                <div
-                  v-if="localBatchFailures.length"
-                  class="batch-failures"
-                >
-                  <div
-                    v-for="item in localBatchFailures"
-                    :key="item.shotId"
-                    class="batch-failure"
-                  >
-                    第 {{ item.seq }} 镜（{{ item.shotId }}）：{{ item.message }}
                   </div>
                 </div>
               </div>
@@ -3544,9 +4805,331 @@ onMounted(() => {
                   :image="Empty.PRESENTED_IMAGE_SIMPLE"
                   description="还没有分镜；已生成但列表为空时点「刷新」"
                 />
-                <List v-else :data-source="shots" :split="false" class="sb-list">
-                  <template #renderItem="{ item: shot }">
-                    <List.Item class="sb-item">
+                <div v-else class="sb-list">
+                  <template v-for="row in displayRows" :key="row.key">
+                    <div
+                      v-if="row.type === 'scene'"
+                      class="sb-scene-row"
+                    >
+                      <Button
+                        type="text"
+                        size="small"
+                        @click="toggleScene(row.sceneSeq)"
+                      >
+                        <DownOutlined
+                          class="sb-scene-row__chevron"
+                          :class="{
+                            'is-collapsed': !expandedScenes.includes(row.sceneSeq),
+                          }"
+                        />
+                      </Button>
+                      <b>第 {{ row.sceneSeq }} 场</b>
+                      <span class="sb-scene-row__heading">
+                        {{ sceneHeadingBySeq(row.sceneSeq) || '剧本无此场' }}
+                      </span>
+                      <Tag :bordered="false">
+                        {{ sceneStats(row.sceneSeq).duration }}s
+                      </Tag>
+                      <Tag :bordered="false">
+                        台词 {{ sceneStats(row.sceneSeq).dialogueChars }} 字
+                      </Tag>
+                      <Tag :bordered="false">
+                        {{ sceneStats(row.sceneSeq).shotCount }} 镜
+                      </Tag>
+                      <Tag :bordered="false">
+                        本场预计 {{ sceneExpectedDuration(row.sceneSeq) }} 秒
+                      </Tag>
+                      <Button
+                        type="link"
+                        size="small"
+                        @click="openContinuousPreview(row.sceneSeq)"
+                      >
+                        连播本场
+                      </Button>
+                      <Tag
+                        v-if="sceneStats(row.sceneSeq).segmentCount"
+                        :bordered="false"
+                        :color="
+                          sceneStats(row.sceneSeq).ready ===
+                          sceneStats(row.sceneSeq).segmentCount
+                            ? 'green'
+                            : 'orange'
+                        "
+                      >
+                        段落 {{ sceneStats(row.sceneSeq).ready }}/{{
+                          sceneStats(row.sceneSeq).segmentCount
+                        }}
+                      </Tag>
+                      <Tag
+                        v-if="sceneStats(row.sceneSeq).chain"
+                        :bordered="false"
+                        color="green"
+                      >
+                        首尾帧接链
+                      </Tag>
+                    </div>
+
+                    <div
+                      v-else-if="row.type === 'segment'"
+                      class="sb-segment"
+                      :data-segment-id="row.segment.id"
+                      :class="{
+                        'is-warn': segmentTooLong(row.segment),
+                        'is-open': isSegmentExpanded(row.segment),
+                      }"
+                    >
+                      <div class="sb-segment__hd">
+                        <Button
+                          type="text"
+                          size="small"
+                          @click="toggleSegment(row.segment)"
+                        >
+                          <DownOutlined
+                            class="sb-scene-row__chevron"
+                            :class="{
+                              'is-collapsed': !isSegmentExpanded(row.segment),
+                            }"
+                          />
+                        </Button>
+                        <b>段 {{ row.segment.seq }}</b>
+                        <Tooltip
+                          :title="
+                            row.segment.generationMode === 'shot'
+                              ? '单镜模式由模型能力决定：未配置能力或不支持尾帧时自动降级，不是错误'
+                              : ''
+                          "
+                        >
+                          <Tag :bordered="false">
+                            {{ segmentModeLabel(row.segment) }}
+                          </Tag>
+                        </Tooltip>
+                        <Tag
+                          :bordered="false"
+                          :color="
+                            segmentDurationMismatch(row.segment)
+                              ? 'orange'
+                              : undefined
+                          "
+                        >
+                          {{ row.segment.durationSeconds || 0 }}s ｜ 建议
+                          {{ segmentSuggestedDuration(row.segment) }}s（台词
+                          {{ segmentDialogueChars(row.segment) }} 字）
+                        </Tag>
+                        <Button
+                          v-if="segmentDurationMismatch(row.segment)"
+                          type="link"
+                          size="small"
+                          @click="applySegmentDuration(row.segment)"
+                        >
+                          应用建议
+                        </Button>
+                        <Tag :bordered="false">
+                          {{ segmentShotCount(row.segment) }} 镜
+                        </Tag>
+                        <Tag
+                          v-if="segmentChain(row.segment)"
+                          :bordered="false"
+                          color="green"
+                        >
+                          首尾帧接链
+                        </Tag>
+                        <Tag
+                          :bordered="false"
+                          :color="segmentStatus(row.segment).color"
+                        >
+                          {{ segmentStatus(row.segment).label }}
+                        </Tag>
+                        <span
+                          v-if="segmentTooLong(row.segment)"
+                          class="sb-segment__warn"
+                        >
+                          超过模型时长上限 {{ maxSegmentDuration }} 秒
+                        </span>
+                        <span
+                          v-else-if="
+                            row.segment.generationMode === 'segment' &&
+                            segmentCapabilityBlocked()
+                          "
+                          class="sb-segment__cap-hint"
+                        >
+                          {{ segmentCapabilityReason }}
+                        </span>
+                        <span class="spacer"></span>
+                        <Button
+                          v-if="row.segment.generationMode === 'segment'"
+                          size="small"
+                          type="primary"
+                          :disabled="
+                            segmentTooLong(row.segment) ||
+                            segmentCapabilityBlocked()
+                          "
+                          :loading="
+                            segmentGeneratingId === String(row.segment.id)
+                          "
+                          :title="
+                            segmentTooLong(row.segment)
+                              ? `超过模型时长上限 ${maxSegmentDuration} 秒`
+                              : segmentCapabilityBlocked()
+                                ? `${segmentCapabilityReason}，请配置模型或拆分为单镜生成`
+                                : ''
+                          "
+                          @click="generateSegment(row.segment)"
+                        >
+                          {{
+                            row.segment.videoMaterialId
+                              ? '重新生成'
+                              : '生成本段'
+                          }}
+                        </Button>
+                        <Button
+                          v-if="row.segment.generationMode === 'segment'"
+                          size="small"
+                          :disabled="segmentCapabilityBlocked()"
+                          :title="
+                            segmentCapabilityBlocked()
+                              ? `${segmentCapabilityReason}，请先配置模型`
+                              : ''
+                          "
+                          @click="openSegmentReference(row.segment)"
+                        >
+                          参考素材
+                        </Button>
+                        <Button
+                          v-if="
+                            row.segment.generationMode === 'segment' &&
+                            segmentCapabilityBlocked() &&
+                            canManageModel
+                          "
+                          type="link"
+                          size="small"
+                          @click="goModelConfig"
+                        >
+                          去配置模型
+                        </Button>
+                        <Button
+                          v-if="row.segment.generationMode === 'segment'"
+                          size="small"
+                          @click="splitSegmentToShot(row.segment)"
+                        >
+                          拆分为单镜生成
+                        </Button>
+                      </div>
+
+                      <div
+                        v-if="segmentWarningText(row.segment)"
+                        class="sb-cap-warning"
+                      >
+                        {{ segmentWarningText(row.segment) }}
+                      </div>
+
+                      <!-- 单镜模式是能力降级，不是错误：给中性提示和明确去向 -->
+                      <div
+                        v-if="row.segment.generationMode === 'shot'"
+                        class="sb-segment__mode-hint"
+                      >
+                        <span>
+                          单镜模式：本段按镜头生成，请在下方镜头卡操作。原因：当前模型不支持尾帧或未配置能力。
+                        </span>
+                        <Button
+                          type="link"
+                          size="small"
+                          @click="expandSegmentShots(row.segment)"
+                        >
+                          展开镜头
+                        </Button>
+                        <Button
+                          v-if="segmentShotsPending(row.segment)"
+                          size="small"
+                          @click="openSegmentBatchVideo(row.segment)"
+                        >
+                          生成全部镜头
+                        </Button>
+                      </div>
+
+                      <div class="sb-segment__body">
+                        <div class="sb-segment__frame">
+                          <span>首帧</span>
+                          <Image
+                            v-if="
+                              row.segment.firstFrameThumbnailUrl ||
+                              row.segment.firstFrameUrl
+                            "
+                            :preview="false"
+                            :src="
+                              row.segment.firstFrameThumbnailUrl ||
+                              row.segment.firstFrameUrl
+                            "
+                          />
+                          <div v-else class="sb-segment__ph">未设置</div>
+                        </div>
+                        <div class="sb-segment__frame">
+                          <span>尾帧</span>
+                          <Image
+                            v-if="
+                              row.segment.lastFrameThumbnailUrl ||
+                              row.segment.lastFrameUrl
+                            "
+                            :preview="false"
+                            :src="
+                              row.segment.lastFrameThumbnailUrl ||
+                              row.segment.lastFrameUrl
+                            "
+                          />
+                          <div v-else class="sb-segment__ph">未设置</div>
+                        </div>
+                        <div class="sb-segment__frame">
+                          <span>成片</span>
+                          <video
+                            v-if="row.segment.videoUrl"
+                            :poster="row.segment.thumbnailUrl"
+                            :src="row.segment.videoUrl"
+                            muted
+                            playsinline
+                            preload="metadata"
+                          ></video>
+                          <Image
+                            v-else-if="row.segment.thumbnailUrl"
+                            :preview="false"
+                            :src="row.segment.thumbnailUrl"
+                          />
+                          <div v-else class="sb-segment__ph">未生成</div>
+                        </div>
+                        <div class="sb-segment__meta">
+                          <div
+                            v-if="row.segment.dialogue?.length"
+                            class="sb-segment__dialogue"
+                          >
+                            <span
+                              v-for="(line, lineIndex) in row.segment.dialogue"
+                              :key="lineIndex"
+                            >
+                              {{ line.speaker }}：{{ line.line
+                              }}<em v-if="line.emotion">（{{ line.emotion }}）</em>
+                            </span>
+                          </div>
+                          <p v-if="row.segment.action" class="sb-segment__action">
+                            动作：{{ row.segment.action }}
+                          </p>
+                          <p v-if="row.segment.errorMsg" class="sb-segment__error">
+                            上次失败：{{ row.segment.errorMsg }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      v-else-if="row.type === 'divider'"
+                      class="sb-divider"
+                    >
+                      剧本无段落归属的镜头
+                    </div>
+
+                    <template v-else-if="row.type === 'shot'">
+                      <List.Item
+                        v-for="shot in [row.shot]"
+                        :key="shot.id"
+                        class="sb-item"
+                      >
                       <Card size="small" class="sb-shot">
                         <div class="sb-shot__layout">
                           <div class="sb-shot__main">
@@ -3558,10 +5141,26 @@ onMounted(() => {
                               <Tag v-if="shot.camera" :bordered="false" color="purple">
                                 {{ cameraLabel(shot.camera) }}
                               </Tag>
-                              <Tag :bordered="false">
+                              <Tag
+                                :bordered="false"
+                                :color="
+                                  shotDurationMismatch(shot)
+                                    ? 'orange'
+                                    : undefined
+                                "
+                              >
                                 <ClockCircleOutlined class="mr-1" />
-                                {{ shot.durationSeconds || 0 }}s
+                                {{ shot.durationSeconds || 0 }}s ｜ 建议
+                                {{ shotSuggestedDuration(shot) }}s
                               </Tag>
+                              <Button
+                                v-if="shotDurationMismatch(shot)"
+                                type="link"
+                                size="small"
+                                @click="applyShotDuration(shot)"
+                              >
+                                应用建议
+                              </Button>
                               <Tag :bordered="false" :color="shotStatus(shot).color">
                                 {{ shotStatus(shot).label }}
                               </Tag>
@@ -3738,15 +5337,34 @@ onMounted(() => {
                                     :disabled="
                                       Number(shot.generationStatus) === 1 ||
                                       needsKeyframe(shot) ||
-                                      videoBusy
+                                      videoBusy ||
+                                      isSegmentModeShot(shot)
                                     "
                                     :loading="Number(shot.generationStatus) === 1"
+                                    :title="
+                                      isSegmentModeShot(shot)
+                                        ? '段落模式下需整段重生成'
+                                        : ''
+                                    "
                                     @click="generateShotVideo(shot)"
                                   >
                                     <PlayCircleOutlined />
                                     {{ Number(shot.generationStatus) === 1 ? '生成中…' : shot.hasVideo ? '重新生成视频' : '生成视频' }}
                                   </Button>
                                 </Space.Compact>
+
+                                <Button
+                                  v-if="!isSegmentModeShot(shot)"
+                                  size="small"
+                                  :disabled="
+                                    videoBusy ||
+                                    Number(shot.generationStatus) === 1
+                                  "
+                                  title="用参考素材生成视频，可跳过关键帧"
+                                  @click="openShotReference(shot)"
+                                >
+                                  参考素材
+                                </Button>
 
                                 <Space.Compact size="small">
                                   <Button @click="openPrompt(shot)">
@@ -3821,8 +5439,9 @@ onMounted(() => {
                         </div>
                       </Card>
                     </List.Item>
+                    </template>
                   </template>
-                </List>
+                </div>
                 <div v-if="shotsLoading" class="nwb-loading">
                   <Spin />
                 </div>
@@ -3892,20 +5511,25 @@ onMounted(() => {
           <Card v-if="episode" size="small" class="nwb-card">
             <div class="nwb-card__title">
               本章记忆
-              <Tag v-if="memoryStale" color="orange" :bordered="false">正文有修改待刷新</Tag>
-              <Button
-                type="link"
-                size="small"
-                :loading="memoryLoading"
-                @click="generateMemory(true)"
+              <Tag
+                :bordered="false"
+                :color="MEMORY_STATUS_META[memoryStatusOf(episode)]?.color"
               >
-                重新生成
+                {{ MEMORY_STATUS_META[memoryStatusOf(episode)]?.label }}
+              </Tag>
+              <Button type="link" size="small" @click="openChapterMemory">
+                查看 / 编辑
               </Button>
             </div>
             <p class="nwb-memory">
               {{
-                episode.memory ||
-                '点「保存」压缩本章关键事件、人物变化与未解伏笔（自动保存不会触发）'
+                memoryStatusOf(episode) === 2
+                  ? '结构化记忆已就绪，可查看事件、人物状态、伏笔与结尾状态'
+                  : memoryStatusOf(episode) === 3
+                    ? '正文已修改，记忆已过期；请重建本章记忆'
+                    : memoryStatusOf(episode) === 4
+                      ? '记忆生成失败，可在结构化记忆里重试'
+                      : '定稿本章后自动生成结构化记忆；普通保存只标记过期，不消耗 token'
               }}
             </p>
           </Card>
@@ -4027,6 +5651,50 @@ onMounted(() => {
       @ok="applyPlan"
     >
       <div class="nwb-modal">
+        <div
+          v-if="hasPlanReferencePanel"
+          class="ai-reference"
+          :class="{ 'has-error': planHardConflicts.length > 0 }"
+        >
+          <div class="ai-reference__hd">
+            <Button
+              v-if="planReferences"
+              type="link"
+              size="small"
+              @click="showPlanReferences = !showPlanReferences"
+            >
+              {{ showPlanReferences ? '收起参考来源' : '参考来源' }}
+            </Button>
+            <span v-if="planStaleEpisodes.length" class="ai-reference__warn">
+              参考的第 {{ planStaleEpisodes.join('、') }} 集记忆可能已过期
+            </span>
+          </div>
+          <div v-if="showPlanReferences" class="ai-reference__detail">
+            <p v-if="referenceSummary(planReferences)">
+              {{ referenceSummary(planReferences) }}
+            </p>
+            <p
+              v-for="(item, index) in planReferences?.foreshadows ?? []"
+              :key="index"
+            >
+              伏笔：{{ item.text }}
+            </p>
+          </div>
+          <div
+            v-for="(conflict, index) in planConflicts"
+            :key="index"
+            class="ai-conflict"
+            :class="conflict.level === 'error' ? 'is-error' : 'is-warn'"
+          >
+            <Tag
+              :bordered="false"
+              :color="conflict.level === 'error' ? 'red' : 'orange'"
+            >
+              {{ conflict.level === 'error' ? '硬冲突' : '软冲突' }}
+            </Tag>
+            <span>{{ conflict.message }}</span>
+          </div>
+        </div>
         <label>
           <span>本章梗概</span>
           <Input.TextArea v-model:value="planSummary" :rows="3" />
@@ -4064,6 +5732,45 @@ onMounted(() => {
 
     <ShotMaterialDrawer @confirm="onShotMaterialPicked" />
     <AssetGraphDrawer @success="onAssetGraphChanged" />
+    <DirectorPlanDrawer @saved="onDirectorSaved" />
+    <ContinuousPreviewModal
+      v-model:open="previewOpen"
+      :flat-view="flatView"
+      :scope-scene-seq="previewSceneSeq"
+      :segments="segments"
+      :shots="shots"
+    />
+    <SegmentReferenceModal
+      v-model:open="segmentRefOpen"
+      :capabilities="videoCapabilities"
+      :model-id="videoModelId"
+      :segment="segmentRefTarget"
+      :submitting="segmentRefSubmitting"
+      @submit="submitSegmentReference"
+    />
+    <SegmentReferenceModal
+      v-model:open="shotRefOpen"
+      :capabilities="videoCapabilities"
+      :default-prompt="shotRefTarget?.videoPrompt"
+      :model-id="videoModelId"
+      :subject-label="`第 ${shotRefTarget?.seq ?? '-'} 镜`"
+      :submitting="shotRefSubmitting"
+      @submit="submitShotReference"
+    />
+    <ChapterMemoryDrawer
+      v-model:open="chapterMemoryOpen"
+      :episode-id="episode?.id"
+      :episode-seq="episode?.seq"
+      :model-id="modelId"
+      @updated="onChapterMemoryUpdated"
+    />
+    <NovelMemoryDrawer
+      v-model:open="novelMemoryOpen"
+      :episodes="episodes"
+      :model-id="modelId"
+      :novel-id="props.novelId"
+      @updated="onNovelMemoryUpdated"
+    />
 
     <Modal
       v-model:open="sceneBindOpen"
@@ -4199,6 +5906,9 @@ onMounted(() => {
           <b>{{ batchPlan?.eligible.length || 0 }}</b> 个镜头；跳过
           <b>{{ batchPlan?.skipped.length || 0 }}</b> 个。
         </p>
+        <p v-if="batchScopeSegmentSeq" class="nwb-tip">
+          仅针对第 {{ batchScopeSegmentSeq }} 段的镜头。
+        </p>
         <p
           v-if="(batchPlan?.eligible.length || 0) > 20"
           class="batch-confirm__warn"
@@ -4225,11 +5935,7 @@ onMounted(() => {
           <p class="nwb-tip">空镜不会自动确认；请先手动确认空镜后再跑批量。</p>
         </div>
         <p class="nwb-tip">
-          {{
-            USE_SERVER_BATCH
-              ? '提交后由后端批次任务执行，离开页面也会继续；同类型已有任务会直接复用，进度可在任务中心查看。'
-              : '当前为本地备用执行路径（USE_SERVER_BATCH=false）：并发 2 逐镜提交，离开页面会中断。'
-          }}
+          提交后由后端批次任务执行，离开页面也会继续；同类型已有任务会直接复用，进度可在任务中心查看。
         </p>
       </div>
     </Modal>
@@ -4258,7 +5964,12 @@ onMounted(() => {
       width="520px"
     >
       <p class="compose-gate__text">
-        还有 <b>{{ localMissingVideoSeqs.length }}</b> 镜没有视频，先去批量生成视频？
+        <template v-if="segments.length">
+          段落模式：缺第 <b>{{ localMissingSegmentSeqs.join('、') }}</b> 段视频，先去批量生成视频？
+        </template>
+        <template v-else>
+          还有 <b>{{ localMissingVideoSeqs.length }}</b> 镜没有视频，先去批量生成视频？
+        </template>
       </p>
       <p class="nwb-tip">空镜或其他特殊情况可以仍然提交。</p>
       <div class="compose-gate__actions">
@@ -4279,10 +5990,20 @@ onMounted(() => {
       title="成片预检未通过"
       width="620px"
     >
-      <p v-if="composePrecheckMessage" class="nwb-tip">
+      <p v-if="segments.length" class="nwb-tip">
+        段落模式：
+        <template v-if="localMissingSegmentSeqs.length">
+          缺第 {{ localMissingSegmentSeqs.join('、') }} 段视频
+        </template>
+        <template v-else>存在缺失视频的段落</template>
+      </p>
+      <p v-else-if="composePrecheckMessage" class="nwb-tip">
         {{ composePrecheckMessage }}
       </p>
-      <div v-if="composeMissingShots.length" class="compose-missing">
+      <div
+        v-if="!segments.length && composeMissingShots.length"
+        class="compose-missing"
+      >
         <div
           v-for="item in composeMissingShots"
           :key="item.shotId"
@@ -4292,7 +6013,12 @@ onMounted(() => {
           <span>{{ item.reason || '缺少视频，请先生成镜头视频' }}</span>
         </div>
       </div>
-      <p v-else class="nwb-tip">后端未返回缺失镜头明细，请先检查视频生成状态。</p>
+      <p
+        v-else-if="!segments.length"
+        class="nwb-tip"
+      >
+        后端未返回缺失镜头明细，请先检查视频生成状态。
+      </p>
       <div class="compose-missing__foot">
         <Button @click="gotoBatchVideoForCompose">去批量生成视频</Button>
         <Button type="primary" @click="composeMissingOpen = false">
@@ -4327,8 +6053,10 @@ onMounted(() => {
             >
               {{
                 validationComposeReady
-                  ? '已就绪（全部镜头有视频）'
-                  : `未就绪，缺视频 ${validationMissingVideoSeqs.length} 镜`
+                  ? validationHasSegments
+                    ? '已就绪（全部段落有视频）'
+                    : '已就绪（全部镜头有视频）'
+                  : `未就绪，缺视频 ${validationMissingSeqs.length} ${validationMissingUnit}`
               }}
             </Tag>
           </div>
@@ -4336,13 +6064,16 @@ onMounted(() => {
             v-if="!validationComposeReady"
             class="validate-status__missing"
           >
-            <template v-if="validationMissingVideoSeqs.length">
-              缺视频镜头：第 {{ missingVideoPreview.join('、') }} 镜
+            <template v-if="validationMissingSeqs.length">
+              缺视频{{ validationHasSegments ? '段落' : '镜头' }}：第
+              {{ missingVideoPreview.join('、') }} {{ validationMissingUnit }}
               <template v-if="missingVideoExtra">
-                等 {{ missingVideoExtra }} 镜
+                等 {{ missingVideoExtra }} {{ validationMissingUnit }}
               </template>
             </template>
-            <template v-else>镜头视频未齐，请先批量生成视频</template>
+            <template v-else>
+              {{ validationHasSegments ? '段落视频未齐' : '镜头视频未齐' }}，请先批量生成视频
+            </template>
           </div>
           <div class="validate-status__actions">
             <Button
@@ -4467,11 +6198,19 @@ onMounted(() => {
         </label>
         <label>
           <span>图片提示词</span>
-          <Input.TextArea v-model:value="promptForm.imagePrompt" :rows="3" />
+          <Input.TextArea
+            v-model:value="promptForm.imagePrompt"
+            :maxlength="20000"
+            :rows="3"
+          />
         </label>
         <label>
           <span>视频提示词</span>
-          <Input.TextArea v-model:value="promptForm.videoPrompt" :rows="4" />
+          <Input.TextArea
+            v-model:value="promptForm.videoPrompt"
+            :maxlength="20000"
+            :rows="4"
+          />
         </label>
         <label>
           <span>时长（秒）</span>
@@ -4485,6 +6224,27 @@ onMounted(() => {
 
     <Modal v-model:open="ideaOpen" title="AI 想法" :footer="null" width="640">
       <div class="nwb-prose">{{ ideaText }}</div>
+    </Modal>
+
+    <Modal
+      v-model:open="continueGuideOpen"
+      title="本章还没有细纲"
+      :footer="null"
+      width="560"
+    >
+      <p class="continue-guide__text">
+        本章还没有细纲。先「生成细纲」能让续写更准确地接上一章；也可以直接续写。
+      </p>
+      <div class="continue-guide__actions">
+        <Button @click="focusPlanFromContinue">去生成细纲</Button>
+        <Button
+          type="primary"
+          :loading="aiLoading === 'continue'"
+          @click="continueAnyway"
+        >
+          仍然续写
+        </Button>
+      </div>
     </Modal>
 
     <Modal v-model:open="extractOpen" title="抽取设定" :footer="null" width="720">
@@ -4729,6 +6489,96 @@ onMounted(() => {
   }
 }
 
+.nwb-mem-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  cursor: default;
+  background: hsl(var(--border));
+  border-radius: 50%;
+
+  &.is-1 {
+    background: hsl(var(--primary));
+  }
+
+  &.is-2 {
+    background: hsl(var(--success));
+  }
+
+  &.is-3 {
+    cursor: pointer;
+    background: hsl(var(--warning));
+  }
+
+  &.is-4 {
+    cursor: pointer;
+    background: hsl(var(--destructive));
+  }
+}
+
+.nwb-memory-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  padding-top: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  border-top: 1px dashed hsl(var(--border));
+}
+
+.ai-reference {
+  flex: none;
+  padding: 8px 10px;
+  margin: 8px 24px 0;
+  font-size: 12px;
+  background: color-mix(in srgb, hsl(var(--primary)) 5%, hsl(var(--background)));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+
+  &.has-error {
+    background: color-mix(in srgb, hsl(var(--destructive)) 6%, hsl(var(--background)));
+    border-color: color-mix(in srgb, hsl(var(--destructive)) 35%, transparent);
+  }
+}
+
+.ai-reference__hd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.ai-reference__warn {
+  color: hsl(var(--warning));
+}
+
+.ai-reference__detail {
+  margin-top: 6px;
+
+  p {
+    margin: 2px 0;
+    line-height: 1.6;
+    color: hsl(var(--muted-foreground));
+  }
+}
+
+.ai-conflict {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin-top: 4px;
+
+  &.is-error span {
+    color: hsl(var(--destructive));
+  }
+
+  &.is-warn span {
+    color: hsl(var(--warning));
+  }
+}
+
 .nwb-tabs {
   display: flex;
   flex: none;
@@ -4891,6 +6741,18 @@ onMounted(() => {
   color: hsl(var(--muted-foreground));
 }
 
+.continue-guide__text {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.continue-guide__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .ed-toolbar {
   display: flex;
   flex: none;
@@ -4899,6 +6761,17 @@ onMounted(() => {
   align-items: center;
   padding: 10px 24px;
   border-bottom: 1px solid hsl(var(--border));
+}
+
+.ed-context-hint {
+  flex: none;
+  padding: 6px 10px;
+  margin: 8px 24px 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: hsl(var(--warning));
+  background: color-mix(in srgb, hsl(var(--warning)) 10%, transparent);
+  border-radius: 6px;
 }
 
 .ed-editor {
@@ -5684,6 +7557,199 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.sb-toolbar {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 2px 0 10px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.sb-toolbar__label {
+  color: hsl(var(--muted-foreground));
+}
+
+.sb-toolbar__sep {
+  width: 1px;
+  height: 14px;
+  margin: 0 4px;
+  background: hsl(var(--border));
+}
+
+.sb-cap-warning {
+  display: inline-flex;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: hsl(var(--warning));
+  background: color-mix(in srgb, hsl(var(--warning)) 10%, transparent);
+  border-radius: 6px;
+}
+
+.sb-segment__mode-hint {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  background: color-mix(in srgb, hsl(var(--primary)) 6%, hsl(var(--background)));
+  border-radius: 6px;
+}
+
+.sb-scene-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  margin: 8px 0 4px;
+  font-size: 12px;
+  background: color-mix(in srgb, hsl(var(--primary)) 6%, hsl(var(--background)));
+  border-left: 3px solid hsl(var(--primary));
+  border-radius: 6px;
+
+  b {
+    font-size: 13px;
+  }
+}
+
+.sb-scene-row__heading {
+  color: hsl(var(--muted-foreground));
+}
+
+.sb-scene-row__chevron {
+  transition: transform 0.15s ease;
+
+  &.is-collapsed {
+    transform: rotate(-90deg);
+  }
+}
+
+.sb-segment {
+  margin: 6px 0 8px 8px;
+  padding: 8px 10px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+
+  &.is-warn {
+    border-color: color-mix(in srgb, hsl(var(--destructive)) 45%, transparent);
+  }
+
+  &.is-open {
+    background: color-mix(in srgb, hsl(var(--accent)) 55%, hsl(var(--background)));
+  }
+}
+
+.sb-segment__hd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.sb-segment__warn {
+  font-size: 12px;
+  color: hsl(var(--destructive));
+}
+
+.sb-segment__body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.sb-segment__frame {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 92px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+
+  :deep(img) {
+    width: 92px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  video {
+    width: 92px;
+    height: 52px;
+    object-fit: cover;
+    background: #000;
+    border-radius: 4px;
+  }
+}
+
+.sb-segment__ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 92px;
+  height: 52px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--accent));
+  border-radius: 4px;
+}
+
+.sb-segment__meta {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 220px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.sb-segment__dialogue {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  em {
+    font-style: normal;
+    color: hsl(var(--muted-foreground));
+  }
+}
+
+.sb-segment__action {
+  margin: 0;
+}
+
+.sb-segment__error {
+  margin: 0;
+  color: hsl(var(--destructive));
+}
+
+/* 能力未配置是「待配置」不是「错误」：用琥珀色提示，避免和生成失败的红字混淆 */
+.sb-segment__cap-hint {
+  font-size: 12px;
+  color: hsl(var(--warning, 38 92% 50%));
+}
+
+.sb-divider {
+  padding-left: 10px;
+  margin: 10px 0 6px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  border-left: 2px dashed hsl(var(--border));
 }
 
 .sb-batch-entry {

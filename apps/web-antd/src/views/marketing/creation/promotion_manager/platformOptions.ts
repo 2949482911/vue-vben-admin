@@ -72,6 +72,7 @@ export const BatchOperationType = {
   AI_ASSET_KEYFRAME_NEW: 'ai_shot_keyframe',
   AI_ASSET_VIDEO_NEW: 'ai_shot_video',
   AI_ASSET_KEYFRAME_STALE: 'ai_shot_keyframe_stale',
+  AI_ASSET_IMAGE: 'ai_asset_image',
 } as const;
 export type BatchOperationType = (typeof BatchOperationType)[keyof typeof BatchOperationType];
 
@@ -114,6 +115,8 @@ export const BATCH_OPERATION_LABEL_KEYS: Record<BatchOperationType, string> = {
     'marketing.promotionManager.optionTypes.aiAssetVideoNew',
   [BatchOperationType.AI_ASSET_KEYFRAME_STALE]:
     'marketing.promotionManager.optionTypes.aiAssetKeyframeStale',
+  [BatchOperationType.AI_ASSET_IMAGE]:
+    'marketing.promotionManager.optionTypes.aiAssetImage',
 };
 
 // ==================== 操作类型 → 「全部应用」提示 i18n key ====================

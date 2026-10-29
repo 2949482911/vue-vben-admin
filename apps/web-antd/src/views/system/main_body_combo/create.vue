@@ -1,14 +1,27 @@
 <script lang="ts" setup>
-import { mainBodyComboApi } from "#/api";
 import type {
   ComboPrivilegeCreateRequest,
   MainBodyComboCreateRequest,
   MainBodyComboPageItem
 } from "#/api/models/main-body";
+
+import { ref } from "vue";
+
 import { useVbenDrawer, useVbenForm } from "@vben/common-ui";
+import { useDictStore } from "@vben/stores";
+
 import { message } from "ant-design-vue";
 
+import { mainBodyComboApi } from "#/api";
+
+import {
+  COMBO_PRIVILEGE_DICT_CODE,
+  COMBO_PRIVILEGE_FALLBACK
+} from "./constants";
+
 const emit = defineEmits(["pageReload"]);
+
+const dictStore = useDictStore();
 
 // 权益单位选项
 const unitOptions = [
@@ -17,14 +30,35 @@ const unitOptions = [
   { label: "个", value: "unit" }
 ];
 
-// 权益代码选项（示例）
-const privilegeCodeOptions = [
-  { label: "存储空间", value: "storage" },
-  { label: "API调用次数", value: "api_calls" },
-  { label: "用户数量", value: "users" },
-  { label: "项目数量", value: "projects" },
-  { label: "报表导出次数", value: "report_export" }
-];
+// 权益下拉：字典项 + 历史编码兜底（字典优先）
+const privilegeOptions = ref<Array<{ label: string; value: string }>>([]);
+
+async function loadPrivilegeOptions() {
+  const items = await dictStore.getDict(COMBO_PRIVILEGE_DICT_CODE);
+  const options = items.map((item) => ({
+    label: item.label,
+    value: String(item.value)
+  }));
+  const exists = new Set(options.map((item) => item.value));
+  Object.entries(COMBO_PRIVILEGE_FALLBACK).forEach(([value, label]) => {
+    if (!exists.has(value)) {
+      options.push({ label, value });
+    }
+  });
+  privilegeOptions.value = options;
+}
+
+/** 权益名称：字典优先，回退历史编码文案，再回退接口快照 */
+function privilegeLabelOf(code?: string, fallbackName?: string) {
+  if (!code) {
+    return fallbackName ?? "";
+  }
+  const label = dictStore.getDictLabel(COMBO_PRIVILEGE_DICT_CODE, code);
+  if (label !== undefined && label !== null && label !== "") {
+    return String(label);
+  }
+  return COMBO_PRIVILEGE_FALLBACK[code] ?? fallbackName ?? "";
+}
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -125,15 +159,14 @@ const [Form, formApi] = useVbenForm({
           label: "权益代码",
           componentProps: ({ rowPath }) => ({
             allowClear: true,
-            options: privilegeCodeOptions,
-            placeholder: "请选择权益代码",
+            options: privilegeOptions.value,
+            placeholder: "请选择权益",
+            showSearch: true,
+            optionFilterProp: "label",
             onChange: (value: string) => {
-              const option = privilegeCodeOptions.find(
-                (opt) => opt.value === value
-              );
               formApi.setFieldValue(
                 `${rowPath}.privilegeName`,
-                option?.label ?? ""
+                privilegeLabelOf(value)
               );
             }
           })
@@ -190,11 +223,7 @@ const [comboDrawer, drawerApi] = useVbenDrawer({
     ).map((item: any) => ({
       id: item.id ?? "",
       privilegeCode: item.privilegeCode,
-      privilegeName:
-        item.privilegeName ||
-        privilegeCodeOptions.find((opt) => opt.value === item.privilegeCode)
-          ?.label ||
-        "",
+      privilegeName: privilegeLabelOf(item.privilegeCode, item.privilegeName),
       quota: Number(item.quota ?? 0),
       unit: item.unit
     }));
@@ -231,6 +260,7 @@ const [comboDrawer, drawerApi] = useVbenDrawer({
   },
   async onOpened() {
     const drawerData = getDrawerData();
+    await loadPrivilegeOptions();
 
     if (drawerData?.id) {
       await formApi.setValues({
@@ -243,7 +273,10 @@ const [comboDrawer, drawerApi] = useVbenDrawer({
         privileges: (drawerData.privileges ?? []).map((item) => ({
           id: item.id ?? "",
           privilegeCode: item.privilegeCode,
-          privilegeName: item.privilegeName,
+          privilegeName: privilegeLabelOf(
+            item.privilegeCode,
+            item.privilegeName
+          ),
           quota: item.quota,
           unit: item.unit
         }))

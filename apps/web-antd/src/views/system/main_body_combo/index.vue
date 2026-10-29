@@ -1,11 +1,54 @@
 <script setup lang="ts">
-import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
-import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
-import { Button, message, Switch, Tag } from "ant-design-vue";
-import { mainBodyComboApi } from "#/api";
-import Create from "./create.vue";
 import type { MainBodyComboPageItem } from "#/api/models/main-body";
+
+import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
+import { useDictStore } from "@vben/stores";
+
+import { Button, message, Space, Switch, Tag } from "ant-design-vue";
+
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
+import { mainBodyComboApi } from "#/api";
+import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
+
+import {
+  COMBO_PRIVILEGE_DICT_CODE,
+  COMBO_PRIVILEGE_FALLBACK
+} from "./constants";
+import Create from "./create.vue";
+
+const dictStore = useDictStore();
+
+const UNIT_LABEL: Record<string, string> = {
+  count: "次",
+  gb: "GB",
+  unit: "个"
+};
+
+/** 权益名称：字典优先，取不到回退接口快照 */
+function privilegeLabel(privilege: { privilegeCode?: string; privilegeName?: string }) {
+  if (!privilege.privilegeCode) {
+    return privilege.privilegeName || "-";
+  }
+  const label = dictStore.getDictLabel(
+    COMBO_PRIVILEGE_DICT_CODE,
+    privilege.privilegeCode
+  );
+  if (label !== undefined && label !== null && label !== "") {
+    return String(label);
+  }
+  return (
+    COMBO_PRIVILEGE_FALLBACK[privilege.privilegeCode] ??
+    privilege.privilegeName ??
+    privilege.privilegeCode
+  );
+}
+
+function quotaLabel(privilege: { quota?: number; unit?: string }) {
+  if (privilege.quota === -1) {
+    return "不限";
+  }
+  return `${privilege.quota ?? 0}${UNIT_LABEL[privilege.unit || ""] ?? privilege.unit ?? ""}`;
+}
 
 const [CreateDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: Create
@@ -101,6 +144,12 @@ const gridOptions: VxeGridProps = {
       slots: { default: "price" }
     },
     {
+      field: "privileges",
+      title: "套餐权益",
+      width: 260,
+      slots: { default: "privileges" }
+    },
+    {
       field: "isDefault",
       title: "是否默认",
       width: "auto",
@@ -176,6 +225,18 @@ async function handlerState(row: MainBodyComboPageItem) {
       <template #price="{ row }">
         ¥{{ row.price }}
       </template>
+      <template #privileges="{ row }">
+        <Space v-if="row.privileges?.length" wrap :size="[4, 4]">
+          <Tag
+            v-for="privilege in row.privileges"
+            :key="privilege.id || privilege.privilegeCode"
+            :bordered="false"
+          >
+            {{ privilegeLabel(privilege) }} · {{ quotaLabel(privilege) }}
+          </Tag>
+        </Space>
+        <span v-else>-</span>
+      </template>
       <template #isDefault="{ row }">
         <Tag v-if="row.isDefault" color="success">默认</Tag>
         <Tag v-else color="default">否</Tag>
@@ -197,7 +258,6 @@ async function handlerState(row: MainBodyComboPageItem) {
     </Grid>
     <CreateDrawerModule @page-reload="pageReload" />
   </Page>
-
 </template>
 
 <style scoped lang="scss"></style>

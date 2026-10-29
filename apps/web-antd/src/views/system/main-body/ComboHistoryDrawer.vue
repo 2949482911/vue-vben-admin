@@ -1,13 +1,34 @@
 <script lang="ts" setup name="ComboInfoDrawer">
-import { useVbenDrawer } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import type { MainBodyItem, MainBodyItemCombo } from '#/api/models/main-body';
 
 import { computed, ref, watch } from 'vue';
+
+import { useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+import { useDictStore } from '@vben/stores';
 
 import { Tag } from 'ant-design-vue';
 
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
-import type { MainBodyItem, MainBodyItemCombo } from '#/api/models/main-body';
+
+import {
+  COMBO_PRIVILEGE_DICT_CODE,
+  COMBO_PRIVILEGE_FALLBACK,
+} from '../main_body_combo/constants';
+
+const dictStore = useDictStore();
+
+/** 权益名称：字典优先，取不到回退接口快照 */
+function privilegeNameOf(code?: string, fallbackName?: string) {
+  if (!code) {
+    return fallbackName || '';
+  }
+  const label = dictStore.getDictLabel(COMBO_PRIVILEGE_DICT_CODE, code);
+  if (label !== undefined && label !== null && label !== '') {
+    return String(label);
+  }
+  return COMBO_PRIVILEGE_FALLBACK[code] ?? fallbackName ?? code;
+}
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[75%]',
@@ -58,7 +79,10 @@ const tableData = computed(() => {
           using: combo.using,
           createTime: combo.createTime,
           createUsername: combo.createUsername,
-          privilegeName: privilege.privilegeName,
+          privilegeName: privilegeNameOf(
+            privilege.privilegeCode,
+            privilege.privilegeName,
+          ),
           privilegeCode: privilege.privilegeCode,
           quota: privilege.quota,
           unit: privilege.unit,

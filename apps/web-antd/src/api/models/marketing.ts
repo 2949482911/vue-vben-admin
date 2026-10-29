@@ -702,6 +702,9 @@ export interface TaskBatchCenterItem extends BaseItem {
  * 任务中心-任务详情项
  */
 export interface TaskBatchCenterDetailItem {
+  /** 资产批次：资产类型（character / scene） */
+  assetId?: number | string;
+  assetType?: string;
   id?: number;
   /** 任务类型 */
   optionType: string;
@@ -747,8 +750,12 @@ export interface TaskBatchCenterProgressResponse {
   failedCount?: number;
   /** 待处理数量 */
   pendingCount?: number;
+  /** 已处理数量（资产补图批次使用） */
+  processedCount?: number;
   /** 进度百分比 */
   progressPercent?: number;
+  /** 任务失败原因 */
+  errorMsg?: string;
   /** 开始时间 */
   startTime?: string;
   /** 结束时间 */

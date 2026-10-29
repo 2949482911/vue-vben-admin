@@ -16,6 +16,7 @@ import { ref } from 'vue';
 
 import { Page, useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
+import { useDictStore } from '@vben/stores';
 
 import { Button, Dropdown, Menu, MenuItem, message, Switch, Tag } from 'ant-design-vue';
 
@@ -23,8 +24,28 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { aiModelApi } from '#/api';
 import { BatchOptionsType, TABLE_COMMON_COLUMNS } from '#/constants/locales';
 
-import { CAPABILITY_MAP, CAPABILITY_OPTIONS, SOURCE_MAP, SOURCE_OPTIONS } from './constants';
+import {
+  CAPABILITY_MAP,
+  CAPABILITY_OPTIONS,
+  capabilityTags,
+  MODEL_PROVIDER_DICT_CODE,
+  SOURCE_MAP,
+  SOURCE_OPTIONS,
+} from './constants';
 import Create from './create.vue';
+
+const dictStore = useDictStore();
+
+/** 供应商展示：优先取字典 system_model 的 label，字典未收录时回退原值 */
+function providerLabel(value?: string) {
+  if (!value) {
+    return '-';
+  }
+  const label = dictStore.getDictLabel(MODEL_PROVIDER_DICT_CODE, value);
+  return label === undefined || label === null || label === ''
+    ? value
+    : String(label);
+}
 
 // ==================== 创建 / 编辑抽屉 ====================
 const [CreateDrawer, createDrawerApi] = useVbenDrawer({
@@ -64,8 +85,9 @@ const gridOptions: VxeGridProps<ModelConfigItem> = {
   checkboxConfig: { highlight: true, labelField: 'id' },
   columns: [
     { field: 'model', title: '模型名', minWidth: 180 },
-    { field: 'provider', title: '供应商', minWidth: 130 },
+    { field: 'provider', slots: { default: 'provider' }, title: '供应商', minWidth: 130 },
     { field: 'capability', slots: { default: 'capability' }, title: '能力', width: 100 },
+    { field: 'capabilities', slots: { default: 'caps' }, title: '能力声明', minWidth: 240 },
     { field: 'source', slots: { default: 'source' }, title: '来源', width: 120 },
     { field: 'baseUrl', title: 'Base URL', minWidth: 220 },
     ...(TABLE_COMMON_COLUMNS as any),
@@ -145,10 +167,33 @@ async function handleBatchDisable() {
 <template>
   <Page>
     <Grid>
+      <template #provider="{ row }">
+        {{ providerLabel(row.provider) }}
+      </template>
+
       <template #capability="{ row }">
         <Tag :bordered="false" :color="CAPABILITY_MAP[row.capability || '']?.color || 'default'">
           {{ CAPABILITY_MAP[row.capability || '']?.label || row.capability || '-' }}
         </Tag>
+      </template>
+
+      <!-- 能力声明：分镜段落生成按这里判断首尾帧/参考素材，未配置会直接拦段落模式 -->
+      <template #caps="{ row }">
+        <template v-if="row.capability === 'video'">
+          <Tag
+            v-for="tag in capabilityTags(row.capabilities)"
+            :key="tag.label"
+            :bordered="false"
+            :color="tag.color"
+            class="mr-1"
+          >
+            {{ tag.label }}
+          </Tag>
+          <Tag v-if="!capabilityTags(row.capabilities).length" :bordered="false">
+            未配置
+          </Tag>
+        </template>
+        <span v-else class="text-gray-400">-</span>
       </template>
 
       <template #source="{ row }">

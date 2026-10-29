@@ -29,6 +29,30 @@ export type SkillType =
 // ==================== 模型配置 ====================
 
 /**
+ * 模型能力声明（P0 模型无关地基）
+ * 后端 AiModelConfig.capabilities JSON 列；未声明时前端不阻塞生成
+ */
+export interface ModelCapabilities {
+  maxDurationSeconds?: number;
+  maxRefAudios?: number;
+  maxRefImages?: number;
+  maxRefVideos?: number;
+  supportsAudio?: boolean;
+  supportsFirstFrame?: boolean;
+  supportsLastFrame?: boolean;
+  supportsNegativePrompt?: boolean;
+  supportsRefAudio?: boolean;
+  supportsRefImage?: boolean;
+  supportsRefVideo?: boolean;
+}
+
+/** 能力自检结果：rawCapabilities 为库内原文，其余为后端生效值 */
+export interface ModelCapabilityCheck extends ModelCapabilities {
+  configured?: boolean;
+  rawCapabilities?: null | Record<string, any>;
+}
+
+/**
  * 模型配置（列表项；后端不返回 apiKey）
  */
 export interface ModelConfigItem {
@@ -41,6 +65,8 @@ export interface ModelConfigItem {
   model?: string;
   /** 能力 */
   capability?: ModelCapability;
+  /** 模型能力声明 */
+  capabilities?: ModelCapabilities;
   /** 来源 */
   source?: ModelSource;
   /** 状态：1 可用 / 9 不可用 */
@@ -58,6 +84,8 @@ export interface ModelConfigSaveRequest {
   apiKey?: string;
   model?: string;
   capability?: ModelCapability;
+  /** 模型能力声明；仅视频模型提交，未传时后端保留原值 */
+  capabilities?: ModelCapabilities;
   source?: ModelSource;
 }
 

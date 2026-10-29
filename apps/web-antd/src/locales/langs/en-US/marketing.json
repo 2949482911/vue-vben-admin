@@ -237,7 +237,8 @@
       "updatePromotionMonitorUrl": "Update Monitor URL",
       "aiAssetKeyframeNew": "Batch Generate Keyframes",
       "aiAssetVideoNew": "Batch Generate Videos",
-      "aiAssetKeyframeStale": "Batch Regenerate Keyframes"
+      "aiAssetKeyframeStale": "Batch Regenerate Keyframes",
+      "aiAssetImage": "Batch Asset Images"
     },
     "status": {
       "enable": "Enable",

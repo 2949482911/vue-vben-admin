@@ -1,10 +1,20 @@
 import type {
+  AssetImageBatchActiveResult,
+  AssetImageBatchPlanResult,
+  AssetImageBatchSubmitRequest,
+  AssetImageBatchSubmitResult,
   AssetImageGenerateRequest,
   AssetImageGenerateResult,
   AssetType,
   CatalogNameQuery,
+  ChapterMemoryDetail,
+  ChapterMemoryRebuildRequest,
+  ChapterMemorySaveRequest,
   CharacterItem,
   CharacterSaveRequest,
+  DirectorPlanRequest,
+  DirectorPlanResult,
+  DirectorPlanSaveRequest,
   EdgeItem,
   ElementItem,
   ElementQuery,
@@ -18,9 +28,9 @@ import type {
   EpisodeComposeRequest,
   EpisodeComposeStatus,
   EpisodeContentGenerateRequest,
+  EpisodeFinalizeRequest,
   EpisodeGenerateRequest,
   EpisodeItem,
-  EpisodeMemoryGenerateRequest,
   EpisodePlanRequest,
   EpisodePlanResponse,
   EpisodeQuery,
@@ -35,14 +45,20 @@ import type {
   MaterialPushResult,
   MaterialQuery,
   MaterialUploadRequest,
+  MemoryRebuildSubmitRequest,
+  MemoryRebuildSubmitResult,
   NodeItem,
   NovelAssetExtractRequest,
   NovelAssetGraph,
   NovelDetailItem,
+  NovelForeshadowItem,
   NovelGenerateRequest,
   NovelGenerateResult,
   NovelItem,
+  NovelMemoryOverview,
   NovelSaveRequest,
+  NovelStoryBible,
+  NovelVolumeSummaryItem,
   PersonaCopyRequest,
   PersonaItem,
   PersonaQuery,
@@ -54,6 +70,9 @@ import type {
   ScenarioQuery,
   SceneItem,
   SceneSaveRequest,
+  SegmentItem,
+  SegmentSaveRequest,
+  SegmentVideoGenerateRequest,
   SettingItem,
   SettingQuery,
   ShotImageGenerateRequest,
@@ -84,8 +103,9 @@ import type {
   WritingToolRunRequest,
   WritingToolRunResult,
 } from '#/api/models/ai_asset';
+import type { ModelCapabilityCheck } from '#/api/models/ai_model';
 import type { BatchOptions } from '#/api/models/core';
-import type { PageResponse } from '#/api/models/marketing';
+import type { PageResponse, TaskBatchCenterProgressResponse } from '#/api/models/marketing';
 
 import { BaseApi } from '#/api/core/baseapi';
 import { requestClient } from '#/api/request';
@@ -257,6 +277,48 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 当前小说的活动资产补图批次（无则 null） */
+  fetchAssetImageBatchActive(
+    novelId: number | string,
+  ): Promise<AssetImageBatchActiveResult | null> {
+    return requestClient.get<AssetImageBatchActiveResult | null>(
+      this.getServiceUrl('novel/asset/image/batch/active'),
+      { params: { novelId }, skipErrorMessage: true } as any,
+    );
+  }
+
+  /** 资产补图批次计划（只读预览） */
+  fetchAssetImageBatchPlan(
+    novelId: number | string,
+  ): Promise<AssetImageBatchPlanResult> {
+    return requestClient.get<AssetImageBatchPlanResult>(
+      this.getServiceUrl('novel/asset/image/batch/plan'),
+      { params: { novelId } },
+    );
+  }
+
+  /** 资产补图批次进度（复用 task_batch_center 结构） */
+  fetchAssetImageBatchProgress(
+    taskId: number | string,
+    page = 1,
+    pageSize = 20,
+  ): Promise<TaskBatchCenterProgressResponse> {
+    return requestClient.get<TaskBatchCenterProgressResponse>(
+      this.getServiceUrl('novel/asset/image/batch/progress'),
+      { params: { page, pageSize, taskId } },
+    );
+  }
+
+  /** 章级结构化记忆详情 */
+  fetchChapterMemory(
+    episodeId: number | string,
+  ): Promise<ChapterMemoryDetail> {
+    return requestClient.get<ChapterMemoryDetail>(
+      this.getServiceUrl('episode/memory/detail'),
+      { params: { episodeId }, skipErrorMessage: true } as any,
+    );
+  }
+
   /** 角色列表（分页） */
   fetchCharacters(params: CatalogNameQuery): Promise<PageResponse<CharacterItem>> {
     return requestClient.get<PageResponse<CharacterItem>>(
@@ -265,6 +327,7 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 读取已保存的导演规划（刷新页面后重新打开抽屉用） */
   /** 创作素材分页列表（element 类型） */
   fetchElements(params: ElementQuery): Promise<PageResponse<ElementItem>> {
     return requestClient.get<PageResponse<ElementItem>>(
@@ -296,6 +359,14 @@ class AiAssetApi extends BaseApi {
     return requestClient.get<PageResponse<EpisodeItem>>(
       this.getServiceUrl('episode/list'),
       { params },
+    );
+  }
+
+  /** 分镜段落列表（P1 预留；接口未就绪时调用方回退平铺镜头） */
+  fetchEpisodeSegments(episodeId: number | string): Promise<SegmentItem[]> {
+    return requestClient.get<SegmentItem[]>(
+      this.getServiceUrl('episode/storyboard/segments'),
+      { params: { episodeId } },
     );
   }
 
@@ -333,6 +404,38 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 当前小说活动记忆重建批次 */
+  fetchMemoryRebuildActive(
+    novelId: number | string,
+  ): Promise<AssetImageBatchActiveResult | null> {
+    return requestClient.get<AssetImageBatchActiveResult | null>(
+      this.getServiceUrl('novel/memory/batch/active'),
+      { params: { novelId }, skipErrorMessage: true } as any,
+    );
+  }
+
+  /** 记忆重建批次进度 */
+  fetchMemoryRebuildProgress(
+    taskId: number | string,
+    page = 1,
+    pageSize = 50,
+  ): Promise<TaskBatchCenterProgressResponse> {
+    return requestClient.get<TaskBatchCenterProgressResponse>(
+      this.getServiceUrl('novel/memory/batch/progress'),
+      { params: { page, pageSize, taskId } },
+    );
+  }
+
+  /** 模型能力自检（切换视频模型后刷新能力生效值） */
+  fetchModelCapabilityCheck(
+    modelId: number | string,
+  ): Promise<ModelCapabilityCheck> {
+    return requestClient.get<ModelCapabilityCheck>(
+      this.getServiceUrl('model/capability/check'),
+      { params: { modelId }, skipErrorMessage: true } as any,
+    );
+  }
+
   /** 小说设定资产图谱 + 准备度 */
   fetchNovelAssetGraph(novelId: number | string): Promise<NovelAssetGraph> {
     return requestClient.get<NovelAssetGraph>(
@@ -349,6 +452,16 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 未回收/全部伏笔台账 */
+  fetchNovelForeshadows(
+    novelId: number | string,
+  ): Promise<NovelForeshadowItem[]> {
+    return requestClient.get<NovelForeshadowItem[]>(
+      this.getServiceUrl('novel/memory/foreshadow/list'),
+      { params: { novelId }, skipErrorMessage: true } as any,
+    );
+  }
+
   /** 小说列表（分页，不含正文） */
   fetchNovelList(params: CatalogNameQuery): Promise<PageResponse<NovelItem>> {
     return requestClient.get<PageResponse<NovelItem>>(
@@ -357,11 +470,41 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 全书记忆概览：人物数 / 未回收伏笔 / 记忆同步章 */
+  fetchNovelMemoryOverview(
+    novelId: number | string,
+  ): Promise<NovelMemoryOverview> {
+    return requestClient.get<NovelMemoryOverview>(
+      this.getServiceUrl('novel/memory/overview'),
+      { params: { novelId }, skipErrorMessage: true } as any,
+    );
+  }
+
   /** 统一设定视图：角色 + 场景 + 创作素材 */
   fetchNovelSettings(params: SettingQuery): Promise<SettingItem[]> {
     return requestClient.get<SettingItem[]>(
       this.getServiceUrl('novel/setting/list'),
       { params },
+    );
+  }
+
+  /** Story Bible（只读） */
+  fetchNovelStoryBible(
+    novelId: number | string,
+  ): Promise<NovelStoryBible> {
+    return requestClient.get<NovelStoryBible>(
+      this.getServiceUrl('novel/memory/bible'),
+      { params: { novelId }, skipErrorMessage: true } as any,
+    );
+  }
+
+  /** 卷摘要列表 */
+  fetchNovelVolumeSummaries(
+    novelId: number | string,
+  ): Promise<NovelVolumeSummaryItem[]> {
+    return requestClient.get<NovelVolumeSummaryItem[]>(
+      this.getServiceUrl('novel/memory/volume/list'),
+      { params: { novelId }, skipErrorMessage: true } as any,
     );
   }
 
@@ -439,8 +582,7 @@ class AiAssetApi extends BaseApi {
   }
 
   /** 分镜资产绑定报告（进入分镜页/生成后刷新） */
-  fetchStoryboardBindingReport(
-    episodeId: number | string,
+  fetchStoryboardBindingReport(    episodeId: number | string,
   ): Promise<StoryboardBindingReport> {
     return requestClient.get<StoryboardBindingReport>(
       this.getServiceUrl('episode/storyboard/binding/report'),
@@ -516,8 +658,6 @@ class AiAssetApi extends BaseApi {
     );
   }
 
-  // ==================== 工作流（创作工作台画布） ====================
-
   /** 工作区列表（当前租户，分页；域外接口，不带 X-Workspace-Id） */
   fetchWorkspaces(params: WorkspaceQuery): Promise<PageResponse<WorkspaceItem>> {
     return requestClient.get<PageResponse<WorkspaceItem>>(
@@ -554,6 +694,15 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 定稿本章：生成短记忆并触发完整记忆流水线 */
+  finalizeEpisode(data: EpisodeFinalizeRequest): Promise<EpisodeItem> {
+    return requestClient.post<EpisodeItem>(
+      this.getServiceUrl('episode/finalize'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
   /** 生成角色/场景形象图 */
   generateAssetImage(
     data: AssetImageGenerateRequest,
@@ -565,23 +714,26 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  // ==================== 工作流（创作工作台画布） ====================
+
+  /** 导演规划生成（P1 预留；接口未就绪时提示待后端） */
+  generateDirectorPlan(
+    data: DirectorPlanRequest,
+    silent = false,
+  ): Promise<DirectorPlanResult> {
+    return requestClient.post<DirectorPlanResult>(
+      this.getServiceUrl('episode/director/plan'),
+      data,
+      silent ? ({ skipErrorMessage: true } as any) : undefined,
+    );
+  }
+
   /** 按集懒生成正文（回写 content/words） */
   generateEpisodeContent(
     data: EpisodeContentGenerateRequest,
   ): Promise<EpisodeItem> {
     return requestClient.post<EpisodeItem>(
       this.getServiceUrl('episode/content/generate'),
-      data,
-      { timeout: 300_000 },
-    );
-  }
-
-  /** 生成章节记忆（定稿压缩；force 覆盖已有） */
-  generateEpisodeMemory(
-    data: EpisodeMemoryGenerateRequest,
-  ): Promise<EpisodeItem> {
-    return requestClient.post<EpisodeItem>(
-      this.getServiceUrl('episode/memory/generate'),
       data,
       { timeout: 300_000 },
     );
@@ -635,6 +787,17 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 段落级视频生成（后端按模型能力校验首尾帧/时长/音频；错误由调用方统一格式化） */
+  generateSegmentVideo(
+    data: SegmentVideoGenerateRequest,
+  ): Promise<SegmentItem> {
+    return requestClient.post<SegmentItem>(
+      this.getServiceUrl('episode/storyboard/segments/generate'),
+      data,
+      { skipErrorMessage: true } as any,
+    );
+  }
+
   /** P3：生成镜头关键帧（角色/场景参考图） */
   generateShotImage(data: ShotImageGenerateRequest): Promise<ShotItem> {
     return requestClient.post<ShotItem>(
@@ -651,8 +814,6 @@ class AiAssetApi extends BaseApi {
       data,
     );
   }
-
-  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
 
   /** P3：生成分镜 */
   generateStoryboard(
@@ -671,6 +832,37 @@ class AiAssetApi extends BaseApi {
   ): Promise<MaterialPushResult[]> {
     return requestClient.post<MaterialPushResult[]>(
       this.getServiceUrl('material/push'),
+      data,
+    );
+  }
+
+  /** 单章重建记忆 */
+  rebuildChapterMemory(
+    data: ChapterMemoryRebuildRequest,
+  ): Promise<ChapterMemoryDetail> {
+    return requestClient.post<ChapterMemoryDetail>(
+      this.getServiceUrl('episode/memory/rebuild'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
+  /** 重算某卷摘要 */
+  rebuildNovelVolume(data: { novelId: number | string; volumeNo: number }) {
+    return requestClient.post(
+      this.getServiceUrl('novel/memory/volume/rebuild'),
+      data,
+      { timeout: 300_000 },
+    );
+  }
+
+  /** 人工确认伏笔已回收 */
+  resolveNovelForeshadow(data: {
+    foreshadowId: number | string;
+    novelId: number | string;
+  }) {
+    return requestClient.post(
+      this.getServiceUrl('novel/memory/foreshadow/resolve'),
       data,
     );
   }
@@ -700,9 +892,27 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
+
+  /** 人工保存章级记忆（source=manual） */
+  saveChapterMemory(data: ChapterMemorySaveRequest): Promise<ChapterMemoryDetail> {
+    return requestClient.post<ChapterMemoryDetail>(
+      this.getServiceUrl('episode/memory/save'),
+      data,
+    );
+  }
+
   /** 角色 新增/更新 */
   saveCharacter(data: CharacterSaveRequest) {
     return requestClient.post(this.getServiceUrl('character/save'), data);
+  }
+
+  /** 导演规划保存（保存后由后端重新生成段落） */
+  saveDirectorPlan(data: DirectorPlanSaveRequest) {
+    return requestClient.post(
+      this.getServiceUrl('episode/director/plan/save'),
+      data,
+    );
   }
 
   /** 创作素材：新增/更新（element 类型） */
@@ -730,6 +940,14 @@ class AiAssetApi extends BaseApi {
     return requestClient.post(this.getServiceUrl('scene/save'), data);
   }
 
+  /** 段落保存：切换 generationMode / 调整时长等 */
+  saveSegment(data: SegmentSaveRequest): Promise<SegmentItem> {
+    return requestClient.post<SegmentItem>(
+      this.getServiceUrl('segment/save'),
+      data,
+    );
+  }
+
   /** P3：保存分镜（手动编辑/排序） */
   saveShot(data: Partial<ShotItem>) {
     return requestClient.post(this.getServiceUrl('shot/save'), data);
@@ -749,6 +967,28 @@ class AiAssetApi extends BaseApi {
       this.getServiceUrl('persona/set_default'),
       null,
       { params: { id } },
+    );
+  }
+
+  /** 提交资产补图批次（一次提交，后端 Kafka 异步执行） */
+  submitAssetImageBatch(
+    data: AssetImageBatchSubmitRequest,
+  ): Promise<AssetImageBatchSubmitResult> {
+    return requestClient.post<AssetImageBatchSubmitResult>(
+      this.getServiceUrl('novel/asset/image/batch/submit'),
+      data,
+      { skipErrorMessage: true } as any,
+    );
+  }
+
+  /** 批量重建记忆（写 task_batch_center，Airflow 扫描执行） */
+  submitMemoryRebuild(
+    data: MemoryRebuildSubmitRequest,
+  ): Promise<MemoryRebuildSubmitResult> {
+    return requestClient.post<MemoryRebuildSubmitResult>(
+      this.getServiceUrl('novel/memory/batch/submit'),
+      data,
+      { skipErrorMessage: true } as any,
     );
   }
 

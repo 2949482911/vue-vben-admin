@@ -7,13 +7,17 @@ import { computed, reactive, ref, watch } from 'vue';
 
 import {
   Button,
+  Empty,
   Input,
   InputNumber,
+  List,
   message,
   Modal,
   Progress,
   Select,
+  Space,
   Switch,
+  Tag,
 } from 'ant-design-vue';
 
 import { aiAssetApi } from '#/api';
@@ -217,26 +221,33 @@ const previewRows = computed(() => {
   const labelOf = (group: { dictKey?: keyof OptionMap; options?: OptionItem[] }, value: string) =>
     (group.options ?? (group.dictKey ? props.options[group.dictKey] : []))
       ?.find((item) => item.value === value)?.label ?? value;
-  const rows: Array<{ label: string; value: string }> = [];
+  const rows: Array<{ label: string; values: string[] }> = [];
   WIZARD_STEPS.forEach((s) => {
     s.groups.forEach((group) => {
       const value = config[group.key];
       if (!hasValue(value)) {
         return;
       }
+      const values = Array.isArray(value) ? value : [value];
       rows.push({
         label: group.label,
-        value: Array.isArray(value)
-          ? value.map((item) => labelOf(group, item)).join(' · ')
-          : labelOf(group, value),
+        values: values
+          .map((item) => labelOf(group, item))
+          .filter((item): item is string => Boolean(item)),
       });
     });
   });
   if (form.episodeCount) {
-    rows.push({ label: '分集数', value: `${form.episodeCount} 集` });
+    rows.push({ label: '分集数', values: [`${form.episodeCount} 集`] });
   }
   return rows;
 });
+
+const TAG_COLORS = ['blue', 'green', 'orange', 'purple', 'cyan', 'magenta'];
+
+function tagColor(index: number) {
+  return TAG_COLORS[index % TAG_COLORS.length]!;
+}
 </script>
 
 <template>
@@ -396,13 +407,34 @@ v-model:value="form.episodeDuration" :options="[
 
         <aside class="wiz-preview">
           <div class="wiz-preview__title">配置预览</div>
-          <div v-if="previewRows.length" class="wiz-preview__list">
-            <div v-for="row in previewRows" :key="row.label" class="wiz-preview__row">
-              <dt>{{ row.label }}</dt>
-              <dd>{{ row.value }}</dd>
-            </div>
-          </div>
-          <div v-else class="wiz-preview__empty">请选择左侧配置</div>
+          <List
+            v-if="previewRows.length"
+            class="wiz-preview__list"
+            :data-source="previewRows"
+            :split="false"
+          >
+            <template #renderItem="{ item }">
+              <List.Item class="wiz-preview__row">
+                <div class="wiz-preview__label">{{ item.label }}</div>
+                <Space wrap :size="[6, 6]" class="wiz-preview__tags">
+                  <Tag
+                    v-for="(value, index) in item.values"
+                    :key="value"
+                    :bordered="false"
+                    :color="tagColor(Number(index))"
+                  >
+                    {{ value }}
+                  </Tag>
+                </Space>
+              </List.Item>
+            </template>
+          </List>
+          <Empty
+            v-else
+            class="wiz-preview__empty"
+            :image="Empty.PRESENTED_IMAGE_SIMPLE"
+            description="请选择左侧配置"
+          />
         </aside>
       </div>
 
@@ -598,32 +630,57 @@ v-model:value="form.episodeDuration" :options="[
 }
 
 .wiz-preview {
+  display: flex;
+  flex-direction: column;
   align-self: start;
+  max-height: 52vh;
+  min-height: 0;
   padding: 14px;
+  overflow: hidden;
   background: hsl(var(--accent));
   border: 1px solid hsl(var(--border));
   border-radius: 12px;
 
   &__title {
+    flex: none;
     margin-bottom: 10px;
     font-size: 13px;
     font-weight: 600;
   }
 
+  &__list {
+    flex: 1;
+    min-height: 0;
+    padding-right: 4px;
+    overflow-y: auto;
+
+    :deep(.ant-list-item) {
+      padding: 0;
+      border: none;
+    }
+  }
+
   &__row {
-    padding: 6px 0;
-    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px 0;
     border-bottom: 1px dashed hsl(var(--border));
 
-    dt {
-      margin-bottom: 2px;
-      color: hsl(var(--muted-foreground));
+    &:last-child {
+      border-bottom: none;
     }
+  }
 
-    dd {
+  &__label {
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+  }
+
+  &__tags {
+    :deep(.ant-tag) {
       margin: 0;
-      line-height: 1.6;
-      word-break: break-all;
+      font-size: 11px;
     }
   }
 
@@ -632,12 +689,6 @@ v-model:value="form.episodeDuration" :options="[
     font-size: 12px;
     color: hsl(var(--muted-foreground));
     text-align: center;
-  }
-
-  &__tip {
-    padding-top: 8px;
-    font-size: 11px;
-    color: hsl(var(--muted-foreground));
   }
 }
 

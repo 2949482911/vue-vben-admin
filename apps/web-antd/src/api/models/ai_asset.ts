@@ -261,12 +261,18 @@ export interface EpisodeItem {
   volumeNo?: number;
   /** 本章走向要求（轻控制） */
   plotDirection?: string;
-  /** 定稿后压缩的历史记忆（<=300字） */
-  memory?: string;
-  /** 是否已有历史记忆（列表/详情均返回） */
-  hasMemory?: boolean;
   /** 乐观锁版本号 */
   version?: number;
+  /** 正文内容版本（用于记忆幂等） */
+  contentVersion?: number;
+  /** 记忆状态：0 未生成 / 1 生成中 / 2 成功 / 3 过期 / 4 失败 */
+  memoryStatus?: number;
+  /** 记忆来源：ai / manual */
+  memorySource?: string;
+  /** 记忆失败原因 */
+  memoryError?: string;
+  /** 分集扩展配置（后端存 episode.config.directorPlan 等） */
+  config?: null | Record<string, any>;
   /** 成片素材 ID（后端可能回填，用于成片地址兼容回查） */
   finalMaterialId?: number | string;
   /** 成片直链（后端可能回填，优先使用） */
@@ -464,6 +470,10 @@ export interface ShotItem {
   novelId?: number | string;
   sceneId?: number | string;
   sceneSeq?: number;
+  /** 所属段落（P1；旧数据可能为空，后端会生成兼容段落） */
+  segmentId?: number | string;
+  /** 后端建议时长（缺省时前端按台词字数计算） */
+  suggestedDurationSeconds?: number;
   seq?: number;
   shotType?: string;
   updateTime?: string;
@@ -533,6 +543,8 @@ export type StoryboardBatchMode = 'new' | 'stale';
 export interface StoryboardBatchPlanQuery {
   episodeId: number | string;
   mode: StoryboardBatchMode;
+  /** 仅生成某一段落的镜头（单镜模式「生成全部镜头」用，后端可按此过滤） */
+  segmentId?: number | string;
   target: StoryboardBatchTarget;
 }
 
@@ -560,6 +572,8 @@ export interface StoryboardBatchSubmitRequest {
   episodeId: number | string;
   mode: StoryboardBatchMode;
   modelId?: null | number | string;
+  /** 仅提交某一段落的镜头（预留；后端未支持时按整集处理） */
+  segmentId?: number | string;
   target: StoryboardBatchTarget;
 }
 
@@ -605,18 +619,149 @@ export interface StoryboardIssue {
   type: string;
 }
 
+/** 段落台词（以段落为生成单元，一句台词不跨段） */
+export interface SegmentDialogueItem {
+  emotion?: string;
+  line: string;
+  speaker: string;
+}
+
+/** 媒体引用 role（万相协议 code；后端也兼容大写枚举名） */
+export type MediaRole =
+  | 'FIRST_FRAME'
+  | 'first_frame'
+  | 'LAST_FRAME'
+  | 'last_frame'
+  | 'REFERENCE_AUDIO'
+  | 'reference_audio'
+  | 'REFERENCE_IMAGE'
+  | 'reference_image'
+  | 'REFERENCE_VIDEO'
+  | 'reference_video';
+
+export interface MediaRef {
+  materialId?: number | string;
+  /** 协议顺序即 prompt 里的 图1/视频1/音频1 顺序 */
+  role: MediaRole;
+  url: string;
+}
+
+/** 万相视频参数（后端 QwenVideoParamMapper 直接映射） */
+export interface VideoGenerationParams {
+  audio?: boolean;
+  duration?: number;
+  prompt_extend?: boolean;
+  ratio?: '1:1' | '3:4' | '4:3' | '9:16' | '16:9' | '21:9' | 'adaptive';
+  resolution?: '480P' | '720P' | '1080P';
+  seed?: number;
+  watermark?: boolean;
+}
+
+/** P1 段落：同场次连续 1–3 个镜头，8–12 秒，一次视频调用 */
+export interface SegmentItem {
+  action?: string;
+  /** segment/save 返回的能力提示；黄色提示条展示，不当错误 */
+  capabilityWarning?: null | string;
+  dialogue?: SegmentDialogueItem[];
+  durationSeconds?: number;
+  errorMsg?: string;
+  /** 首帧素材 ID（缺省时用关键帧） */
+  firstFrameMaterialId?: number | string;
+  /** 首帧展示地址（后端未返回时显示“未设置”） */
+  firstFrameThumbnailUrl?: string;
+  firstFrameUrl?: string;
+  generationMode: 'segment' | 'shot';
+  generationStatus?: number;
+  id: number | string;
+  /** 尾帧素材 ID */
+  lastFrameMaterialId?: number | string;
+  lastFrameThumbnailUrl?: string;
+  lastFrameUrl?: string;
+  sceneSeq: number;
+  seq: number;
+  /** 段落包含的镜头；旧数据可能为空 */
+  shotIds?: Array<number | string>;
+  /** 后端建议时长（缺省时前端按台词字数计算，clamp 5–12s） */
+  suggestedDurationSeconds?: number;
+  thumbnailUrl?: string;
+  videoMaterialId?: number | string;
+  videoUrl?: string;
+}
+
+/** 段落级视频生成请求（预留：后端能力校验不通过会返回 400） */
+export interface SegmentVideoGenerateRequest {
+  mediaRefs?: MediaRef[];
+  modelId?: number | string;
+  params?: VideoGenerationParams;
+  /** 最多 20000 字符；不传用后端段落模板 */
+  promptOverride?: string;
+  segmentId: number | string;
+}
+
+/** 段落保存（切换 generationMode / 调整时长等） */
+export interface SegmentSaveRequest {
+  action?: string;
+  dialogue?: SegmentDialogueItem[];
+  durationSeconds?: number;
+  firstFrameMaterialId?: number | string;
+  generationMode?: 'segment' | 'shot';
+  id: number | string;
+  lastFrameMaterialId?: number | string;
+  /** 传页面所选模型，返回的 capabilityWarning 才准确 */
+  modelId?: number | string;
+}
+
+export interface DirectorPlanRequest {
+  episodeId: number | string;
+  modelId?: number | string;
+  /** false=读取已有段落（无则生成兼容段落）；true=重新调 LLM 规划 */
+  regenerate?: boolean;
+}
+
+export interface DirectorPlanSegment {
+  action?: string;
+  dialogue?: SegmentDialogueItem[];
+  durationSeconds?: number;
+  /** 保存阶段后端支持的首/尾帧素材 ID */
+  firstFrameMaterialId?: number | string;
+  generationMode: 'segment' | 'shot';
+  id?: number | string;
+  lastFrameMaterialId?: number | string;
+  sceneSeq: number;
+  seq: number;
+  shotIds?: Array<number | string>;
+  shotType?: string;
+}
+
+export interface DirectorPlanResult {
+  episodeId: number | string;
+  /** 本集建议时长合计（秒） */
+  estimatedTotalSeconds?: number;
+  modelId?: number | string;
+  segments: DirectorPlanSegment[];
+}
+
+export interface DirectorPlanSaveRequest {
+  episodeId: number | string;
+  segments: DirectorPlanSegment[];
+}
+
 export interface StoryboardValidateResult {
   /** 成片就绪（全部镜头有视频）；后端未部署时前端按分镜数据兜底 */
   composeReady?: boolean;
   episodeId: number | string;
   issues: StoryboardIssue[];
-  /** 缺视频的镜头 seq（后端未返回时前端按镜头兜底） */
+  /** 缺视频的镜头 seq（后端未返回时前端按镜头兜底；有段落时以 missingSegmentSeqs 为准） */
   missingVideoSeqs?: number[];
+  /** 缺视频的段落 seq（P1 段落模式） */
+  missingSegmentSeqs?: number[];
   passed: boolean;
 }
 
 export interface ShotVideoGenerateRequest {
   duration?: number;
+  /** 非空则接管自动首帧，并跳过“必须先生成关键帧”的前置校验 */
+  mediaRefs?: MediaRef[];
   modelId?: number | string;
   promptOverride?: string;
   shotId: number | string;
@@ -694,9 +839,48 @@ export interface NovelAssetExtractRequest {
   sources?: Array<'episodes' | 'outline' | 'script'>;
 }
 
+/** 小说级资产补图批次（character/scene/element；群演与功能性角色由后端跳过） */
+export interface AssetImageBatchItem {
+  assetId: number | string;
+  assetType: 'character' | 'element' | 'scene';
+  name?: string;
+}
+
+export interface AssetImageBatchSkippedItem extends AssetImageBatchItem {
+  reason: string;
+}
+
+export interface AssetImageBatchPlanResult {
+  eligible: AssetImageBatchItem[];
+  novelId: number | string;
+  skipped: AssetImageBatchSkippedItem[];
+}
+
+export interface AssetImageBatchSubmitRequest {
+  /** 不传 = 补全部缺图；失败重试可只传指定资产 */
+  assets?: Array<{
+    assetId: number | string;
+    assetType: 'character' | 'element' | 'scene';
+  }>;
+  modelId?: number | string;
+  novelId: number | string;
+}
+
+export interface AssetImageBatchSubmitResult {
+  existing: boolean;
+  novelId: number | string;
+  optionType: string;
+  skipped: AssetImageBatchSkippedItem[];
+  taskId: number | string;
+  totalCount: number;
+}
+
+/** 复用 AI 批次 active 结构；target 可能为 null，不作为分支依据 */
+export type AssetImageBatchActiveResult = StoryboardBatchActiveResult;
+
 export interface AssetImageGenerateRequest {
   assetId: number | string;
-  assetType: 'character' | 'scene';
+  assetType: 'character' | 'element' | 'scene';
   modelId?: number | string;
   promptOverride?: string;
 }
@@ -980,16 +1164,154 @@ export interface EpisodeAiIssue {
 }
 
 export interface EpisodeAiActionResponse {
+  /** 后端上下文提示（如承接上章），黄色提示条展示，不当作错误 */
+  hint?: string;
+  /** 实际参与上下文的历史集号（后端返回才展示“已承接第 X 集结尾”） */
+  historyEpisodes?: Array<number | string>;
+  /** 本次生成引用的记忆来源（后端未返回不展示） */
+  references?: AiReferenceSource;
+  /** 上下文冲突：error=硬冲突 / warning=软冲突 */
+  conflicts?: AiContextConflict[];
   issues?: EpisodeAiIssue[];
   text?: string;
   title?: string;
 }
 
-/** 生成章节记忆（定稿压缩） */
-export interface EpisodeMemoryGenerateRequest {
+/** 生成结果参考来源（长篇小说分层记忆） */
+export interface AiReferenceSource {
+  episodes?: Array<number | string>;
+  /** 未回收/参与构思的伏笔 */
+  foreshadows?: Array<{
+    id?: number | string;
+    importance?: string;
+    text: string;
+  }>;
+  storyBible?: boolean;
+  volumeNo?: number;
+  volumeSummary?: boolean;
+}
+
+export interface AiContextConflict {
+  episodeSeq?: number;
+  level: 'error' | 'warning' | string;
+  message: string;
+  type?: string;
+}
+
+// ==================== 长篇分层记忆 P1 ====================
+
+export interface ChapterMemoryEvent {
+  causedBy?: string[];
+  id: string;
+  text: string;
+  type?: string;
+}
+
+export interface ChapterMemoryCharacterState {
+  characterId?: number | string;
+  name: string;
+  relations?: any[];
+  state?: string;
+}
+
+export interface ChapterMemoryForeshadow {
+  action: 'advance' | 'plant' | 'resolve' | string;
+  id: string;
+  importance?: string;
+  text: string;
+}
+
+export interface ChapterMemoryJson {
+  characters?: ChapterMemoryCharacterState[];
+  endingState?: string;
+  events?: ChapterMemoryEvent[];
+  foreshadows?: ChapterMemoryForeshadow[];
+  schemaVersion?: number;
+  summary?: string;
+  timeline?: { from?: string; place?: string; to?: string };
+}
+
+export interface ChapterMemoryDetail {
+  contentVersion?: number;
+  episodeId: number | string;
+  errorMsg?: string;
+  memoryJson?: ChapterMemoryJson;
+  memorySource?: string;
+  memoryStatus?: number;
+  novelId?: number | string;
+  schemaVersion?: number;
+  seq?: number;
+  updateTime?: string;
+}
+
+export interface ChapterMemorySaveRequest {
+  episodeId: number | string;
+  memoryJson: ChapterMemoryJson;
+}
+
+export interface ChapterMemoryRebuildRequest {
+  episodeId: number | string;
+  force?: boolean;
+  modelId?: number | string;
+}
+
+export interface EpisodeFinalizeRequest {
   episodeId: number | string;
   modelId?: number | string;
-  force?: boolean;
+}
+
+export interface NovelMemoryOverview {
+  characterCount?: number;
+  novelId: number | string;
+  openForeshadowCount?: number;
+  syncedEpisodeSeq?: number;
+}
+
+export interface NovelForeshadowItem {
+  id: number | string;
+  importance?: string;
+  lastSeenSeq?: number;
+  novelId?: number | string;
+  plantEpisodeSeq?: number;
+  resolveEpisodeSeq?: number;
+  source?: string;
+  status: 'abandoned' | 'closed' | 'open' | string;
+  text: string;
+}
+
+export interface NovelVolumeSummaryItem {
+  builtAt?: string;
+  characterArcs?: any;
+  episodeFrom?: number;
+  episodeTo?: number;
+  mainArcs?: any;
+  openForeshadows?: any;
+  status?: number;
+  summary?: string;
+  volumeNo: number;
+}
+
+export interface NovelStoryBible {
+  bibleJson?: Record<string, any>;
+  builtAt?: string;
+  novelId?: number | string;
+  status?: number;
+  version?: number;
+}
+
+export interface MemoryRebuildSubmitRequest {
+  episodeIds?: Array<number | string>;
+  modelId?: number | string;
+  novelId: number | string;
+}
+
+export interface MemoryRebuildSubmitResult {
+  existing: boolean;
+  novelId: number | string;
+  optionType: string;
+  skipped?: Array<{ episodeId: number | string; reason: string; seq?: number }>;
+  taskId: number | string;
+  totalCount: number;
 }
 
 /** 章节规划 */
@@ -1004,8 +1326,10 @@ export interface EpisodePlanRequest {
 
 export interface EpisodePlanResponse {
   beats?: EpisodeBeat[];
+  conflicts?: AiContextConflict[];
   episodeId?: number | string;
   persisted?: boolean;
+  references?: AiReferenceSource;
   summary?: string;
 }
 
