@@ -1,8 +1,8 @@
 <script lang="ts" setup name="NovelMemoryDrawer">
 /**
  * 全书记忆抽屉：位于小说工作台，承载长篇小说分层记忆的全局视图。
- * 数据来自记忆概览、伏笔台账、卷摘要、Story Bible 与记忆重建批次；
- * 批量重建只建任务并轮询进度，实际执行由 Airflow + turbo 完成，页面可关闭。
+ * 数据来自记忆概览、伏笔台账、卷摘要与 Story Bible；批量重建依赖后端批次与 Airflow，
+ * 当前入口保持禁用，不发请求也不轮询进度。
  */
 import type {
   EpisodeItem,
@@ -11,9 +11,8 @@ import type {
   NovelStoryBible,
   NovelVolumeSummaryItem,
 } from '#/api/models/ai_asset';
-import type { TaskBatchCenterDetailItem } from '#/api/models/marketing';
 
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import {
   Button,
@@ -21,7 +20,6 @@ import {
   Empty,
   message,
   Modal,
-  Progress,
   Spin,
   Tabs,
   Tag,
@@ -29,9 +27,13 @@ import {
 
 import { aiAssetApi } from '#/api';
 
+import {
+  MEMORY_STATUS,
+  MEMORY_STATUS_META as STATUS_META,
+} from '../status';
+
 const props = defineProps<{
   episodes: EpisodeItem[];
-  modelId?: number | string;
   novelId?: number | string;
 }>();
 
@@ -48,29 +50,6 @@ const foreshadows = ref<NovelForeshadowItem[]>([]);
 const volumes = ref<NovelVolumeSummaryItem[]>([]);
 const bible = ref<NovelStoryBible>();
 const foreshadowFilter = ref<'all' | 'open'>('open');
-
-const batchRunning = ref(false);
-const batchTaskId = ref<string>();
-const batchTotal = ref(0);
-const batchDone = ref(0);
-const batchSuccess = ref(0);
-const batchFailed = ref(0);
-const batchPercent = ref(0);
-const batchFailures = ref<
-  Array<{ episodeId?: number | string; message: string; seq?: number }>
->([]);
-const BATCH_POLL_INTERVAL = 3000;
-const BATCH_POLL_MAX_MS = 60 * 60 * 1000;
-let pollTimer: ReturnType<typeof setTimeout> | undefined;
-let pollStartedAt: number | undefined;
-
-const STATUS_META: Record<number, { color: string; label: string }> = {
-  0: { color: 'default', label: '未生成' },
-  1: { color: 'blue', label: '生成中' },
-  2: { color: 'green', label: '成功' },
-  3: { color: 'orange', label: '过期' },
-  4: { color: 'red', label: '失败' },
-};
 
 const importanceWeight: Record<string, number> = {
   high: 3,
@@ -171,11 +150,15 @@ async function load() {
     bible.value = bibleRes.value;
   }
   loading.value = false;
-  await loadActiveBatch();
 }
 
 function countImportance(list: NovelForeshadowItem[], importance: string) {
   return list.filter((item) => item.importance === importance).length;
+}
+
+function failText(error: any, fallback: string) {
+  const code = Number(error?.response?.status ?? error?.code ?? error?.data?.code);
+  return code === 404 ? '接口未就绪，待后端上线后重试' : error?.message || fallback;
 }
 
 function confirmResolve(item: NovelForeshadowItem) {
@@ -196,7 +179,7 @@ function confirmResolve(item: NovelForeshadowItem) {
         await load();
         emit('updated');
       } catch (error: any) {
-        message.error(error?.message || '标记伏笔失败');
+        message.error(failText(error, '标记伏笔失败'));
       }
     },
   });
@@ -211,175 +194,16 @@ async function rebuildVolume(volumeNo: number) {
     message.success('本卷摘要重算已提交');
     await load();
   } catch (error: any) {
-    message.error(error?.message || '重算卷摘要失败');
+    message.error(failText(error, '重算卷摘要失败'));
   }
-}
-
-function stopPoll() {
-  if (pollTimer) {
-    clearTimeout(pollTimer);
-    pollTimer = undefined;
-  }
-}
-
-function applyProgress(payload: {
-  failedCount?: number;
-  processedCount?: number;
-  progressPercent?: number;
-  successCount?: number;
-  taskStatus?: number;
-  totalCount?: number;
-}) {
-  batchTotal.value = Number(payload.totalCount ?? batchTotal.value);
-  batchSuccess.value = Number(payload.successCount ?? batchSuccess.value);
-  batchFailed.value = Number(payload.failedCount ?? batchFailed.value);
-  batchDone.value = Number(
-    payload.processedCount ?? batchSuccess.value + batchFailed.value,
-  );
-  batchPercent.value = Number(payload.progressPercent ?? 0);
-}
-
-function collectFailures(items: TaskBatchCenterDetailItem[]) {
-  batchFailures.value = items
-    .filter((item) => Number(item.code ?? 0) !== 0 || item.result === 'FAILED')
-    .map((item) => ({
-      episodeId: item.requestParams?.episodeId ?? item.targetIds?.[0],
-      message: item.message || '记忆重建失败',
-      seq: item.requestParams?.seq,
-    }));
-}
-
-function schedulePoll() {
-  stopPoll();
-  if (!batchTaskId.value) {
-    return;
-  }
-  if (!pollStartedAt) {
-    pollStartedAt = Date.now();
-  }
-  pollTimer = setTimeout(async () => {
-    if (Date.now() - pollStartedAt! > BATCH_POLL_MAX_MS) {
-      stopPoll();
-      batchRunning.value = false;
-      message.info('记忆重建时间较长，可稍后回来看');
-      return;
-    }
-    try {
-      const res = await aiAssetApi.fetchMemoryRebuildProgress(
-        batchTaskId.value!,
-        1,
-        200,
-      );
-      applyProgress({
-        failedCount: res.failedCount,
-        processedCount: res.processedCount,
-        progressPercent: res.progressPercent,
-        successCount: res.successCount,
-        taskStatus: res.taskStatus,
-        totalCount: res.totalCount,
-      });
-      collectFailures(res.items ?? []);
-      if ([3, 4].includes(Number(res.taskStatus))) {
-        stopPoll();
-        batchRunning.value = false;
-        pollStartedAt = undefined;
-        await load();
-        emit('updated');
-        message[res.taskStatus === 3 ? 'success' : 'error'](
-          `记忆重建结束：成功 ${batchSuccess.value}，失败 ${batchFailed.value}`,
-        );
-        return;
-      }
-      schedulePoll();
-    } catch {
-      schedulePoll();
-    }
-  }, BATCH_POLL_INTERVAL);
-}
-
-async function submitRebuild(episodeIds?: Array<number | string>) {
-  if (!props.novelId || batchRunning.value) {
-    return;
-  }
-  batchRunning.value = true;
-  batchFailures.value = [];
-  try {
-    const res = await aiAssetApi.submitMemoryRebuild({
-      episodeIds,
-      modelId: props.modelId,
-      novelId: props.novelId,
-    });
-    batchTaskId.value = String(res.taskId);
-    pollStartedAt = Date.now();
-    applyProgress({
-      failedCount: 0,
-      processedCount: 0,
-      progressPercent: 0,
-      successCount: 0,
-      taskStatus: 1,
-      totalCount: res.totalCount,
-    });
-    message.success(
-      res.existing
-        ? '已有记忆重建批次，已接上进度'
-        : '记忆重建任务已提交，可关闭页面，进度在任务中心查看',
-    );
-    schedulePoll();
-  } catch (error: any) {
-    batchRunning.value = false;
-    message.error(error?.message || '提交记忆重建失败');
-  }
-}
-
-async function loadActiveBatch() {
-  if (!props.novelId) {
-    return;
-  }
-  try {
-    const active = await aiAssetApi.fetchMemoryRebuildActive(props.novelId);
-    if (!active || ![1, 2].includes(Number(active.taskStatus))) {
-      return;
-    }
-    batchRunning.value = true;
-    batchTaskId.value = String(active.taskId);
-    applyProgress({
-      failedCount: active.failedCount,
-      progressPercent: active.progressPercent,
-      successCount: active.successCount,
-      taskStatus: active.taskStatus,
-      totalCount: active.totalCount,
-    });
-    schedulePoll();
-  } catch {
-    // active 未就绪时不影响手动重建
-  }
-}
-
-function retryFailed() {
-  const ids = batchFailures.value
-    .map((item) => item.episodeId)
-    .filter((id): id is number | string => id !== undefined);
-  if (!ids.length) {
-    message.info('没有可重试的失败章节');
-    return;
-  }
-  void submitRebuild(ids);
 }
 
 watch(open, (value) => {
   if (value) {
     activeTab.value = 'overview';
-    batchFailures.value = [];
-    batchRunning.value = false;
-    batchTaskId.value = undefined;
-    pollStartedAt = undefined;
     void load();
-  } else {
-    stopPoll();
   }
 });
-
-onBeforeUnmount(stopPoll);
 </script>
 
 <template>
@@ -397,6 +221,9 @@ onBeforeUnmount(stopPoll);
           <span>记忆同步至第 <b>{{ stats.synced }}</b> 章</span>
           <Tag :bordered="false" color="purple">Story Bible</Tag>
         </div>
+        <p v-if="!overview" class="novel-memory__muted">
+          全书记忆接口待后端最终清单确认；当前仅章级 memory/status 与 memory/rebuild 可用。
+        </p>
 
         <Tabs v-model:active-key="activeTab">
           <TabPane key="overview" tab="概览">
@@ -506,9 +333,12 @@ onBeforeUnmount(stopPoll);
                   <b>第 {{ volume.volumeNo }} 卷</b>
                   <Tag
                     :bordered="false"
-                    :color="STATUS_META[volume.status ?? 0]?.color"
+                    :color="STATUS_META[volume.status ?? MEMORY_STATUS.NONE]?.color"
                   >
-                    {{ STATUS_META[volume.status ?? 0]?.label ?? '未生成' }}
+                    {{
+                      STATUS_META[volume.status ?? MEMORY_STATUS.NONE]?.label ??
+                      '未生成'
+                    }}
                   </Tag>
                   <span class="novel-memory__muted">
                     第 {{ volume.episodeFrom ?? '-' }}–{{ volume.episodeTo ?? '-' }} 章
@@ -548,38 +378,10 @@ onBeforeUnmount(stopPoll);
 
           <TabPane key="rebuild" tab="批量重建">
             <div class="novel-memory__bar">
-              <Button
-                type="primary"
-                :loading="batchRunning"
-                :disabled="batchRunning"
-                @click="submitRebuild()"
-              >
-                {{ batchRunning ? '重建中' : '重建全书记忆' }}
-              </Button>
+              <Button type="primary" disabled>重建全书记忆（未开放）</Button>
               <span class="novel-memory__muted">
-                后台依次执行，可关闭页面；失败可单章重试
+                功能未开放：后端批量任务与 Airflow 执行接口尚未上线
               </span>
-            </div>
-            <div v-if="batchRunning" class="novel-memory__progress">
-              <span>
-                已完成 {{ batchDone }}/{{ batchTotal }}（成功
-                {{ batchSuccess }} · 失败 {{ batchFailed }}）
-              </span>
-              <Progress :percent="batchPercent" size="small" />
-            </div>
-            <div v-if="batchFailures.length" class="novel-memory__failures">
-              <div class="novel-memory__bar">
-                <b>失败 {{ batchFailures.length }} 章</b>
-                <Button size="small" @click="retryFailed">重试失败章</Button>
-              </div>
-              <div
-                v-for="item in batchFailures"
-                :key="`${item.episodeId}-${item.seq}`"
-                class="failure-row"
-              >
-                <b>第 {{ item.seq ?? item.episodeId }} 章：</b>
-                <span>{{ item.message }}</span>
-              </div>
             </div>
           </TabPane>
         </Tabs>
@@ -685,28 +487,6 @@ onBeforeUnmount(stopPoll);
     span {
       color: hsl(var(--muted-foreground));
     }
-  }
-}
-
-.novel-memory__progress {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 12px;
-}
-
-.novel-memory__failures {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 10px;
-}
-
-.failure-row {
-  font-size: 12px;
-
-  span {
-    color: hsl(var(--destructive));
   }
 }
 </style>

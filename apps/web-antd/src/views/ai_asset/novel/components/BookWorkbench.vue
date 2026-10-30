@@ -2,11 +2,11 @@
 /**
  * 小说创作台：小说 → 分集正文/细纲/剧本 → 分镜 → 资产绑定 → 关键帧/视频 → 成片。
  * 由 novel/index.vue 打开；本组件承载分集编辑、AI 生成、分镜校验、角色/场景补绑与成片合成状态。
+ * 完结/导出由 useNovelLifecycle + 小说设置组件承载，剧本校验/定稿由 useEpisodeScript + 剧本组件承载，
+ * 成片卡片与下载动作由 EpisodeComposeCard 承载；本文件只保留编排与状态持有。
  * 主要接口：episode/*（详情、生成、绑定、compose）、storyboard/*、shot/*、novel/asset/graph。
  */
 import type {
-  AiContextConflict,
-  AiReferenceSource,
   EntityExtractResult,
   EpisodeAiIssue,
   EpisodeComposeMissingShot,
@@ -17,7 +17,6 @@ import type {
   EpisodeVersionItem,
   MediaRef,
   NovelDetailItem,
-  NovelMemoryOverview,
   SegmentItem,
   ShotItem,
   StoryboardBatchActiveResult,
@@ -29,6 +28,7 @@ import type {
   StoryboardBindingReport,
   StoryboardIssue,
   StoryboardValidateResult,
+  VideoGenerationParams,
 } from '#/api/models/ai_asset';
 import type { ModelCapabilities, ModelCapabilityCheck } from '#/api/models/ai_model';
 import type { TaskBatchCenterDetailItem } from '#/api/models/marketing';
@@ -49,7 +49,6 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   DiffOutlined,
-  DownloadOutlined,
   DownOutlined,
   EditOutlined,
   EnvironmentOutlined,
@@ -90,12 +89,37 @@ import { aiAssetApi, aiModelApi, taskCenterApi } from '#/api';
 
 import RefPickerDrawer from '../../studio/components/RefPickerDrawer.vue';
 import { isExtraCharacter } from '../characterTypes';
+import {
+  BATCH_TASK_ACTIVE_STATUSES,
+  BATCH_TASK_STATUS,
+  BATCH_TASK_STATUS_META,
+  BURN_SUBTITLE,
+  COMPOSE_ACTIVE_STATUSES,
+  COMPOSE_STATUS,
+  MEMORY_STATUS,
+  NEEDS_RECOMPOSE,
+  SCRIPT_STATUS,
+  SEGMENT_GENERATION_STATUS,
+  SHOT_GENERATION_STATUS,
+} from '../status';
+import { useAiContext } from '../useAiContext';
+import { useEpisodeScript } from '../useEpisodeScript';
+import { resolutionForAspectRatio, useNovelLifecycle } from '../useNovelLifecycle';
+import { useNovelMemory } from '../useNovelMemory';
+import { useSegmentFrames } from '../useSegmentFrames';
+import AiContextPanel from './AiContextPanel.vue';
+import AspectRatioPicker from './AspectRatioPicker.vue';
 import AssetGraphDrawerContent from './AssetGraphDrawer.vue';
 import ChapterMemoryDrawer from './ChapterMemoryDrawer.vue';
 import ContinuousPreviewModal from './ContinuousPreviewModal.vue';
 import DirectorPlanModal from './DirectorPlanModal.vue';
+import EpisodeComposeCard from './EpisodeComposeCard.vue';
+import EpisodeScriptView from './EpisodeScriptView.vue';
 import NovelMemoryDrawer from './NovelMemoryDrawer.vue';
+import NovelSettingsModal from './NovelSettingsModal.vue';
+import ScriptValidationModal from './ScriptValidationModal.vue';
 import SegmentReferenceModal from './SegmentReferenceModal.vue';
+import StoryboardGenerateButton from './StoryboardGenerateButton.vue';
 
 const props = defineProps<{
   models: Array<{ label: string; value: number | string }>;
@@ -174,12 +198,10 @@ const characterAssetOptions = ref<
 // ==================== 成片合成 ====================
 const composeStatus = ref<EpisodeComposeStatus>();
 const composeSubmitting = ref(false);
-const composePreviewOpen = ref(false);
-const composeMissingOpen = ref(false);
 const composeMissingShots = ref<EpisodeComposeMissingShot[]>([]);
 const composePrecheckMessage = ref('');
-/** 视频不齐时点击生成成片的确认弹窗，不直接禁用入口 */
-const composeGateOpen = ref(false);
+/** 成片默认烧录字幕；提交前允许切换，关闭时仍保留软字幕 srt */
+const burnSubtitles = ref(true);
 const COMPOSE_POLL_INTERVAL = 2000;
 const COMPOSE_POLL_MAX_MS = 30 * 60 * 1000;
 let composePollTimer: ReturnType<typeof setTimeout> | undefined;
@@ -196,18 +218,97 @@ const saving = ref(false);
 const savedAt = ref('');
 const aiLoading = ref<AiAction>();
 const issues = ref<EpisodeAiIssue[]>([]);
-const memoryOverview = ref<NovelMemoryOverview>();
-const chapterMemoryOpen = ref(false);
-const novelMemoryOpen = ref(false);
-const finalizing = ref(false);
-const aiReferences = ref<AiReferenceSource>();
-const aiConflicts = ref<AiContextConflict[]>([]);
-const aiStaleEpisodes = ref<number[]>([]);
-const showAiReferences = ref(false);
-const planReferences = ref<AiReferenceSource>();
-const planConflicts = ref<AiContextConflict[]>([]);
-const planStaleEpisodes = ref<number[]>([]);
-const showPlanReferences = ref(false);
+
+// ==================== 长记忆 / AI 上下文编排（实现见 composables） ====================
+const aiContext = useAiContext({
+  currentSeq: () => episode.value?.seq,
+  episodes,
+});
+const {
+  clear: clearAiContext,
+  conflicts: aiConflicts,
+  hasHardConflicts: hasAiHardConflicts,
+  references: aiReferences,
+  staleEpisodes: aiStaleEpisodes,
+} = aiContext;
+const planContext = useAiContext({
+  currentSeq: () => episode.value?.seq,
+  episodes,
+});
+const {
+  conflicts: planConflicts,
+  hasHardConflicts: hasPlanHardConflicts,
+  references: planReferences,
+  staleEpisodes: planStaleEpisodes,
+} = planContext;
+const {
+  chapterMemoryOpen,
+  currentMemoryTimedOut,
+  finalizeChapter,
+  finalizing,
+  loadMemoryOverview,
+  memoryDotClass,
+  memoryOverview,
+  memoryRebuilding,
+  memoryStatusLabel,
+  memoryStatusMeta,
+  memoryStatusOf,
+  novelMemoryOpen,
+  onChapterMemoryUpdated,
+  onNovelMemoryUpdated,
+  openChapterMemory,
+  refreshCurrentEpisodeMemoryStatus,
+  retryEpisodeMemory,
+} = useNovelMemory({
+  beforeFinalize: () => saveDraft(false),
+  episode,
+  episodes,
+  hasHardConflicts: hasAiHardConflicts,
+  modelId: () => modelId.value,
+  novelId: () => props.novelId,
+  updateEpisodeRow,
+});
+
+const {
+  activeAspectRatio,
+  ensureNotFinished,
+  exportNovel,
+  exporting,
+  finishNovel,
+  finishing,
+  isFinished,
+  openSettings,
+  presetAspectRatio,
+  saveSettings,
+  settingsAspectRatio,
+  settingsOpen,
+  settingsSaving,
+} = useNovelLifecycle({
+  book,
+  novelId: () => props.novelId,
+});
+
+const {
+  canGenerateStoryboard,
+  ensureReadyForStoryboard,
+  finalizeScript,
+  refreshCurrentEpisodeScriptStatus,
+  resetScriptValidation,
+  scriptErrors,
+  scriptFinalizing,
+  scriptGateReason,
+  scriptStatus,
+  scriptStatusMeta,
+  scriptValidating,
+  scriptValidationOpen,
+  scriptWarnings,
+  validateScript,
+} = useEpisodeScript({
+  episode,
+  modelId: () => modelId.value,
+  updateEpisodeRow,
+});
+
 const extractLoading = ref(false);
 const extractOpen = ref(false);
 const extractResult = ref<EntityExtractResult>();
@@ -240,6 +341,21 @@ const segmentRefSubmitting = ref(false);
 const shotRefOpen = ref(false);
 const shotRefTarget = ref<ShotItem>();
 const shotRefSubmitting = ref(false);
+
+const {
+  generate: generateSegmentFrame,
+  loadingKey: segmentFrameLoading,
+  tailHint: segmentTailHint,
+} = useSegmentFrames({
+  reload: async () => {
+    await loadStoryboard();
+    await loadSegments();
+  },
+  segments,
+  shotsOfSegment,
+  submitShotKeyframe,
+  videoModelId: () => videoModelId.value,
+});
 const previewOpen = ref(false);
 const previewSceneSeq = ref<number>();
 const videoModels = ref<
@@ -271,13 +387,7 @@ const BATCH_TASK_OPTION_LABELS: Record<string, string> = {
   ai_shot_keyframe_stale: '批量重生成关键帧',
   ai_shot_video: '批量生成视频',
 };
-/** 批次任务状态（与成片 compose 的 0/1/2/3 完全独立，勿混用） */
-const BATCH_STATUS_MAP: Record<number, string> = {
-  1: '待处理',
-  2: '处理中',
-  3: '已完成',
-  4: '失败',
-};
+/** 批次任务状态码见 ../status.ts（1 待处理 / 2 处理中 / 3 成功 / 4 失败） */
 const BATCH_TASK_POLL_INTERVAL = 3000;
 
 interface BatchTaskState {
@@ -427,103 +537,6 @@ const stats = computed(() => {
   return { total, scripts, progress: total ? Math.round((scripts / total) * 100) : 0 };
 });
 
-const MEMORY_STATUS_META: Record<number, { color: string; label: string }> = {
-  0: { color: 'default', label: '记忆未生成' },
-  1: { color: 'blue', label: '记忆生成中' },
-  2: { color: 'green', label: '记忆成功' },
-  3: { color: 'orange', label: '记忆已过期' },
-  4: { color: 'red', label: '记忆生成失败' },
-};
-
-/** 记忆状态唯一来源：后端 memory_status */
-function memoryStatusOf(item: EpisodeItem) {
-  // 记忆状态只认后端 memory_status 一套元数据
-  return item.memoryStatus ?? 0;
-}
-
-function memoryStatusLabel(item: EpisodeItem) {
-  return MEMORY_STATUS_META[memoryStatusOf(item)]?.label ?? '记忆状态未知';
-}
-
-function memoryDotClass(item: EpisodeItem) {
-  return `is-${memoryStatusOf(item)}`;
-}
-
-const aiHardConflicts = computed(() =>
-  aiConflicts.value.filter((item) => item.level === 'error'),
-);
-const planHardConflicts = computed(() =>
-  planConflicts.value.filter((item) => item.level === 'error'),
-);
-const hasAiReferencePanel = computed(
-  () =>
-    Boolean(aiReferences.value) ||
-    aiConflicts.value.length > 0 ||
-    aiStaleEpisodes.value.length > 0,
-);
-const hasPlanReferencePanel = computed(
-  () =>
-    Boolean(planReferences.value) ||
-    planConflicts.value.length > 0 ||
-    planStaleEpisodes.value.length > 0,
-);
-
-function referenceSummary(refs?: AiReferenceSource) {
-  if (!refs) {
-    return '';
-  }
-  const parts: string[] = [];
-  if (refs.episodes?.length) {
-    parts.push(`引用第 ${refs.episodes.join('、')} 集`);
-  }
-  if (refs.volumeNo) {
-    parts.push(`第 ${refs.volumeNo} 卷摘要`);
-  }
-  if (refs.storyBible) {
-    parts.push('Story Bible');
-  }
-  if (refs.foreshadows?.length) {
-    parts.push(`${refs.foreshadows.length} 条伏笔`);
-  }
-  return parts.join(' · ');
-}
-
-function staleEpisodeSeqs(seqs?: Array<number | string>) {
-  const candidates =
-    seqs?.length
-      ? seqs
-      : episodes.value
-          .filter(
-            (item) =>
-              Number(item.seq ?? 0) < Number(episode.value?.seq ?? 0) &&
-              Number(item.seq ?? 0) >=
-                Number(episode.value?.seq ?? 0) - 3,
-          )
-          .map((item) => item.seq ?? 0);
-  return candidates
-    .filter((seq) => {
-      const target = episodes.value.find(
-        (item) => Number(item.seq) === Number(seq),
-      );
-      if (!target) {
-        return false;
-      }
-      const status = memoryStatusOf(target);
-      return status === 3 || status === 4;
-    })
-    .map((seq) => Number(seq));
-}
-
-async function loadMemoryOverview() {
-  try {
-    memoryOverview.value = await aiAssetApi.fetchNovelMemoryOverview(
-      props.novelId,
-    );
-  } catch {
-    // 概览接口未就绪时隐藏顶部记忆条
-  }
-}
-
 const characterBindStat = computed(
   () => bindingReport.value?.characters ?? { bound: 0, total: 0, unmatched: [] },
 );
@@ -650,33 +663,13 @@ const hasCharacterGroups = computed(
 );
 
 // 0 排队 / 1 合成中 / 2 成功 / 3 失败（与后端 AiAssetComposeStatusResult 一致）
-const COMPOSE_STATUS_MAP: Record<number, { color: string; label: string }> = {
-  0: { color: 'orange', label: '排队中' },
-  1: { color: 'blue', label: '合成中' },
-  2: { color: 'green', label: '已完成' },
-  3: { color: 'red', label: '合成失败' },
-};
-const composeState = computed<{ color?: string; label: string }>(() => {
-  const status = composeStatus.value;
-  const mapped = status
-    ? COMPOSE_STATUS_MAP[Number(status.status)]
-    : undefined;
-  return mapped ?? { label: '未生成' };
-});
-/** progress 后端可能返回 0-100 或 0-1，这里统一按百分比展示 */
-const composeProgress = computed(() => {
-  const raw = Number(composeStatus.value?.progress ?? 0);
-  const percent = raw > 0 && raw < 1 ? raw * 100 : raw;
-  return Math.min(100, Math.max(0, Math.round(percent)));
-});
 const composeRunning = computed(() =>
-  [0, 1].includes(Number(composeStatus.value?.status ?? -1)),
+  COMPOSE_ACTIVE_STATUSES.includes(Number(composeStatus.value?.status ?? -1)),
 );
-const composeDone = computed(() => composeStatus.value?.status === 2);
-const composeFailed = computed(() => composeStatus.value?.status === 3);
-/** 有地址才能播放/下载；状态已成功但地址未回时只展示“地址加载中” */
-const composePlayable = computed(
-  () => composeDone.value && Boolean(composeStatus.value?.finalUrl),
+const composeNeedsRecompose = computed(
+  () =>
+    Number(episode.value?.needsRecompose ?? NEEDS_RECOMPOSE.NO) ===
+    NEEDS_RECOMPOSE.YES,
 );
 
 /**
@@ -756,9 +749,8 @@ const missingVideoExtra = computed(() =>
   Math.max(0, validationMissingSeqs.value.length - 20),
 );
 
-/** 任务是否仍在执行：1 待处理 / 2 处理中 */
 function isBatchTaskRunning(status?: number) {
-  return status === 1 || status === 2;
+  return BATCH_TASK_ACTIVE_STATUSES.includes(Number(status));
 }
 
 const keyframeTaskBusy = computed(() =>
@@ -949,6 +941,8 @@ async function loadEpisode(item: EpisodeItem) {
   composePollStartedAt = undefined;
   composeStatus.value = undefined;
   composeMissingShots.value = [];
+  composePrecheckMessage.value = '';
+  burnSubtitles.value = true;
   stopAllBatchTaskPolls();
   batchTasks.value = [];
   segments.value = [];
@@ -971,6 +965,9 @@ async function loadEpisode(item: EpisodeItem) {
   } finally {
     syncFromEpisode(episode.value!);
     episodeLoading.value = false;
+    // 列表字段先渲染，再分别用 memory/status、script/validate 校准本集权威状态
+    void refreshCurrentEpisodeMemoryStatus();
+    void refreshCurrentEpisodeScriptStatus();
   }
 }
 
@@ -1089,9 +1086,12 @@ async function saveDraft(
     dirty.value = false;
     lastSavedContent = draft.value;
     savedAt.value = new Date().toLocaleTimeString();
-    if (contentChanged && memoryStatusOf(episode.value) > 0) {
+    if (
+      contentChanged &&
+      memoryStatusOf(episode.value) !== MEMORY_STATUS.NONE
+    ) {
       // 普通保存只标过期，不自动烧 token；定稿/重建才生成记忆
-      episode.value.memoryStatus = 3;
+      episode.value.memoryStatus = MEMORY_STATUS.STALE;
       updateEpisodeRow(episode.value);
     }
     return true;
@@ -1202,7 +1202,13 @@ async function runAi(
   instruction?: string,
   skipContinueGuide = false,
 ) {
-  if (!episode.value || !requireModel()) {
+  if (!episode.value) {
+    return;
+  }
+  if (action === 'continue' && !ensureNotFinished('继续续写')) {
+    return;
+  }
+  if (!requireModel()) {
     return;
   }
   const selection = getSelection();
@@ -1225,10 +1231,7 @@ async function runAi(
   aiLoading.value = action;
   aiHint.value = '';
   aiHistoryEpisodes.value = [];
-  aiReferences.value = undefined;
-  aiConflicts.value = [];
-  aiStaleEpisodes.value = [];
-  showAiReferences.value = false;
+  clearAiContext();
   try {
     const res = await aiAssetApi.episodeAiAction({
       action,
@@ -1243,11 +1246,8 @@ async function runAi(
     aiHistoryEpisodes.value = Array.isArray(res.historyEpisodes)
       ? res.historyEpisodes
       : [];
-    aiReferences.value = res.references;
-    aiConflicts.value = res.conflicts ?? [];
-    aiStaleEpisodes.value = staleEpisodeSeqs(
-      res.references?.episodes ?? res.historyEpisodes,
-    );
+    // aiAction 响应携带 references/conflicts，capture 后 AiContextPanel 立即可见
+    aiContext.capture(res);
     if (res.title) {
       episode.value.title = res.title;
       updateEpisodeRow(episode.value);
@@ -1351,6 +1351,10 @@ async function loadStoryboard() {
   if (!current) {
     return;
   }
+  // 列表/详情若暂时只给出 0，分镜页渲染前先用 script/validate 校准权威状态
+  if (scriptStatus.value !== SCRIPT_STATUS.FINALIZED) {
+    await refreshCurrentEpisodeScriptStatus();
+  }
   const token = ++storyboardToken;
   shotsLoading.value = true;
   try {
@@ -1392,7 +1396,12 @@ function stopComposePoll() {
  */
 async function applyComposeStatus(status: EpisodeComposeStatus) {
   composeStatus.value = status;
-  if (status.status === 2 && !status.finalUrl) {
+  if (status.burnSubtitles !== undefined) {
+    burnSubtitles.value =
+      Number(status.burnSubtitles) === BURN_SUBTITLE.ON;
+  }
+  // 成片成功后后端会回填成片地址；needsRecompose 走 episode 列表字段
+  if (status.status === COMPOSE_STATUS.SUCCESS && !status.finalUrl) {
     await resolveComposeUrl(status);
   }
 }
@@ -1516,37 +1525,36 @@ function isComposeBadRequest(error: any) {
   );
 }
 
-/** 成片入口：视频不齐不直接禁用，先让用户选择去补视频或仍然提交 */
-function generateCompose() {
-  if (!episode.value || composeSubmitting.value || composeRunning.value) {
-    return;
-  }
-  if (!composeReady.value) {
-    composeGateOpen.value = true;
-    return;
-  }
-  void submitCompose();
-}
-
+/** 成片入口：视频不齐时由成片卡片弹出确认，不直接禁用入口 */
 async function submitCompose() {
   if (!episode.value || composeSubmitting.value || composeRunning.value) {
     return;
   }
-  composeGateOpen.value = false;
-  composeMissingOpen.value = false;
   composeMissingShots.value = [];
   composePrecheckMessage.value = '';
   // 清掉上一次失败残留，避免预检失败时仍显示旧“合成失败”
   composeStatus.value = undefined;
   composeSubmitting.value = true;
   try {
-    const res = await aiAssetApi.composeEpisode({ episodeId: episode.value.id });
+    const res = await aiAssetApi.composeEpisode({
+      burnSubtitles: burnSubtitles.value,
+      episodeId: episode.value.id,
+      resolution: resolutionForAspectRatio(activeAspectRatio.value),
+    });
     // 提交后默认按排队中展示；后端若直接回状态则以它为准
     composePollStartedAt = Date.now();
     if (res) {
       await applyComposeStatus(res);
     } else {
-      composeStatus.value = { progress: 0, status: 0 };
+      composeStatus.value = {
+        progress: 0,
+        status: COMPOSE_STATUS.QUEUED,
+      };
+    }
+    // 提交新合成后后端会清零 needs_recompose，本地同步避免卡片继续提示旧成片
+    if (episode.value) {
+      episode.value.needsRecompose = NEEDS_RECOMPOSE.NO;
+      updateEpisodeRow(episode.value);
     }
     message.success('已提交合成');
     if (composeRunning.value) {
@@ -1556,13 +1564,12 @@ async function submitCompose() {
     }
   } catch (error: any) {
     const missing = extractComposeMissingShots(error);
-    // 400 属于预检未通过，不是任务失败；单独展示缺失镜头列表
+    // 400 属于预检未通过，不是任务失败；卡片会据缺失列表/提示自动弹窗
     if (missing.length || isComposeBadRequest(error)) {
       composeMissingShots.value = missing;
       composePrecheckMessage.value = missing.length
         ? ''
         : error?.message || '存在缺失视频的镜头，请先补齐';
-      composeMissingOpen.value = true;
     } else {
       message.error(error?.message || '提交合成失败');
     }
@@ -1573,8 +1580,6 @@ async function submitCompose() {
 
 /** 预检未通过 / 视频不齐时统一跳批量视频 */
 function gotoBatchVideoForCompose() {
-  composeGateOpen.value = false;
-  composeMissingOpen.value = false;
   validationOpen.value = false;
   void openBatch('video', 'new');
 }
@@ -1584,14 +1589,7 @@ function goComposeFromValidation() {
     return;
   }
   validationOpen.value = false;
-  generateCompose();
-}
-
-/** 只有拿得到成片地址才允许打开预览，避免空地址弹窗 */
-function openComposePreview() {
-  if (composePlayable.value) {
-    composePreviewOpen.value = true;
-  }
+  void submitCompose();
 }
 
 /** 台词按 4 字/秒估算是否超出镜头时长，用于镜头卡提示 */
@@ -2005,11 +2003,19 @@ function unboundNamesOf(shot: ShotItem) {
   return names.filter((name) => unboundNames.value.has(name));
 }
 
+/** 置灰状态的生成分镜仍允许点击查看原因：先跑剧本校验并展示场次 */
+function handleStoryboardGate() {
+  void ensureReadyForStoryboard();
+}
+
 async function generateStoryboard() {
-  if (!episode.value || !requireModel()) {
+  if (
+    !episode.value ||
+    !(await ensureReadyForStoryboard()) ||
+    !requireModel()
+  ) {
     return;
-  }
-  storyboardGenerating.value = true;
+  }  storyboardGenerating.value = true;
   try {
     const res = await aiAssetApi.generateStoryboard({
       episodeId: episode.value.id,
@@ -2466,7 +2472,9 @@ function segmentStatus(segment: SegmentItem) {
   if (segment.videoMaterialId) {
     return { color: 'green', label: '已生成' };
   }
-  if (Number(segment.generationStatus) === 1) {
+  if (
+    Number(segment.generationStatus) === SEGMENT_GENERATION_STATUS.RUNNING
+  ) {
     return { color: 'blue', label: '生成中' };
   }
   return { color: 'default', label: '未生成' };
@@ -2726,6 +2734,14 @@ async function submitSegmentGeneration(
     message.warning('单镜模式请按镜头生成');
     return false;
   }
+  if (
+    !options?.mediaRefs?.length &&
+    !segment.firstFrameMaterialId &&
+    !shotsOfSegment(segment)[0]?.imageMaterialId
+  ) {
+    message.warning('本段缺少首帧，请先在段落卡生成首帧');
+    return false;
+  }
   if (segmentCapabilityBlocked()) {
     message.warning(
       `${segmentCapabilityReason.value}：请配置模型，或拆分为单镜生成`,
@@ -2741,6 +2757,9 @@ async function submitSegmentGeneration(
     const res = await aiAssetApi.generateSegmentVideo({
       mediaRefs: options?.mediaRefs?.length ? options.mediaRefs : undefined,
       modelId: videoModelId.value,
+      params: {
+        ratio: activeAspectRatio.value as VideoGenerationParams['ratio'],
+      },
       promptOverride: options?.promptOverride,
       segmentId: segment.id,
     });
@@ -3015,13 +3034,15 @@ function issueTag(issue: StoryboardIssue) {
 function isKeyframeGenerating(shot: ShotItem) {
   return (
     keyframeGenerating.value === String(shot.id) ||
-    (Number(shot.generationStatus) === 1 && !shot.imageMaterialId)
+    (Number(shot.generationStatus) === SHOT_GENERATION_STATUS.RUNNING &&
+      !shot.imageMaterialId)
   );
 }
 
 /** 单镜关键帧提交：只负责提交/合并/轮询 */
 async function submitShotKeyframe(shot: ShotItem) {
   const updated = await aiAssetApi.generateShotImage({
+    params: { ratio: activeAspectRatio.value },
     promptOverride: shot.imagePrompt || undefined,
     shotId: shot.id,
   });
@@ -3072,6 +3093,9 @@ async function submitShotVideo(
     duration: shot.durationSeconds,
     mediaRefs: options?.mediaRefs?.length ? options.mediaRefs : undefined,
     modelId: videoModelId.value,
+    params: {
+      ratio: activeAspectRatio.value as VideoGenerationParams['ratio'],
+    },
     promptOverride: options
       ? options.promptOverride
       : shot.videoPrompt || undefined,
@@ -3109,7 +3133,7 @@ async function submitShotReference(payload: {
     message.warning('段落模式下需整段重生成，不能单独生成该镜头视频');
     return;
   }
-  if (Number(shot.generationStatus) === 1) {
+  if (Number(shot.generationStatus) === SHOT_GENERATION_STATUS.RUNNING) {
     message.info('该镜头视频正在生成中');
     return;
   }
@@ -3142,7 +3166,7 @@ function localPlanFallback(
       skipped.push({ ...base, reason: 'blank_unconfirmed' });
       continue;
     }
-    if (Number(shot.generationStatus) === 1) {
+    if (Number(shot.generationStatus) === SHOT_GENERATION_STATUS.RUNNING) {
       skipped.push({ ...base, reason: 'generating' });
       continue;
     }
@@ -3267,7 +3291,7 @@ function batchTaskOptionLabel(task: BatchTaskState) {
 }
 
 function batchTaskStatusLabel(status?: number) {
-  return BATCH_STATUS_MAP[Number(status ?? 0)] ?? '未知';
+  return BATCH_TASK_STATUS_META[Number(status)] ?? '未知';
 }
 
 function toBatchTaskState(
@@ -3275,7 +3299,7 @@ function toBatchTaskState(
   target: StoryboardBatchTarget,
 ): BatchTaskState {
   return {
-    batchTaskStatus: Number(active.taskStatus ?? 1),
+    batchTaskStatus: Number(active.taskStatus ?? BATCH_TASK_STATUS.PENDING),
     failedCount: Number(active.failedCount ?? 0),
     items: [],
     optionType: active.optionType,
@@ -3361,7 +3385,7 @@ function handlePageVisibilityChange() {
 }
 
 /**
- * 后端批次任务进度轮询：3s 一次，taskStatus 3/4 停止并刷新分镜/绑定报告。
+ * 后端批次任务进度轮询：3s 一次，成功/失败终态停止并刷新分镜/绑定报告。
  * 任务在后端执行，页面切走/刷新不影响；这里只负责展示。
  */
 async function pollBatchTaskOnce(taskId: number | string) {
@@ -3416,7 +3440,7 @@ async function pollBatchTaskOnce(taskId: number | string) {
     }
     await loadStoryboard();
     await loadBindingReport();
-    if (next.batchTaskStatus === 3) {
+    if (next.batchTaskStatus === BATCH_TASK_STATUS.SUCCESS) {
       message.success('批量任务已完成');
     } else {
       message.error('批量任务执行失败');
@@ -3519,7 +3543,7 @@ async function submitStoryboardBatch() {
     );
     const previous = index >= 0 ? batchTasks.value[index] : undefined;
     const next: BatchTaskState = {
-      batchTaskStatus: previous?.batchTaskStatus ?? 1,
+      batchTaskStatus: previous?.batchTaskStatus ?? BATCH_TASK_STATUS.PENDING,
       existing: res.existing,
       failedCount: previous?.failedCount ?? 0,
       items: previous?.items ?? [],
@@ -3649,11 +3673,19 @@ async function savePrompt() {
 }
 
 function shotStatus(shot: ShotItem) {
-  const status = Number(shot.generationStatus ?? 0);
-  if (status === 1) return { color: 'blue', label: '视频生成中' };
-  if (status === 2) return { color: 'green', label: '有图片' };
-  if (status === 3) return { color: 'green', label: '视频完成' };
-  if (status === 5) return { color: 'red', label: '生成失败' };
+  const status = Number(shot.generationStatus ?? SHOT_GENERATION_STATUS.NONE);
+  if (status === SHOT_GENERATION_STATUS.RUNNING) {
+    return { color: 'blue', label: '视频生成中' };
+  }
+  if (status === SHOT_GENERATION_STATUS.IMAGE_READY) {
+    return { color: 'green', label: '有图片' };
+  }
+  if (status === SHOT_GENERATION_STATUS.VIDEO_READY) {
+    return { color: 'green', label: '视频完成' };
+  }
+  if (status === SHOT_GENERATION_STATUS.FAILED) {
+    return { color: 'red', label: '生成失败' };
+  }
   return { color: 'default', label: '未生成' };
 }
 
@@ -3682,8 +3714,10 @@ async function pollShot(id: number | string) {
       mergeShot(detail);
       const status = Number(detail.generationStatus);
       const imagePending =
-        detail.imageTaskId != null && !detail.imageMaterialId && status !== 5;
-      if (status === 1 || imagePending) {
+        detail.imageTaskId != null &&
+        !detail.imageMaterialId &&
+        status !== SHOT_GENERATION_STATUS.FAILED;
+      if (status === SHOT_GENERATION_STATUS.RUNNING || imagePending) {
         shotPollers.set(
           String(id),
           setTimeout(() => void pollShot(id), 3000),
@@ -3761,7 +3795,7 @@ async function unbindShot(shot: ShotItem, field: 'image' | 'video') {
 }
 
 async function generateShotVideo(shot: ShotItem) {
-  if (Number(shot.generationStatus) === 1) {
+  if (Number(shot.generationStatus) === SHOT_GENERATION_STATUS.RUNNING) {
     message.info('该镜头视频正在生成中');
     return;
   }
@@ -3825,100 +3859,6 @@ function manualSave() {
   return saveDraft(false, {});
 }
 
-function openChapterMemory() {
-  chapterMemoryOpen.value = true;
-}
-
-function onChapterMemoryUpdated() {
-  if (episode.value) {
-    episode.value.memoryStatus = 2;
-    updateEpisodeRow(episode.value);
-  }
-  void loadMemoryOverview();
-}
-
-/** 全书记忆操作后只刷新章节目录状态，不重载当前正文 */
-async function onNovelMemoryUpdated() {
-  try {
-    const page = await aiAssetApi.fetchEpisodes({
-      novelId: props.novelId,
-      page: 1,
-      pageSize: 200,
-    });
-    episodes.value = page?.items ?? episodes.value;
-    if (episode.value) {
-      const latest = episodes.value.find(
-        (item) => String(item.id) === String(episode.value?.id),
-      );
-      if (latest) {
-        episode.value.memoryStatus = latest.memoryStatus;
-      }
-    }
-  } catch {
-    // 目录刷新失败不影响当前编辑
-  }
-  void loadMemoryOverview();
-}
-
-/** 定稿本章：保存当前正文后显式触发记忆流水线；普通保存不再自动生成 */
-async function finalizeChapter() {
-  if (!episode.value || finalizing.value) {
-    return;
-  }
-  if (aiHardConflicts.value.length) {
-    message.warning('存在硬冲突，请先处理后再定稿');
-    return;
-  }
-  if (!(await saveDraft(false))) {
-    return;
-  }
-  finalizing.value = true;
-  try {
-    const updated = await aiAssetApi.finalizeEpisode({
-      episodeId: episode.value.id,
-      modelId: modelId.value || undefined,
-    });
-    if (updated) {
-      episode.value = {
-        ...episode.value,
-        ...updated,
-      };
-      updateEpisodeRow(episode.value);
-    }
-    message.success('本章已定稿，结构化记忆生成中');
-    await loadMemoryOverview();
-  } catch (error: any) {
-    message.error(error?.message || '定稿失败，请稍后重试');
-  } finally {
-    finalizing.value = false;
-  }
-}
-
-/** 章节目录失败/过期状态点：点一下重建该章记忆 */
-async function retryEpisodeMemory(item: EpisodeItem) {
-  const status = memoryStatusOf(item);
-  if (status !== 3 && status !== 4) {
-    return;
-  }
-  try {
-    const updated = await aiAssetApi.rebuildChapterMemory({
-      episodeId: item.id,
-      force: true,
-      modelId: modelId.value || undefined,
-    });
-    if (updated) {
-      item.memoryStatus = updated.memoryStatus ?? 2;
-      item.memorySource = updated.memorySource;
-      item.memoryError = updated.errorMsg;
-    }
-    updateEpisodeRow(item);
-    message.success('该章记忆已重建');
-    await loadMemoryOverview();
-  } catch (error: any) {
-    message.error(error?.message || '重建章节记忆失败');
-  }
-}
-
 async function generateContent() {
   if (!episode.value || !requireModel()) {
     return;
@@ -3960,10 +3900,8 @@ async function generatePlan(optimize = false) {
     });
     planSummary.value = res.summary || '';
     planBeats.value = res.beats || [];
-    planReferences.value = res.references;
-    planConflicts.value = res.conflicts ?? [];
-    planStaleEpisodes.value = staleEpisodeSeqs(res.references?.episodes);
-    showPlanReferences.value = false;
+    // 细纲 plan 响应同样携带 references/conflicts
+    planContext.capture(res);
     planOpen.value = true;
   } catch (error: any) {
     message.error(error?.message || '生成章节规划失败');
@@ -3973,7 +3911,7 @@ async function generatePlan(optimize = false) {
 }
 
 async function applyPlan() {
-  if (planHardConflicts.value.length) {
+  if (hasPlanHardConflicts()) {
     message.warning('存在硬冲突，请先处理后再应用本章规划');
     return;
   }
@@ -4049,7 +3987,12 @@ async function submitScript() {
       requirements: scriptReq.value || undefined,
     });
     episode.value = { ...episode.value, ...updated };
+    // 剧本重生成即视为内容变更；后端未回 scriptStatus 时按“已生成未定稿”处理
+    if (updated?.scriptStatus == null) {
+      episode.value.scriptStatus = SCRIPT_STATUS.GENERATED;
+    }
     updateEpisodeRow(episode.value);
+    resetScriptValidation();
     tab.value = 'script';
     scriptOpen.value = false;
     message.success(autoExtractAssets.value ? '剧本已生成，并已提炼资产' : '剧本已生成');
@@ -4060,18 +4003,31 @@ async function submitScript() {
   }
 }
 
-async function submitBatch() {
-  if (!requireModel()) {
+/** 生成下一集：复用分集生成弹窗，默认只生成 1 集 */
+function openNextEpisode() {
+  if (!ensureNotFinished('生成下一集')) {
     return;
   }
-  batchSaving.value = true;
+  batchCount.value = 1;
+  batchOpen.value = true;
+}
+
+async function submitBatch() {
+  if (!ensureNotFinished('生成新分集') || !requireModel()) {
+    return;
+  }  batchSaving.value = true;
+  clearAiContext();
   try {
-    await aiAssetApi.generateEpisodes({
+    const res = await aiAssetApi.generateEpisodes({
       count: batchCount.value,
       modelId: modelId.value!,
       novelId: props.novelId,
       requirements: batchReq.value || undefined,
     });
+    // 新版本响应会带 references/conflicts；旧版本数组保持不展示
+    if (!Array.isArray(res)) {
+      aiContext.capture(res);
+    }
     batchOpen.value = false;
     await load();
     message.success(`已生成 ${batchCount.value} 集分集`);
@@ -4100,6 +4056,9 @@ onMounted(() => {
         <div class="nwb-title">
           <div class="nwb-title__row">
             <h2>《{{ book?.name || '未命名书籍' }}》</h2>
+            <Tag v-if="isFinished" color="green" :bordered="false">
+              已完结
+            </Tag>
             <Tag v-if="book?.genres?.length" :bordered="false">
               {{ book?.genres?.join(' · ') }}
             </Tag>
@@ -4108,19 +4067,52 @@ onMounted(() => {
             {{ book?.episodeCount || stats.total }} 集 ·
             {{ (book?.wordCount || 0).toLocaleString() }} 字 ·
             {{ book?.episodeDuration || 90 }} 秒 / 集
+            <template v-if="isFinished">
+              · 已完结 · {{ book?.finishedAt || '完结时间未知' }}
+            </template>
           </div>
         </div>
         <div class="nwb-actions">
           <Button @click="openAssetGraph">设定资产</Button>
+          <Button @click="openSettings">小说设置</Button>
           <Button @click="novelMemoryOpen = true">全书记忆</Button>
-          <Button :disabled="!episodes.length" @click="batchOpen = true">
-            <template #icon><PlusOutlined /></template>批量生成分集
+          <Tooltip
+            :title="isFinished ? '全书已完结，不能再生成新分集' : undefined"
+          >
+            <span>
+              <Button
+                :disabled="isFinished || !episodes.length"
+                @click="batchOpen = true"
+              >
+                <template #icon><PlusOutlined /></template>批量生成分集
+              </Button>
+            </span>
+          </Tooltip>
+          <Tooltip
+            :title="isFinished ? '全书已完结，不能再生成下一集' : undefined"
+          >
+            <span>
+              <Button :disabled="isFinished" @click="openNextEpisode">
+                生成下一集
+              </Button>
+            </span>
+          </Tooltip>
+          <StoryboardGenerateButton
+            :disabled="!canGenerateStoryboard"
+            :loading="storyboardGenerating"
+            :reason="scriptGateReason"
+            @blocked="handleStoryboardGate"
+            @click="generateStoryboard"
+          />
+          <Button
+            :disabled="isFinished"
+            :loading="finishing"
+            @click="finishNovel"
+          >
+            {{ isFinished ? '已完结' : '全书完结' }}
           </Button>
-          <Button :loading="storyboardGenerating" @click="generateStoryboard">
-            <template #icon><PlayCircleOutlined /></template>生成分镜
-          </Button>
-          <Button @click="message.info('导出在前端实现，待接入')">
-            <template #icon><ExportOutlined /></template>导出
+          <Button :loading="exporting" @click="exportNovel">
+            <template #icon><ExportOutlined /></template>导出 TXT
           </Button>
         </div>
       </div>
@@ -4239,9 +4231,20 @@ onMounted(() => {
               </div>
 
               <div class="ed-toolbar">
-                <Button size="small" :loading="aiLoading === 'continue'" @click="runAi('continue')">
-                  <template #icon><ThunderboltOutlined /></template>AI 续写
-                </Button>
+                <Tooltip
+                  :title="isFinished ? '全书已完结，不能继续续写' : undefined"
+                >
+                  <span>
+                    <Button
+                      size="small"
+                      :disabled="isFinished"
+                      :loading="aiLoading === 'continue'"
+                      @click="runAi('continue')"
+                    >
+                      <template #icon><ThunderboltOutlined /></template>AI 续写
+                    </Button>
+                  </span>
+                </Tooltip>
                 <Button size="small" :loading="aiLoading === 'polish'" @click="runAi('polish')">
                   <template #icon><DiffOutlined /></template>润色
                 </Button>
@@ -4296,53 +4299,11 @@ onMounted(() => {
                 {{ aiContextNotice }}
               </div>
 
-              <div
-                v-if="hasAiReferencePanel"
-                class="ai-reference"
-                :class="{ 'has-error': aiHardConflicts.length > 0 }"
-              >
-                <div class="ai-reference__hd">
-                  <Button
-                    v-if="aiReferences"
-                    type="link"
-                    size="small"
-                    @click="showAiReferences = !showAiReferences"
-                  >
-                    {{ showAiReferences ? '收起参考来源' : '参考来源' }}
-                  </Button>
-                  <span
-                    v-if="aiStaleEpisodes.length"
-                    class="ai-reference__warn"
-                  >
-                    参考的第 {{ aiStaleEpisodes.join('、') }} 集记忆可能已过期
-                  </span>
-                </div>
-                <div v-if="showAiReferences" class="ai-reference__detail">
-                  <p v-if="referenceSummary(aiReferences)">
-                    {{ referenceSummary(aiReferences) }}
-                  </p>
-                  <p
-                    v-for="(item, index) in aiReferences?.foreshadows ?? []"
-                    :key="index"
-                  >
-                    伏笔：{{ item.text }}
-                  </p>
-                </div>
-                <div
-                  v-for="(conflict, index) in aiConflicts"
-                  :key="index"
-                  class="ai-conflict"
-                  :class="conflict.level === 'error' ? 'is-error' : 'is-warn'"
-                >
-                  <Tag
-                    :bordered="false"
-                    :color="conflict.level === 'error' ? 'red' : 'orange'"
-                  >
-                    {{ conflict.level === 'error' ? '硬冲突' : '软冲突' }}
-                  </Tag>
-                  <span>{{ conflict.message }}</span>
-                </div>
-              </div>
+              <AiContextPanel
+                :conflicts="aiConflicts"
+                :references="aiReferences"
+                :stale-episodes="aiStaleEpisodes"
+              />
 
               <div ref="editorHost" class="ed-editor">
                 <VbenTiptap
@@ -4394,8 +4355,22 @@ onMounted(() => {
                     按 scenes → script → content → summary 生成，共 {{ shots.length }} 个镜头；
                     生成时自动匹配人物/场景资产，未匹配项可在下方状态条补绑（无需重新生成）
                   </span>
+                  <span v-if="!canGenerateStoryboard" class="sb-script-gate">
+                    {{ scriptGateReason }}
+                    <Button
+                      type="link"
+                      size="small"
+                      @click="validateScript(true)"
+                    >
+                      查看校验明细
+                    </Button>
+                  </span>
                 </div>
                 <div class="sb-head__actions">
+                  <AspectRatioPicker
+                    v-model="activeAspectRatio"
+                    :preset="presetAspectRatio"
+                  />
                   <Button size="small" :loading="characterBindLoading" @click="openCharacterBind">
                     角色绑定
                   </Button>
@@ -4454,10 +4429,15 @@ onMounted(() => {
                       </Menu>
                     </template>
                   </Dropdown>
-                  <Button size="small" :loading="storyboardGenerating" @click="generateStoryboard">
-                    <template #icon><PlayCircleOutlined /></template>
-                    {{ shots.length ? '重新生成' : '生成分镜' }}
-                  </Button>
+                  <StoryboardGenerateButton
+                    :disabled="!canGenerateStoryboard"
+                    :label="shots.length ? '重新生成' : '生成分镜'"
+                    :loading="storyboardGenerating"
+                    :reason="scriptGateReason"
+                    size="small"
+                    @blocked="handleStoryboardGate"
+                    @click="generateStoryboard"
+                  />
                 </div>
               </div>
 
@@ -4552,8 +4532,8 @@ onMounted(() => {
                 :key="task.taskId"
                 class="sb-batch"
                 :class="{
-                  'is-done': task.batchTaskStatus === 3,
-                  'is-failed': task.batchTaskStatus === 4,
+                  'is-done': task.batchTaskStatus === BATCH_TASK_STATUS.SUCCESS,
+                  'is-failed': task.batchTaskStatus === BATCH_TASK_STATUS.FAILED,
                 }"
               >
                 <div class="sb-batch__row">
@@ -4630,110 +4610,24 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- 成片入口与状态：纯拼接版本，和「生成分镜」互不改动 -->
-              <div
-                class="sb-compose"
-                :class="{ 'is-done': composeDone, 'is-failed': composeFailed }"
-              >
-                <div class="sb-compose__main">
-                  <span class="sb-compose__label">成片</span>
-                  <Tag :bordered="false" :color="composeState.color">
-                    {{ composeState.label }}
-                  </Tag>
-                  <Progress
-                    v-if="composeStatus?.status === 1"
-                    :percent="composeProgress"
-                    class="sb-compose__progress"
-                    size="small"
-                  />
-                  <span class="sb-compose__note">
-                    当前版本为纯拼接，不含字幕与配音
-                  </span>
-                  <span v-if="composeDone && !composePlayable" class="sb-compose__note">
-                    已完成，地址加载中
-                  </span>
-                  <span v-if="composeStatus?.errorMsg" class="sb-compose__error">
-                    {{ composeStatus.errorMsg }}
-                  </span>
-                  <span class="sb-compose__spacer"></span>
-                  <Button
-                    size="small"
-                    type="primary"
-                    :disabled="composeRunning"
-                    :loading="composeSubmitting || composeRunning"
-                    @click="generateCompose"
-                  >
-                    {{
-                      composeRunning
-                        ? `${composeState.label}…`
-                        : composeFailed
-                          ? '重试'
-                          : composeDone
-                            ? '重新生成成片'
-                            : '生成成片'
-                    }}
-                  </Button>
-                </div>
-              </div>
-
-              <Card
-                v-if="composeDone"
-                class="sb-final"
-                hoverable
-                size="small"
-                @click="openComposePreview"
-              >
-                <div class="sb-final__cover">
-                  <video
-                    v-if="composeStatus?.finalUrl"
-                    :poster="composeStatus?.thumbnailUrl"
-                    :src="composeStatus.finalUrl"
-                    muted
-                    playsinline
-                    preload="metadata"
-                  ></video>
-                  <div v-else class="sb-final__placeholder">地址加载中</div>
-                </div>
-                <div class="sb-final__meta">
-                  <b>
-                    {{
-                      composePlayable
-                        ? '成片已就绪，点击预览'
-                        : '已完成，地址加载中'
-                    }}
-                  </b>
-                  <span>
-                    {{
-                      composeStatus?.durationSeconds
-                        ? `${composeStatus.durationSeconds} 秒`
-                        : '时长未知'
-                    }}
-                    <template v-if="composeStatus?.resolution">
-                      · {{ composeStatus.resolution }}
-                    </template>
-                  </span>
-                </div>
-                <div
-                  v-if="composePlayable"
-                  class="sb-final__actions"
-                  @click.stop
-                >
-                  <a
-                    :href="composeStatus?.finalUrl"
-                    download
-                    rel="noopener"
-                    target="_blank"
-                  >
-                    <Button size="small">
-                      <template #icon><DownloadOutlined /></template>
-                      下载
-                    </Button>
-                  </a>
-                  <Button size="small" type="primary" @click="composePreviewOpen = true">
-                    预览
-                  </Button>
-                </div>
-              </Card>
+              <!-- 成片卡片：状态/比例/字幕/重合成/下载与素材包统一在组件内 -->
+              <EpisodeComposeCard
+                v-model:burn-subtitles="burnSubtitles"
+                :aspect-ratio="activeAspectRatio"
+                :episode-id="episode.id"
+                :episode-seq="episode.seq"
+                :has-segments="segments.length > 0"
+                :missing-segment-seqs="localMissingSegmentSeqs"
+                :missing-shot-seqs="localMissingVideoSeqs"
+                :missing-shots="composeMissingShots"
+                :needs-recompose="composeNeedsRecompose"
+                :precheck-message="composePrecheckMessage"
+                :ready="composeReady"
+                :status="composeStatus"
+                :submitting="composeSubmitting"
+                @need-video="gotoBatchVideoForCompose"
+                @submit="submitCompose"
+              />
 
               <div class="sb-body">
                 <div
@@ -5060,7 +4954,22 @@ onMounted(() => {
                               row.segment.firstFrameUrl
                             "
                           />
-                          <div v-else class="sb-segment__ph">未设置</div>
+                          <div v-else class="sb-segment__ph">
+                            <Button
+                              v-if="row.segment.generationMode === 'segment'"
+                              type="link"
+                              size="small"
+                              title="首帧取本段第一镜关键帧"
+                              :loading="
+                                segmentFrameLoading ===
+                                `${row.segment.id}-first`
+                              "
+                              @click="generateSegmentFrame(row.segment, 'first')"
+                            >
+                              生成首帧
+                            </Button>
+                            <span v-else>未设置</span>
+                          </div>
                         </div>
                         <div class="sb-segment__frame">
                           <span>尾帧</span>
@@ -5075,7 +4984,22 @@ onMounted(() => {
                               row.segment.lastFrameUrl
                             "
                           />
-                          <div v-else class="sb-segment__ph">未设置</div>
+                          <div v-else class="sb-segment__ph">
+                            <Button
+                              v-if="row.segment.generationMode === 'segment'"
+                              type="link"
+                              size="small"
+                              :title="segmentTailHint(row.segment)"
+                              :loading="
+                                segmentFrameLoading ===
+                                `${row.segment.id}-last`
+                              "
+                              @click="generateSegmentFrame(row.segment, 'last')"
+                            >
+                              生成尾帧
+                            </Button>
+                            <span v-else>未设置</span>
+                          </div>
                         </div>
                         <div class="sb-segment__frame">
                           <span>成片</span>
@@ -5335,12 +5259,12 @@ onMounted(() => {
                                   <Button
                                     type="primary"
                                     :disabled="
-                                      Number(shot.generationStatus) === 1 ||
+                                      Number(shot.generationStatus) === SHOT_GENERATION_STATUS.RUNNING ||
                                       needsKeyframe(shot) ||
                                       videoBusy ||
                                       isSegmentModeShot(shot)
                                     "
-                                    :loading="Number(shot.generationStatus) === 1"
+                                    :loading="Number(shot.generationStatus) === SHOT_GENERATION_STATUS.RUNNING"
                                     :title="
                                       isSegmentModeShot(shot)
                                         ? '段落模式下需整段重生成'
@@ -5349,7 +5273,7 @@ onMounted(() => {
                                     @click="generateShotVideo(shot)"
                                   >
                                     <PlayCircleOutlined />
-                                    {{ Number(shot.generationStatus) === 1 ? '生成中…' : shot.hasVideo ? '重新生成视频' : '生成视频' }}
+                                    {{ Number(shot.generationStatus) === SHOT_GENERATION_STATUS.RUNNING ? '生成中…' : shot.hasVideo ? '重新生成视频' : '生成视频' }}
                                   </Button>
                                 </Space.Compact>
 
@@ -5358,7 +5282,7 @@ onMounted(() => {
                                   size="small"
                                   :disabled="
                                     videoBusy ||
-                                    Number(shot.generationStatus) === 1
+                                    Number(shot.generationStatus) === SHOT_GENERATION_STATUS.RUNNING
                                   "
                                   title="用参考素材生成视频，可跳过关键帧"
                                   @click="openShotReference(shot)"
@@ -5448,33 +5372,19 @@ onMounted(() => {
               </div>
             </div>
 
-            <div v-else class="nwb-doc">
-              <h3>剧本 · 第 {{ episode.seq }} 集</h3>
-              <template v-if="episode.scenes?.length">
-                <div v-for="scene in episode.scenes" :key="scene.seq" class="nwb-scene">
-                  <div class="nwb-scene__hd">
-                    <PlayCircleOutlined /> {{ scene.heading }}
-                  </div>
-                  <div
-                    v-for="(line, index) in scene.dialogue || []"
-                    :key="index"
-                    class="nwb-line"
-                  >
-                    <span>{{ line.role }}</span>
-                    <b>{{ line.line }}</b>
-                  </div>
-                  <p v-if="scene.action" class="nwb-action">{{ scene.action }}</p>
-                </div>
-              </template>
-              <div v-else-if="episode.script" class="nwb-prose">
-                {{ episode.script }}
-              </div>
-              <div v-else class="nwb-empty">
-                <b>这一集还没有剧本</b>
-                <span>按正文和细纲生成，可指定时长与创作要求</span>
-                <Button type="primary" @click="openScript">生成剧本</Button>
-              </div>
-            </div>
+            <EpisodeScriptView
+              v-else-if="episode"
+              :episode="episode"
+              :errors="scriptErrors"
+              :finalizing="scriptFinalizing"
+              :status="scriptStatus"
+              :status-meta="scriptStatusMeta"
+              :validating="scriptValidating"
+              :warnings="scriptWarnings"
+              @finalize="finalizeScript"
+              @generate="openScript"
+              @validate="validateScript()"
+            />
             <div v-if="episodeLoading" class="nwb-loading">
               <Spin />
             </div>
@@ -5513,25 +5423,33 @@ onMounted(() => {
               本章记忆
               <Tag
                 :bordered="false"
-                :color="MEMORY_STATUS_META[memoryStatusOf(episode)]?.color"
+                :color="memoryStatusMeta(episode)?.color"
               >
-                {{ MEMORY_STATUS_META[memoryStatusOf(episode)]?.label }}
+                {{ memoryStatusMeta(episode)?.label }}
               </Tag>
               <Button type="link" size="small" @click="openChapterMemory">
-                查看 / 编辑
+                查看 / 校对
               </Button>
             </div>
-            <p class="nwb-memory">
+            <p class="nwb-memory-desc">
               {{
-                memoryStatusOf(episode) === 2
+                memoryStatusOf(episode) === MEMORY_STATUS.SUCCESS
                   ? '结构化记忆已就绪，可查看事件、人物状态、伏笔与结尾状态'
-                  : memoryStatusOf(episode) === 3
+                  : memoryStatusOf(episode) === MEMORY_STATUS.STALE
                     ? '正文已修改，记忆已过期；请重建本章记忆'
-                    : memoryStatusOf(episode) === 4
-                      ? '记忆生成失败，可在结构化记忆里重试'
+                    : memoryStatusOf(episode) === MEMORY_STATUS.FAILED
+                      ? '记忆生成失败，可手动重建'
                       : '定稿本章后自动生成结构化记忆；普通保存只标记过期，不消耗 token'
               }}
             </p>
+            <Button
+              v-if="currentMemoryTimedOut"
+              size="small"
+              :loading="memoryRebuilding"
+              @click="retryEpisodeMemory(episode)"
+            >
+              手动重建
+            </Button>
           </Card>
 
           <Card size="small" class="nwb-card">
@@ -5651,50 +5569,12 @@ onMounted(() => {
       @ok="applyPlan"
     >
       <div class="nwb-modal">
-        <div
-          v-if="hasPlanReferencePanel"
-          class="ai-reference"
-          :class="{ 'has-error': planHardConflicts.length > 0 }"
-        >
-          <div class="ai-reference__hd">
-            <Button
-              v-if="planReferences"
-              type="link"
-              size="small"
-              @click="showPlanReferences = !showPlanReferences"
-            >
-              {{ showPlanReferences ? '收起参考来源' : '参考来源' }}
-            </Button>
-            <span v-if="planStaleEpisodes.length" class="ai-reference__warn">
-              参考的第 {{ planStaleEpisodes.join('、') }} 集记忆可能已过期
-            </span>
-          </div>
-          <div v-if="showPlanReferences" class="ai-reference__detail">
-            <p v-if="referenceSummary(planReferences)">
-              {{ referenceSummary(planReferences) }}
-            </p>
-            <p
-              v-for="(item, index) in planReferences?.foreshadows ?? []"
-              :key="index"
-            >
-              伏笔：{{ item.text }}
-            </p>
-          </div>
-          <div
-            v-for="(conflict, index) in planConflicts"
-            :key="index"
-            class="ai-conflict"
-            :class="conflict.level === 'error' ? 'is-error' : 'is-warn'"
-          >
-            <Tag
-              :bordered="false"
-              :color="conflict.level === 'error' ? 'red' : 'orange'"
-            >
-              {{ conflict.level === 'error' ? '硬冲突' : '软冲突' }}
-            </Tag>
-            <span>{{ conflict.message }}</span>
-          </div>
-        </div>
+        <AiContextPanel
+          flush
+          :conflicts="planConflicts"
+          :references="planReferences"
+          :stale-episodes="planStaleEpisodes"
+        />
         <label>
           <span>本章梗概</span>
           <Input.TextArea v-model:value="planSummary" :rows="3" />
@@ -5760,16 +5640,27 @@ onMounted(() => {
     <ChapterMemoryDrawer
       v-model:open="chapterMemoryOpen"
       :episode-id="episode?.id"
-      :episode-seq="episode?.seq"
+      :fallback-status="episode ? memoryStatusOf(episode) : undefined"
       :model-id="modelId"
       @updated="onChapterMemoryUpdated"
     />
     <NovelMemoryDrawer
       v-model:open="novelMemoryOpen"
       :episodes="episodes"
-      :model-id="modelId"
       :novel-id="props.novelId"
       @updated="onNovelMemoryUpdated"
+    />
+    <NovelSettingsModal
+      v-model:open="settingsOpen"
+      v-model:aspect-ratio="settingsAspectRatio"
+      :saving="settingsSaving"
+      @save="saveSettings"
+    />
+    <ScriptValidationModal
+      v-model:open="scriptValidationOpen"
+      :errors="scriptErrors"
+      :validating="scriptValidating"
+      :warnings="scriptWarnings"
     />
 
     <Modal
@@ -5909,6 +5800,10 @@ onMounted(() => {
         <p v-if="batchScopeSegmentSeq" class="nwb-tip">
           仅针对第 {{ batchScopeSegmentSeq }} 段的镜头。
         </p>
+        <p class="nwb-tip">
+          单镜生成使用 {{ activeAspectRatio }}；批量任务由后端按镜头/小说比例执行，
+          当前页覆盖不写回小说默认。
+        </p>
         <p
           v-if="(batchPlan?.eligible.length || 0) > 20"
           class="batch-confirm__warn"
@@ -5937,93 +5832,6 @@ onMounted(() => {
         <p class="nwb-tip">
           提交后由后端批次任务执行，离开页面也会继续；同类型已有任务会直接复用，进度可在任务中心查看。
         </p>
-      </div>
-    </Modal>
-
-    <Modal
-      v-model:open="composePreviewOpen"
-      :footer="null"
-      title="成片预览"
-      width="860px"
-    >
-      <video
-        v-if="composeStatus?.finalUrl"
-        class="sb-final-video"
-        :poster="composeStatus?.thumbnailUrl"
-        :src="composeStatus.finalUrl"
-        controls
-        autoplay
-        playsinline
-      ></video>
-    </Modal>
-
-    <Modal
-      v-model:open="composeGateOpen"
-      :footer="null"
-      title="成片尚未就绪"
-      width="520px"
-    >
-      <p class="compose-gate__text">
-        <template v-if="segments.length">
-          段落模式：缺第 <b>{{ localMissingSegmentSeqs.join('、') }}</b> 段视频，先去批量生成视频？
-        </template>
-        <template v-else>
-          还有 <b>{{ localMissingVideoSeqs.length }}</b> 镜没有视频，先去批量生成视频？
-        </template>
-      </p>
-      <p class="nwb-tip">空镜或其他特殊情况可以仍然提交。</p>
-      <div class="compose-gate__actions">
-        <Button @click="gotoBatchVideoForCompose">去生成</Button>
-        <Button
-          type="primary"
-          :loading="composeSubmitting"
-          @click="submitCompose"
-        >
-          仍然提交
-        </Button>
-      </div>
-    </Modal>
-
-    <Modal
-      v-model:open="composeMissingOpen"
-      :footer="null"
-      title="成片预检未通过"
-      width="620px"
-    >
-      <p v-if="segments.length" class="nwb-tip">
-        段落模式：
-        <template v-if="localMissingSegmentSeqs.length">
-          缺第 {{ localMissingSegmentSeqs.join('、') }} 段视频
-        </template>
-        <template v-else>存在缺失视频的段落</template>
-      </p>
-      <p v-else-if="composePrecheckMessage" class="nwb-tip">
-        {{ composePrecheckMessage }}
-      </p>
-      <div
-        v-if="!segments.length && composeMissingShots.length"
-        class="compose-missing"
-      >
-        <div
-          v-for="item in composeMissingShots"
-          :key="item.shotId"
-          class="compose-missing__row"
-        >
-          <b>#{{ item.seq ?? item.shotId }}</b>
-          <span>{{ item.reason || '缺少视频，请先生成镜头视频' }}</span>
-        </div>
-      </div>
-      <p
-        v-else-if="!segments.length"
-        class="nwb-tip"
-      >
-        后端未返回缺失镜头明细，请先检查视频生成状态。
-      </p>
-      <div class="compose-missing__foot">
-        <Button @click="gotoBatchVideoForCompose">去批量生成视频</Button>
-        <Button type="primary" @click="composeMissingOpen = false">
-          知道了
-        </Button>
       </div>
     </Modal>
 
@@ -6223,6 +6031,12 @@ onMounted(() => {
     </Modal>
 
     <Modal v-model:open="ideaOpen" title="AI 想法" :footer="null" width="640">
+      <AiContextPanel
+        flush
+        :conflicts="aiConflicts"
+        :references="aiReferences"
+        :stale-episodes="aiStaleEpisodes"
+      />
       <div class="nwb-prose">{{ ideaText }}</div>
     </Modal>
 
@@ -6350,7 +6164,9 @@ onMounted(() => {
 .nwb-actions {
   display: flex;
   flex: none;
+  flex-wrap: wrap;
   gap: 8px;
+  justify-content: flex-end;
 }
 
 .nwb-grid {
@@ -6514,6 +6330,11 @@ onMounted(() => {
     cursor: pointer;
     background: hsl(var(--destructive));
   }
+
+  &.is-timeout {
+    cursor: pointer;
+    background: hsl(var(--warning));
+  }
 }
 
 .nwb-memory-bar {
@@ -6526,57 +6347,6 @@ onMounted(() => {
   font-size: 12px;
   color: hsl(var(--muted-foreground));
   border-top: 1px dashed hsl(var(--border));
-}
-
-.ai-reference {
-  flex: none;
-  padding: 8px 10px;
-  margin: 8px 24px 0;
-  font-size: 12px;
-  background: color-mix(in srgb, hsl(var(--primary)) 5%, hsl(var(--background)));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-
-  &.has-error {
-    background: color-mix(in srgb, hsl(var(--destructive)) 6%, hsl(var(--background)));
-    border-color: color-mix(in srgb, hsl(var(--destructive)) 35%, transparent);
-  }
-}
-
-.ai-reference__hd {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.ai-reference__warn {
-  color: hsl(var(--warning));
-}
-
-.ai-reference__detail {
-  margin-top: 6px;
-
-  p {
-    margin: 2px 0;
-    line-height: 1.6;
-    color: hsl(var(--muted-foreground));
-  }
-}
-
-.ai-conflict {
-  display: flex;
-  gap: 6px;
-  align-items: flex-start;
-  margin-top: 4px;
-
-  &.is-error span {
-    color: hsl(var(--destructive));
-  }
-
-  &.is-warn span {
-    color: hsl(var(--warning));
-  }
 }
 
 .nwb-tabs {
@@ -7102,7 +6872,7 @@ onMounted(() => {
   }
 }
 
-.nwb-memory {
+.nwb-memory-desc {
   margin: 0;
   font-size: 12px;
   line-height: 1.7;
@@ -7371,172 +7141,6 @@ onMounted(() => {
   }
 }
 
-.sb-compose {
-  flex: none;
-  padding: 8px 10px;
-  margin-bottom: 10px;
-  font-size: 12px;
-  background: hsl(var(--accent));
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-
-  &.is-done {
-    background: color-mix(in srgb, hsl(var(--success)) 8%, hsl(var(--background)));
-    border-color: color-mix(in srgb, hsl(var(--success)) 30%, transparent);
-  }
-
-  &.is-failed {
-    background: color-mix(in srgb, hsl(var(--destructive)) 8%, hsl(var(--background)));
-    border-color: color-mix(in srgb, hsl(var(--destructive)) 30%, transparent);
-  }
-}
-
-.sb-compose__main {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.sb-compose__label {
-  font-weight: 600;
-}
-
-.sb-compose__progress {
-  width: 160px;
-}
-
-.sb-compose__note {
-  color: hsl(var(--muted-foreground));
-}
-
-.sb-compose__error {
-  color: hsl(var(--destructive));
-}
-
-.sb-compose__spacer {
-  flex: 1;
-}
-
-.sb-final {
-  flex: none;
-  margin-bottom: 10px;
-  cursor: pointer;
-
-  :deep(.ant-card-body) {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    width: 100%;
-  }
-}
-
-.sb-final__cover {
-  flex: none;
-  width: 96px;
-  height: 54px;
-  overflow: hidden;
-  background: #000;
-  border-radius: 6px;
-
-  video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-.sb-final__placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font-size: 11px;
-  color: hsl(var(--muted-foreground));
-  background: hsl(var(--accent));
-}
-
-.sb-final__meta {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 2px;
-
-  b {
-    font-size: 13px;
-  }
-
-  span {
-    font-size: 12px;
-    color: hsl(var(--muted-foreground));
-  }
-}
-
-.sb-final__actions {
-  display: flex;
-  flex: none;
-  gap: 8px;
-}
-
-.sb-final-video {
-  width: 100%;
-  max-height: 70vh;
-  background: #000;
-  border-radius: 8px;
-}
-
-.compose-missing {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 320px;
-  overflow-y: auto;
-}
-
-.compose-gate__text {
-  margin: 0 0 8px;
-  font-size: 14px;
-
-  b {
-    font-size: 18px;
-  }
-}
-
-.compose-gate__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.compose-missing__row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 8px 10px;
-  font-size: 12px;
-  background: hsl(var(--accent));
-  border-radius: 8px;
-
-  b {
-    flex: none;
-  }
-
-  span {
-    flex: 1;
-  }
-}
-
-.compose-missing__foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 12px;
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
-}
-
 .bind-extra {
   display: flex;
   flex-wrap: wrap;
@@ -7557,6 +7161,10 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.sb-script-gate {
+  color: hsl(var(--warning));
 }
 
 .sb-toolbar {

@@ -9,9 +9,9 @@ import type {
   CatalogNameQuery,
   ChapterMemoryDetail,
   ChapterMemoryRebuildRequest,
-  ChapterMemorySaveRequest,
   CharacterItem,
   CharacterSaveRequest,
+  ComposeExportResult,
   DirectorPlanRequest,
   DirectorPlanResult,
   DirectorPlanSaveRequest,
@@ -30,13 +30,17 @@ import type {
   EpisodeContentGenerateRequest,
   EpisodeFinalizeRequest,
   EpisodeGenerateRequest,
+  EpisodeGenerateResult,
   EpisodeItem,
   EpisodePlanRequest,
   EpisodePlanResponse,
   EpisodeQuery,
   EpisodeSaveRequest,
   EpisodeSceneBindRequest,
+  EpisodeScriptFinalizeRequest,
+  EpisodeScriptFinalizeResult,
   EpisodeScriptGenerateRequest,
+  EpisodeScriptValidateResult,
   EpisodeVersionItem,
   GenerateRequest,
   GenerationTaskItem,
@@ -45,12 +49,12 @@ import type {
   MaterialPushResult,
   MaterialQuery,
   MaterialUploadRequest,
-  MemoryRebuildSubmitRequest,
-  MemoryRebuildSubmitResult,
   NodeItem,
   NovelAssetExtractRequest,
   NovelAssetGraph,
   NovelDetailItem,
+  NovelExportResult,
+  NovelFinishRequest,
   NovelForeshadowItem,
   NovelGenerateRequest,
   NovelGenerateResult,
@@ -240,6 +244,24 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  /** 成片素材包导出（mp4 + srt + 封面 zip，后端返回 OSS 下载地址） */
+  exportEpisodeComposeBundle(
+    episodeId: number | string,
+  ): Promise<ComposeExportResult> {
+    return requestClient.get<ComposeExportResult>(
+      this.getServiceUrl('episode/compose/export'),
+      { params: { episodeId }, skipErrorMessage: true } as any,
+    );
+  }
+
+  /** 全书 TXT 导出（后端上传 OSS 后返回下载地址） */
+  exportNovel(novelId: number | string): Promise<NovelExportResult> {
+    return requestClient.get<NovelExportResult>(
+      this.getServiceUrl('novel/export'),
+      { params: { novelId }, skipErrorMessage: true } as any,
+    );
+  }
+
   /** 剧本实体抽取（角色/场景/道具 upsert） */
   extractEpisodeEntities(
     data: EntityExtractRequest,
@@ -309,16 +331,6 @@ class AiAssetApi extends BaseApi {
     );
   }
 
-  /** 章级结构化记忆详情 */
-  fetchChapterMemory(
-    episodeId: number | string,
-  ): Promise<ChapterMemoryDetail> {
-    return requestClient.get<ChapterMemoryDetail>(
-      this.getServiceUrl('episode/memory/detail'),
-      { params: { episodeId }, skipErrorMessage: true } as any,
-    );
-  }
-
   /** 角色列表（分页） */
   fetchCharacters(params: CatalogNameQuery): Promise<PageResponse<CharacterItem>> {
     return requestClient.get<PageResponse<CharacterItem>>(
@@ -351,6 +363,16 @@ class AiAssetApi extends BaseApi {
     return requestClient.get<EpisodeItem>(
       this.getServiceUrl('episode/detail'),
       { params: { id } },
+    );
+  }
+
+  /** 章记忆状态（含 memoryJson / shortMemory；定稿与重建后轮询） */
+  fetchEpisodeMemoryStatus(
+    episodeId: number | string,
+  ): Promise<ChapterMemoryDetail> {
+    return requestClient.get<ChapterMemoryDetail>(
+      this.getServiceUrl('episode/memory/status'),
+      { params: { episodeId }, skipErrorMessage: true } as any,
     );
   }
 
@@ -401,28 +423,6 @@ class AiAssetApi extends BaseApi {
     return requestClient.get<PageResponse<MaterialItem>>(
       this.getServiceUrl('material/list'),
       { params },
-    );
-  }
-
-  /** 当前小说活动记忆重建批次 */
-  fetchMemoryRebuildActive(
-    novelId: number | string,
-  ): Promise<AssetImageBatchActiveResult | null> {
-    return requestClient.get<AssetImageBatchActiveResult | null>(
-      this.getServiceUrl('novel/memory/batch/active'),
-      { params: { novelId }, skipErrorMessage: true } as any,
-    );
-  }
-
-  /** 记忆重建批次进度 */
-  fetchMemoryRebuildProgress(
-    taskId: number | string,
-    page = 1,
-    pageSize = 50,
-  ): Promise<TaskBatchCenterProgressResponse> {
-    return requestClient.get<TaskBatchCenterProgressResponse>(
-      this.getServiceUrl('novel/memory/batch/progress'),
-      { params: { page, pageSize, taskId } },
     );
   }
 
@@ -699,7 +699,29 @@ class AiAssetApi extends BaseApi {
     return requestClient.post<EpisodeItem>(
       this.getServiceUrl('episode/finalize'),
       data,
-      { timeout: 300_000 },
+      { timeout: 300_000, skipErrorMessage: true } as any,
+    );
+  }
+
+  // ==================== 工作流（创作工作台画布） ====================
+
+  /** 剧本定稿：定稿后才允许生成分镜 */
+  finalizeEpisodeScript(
+    data: EpisodeScriptFinalizeRequest,
+  ): Promise<EpisodeScriptFinalizeResult> {
+    return requestClient.post<EpisodeScriptFinalizeResult>(
+      this.getServiceUrl('episode/script/finalize'),
+      data,
+      { skipErrorMessage: true } as any,
+    );
+  }
+
+  /** 小说完结：后端 400 会返回未定稿章节清单，调用方原样展示 */
+  finishNovel(data: NovelFinishRequest): Promise<NovelDetailItem> {
+    return requestClient.post<NovelDetailItem>(
+      this.getServiceUrl('novel/finalize'),
+      data,
+      { skipErrorMessage: true } as any,
     );
   }
 
@@ -713,8 +735,6 @@ class AiAssetApi extends BaseApi {
       { timeout: 300_000 },
     );
   }
-
-  // ==================== 工作流（创作工作台画布） ====================
 
   /** 导演规划生成（P1 预留；接口未就绪时提示待后端） */
   generateDirectorPlan(
@@ -751,8 +771,10 @@ class AiAssetApi extends BaseApi {
   }
 
   /** 分集（章节）批量 LLM 生成 */
-  generateEpisodes(data: EpisodeGenerateRequest): Promise<EpisodeItem[]> {
-    return requestClient.post<EpisodeItem[]>(
+  generateEpisodes(
+    data: EpisodeGenerateRequest,
+  ): Promise<EpisodeGenerateResult | EpisodeItem[]> {
+    return requestClient.post<EpisodeGenerateResult | EpisodeItem[]>(
       this.getServiceUrl('novel/episodes/generate'),
       data,
       { timeout: 300_000 },
@@ -843,7 +865,7 @@ class AiAssetApi extends BaseApi {
     return requestClient.post<ChapterMemoryDetail>(
       this.getServiceUrl('episode/memory/rebuild'),
       data,
-      { timeout: 300_000 },
+      { timeout: 300_000, skipErrorMessage: true } as any,
     );
   }
 
@@ -852,7 +874,7 @@ class AiAssetApi extends BaseApi {
     return requestClient.post(
       this.getServiceUrl('novel/memory/volume/rebuild'),
       data,
-      { timeout: 300_000 },
+      { timeout: 300_000, skipErrorMessage: true } as any,
     );
   }
 
@@ -864,6 +886,7 @@ class AiAssetApi extends BaseApi {
     return requestClient.post(
       this.getServiceUrl('novel/memory/foreshadow/resolve'),
       data,
+      { skipErrorMessage: true } as any,
     );
   }
 
@@ -883,22 +906,14 @@ class AiAssetApi extends BaseApi {
     );
   }
 
+  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
+
   /** 写作工具箱：执行工具 */
   runWritingTool(data: WritingToolRunRequest): Promise<WritingToolRunResult> {
     return requestClient.post<WritingToolRunResult>(
       this.getServiceUrl('writing/tool/run'),
       data,
       { timeout: 300_000 },
-    );
-  }
-
-  // ==================== 素材上传 / 资产保存（契约见研发计划接口文档） ====================
-
-  /** 人工保存章级记忆（source=manual） */
-  saveChapterMemory(data: ChapterMemorySaveRequest): Promise<ChapterMemoryDetail> {
-    return requestClient.post<ChapterMemoryDetail>(
-      this.getServiceUrl('episode/memory/save'),
-      data,
     );
   }
 
@@ -981,17 +996,6 @@ class AiAssetApi extends BaseApi {
     );
   }
 
-  /** 批量重建记忆（写 task_batch_center，Airflow 扫描执行） */
-  submitMemoryRebuild(
-    data: MemoryRebuildSubmitRequest,
-  ): Promise<MemoryRebuildSubmitResult> {
-    return requestClient.post<MemoryRebuildSubmitResult>(
-      this.getServiceUrl('novel/memory/batch/submit'),
-      data,
-      { skipErrorMessage: true } as any,
-    );
-  }
-
   /** 提交分镜批量任务（立即返回 taskId，生成由后端批次任务异步执行） */
   submitStoryboardBatch(
     data: StoryboardBatchSubmitRequest,
@@ -1007,6 +1011,16 @@ class AiAssetApi extends BaseApi {
     return requestClient.post<MaterialItem>(
       this.getServiceUrl('material/upload'),
       data,
+    );
+  }
+
+  /** 剧本校验：返回按场次标注的 error/warning，生成分镜前必须通过 */
+  validateEpisodeScript(
+    episodeId: number | string,
+  ): Promise<EpisodeScriptValidateResult> {
+    return requestClient.get<EpisodeScriptValidateResult>(
+      this.getServiceUrl('episode/script/validate'),
+      { params: { episodeId }, skipErrorMessage: true } as any,
     );
   }
 

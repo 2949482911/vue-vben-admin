@@ -1,153 +1,70 @@
 <script lang="ts" setup name="ChapterMemoryDrawer">
 /**
- * 章级结构化记忆抽屉：位于小说编辑器「本章记忆」卡片，属于正文定稿后的记忆维护环节。
- * 读取/人工修订/单章重建 ai_asset_chapter_memory；接口未就绪时展示空表单并提示，不伪造旧摘要。
- * 人工修订保存后 memory_source=manual，自动重算不覆盖，除非主动点「重建本章记忆」。
+ * 章级结构化记忆抽屉：位于小说编辑器「本章记忆」卡片，定稿后人工校对用，不写回正文。
+ * 后端当前提供 memory/status + memory/rebuild，人工修订保存接口未开放，因此本轮只读展示；
+ * 重建按钮走单章重建，生成中由父级统一轮询 memory/status。
  */
 import type { ChapterMemoryJson } from '#/api/models/ai_asset';
 
-import { reactive, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
-import {
-  Button,
-  Drawer,
-  Empty,
-  Input,
-  message,
-  Select,
-  Spin,
-  Tag,
-} from 'ant-design-vue';
+import { Button, Drawer, Empty, message, Spin, Tag } from 'ant-design-vue';
 
 import { aiAssetApi } from '#/api';
 
+import {
+  MEMORY_STATUS,
+  MEMORY_STATUS_META as STATUS_META,
+} from '../status';
+
 const props = defineProps<{
   episodeId?: number | string;
-  episodeSeq?: number;
+  fallbackStatus?: number;
   modelId?: number | string;
 }>();
 const emit = defineEmits<{ updated: [] }>();
 const open = defineModel<boolean>('open', { default: false });
 
 const loading = ref(false);
-const saving = ref(false);
 const rebuilding = ref(false);
-const apiReady = ref(false);
 const status = ref<number>();
 const source = ref('');
 const contentVersion = ref<number>();
+const shortMemory = ref('');
 const errorMsg = ref('');
+const loadError = ref('');
+const memory = ref<ChapterMemoryJson>({});
 
-const form = reactive({
-  characters: [] as Array<{ name: string; state: string }>,
-  endingState: '',
-  events: [] as Array<{ id: string; text: string; type: string }>,
-  foreshadows: [] as Array<{
-    action: string;
-    id: string;
-    importance: string;
-    text: string;
-  }>,
-  summary: '',
-  timelineFrom: '',
-  timelinePlace: '',
-  timelineTo: '',
+/** 与父级 memoryStatusOf 保持一致：status 为 0 时沿用卡片推导出的状态 */
+const displayStatus = computed(() => {
+  const current = Number(status.value ?? MEMORY_STATUS.NONE);
+  if (current !== MEMORY_STATUS.NONE) {
+    return current;
+  }
+  const fallback = Number(props.fallbackStatus ?? MEMORY_STATUS.NONE);
+  return fallback !== MEMORY_STATUS.NONE ? fallback : MEMORY_STATUS.NONE;
 });
 
-const EVENT_TYPES = [
-  { label: '目标', value: 'goal' },
-  { label: '阻碍', value: 'obstacle' },
-  { label: '转折', value: 'twist' },
-  { label: '悬念', value: 'cliffhanger' },
-];
-const FORESHADOW_ACTIONS = [
-  { label: '埋设', value: 'plant' },
-  { label: '推进', value: 'advance' },
-  { label: '回收', value: 'resolve' },
-];
-const IMPORTANCE_OPTIONS = [
-  { label: '高', value: 'high' },
-  { label: '中', value: 'mid' },
-  { label: '低', value: 'low' },
-];
-
-const STATUS_META: Record<number, { color: string; label: string }> = {
-  0: { color: 'default', label: '未生成' },
-  1: { color: 'blue', label: '生成中' },
-  2: { color: 'green', label: '成功' },
-  3: { color: 'orange', label: '过期' },
-  4: { color: 'red', label: '失败' },
-};
-
-function fillForm(memory?: ChapterMemoryJson) {
-  form.summary = memory?.summary ?? '';
-  form.endingState = memory?.endingState ?? '';
-  form.timelineFrom = memory?.timeline?.from ?? '';
-  form.timelineTo = memory?.timeline?.to ?? '';
-  form.timelinePlace = memory?.timeline?.place ?? '';
-  form.events = (memory?.events ?? []).map((item) => ({
-    id: String(item.id ?? ''),
-    text: item.text ?? '',
-    type: item.type ?? 'goal',
-  }));
-  form.characters = (memory?.characters ?? []).map((item) => ({
-    name: item.name ?? '',
-    state: item.state ?? '',
-  }));
-  form.foreshadows = (memory?.foreshadows ?? []).map((item) => ({
-    action: item.action ?? 'plant',
-    id: String(item.id ?? ''),
-    importance: item.importance ?? 'mid',
-    text: item.text ?? '',
-  }));
+function applyDetail(detail: any) {
+  status.value = detail?.memoryStatus;
+  source.value = detail?.memorySource ?? '';
+  contentVersion.value = detail?.contentVersion;
+  shortMemory.value = detail?.shortMemory ?? '';
+  errorMsg.value = detail?.errorMsg ?? '';
+  memory.value = detail?.memoryJson ?? {};
 }
 
-function addEvent() {
-  form.events.push({ id: `e${form.events.length + 1}`, text: '', type: 'goal' });
-}
-
-function addCharacter() {
-  form.characters.push({ name: '', state: '' });
-}
-
-function addForeshadow() {
-  form.foreshadows.push({
-    action: 'plant',
-    id: `f${form.foreshadows.length + 1}`,
-    importance: 'mid',
-    text: '',
-  });
-}
-
-function buildMemoryJson(): ChapterMemoryJson {
-  return {
-    characters: form.characters
-      .filter((item) => item.name.trim())
-      .map((item) => ({ name: item.name.trim(), state: item.state.trim() })),
-    endingState: form.endingState.trim(),
-    events: form.events
-      .filter((item) => item.text.trim())
-      .map((item, index) => ({
-        id: item.id || `e${index + 1}`,
-        text: item.text.trim(),
-        type: item.type,
-      })),
-    foreshadows: form.foreshadows
-      .filter((item) => item.text.trim())
-      .map((item, index) => ({
-        action: item.action,
-        id: item.id || `f${index + 1}`,
-        importance: item.importance,
-        text: item.text.trim(),
-      })),
-    schemaVersion: 1,
-    summary: form.summary.trim(),
-    timeline: {
-      from: form.timelineFrom.trim() || undefined,
-      place: form.timelinePlace.trim() || undefined,
-      to: form.timelineTo.trim() || undefined,
-    },
-  };
+function hasStructuredMemory(json?: ChapterMemoryJson) {
+  return Boolean(
+    json?.summary ||
+      json?.endingState ||
+      json?.events?.length ||
+      json?.characters?.length ||
+      json?.foreshadows?.length ||
+      json?.timeline?.from ||
+      json?.timeline?.to ||
+      json?.timeline?.place,
+  );
 }
 
 async function load() {
@@ -155,43 +72,30 @@ async function load() {
     return;
   }
   loading.value = true;
-  apiReady.value = false;
+  loadError.value = '';
   try {
-    const res = await aiAssetApi.fetchChapterMemory(props.episodeId);
-    apiReady.value = true;
-    status.value = res?.memoryStatus;
-    source.value = res?.memorySource ?? '';
-    contentVersion.value = res?.contentVersion;
-    errorMsg.value = res?.errorMsg ?? '';
-    fillForm(res?.memoryJson);
-  } catch {
-    // 新接口未就绪：不伪造旧摘要，保持空表单并提示
-    fillForm({});
-    status.value = 0;
-    source.value = '';
+    const res = await aiAssetApi.fetchEpisodeMemoryStatus(props.episodeId);
+    applyDetail(res);
+    const effectiveStatus =
+      Number(res?.memoryStatus ?? MEMORY_STATUS.NONE) !== MEMORY_STATUS.NONE
+        ? Number(res?.memoryStatus)
+        : Number(props.fallbackStatus ?? MEMORY_STATUS.NONE);
+    // 状态成功但内容为空或拉取失败时明确提示可重建，避免静默空白
+    if (
+      effectiveStatus === MEMORY_STATUS.SUCCESS &&
+      !hasStructuredMemory(res?.memoryJson)
+    ) {
+      loadError.value = '记忆内容加载失败，可重建';
+    }
+  } catch (error: any) {
+    const code = error?.response?.status ?? error?.code ?? error?.data?.code;
+    loadError.value =
+      Number(code) === 404
+        ? '章节记忆状态接口未就绪，待后端开放后可用'
+        : '记忆内容加载失败，可重建';
+    // 保留父级传入的状态兜底，不把已知状态重置成未生成
   } finally {
     loading.value = false;
-  }
-}
-
-async function save() {
-  if (!props.episodeId) {
-    return;
-  }
-  saving.value = true;
-  try {
-    const res = await aiAssetApi.saveChapterMemory({
-      episodeId: props.episodeId,
-      memoryJson: buildMemoryJson(),
-    });
-    status.value = res?.memoryStatus ?? 2;
-    source.value = res?.memorySource ?? 'manual';
-    message.success('已人工修订，自动重算不会覆盖，除非手动重建');
-    emit('updated');
-  } catch (error: any) {
-    message.error(error?.message || '保存章节记忆失败');
-  } finally {
-    saving.value = false;
   }
 }
 
@@ -206,14 +110,17 @@ async function rebuild() {
       force: true,
       modelId: props.modelId,
     });
-    status.value = res?.memoryStatus ?? 2;
-    source.value = res?.memorySource ?? 'ai';
-    errorMsg.value = res?.errorMsg ?? '';
-    fillForm(res?.memoryJson);
-    message.success('本章记忆已重建');
+    applyDetail(res);
+    message.success('已提交重建，正在后台生成记忆');
     emit('updated');
+    await load();
   } catch (error: any) {
-    message.error(error?.message || '重建章节记忆失败');
+    const code = Number(error?.response?.status ?? error?.code ?? error?.data?.code);
+    message.error(
+      code === 404
+        ? '重建接口未就绪，待后端上线后重试'
+        : `${error?.message || '重建章节记忆失败'}${code === 400 ? '（请确认该章已定稿）' : ''}`,
+    );
   } finally {
     rebuilding.value = false;
   }
@@ -236,123 +143,109 @@ watch(open, (value) => {
     <Spin :spinning="loading">
       <div class="chapter-memory">
         <div class="chapter-memory__status">
-          <Tag :bordered="false" :color="STATUS_META[status ?? 0]?.color">
-            {{ STATUS_META[status ?? 0]?.label ?? '未知' }}
+          <Tag
+            :bordered="false"
+            :color="STATUS_META[displayStatus]?.color"
+          >
+            {{ STATUS_META[displayStatus]?.label ?? '未知' }}
           </Tag>
           <span v-if="source">来源：{{ source }}</span>
           <span v-if="contentVersion">
             contentVersion：{{ contentVersion }}
           </span>
-          <Button
-            size="small"
-            :loading="rebuilding"
-            @click="rebuild"
-          >
+          <Tag :bordered="false">只读（人工修订接口待开放）</Tag>
+          <Button size="small" :loading="rebuilding" @click="rebuild">
             重建本章记忆
-          </Button>
-          <Button
-            type="primary"
-            size="small"
-            :loading="saving"
-            @click="save"
-          >
-            保存人工修订
           </Button>
         </div>
         <p v-if="errorMsg" class="chapter-memory__error">{{ errorMsg }}</p>
-        <p v-if="!apiReady" class="nwb-tip">
-          结构化记忆接口未就绪，当前仅展示旧版短记忆摘要；保存/重建将调用预留接口。
+        <p v-if="loadError" class="chapter-memory__error">{{ loadError }}</p>
+        <p class="nwb-tip">
+          记忆状态 1=生成中；超过 10 分钟仍生成中可在章节目录点状态点重建。
         </p>
 
-        <label>
-          <span>摘要</span>
-          <Input.TextArea v-model:value="form.summary" :rows="3" />
-        </label>
+        <div class="chapter-memory__card">
+          <b>摘要</b>
+          <p>{{ memory.summary || '暂无结构化摘要' }}</p>
+          <p v-if="shortMemory" class="chapter-memory__short">
+            短记忆（下一章上下文使用）：{{ shortMemory }}
+          </p>
+        </div>
 
-        <div class="chapter-memory__block">
-          <div class="chapter-memory__hd">
-            <b>事件（带因果）</b>
-            <Button type="link" size="small" @click="addEvent">+ 事件</Button>
-          </div>
-          <div v-for="(item, index) in form.events" :key="index" class="chapter-memory__row">
-            <Select
-              v-model:value="item.type"
-              :options="EVENT_TYPES"
-              size="small"
-              style="width: 100px"
-            />
-            <Input v-model:value="item.text" placeholder="事件内容" size="small" />
-            <Button danger type="link" size="small" @click="form.events.splice(index, 1)">
-              删除
-            </Button>
-          </div>
+        <div class="chapter-memory__card">
+          <b>事件（带因果）</b>
           <Empty
-            v-if="!form.events.length"
+            v-if="!memory.events?.length"
             :image="Empty.PRESENTED_IMAGE_SIMPLE"
             description="暂无事件"
           />
+          <div
+            v-for="item in memory.events ?? []"
+            :key="item.id"
+            class="chapter-memory__line"
+          >
+            <Tag :bordered="false">{{ item.type || '事件' }}</Tag>
+            <span>{{ item.text }}</span>
+            <em v-if="item.causedBy?.length">
+              因：{{ item.causedBy.join('、') }}
+            </em>
+          </div>
         </div>
 
-        <div class="chapter-memory__block">
-          <div class="chapter-memory__hd">
-            <b>人物状态变化</b>
-            <Button type="link" size="small" @click="addCharacter">+ 人物</Button>
-          </div>
-          <div
-            v-for="(item, index) in form.characters"
-            :key="index"
-            class="chapter-memory__row"
-          >
-            <Input v-model:value="item.name" placeholder="人物名" size="small" style="width: 130px" />
-            <Input v-model:value="item.state" placeholder="本章结束时的处境/心态/已知信息" size="small" />
-            <Button danger type="link" size="small" @click="form.characters.splice(index, 1)">
-              删除
-            </Button>
-          </div>
+        <div class="chapter-memory__card">
+          <b>人物状态变化</b>
           <Empty
-            v-if="!form.characters.length"
+            v-if="!memory.characters?.length"
             :image="Empty.PRESENTED_IMAGE_SIMPLE"
             description="暂无人物状态"
           />
+          <div
+            v-for="(item, index) in memory.characters ?? []"
+            :key="index"
+            class="chapter-memory__line"
+          >
+            <Tag :bordered="false" color="blue">{{ item.name }}</Tag>
+            <span>{{ item.state || '状态未记录' }}</span>
+          </div>
         </div>
 
-        <div class="chapter-memory__block">
-          <div class="chapter-memory__hd">
-            <b>伏笔埋收</b>
-            <Button type="link" size="small" @click="addForeshadow">+ 伏笔</Button>
-          </div>
-          <div
-            v-for="(item, index) in form.foreshadows"
-            :key="index"
-            class="chapter-memory__row"
-          >
-            <Select v-model:value="item.action" :options="FORESHADOW_ACTIONS" size="small" style="width: 90px" />
-            <Select v-model:value="item.importance" :options="IMPORTANCE_OPTIONS" size="small" style="width: 80px" />
-            <Input v-model:value="item.text" placeholder="伏笔内容" size="small" />
-            <Button danger type="link" size="small" @click="form.foreshadows.splice(index, 1)">
-              删除
-            </Button>
-          </div>
+        <div class="chapter-memory__card">
+          <b>伏笔埋收</b>
           <Empty
-            v-if="!form.foreshadows.length"
+            v-if="!memory.foreshadows?.length"
             :image="Empty.PRESENTED_IMAGE_SIMPLE"
             description="暂无伏笔"
           />
-        </div>
-
-        <div class="chapter-memory__block">
-          <div class="chapter-memory__hd"><b>时空推进</b></div>
-          <div class="chapter-memory__row">
-            <Input v-model:value="form.timelineFrom" placeholder="从（如第3天清晨）" size="small" />
-            <Input v-model:value="form.timelineTo" placeholder="到（如当日上午）" size="small" />
-            <Input v-model:value="form.timelinePlace" placeholder="地点" size="small" />
+          <div
+            v-for="item in memory.foreshadows ?? []"
+            :key="item.id"
+            class="chapter-memory__line"
+          >
+            <Tag
+              :bordered="false"
+              :color="item.action === 'resolve' ? 'green' : 'orange'"
+            >
+              {{ item.action === 'plant' ? '埋设' : item.action === 'resolve' ? '回收' : '推进' }}
+            </Tag>
+            <span>{{ item.text }}</span>
+            <em v-if="item.importance">重要度：{{ item.importance }}</em>
           </div>
         </div>
 
-        <label>
-          <span>结尾未完成动作 / 悬念</span>
-          <Input.TextArea v-model:value="form.endingState" :rows="3" />
-        </label>
+        <div class="chapter-memory__card">
+          <b>时空推进</b>
+          <p>
+            {{ memory.timeline?.from || '-' }} → {{ memory.timeline?.to || '-' }}
+            <template v-if="memory.timeline?.place">
+              · {{ memory.timeline.place }}
+            </template>
+          </p>
+        </div>
+
+        <div class="chapter-memory__card">
+          <b>结尾未完成动作 / 悬念</b>
+          <p>{{ memory.endingState || '暂无' }}</p>
+        </div>
       </div>
     </Spin>
   </Drawer>
@@ -362,17 +255,10 @@ watch(open, (value) => {
 .chapter-memory {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   height: 100%;
   min-height: 0;
   overflow-y: auto;
-
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 13px;
-  }
 }
 
 .chapter-memory__status {
@@ -390,25 +276,35 @@ watch(open, (value) => {
   color: hsl(var(--destructive));
 }
 
-.chapter-memory__block {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px 10px;
+.chapter-memory__card {
+  padding: 10px;
   background: hsl(var(--accent));
   border-radius: 8px;
+
+  p {
+    margin: 6px 0 0;
+    font-size: 12px;
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+  }
 }
 
-.chapter-memory__hd {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
+.chapter-memory__short {
+  padding-top: 6px;
+  border-top: 1px dashed hsl(var(--border));
 }
 
-.chapter-memory__row {
+.chapter-memory__line {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  align-items: center;
+  align-items: flex-start;
+  margin-top: 6px;
+  font-size: 12px;
+
+  em {
+    color: hsl(var(--muted-foreground));
+    font-style: normal;
+  }
 }
 </style>

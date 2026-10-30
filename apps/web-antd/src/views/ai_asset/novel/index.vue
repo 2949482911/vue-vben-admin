@@ -30,6 +30,7 @@ import { useWorkspaceStore } from '#/store';
 import { workspacePagePath } from '../workspace/menu';
 import BookWizard from './components/BookWizard.vue';
 import BookWorkbench from './components/BookWorkbench.vue';
+import { FINISHED_FLAG } from './status';
 import { useNovelDicts } from './useNovelDicts';
 
 const { options, labelOf } = useNovelDicts();
@@ -267,6 +268,17 @@ onMounted(() => {
               <div class="novel-card__body">
                 <div class="novel-card__name">《{{ novel.name || `书籍 #${novel.id}` }}》</div>
                 <div class="novel-card__tags">
+                  <Tag
+                    v-if="
+                      Number(novel.finished ?? FINISHED_FLAG.NO) ===
+                      FINISHED_FLAG.YES
+                    "
+                    :bordered="false"
+                    color="green"
+                    :title="novel.finishedAt || '已完结'"
+                  >
+                    已完结
+                  </Tag>
                   <Tag v-for="genre in novel.genres || []" :key="genre" :bordered="false">
                     {{ labelOf('genre', genre) }}
                   </Tag>

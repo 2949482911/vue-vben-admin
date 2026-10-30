@@ -33,6 +33,11 @@ import {
 import { aiAssetApi } from '#/api';
 
 import { CHARACTER_TYPE_OPTIONS, characterTypeLabel, isExtraCharacter } from '../characterTypes';
+import {
+  BATCH_TASK_ACTIVE_STATUSES,
+  BATCH_TASK_FINAL_STATUSES,
+  BATCH_TASK_STATUS,
+} from '../status';
 import AssetEditDrawerContent from './AssetEditDrawer.vue';
 
 const emit = defineEmits<{ success: [] }>();
@@ -427,13 +432,13 @@ function scheduleBatchPoll() {
         totalCount: res.totalCount,
       });
       batchError.value = String(res.errorMsg ?? '');
-      if ([3, 4].includes(Number(res.taskStatus))) {
+      if (BATCH_TASK_FINAL_STATUSES.includes(Number(res.taskStatus))) {
         stopBatchPoll();
         batchRunning.value = false;
         batchPollStartedAt = undefined;
         await load();
         emit('success');
-        if (res.taskStatus === 3) {
+        if (res.taskStatus === BATCH_TASK_STATUS.SUCCESS) {
           const summary = `成功 ${batchSuccess.value}，失败 ${batchFailed.value}`;
           if (batchFailed.value > 0) {
             message.warning(`后台补图完成：${summary}；失败原因可在任务中心查看`);
@@ -487,7 +492,7 @@ async function submitBatch(
       failedCount: 0,
       progressPercent: 0,
       successCount: 0,
-      taskStatus: 1,
+      taskStatus: BATCH_TASK_STATUS.PENDING,
       totalCount: res.totalCount,
     });
     clearSelection();
@@ -555,7 +560,10 @@ async function loadActiveBatch() {
   }
   try {
     const active = await aiAssetApi.fetchAssetImageBatchActive(novelId.value);
-    if (!active || ![1, 2].includes(Number(active.taskStatus))) {
+    if (
+      !active ||
+      !BATCH_TASK_ACTIVE_STATUSES.includes(Number(active.taskStatus))
+    ) {
       return;
     }
     batchRunning.value = true;

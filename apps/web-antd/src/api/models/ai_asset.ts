@@ -265,6 +265,12 @@ export interface EpisodeItem {
   version?: number;
   /** 正文内容版本（用于记忆幂等） */
   contentVersion?: number;
+  /** 是否定稿：0 否 / 1 是；老版本列表可能只返回该字段 */
+  finalized?: number;
+  /** 剧本状态：0 未生成 / 1 已生成（未定稿）/ 2 已定稿 / 3 过期 */
+  scriptStatus?: number;
+  /** 素材更新后成片需重合成：0 否 / 1 是 */
+  needsRecompose?: number;
   /** 记忆状态：0 未生成 / 1 生成中 / 2 成功 / 3 过期 / 4 失败 */
   memoryStatus?: number;
   /** 记忆来源：ai / manual */
@@ -342,6 +348,14 @@ export interface EpisodeGenerateRequest {
   requirements?: string;
 }
 
+/** 分集批量生成响应：老版本返回数组，新版本带 references/conflicts 供上下文面板展示 */
+export interface EpisodeGenerateResult {
+  conflicts?: AiContextConflict[];
+  episodes?: EpisodeItem[];
+  items?: EpisodeItem[];
+  references?: AiReferenceSource;
+}
+
 /** 按集懒生成正文 */
 export interface EpisodeContentGenerateRequest {
   autoExtractAssets?: boolean;
@@ -358,6 +372,48 @@ export interface EpisodeScriptGenerateRequest {
   episodeId: number | string;
   modelId: number | string;
   requirements?: string;
+}
+
+/** 剧本校验问题：场次号 + 原因，前端只展示不自行判定 */
+export interface EpisodeScriptIssue {
+  code?: string;
+  /** 后端 issue 不带 level 时由校验结果顶层 level 补齐 */
+  level?: 'error' | 'warning' | string;
+  message: string;
+  sceneSeq?: number;
+  seq?: number;
+  type?: string;
+}
+
+/** 剧本校验结果；后端可能返回 errors/warnings，也可能统一返回 issues */
+export interface EpisodeScriptValidateResult {
+  episodeId: number | string;
+  errors?: EpisodeScriptIssue[];
+  issues?: EpisodeScriptIssue[];
+  /** 顶层结论：error / warning / ok */
+  level?: 'error' | 'ok' | 'warning' | string;
+  passed?: boolean;
+  /** 与 episode.scriptStatus 同码表：0 未生成 / 1 已生成 / 2 已定稿 / 3 过期 */
+  scriptStatus?: number;
+  warnings?: EpisodeScriptIssue[];
+}
+
+export interface EpisodeScriptFinalizeRequest {
+  episodeId: number | string;
+  modelId?: number | string;
+}
+
+/** 剧本定稿结果：scriptStatus=2 才允许生成分镜 */
+export interface EpisodeScriptFinalizeResult {
+  episodeId?: number | string;
+  sceneCount?: number;
+  scriptStatus?: number;
+}
+
+export interface NovelFinishRequest {
+  /** false 时后端会拦下仍有未定稿章节的小说，并在 message 中列出章号 */
+  force?: boolean;
+  novelId: number | string;
 }
 
 /** 创作素材（element，非人物/场景） */
@@ -457,6 +513,7 @@ export interface ShotItem {
   dialogue?: string;
   durationSeconds?: number;
   episodeId?: number | string;
+  /** 镜头生成状态：0 未生成 / 1 生成中 / 2 关键帧就绪 / 3 视频完成 / 5 失败（见 status.ts） */
   generationStatus?: number;
   hasImage?: boolean;
   hasVideo?: boolean;
@@ -604,6 +661,8 @@ export interface StoryboardBatchActiveResult {
 
 export interface ShotImageGenerateRequest {
   modelId?: number | string;
+  /** 透传给图片模型；ratio 覆盖镜头/小说比例 */
+  params?: { ratio?: string; [key: string]: any };
   promptOverride?: string;
   referenceMaterialIds?: Array<number | string>;
   shotId: number | string;
@@ -671,6 +730,7 @@ export interface SegmentItem {
   firstFrameThumbnailUrl?: string;
   firstFrameUrl?: string;
   generationMode: 'segment' | 'shot';
+  /** 段落生成状态：0 未生成 / 1 生成中 / 2 完成 / 5 失败（见 status.ts） */
   generationStatus?: number;
   id: number | string;
   /** 尾帧素材 ID */
@@ -692,6 +752,7 @@ export interface SegmentItem {
 export interface SegmentVideoGenerateRequest {
   mediaRefs?: MediaRef[];
   modelId?: number | string;
+  /** 透传给视频模型；ratio 覆盖段落/小说比例 */
   params?: VideoGenerationParams;
   /** 最多 20000 字符；不传用后端段落模板 */
   promptOverride?: string;
@@ -763,6 +824,8 @@ export interface ShotVideoGenerateRequest {
   /** 非空则接管自动首帧，并跳过“必须先生成关键帧”的前置校验 */
   mediaRefs?: MediaRef[];
   modelId?: number | string;
+  /** 透传给视频模型；ratio 优先级高于镜头配置与小说比例 */
+  params?: VideoGenerationParams;
   promptOverride?: string;
   shotId: number | string;
 }
@@ -914,16 +977,19 @@ export interface EpisodeBindResult {
   [key: string]: any;
 }
 
-/** 成片合成请求（P1 纯拼接，不含字幕与配音） */
+/** 成片合成请求（纯拼接；字幕可选烧录，软字幕 srt 始终保留） */
 export interface EpisodeComposeRequest {
   bgmMaterialId?: number | string;
-  burnSubtitle?: boolean;
+  burnSubtitles?: boolean;
   episodeId: number | string;
+  /** 输出分辨率；不传时后端按 novel.aspect_ratio 推导 */
   resolution?: string;
 }
 
 /** 成片合成状态：0 排队 / 1 合成中 / 2 成功 / 3 失败（与后端 AiAssetComposeStatus 一致） */
 export interface EpisodeComposeStatus {
+  /** 本次合成是否烧录字幕：0 否 / 1 是 */
+  burnSubtitles?: number;
   durationSeconds?: number;
   episodeId?: number | string;
   errorMsg?: string;
@@ -935,9 +1001,20 @@ export interface EpisodeComposeStatus {
   /** 本集镜头数（后端状态接口返回） */
   shotCount?: number;
   status: number;
+  /** Airflow 回写的 SRT 字幕地址（软字幕始终保留） */
+  subtitleUrl?: string;
   taskId?: number | string;
   /** 成片封面（后端字段待确认，缺省时用视频首帧） */
   thumbnailUrl?: string;
+}
+
+/** 成片素材包导出结果：zip 内 mp4 + srt + 封面 png */
+export interface ComposeExportResult {
+  episodeId?: number | string;
+  fileName?: string;
+  size?: number;
+  taskId?: number | string;
+  url: string;
 }
 
 /** 合成预检失败时后端返回的缺失镜头 */
@@ -1050,7 +1127,22 @@ export interface NovelItem {
   wordCount?: number;
   synopsis?: string;
   coverUrl?: string;
+  /** 是否完结：0 连载中 / 1 已完结 */
+  finished?: number;
+  /** 完结时间 */
+  finishedAt?: string;
+  /** 预设画面比例（缺省按 9:16） */
+  aspectRatio?: string;
   createTime?: string;
+}
+
+/** 全书 TXT 导出结果：后端上传 OSS 后返回下载地址 */
+export interface NovelExportResult {
+  episodeCount?: number;
+  fileName?: string;
+  novelId?: number | string;
+  size?: number;
+  url: string;
 }
 
 /** 小说 / 原著（详情，含正文） */
@@ -1091,6 +1183,8 @@ export interface NovelSaveRequest {
   synopsis?: string;
   content?: string;
   coverUrl?: string;
+  /** 预设画面比例（如 9:16） */
+  aspectRatio?: string;
 }
 
 // ==================== 资产（角色 / 场景 / 分集）保存 ====================
@@ -1241,12 +1335,9 @@ export interface ChapterMemoryDetail {
   novelId?: number | string;
   schemaVersion?: number;
   seq?: number;
+  /** 兼容下一章续写的短记忆（只读展示，不参与结构化编辑） */
+  shortMemory?: string;
   updateTime?: string;
-}
-
-export interface ChapterMemorySaveRequest {
-  episodeId: number | string;
-  memoryJson: ChapterMemoryJson;
 }
 
 export interface ChapterMemoryRebuildRequest {
@@ -1297,21 +1388,6 @@ export interface NovelStoryBible {
   novelId?: number | string;
   status?: number;
   version?: number;
-}
-
-export interface MemoryRebuildSubmitRequest {
-  episodeIds?: Array<number | string>;
-  modelId?: number | string;
-  novelId: number | string;
-}
-
-export interface MemoryRebuildSubmitResult {
-  existing: boolean;
-  novelId: number | string;
-  optionType: string;
-  skipped?: Array<{ episodeId: number | string; reason: string; seq?: number }>;
-  taskId: number | string;
-  totalCount: number;
 }
 
 /** 章节规划 */
