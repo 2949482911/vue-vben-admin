@@ -19,6 +19,16 @@ import { useAuthStore, useWorkspaceStore } from '#/store';
 
 import { authApi } from './core';
 
+declare module 'axios' {
+  export interface AxiosRequestConfig {
+    /**
+     * 业务方自行格式化错误时置 true：全局拦截器不再弹 toast。
+     * 统一在这里声明，避免每个接口调用处做类型断言。
+     */
+    skipErrorMessage?: boolean;
+  }
+}
+
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 
 function createRequestClient(baseURL: string, options?: RequestClientOptions) {

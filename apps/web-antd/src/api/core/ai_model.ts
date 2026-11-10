@@ -28,13 +28,14 @@ class AiModelApi extends BaseApi {
     );
   }
 
-  /** 模型配置列表（分页） */
+  /** 模型配置列表（分页；silent=true 时错误由调用方展示） */
   fetchModelConfigList(
     params: ModelConfigQuery,
+    silent = false,
   ): Promise<PageResponse<ModelConfigItem>> {
     return requestClient.get<PageResponse<ModelConfigItem>>(
       this.getServiceUrl('model_config/list'),
-      { params },
+      silent ? { params, skipErrorMessage: true } : { params },
     );
   }
 

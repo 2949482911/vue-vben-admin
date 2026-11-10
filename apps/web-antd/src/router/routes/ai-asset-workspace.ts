@@ -6,7 +6,7 @@ import {
 } from '#/views/ai_asset/workspace/menu';
 
 /**
- * 工作区（B 方案）域内路由：/ai_asset/workspace/:wsId/{studio,draft,queue,assets,settings}
+ * 工作区（B 方案）域内路由：/ai_asset/workspace/:wsId/{studio,drama,draft,queue,assets,settings}
  *
  * 为什么在前端注册：`accessMode: 'backend'` 下路由**只由后端菜单生成**
  * （见 packages/utils/src/helpers/generate-routes-backend.ts），本地 router/routes/modules 不参与生成；
@@ -21,6 +21,7 @@ const WORKSPACE_DOMAIN_NAME = 'AiAssetWorkspaceDomain';
 
 const PAGE_COMPONENTS: Record<string, RouteRecordRaw['component']> = {
   studio: () => import('#/views/ai_asset/studio/index.vue'),
+  drama: () => import('#/views/ai_asset/drama/index.vue'),
   draft: () => import('#/views/ai_asset/drafts/index.vue'),
   queue: () => import('#/views/ai_asset/tasks/index.vue'),
   assets: () => import('#/views/ai_asset/workspace/assets.vue'),
@@ -44,6 +45,9 @@ const workspaceDomainRoute: RouteRecordRaw = {
     // 域内页不进页签/面包屑（内部菜单，由工作区导航自己承载；否则每次进工作区都堆一个页签）
     meta: {
       activeIcon: item.activeIcon,
+      // vben 的 RouterView key 默认取 fullPath：域内页面会写 novelId/episodeId/tab 等 query，
+      // 不加这个开关每次改 query 都会整页重挂载（看起来像刷新）。域内页不进页签，按 path 做 key 即可。
+      fullPathKey: false,
       hideInBreadcrumb: true,
       hideInTab: true,
       icon: item.icon,

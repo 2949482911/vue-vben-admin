@@ -1,5 +1,33 @@
 import type { PageRequestParams } from '#/api/models/core';
 
+// ==================== 生产域基础类型（生产域页面已下线，仅保留 shot/save 所需） ====================
+
+/** 下游失效目标类型：shot/save 返回被作废的下游对象时使用 */
+export type InvalidatedTargetType = 'asset_image' | 'segment' | 'shot';
+
+export interface ShotScriptProp {
+  elementId?: number | string;
+  name: string;
+}
+
+/** 分镜十要素文本：动作与表情 / 道具 / 声音 / 转场 */
+export interface ShotScript {
+  action?: string;
+  props?: ShotScriptProp[];
+  sound?: string;
+  transition?: string;
+}
+
+/** 镜头 direction 六字段（shotType/camera 在 shot 顶层，不重复存） */
+export interface ShotDirection {
+  blocking?: string;
+  composition?: string;
+  continuity?: string;
+  lens?: string;
+  lighting?: string;
+  mood?: string;
+}
+
 // ==================== 枚举 ====================
 
 /**
@@ -207,6 +235,31 @@ export interface CharacterItem {
   createTime?: string;
 }
 
+/** 音色库选项（GET character/voice-library） */
+export interface CharacterVoiceOption {
+  id: string;
+  label: string;
+}
+
+/** 绑定角色音色：写 character.voice_profile */
+export interface CharacterVoiceBindRequest {
+  id: string;
+  label?: string;
+}
+
+export interface CharacterVoiceBindResult {
+  characterId: number | string;
+  id?: string;
+  label?: string;
+  voiceProfile?: null | Record<string, unknown>;
+}
+
+/** AI 角色原型（GET character/role-archetypes，字典 ai_role_archetype） */
+export interface CharacterRoleArchetypeOption {
+  label: string;
+  value: string;
+}
+
 /** 广告场景 */
 export interface SceneItem {
   id: number | string;
@@ -235,6 +288,124 @@ export interface ScriptScene {
   action?: string;
   dialogue?: Array<{ emotion?: string; line: string; role: string }>;
   durationSeconds?: number;
+}
+
+/** Studio 分镜序列保存：segment=序列，shotIds 有序挂多镜 */
+export interface StudioSequenceSaveRequest {
+  action?: string;
+  dialogue?: SegmentDialogueItem[];
+  episodeId: number | string;
+  firstFrameMaterialId?: number | string;
+  generationMode?: 'segment' | 'shot';
+  lastFrameMaterialId?: number | string;
+  sceneSeq: number;
+  segmentId?: number | string;
+  shotIds?: Array<number | string>;
+  totalDurationSeconds: number;
+}
+
+export interface StudioStoryboardEditResult {
+  affected?: number;
+  segmentId?: number | string;
+  seq?: number;
+  shotId?: number | string;
+}
+
+/** shots/add 的 shot 局部字段；后端只读取认识的字段 */
+export interface StudioShotPatch {
+  camera?: string;
+  /** 只提交 config.script 增量；后端做 config 合并，不会覆盖其他 config 键 */
+  config?: ShotConfig;
+  characters?: string[];
+  description?: string;
+  dialogue?: string;
+  durationSeconds?: number;
+  imagePrompt?: string;
+  shotType?: string;
+  videoPrompt?: string;
+}
+
+/** 镜头 config：script 为十要素文本，其余键由后端维护；索引签名避免 any */
+export interface ShotConfig {
+  [key: string]: unknown;
+  script?: ShotScript;
+}
+
+export interface StudioShotAddRequest {
+  afterShotId?: number | string;
+  episodeId: number | string;
+  sceneSeq: number;
+  segmentId?: number | string;
+  shot?: StudioShotPatch;
+}
+
+/** Studio 视频模型能力注册表项 */
+export interface StudioVideoModelCapability {
+  configured?: boolean;
+  maxDurationSeconds?: number;
+  maxRefAudios?: number;
+  maxRefImages?: number;
+  maxRefVideos?: number;
+  model?: string;
+  modelId: number | string;
+  provider?: string;
+  rawCapabilities?: null | Record<string, unknown>;
+  supportsAudio?: boolean;
+  supportsFirstFrame?: boolean;
+  supportsLastFrame?: boolean;
+  supportsNegativePrompt?: boolean;
+  supportsRefAudio?: boolean;
+  supportsRefImage?: boolean;
+  supportsRefVideo?: boolean;
+}
+
+/** Studio 统一视频参数（与后端 VideoGenerationParams 对齐） */
+export interface StudioVideoGenerationParams {
+  audio?: boolean;
+  cameraPreset?: string;
+  durationSeconds?: number;
+  firstFrameMaterialId?: number | string;
+  lastFrameMaterialId?: number | string;
+  mediaRefs?: MediaRef[];
+  params?: Record<string, unknown>;
+  ratio?: string;
+  referenceAudioMaterialIds?: Array<number | string>;
+  referenceImageMaterialIds?: Array<number | string>;
+  referenceVideoMaterialIds?: Array<number | string>;
+  resolution?: string;
+  takeCount?: number;
+}
+
+export interface StudioVideoGenerateRequest {
+  modelId?: number | string;
+  promptOverride?: string;
+  qualityTier?: string;
+  targetId: number | string;
+  targetType: 'segment_video' | 'shot_video';
+  videoParams?: StudioVideoGenerationParams;
+}
+
+export interface StudioVideoGenerateResult {
+  takeIds: Array<number | string>;
+  taskIds?: Array<number | string>;
+}
+
+/** Studio 分场局部保存：只覆盖传入字段，后端重建 scenes/script 并置 STALE */
+export interface StudioScriptScenePatch {
+  action?: string;
+  characters?: string[];
+  dialogue?: Array<{ emotion?: string; line: string; role: string }>;
+  durationSeconds?: number;
+  heading?: string;
+  location?: string;
+  sceneType?: string;
+  timeOfDay?: string;
+}
+
+export interface StudioScriptSceneSaveRequest {
+  episodeId: number | string;
+  scene: StudioScriptScenePatch;
+  sceneSeq: number;
 }
 
 /** 分集（归属小说） */
@@ -478,6 +649,8 @@ export interface SettingQuery {
 /** 剧本实体抽取 */
 export interface EntityExtractRequest {
   episodeId: number | string;
+  /** 抽取模式：快速 / 详细（后端 P3 兼容字段） */
+  mode?: 'detail' | 'fast';
   modelId?: number | string;
   overwrite?: boolean;
   source?: 'auto' | 'content' | 'scenes' | 'script';
@@ -507,10 +680,12 @@ export interface ShotItem {
   camera?: string;
   characterIds?: Array<number | string>;
   characters?: string[];
-  config?: Record<string, any>;
+  config?: ShotConfig;
   createTime?: string;
   description?: string;
   dialogue?: string;
+  /** 镜头 direction（生产域 Planner 2.0 六字段），编辑走 shot/save */
+  direction?: ShotDirection;
   durationSeconds?: number;
   episodeId?: number | string;
   /** 镜头生成状态：0 未生成 / 1 生成中 / 2 关键帧就绪 / 3 视频完成 / 5 失败（见 status.ts） */
@@ -539,6 +714,18 @@ export interface ShotItem {
   videoTaskId?: number | string;
   videoThumbnailUrl?: string;
   videoUrl?: string;
+}
+
+/**
+ * shot/save 成功响应。
+ * 后端失效链路就绪后会返回被作废的下游目标；未返回 invalidatedTargets 即表示失效未就绪，
+ * 前端不得自行把旧关键帧标记为失效。
+ */
+export interface ShotSaveResult {
+  invalidatedTargets?: Array<{
+    targetId: number | string;
+    targetType: InvalidatedTargetType;
+  }>;
 }
 
 export interface StoryboardGenerateRequest {
@@ -714,6 +901,14 @@ export interface VideoGenerationParams {
   resolution?: '480P' | '720P' | '1080P';
   seed?: number;
   watermark?: boolean;
+}
+
+/** 段落接口响应：后端真实返回对象（segments 数组），历史上也曾直接返回数组 */
+export interface EpisodeSegmentsResult {
+  episodeId?: number | string;
+  estimatedTotalSeconds?: number;
+  modelId?: number | string;
+  segments: SegmentItem[];
 }
 
 /** P1 段落：同场次连续 1–3 个镜头，8–12 秒，一次视频调用 */
@@ -1201,6 +1396,8 @@ export interface CharacterSaveRequest {
   description?: string;
   id?: number | string;
   name: string;
+  /** 归属小说；从小说工作台创建时必传，保证进入 asset/graph */
+  novelId?: number | string;
   prompt?: string;
   visualPrompt?: string;
 }
@@ -1236,6 +1433,15 @@ export interface EpisodeSaveRequest {
   version?: number;
   /** 保存前把当前正文存一版手动历史 */
   saveVersion?: boolean;
+}
+
+/** 从原文提取核心情节（同步 LLM） */
+export interface EpisodeCorePlotExtractRequest {
+  episodeId: number | string;
+}
+
+export interface EpisodeCorePlotExtractResult {
+  corePlot: string;
 }
 
 /** 编辑器 AI 动作 */

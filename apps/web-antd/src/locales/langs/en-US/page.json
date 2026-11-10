@@ -190,6 +190,7 @@
     "workspace": "Ai Workspace",
     "menu": {
       "studio": "Creation Studio",
+      "drama": "Short Drama",
       "draft": "Drafts",
       "queue": "Task Queue",
       "assets": "Asset Library",

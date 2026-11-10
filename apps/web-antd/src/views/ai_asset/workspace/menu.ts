@@ -23,6 +23,12 @@ export const WORKSPACE_INTERNAL_MENU: Array<{
     labelKey: 'page.ai_asset.menu.studio',
   },
   {
+    activeIcon: 'lucide:clapperboard',
+    icon: 'lucide:clapperboard',
+    key: 'drama',
+    labelKey: 'page.ai_asset.menu.drama',
+  },
+  {
     activeIcon: 'lucide:file-pen-line',
     icon: 'lucide:file-text',
     key: 'draft',
