@@ -81,7 +81,7 @@ const sections = computed<ArchiveViewSection[]>(() => {
     )?.status;
 
   const mediaStatus = (ready?: number, total?: number) => {
-    if (total === undefined) {
+    if (typeof total !== 'number') {
       return undefined;
     }
     if (total === 0) {
@@ -90,15 +90,60 @@ const sections = computed<ArchiveViewSection[]>(() => {
     return (ready ?? 0) >= total ? 'ready' : 'running';
   };
 
+  const countText = (ready?: number, total?: number, suffix = '') =>
+    typeof ready === 'number' && typeof total === 'number'
+      ? `${ready}/${total}${suffix}`
+      : undefined;
+
+  const entitySummary = () => {
+    if (!entities) {
+      return undefined;
+    }
+    const parts = [
+      typeof entities.characters === 'number'
+        ? `人物 ${entities.characters}`
+        : '',
+      typeof entities.scenes === 'number'
+        ? `场景 ${entities.scenes}`
+        : '',
+      typeof entities.elements === 'number'
+        ? `物品 ${entities.elements}`
+        : '',
+    ].filter(Boolean);
+    return parts.length ? parts.join(' · ') : undefined;
+  };
+
+  const storyboardSummary = () => {
+    if (!storyboard) {
+      return undefined;
+    }
+    const parts = [
+      typeof storyboard.segmentCount === 'number'
+        ? `${storyboard.segmentCount} 个分镜`
+        : '',
+      typeof storyboard.approvedEpisodes === 'number'
+        ? `已通过 ${storyboard.approvedEpisodes} 集`
+        : '',
+    ].filter(Boolean);
+    return parts.length ? parts.join(' · ') : undefined;
+  };
+
   return [
     {
       action: '修改内容',
-      countText: episodes
-        ? `${episodes.total ?? 0} 集 · 已投影 ${episodes.projected ?? 0} 集`
-        : undefined,
+      countText:
+        typeof episodes?.total === 'number' &&
+        typeof episodes?.projected === 'number'
+          ? `${episodes.total} 集 · 已投影 ${episodes.projected} 集`
+          : undefined,
       key: 'story',
       label: '剧情',
-      status: (episodes?.total ?? 0) > 0 ? 'ready' : undefined,
+      status:
+        typeof episodes?.total === 'number'
+          ? episodes.total > 0
+            ? 'ready'
+            : 'empty'
+          : undefined,
       summary: data?.novelName ? `《${data.novelName}》` : undefined,
       target: 'script',
     },
@@ -112,22 +157,23 @@ const sections = computed<ArchiveViewSection[]>(() => {
     },
     {
       action: '修改内容',
-      countText: entities
-        ? `${entities.processed ?? 0}/${entities.total ?? 0}`
-        : undefined,
+      // 与 status 同源：有图数/总数，不用已处理数伪装完成度
+      countText:
+        typeof entities?.withImage === 'number' &&
+        typeof entities?.total === 'number'
+          ? `有图 ${entities.withImage}/${entities.total}`
+          : undefined,
       items: entities?.items ?? [],
       key: 'entities',
       label: '实体',
       status: entities?.status,
-      summary: entities
-        ? `人物 ${entities.characters ?? 0} · 场景 ${entities.scenes ?? 0} · 物品 ${entities.elements ?? 0}`
-        : undefined,
+      summary: entitySummary(),
       target: 'entities',
     },
     {
       action: '修改内容',
       countText: script
-        ? `${script.finalized ?? 0}/${script.total ?? 0}`
+        ? countText(script.finalized, script.total)
         : undefined,
       key: 'script',
       label: '剧本',
@@ -136,20 +182,19 @@ const sections = computed<ArchiveViewSection[]>(() => {
     },
     {
       action: '修改内容',
-      countText: storyboard
-        ? `${storyboard.shotCount ?? 0} 镜`
-        : undefined,
+      countText:
+        typeof storyboard?.shotCount === 'number'
+          ? `${storyboard.shotCount} 镜`
+          : undefined,
       key: 'storyboard',
       label: '分镜',
       status: storyboard?.status,
-      summary: storyboard
-        ? `${storyboard.segmentCount ?? 0} 个分镜 · 已通过 ${storyboard.approvedEpisodes ?? 0} 集`
-        : undefined,
+      summary: storyboardSummary(),
       target: 'storyboard',
     },
     {
       countText: assetViews
-        ? `${assetViews.ready ?? 0}/${assetViews.required ?? 0}`
+        ? countText(assetViews.ready, assetViews.required)
         : undefined,
       key: 'three_view',
       label: '三视图',
@@ -158,7 +203,7 @@ const sections = computed<ArchiveViewSection[]>(() => {
     },
     {
       countText: media
-        ? `${media.imageReady ?? 0}/${media.imageTotal ?? 0}`
+        ? countText(media.imageReady, media.imageTotal)
         : undefined,
       key: 'keyframe',
       label: '分镜图',
@@ -169,7 +214,7 @@ const sections = computed<ArchiveViewSection[]>(() => {
     },
     {
       countText: media
-        ? `${media.videoReady ?? 0}/${media.videoTotal ?? 0}`
+        ? countText(media.videoReady, media.videoTotal)
         : undefined,
       key: 'video',
       label: '视频',
@@ -346,6 +391,7 @@ function entityTarget(
               >
                 <Image
                   v-if="itemImage(item)"
+                  :key="itemImage(item) ?? 'no-image'"
                   :src="itemImage(item)"
                   :preview="{ src: itemImage(item) }"
                   class="workflow-entity-item__image"
