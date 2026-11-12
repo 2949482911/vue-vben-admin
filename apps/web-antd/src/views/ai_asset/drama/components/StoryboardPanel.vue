@@ -497,6 +497,7 @@ const promptsOpen = ref(false);
 const prompts = ref<StoryboardSegmentPrompt[]>([]);
 const promptsLoading = ref(false);
 const promptsError = ref<DramaApiError>();
+const promptRefreshError = ref<DramaApiError>();
 const promptHighlight = ref<string>();
 
 const promptDisabledReason = computed(() => {
@@ -581,9 +582,11 @@ async function generatePrompts(segmentId?: number | string) {
   const targetEpisodeId = props.episodeId;
   promptsLoading.value = true;
   promptsError.value = undefined;
+  promptRefreshError.value = undefined;
   promptHighlight.value =
     segmentId === undefined ? undefined : String(segmentId);
   promptsOpen.value = true;
+  let generated = false;
   try {
     const result = await aiAssetStoryboardApi.generateStoryboardPrompts({
       episodeId: targetEpisodeId,
@@ -593,6 +596,7 @@ async function generatePrompts(segmentId?: number | string) {
       return;
     }
     prompts.value = result;
+    generated = true;
   } catch (error) {
     if (String(props.episodeId) !== String(targetEpisodeId)) {
       return;
@@ -601,6 +605,21 @@ async function generatePrompts(segmentId?: number | string) {
     promptsError.value = parseApiError(error);
   } finally {
     promptsLoading.value = false;
+  }
+  if (!generated || String(props.episodeId) !== String(targetEpisodeId)) {
+    return;
+  }
+  // 弹层只读编译成功后，原地刷新落库 prompt，再重拉列表让卡片与弹层同版
+  try {
+    await aiAssetStoryboardApi.refreshStoryboardPrompts(targetEpisodeId);
+    if (String(props.episodeId) !== String(targetEpisodeId)) {
+      return;
+    }
+    await loadList();
+  } catch (error) {
+    if (String(props.episodeId) === String(targetEpisodeId)) {
+      promptRefreshError.value = parseApiError(error);
+    }
   }
 }
 
@@ -1344,6 +1363,7 @@ watch(
     promptsOpen.value = false;
     prompts.value = [];
     promptHighlight.value = undefined;
+    promptRefreshError.value = undefined;
     segments.value = [];
     drafts.value = {};
     promptPreviews.value = {};
@@ -2266,6 +2286,12 @@ onBeforeUnmount(() => {
           v-if="promptsError"
           :message="formatApiError(promptsError)"
           :type="promptsError.notReady ? 'info' : 'error'"
+          show-icon
+        />
+        <Alert
+          v-else-if="promptRefreshError"
+          :message="formatApiError(promptRefreshError)"
+          :type="promptRefreshError.notReady ? 'info' : 'error'"
           show-icon
         />
         <Empty

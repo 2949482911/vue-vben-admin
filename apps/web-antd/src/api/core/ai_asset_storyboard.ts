@@ -75,6 +75,17 @@ class AiAssetStoryboardApi extends BaseApi {
     );
   }
 
+  /** 按当前规则原地重建并落库 image/video prompt，返回更新镜头数 */
+  refreshStoryboardPrompts(
+    episodeId: number | string,
+  ): Promise<number> {
+    return requestClient.post<number>(
+      this.getServiceUrl('prompts/refresh'),
+      undefined,
+      { params: { episodeId }, skipErrorMessage: true },
+    );
+  }
+
   /** 手动绑定 / 解绑镜头资产 */
   saveStoryboardShotAssets(
     data: StoryboardShotAssetsSaveRequest,
