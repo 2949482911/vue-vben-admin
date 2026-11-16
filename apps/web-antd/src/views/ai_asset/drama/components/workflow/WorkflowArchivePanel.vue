@@ -25,6 +25,7 @@ import {
 import { formatApiError } from '../../error';
 import {
   entityStatusMeta,
+  isActiveStatus,
   type NavigatePayload,
   type NavigateTarget,
   normalizeKey,
@@ -80,14 +81,25 @@ const sections = computed<ArchiveViewSection[]>(() => {
       (candidate) => normalizeKey(candidate.stage) === normalizeKey(key),
     )?.status;
 
-  const mediaStatus = (ready?: number, total?: number) => {
+  const taskActive = Boolean(
+    props.task && isActiveStatus(props.task.status),
+  );
+
+  /** 只有 active 任务且该阶段确实在跑才允许展示“生成中”，数字不推断状态 */
+  const stageRunning = (key: string) =>
+    taskActive && normalizeKey(stageStatus(key)) === 'running';
+
+  const mediaStatus = (ready?: number, total?: number, stage?: string) => {
+    if (stage && stageRunning(stage)) {
+      return 'running';
+    }
     if (typeof total !== 'number') {
       return undefined;
     }
     if (total === 0) {
       return 'empty';
     }
-    return (ready ?? 0) >= total ? 'ready' : 'running';
+    return (ready ?? 0) >= total ? 'ready' : 'partial';
   };
 
   const countText = (ready?: number, total?: number, suffix = '') =>
@@ -207,9 +219,11 @@ const sections = computed<ArchiveViewSection[]>(() => {
         : undefined,
       key: 'keyframe',
       label: '分镜图',
-      status:
-        stageStatus('storyboard_image') ??
-        mediaStatus(media?.imageReady, media?.imageTotal),
+      status: mediaStatus(
+        media?.imageReady,
+        media?.imageTotal,
+        'storyboard_image',
+      ),
       target: 'storyboard',
     },
     {
@@ -218,9 +232,7 @@ const sections = computed<ArchiveViewSection[]>(() => {
         : undefined,
       key: 'video',
       label: '视频',
-      status:
-        stageStatus('video') ??
-        mediaStatus(media?.videoReady, media?.videoTotal),
+      status: mediaStatus(media?.videoReady, media?.videoTotal, 'video'),
       target: 'storyboard',
     },
     {

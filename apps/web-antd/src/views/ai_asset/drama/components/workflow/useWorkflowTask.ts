@@ -240,6 +240,41 @@ export function useWorkflowTask(
     }
   }
 
+  /**
+   * 恢复后的任务只重建展示态：终态不启动轮询，decision 仅 active 可操作。
+   */
+  function applyRestoredTask(next: WorkflowTask) {
+    task.value = next;
+    finalArchiveRequested = false;
+    decision.value = isActive(next) ? next.decision : undefined;
+    const message = progressMessage(next);
+    progressLog.value = message ? [message] : [];
+    if (isActive(next)) {
+      startPolling();
+    }
+  }
+
+  async function restoreLatest(seq: number) {
+    if (!novelId.value) {
+      return;
+    }
+    const targetNovel = novelId.value;
+    try {
+      const latest =
+        await aiAssetWorkflowApi.fetchLatestWorkflowTask(targetNovel);
+      if (
+        seq !== restoreSeq ||
+        !latest ||
+        String(novelId.value) !== String(targetNovel)
+      ) {
+        return;
+      }
+      applyRestoredTask(latest);
+    } catch {
+      // latest 查询失败静默，页面保持空态
+    }
+  }
+
   async function restoreActive() {
     if (!novelId.value || task.value) {
       return;
@@ -249,18 +284,15 @@ export function useWorkflowTask(
       const active = await aiAssetWorkflowApi.fetchActiveWorkflowTask(
         novelId.value,
       );
-      if (seq !== restoreSeq || !active) {
+      if (seq !== restoreSeq) {
         return;
       }
-      task.value = active;
-      finalArchiveRequested = false;
-      decision.value = isActive(active) ? active.decision : undefined;
-      if (active.agentMessage) {
-        progressLog.value = [active.agentMessage];
+      if (active) {
+        applyRestoredTask(active);
+        return;
       }
-      if (isActive(active)) {
-        startPolling();
-      }
+      // active 在任务完成后返回 null，回退最近任务，保留 6 步状态与进度日志
+      await restoreLatest(seq);
     } catch {
       // active 查询失败静默，页面保持空态
     }

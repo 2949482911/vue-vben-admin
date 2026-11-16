@@ -70,6 +70,16 @@ class AiAssetWorkflowApi extends BaseApi {
     );
   }
 
+  /** 当前项目最近一次非取消任务（含终态）；无任务返回 null */
+  fetchLatestWorkflowTask(
+    novelId: number | string,
+  ): Promise<null | WorkflowTask> {
+    return requestClient.get<null | WorkflowTask>(
+      this.getServiceUrl('tasks/latest'),
+      { params: { novelId }, skipErrorMessage: true },
+    );
+  }
+
   /** 右侧实时档案 */
   fetchWorkflowArchive(
     novelId: number | string,
