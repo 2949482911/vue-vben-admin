@@ -5,8 +5,9 @@ import type {
   WorkflowTask,
 } from '#/api/models/ai_asset_workflow';
 
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 
+import { DownOutlined, RightOutlined } from '@ant-design/icons-vue';
 import { Alert, Button, Modal, Tag } from 'ant-design-vue';
 
 import {
@@ -16,6 +17,7 @@ import {
   type NavigatePayload,
   normalizeKey,
   stageLabel,
+  stageStatusMeta,
   taskStatusMeta,
 } from './meta';
 
@@ -29,6 +31,28 @@ const emit = defineEmits<{
   cancel: [];
   navigate: [payload: NavigatePayload];
 }>();
+
+const stagesExpanded = ref(true);
+
+/** 终态才展示六步结果；运行中仍用现有步骤标题，避免重复堆叠 */
+const terminalStages = computed(() => {
+  if (!props.task) {
+    return [];
+  }
+  const status = normalizeKey(props.task.status);
+  if (status !== 'completed' && status !== 'failed') {
+    return [];
+  }
+  return props.task.stages ?? [];
+});
+
+watch(
+  () => props.task?.taskId,
+  () => {
+    stagesExpanded.value = true;
+  },
+  { immediate: true },
+);
 
 const view = computed(() => {
   if (props.task) {
@@ -146,6 +170,42 @@ function requestCancel() {
         </ul>
       </template>
     </Alert>
+
+    <div v-if="terminalStages.length" class="workflow-taskbar__stages">
+      <button
+        class="workflow-taskbar__stages-head"
+        type="button"
+        @click="stagesExpanded = !stagesExpanded"
+      >
+        <span class="workflow-taskbar__stages-title">阶段结果</span>
+        <span class="workflow-taskbar__spacer"></span>
+        <DownOutlined v-if="stagesExpanded" />
+        <RightOutlined v-else />
+      </button>
+      <div v-show="stagesExpanded" class="workflow-taskbar__stage-list">
+        <div
+          v-for="(stage, index) in terminalStages"
+          :key="stage.stage"
+          class="workflow-taskbar__stage"
+        >
+          <span class="workflow-taskbar__stage-index">
+            {{ stage.step ?? index + 1 }}
+          </span>
+          <span class="workflow-taskbar__stage-name">
+            {{ stageLabel(stage.stage) || stage.stage }}
+          </span>
+          <Tag
+            :bordered="false"
+            :color="stageStatusMeta(stage.status).color"
+          >
+            {{ stageStatusMeta(stage.status).label }}
+          </Tag>
+          <span v-if="stage.message" class="workflow-taskbar__stage-message">
+            {{ stage.message }}
+          </span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -191,6 +251,69 @@ function requestCancel() {
       border-radius: 999px;
       transition: width 0.3s ease;
     }
+  }
+
+  &__stages {
+    margin-top: 8px;
+    border-top: 1px dashed hsl(var(--border));
+  }
+
+  &__stages-head {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    width: 100%;
+    padding: 8px 0 4px;
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+    text-align: left;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+  }
+
+  &__stages-title {
+    font-weight: 500;
+    color: hsl(var(--foreground));
+  }
+
+  &__stage-list {
+    padding-bottom: 4px;
+  }
+
+  &__stage {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 13px;
+    color: hsl(var(--foreground));
+  }
+
+  &__stage-index {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--accent));
+    border-radius: 50%;
+  }
+
+  &__stage-name {
+    flex: 1;
+  }
+
+  &__stage-message {
+    flex-basis: 100%;
+    padding-left: 26px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
   }
 }
 

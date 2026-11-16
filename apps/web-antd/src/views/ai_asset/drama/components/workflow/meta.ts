@@ -109,6 +109,34 @@ export function sectionStatusMeta(value?: string) {
   }
 }
 
+/** 终态任务阶段结果；只翻译后端状态，不在本地推断 */
+export function stageStatusMeta(value?: string) {
+  switch (normalizeKey(value)) {
+    case 'reused': {
+      return { color: 'blue', label: '复用' };
+    }
+    case 'completed':
+    case 'ready':
+    case 'succeeded':
+    case 'success': {
+      return { color: 'success', label: '成功' };
+    }
+    case 'failed':
+    case 'error': {
+      return { color: 'error', label: '失败' };
+    }
+    case 'running': {
+      return { color: 'processing', label: '进行中' };
+    }
+    case 'skipped': {
+      return { color: 'default', label: '已跳过' };
+    }
+    default: {
+      return { color: 'default', label: '待处理' };
+    }
+  }
+}
+
 export function entityStatusMeta(value?: string) {
   switch (normalizeKey(value)) {
     case 'ready':
