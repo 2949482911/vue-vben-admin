@@ -52,6 +52,8 @@ export interface WorkflowBrief {
   takeCount?: number;
   targetDurationSeconds?: number;
   targetEpisodeCount?: number;
+  videoModelId?: number | string;
+  videoModelName?: string;
   visualStyleCode?: string;
   whiteModel?: boolean;
 }
@@ -99,6 +101,8 @@ export interface WorkflowPlan {
   styleReferenceThumbnailUrl?: null | string;
   styleReferenceUrl?: null | string;
   understanding?: WorkflowPlanUnderstanding;
+  videoModelId?: number | string;
+  videoModelName?: string;
   visualStyle?: string;
   volume?: WorkflowVolume;
   whiteModel?: boolean;

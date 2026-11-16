@@ -3,7 +3,7 @@ import type { WorkflowSubmitPayload } from './useWorkflowTask';
 
 import type { WorkflowBrief } from '#/api/models/ai_asset_workflow';
 
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 import { SendOutlined } from '@ant-design/icons-vue';
 import {
@@ -16,6 +16,9 @@ import {
   Tooltip,
 } from 'ant-design-vue';
 
+import { aiModelApi } from '#/api';
+
+import { formatApiError, parseApiError } from '../../error';
 import { useAspectRatioDict } from '../../useAspectRatioDict';
 
 const props = defineProps<{
@@ -41,6 +44,12 @@ const { options: ratioOptions, ready: ratioReady } = useAspectRatioDict();
 const promptText = ref('');
 const quickEpisodeCount = ref<number>();
 const quickMaxShots = ref<number>();
+const quickVideoModelId = ref<number | string>();
+const videoModels = ref<Array<{ label: string; value: number | string }>>(
+  [],
+);
+const videoModelsLoading = ref(false);
+const videoModelsError = ref('');
 const quickRatio = ref('');
 const ratioTouched = ref(false);
 const quickEndpoint = ref(ENDPOINT_AUTO);
@@ -64,6 +73,34 @@ const disabledReason = computed(() => {
   return '';
 });
 
+/** 从模型配置加载可用的视频模型；失败/为空只展示真实空态，不伪造选项。 */
+async function loadVideoModels() {
+  videoModelsLoading.value = true;
+  videoModelsError.value = '';
+  try {
+    const result = await aiModelApi.fetchModelConfigList(
+      { capability: 'video', page: 1, pageSize: 500 },
+      true,
+    );
+    videoModels.value = (result?.items ?? [])
+      .filter(
+        (item) => item.capability === 'video' && item.status === 1,
+      )
+      .map((item) => ({
+        label: [
+          item.model ?? `模型 #${item.id}`,
+          item.provider ? `（${item.provider}）` : '',
+        ].join(''),
+        value: item.id,
+      }));
+  } catch (error) {
+    videoModels.value = [];
+    videoModelsError.value = formatApiError(parseApiError(error));
+  } finally {
+    videoModelsLoading.value = false;
+  }
+}
+
 /**
  * 只有用户主动改过的快捷项才进入 overrides；
  * 自然语言意图始终优先，默认状态不得覆盖 Agent 解析。
@@ -75,6 +112,13 @@ function buildOverrides(): WorkflowBrief {
   }
   if (typeof quickMaxShots.value === 'number') {
     overrides.maxShots = quickMaxShots.value;
+  }
+  if (
+    quickVideoModelId.value !== undefined &&
+    quickVideoModelId.value !== null &&
+    quickVideoModelId.value !== ''
+  ) {
+    overrides.videoModelId = quickVideoModelId.value;
   }
   if (quickEndpoint.value !== ENDPOINT_AUTO) {
     overrides.endpoint = quickEndpoint.value;
@@ -126,6 +170,10 @@ watch(
   },
   { immediate: true },
 );
+
+onMounted(() => {
+  void loadVideoModels();
+});
 </script>
 
 <template>
@@ -179,6 +227,18 @@ watch(
         />
       </label>
       <label class="workflow-quick">
+        <span>视频模型</span>
+        <Select
+          v-model:value="quickVideoModelId"
+          :disabled="disabled || videoModelsLoading || !videoModels.length"
+          :loading="videoModelsLoading"
+          :options="videoModels"
+          allow-clear
+          placeholder="项目默认"
+          size="small"
+        />
+      </label>
+      <label class="workflow-quick">
         <span>自动定稿</span>
         <Switch
           v-model:checked="quickAutoFinalize"
@@ -188,6 +248,15 @@ watch(
       </label>
       <span v-if="!ratioReady" class="workflow-composer__hint">
         画面比例字典未就绪
+      </span>
+      <span v-else-if="videoModelsError" class="workflow-composer__hint">
+        {{ videoModelsError }}
+      </span>
+      <span
+        v-else-if="!videoModelsLoading && !videoModels.length"
+        class="workflow-composer__hint"
+      >
+        暂无可用视频模型
       </span>
       <span class="workflow-composer__spacer"></span>
       <Tooltip :title="disabledReason">

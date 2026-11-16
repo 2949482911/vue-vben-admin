@@ -216,6 +216,10 @@ function goBlocker(blocker: WorkflowBlocker) {
         <span>横竖屏</span>
         <b>{{ plan.aspectRatio || '—' }}</b>
       </div>
+      <div v-if="plan.videoModelName" class="workflow-plan__field">
+        <span>视频模型</span>
+        <b>{{ plan.videoModelName }}</b>
+      </div>
       <div class="workflow-plan__field">
         <span>自动定稿实体</span>
         <b>
