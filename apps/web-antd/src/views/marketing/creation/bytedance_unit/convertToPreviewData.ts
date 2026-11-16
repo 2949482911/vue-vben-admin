@@ -1,0 +1,286 @@
+import type {
+  ProductConfigData,
+  ProductDataMapping,
+} from '../bytedance_std/bytedance';
+import type {
+  UnitCreation,
+  UnitCreationData,
+  UnitProject,
+  UnitProjectCreateRequest,
+  UnitVideoMaterial,
+} from './bytedance';
+
+import type {
+  AccountTabData,
+} from '#/views/marketing/creation/components/preview_area/previewAreaData';
+import type {
+  AccountInfo,
+  AwemeConfigData,
+  Material,
+} from '#/views/marketing/creation/creation';
+
+import { CampaignRuleKey, Platform } from '#/constants/enums';
+import { renderProjectTitle } from '#/utils/customName';
+import {
+  getAudience,
+  getFlatTitleList,
+  getLandingPage,
+  getMaterial,
+  getRuleInfoCampaignCount,
+  getTitleCount,
+} from '#/views/marketing/creation/creation';
+
+function getAwemeId(
+  awemeConfig: AwemeConfigData | undefined,
+  advertiserId: string,
+): string {
+  if (!awemeConfig?.data) {
+    return '';
+  }
+  const key = awemeConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
+  return awemeConfig.data.get(key)?.[0]?.awemeId || '';
+}
+
+/** 素材 ID 保持字符串，避免 19 位 ID 转 number 丢精度 */
+function toLocalIds(values: string[] | undefined): string[] {
+  return (values ?? [])
+    .map((value) => String(value ?? '').trim())
+    .filter((value) => value !== '' && value !== '0' && /^\d+$/.test(value));
+}
+
+/** 按产品配置分配规则取当前账户的产品信息 */
+function getProductMapping(
+  productConfig: ProductConfigData | undefined,
+  advertiserId: string,
+): null | ProductDataMapping {
+  if (!productConfig?.data) {
+    return null;
+  }
+  const key = productConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
+  return productConfig.data.get(key)?.[0] || null;
+}
+
+/** 获取全域批投预览数据（单层：项目） */
+export function getPreviewTableData(creationInfo: UnitCreation): UnitCreationData[] {
+  const adList: UnitCreationData[] = [];
+  const projectData = creationInfo.configData.project;
+
+  creationInfo.accountInfo.forEach((account, accountIdx) => {
+    const advertiserId = account.localAdvertiserId;
+    const tableData: UnitCreationData = {
+      advertiserId,
+      projectList: [],
+      getProjectCount() {
+        return this.projectList.length;
+      },
+    };
+
+    const titlePackageConfig = creationInfo.configData.titlePackage;
+    const projectCount =
+      creationInfo.ruleInfo.projectRuleKey === CampaignRuleKey.title
+        ? getTitleCount(
+            titlePackageConfig.config.method,
+            titlePackageConfig.data,
+            [advertiserId],
+          )
+        : getRuleInfoCampaignCount(Platform.BYTEDANCE, creationInfo, [
+            advertiserId,
+          ]);
+    const flatTitles = getFlatTitleList(
+      titlePackageConfig.config.method,
+      titlePackageConfig.data,
+      advertiserId,
+    );
+    const awemeId = getAwemeId(
+      creationInfo.configData.awemeConfig,
+      advertiserId,
+    );
+    const productMapping = getProductMapping(
+      creationInfo.configData.productConfig,
+      advertiserId,
+    );
+    const productImageIds = toLocalIds(productMapping?.image_button);
+
+    for (let pIdx = 0; pIdx < projectCount; pIdx++) {
+      const materialList: Material[] = getMaterial(
+        creationInfo.configData.material.config.method,
+        creationInfo.configData.material.data,
+        advertiserId,
+        [
+          { count: creationInfo.accountInfo.length, index: accountIdx },
+          { count: projectCount, index: pIdx },
+        ],
+      );
+      const material = materialList[pIdx % Math.max(1, materialList.length)];
+      const videoIds = toLocalIds(
+        (material?.video || []).map((item) => item.localMaterialId),
+      );
+      const imageIds = toLocalIds(
+        (material?.image || []).map((item) => item.localMaterialId),
+      );
+      const videoMaterialList: UnitVideoMaterial[] =
+        videoIds.length > 0 || imageIds.length > 0
+          ? [
+              {
+                local_image_material_list: imageIds,
+                local_video_material_list: videoIds,
+              },
+            ]
+          : [];
+      const title =
+        flatTitles.length > 0 ? flatTitles[pIdx % flatTitles.length] : '';
+
+      const landingPageItem = getLandingPage(
+        creationInfo.configData.landingPage.config.method,
+        creationInfo.configData.landingPage.data,
+        advertiserId,
+      );
+      const landingUrl = landingPageItem?.config?.pageUrl || '';
+      const goingGlobalEnabled =
+        projectData.monetization_mode === 'IAA_AND_IAP' &&
+        projectData.going_global_switch === 'ON';
+      const audienceItem = getAudience(
+        creationInfo.configData.audience.config.method,
+        creationInfo.configData.audience.data,
+        advertiserId,
+        pIdx,
+      );
+      const audienceConfig: Record<string, any> = {
+        ...((audienceItem?.config as Record<string, any>) || {}),
+      };
+      delete audienceConfig.unitAudience;
+      const projectPayload: UnitProjectCreateRequest = { ...projectData };
+      // 选择结果仅用于表单/JSON 回显，媒体接口只接收 related_product
+      delete projectPayload.selectedProduct;
+      const project: UnitProject = {
+        ...projectPayload,
+        aigc_dynamic_creative_switch:
+          projectData.aigc_dynamic_creative_switch || 'ON',
+        audience:
+          Object.keys(audienceConfig).length > 0
+            ? audienceConfig
+            : {
+                ...(projectData.audience || {}),
+                age: projectData.audience?.age || [],
+                district: projectData.audience?.district || 'NONE',
+                gender: projectData.audience?.gender || 'NONE',
+                platform: projectData.audience?.platform || [],
+              },
+        aweme_id: awemeId,
+        budget: Number(projectData.budget) || 0,
+        call_to_action_buttons: productMapping?.action_buttons ?? [],
+        delivery_product: projectData.delivery_product || 'ALBUM',
+        end_time: projectData.end_time || '',
+        getName(): string {
+          return this.name;
+        },
+        going_global_budget: goingGlobalEnabled
+          ? Number(projectData.going_global_budget) || 0
+          : undefined,
+        going_global_roi_goal: goingGlobalEnabled
+          ? Number(projectData.going_global_roi_goal) || 0
+          : undefined,
+        going_global_switch:
+          projectData.monetization_mode === 'IAA_AND_IAP'
+            ? projectData.going_global_switch || 'OFF'
+            : undefined,
+        monetization_mode: projectData.monetization_mode || 'IAP',
+        name: renderProjectTitle(
+          projectData.name,
+          pIdx,
+          creationInfo.project.projectName,
+        ),
+        playlet_series_url_info: landingUrl
+          ? projectData.monetization_mode === 'IAA_AND_IAP'
+            ? [
+                {
+                  playlet_series_url: landingUrl,
+                  playlet_series_url_type: 'IAA',
+                },
+                {
+                  playlet_series_url: landingUrl,
+                  playlet_series_url_type: 'IAP',
+                },
+              ]
+            : [
+                {
+                  playlet_series_url: landingUrl,
+                  playlet_series_url_type: 'IAP',
+                },
+              ]
+          : [],
+        product_info: {
+          image_ids: [],
+          local_images_ids: productImageIds,
+          selling_points: productMapping?.selling_points ?? [],
+          // 全域文档限制产品名称数组上限 1
+          titles: (productMapping?.titles ?? []).slice(0, 1),
+        },
+        schedule_time: projectData.schedule_time || '',
+        schedule_type: projectData.schedule_type || 'SCHEDULE_FROM_NOW',
+        source: projectData.source || '',
+        start_time: projectData.start_time || '',
+        title_material_list: title ? [{ title }] : [],
+        uni_roi_goal: Number(projectData.uni_roi_goal) || 0,
+        video_material_list: videoMaterialList,
+      };
+      tableData.projectList.push(project);
+    }
+    adList.push(tableData);
+  });
+
+  return adList;
+}
+
+/** 统计视频素材内挂载的本地素材数量 */
+function countVideoMaterialLocalIds(
+  project: UnitProject,
+  field: 'local_image_material_list' | 'local_video_material_list',
+): number {
+  return (project.video_material_list ?? []).reduce(
+    (total, item) => total + (item[field]?.length ?? 0),
+    0,
+  );
+}
+
+/** 预览区表格数据（单层：项目） */
+export function convertToPreviewData(
+  adList: UnitCreationData[],
+  accountInfo: AccountInfo[],
+): AccountTabData[] {
+  return adList.map((item) => {
+    const account = accountInfo.find(
+      (row) => row.localAdvertiserId === item.advertiserId,
+    );
+    return {
+      adgroupCount: 0,
+      advertiserId: item.advertiserId,
+      advertiserName: account?.advertiserName || '',
+      campaignCount: item.getProjectCount(),
+      flattenedRows: item.projectList.map((project, index) => {
+        const imageCount =
+          countVideoMaterialLocalIds(project, 'local_image_material_list') +
+          (project.product_info?.local_images_ids?.length ?? 0) +
+          (project.product_info?.image_ids?.length ?? 0);
+        const videoCount = countVideoMaterialLocalIds(
+          project,
+          'local_video_material_list',
+        );
+        return {
+          budget: project.budget,
+          deliveryProduct: project.delivery_product,
+          materialInfo: `图片 ${imageCount}个, 视频 ${videoCount}个`,
+          monetizationMode: project.monetization_mode,
+          projectName: project.name,
+          roiGoal: project.uni_roi_goal,
+          rowProjectId: `p_${index}`,
+          scheduleType: project.schedule_type,
+          titleInfo: (project.title_material_list ?? [])
+            .map((t) => t.title)
+            .join('; '),
+        };
+      }),
+      promotionCount: 0,
+    };
+  });
+}

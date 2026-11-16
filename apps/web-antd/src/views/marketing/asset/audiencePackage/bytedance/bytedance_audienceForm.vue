@@ -1,5 +1,8 @@
 <script setup lang="ts" name="BytedanceAudienceForm">
 import { useVbenForm } from '@vben/common-ui';
+
+import { message } from 'ant-design-vue';
+
 import {
   Bytedance_ac,
   Bytedance_action_days,
@@ -51,6 +54,13 @@ import {
   BytedanceStd_launch_price,
   BytedanceStd_region_recommend,
   BytedanceStd_smart_extend,
+  // ===== 全域版 =====
+  BytedanceUnit_age,
+  BytedanceUnit_district,
+  BytedanceUnit_gender,
+  BytedanceUnit_hide_if_converted,
+  BytedanceUnit_location_type,
+  BytedanceUnit_platform,
 } from './bytedance_audience';
 
 // ==================== 定向类型 select（schema 公共字段） ====================
@@ -64,6 +74,7 @@ const typeSelectField = {
       { label: '媒体定向', value: 'package' },
       { label: '常规定向', value: 'normal' },
       { label: '智擎版', value: 'std' },
+      { label: '全域版', value: 'unit' },
     ],
     onChange: (value: string) => {
       handleTypeChange(value);
@@ -209,11 +220,157 @@ const stdFields = [
   { component: 'Select', fieldName: 'dpa_rta_recommend_type', label: 'RTA推荐类型', defaultValue: 'ONLY', componentProps: { options: Bytedance_dpa_rta_recommend_type, placeholder: '请选择RTA推荐类型' } },
 ];
 
+// ==================== 全域版 schema 字段 ====================
+const unitFields = [
+  {
+    component: 'Select',
+    fieldName: 'district',
+    label: '地域类型',
+    defaultValue: 'NONE',
+    componentProps: {
+      options: BytedanceUnit_district,
+      placeholder: '请选择地域类型',
+    },
+  },
+  {
+    type: 'array',
+    fieldName: 'geolocation',
+    label: '商圈点位',
+    defaultValue: [],
+    dependencies: {
+      show: (values: Record<string, any>) =>
+        values.district === 'BUSINESS_DISTRICT',
+      triggerFields: ['district'],
+    },
+    arrayProps: {
+      addButtonText: '添加点位',
+      createRow: () => ({
+        lat: undefined,
+        long: undefined,
+        name: '',
+        radius: 6000,
+      }),
+      showIndex: true,
+    },
+    children: [
+      {
+        component: 'Input',
+        fieldName: 'name',
+        label: '地点名称',
+        componentProps: { placeholder: '地点名称' },
+      },
+      {
+        component: 'InputNumber',
+        fieldName: 'long',
+        label: '经度',
+        componentProps: { precision: 6, placeholder: '经度' },
+      },
+      {
+        component: 'InputNumber',
+        fieldName: 'lat',
+        label: '纬度',
+        componentProps: { precision: 6, placeholder: '纬度' },
+      },
+      {
+        component: 'InputNumber',
+        fieldName: 'radius',
+        label: '半径(m)',
+        componentProps: { max: 30000, min: 3000, placeholder: '3000~30000' },
+      },
+    ],
+  },
+  {
+    component: 'Input',
+    fieldName: 'region_version',
+    label: '行政区域版本',
+    defaultValue: '2.3.2',
+    dependencies: {
+      show: (values: Record<string, any>) => values.district === 'REGION',
+      triggerFields: ['district'],
+    },
+    componentProps: { placeholder: '当前仅支持 2.3.2' },
+  },
+  {
+    component: 'Select',
+    fieldName: 'city',
+    label: '省市/区县',
+    defaultValue: [],
+    dependencies: {
+      show: (values: Record<string, any>) => values.district === 'REGION',
+      triggerFields: ['district'],
+    },
+    componentProps: {
+      filterOption: true,
+      mode: 'tags',
+      options: [],
+      placeholder: '输入行政区ID后回车（来自行政信息接口）',
+      showSearch: true,
+    },
+  },
+  {
+    component: 'Select',
+    fieldName: 'location_type',
+    label: '位置类型',
+    defaultValue: 'ALL',
+    dependencies: {
+      show: (values: Record<string, any>) => values.district !== 'NONE',
+      triggerFields: ['district'],
+    },
+    componentProps: {
+      options: BytedanceUnit_location_type,
+      placeholder: '请选择位置类型',
+    },
+  },
+  {
+    component: 'Select',
+    fieldName: 'gender',
+    label: '性别',
+    defaultValue: 'NONE',
+    componentProps: {
+      options: BytedanceUnit_gender,
+      placeholder: '请选择性别',
+    },
+  },
+  {
+    component: 'Select',
+    fieldName: 'age',
+    label: '年龄',
+    defaultValue: [],
+    componentProps: {
+      mode: 'multiple',
+      options: BytedanceUnit_age,
+      placeholder: '请选择年龄区间',
+    },
+  },
+  {
+    component: 'Select',
+    fieldName: 'platform',
+    label: '操作系统',
+    defaultValue: [],
+    componentProps: {
+      mode: 'multiple',
+      options: BytedanceUnit_platform,
+      placeholder: '请选择操作系统',
+    },
+  },
+  {
+    component: 'Select',
+    fieldName: 'hide_if_converted',
+    label: '过滤已转化用户',
+    defaultValue: 'NO_EXCLUDE',
+    componentProps: {
+      options: BytedanceUnit_hide_if_converted,
+      placeholder: '请选择过滤方式',
+    },
+  },
+];
+
 // ==================== schema 注册表（含公共 select） ====================
 const audienceSchemaMap = new Map<string, Array<any>>();
 audienceSchemaMap.set('package', [typeSelectField, ...packageFields]);
 audienceSchemaMap.set('normal', [typeSelectField, ...normalFields]);
 audienceSchemaMap.set('std', [typeSelectField, ...stdFields]);
+audienceSchemaMap.set('unit', [typeSelectField, ...unitFields]);
 
 // ==================== 单个 Form 实例 ====================
 const [Form, formApi] = useVbenForm({
@@ -252,14 +409,74 @@ function handleTypeChange(type: string) {
 async function submitBytedanceConfig() {
   const values = await formApi.getValues();
   const { audience_type: type = 'package', ...config } = values;
-  return { type, ...config };
+
+  // 全域定向只在本地保存，不调用媒体定向接口，统一按常规定向(type=normal)入库
+  let submitType = type;
+  if (type === 'unit') {
+    submitType = 'normal';
+    config.unitAudience = true;
+    if (Array.isArray(config.geolocation)) {
+      config.geolocation = config.geolocation.filter(
+        (item: Record<string, any>) =>
+          item && item.long !== undefined && item.lat !== undefined,
+      );
+    } else {
+      config.geolocation = [];
+    }
+    if (config.geolocation.length > 1000) {
+      message.error('商圈点位最多 1000 个');
+      throw new Error('too many geolocation points');
+    }
+    if (config.district === 'BUSINESS_DISTRICT' && config.geolocation.length === 0) {
+      message.error('选择商圈地域时至少需要添加 1 个点位');
+      throw new Error('geolocation required');
+    }
+    if (Array.isArray(config.city)) {
+      config.city = config.city
+        .map((id: number | string) => Number(id))
+        .filter((id: number) => Number.isFinite(id));
+    }
+    if (config.district === 'REGION' && !config.city?.length) {
+      message.error('选择行政区域时请选择省市/区县');
+      throw new Error('city required');
+    }
+    const ageList: string[] = config.age || [];
+    const coarseAges = new Set([
+      'AGE_ABOVE_50',
+      'AGE_BETWEEN_18_23',
+      'AGE_BETWEEN_31_40',
+      'AGE_BETWEEN_41_49',
+    ]);
+    const hasCoarse = ageList.some((item) => coarseAges.has(item));
+    const hasFine = ageList.some((item) => !coarseAges.has(item));
+    if (hasCoarse && hasFine) {
+      message.error('年龄两套枚举不能同时选择');
+      throw new Error('mixed age enums');
+    }
+    if (config.district !== 'REGION') {
+      delete config.region_version;
+      delete config.city;
+    }
+    if (config.district === 'NONE') {
+      delete config.location_type;
+    }
+  }
+
+  return { type: submitType, ...config };
 }
 
 async function echoBytedanceConfig(data: any) {
-  const type = data.type || data.config?.type || 'package';
-  formApi.setState({ schema: audienceSchemaMap.get(type) ?? [] });
+  const rawType = data.type || data.config?.type || 'package';
+  const configData = { ...(data.config || data) };
+  const isUnitAudience =
+    rawType === 'normal' && Boolean(configData.unitAudience);
+  const type = isUnitAudience ? 'unit' : rawType;
+  delete configData.unitAudience;
 
-  const configData = data.config || data;
+  formApi.setState({ schema: audienceSchemaMap.get(type) ?? [] });
+  if (type === 'unit' && Array.isArray(configData.city)) {
+    configData.city = configData.city.map((id: number | string) => String(id));
+  }
   await formApi.setValues({ audience_type: type, ...configData });
 }
 

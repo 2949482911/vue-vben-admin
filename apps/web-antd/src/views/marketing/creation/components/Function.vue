@@ -1,14 +1,18 @@
 <script setup lang="ts" name="Function">
+import type { AccountInfo, MonitoringLinkConfigData } from "#/views/marketing/creation/creation";
+
+import { ref, watch } from "vue";
+
+import { useVbenDrawer } from "@vben/common-ui";
+
 import { Button, Space } from "ant-design-vue";
+
 import MonitoringDrawer
   from "#/views/marketing/creation/components/monitoringLink/MonitoringDrawer.vue";
-import { useVbenDrawer } from "@vben/common-ui";
-import type { AccountInfo, MonitoringLinkConfigData } from "#/views/marketing/creation/creation";
-import { ref, watch } from "vue";
 
 
 // 账户列表
-const { accountInfo, monitoringLink, taskInProgress } = defineProps({
+const { accountInfo, monitoringLink, taskInProgress, showMonitoring, showSaveStrategy } = defineProps({
   accountInfo: {
     type: Array<AccountInfo>,
     default: () => []
@@ -20,6 +24,16 @@ const { accountInfo, monitoringLink, taskInProgress } = defineProps({
   taskInProgress: {
     type: Boolean,
     default: false,
+  },
+  /** 是否展示监测链接入口（部分媒体如巨量全域不使用） */
+  showMonitoring: {
+    type: Boolean,
+    default: true,
+  },
+  /** 是否展示保存策略组入口 */
+  showSaveStrategy: {
+    type: Boolean,
+    default: true,
   },
 });
 
@@ -114,12 +128,12 @@ function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
 
 <template>
   <div class="min-w-0 flex-1">
-    <div class="flex justify-between">
+    <div class="flex w-full items-center justify-between">
       <Space>
-        <Button type="primary" @click="openMonitoringDrawer">监测连接</Button>
+        <Button v-if="showMonitoring" type="primary" @click="openMonitoringDrawer">监测连接</Button>
       </Space>
-      <Space>
-        <Button type="primary" @click="createStrategyGroup">保存策略组</Button>
+      <Space class="ml-auto">
+        <Button v-if="showSaveStrategy" type="primary" @click="createStrategyGroup">保存策略组</Button>
         <Button type="primary" @click="genAdList">生成广告预览</Button>
         <Button type="primary" @click="submitCreateBatch">提交审核</Button>
         <Button v-if="taskInProgress" style="background-color: #fa8c16; border-color: #fa8c16" type="primary" @click="emit('view:taskProgress')">
@@ -130,12 +144,12 @@ function updateMonitoringLink(monitoringLink: MonitoringLinkConfigData) {
 
     <!--    监测链接组-->
     <MonitoringDrawerModal
-      :accountInfo="accountInfo"
-      :monitoringLink="localMonitoringLink"
-      @update:monitoringLink="updateMonitoringLink"
+      v-if="showMonitoring"
+      :account-info="accountInfo"
+      :monitoring-link="localMonitoringLink"
+      @update:monitoring-link="updateMonitoringLink"
     />
-
-  </div>
+</div>
 </template>
 
 <style scoped lang="scss">

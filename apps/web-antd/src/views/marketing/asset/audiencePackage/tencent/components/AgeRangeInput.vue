@@ -1,6 +1,7 @@
 <script setup lang="ts" name="AgeRangeInput">
 import { computed, ref, watch } from "vue";
-import { InputNumber, Popover, Space, Tag, Button } from "ant-design-vue";
+
+import { Button, InputNumber, Popover, Space, Tag } from "ant-design-vue";
 
 interface AgeRange {
   min: number;

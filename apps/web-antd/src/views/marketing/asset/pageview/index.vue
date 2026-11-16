@@ -1,13 +1,29 @@
 <script setup lang="ts">
+import type { LandingPageData } from "#/api/models";
+
+import { onMounted } from "vue";
+
+import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
+
+import { Button, message, Space, Switch, Tag } from "ant-design-vue";
+
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { loadingPageApi } from "#/api";
 import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
-import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
-import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { Button, message, Switch, Tag } from "ant-design-vue";
+import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
+import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
+
 import CreateLoadingPage from "./createLoadingPage.vue";
-import type { LandingPageData } from "#/api/models";
+
+const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
+  LABEL_TYPE_CODES.page
+);
+
+onMounted(() => {
+  void loadLabelOptions();
+});
 
 const [CreateLoadingPageModule, createLoadingPageApi] = useVbenModal({
   connectedComponent: CreateLoadingPage,
@@ -87,6 +103,12 @@ const gridOptions: VxeGridProps = {
       width: "auto",
       slots: { default: "pageUrl" }
     },
+    {
+      field: "labelIds",
+      title: "标签",
+      width: 200,
+      slots: { default: "labelIds" }
+    },
     ...(TABLE_COMMON_COLUMNS as any)
   ],
   height: "auto",
@@ -140,6 +162,18 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
       </template>
       <template #pageUrl="{ row }">
         {{ row.config.pageUrl }}
+      </template>
+      <template #labelIds="{ row }">
+        <Space v-if="row.labelIds?.length" wrap :size="[4, 4]">
+          <Tag
+            v-for="name in labelNamesOf(row.labelIds)"
+            :key="name"
+            :bordered="false"
+          >
+            {{ name }}
+          </Tag>
+        </Space>
+        <span v-else>-</span>
       </template>
       <template #status="{ row }">
         <Switch :checked="row.status === 1" @click="handlerState(row)" />

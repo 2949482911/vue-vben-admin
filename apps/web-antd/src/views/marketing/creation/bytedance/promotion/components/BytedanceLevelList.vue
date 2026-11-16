@@ -15,7 +15,7 @@ import { advertiserApi, aManagementApi } from '#/api';
 
 import BatchOperationDrawer from '../../../promotion_manager/components/BatchOperationDrawer.vue';
 import BatchOperationDropdown from '../../../promotion_manager/components/BatchOperationDropdown.vue';
-import { getBatchOperations, type BatchOperationType } from '../../../promotion_manager/platformOptions';
+import { type BatchOperationType, getBatchOperations } from '../../../promotion_manager/platformOptions';
 const props = defineProps<{
   /** campaign=项目, adgroup=广告 */
   level: 'adgroup' | 'campaign';
@@ -25,6 +25,34 @@ const props = defineProps<{
 const idField = computed(() => (props.level === 'campaign' ? 'campaign_id' : 'adgroup_id'));
 const nameField = computed(() => (props.level === 'campaign' ? 'campaign_name' : 'adgroup_name'));
 const levelLabel = computed(() => (props.level === 'campaign' ? '项目' : '广告'));
+
+/** 左侧冻结的关键字段：按巨量实际层级配置 */
+const pinnedFields = computed(() =>
+  props.level === 'campaign'
+    ? ['platform_account_id', 'campaign_name', 'campaign_id']
+    : [
+        'platform_account_id',
+        'campaign_name',
+        'campaign_id',
+        'adgroup_name',
+        'adgroup_id',
+      ],
+);
+
+function toCamelCase(field: string) {
+  return field.replaceAll(/_(\w)/g, (_match, char: string) => char.toUpperCase());
+}
+
+function toSnakeCase(field: string) {
+  return field.replaceAll(/[A-Z]/g, (char) => `_${char.toLowerCase()}`);
+}
+
+/** 兼容后端列名的蛇形/驼峰两种命名 */
+function resolvePinnedField(cols: string[], field: string) {
+  return [field, toCamelCase(field), toSnakeCase(field)].find((key) =>
+    cols.includes(key),
+  );
+}
 
 /** 统一报表指标列（与后端 PromotionReportMetric 对齐）：右对齐 + 等宽数字 */
 const METRIC_FIELDS = ['AdCost', 'AdShow', 'AdClick', 'AdEcpM', 'AdCtr'];
@@ -195,7 +223,7 @@ const gridOptions: VxeGridProps = {
           promotionName: row.adgroup_name,
         }));
         buildColumns(cols, cname);
-        return { items: enriched, total };
+        return { items: enriched, total: total ?? 0 };
       },
     },
   },
@@ -224,19 +252,27 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents })
 function buildColumns(cols: string[] | undefined, cname: Record<string, string> | undefined) {
   if (!cols || cols.length === 0) return;
   const nameKey = nameField.value;
-  const ordered = cols.includes(nameKey)
-    ? [nameKey, ...cols.filter((key) => key !== nameKey)]
-    : cols;
+  const pinned: string[] = [];
+  pinnedFields.value.forEach((field) => {
+    const key = resolvePinnedField(cols, field);
+    if (key && !pinned.includes(key)) {
+      pinned.push(key);
+    }
+  });
+  if (cols.includes(nameKey) && !pinned.includes(nameKey)) {
+    pinned.push(nameKey);
+  }
+  const ordered = [...pinned, ...cols.filter((key) => !pinned.includes(key))];
   const dynamic = ordered.map((key) => {
     const isMetric = METRIC_FIELDS.includes(key);
-    const isName = key === nameKey;
     // 后端 cname 可能带多行枚举说明，表头只取第一行，完整说明放 tooltip
     const rawTitle = (cname && cname[key]) || key;
     const titleLines = String(rawTitle).split('\n');
     const column: Record<string, any> = {
       field: key,
       title: titleLines[0],
-      minWidth: isName ? 220 : isMetric ? 120 : 160,
+      // 列宽自适应内容，不再固定像素
+      width: 'auto',
       align: isMetric ? 'right' : 'left',
       headerAlign: isMetric ? 'right' : 'left',
       showOverflow: true,
@@ -247,7 +283,7 @@ function buildColumns(cols: string[] | undefined, cname: Record<string, string> 
     if (isMetric) {
       column.formatter = ({ cellValue }: any) => formatMetricValue(cellValue);
     }
-    if (isName) {
+    if (pinned.includes(key)) {
       column.fixed = 'left';
     }
     return column;

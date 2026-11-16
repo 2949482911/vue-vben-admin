@@ -7,6 +7,7 @@ export interface TitlePackItem {
   projectName: string;      // 项目名称 (如: 京东)
   status: number;           // 状态 (1: 启用/正常)
   titles: string[];         // 所有使用到的标题
+  labelIds?: Array<number | string>; // 标签ID数组（platform_advertiser_tag.id）
   createTime: string;
   updateTime: string;
   createdBy: string;

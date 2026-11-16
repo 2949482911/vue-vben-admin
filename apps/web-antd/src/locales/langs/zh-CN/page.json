@@ -55,7 +55,7 @@
   "marketing": {
     "title": "营销",
     "project": "项目",
-    "platformAdvertiserLabel": "账户标签",
+    "platformAdvertiserLabel": "标签",
     "task_center": {
       "title": "任务中心"
     },
@@ -83,7 +83,8 @@
       "huawei_store": "华为商店",
       "tencent": "腾讯广告",
       "bytedance": "巨量引擎",
-      "bytedance_std": "巨量引擎-智擎"
+      "bytedance_std": "巨量引擎-智擎",
+      "bytedance_unit": "巨量引擎-全域"
     },
     "asset": {
       "title": "资产",
@@ -183,13 +184,13 @@
   },
   "ai_asset": {
     "title": "Ai 资产工作台",
-    "studio": "创作工作台",
+    "studio": "创作画布",
     "drafts": "草稿区",
     "asset": "资产",
     "tasks": "任务队列",
     "workspace": "工作区",
     "menu": {
-      "studio": "创作工作台",
+      "studio": "创作画布",
       "drama": "短剧",
       "draft": "草稿区",
       "queue": "任务队列",

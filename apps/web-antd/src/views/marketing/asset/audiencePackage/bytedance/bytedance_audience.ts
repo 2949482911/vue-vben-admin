@@ -2130,3 +2130,60 @@ export const BytedanceStd_auto_extend_targets = [
   { label: '兴趣标签', value: 'INTEREST_TAG' },
   { label: '地域', value: 'REGION' },
 ]
+
+// ==================== 巨量引擎-全域定向 ====================
+
+/** 地域类型（全域） */
+export const BytedanceUnit_district = [
+  { label: '不限', value: 'NONE' },
+  { label: '商圈', value: 'BUSINESS_DISTRICT' },
+  { label: '行政区域', value: 'REGION' },
+]
+
+/** 性别（全域） */
+export const BytedanceUnit_gender = [
+  { label: '不限', value: 'NONE' },
+  { label: '女', value: 'GENDER_FEMALE' },
+  { label: '男', value: 'GENDER_MALE' },
+]
+
+/** 年龄区间（全域，两套枚举并存，不能同时传） */
+export const BytedanceUnit_age = [
+  { label: '18-19岁', value: 'AGE_BETWEEN_18_19' },
+  { label: '20-23岁', value: 'AGE_BETWEEN_20_23' },
+  { label: '24-30岁', value: 'AGE_BETWEEN_24_30' },
+  { label: '31-35岁', value: 'AGE_BETWEEN_31_35' },
+  { label: '36-40岁', value: 'AGE_BETWEEN_36_40' },
+  { label: '41-45岁', value: 'AGE_BETWEEN_41_45' },
+  { label: '46-50岁', value: 'AGE_BETWEEN_46_50' },
+  { label: '51-55岁', value: 'AGE_BETWEEN_51_55' },
+  { label: '56-59岁', value: 'AGE_BETWEEN_56_59' },
+  { label: '60岁以上', value: 'AGE_ABOVE_60' },
+  { label: '18-23岁（合并区间）', value: 'AGE_BETWEEN_18_23' },
+  { label: '31-40岁（合并区间）', value: 'AGE_BETWEEN_31_40' },
+  { label: '41-49岁（合并区间）', value: 'AGE_BETWEEN_41_49' },
+  { label: '50岁以上（合并区间）', value: 'AGE_ABOVE_50' },
+]
+
+/** 平台（全域） */
+export const BytedanceUnit_platform = [
+  { label: 'Android', value: 'ANDROID' },
+  { label: 'iOS', value: 'IOS' },
+]
+
+/** 位置类型（全域） */
+export const BytedanceUnit_location_type = [
+  { label: '正在该地区', value: 'CURRENT' },
+  { label: '居住在该地区', value: 'HOME' },
+  { label: '到该地区旅行', value: 'TRAVEL' },
+  { label: '该地区所有用户', value: 'ALL' },
+]
+
+/** 过滤已转化用户（全域） */
+export const BytedanceUnit_hide_if_converted = [
+  { label: '不限制', value: 'NO_EXCLUDE' },
+  { label: '项目', value: 'PROJECT' },
+  { label: '投放账户', value: 'ADVERTISER' },
+  { label: '客户', value: 'CUSTOMER' },
+  { label: '组织', value: 'ORGANIZATION' },
+]

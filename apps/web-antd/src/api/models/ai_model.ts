@@ -12,19 +12,8 @@ export type ModelCapability = 'edit' | 'image' | 'tag' | 'text' | 'video';
  */
 export type ModelSource = 'newapi' | 'platform' | 'self_key';
 
-/**
- * Skill 类型
- */
-export type SkillType =
-  | 'clip' // 视频剪辑
-  | 'edit' // 修图
-  | 'img2img' // 图生图
-  | 'img2video' // 图生视频
-  | 'push' // 推送正式库
-  | 'tag' // 素材打标
-  | 'text2img' // 文生图
-  | 'text2video' // 文生视频
-;
+/** Skill 类型由字典 skill_type 维护 */
+export type SkillType = string;
 
 // ==================== 模型配置 ====================
 
@@ -107,8 +96,10 @@ export interface SkillItem {
   id: number | string;
   /** Skill 名称 */
   name?: string;
-  /** 类型 */
+  /** 类型（字典 skill_type） */
   type?: SkillType;
+  /** 技能描述（LangChain4j 加载技能时使用） */
+  description?: string;
   /** 参数 schema */
   paramSchema?: null | Record<string, any>;
   /** 提示词模板 */
@@ -127,6 +118,8 @@ export interface SkillSaveRequest {
   id?: number | string;
   name?: string;
   type?: SkillType;
+  /** 技能描述（LangChain4j 加载技能时使用） */
+  description?: string;
   paramSchema?: null | Record<string, any>;
   promptTemplate?: string;
   defaultModel?: string;

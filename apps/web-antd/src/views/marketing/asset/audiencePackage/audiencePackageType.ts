@@ -24,6 +24,8 @@ export interface AdConfig {
   remark: string;
   status: number;
   type?: string;
+  /** 标签ID数组（platform_advertiser_tag.id） */
+  labelIds?: Array<number | string>;
   createTime: string;
   createUsername: string;
   createdBy: string;

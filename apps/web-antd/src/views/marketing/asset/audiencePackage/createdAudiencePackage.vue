@@ -10,6 +10,8 @@ import { message } from 'ant-design-vue';
 import { advertiserApi, targetedPackageApi } from '#/api';
 import {Platform} from "#/constants/enums";
 import { trimObject } from '#/utils/trim';
+import { LABEL_TYPE_CODES } from '#/views/marketing/account/label/constants';
+import { useAccountLabelOptions } from '#/views/marketing/account/label/useAccountLabelOptions';
 
 import { AUDIENCE_PLATFORM_OPTIONS } from './audiencePackageType';
 import BytedanceAudienceForm from './bytedance/bytedance_audienceForm.vue';
@@ -32,6 +34,9 @@ const tencentAudienceRef = ref();
 const bytedanceAudienceRef = ref();
 const localAdId = ref<string>();
 const platformConfig = ref<string | undefined>();
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
+  LABEL_TYPE_CODES.target
+);
 // 传给oppo的广告主，因为oppo的地域需要广告主才能查询
 const platformAdId = ref<string | undefined>();
 
@@ -70,6 +75,7 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
       platform: formValue.platform,
       platformAdvertiserId: formValue.platformAdvertiserId,
       remark: formValue.remark,
+      labelIds: formValue.labelIds ?? [],
       type,
       config: { ...config },
     };
@@ -92,6 +98,7 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
     }
   },
   async onOpened() {
+    await loadLabelOptions();
     if (props.displayValue && props.displayValue.id) {
       const data = props.displayValue;
       formApi.setValues({
@@ -99,6 +106,7 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
         name: data.name,
         platformAdvertiserId: data.platformAdvertiserId,
         remark: data.remark,
+        labelIds: data.labelIds ?? [],
       });
       localAdId.value = data.localAdvertiserId;
       await loadAdvertiserOptions(data.platform);
@@ -216,6 +224,19 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'name',
       label: '定向包名称',
       rules: 'required',
+    },
+    {
+      component: 'Select',
+      componentProps: () => ({
+        allowClear: true,
+        mode: 'multiple',
+        optionFilterProp: 'label',
+        options: labelOptions.value,
+        placeholder: '请选择标签（可多选）',
+        showSearch: true,
+      }),
+      fieldName: 'labelIds',
+      label: '标签',
     },
     {
       component: 'Textarea',

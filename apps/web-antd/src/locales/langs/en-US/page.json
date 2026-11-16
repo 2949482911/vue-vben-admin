@@ -55,7 +55,7 @@
   "marketing": {
     "title": "Marketing",
     "project": "Project",
-    "platformAdvertiserLabel": "Advertiser Label",
+    "platformAdvertiserLabel": "Label",
     "task_center": {
       "title": "Task Center"
     },
@@ -83,7 +83,8 @@
       "huawei_store": "Huawei Store Marketing",
       "tencent": "Tencent Marketing",
       "bytedance": "Bytedance Marketing",
-      "bytedance_std": "Bytedance Std Marketing"
+      "bytedance_std": "Bytedance Std Marketing",
+      "bytedance_unit": "Bytedance Unit Marketing"
     },
     "asset": {
       "title": "Asset",
@@ -185,11 +186,11 @@
     "title": "Ai Asset Workspace",
     "drafts": "Ai Assets Drafts",
     "assets": "Ai Assets",
-    "studio": "Ai studio",
+    "studio": "Creation Canvas",
     "tasks": "Ai Tasks",
     "workspace": "Ai Workspace",
     "menu": {
-      "studio": "Creation Studio",
+      "studio": "Creation Canvas",
       "drama": "Short Drama",
       "draft": "Drafts",
       "queue": "Task Queue",

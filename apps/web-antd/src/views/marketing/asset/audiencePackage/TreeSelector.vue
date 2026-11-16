@@ -1,13 +1,14 @@
 <script lang="ts" setup>
-import { computed, ref, watch, type PropType } from 'vue';
-import { Tree, Input, Card } from 'ant-design-vue';
+import { computed, type PropType, ref, watch } from 'vue';
 
-type Key = string | number;
+import { Card, Input, Tree } from 'ant-design-vue';
+
+type Key = number | string;
 
 const props = defineProps({
   // 选中的值 (v-model)
   value: {
-    type: Array as PropType<(string | number)[]>,
+    type: Array as PropType<(number | string)[]>,
     default: () => [],
   },
   // 完整的树形数据源
@@ -38,10 +39,10 @@ const searchValue = ref('');
  */
 const handleCheck = (checked: any) => {
   const { children, key: keyField } = props.fieldNames;
-  const currentCheckedKeys = (checked.checked || checked) as (string | number)[];
+  const currentCheckedKeys = (checked.checked || checked) as (number | string)[];
 
   // 1. 过滤逻辑：判断哪些节点是“真全选”
-  const currentFilteredIds = currentCheckedKeys.filter((key: string | number) => {
+  const currentFilteredIds = currentCheckedKeys.filter((key: number | string) => {
     const node = findNodeById(props.treeData, key);
     const parentId = findParentId(props.treeData, key);
 
@@ -62,7 +63,7 @@ const handleCheck = (checked: any) => {
   });
 
   // 2. 跨搜索结果合并逻辑
-  const currentViewVisibleIds: (string | number)[] = [];
+  const currentViewVisibleIds: (number | string)[] = [];
   const traverse = (data: any[]) => {
     data.forEach((item) => {
       currentViewVisibleIds.push(item[keyField]);
@@ -104,7 +105,7 @@ const filteredTreeData = computed(() => {
 /**
  * 辅助工具函数
  */
-const findNodeById = (data: any[], id: string | number): any => {
+const findNodeById = (data: any[], id: number | string): any => {
   const { children, key } = props.fieldNames;
   for (const item of data) {
     if (String(item[key]) === String(id)) return item; // 字符串兼容比较
@@ -117,9 +118,9 @@ const findNodeById = (data: any[], id: string | number): any => {
 
 const findParentId = (
   data: any[],
-  id: string | number,
-  pId: string | number | null = null,
-): string | number | null => {
+  id: number | string,
+  pId: null | number | string = null,
+): null | number | string => {
   const { children, key } = props.fieldNames;
   for (const item of data) {
     if (String(item[key]) === String(id)) return pId;
@@ -170,14 +171,14 @@ watch(
       />
       <div class="tree-wrapper">
         <Tree
-          v-model:checkedKeys="checkedKeys"
-          v-model:expandedKeys="expandedKeys"
+          v-model:checked-keys="checkedKeys"
+          v-model:expanded-keys="expandedKeys"
           :tree-data="filteredTreeData"
           :field-names="fieldNames"
           :height="300"
           :block-node="true"
           checkable
-          :checkStrictly="false"
+          :check-strictly="false"
           @check="handleCheck"
         />
       </div>

@@ -1,35 +1,45 @@
 <script lang="ts" setup>
-import { useVbenDrawer } from "@vben/common-ui";
-import { useVbenForm } from "#/adapter/form";
-import { message, Switch, TreeSelect, Upload, UploadDragger } from "ant-design-vue";
-import { ref } from "vue";
-import { SvgUploadIcon } from "@vben/icons";
 import type { FileInfo, FolderItem } from "#/api/models";
+
+import { ref } from "vue";
+
+import { useVbenDrawer } from "@vben/common-ui";
+import { SvgUploadIcon } from "@vben/icons";
+import { useUserStore } from "@vben/stores";
+
+import { message, Switch, TreeSelect, Upload, UploadDragger } from "ant-design-vue";
+
+import { useVbenForm } from "#/adapter/form";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
-import { useOssClient } from "./useOssClient";
+import { uploadEditApi } from "#/api/core";
 import { getFileMeta } from "#/utils/fileMeta";
 import { uploadToOss } from "#/utils/uploadToOss";
-import { uploadEditApi } from "#/api/core";
-import { useUserStore } from "@vben/stores";
+import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
+import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
+
+import { useOssClient } from "./useOssClient";
 
 const props = defineProps<{
   treeData: FolderItem[];
 }>();
 
+const emit = defineEmits<{
+  (e: "treeNode"): void;
+}>();
 /** ================== 表单 & 文件 ================== */
 const userStore = useUserStore();
 const nameId = ref<string>("");
 const fileList = ref<any[]>([]);
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
+  LABEL_TYPE_CODES.material
+);
+const selectedLabelIds = ref<Array<number | string>>([]);
 
 // 新增：串行上传队列控制
 const pendingFiles = ref<File[]>([]);
 const isUploading = ref(false);
 // 新增：控制当前是“文件模式”还是“文件夹模式”，默认 false (文件模式)
 const isDirectoryMode = ref<boolean>(true);
-
-const emit = defineEmits<{
-  (e: "treeNode"): void;
-}>();
 
 /** ================== Drawer ================== */
 const [Drawer, drawerApi] = useVbenDrawer({
@@ -38,7 +48,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (!isOpen) {
       await drawerApi.close();
       await resetAll();
+      return;
     }
+    await loadLabelOptions();
   },
   async onConfirm() {
     await drawerApi.close();
@@ -59,6 +71,23 @@ const [Form, formApi] = useVbenForm({
       fieldName: "name",
       label: "文件夹",
       rules: "required"
+    },
+    {
+      component: "Select",
+      fieldName: "labelIds",
+      label: "标签",
+      rules: "required",
+      componentProps: () => ({
+        allowClear: true,
+        mode: "multiple",
+        optionFilterProp: "label",
+        options: labelOptions.value,
+        placeholder: "请选择标签（可多选）",
+        showSearch: true,
+        onChange: (value: Array<number | string>) => {
+          selectedLabelIds.value = value ?? [];
+        }
+      })
     },
     {
       fieldName: "files",
@@ -95,6 +124,10 @@ function handleBeforeUpload(file: any) {
     if (pendingFiles.value.length === 0 && !isUploading.value) {
       message.error("请先选择上传文件夹");
     }
+    return Upload.LIST_IGNORE;
+  }
+  if (selectedLabelIds.value.length === 0) {
+    message.error("请先选择标签");
     return Upload.LIST_IGNORE;
   }
 
@@ -158,7 +191,8 @@ async function doUpload(rawFile: File) {
       width: meta.width,
       height: meta.height,
       fileUrl: result.url,
-      thumbnailUrl: isVideo ? `${result.url}?x-oss-process=video/snapshot,t_0,f_jpg` : result.url
+      thumbnailUrl: isVideo ? `${result.url}?x-oss-process=video/snapshot,t_0,f_jpg` : result.url,
+      labelIds: selectedLabelIds.value
     };
 
     await uploadEditApi.fetchUploadMaterials(payload as unknown as FileInfo);
@@ -201,6 +235,7 @@ function resetAll() {
   nameId.value = "";
   fileList.value = [];
   gridData.value = [];
+  selectedLabelIds.value = [];
 
   // 重置队列
   pendingFiles.value = [];
@@ -217,7 +252,7 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
     <Form>
       <template #name>
         <TreeSelect
-          :treeData="props.treeData"
+          :tree-data="props.treeData"
           :field-names="{ label: 'name', value: 'id', children: 'children' }"
           v-model:value="nameId"
           style="width: 100%"
@@ -259,11 +294,11 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
 
           <UploadDragger
             v-bind="slotProps"
-            v-model:fileList="fileList"
+            v-model:file-list="fileList"
             multiple
             :directory="isDirectoryMode"
             :before-upload="handleBeforeUpload"
-            :showUploadList="false"
+            :show-upload-list="false"
           >
             <p class="pIcon">
               <SvgUploadIcon class="iconClass" />
@@ -279,7 +314,7 @@ const [Grid, gridApi] = useVbenVxeGrid({ gridOptions });
         </div>
       </template>
     </Form>
-    <Grid style="height: 58%"></Grid>
+    <Grid style="height: 58%" />
   </Drawer>
 </template>
 

@@ -980,7 +980,7 @@ export const game_dlanum_30_dev = [
 ]
 
 
-/***
+/** *
  * 曾经使用过的APP，即为应用ID。 参照文档
    https://developer.huawei.com/consumer/cn/doc/promotion/marketapi-modle-condition-0000001181946369
    说明：此字段枚举值不可超过20个。

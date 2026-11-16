@@ -14,12 +14,13 @@ import { $t } from '@vben/locales';
 import { useVbenForm } from '#/adapter/form';
 import { aiModelApi } from '#/api';
 
-import { SKILL_TYPE_OPTIONS } from './constants';
+import { useSkillTypeOptions } from './useSkillTypeOptions';
 
 const emit = defineEmits(['pageReload']);
 
 const isUpdate = ref(false);
 const current = ref<Record<string, any> | SkillItem>({});
+const { loadSkillTypeOptions, skillTypeOptions } = useSkillTypeOptions();
 
 /** 参数 schema：文本 → JSON 对象（空则不发） */
 function parseParamSchema(text?: string): null | Record<string, any> {
@@ -33,6 +34,38 @@ function parseParamSchema(text?: string): null | Record<string, any> {
   }
 }
 
+function escapeHtml(value: string) {
+  return value.replace(
+    /[&<>"]/g,
+    (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[char]!,
+  );
+}
+
+/** 纯文本 → 富文本编辑器内容（段落 + 换行） */
+function textToHtml(text?: string) {
+  if (!text) {
+    return '';
+  }
+  return text
+    .split(/\n{2,}/)
+    .map((block) => `<p>${escapeHtml(block).replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+/** 富文本编辑器内容 → 纯文本（提示词模板落库保持纯文本，保留段落换行） */
+function htmlToText(html?: string) {
+  if (!html) {
+    return '';
+  }
+  const withBreaks = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(div|h[1-6]|li|p)>/gi, '\n')
+    .replace(/<[^>]+>/g, '');
+  const decoder = document.createElement('textarea');
+  decoder.innerHTML = withBreaks;
+  return decoder.value.replace(/\n{3,}/g, '\n\n').trim();
+}
+
 const [Form, formApi] = useVbenForm({
   commonConfig: { componentProps: { class: 'w-full' } },
   handleSubmit: async (values: Record<string, any>) => {
@@ -40,6 +73,7 @@ const [Form, formApi] = useVbenForm({
       id: values.id || undefined,
       name: values.name,
       type: values.type,
+      description: values.description || undefined,
       // 模型选择器取模型库的 id 作为默认模型（与生成请求的 modelId 口径一致）
       defaultModel:
         values.defaultModel === undefined ||
@@ -47,7 +81,7 @@ const [Form, formApi] = useVbenForm({
         values.defaultModel === ''
           ? undefined
           : String(values.defaultModel),
-      promptTemplate: values.promptTemplate,
+      promptTemplate: htmlToText(values.promptTemplate),
       paramSchema: parseParamSchema(values.paramSchema),
     };
     await aiModelApi.saveSkill(payload);
@@ -69,8 +103,23 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
     },
     {
+      component: 'Textarea',
+      componentProps: {
+        placeholder: '用于 LangChain4j 加载技能时的描述',
+        rows: 2,
+      },
+      fieldName: 'description',
+      label: '技能描述',
+    },
+    {
       component: 'Select',
-      componentProps: { options: SKILL_TYPE_OPTIONS, placeholder: $t('common.choice') },
+      componentProps: () => ({
+        allowClear: true,
+        optionFilterProp: 'label',
+        options: skillTypeOptions.value,
+        placeholder: $t('common.choice'),
+        showSearch: true,
+      }),
       fieldName: 'type',
       label: '类型',
       rules: 'required',
@@ -106,8 +155,8 @@ const [Form, formApi] = useVbenForm({
       label: '默认模型',
     },
     {
-      component: 'Textarea',
-      componentProps: { placeholder: '提示词模板', rows: 4 },
+      component: 'RichEditor',
+      componentProps: { minHeight: 320 },
       fieldName: 'promptTemplate',
       label: '提示词模板',
     },
@@ -123,6 +172,7 @@ const [Form, formApi] = useVbenForm({
 });
 
 const [Drawer, drawerApi] = useVbenDrawer({
+  class: 'w-[75%]',
   closeOnPressEscape: true,
   onCancel() {
     drawerApi.close();
@@ -137,17 +187,35 @@ const [Drawer, drawerApi] = useVbenDrawer({
     isUpdate.value = false;
     emit('pageReload');
   },
-  onOpenChange(isOpen: boolean) {
+  async onOpenChange(isOpen: boolean) {
     if (!isOpen) {
       return;
     }
+    await loadSkillTypeOptions();
+    await formApi.updateSchema([
+      {
+        componentProps: {
+          allowClear: true,
+          optionFilterProp: 'label',
+          options: skillTypeOptions.value,
+          placeholder: $t('common.choice'),
+          showSearch: true,
+        },
+        fieldName: 'type',
+      },
+    ]);
     formApi.resetForm();
     current.value = (drawerApi.getData() as SkillItem) ?? {};
     if (current.value.id) {
       isUpdate.value = true;
-      const { paramSchema, ...rest } = current.value as SkillItem;
+      const {
+        paramSchema,
+        promptTemplate,
+        ...rest
+      } = current.value as SkillItem;
       formApi.setValues({
         ...rest,
+        promptTemplate: textToHtml(promptTemplate),
         paramSchema: paramSchema ? JSON.stringify(paramSchema, null, 2) : '',
       } as Record<string, any>);
     } else {

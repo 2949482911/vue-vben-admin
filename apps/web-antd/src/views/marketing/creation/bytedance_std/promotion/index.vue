@@ -33,6 +33,11 @@ function handleLevelChange(key: string) {
         platform="bytedance_std"
         level="campaign"
         id-field="campaign_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+        ]"
         :operation-keys="getBatchOperations('bytedance_std', 'campaign')"
       />
     </template>

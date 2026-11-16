@@ -23,8 +23,11 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { aiModelApi } from '#/api';
 import { BatchOptionsType, TABLE_COMMON_COLUMNS } from '#/constants/locales';
 
-import { SKILL_TYPE_MAP, SKILL_TYPE_OPTIONS } from './constants';
 import Create from './create.vue';
+import { useSkillTypeOptions } from './useSkillTypeOptions';
+
+const { fetchSkillTypeOptions, loadSkillTypeOptions, skillTypeLabel } =
+  useSkillTypeOptions();
 
 // ==================== 创建 / 编辑抽屉 ====================
 const [CreateDrawer, createDrawerApi] = useVbenDrawer({
@@ -44,8 +47,16 @@ const formOptions: VbenFormProps = {
   schema: [
     { component: 'Input', fieldName: 'name', label: 'Skill 名称' },
     {
-      component: 'Select',
-      componentProps: { allowClear: true, options: SKILL_TYPE_OPTIONS, placeholder: $t('common.choice') },
+      component: 'ApiSelect',
+      componentProps: {
+        allowClear: true,
+        api: fetchSkillTypeOptions,
+        labelField: 'label',
+        placeholder: $t('common.choice'),
+        resultField: 'items',
+        showSearch: true,
+        valueField: 'value',
+      },
       fieldName: 'type',
       label: '类型',
     },
@@ -58,6 +69,12 @@ const gridOptions: VxeGridProps<SkillItem> = {
   checkboxConfig: { highlight: true, labelField: 'id' },
   columns: [
     { field: 'name', title: 'Skill 名称', minWidth: 160 },
+    {
+      field: 'description',
+      minWidth: 200,
+      showOverflow: true,
+      title: '技能描述',
+    },
     { field: 'type', slots: { default: 'type' }, title: '类型', width: 120 },
     {
       field: 'defaultModel',
@@ -125,6 +142,7 @@ function modelLabel(value?: string) {
 
 onMounted(() => {
   void loadModelLabels();
+  void loadSkillTypeOptions();
 });
 
 function pageReload() {
@@ -177,7 +195,7 @@ async function handleBatchDisable() {
   <Page>
     <Grid>
       <template #type="{ row }">
-        <Tag :bordered="false">{{ SKILL_TYPE_MAP[row.type || ''] || row.type || '-' }}</Tag>
+        <Tag :bordered="false">{{ skillTypeLabel(row.type) }}</Tag>
       </template>
 
       <template #defaultModel="{ row }">

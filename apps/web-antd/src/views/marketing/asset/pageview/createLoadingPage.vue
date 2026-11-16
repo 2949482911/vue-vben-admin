@@ -1,15 +1,25 @@
 <script lang="ts" setup>
-import { useVbenModal } from '@vben/common-ui';
-import { useVbenForm } from '#/adapter/form';
-import { message } from 'ant-design-vue';
-import { loadingPageApi } from '#/api';
-import { ref } from 'vue';
 import type { LandingPageData } from '#/api/models';
+
+import { ref } from 'vue';
+
+import { useVbenModal } from '@vben/common-ui';
+
+import { message } from 'ant-design-vue';
+
+import { useVbenForm } from '#/adapter/form';
+import { loadingPageApi } from '#/api';
+import { LABEL_TYPE_CODES } from '#/views/marketing/account/label/constants';
+import { useAccountLabelOptions } from '#/views/marketing/account/label/useAccountLabelOptions';
+
 import { $t } from "../../../../../../../packages/locales/src";
 
 const emit = defineEmits(['pageReload']);
 const newOrEdit = ref<boolean>(true);
 const landingPageItem = ref<LandingPageData>({} as LandingPageData);
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
+  LABEL_TYPE_CODES.page
+);
 
 const [Modal, modalApi] = useVbenModal({
   async onCancel() {
@@ -31,6 +41,7 @@ const [Modal, modalApi] = useVbenModal({
       config: {
         pageUrl: formValue.pageUrl,
       },
+      labelIds: formValue.labelIds ?? [],
     };
     try {
       if (landingPageItem.value.id && landingPageItem.value.id.trim() !== '') {
@@ -51,6 +62,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   async onOpenChange(isOpen) {
     if (isOpen) {
+      await loadLabelOptions();
       landingPageItem.value = modalApi.getData() as LandingPageData;
       if (landingPageItem.value.id) {
         newOrEdit.value = false;
@@ -59,6 +71,7 @@ const [Modal, modalApi] = useVbenModal({
           name: landingPageItem.value.name,
           platform: landingPageItem.value.platform,
           pageUrl: landingPageItem.value.config.pageUrl,
+          labelIds: landingPageItem.value.labelIds ?? [],
         });
       } else {
         newOrEdit.value = true;
@@ -121,6 +134,19 @@ const [Form, formApi] = useVbenForm({
       fieldName: 'pageUrl',
       label: '详情页地址',
       rules: 'required',
+    },
+    {
+      component: 'Select',
+      componentProps: () => ({
+        allowClear: true,
+        mode: 'multiple',
+        optionFilterProp: 'label',
+        options: labelOptions.value,
+        placeholder: '请选择标签（可多选）',
+        showSearch: true,
+      }),
+      fieldName: 'labelIds',
+      label: '标签',
     },
   ],
 });

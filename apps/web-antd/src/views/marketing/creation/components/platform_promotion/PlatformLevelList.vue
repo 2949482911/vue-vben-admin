@@ -1,8 +1,11 @@
 <script lang="ts" setup>
+import type { BatchOperationType } from '../../promotion_manager/platformOptions';
+
 // 通用「媒体广告列表」层级组件（按巨量试点模式）
 // - 列由后端「媒体原生列表」返回 columns + cname 动态生成
 // - 批量操作复用 promotion_manager/components 的 BatchOperationDropdown / BatchOperationDrawer
 import type { ReportFilter } from '#/api/models';
+
 import { computed, ref } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
@@ -14,7 +17,6 @@ import { advertiserApi, aManagementApi } from '#/api';
 
 import BatchOperationDrawer from '../../promotion_manager/components/BatchOperationDrawer.vue';
 import BatchOperationDropdown from '../../promotion_manager/components/BatchOperationDropdown.vue';
-import type { BatchOperationType } from '../../promotion_manager/platformOptions';
 
 const props = withDefaults(
   defineProps<{
@@ -30,8 +32,18 @@ const props = withDefaults(
     advertiserPlatform?: string;
     /** 枚举字典（字段 -> { 码值: 文案 }），命中时单元格展示文案 */
     enums?: Record<string, Record<string, string>>;
+    /**
+     * 左侧冻结的关键字段（按传入顺序排列，支持蛇形/驼峰自动匹配）
+     * 各媒体按自己的实际层级传入：账户ID、计划名/ID、广告组名/ID、广告ID…
+     */
+    pinnedFields?: string[];
   }>(),
-  { operationKeys: () => [], advertiserPlatform: '', enums: () => ({}) },
+  {
+    operationKeys: () => [],
+    advertiserPlatform: '',
+    enums: () => ({}),
+    pinnedFields: () => [],
+  },
 );
 
 /** 各层级名称列候选字段：各媒体命名不统一（蛇形 campaign_name / 驼峰 campaignName） */
@@ -62,6 +74,44 @@ const levelLabel = computed(() => {
 /** 蛇形转驼峰：兼容媒体原生列名的两种命名 */
 function toCamelCase(field: string) {
   return field.replaceAll(/_(\w)/g, (_match, char: string) => char.toUpperCase());
+}
+
+/** 驼峰转蛇形：兼容各媒体原生列名不一致 */
+function toSnakeCase(field: string) {
+  return field.replaceAll(/[A-Z]/g, (char) => `_${char.toLowerCase()}`);
+}
+
+/** 关键字段别名：媒体原生列名可能是驼峰/蛇形，或换用 advertiser/ad/creative 命名 */
+const PINNED_FIELD_ALIASES: Record<string, string[]> = {
+  platform_account_id: [
+    'platform_account_id',
+    'platformAccountId',
+    'advertiser_id',
+    'advertiserId',
+  ],
+  campaign_id: ['campaign_id', 'campaignId'],
+  campaign_name: ['campaign_name', 'campaignName'],
+  adgroup_id: ['adgroup_id', 'adgroupId'],
+  adgroup_name: ['adgroup_name', 'adgroupName'],
+  promotion_id: [
+    'promotion_id',
+    'promotionId',
+    'creative_id',
+    'creativeId',
+    'source_dynamic_creative_id',
+    'sourceDynamicCreativeId',
+  ],
+  promotion_name: ['promotion_name', 'promotionName', 'creative_name', 'creativeName'],
+};
+
+/** 把配置的关键字段解析成后端本次返回的真实列名；不存在则跳过 */
+function resolvePinnedField(cols: string[], field: string) {
+  const candidates = PINNED_FIELD_ALIASES[field] ?? [
+    field,
+    toCamelCase(field),
+    toSnakeCase(field),
+  ];
+  return candidates.find((candidate) => cols.includes(candidate));
 }
 
 /** ID 字段候选（传入的 idField + 其驼峰形式），各媒体列名不统一时按序兜底 */
@@ -229,7 +279,8 @@ const gridOptions: VxeGridProps = {
           promotionName: row.promotionName || row.promotion_name,
         }));
         buildColumns(cols, cname);
-        return { items: enriched, total };
+        // 空表时后端旧版本可能返回 null，这里兜底避免分页器显示异常
+        return { items: enriched, total: total ?? 0 };
       },
     },
   },
@@ -258,13 +309,22 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents })
 function buildColumns(cols: string[] | undefined, cname: Record<string, string> | undefined) {
   if (!cols || cols.length === 0) return;
   const nameKey = NAME_FIELD_CANDIDATES[props.level]?.find((key) => cols.includes(key));
-  const ordered =
-    nameKey && cols.includes(nameKey)
-      ? [nameKey, ...cols.filter((key) => key !== nameKey)]
-      : cols;
+
+  // 各媒体传入的关键字段优先冻结；未配置时保持名称列冻结
+  const pinned: string[] = [];
+  props.pinnedFields.forEach((field) => {
+    const key = resolvePinnedField(cols, field);
+    if (key && !pinned.includes(key)) {
+      pinned.push(key);
+    }
+  });
+  if (nameKey && !pinned.includes(nameKey)) {
+    pinned.push(nameKey);
+  }
+
+  const ordered = [...pinned, ...cols.filter((key) => !pinned.includes(key))];
   const dynamic = ordered.map((key) => {
     const isMetric = METRIC_FIELDS.includes(key);
-    const isName = key === nameKey;
     const enumMap = props.enums[key];
     // 后端 cname 可能带多行枚举说明（如「推广模式\n0:常规投放\n1:商品智投」），表头只取第一行，完整说明放 tooltip
     const rawTitle = (cname && cname[key]) || key;
@@ -272,7 +332,8 @@ function buildColumns(cols: string[] | undefined, cname: Record<string, string> 
     const column: Record<string, any> = {
       field: key,
       title: titleLines[0],
-      minWidth: isName ? 220 : isMetric ? 120 : 160,
+      // 列宽自适应内容，不再固定像素
+      width: 'auto',
       align: isMetric ? 'right' : 'left',
       headerAlign: isMetric ? 'right' : 'left',
       showOverflow: true,
@@ -285,7 +346,7 @@ function buildColumns(cols: string[] | undefined, cname: Record<string, string> 
     } else if (isMetric) {
       column.formatter = ({ cellValue }: any) => formatMetricValue(cellValue);
     }
-    if (isName) {
+    if (pinned.includes(key)) {
       column.fixed = 'left';
     }
     return column;
@@ -360,7 +421,7 @@ defineExpose({ pageReload });
 
 <template>
   <div class="h-full">
-    <Grid >
+    <Grid>
      <!-- 左侧：勾选后切换为批量操作条，未勾选时展示轻量统计 -->
      <template #toolbar-actions>
        <div v-if="selectedRows.length > 0" class="flex items-center gap-2">

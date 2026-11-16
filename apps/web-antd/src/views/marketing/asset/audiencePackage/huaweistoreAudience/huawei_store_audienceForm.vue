@@ -1,6 +1,7 @@
 <script lang="ts" setup name="HuaWeiStoreAudienceForm">
 import {useVbenForm} from '@vben/common-ui';
 import {$t} from '@vben/locales';
+
 import {
   active_city_grade_dev,
   active_duration_dev,
@@ -265,8 +266,8 @@ import {
   purch_outeradv_dev,
   purch_sealeisure_dev,
   purch_seasonrec_dev,
-  push_online_days_30d_dev,
   push_online_days_7d_dev,
+  push_online_days_30d_dev,
   puz_game_lovers_dev,
   radio_dev,
   ram_dev,
@@ -3729,7 +3730,7 @@ defineExpose({
 
 <template>
   <div>
-    <Form/>
+    <Form />
   </div>
 </template>
 

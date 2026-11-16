@@ -43,6 +43,11 @@ function handleLevelChange(key: string) {
         platform="oppo"
         level="campaign"
         id-field="campaign_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+        ]"
         :operation-keys="getBatchOperations('oppo', 'campaign')"
       />
     </template>
@@ -52,6 +57,13 @@ function handleLevelChange(key: string) {
         platform="oppo"
         level="adgroup"
         id-field="adgroup_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+          'adgroup_name',
+          'adgroup_id',
+        ]"
         :operation-keys="getBatchOperations('oppo', 'adgroup')"
       />
     </template>
@@ -61,6 +73,15 @@ function handleLevelChange(key: string) {
         platform="oppo"
         level="promotion"
         id-field="promotion_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+          'adgroup_name',
+          'adgroup_id',
+          'promotion_name',
+          'promotion_id',
+        ]"
         :operation-keys="getBatchOperations('oppo', 'promotion')"
       />
     </template>

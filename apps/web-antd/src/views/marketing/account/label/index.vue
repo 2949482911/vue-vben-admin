@@ -1,13 +1,42 @@
 <script setup lang="ts">
 import type { DelLabelItemType, LabelItem } from "#/api/models/marketing";
+
 import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
 import { $t } from "@vben/locales";
-import { Button, message, Switch } from "ant-design-vue";
-import { BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS } from "#/constants/locales";
+import { useDictStore } from "@vben/stores";
+
+import { Button, message, Switch, Tag } from "ant-design-vue";
+
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { accountLabelApi } from "#/api";
+import { BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { trimObject } from "#/utils/trim";
+
+import { LABEL_TYPE_DICT_CODE } from "./constants";
 import CreatedLabel from "./createdLabel.vue";
+
+const dictStore = useDictStore();
+
+/** 标签类型展示：字典 label + 颜色，未收录回退原值 */
+function labelTypeMeta(value?: string) {
+  const item = value
+    ? dictStore.getDictItem(LABEL_TYPE_DICT_CODE, value)
+    : undefined;
+  return {
+    color: item?.color || "default",
+    label: item?.label ?? value ?? "-"
+  };
+}
+
+async function fetchLabelTypeOptions() {
+  const items = await dictStore.getDict(LABEL_TYPE_DICT_CODE);
+  return {
+    items: items.map((item) => ({
+      label: item.label,
+      value: String(item.value)
+    }))
+  };
+}
 
 const [CreatedLabelModule, modalApi] = useVbenModal({
   // 连接抽离的组件
@@ -22,6 +51,12 @@ const gridOptions: VxeGridProps<LabelItem> = {
       field: "name",
       title: `${$t("marketing.accountLabel.columns.name")}`,
       width: "auto"
+    },
+    {
+      field: "labelType",
+      title: "标签类型",
+      width: 120,
+      slots: { default: "labelType" }
     },
     {
       field: "remark",
@@ -72,6 +107,20 @@ const formOptions: VbenFormProps = {
       },
       fieldName: "name",
       label: "标签名字"
+    },
+    {
+      component: "ApiSelect",
+      componentProps: {
+        allowClear: true,
+        api: fetchLabelTypeOptions,
+        labelField: "label",
+        placeholder: "请选择标签类型",
+        resultField: "items",
+        showSearch: true,
+        valueField: "value"
+      },
+      fieldName: "labelType",
+      label: "标签类型"
     },
     {
       component: "Select",
@@ -156,6 +205,13 @@ async function handlerState(row: LabelItem) {
 <template>
   <Page content-class="p-5">
     <Grid>
+      <template #labelType="{ row }">
+        <Tag v-if="row.labelType" :bordered="false" :color="labelTypeMeta(row.labelType).color">
+          {{ labelTypeMeta(row.labelType).label }}
+        </Tag>
+        <span v-else>-</span>
+      </template>
+
       <template #status="{ row }">
         <Switch :checked="row.status === 1" @click="handlerState(row)" />
       </template>

@@ -1,16 +1,22 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import type { TitlePackItem } from "./titlePackageType";
+
+import { onMounted, ref } from "vue";
 
 import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
+
+import { Button, message, Space, Switch, Tag } from "ant-design-vue";
+
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { projectApi, titlePackApi } from "#/api";
-import { trimObject } from "#/utils/trim";
 import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
-import { Button, message, Switch, Tag } from "ant-design-vue";
-import type { TitlePackItem } from "./titlePackageType";
-import CreatedTitlePackage from "./createdTitlePackage.vue";
 import { $t } from "#/locales";
+import { trimObject } from "#/utils/trim";
+import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
+import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
+
+import CreatedTitlePackage from "./createdTitlePackage.vue";
 
 const [CreatedTitlePackageModule, drawerApi] = useVbenDrawer({
   // 连接抽离的组件
@@ -18,6 +24,13 @@ const [CreatedTitlePackageModule, drawerApi] = useVbenDrawer({
 });
 
 const displayValue = ref<TitlePackItem>();
+const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
+  LABEL_TYPE_CODES.title
+);
+
+onMounted(() => {
+  void loadLabelOptions();
+});
 
 function openDrawer() {
   displayValue.value = undefined;
@@ -99,6 +112,12 @@ const gridOptions: VxeGridProps = {
       width: "auto"
     },
     {
+      field: "labelIds",
+      title: "标签",
+      width: 200,
+      slots: { default: "labelIds" }
+    },
+    {
       field: "platform",
       title: "平台",
       width: "auto",
@@ -178,6 +197,18 @@ function handlerState(_row: TitlePackItem) {
         <Tag :bordered="false" :color="getPlatformColor(row.platform)">
           {{ getPlatformLabel(row.platform) }}
         </Tag>
+      </template>
+      <template #labelIds="{ row }">
+        <Space v-if="row.labelIds?.length" wrap :size="[4, 4]">
+          <Tag
+            v-for="name in labelNamesOf(row.labelIds)"
+            :key="name"
+            :bordered="false"
+          >
+            {{ name }}
+          </Tag>
+        </Space>
+        <span v-else>-</span>
       </template>
       <template #status="{ row }">
         <Switch :checked="row.status === 1" @click="handlerState(row)" />

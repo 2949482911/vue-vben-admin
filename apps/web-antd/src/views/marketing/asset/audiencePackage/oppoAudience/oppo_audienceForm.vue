@@ -1,12 +1,18 @@
 <script lang="ts" setup>
-import { useVbenForm } from '@vben/common-ui';
-import { RadioGroup, RadioButton, CheckboxGroup, Select } from 'ant-design-vue';
-import { computed, ref, watch } from 'vue';
-import { oppoTagData } from './oppoTagData';
-import { oppo_advertisementApi } from '#/api';
-import TreeSelector from '../TreeSelector.vue';
-import type { IndustryTag, PhoneSeriesItem, UnionAppsTag, WeatherShowListType } from '#/api/models';
 import type { AdOppoConfig } from '../audiencePackageType';
+
+import type { IndustryTag, PhoneSeriesItem, UnionAppsTag, WeatherShowListType } from '#/api/models';
+
+import { computed, ref, watch } from 'vue';
+
+import { useVbenForm } from '@vben/common-ui';
+
+import { CheckboxGroup, RadioButton, RadioGroup, Select } from 'ant-design-vue';
+
+import { oppo_advertisementApi } from '#/api';
+
+import TreeSelector from '../TreeSelector.vue';
+import { oppoTagData } from './oppoTagData';
 
 const props = defineProps<{
   advertiserId?: string;
@@ -80,7 +86,7 @@ const oppoConfig = ref({
   oppAudienceIds: '',
 });
 
-/**处理枚举公用方法 */
+/** 处理枚举公用方法 */
 const getTagOptions = (key: string) => {
   const list = (oppoTagData as any)?.data?.[key] || [];
   return list.map((item: any) => ({
@@ -115,7 +121,7 @@ const handleTargetingChange = (val: any, configKey: string, fieldName?: string) 
   }
 };
 
-//获取地域元接口
+// 获取地域元接口
 async function getRegionList(advertiserId: string) {
   const res = await oppo_advertisementApi.fetchOppoAdvertisement({
     queryType: 0,
@@ -124,7 +130,7 @@ async function getRegionList(advertiserId: string) {
   regionData.value = res;
 }
 
-//获取机型元接口
+// 获取机型元接口
 async function getModelList(advertiserId: string) {
   const res = await oppo_advertisementApi.fetchOppoMetadata({
     advertiserId: [advertiserId],
@@ -145,7 +151,7 @@ async function getModelList(advertiserId: string) {
   ]);
 }
 
-//获取应用已安装元接口(与所有通过定向APP元数据接口获取通用)
+// 获取应用已安装元接口(与所有通过定向APP元数据接口获取通用)
 async function getInstallAppList(advertiserId: string) {
   const res = await oppo_advertisementApi.fetchOppoMetadataApp({
     advertiserId: [advertiserId],
@@ -177,7 +183,7 @@ async function getInstallAppList(advertiserId: string) {
   ]);
 }
 
-//获取兴趣标签接口
+// 获取兴趣标签接口
 async function getInterestTag(advertiserId: string) {
   const res = await oppo_advertisementApi.fetchOppoInterestTag({
     advertiserId: [advertiserId],
@@ -191,7 +197,7 @@ async function getInterestTag(advertiserId: string) {
   ]);
 }
 
-//获取联盟AppId\联盟App反向接口
+// 获取联盟AppId\联盟App反向接口
 async function getAllianceApp(advertiserId: string) {
   const res = await oppo_advertisementApi.fetchOppoMetadataUapp({
     advertiserId: [advertiserId],
@@ -223,7 +229,7 @@ const stringToArray = (val: any): string[] => {
   return str.split(',').map((s) => s.trim());
 };
 
-/**关闭弹框提交oppoConfig */
+/** 关闭弹框提交oppoConfig */
 async function submitOppoConfig() {
   const formValue = await formApi.getValues();
   const result = {
@@ -270,7 +276,7 @@ async function submitOppoConfig() {
   return result;
 }
 
-/**关闭弹框时清空oppoConfig */
+/** 关闭弹框时清空oppoConfig */
 async function popUpOppoCancel() {
   await formApi.resetForm();
   regionType.value = '0';
@@ -321,7 +327,7 @@ async function popUpOppoCancel() {
   };
 }
 
-/**编辑oppoConfig回显展示 */
+/** 编辑oppoConfig回显展示 */
 async function echoOppoConfig(params: AdOppoConfig) {
   if (params.localAdvertiserId) {
     await loadAdvertiserData(params.localAdvertiserId);
@@ -426,24 +432,24 @@ async function echoOppoConfig(params: AdOppoConfig) {
   });
 }
 
-//----------地域------------
+// ----------地域------------
 const regionType = ref<string>('0');
 
-//----------年龄(新)------------
+// ----------年龄(新)------------
 const ageType = ref<string>('999');
 const ageNewOptions = computed(() => getTagOptions('ageNew'));
 
-//----------网络------------
+// ----------网络------------
 const networkType = ref<string>('0');
 const networkOptions = computed(() => getTagOptions('network'));
 
-//----------常驻地------------
+// ----------常驻地------------
 const permanentRegionType = ref<string>('0');
 
-//----------应用活跃------------
+// ----------应用活跃------------
 const appActiveType = ref<string>('0');
 
-//----------应用非活跃------------
+// ----------应用非活跃------------
 const appNotActiveType = ref<string>('0');
 
 const [Form, formApi] = useVbenForm({
@@ -1013,9 +1019,9 @@ defineExpose({ submitOppoConfig, popUpOppoCancel, echoOppoConfig });
             v-model:value="oppoConfig.appActive"
             mode="multiple"
             style="width: 100%"
-            allowClear
-            showSearch
-            optionFilterProp="label"
+            allow-clear
+            show-search
+            option-filter-prop="label"
             :options="appInstall"
           />
         </div>
@@ -1034,9 +1040,9 @@ defineExpose({ submitOppoConfig, popUpOppoCancel, echoOppoConfig });
             v-if="appNotActiveType === '1'"
             v-model:value="oppoConfig.appNotActive"
             mode="multiple"
-            allowClear
-            showSearch
-            optionFilterProp="label"
+            allow-clear
+            show-search
+            option-filter-prop="label"
             :options="appInstall"
           />
         </div>

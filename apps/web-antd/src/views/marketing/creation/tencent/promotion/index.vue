@@ -48,6 +48,11 @@ function handleLevelChange(key: string) {
         platform="tencent"
         level="campaign"
         id-field="campaign_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+        ]"
         :enums="TENCENT_CAMPAIGN_ENUMS"
         :operation-keys="getBatchOperations('tencent', 'campaign')"
       />
@@ -58,6 +63,15 @@ function handleLevelChange(key: string) {
         platform="tencent"
         level="adgroup"
         id-field="adgroup_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+          'adgroup_name',
+          'adgroup_id',
+          'promotion_name',
+          'promotion_id',
+        ]"
         :enums="TENCENT_ADGROUP_ENUMS"
         :operation-keys="getBatchOperations('tencent', 'adgroup')"
       />

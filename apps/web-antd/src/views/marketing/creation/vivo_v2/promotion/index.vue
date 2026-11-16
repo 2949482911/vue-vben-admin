@@ -44,6 +44,11 @@ function handleLevelChange(key: string) {
         advertiser-platform="vivo"
         level="campaign"
         id-field="campaign_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+        ]"
         :enums="VIVO_V2_CAMPAIGN_ENUMS"
       />
     </template>
@@ -54,6 +59,13 @@ function handleLevelChange(key: string) {
         advertiser-platform="vivo"
         level="adgroup"
         id-field="adgroup_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+          'adgroup_name',
+          'adgroup_id',
+        ]"
         :enums="VIVO_V2_ADGROUP_ENUMS"
       />
     </template>

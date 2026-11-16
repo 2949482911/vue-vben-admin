@@ -1,10 +1,14 @@
 <script lang="ts" setup>
-import { useVbenForm } from '@vben/common-ui';
-import { RadioGroup, RadioButton, CheckboxGroup } from 'ant-design-vue';
+import type { AdVivoConfig } from '../audiencePackageType';
+
 import { computed, h, ref } from 'vue';
+
+import { useVbenForm } from '@vben/common-ui';
+
+import { CheckboxGroup, RadioButton, RadioGroup } from 'ant-design-vue';
+
 import TreeSelector from '../TreeSelector.vue';
 import { vivoTagData } from './vivoTagData';
-import type { AdVivoConfig } from '../audiencePackageType';
 
 const vivoConfig = ref({
   sexList: [],
@@ -65,13 +69,13 @@ const handleTargetingChange = (val: any, configKey: string, fieldName?: string) 
   }
 };
 
-/**关闭弹框提交vivoConfig */
+/** 关闭弹框提交vivoConfig */
 async function submitVivoConfig() {
   // 直接返回 vivoConfig，因为所有自定义组件 v-model 都绑在它上面
   return vivoConfig.value;
 }
 
-/**编辑vivoConfig回显展示 */
+/** 编辑vivoConfig回显展示 */
 async function echoVivoConfig(params: AdVivoConfig) {
   const config = params.config || {};
   vivoConfig.value = {
@@ -109,7 +113,7 @@ async function echoVivoConfig(params: AdVivoConfig) {
   interestSetType.value = (config.interestSet && config.interestSet.length > 0) ? 1 : 0;
 }
 
-/**处理枚举公用方法 */
+/** 处理枚举公用方法 */
 const getTagOptions = (key: string) => {
   const list = (vivoTagData as any)?.data?.[key] || [];
   return list.map((item: any) => ({
@@ -118,7 +122,7 @@ const getTagOptions = (key: string) => {
   }));
 };
 
-/**关闭弹框时清空vivoConfig */
+/** 关闭弹框时清空vivoConfig */
 async function popUpVivoCancel() {
   await formApi.resetForm();
   sexListType.value = '0';
@@ -154,34 +158,34 @@ async function popUpVivoCancel() {
   };
 }
 
-//----------性别------------
+// ----------性别------------
 const sexListType = ref<string>('0');
 const sexOptions = computed(() => getTagOptions('sex'));
 
-//----------购机价格------------
+// ----------购机价格------------
 const phonePriceSetType = ref<string>('0');
 const phonePriceSetOptions = computed(() => getTagOptions('phonePrice'));
 
-//----------手机系列------------
+// ----------手机系列------------
 const phoneSeriesSetType = ref<string>('0');
 const phoneSeriesSetOptions = computed(() => getTagOptions('phoneSeries'));
 
-//----------网络运营商------------
+// ----------网络运营商------------
 const networkOperatorSetType = ref<string>('0');
 const networkOperatorSetOptions = computed(() => getTagOptions('networkOperator'));
 
-//----------安卓版本------------
+// ----------安卓版本------------
 const androidVersionSetType = ref<string>('0');
 const androidVersionSetOptions = computed(() => getTagOptions('androidVersion'));
 
-//----------用户年龄id列表------------
+// ----------用户年龄id列表------------
 const ageType = ref<string>('0');
 const ageOptions = computed(() => getTagOptions('age'));
 
-//----------地域------------
+// ----------地域------------
 const regionType = ref<string>('0');
 
-//----------兴趣行为------------
+// ----------兴趣行为------------
 const interestSetType = ref<number>(0);
 
 const [Form, formApi] = useVbenForm({
@@ -542,9 +546,11 @@ defineExpose({ submitVivoConfig, popUpVivoCancel, echoVivoConfig });
       </template>
       <template #period>
         <RadioGroup v-model:value="vivoConfig.installBehavior.period" button-style="solid">
-          <RadioButton v-for="d in [-1, 7, 30, 180, 356]" :key="d" :value="d">{{
-            d === -1 ? '标识历史永久' : d + '天'
-          }}</RadioButton>
+          <RadioButton v-for="d in [-1, 7, 30, 180, 356]" :key="d" :value="d">
+{{
+            d === -1 ? '标识历史永久' : `${d }天`
+          }}
+</RadioButton>
         </RadioGroup>
       </template>
       <template #behavior>
@@ -556,9 +562,11 @@ defineExpose({ submitVivoConfig, popUpVivoCancel, echoVivoConfig });
       </template>
       <template #startPeriod>
         <RadioGroup v-model:value="vivoConfig.startBehavior.period" button-style="solid">
-          <RadioButton v-for="d in [-1, 7, 30, 180, 356]" :key="d" :value="d">{{
-            d === -1 ? '标识历史永久' : d + '天'
-          }}</RadioButton>
+          <RadioButton v-for="d in [-1, 7, 30, 180, 356]" :key="d" :value="d">
+{{
+            d === -1 ? '标识历史永久' : `${d }天`
+          }}
+</RadioButton>
         </RadioGroup>
       </template>
       <template #startBehavior>

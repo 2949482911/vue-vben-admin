@@ -1,17 +1,24 @@
 <script lang="ts" setup>
+import type { TitlePackItem } from "./titlePackageType";
+
+import { useVbenDrawer, useVbenForm } from "@vben/common-ui";
+
+import { message } from "ant-design-vue";
+
 import { projectApi, titlePackApi } from "#/api";
 import { ACTIVE_PLATFORM } from "#/constants/locales";
 import { trimObject } from "#/utils/trim";
-import { useVbenDrawer, useVbenForm } from "@vben/common-ui";
-import { message } from "ant-design-vue";
-
-import type { TitlePackItem } from "./titlePackageType";
+import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
+import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
 
 const props = defineProps<{
   displayValue?: TitlePackItem;
 }>();
 
 const emit = defineEmits(["pageReload"]);
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
+  LABEL_TYPE_CODES.title
+);
 
 const [titlePackageDrawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,
@@ -31,7 +38,8 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
       title: formValue.title,
       platform: formValue.platform,
       projectId: formValue.projectId,
-      titles: formValue.titles || []
+      titles: formValue.titles || [],
+      labelIds: formValue.labelIds || []
     });
     try {
       if (props.displayValue?.id) {
@@ -49,13 +57,15 @@ const [titlePackageDrawer, drawerApi] = useVbenDrawer({
     }
   },
   async onOpened() {
+    await loadLabelOptions();
     if (props.displayValue?.id) {
       const data = props.displayValue;
       formApi.setValues({
         title: data.title,
         platform: data.platform,
         projectId: data.projectId,
-        titles: data.titles || []
+        titles: data.titles || [],
+        labelIds: data.labelIds || []
       });
     }
   }
@@ -124,6 +134,19 @@ const [Form, formApi] = useVbenForm({
       fieldName: "titles",
       label: "标题列表",
       rules: "required"
+    },
+    {
+      component: "Select",
+      componentProps: () => ({
+        allowClear: true,
+        mode: "multiple",
+        optionFilterProp: "label",
+        options: labelOptions.value,
+        placeholder: "请选择标签（可多选）",
+        showSearch: true
+      }),
+      fieldName: "labelIds",
+      label: "标签"
     }
   ]
 });

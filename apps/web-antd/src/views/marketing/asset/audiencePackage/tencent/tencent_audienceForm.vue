@@ -1,5 +1,8 @@
 <script setup lang="ts" name="TencentAudienceForm">
+import { markRaw } from "vue";
+
 import { type ExtendedFormApi } from "@vben/common-ui";
+
 import { useVbenForm } from "#/adapter/form";
 import {
   App_install_status,
@@ -16,9 +19,9 @@ import {
   User_os,
   Wechat_ad_behavior_actions
 } from "#/views/marketing/asset/audiencePackage/tencent/tencentTagData";
+
 import AgeRangeInput from "./components/AgeRangeInput.vue";
 import CustomLocationInput from "./components/CustomLocationInput.vue";
-import { markRaw } from "vue";
 
 // 提交表单数据
 async function submitTencentConfig() {
@@ -26,25 +29,25 @@ async function submitTencentConfig() {
   return {
     ...values,
     geo_location: {
-      location_types: values["location_types"],
-      regions: values["regions"],
-      business_districts: values["business_districts"],
-      geo_location_auto_audience: values["geo_location_auto_audience"],
-      custom_locations: values["custom_locations"]
+      location_types: values.location_types,
+      regions: values.regions,
+      business_districts: values.business_districts,
+      geo_location_auto_audience: values.geo_location_auto_audience,
+      custom_locations: values.custom_locations
     },
     excluded_converted_audience: {
-      excluded_dimension: values["excluded_dimension"],
-      conversion_behavior_list: values["conversion_behavior_list"],
-      excluded_day: values["excluded_day"]
+      excluded_dimension: values.excluded_dimension,
+      conversion_behavior_list: values.conversion_behavior_list,
+      excluded_day: values.excluded_day
     },
     device_brand_model: {
-      included_list: values["included_list"],
-      excluded_list: values["excluded_list"]
+      included_list: values.included_list,
+      excluded_list: values.excluded_list
     },
     wechat_ad_behavior: {
-      actions: values["actions"],
-      excluded_actions: values["excluded_actions"],
-      corp_id: values["corp_id"]
+      actions: values.actions,
+      excluded_actions: values.excluded_actions,
+      corp_id: values.corp_id
     }
   };
 }
@@ -103,7 +106,7 @@ const [Form, formApiInstance] = useVbenForm({
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
-          return data["geo_location_select"] === "customer";
+          return data.geo_location_select === "customer";
         },
         triggerFields: ["geo_location_select"],
       }
@@ -122,7 +125,7 @@ const [Form, formApiInstance] = useVbenForm({
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
-          return data["geo_location_select"] === "customer";
+          return data.geo_location_select === "customer";
         },
         triggerFields: ["geo_location_select"]
       }
@@ -141,7 +144,7 @@ const [Form, formApiInstance] = useVbenForm({
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
-          return data["geo_location_select"] === "customer";
+          return data.geo_location_select === "customer";
         },
         triggerFields: ["geo_location_select"]
       }
@@ -154,7 +157,7 @@ const [Form, formApiInstance] = useVbenForm({
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
-          return data["geo_location_select"] === "customer";
+          return data.geo_location_select === "customer";
         },
         triggerFields: ["geo_location_select"]
       }
@@ -167,7 +170,7 @@ const [Form, formApiInstance] = useVbenForm({
       dependencies: {
         show: async () => {
           const data = await formApi.getValues();
-          return data["geo_location_select"] === "customer";
+          return data.geo_location_select === "customer";
         },
         triggerFields: ["geo_location_select"]
       }
@@ -402,8 +405,7 @@ formApi = formApiInstance;
 
 <template>
   <div>
-    <Form>
-    </Form>
+    <Form />
   </div>
 </template>
 

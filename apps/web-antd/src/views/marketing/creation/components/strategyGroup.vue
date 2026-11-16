@@ -8,11 +8,12 @@ import { Button, message, Tag } from "ant-design-vue";
 
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { projectApi, strategyGropApi } from "#/api/core";
-import { Platform } from "#/constants/enums";
-import { BatchOptionsType, PLATFORM, SUB_TYPE, TABLE_COMMON_COLUMNS, getSubTypeLabel } from "#/constants/locales";
+import { Platform, SubType } from "#/constants/enums";
+import { BatchOptionsType, getSubTypeLabel, PLATFORM, SUB_TYPE, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
 import { BYTEDANCE_STD } from "#/views/marketing/creation/bytedance_std/bytedance";
+import { BYTEDANCE_UNIT } from "#/views/marketing/creation/bytedance_unit/bytedance";
 import { HUAWEI_STORE } from "#/views/marketing/creation/huawei_store/huawei_store";
 import { OPPO_VERSION } from "#/views/marketing/creation/oppo/Oppo.types";
 import { TENCENT } from "#/views/marketing/creation/tencent/tencent";
@@ -26,11 +27,14 @@ const props = defineProps<Props>();
 // 定义要传递给父组件的事件
 const emit = defineEmits(["update:reuse"]);
 
-function getLasterVersion(platform: string, version: string): boolean {
+function getLasterVersion(platform: string, version: string, subType?: string): boolean {
   if (platform === Platform.VIVO) {
     return version !== VIVO_VERSION;
   } else if (platform === Platform.BYTEDANCE) {
-    return version !== BYTEDANCE_STD;
+    // 巨量竞价与全域使用同一 platform，版本号按子类型区分
+    return subType === SubType.BYTEDANCE_UNIT
+      ? version !== BYTEDANCE_UNIT
+      : version !== BYTEDANCE_STD;
   } else if (platform === Platform.OPPO) {
     return version !== OPPO_VERSION;
   } else if (platform === Platform.TENCENT) {
@@ -223,7 +227,7 @@ function openCreateModal(row: StrategyGropType) {
         <template #status="{ row }">
           <div>
             {{
-              getLasterVersion(row.platform, row.version) ? "版本已迭代，旧版本不可用" : "最新版本"
+              getLasterVersion(row.platform, row.version, row.subType) ? "版本已迭代，旧版本不可用" : "最新版本"
             }}
           </div>
 </template>
@@ -231,14 +235,14 @@ function openCreateModal(row: StrategyGropType) {
           <Button
             type="link"
             @click="openCreateModal(row)"
-            :disabled="getLasterVersion(row.platform, row.version)"
+            :disabled="getLasterVersion(row.platform, row.version, row.subType)"
           >
             {{ $t("common.edit") }}
           </Button>
           <Button
             type="link"
             @click="reuseStrategyGroup(row)"
-            :disabled="getLasterVersion(row.platform, row.version)"
+            :disabled="getLasterVersion(row.platform, row.version, row.subType)"
           >
             复用
           </Button>

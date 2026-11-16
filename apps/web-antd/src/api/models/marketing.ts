@@ -398,6 +398,8 @@ export interface FileInfo extends BaseItem {
   height: number;
   /** 图片宽度 */
   width: number;
+  /** 标签ID数组（platform_advertiser_tag.id） */
+  labelIds?: Array<number | string>;
 }
 
 /** 编辑素材 */
@@ -570,6 +572,8 @@ export interface NewTargetedPackageType {
   platform?: string;
   platformAdvertiserId?: string;
   remark?: string;
+  /** 标签ID数组（platform_advertiser_tag.id） */
+  labelIds?: Array<number | string>;
   config?: {
     sexList?: string[];
     ageList?: string[];
@@ -768,17 +772,22 @@ export interface TaskBatchCenterProgressResponse {
 export interface LabelItem extends BaseItem {
   name?: string;
   remark?: string;
+  /** 标签类型（字典 label_type） */
+  labelType?: string;
 }
 
 /** 账户标签-查询任务列表 */
-export interface GetLabelItemType {
+export interface GetLabelItemType extends PageRequestParams {
   name?: string;
+  labelType?: string;
 }
 
 /** 账户标签-新增任务列表 */
 export interface NewLabelItemType {
   name?: string;
   remark?: string;
+  /** 标签类型（字典 label_type） */
+  labelType?: string;
 }
 
 /** 账户标签-编辑任务列表 */
@@ -959,6 +968,8 @@ export interface CreateLandingPage extends LandingPageQuery {
   config: {
     pageUrl: string;
   };
+  /** 标签ID数组（platform_advertiser_tag.id） */
+  labelIds?: Array<number | string>;
 }
 
 // 落地页-删除
@@ -974,6 +985,8 @@ export interface LandingPageData extends BaseItem {
   config: {
     pageUrl: string;
   };
+  /** 标签ID数组（platform_advertiser_tag.id） */
+  labelIds?: Array<number | string>;
 }
 
 export interface AdManagementType {

@@ -1,21 +1,28 @@
 <script setup lang="ts">
 import type { AdConfig } from "./audiencePackageType";
 
+import type { AdvertiserPageRequest } from "#/api/models/marketing";
+
 import { onMounted, ref } from "vue";
 
 import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
 
-import { Button, message, Switch, Tag } from "ant-design-vue";
+import { Button, message, Space, Switch, Tag } from "ant-design-vue";
 
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { advertiserApi, targetedPackageApi } from "#/api";
 import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
-import type { AdvertiserPageRequest } from "#/api/models/marketing";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
+import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
+import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
 
 import { AUDIENCE_PLATFORM_OPTIONS } from "./audiencePackageType";
 import CreatedAudiencePackage from "./createdAudiencePackage.vue";
+
+const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
+  LABEL_TYPE_CODES.target
+);
 
 const [CreatedAudiencePackageModule, drawerApi] = useVbenDrawer({
   connectedComponent: CreatedAudiencePackage
@@ -28,6 +35,7 @@ function openDrawer() {
 
 onMounted(() => {
   loadAdvertiserOptions();
+  void loadLabelOptions();
 });
 
 interface DeveloperOption {
@@ -130,6 +138,12 @@ const gridOptions: VxeGridProps = {
       width: "auto"
     },
     {
+      field: "labelIds",
+      title: "标签",
+      width: 200,
+      slots: { default: "labelIds" }
+    },
+    {
       field: "platformAdvertiserName",
       title: "广告主名称",
       width: "auto"
@@ -193,6 +207,18 @@ function handlerState(_row: AdConfig) {
         <Tag :bordered="false" :color="getPlatformColor(row.platform)">
           {{ getPlatformLabel(row.platform) }}
         </Tag>
+      </template>
+      <template #labelIds="{ row }">
+        <Space v-if="row.labelIds?.length" wrap :size="[4, 4]">
+          <Tag
+            v-for="name in labelNamesOf(row.labelIds)"
+            :key="name"
+            :bordered="false"
+          >
+            {{ name }}
+          </Tag>
+        </Space>
+        <span v-else>-</span>
       </template>
       <!--        <template #type="{ row }">-->
       <!--          <span v-if="row.type === 'normal'">常规定向</span>-->

@@ -2,7 +2,7 @@
 import type { NovelItem } from '#/api/models/ai_asset';
 
 import { computed, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { Page, VbenLoading } from '@vben/common-ui';
 
@@ -34,6 +34,7 @@ import { FINISHED_FLAG } from './status';
 import { useNovelDicts } from './useNovelDicts';
 
 const { options, labelOf } = useNovelDicts();
+const route = useRoute();
 const router = useRouter();
 const workspaceStore = useWorkspaceStore();
 
@@ -157,8 +158,14 @@ function goPage(key: string) {
   void router.push(workspacePagePath(workspaceId, key));
 }
 
-onMounted(() => {
-  void loadNovels();
+onMounted(async () => {
+  await loadNovels();
+  // Studio 失败兜底会带 novelId；直接进入创作台，无效 ID 由详情接口真实报错
+  const queryNovelId = route.query.novelId;
+  if (typeof queryNovelId === 'string' && queryNovelId) {
+    activeNovelId.value = queryNovelId;
+    mode.value = 'book';
+  }
   void loadModels();
   void loadPersonas();
 });

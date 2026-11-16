@@ -37,10 +37,32 @@ function handleLevelChange(key: string) {
     @change="handleLevelChange"
   >
     <template #campaign>
-      <PlatformLevelList ref="campaignRef" platform="vivo" level="campaign" id-field="campaign_id" />
+      <PlatformLevelList
+        ref="campaignRef"
+        platform="vivo"
+        level="campaign"
+        id-field="campaign_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+        ]"
+      />
     </template>
     <template #adgroup>
-      <PlatformLevelList ref="adgroupRef" platform="vivo" level="adgroup" id-field="adgroup_id" />
+      <PlatformLevelList
+        ref="adgroupRef"
+        platform="vivo"
+        level="adgroup"
+        id-field="adgroup_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+          'adgroup_name',
+          'adgroup_id',
+        ]"
+      />
     </template>
     <template #promotion>
       <PlatformLevelList
@@ -48,6 +70,15 @@ function handleLevelChange(key: string) {
         platform="vivo"
         level="promotion"
         id-field="promotion_id"
+        :pinned-fields="[
+          'platform_account_id',
+          'campaign_name',
+          'campaign_id',
+          'adgroup_name',
+          'adgroup_id',
+          'promotion_name',
+          'promotion_id',
+        ]"
       />
     </template>
   </AdManagementShell>

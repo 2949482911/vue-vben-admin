@@ -82,6 +82,8 @@ export enum SubType {
   BYTEDANCE = "bytedance",
   /** 巨量引擎-智擎 */
   BYTEDANCE_STD = "bytedance_std",
+  /** 巨量引擎-全域 */
+  BYTEDANCE_UNIT = "bytedance_unit",
   OPPO = "oppo",
   TENCENT = "tencent",
   HUAWEI_STORE = "huawei_store",

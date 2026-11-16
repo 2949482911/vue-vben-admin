@@ -1,16 +1,34 @@
 <script lang="ts" setup>
-import type {LabelItem, NewLabelItemType, EditLabelItemType} from '#/api/models/marketing'
-import { accountLabelApi } from '#/api';
+import type {EditLabelItemType, LabelItem, NewLabelItemType} from '#/api/models/marketing'
+
+import { ref } from 'vue';
+
 import { useVbenForm, useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+import { useDictStore } from '@vben/stores';
+
 import { message } from 'ant-design-vue';
-import {ref} from 'vue';
-import {$t} from '@vben/locales';
+
+import { accountLabelApi } from '#/api';
 import { trimObject } from '#/utils/trim';
 
+import { LABEL_TYPE_DICT_CODE } from './constants';
+
 const emit = defineEmits(['pageReload']);
+const dictStore = useDictStore();
 const objectRequest = ref<LabelItem>({});
 const isUpdate = ref<Boolean>(false);
 const title = ref<string>('');
+const labelTypeOptions = ref<Array<{ label: string; value: string }>>([]);
+
+/** 标签类型下拉：来自系统字典 label_type */
+async function loadLabelTypeOptions() {
+  const items = await dictStore.getDict(LABEL_TYPE_DICT_CODE);
+  labelTypeOptions.value = items.map((item) => ({
+    label: item.label,
+    value: String(item.value),
+  }));
+}
 const [LabelModal, modalApi] = useVbenModal<LabelItem>({
   fullscreenButton: false,
   async onCancel() {
@@ -40,8 +58,9 @@ const [LabelModal, modalApi] = useVbenModal<LabelItem>({
       console.log(err)
     }
   },
-  onOpenChange(isOpen: boolean) {
+  async onOpenChange(isOpen: boolean) {
     if (isOpen) {
+      await loadLabelTypeOptions();
       objectRequest.value = modalApi.getData()!;
       if (objectRequest.value.id) {
         title.value = "修改标签"
@@ -85,6 +104,19 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
     },
     {
+      component: 'Select',
+      componentProps: () => ({
+        allowClear: true,
+        optionFilterProp: 'label',
+        options: labelTypeOptions.value,
+        placeholder: '请选择标签类型',
+        showSearch: true,
+      }),
+      fieldName: 'labelType',
+      label: '标签类型',
+      rules: 'selectRequired',
+    },
+    {
       component: 'Input',
       componentProps: {
         allowClear: true,
@@ -115,7 +147,7 @@ const [Form, formApi] = useVbenForm({
 </script>
 <template>
   <LabelModal :title="title">
-    <Form/>
+    <Form />
   </LabelModal>
 </template>
 

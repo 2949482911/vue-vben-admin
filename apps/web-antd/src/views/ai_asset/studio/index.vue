@@ -13,7 +13,6 @@ import type {
  * - 上半：对话式创作（技能 chips + 提示词 + 模型/比例/清晰度/数量 → material/generate；
  *   任务到终态后回查素材地址）
  * - 下半：成品展示区（有真实产物就展示任务产物，还没有就用占位卡片撑版式）
- * 画布式创作沿用原实现，已封装为 CanvasStudio.vue，本期先以禁用分段占位。
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -45,11 +44,8 @@ const workspaceName = computed(
     workspaceStore.workspaceName || `工作区 #${workspaceStore.workspaceId ?? '-'}`,
 );
 
-/** 生成 | 画布（画布本期先禁用占位） */
-const MODE_TABS = [
-  { label: '生成', value: 'chat' },
-  { disabled: true, label: '画布', value: 'canvas' },
-];
+/** 生成模式（画布模式已移除：生产线画布将按 Omniboard 重建） */
+const MODE_TABS = [{ label: '生成', value: 'chat' }];
 const mode = ref('chat');
 
 // ==================== 模型库（只取图片类能力） ====================
