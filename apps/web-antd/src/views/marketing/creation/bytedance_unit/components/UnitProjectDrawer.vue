@@ -1,27 +1,17 @@
 <script setup lang="ts" name="UnitProjectDrawer">
-import type {
-  UnitProjectCreateRequest,
-  UnitSelectedProduct,
-} from '../bytedance';
+import type { UnitProjectCreateRequest } from '../bytedance';
 
 /**
  * 巨量引擎-全域项目配置抽屉
  *
- * 字段对齐 BytedanceUniProjectCreateRequest：项目名/预算/ROI/变现模式/商品/排期/定向基础项。
+ * 字段对齐 BytedanceUniProjectCreateRequest：项目名/预算/ROI/变现模式/排期/定向基础项。
  */
-import type { AccountInfo } from '#/views/marketing/creation/creation';
-
-import { markRaw } from 'vue';
-
 import { useVbenDrawer } from '@vben/common-ui';
 
 import { useVbenForm } from '#/adapter/form';
 import TimeSelectionPeriod from '#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue';
 
-import UnitProductButtonField from './UnitProductButtonField.vue';
-
 const props = defineProps<{
-  accountInfo: AccountInfo[];
   project: UnitProjectCreateRequest;
 }>();
 const emit = defineEmits<{
@@ -59,15 +49,6 @@ const [Form, formApi] = useVbenForm({
       defaultValue: 'ALBUM',
       fieldName: 'delivery_product',
       label: '营销产品',
-      rules: 'required',
-    },
-    {
-      component: markRaw(UnitProductButtonField),
-      componentProps: {
-        getAccountInfo: () => props.accountInfo,
-      },
-      fieldName: 'selected_product',
-      label: '投放商品',
       rules: 'required',
     },
     {
@@ -248,9 +229,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
     const goingGlobalEnabled =
       monetizationMode === 'IAA_AND_IAP' &&
       values.going_global_switch === 'ON';
-    const selectedProduct =
-      (values.selected_product as null | undefined | UnitSelectedProduct) ??
-      null;
     const project: UnitProjectCreateRequest = {
       ...base,
       aigc_dynamic_creative_switch: String(
@@ -274,23 +252,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
           : undefined,
       monetization_mode: monetizationMode,
       name: String(values.name || ''),
-      related_product: selectedProduct
-        ? {
-            product_id: String(selectedProduct.product_id),
-            product_platform_id: String(selectedProduct.product_platform_id),
-          }
-        : undefined,
       schedule_time: String(values.schedule_time || ''),
       schedule_type: String(values.schedule_type || 'SCHEDULE_FROM_NOW'),
-      selectedProduct: selectedProduct
-        ? {
-            image_url: selectedProduct.image_url,
-            name: selectedProduct.name,
-            product_id: String(selectedProduct.product_id),
-            product_platform_id: String(selectedProduct.product_platform_id),
-            title: selectedProduct.title,
-          }
-        : undefined,
       source: String(values.source || ''),
       start_time:
         values.schedule_type === 'SCHEDULE_START_END'
@@ -307,14 +270,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
     }
     await formApi.resetForm();
     const project = props.project;
-    const productSelection: null | UnitSelectedProduct =
-      project.selectedProduct ??
-      (project.related_product
-        ? {
-            product_id: project.related_product.product_id,
-            product_platform_id: project.related_product.product_platform_id,
-          }
-        : null);
     await formApi.setValues({
       aigc_dynamic_creative_switch:
         project.aigc_dynamic_creative_switch || 'ON',
@@ -328,7 +283,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
       name: project.name || '',
       schedule_time: project.schedule_time || '',
       schedule_type: project.schedule_type || 'SCHEDULE_FROM_NOW',
-      selected_product: productSelection,
       source: project.source || '',
       start_time: project.start_time || '',
       uni_roi_goal: project.uni_roi_goal,

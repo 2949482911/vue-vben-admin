@@ -5,6 +5,7 @@ import type {
   UnitProjectCreateRequest,
 } from '../bytedance';
 
+import type { DpaProductAllocationConfig } from '#/views/marketing/creation/components/dpa_product/types';
 import type {
   AudienceConfigData,
   AwemeConfigData,
@@ -14,11 +15,12 @@ import type {
 } from '#/views/marketing/creation/creation';
 
 import { Platform } from '#/constants/enums';
-import ProductConfigCard from '#/views/marketing/creation/bytedance_std/components/product/ProductConfigCard.vue';
 import AudiencePackageSelector from '#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue';
 import AwemeConfigCard from '#/views/marketing/creation/components/aweme/AwemeConfigCard.vue';
 import CreativeGroupSelector from '#/views/marketing/creation/components/creative/CreativeGroupSelector.vue';
+import DpaProductAllocationCard from '#/views/marketing/creation/components/dpa_product/DpaProductAllocationCard.vue';
 import PageViewSelector from '#/views/marketing/creation/components/pageview/PageViewSelector.vue';
+import ProductConfigAllocationCard from '#/views/marketing/creation/components/product_config/ProductConfigAllocationCard.vue';
 import TitleSelector from '#/views/marketing/creation/components/title/TitleSelector.vue';
 
 import UnitProject from './UnitProject.vue';
@@ -35,6 +37,7 @@ const emit = defineEmits([
   'update:titlePackage',
   'update:updateMaterial',
   'update:productConfig',
+  'update:dpaProductConfig',
 ]);
 
 function updateAudiencePackage(audience: AudienceConfigData) {
@@ -60,12 +63,15 @@ function updateMaterial(material: MaterialData) {
 function updateProductConfig(productConfig: ProductConfigData) {
   emit('update:productConfig', productConfig);
 }
+
+function updateDpaProductConfig(dpaProductConfig: DpaProductAllocationConfig) {
+  emit('update:dpaProductConfig', dpaProductConfig);
+}
 </script>
 
 <template>
   <div class="panes batch-config-panes">
     <UnitProject
-      :account-info="creationInfo.accountInfo"
       :project="creationInfo.configData.project"
       @update:project="updateProject"
     />
@@ -75,10 +81,15 @@ function updateProductConfig(productConfig: ProductConfigData) {
       :platform="Platform.BYTEDANCE"
       @update:audience="updateAudiencePackage"
     />
-    <ProductConfigCard
+    <ProductConfigAllocationCard
       :account-info="creationInfo.accountInfo"
       :product-config="creationInfo.configData.productConfig"
       @update:product-config="updateProductConfig"
+    />
+    <DpaProductAllocationCard
+      :account-info="creationInfo.accountInfo"
+      :dpa-product-config="creationInfo.configData.dpaProductConfig"
+      @update:dpa-product-config="updateDpaProductConfig"
     />
     <CreativeGroupSelector
       :account-info="creationInfo.accountInfo"
@@ -98,7 +109,6 @@ function updateProductConfig(productConfig: ProductConfigData) {
     <AwemeConfigCard
       :account-info="creationInfo.accountInfo"
       :aweme-config="creationInfo.configData.awemeConfig"
-      :supported-rules="['PER_PROJECT', 'PER_ACCOUNT']"
       @update:aweme-config="updateAwemeConfig"
     />
   </div>

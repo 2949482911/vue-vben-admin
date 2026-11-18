@@ -1,8 +1,4 @@
 import type {
-  ProductConfigData,
-  ProductDataMapping,
-} from '../bytedance_std/bytedance';
-import type {
   UnitCreation,
   UnitCreationData,
   UnitProject,
@@ -15,12 +11,14 @@ import type {
 } from '#/views/marketing/creation/components/preview_area/previewAreaData';
 import type {
   AccountInfo,
-  AwemeConfigData,
   Material,
 } from '#/views/marketing/creation/creation';
 
 import { CampaignRuleKey, Platform } from '#/constants/enums';
 import { renderProjectTitle } from '#/utils/customName';
+import { resolveAweme } from '#/views/marketing/creation/components/aweme/types';
+import { resolveDpaProduct } from '#/views/marketing/creation/components/dpa_product/types';
+import { resolveProductConfigItem } from '#/views/marketing/creation/components/product_config/types';
 import {
   getAudience,
   getFlatTitleList,
@@ -30,17 +28,6 @@ import {
   getTitleCount,
 } from '#/views/marketing/creation/creation';
 
-function getAwemeId(
-  awemeConfig: AwemeConfigData | undefined,
-  advertiserId: string,
-): string {
-  if (!awemeConfig?.data) {
-    return '';
-  }
-  const key = awemeConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
-  return awemeConfig.data.get(key)?.[0]?.awemeId || '';
-}
-
 /** 素材 ID 保持字符串，避免 19 位 ID 转 number 丢精度 */
 function toLocalIds(values: string[] | undefined): string[] {
   return (values ?? [])
@@ -48,22 +35,11 @@ function toLocalIds(values: string[] | undefined): string[] {
     .filter((value) => value !== '' && value !== '0' && /^\d+$/.test(value));
 }
 
-/** 按产品配置分配规则取当前账户的产品信息 */
-function getProductMapping(
-  productConfig: ProductConfigData | undefined,
-  advertiserId: string,
-): null | ProductDataMapping {
-  if (!productConfig?.data) {
-    return null;
-  }
-  const key = productConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
-  return productConfig.data.get(key)?.[0] || null;
-}
-
 /** 获取全域批投预览数据（单层：项目） */
 export function getPreviewTableData(creationInfo: UnitCreation): UnitCreationData[] {
   const adList: UnitCreationData[] = [];
   const projectData = creationInfo.configData.project;
+  let globalProjectIndex = 0;
 
   creationInfo.accountInfo.forEach((account, accountIdx) => {
     const advertiserId = account.localAdvertiserId;
@@ -91,16 +67,6 @@ export function getPreviewTableData(creationInfo: UnitCreation): UnitCreationDat
       titlePackageConfig.data,
       advertiserId,
     );
-    const awemeId = getAwemeId(
-      creationInfo.configData.awemeConfig,
-      advertiserId,
-    );
-    const productMapping = getProductMapping(
-      creationInfo.configData.productConfig,
-      advertiserId,
-    );
-    const productImageIds = toLocalIds(productMapping?.image_button);
-
     for (let pIdx = 0; pIdx < projectCount; pIdx++) {
       const materialList: Material[] = getMaterial(
         creationInfo.configData.material.config.method,
@@ -153,9 +119,24 @@ export function getPreviewTableData(creationInfo: UnitCreation): UnitCreationDat
         ...((audienceItem?.config as Record<string, any>) || {}),
       };
       delete audienceConfig.unitAudience;
+      const productMapping = resolveProductConfigItem(
+        creationInfo.configData.productConfig,
+        {
+          advertiserId,
+          globalProjectIndex,
+          projectIndex: pIdx,
+        },
+      );
+      const productImageIds = toLocalIds(productMapping?.image_button);
+      const dpaProduct = resolveDpaProduct(
+        creationInfo.configData.dpaProductConfig,
+        {
+          advertiserId,
+          globalProjectIndex,
+          projectIndex: pIdx,
+        },
+      );
       const projectPayload: UnitProjectCreateRequest = { ...projectData };
-      // 选择结果仅用于表单/JSON 回显，媒体接口只接收 related_product
-      delete projectPayload.selectedProduct;
       const project: UnitProject = {
         ...projectPayload,
         aigc_dynamic_creative_switch:
@@ -170,7 +151,12 @@ export function getPreviewTableData(creationInfo: UnitCreation): UnitCreationDat
                 gender: projectData.audience?.gender || 'NONE',
                 platform: projectData.audience?.platform || [],
               },
-        aweme_id: awemeId,
+        aweme_id:
+          resolveAweme(creationInfo.configData.awemeConfig, {
+            advertiserId,
+            globalProjectIndex,
+            projectIndex: pIdx,
+          })?.awemeId || '', 
         budget: Number(projectData.budget) || 0,
         call_to_action_buttons: productMapping?.action_buttons ?? [],
         delivery_product: projectData.delivery_product || 'ALBUM',
@@ -194,12 +180,10 @@ export function getPreviewTableData(creationInfo: UnitCreation): UnitCreationDat
           pIdx,
           creationInfo.project.projectName,
         ),
-        related_product: projectData.related_product
+        related_product: dpaProduct
           ? {
-              product_id: String(projectData.related_product.product_id),
-              product_platform_id: String(
-                projectData.related_product.product_platform_id,
-              ),
+              product_id: String(dpaProduct.product_id),
+              product_platform_id: String(dpaProduct.platform_id),
             }
           : undefined,
         playlet_series_url_info: [
@@ -236,6 +220,7 @@ export function getPreviewTableData(creationInfo: UnitCreation): UnitCreationDat
         video_material_list: videoMaterialList,
       };
       tableData.projectList.push(project);
+      globalProjectIndex += 1;
     }
     adList.push(tableData);
   });

@@ -174,6 +174,7 @@ function pageReload() {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   closeOnClickModal: false,
+  closeOnPressEscape: true,
   class: 'w-[73.2%]',
 });
 

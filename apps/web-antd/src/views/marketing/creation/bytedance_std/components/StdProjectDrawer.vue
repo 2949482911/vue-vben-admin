@@ -1,4 +1,13 @@
 <script setup lang="ts" name="StdProjectDrawer">
+import type { DpaProductConfigData, StdProjectData } from '../bytedance';
+
+import type { VbenFormSchema } from '#/adapter/form';
+import type {
+  BytedanceDpaProductListItem,
+  BytedanceEventManagerOptimizedGoalGetGoal,
+} from '#/api/models/bytedance';
+import type { AccountInfo } from '#/views/marketing/creation/creation';
+
 /**
  * 智擎版项目配置抽屉
  *
@@ -10,17 +19,12 @@
  * - onConfirm: 还原嵌套对象，setData(project)
  */
 import { nextTick, ref } from 'vue';
+
 import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
-import type { VbenFormSchema } from '#/adapter/form';
+
 import { useVbenForm } from '#/adapter/form';
-import MaterialSelector from '#/views/marketing/creation/components/material/MaterialSelector.vue';
-import type { AccountInfo } from '#/views/marketing/creation/creation';
-import type { DpaProductConfigData, StdProjectData } from '../bytedance';
-import type {
-  BytedanceDpaProductListItem,
-  BytedanceEventManagerOptimizedGoalGetGoal,
-} from '#/api/models/bytedance';
 import { bytedanceAdvertisementApi } from '#/api/core';
+import MaterialSelector from '#/views/marketing/creation/components/material/MaterialSelector.vue';
 
 const props = defineProps({
   formFields: {
@@ -31,7 +35,7 @@ const props = defineProps({
     type: Array as () => AccountInfo[],
     default: () => [],
   },
-  /** 投放商品配置（分配规则 + 各账户/统一商品），注入给 DpaProductButtonField 自带弹窗 */
+  /** 投放商品配置（分配规则 + 各账户/统一商品），由工作台投放商品配置卡统一维护 */
   dpaProductConfig: {
     type: Object as () => DpaProductConfigData | null,
     default: null,
@@ -260,7 +264,6 @@ const [Drawer, drawerApi] = useVbenDrawer({
       const nestedKeys = [
         'project_materials', 'brand_info',
         'keywords', 'star_task_id_list', 'track_url_setting',
-        '_dpaProductInfo',
       ];
       nestedKeys.forEach((k) => delete filteredData[k]);
 

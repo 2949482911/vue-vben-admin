@@ -1,8 +1,11 @@
 <script setup lang="ts" name="BytedancePromotionDrawer">
-import { nextTick, ref } from 'vue';
-import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
-import { useVbenForm } from '#/adapter/form';
 import type { BytedancePromotionData } from '#/views/marketing/creation/bytedance/bytedance';
+
+import { nextTick, ref } from 'vue';
+
+import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
+
+import { useVbenForm } from '#/adapter/form';
 import MaterialSelector from '#/views/marketing/creation/components/material/MaterialSelector.vue';
 
 const { formFields } = defineProps({
@@ -208,7 +211,7 @@ const [Drawer, drawerApi] = useVbenDrawer<BytedancePromotionData>({
 <template>
   <div>
     <Drawer title="广告配置">
-      <Form></Form>
+      <Form />
     </Drawer>
 
     <!-- 产品主图素材选择器 -->

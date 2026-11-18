@@ -1,16 +1,18 @@
 <script setup lang="ts" name="BytedancePreviewArea">
 // 巨量引擎广告预览数据
 
-import { computed } from "vue";
 import type { BytedanceCreationData } from "#/views/marketing/creation/bytedance/bytedance";
-import type { AccountInfo } from "#/views/marketing/creation/creation";
 import type {
-  PreviewColumn,
   AccountTabData,
   LevelNames,
+  PreviewColumn,
 } from "#/views/marketing/creation/components/preview_area/previewAreaData";
-import PreviewArea from "#/views/marketing/creation/components/preview_area/PreviewArea.vue";
+import type { AccountInfo } from "#/views/marketing/creation/creation";
+
+import { computed } from "vue";
+
 import { convertToPreviewData } from "#/views/marketing/creation/bytedance/convertToPreviewData";
+import PreviewArea from "#/views/marketing/creation/components/preview_area/PreviewArea.vue";
 
 const props = defineProps<{
   adList: Array<BytedanceCreationData>;

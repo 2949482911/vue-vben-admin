@@ -189,6 +189,7 @@ async function changeMethod(e: RadioChangeEvent) {
 
 const [Drawer, drawerApi] = useVbenDrawer<AudienceConfigData>({
   closeOnClickModal: false,
+  closeOnPressEscape: true,
   class: 'w-[75%]',
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {

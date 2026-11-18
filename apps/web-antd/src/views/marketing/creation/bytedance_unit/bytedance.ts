@@ -1,5 +1,6 @@
 import type { ProductConfigData } from '../bytedance_std/bytedance';
 
+import type { DpaProductAllocationConfig } from '#/views/marketing/creation/components/dpa_product/types';
 import type {
   AudienceConfigData,
   AwemeConfigData,
@@ -35,6 +36,8 @@ export interface UnitConfigData {
   awemeConfig: AwemeConfigData;
   // 产品配置：产品名称/卖点/行动号召/主图，写入项目 product_info
   productConfig: ProductConfigData;
+  // 投放商品配置：统一配置/分账户配置/平均分配
+  dpaProductConfig: DpaProductAllocationConfig;
 }
 
 /** 关联产品投放参数 */
@@ -43,15 +46,6 @@ export interface UnitRelatedProduct {
   product_platform_id: string;
   /** 商品 ID，营销产品=剧目时必填，单次最多一个 */
   product_id: string;
-}
-
-/** 投放商品选择结果（仅前端回显，提交前剔除） */
-export interface UnitSelectedProduct {
-  product_platform_id: string;
-  product_id: string;
-  name?: string;
-  title?: string;
-  image_url?: string;
 }
 
 export interface UnitGeolocation {
@@ -202,8 +196,6 @@ export interface UnitProjectCreateRequest {
   // ===== 批投侧字段（不提交媒体）=====
   /** 已有项目 ID */
   projectId?: number | string;
-  /** 已选商品展示信息（仅前端回显，提交前剔除） */
-  selectedProduct?: UnitSelectedProduct;
 }
 
 /** 预览区项目 */

@@ -11,6 +11,7 @@ import type {
   UnitProjectCreateRequest,
 } from './bytedance';
 
+import type { DpaProductAllocationConfig } from '#/views/marketing/creation/components/dpa_product/types';
 import type {
   AudienceConfigData,
   AwemeConfigData,
@@ -29,7 +30,13 @@ import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 
 import { Platform, SubType } from '#/constants/enums';
+import { normalizeAwemeConfig } from '#/views/marketing/creation/components/aweme/types';
 import BatchCreateLayout from '#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue';
+import {
+  createEmptyDpaProductConfig,
+  normalizeDpaProductConfig,
+} from '#/views/marketing/creation/components/dpa_product/types';
+import { normalizeProductConfig } from '#/views/marketing/creation/components/product_config/types';
 import { RuleKey, RuleMethod } from '#/views/marketing/creation/creation_enums';
 
 import ConfigurationConfig from '../components/configurationArea.vue';
@@ -203,6 +210,10 @@ function updateProductConfig(productConfig: ProductConfigData) {
   creationInfo.value.configData.productConfig = productConfig;
 }
 
+function updateDpaProductConfig(dpaProductConfig: DpaProductAllocationConfig) {
+  creationInfo.value.configData.dpaProductConfig = dpaProductConfig;
+}
+
 function resetCreationInfo() {
   if (adList.value.length > 0) {
     adList.value = [];
@@ -226,7 +237,7 @@ function validateProjectData(data: ReturnType<typeof getPreviewTableData>) {
         !item.related_product?.product_id,
     )
   ) {
-    return '请填写商品库ID和商品ID';
+    return '请配置投放商品';
   }
   if (projects.some((item) => !item.source?.trim())) {
     return '请填写项目来源（source 为媒体必填）';
@@ -296,7 +307,7 @@ const creationInfo = ref<UnitCreation>({
   accountInfo: [],
   configData: {
     audience: { config: { method: RuleMethod.ALL }, data: new Map() },
-    awemeConfig: { config: { method: 'PER_PROJECT' }, data: new Map() },
+    awemeConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
     landingPage: { config: { method: RuleMethod.ALL }, data: new Map() },
     material: { config: { method: RuleMethod.ALL }, data: new Map() },
     project: {
@@ -320,6 +331,7 @@ const creationInfo = ref<UnitCreation>({
       uni_roi_goal: 0,
     },
     productConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
+    dpaProductConfig: createEmptyDpaProductConfig(),
     titlePackage: { config: { method: RuleMethod.ALL }, data: new Map() },
   },
   configurationConfig: {
@@ -377,19 +389,9 @@ function updateReuse(creation: UnitCreation) {
       Object.entries(config.titlePackage.data || {}),
     );
   }
-  if (config.awemeConfig && !(config.awemeConfig.data instanceof Map)) {
-    config.awemeConfig.data = new Map(
-      Object.entries(config.awemeConfig.data || {}),
-    );
-  }
-  if (config.productConfig && !(config.productConfig.data instanceof Map)) {
-    config.productConfig.data = new Map(
-      Object.entries(config.productConfig.data || {}),
-    );
-  }
-  if (!config.productConfig) {
-    config.productConfig = { config: { method: 'ALL_SAME' }, data: new Map() };
-  }
+  config.awemeConfig = normalizeAwemeConfig(config.awemeConfig);
+  config.productConfig = normalizeProductConfig(config.productConfig);
+  config.dpaProductConfig = normalizeDpaProductConfig(config.dpaProductConfig);
   creationInfo.value = creation;
 }
 
@@ -427,6 +429,7 @@ watch(
         :creation-info="creationInfo"
         @update:audience-package="updateAudiencePackage"
         @update:aweme-config="updateAwemeConfig"
+        @update:dpa-product-config="updateDpaProductConfig"
         @update:landing-page="updateLandingPage"
         @update:product-config="updateProductConfig"
         @update:project="updateProjectData"

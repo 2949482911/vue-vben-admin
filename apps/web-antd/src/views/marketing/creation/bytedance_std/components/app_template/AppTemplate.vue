@@ -53,13 +53,14 @@ import {
 import AwemeConfigCard from "#/views/marketing/creation/components/aweme/AwemeConfigCard.vue";
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import DpaProductAllocationCard
+  from "#/views/marketing/creation/components/dpa_product/DpaProductAllocationCard.vue";
 import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
+import ProductConfigAllocationCard from "#/views/marketing/creation/components/product_config/ProductConfigAllocationCard.vue";
 import TimeSelectionPeriod
   from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
 
-import DpaProductConfigCard from "../product/DpaProductConfigCard.vue";
-import ProductConfigCard from "../product/ProductConfigCard.vue";
 import StdProject from "../StdProject.vue";
 
 const { creationInfo, productConfig, dpaProductConfig } = defineProps({
@@ -598,7 +599,7 @@ const campaignShowLabel: Record<string, string> = {
       <!-- 第2列：产品配置 + 抖音号配置 -->
       <div class="pane">
         <div class="combined-area">
-          <ProductConfigCard
+          <ProductConfigAllocationCard
             :product-config="productConfig"
             :account-info="creationInfo.accountInfo"
             @update:product-config="updateProductConfig"
@@ -607,8 +608,7 @@ const campaignShowLabel: Record<string, string> = {
             :aweme-config="creationInfo?.configData.awemeConfig"
             :account-info="creationInfo.accountInfo"
             :disabled="isAweme"
-            :supported-rules="['PER_PROJECT', 'PER_ACCOUNT']"
-            @update:aweme-config="updateAwemeConfig"
+                  @update:aweme-config="updateAwemeConfig"
           />
         </div>
       </div>
@@ -636,7 +636,7 @@ const campaignShowLabel: Record<string, string> = {
             :account-info="creationInfo.accountInfo"
             @update:title-package="updateTitlePackage"
           />
-          <DpaProductConfigCard
+          <DpaProductAllocationCard
             :dpa-product-config="dpaProductConfig"
             :account-info="creationInfo.accountInfo"
             @update:dpa-product-config="updateDpaProductConfig"

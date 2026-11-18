@@ -1,201 +1,198 @@
 <script setup lang="ts" name="AwemeConfigCard">
-// 抖音号配置选择组件 —— 巨量通用（bytedance / bytedance_std 共用）
-// 支持 disabled 置灰：当项目投放身份不是抖音号（native_type != AWEME）时禁止配置
-import type { AccountInfo, AwemeConfigData, AwemeDistributionRule, AwemeMapping } from '#/views/marketing/creation/creation';
-import { Alert, Button, Card } from 'ant-design-vue';
-import { useVbenDrawer } from '@vben/common-ui';
+/**
+ * 抖音号配置卡片
+ *
+ * 三种模式均支持多选：统一配置 / 分账户配置 / 平均分配。
+ */
+import type { AccountInfo, AwemeConfigData } from '#/views/marketing/creation/creation';
+
 import { computed, ref, watch } from 'vue';
-import AwemeConfigShow from './AwemeConfigShow.vue';
+
+import { useVbenDrawer } from '@vben/common-ui';
+
+import { Alert, Button, Card, Space, Tag } from 'ant-design-vue';
+
 import AwemeConfigDrawer from './AwemeConfigDrawer.vue';
+import {
+  countAwemes,
+  createEmptyAwemeConfig,
+  normalizeAwemeConfig,
+} from './types';
 
-const props = withDefaults(defineProps<{
-  /** 允许 undefined：复用旧策略组数据可能缺少该配置 */
-  awemeConfig?: AwemeConfigData | null;
-  accountInfo: AccountInfo[];
-  /** 是否置灰禁止配置（项目投放身份非抖音号时） */
-  disabled?: boolean;
-  /** 支持的分配方案，默认全部（智擎版仅传 ['PER_PROJECT', 'PER_ACCOUNT']） */
-  supportedRules?: AwemeDistributionRule[];
-}>(), {
-  disabled: false,
-  supportedRules: () => ['ALL_SAME', 'PER_ACCOUNT', 'PER_PROJECT', 'PER_AD'],
-});
+const props = withDefaults(
+  defineProps<{
+    accountInfo: AccountInfo[];
+    awemeConfig?: AwemeConfigData | null;
+    disabled?: boolean;
+  }>(),
+  {
+    awemeConfig: null,
+    disabled: false,
+  },
+);
 
-const emit = defineEmits(['update:awemeConfig']);
+const emit = defineEmits<{
+  'update:awemeConfig': [value: AwemeConfigData];
+}>();
 
 const [AwemeConfigDrawerComp, awemeDrawerApi] = useVbenDrawer({
   connectedComponent: AwemeConfigDrawer,
 });
 
-/** 默认分配方式（取当前配置中受支持的，否则用第一个受支持项） */
-const defaultMethod = computed<AwemeDistributionRule>(() => {
-  const current = props.awemeConfig?.config?.method;
-  if (!current) return props.supportedRules[0] || 'ALL_SAME';
-  return props.supportedRules.includes(current)
-    ? current
-    : props.supportedRules[0] || 'ALL_SAME';
-});
+const localAwemeConfig = ref<AwemeConfigData>(createEmptyAwemeConfig());
 
-/** 本地抖音号配置副本 */
-const localAwemeConfig = ref<AwemeConfigData>({
-  config: { method: defaultMethod.value },
-  data: new Map(),
-});
+const methodLabelMap = {
+  ALL_SAME: '统一配置',
+  AVERAGE: '平均分配',
+  PER_ACCOUNT: '分账户配置',
+} as const;
 
-/** 总分配数 */
-const totalCount = computed(() => {
-  let total = 0;
+const methodLabel = computed(
+  () => methodLabelMap[localAwemeConfig.value.config.method] || '未配置',
+);
+
+const totalCount = computed(() => countAwemes(localAwemeConfig.value));
+
+const awemeNames = computed(() => {
+  const names: string[] = [];
+  const seen = new Set<string>();
   localAwemeConfig.value.data.forEach((items) => {
-    total += items.length;
+    items.forEach((item) => {
+      if (!seen.has(item.awemeName)) {
+        seen.add(item.awemeName);
+        names.push(item.awemeName);
+      }
+    });
   });
-  return total;
+  return names;
 });
 
-/** 打开抽屉 */
+const configuredAccounts = computed(() => {
+  if (localAwemeConfig.value.config.method !== 'PER_ACCOUNT') {
+    return props.accountInfo.length;
+  }
+  return props.accountInfo.filter(
+    (account) =>
+      (localAwemeConfig.value.data.get(account.localAdvertiserId)?.length ??
+        0) > 0,
+  ).length;
+});
+
 function openDrawer() {
-  awemeDrawerApi.setData({
-    config: { method: localAwemeConfig.value.config.method },
-    data: new Map(localAwemeConfig.value.data),
-  });
+  awemeDrawerApi.setData(normalizeAwemeConfig(localAwemeConfig.value));
   awemeDrawerApi.open();
 }
 
-/** 接收抽屉确认回调 */
 function updateAwemeConfig(data: AwemeConfigData) {
-  localAwemeConfig.value = {
-    config: { ...data.config },
-    data: new Map(data.data),
-  };
+  localAwemeConfig.value = normalizeAwemeConfig(data);
   emit('update:awemeConfig', {
     config: { ...localAwemeConfig.value.config },
     data: new Map(localAwemeConfig.value.data),
   });
 }
 
-/** 清空 */
 function handleClear() {
-  localAwemeConfig.value.data.clear();
-  localAwemeConfig.value.config.method = defaultMethod.value;
-  emit('update:awemeConfig', {
-    config: { method: defaultMethod.value },
-    data: new Map(),
-  });
+  localAwemeConfig.value = createEmptyAwemeConfig();
+  emit('update:awemeConfig', createEmptyAwemeConfig());
 }
 
-/** 监听父组件传入配置变化，实现回显 */
 watch(
   () => props.awemeConfig,
-  (newVal) => {
-    if (newVal && newVal.data) {
-      const dataMap = newVal.data instanceof Map
-        ? newVal.data
-        : new Map<string, AwemeMapping[]>(Object.entries(newVal.data || {}));
-
-      localAwemeConfig.value = {
-        config: { method: defaultMethod.value },
-        data: dataMap,
-      };
-    }
+  (value) => {
+    localAwemeConfig.value = normalizeAwemeConfig(value);
   },
   { immediate: true, deep: true },
 );
 </script>
 
 <template>
-  <div class="aweme-config-selector-container" :class="{ 'is-disabled': disabled }">
-    <Card title="抖音号配置" class="info-card">
-      <div class="card-content">
-        <template v-if="totalCount > 0">
-          <AwemeConfigShow :aweme-config="localAwemeConfig" />
-        </template>
-        <template v-else>
-          <Alert type="error" message="请配置抖音号" show-icon class="empty-alert" />
-        </template>
-      </div>
-      <div class="card-footer">
-        <Button v-if="totalCount > 0" type="link" danger :disabled="disabled" @click="handleClear">清空</Button>
-        <Button type="primary" :disabled="disabled" @click="openDrawer">
-          {{ totalCount > 0 ? '编辑' : '添加' }}
-        </Button>
+  <div class="aweme-config-card" :class="{ 'is-disabled': disabled }">
+    <Card title="抖音号配置" class="h-full">
+      <div class="flex h-full flex-col">
+        <div class="flex-1">
+          <template v-if="totalCount > 0">
+            <Space :size="8" wrap>
+              <Tag color="blue">{{ methodLabel }}</Tag>
+              <span class="text-sm text-gray-500">
+                共 {{ totalCount }} 个抖音号
+              </span>
+              <span
+                v-if="localAwemeConfig.config.method === 'PER_ACCOUNT'"
+                class="text-sm text-gray-500"
+              >
+                · 覆盖 {{ configuredAccounts }} / {{ accountInfo.length }} 个账户
+              </span>
+              <span
+                v-else-if="localAwemeConfig.config.method === 'AVERAGE'"
+                class="text-sm text-gray-500"
+              >
+                · 按计划平均分配
+              </span>
+              <span v-else class="text-sm text-gray-500">
+                · 全部账户/计划共用
+              </span>
+            </Space>
+            <div class="aweme-tags">
+              <Tag
+                v-for="name in awemeNames.slice(0, 3)"
+                :key="name"
+                :bordered="false"
+                color="blue"
+              >
+                {{ name }}
+              </Tag>
+              <Tag v-if="awemeNames.length > 3" :bordered="false">
+                +{{ awemeNames.length - 3 }}
+              </Tag>
+            </div>
+          </template>
+          <Alert v-else type="error" message="请配置抖音号" show-icon />
+        </div>
+        <div class="card-footer">
+          <Space :size="8">
+            <Button
+              v-if="totalCount > 0"
+              :disabled="disabled"
+              danger
+              type="link"
+              @click="handleClear"
+            >
+              清空
+            </Button>
+            <Button type="primary" :disabled="disabled" @click="openDrawer">
+              {{ totalCount > 0 ? '编辑' : '添加' }}
+            </Button>
+          </Space>
+        </div>
       </div>
     </Card>
 
     <AwemeConfigDrawerComp
       :account-info="accountInfo"
-      :supported-rules="supportedRules"
       @update:aweme-config="updateAwemeConfig"
     />
   </div>
 </template>
 
 <style scoped lang="scss">
-.aweme-config-selector-container {
-  width: 100%;
-  flex: 1;
+.aweme-config-card {
   display: flex;
+  flex: 1;
   flex-direction: column;
+  width: 100%;
   min-height: 0;
 
   &.is-disabled {
     opacity: 0.5;
     filter: grayscale(1);
-
-    .info-card {
-      pointer-events: none;
-    }
+    pointer-events: none;
   }
 }
 
-.info-card {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
+.aweme-tags {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-
-  &.ant-card {
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: box-shadow 0.3s ease;
-
-    &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    }
-  }
-
-  :deep(.ant-card-head) {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    padding: 12px 16px;
-    min-height: 57px;
-  }
-
-  :deep(.ant-card-body) {
-    padding: 16px;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-}
-
-.card-content {
-  flex: 1;
-  overflow-y: auto;
-  padding-bottom: 16px;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  flex-shrink: 0;
-}
-
-.empty-alert {
-  margin: 8px 0;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
 }
 </style>

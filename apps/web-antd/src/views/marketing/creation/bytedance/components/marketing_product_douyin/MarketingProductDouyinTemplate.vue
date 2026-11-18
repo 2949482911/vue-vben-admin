@@ -42,7 +42,9 @@ import {
 } from "#/views/marketing/creation/bytedance/enums";
 import CreativeGroupSelector
   from "#/views/marketing/creation/components/creative/CreativeGroupSelector.vue";
+import DpaProductAllocationCard from "#/views/marketing/creation/components/dpa_product/DpaProductAllocationCard.vue";
 import PageViewSelector from "#/views/marketing/creation/components/pageview/PageViewSelector.vue";
+import ProductConfigAllocationCard from "#/views/marketing/creation/components/product_config/ProductConfigAllocationCard.vue";
 import TimeSelectionPeriod
   from "#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue";
 import TitleSelector from "#/views/marketing/creation/components/title/TitleSelector.vue";
@@ -50,7 +52,6 @@ import TitleSelector from "#/views/marketing/creation/components/title/TitleSele
 import AwemeConfigCard from "../../../components/aweme/AwemeConfigCard.vue";
 import BytedanceCampaign from "../BytedanceCampaign.vue";
 import BytedancePromotion from "../BytedancePromotion.vue";
-import DpaProductButtonField from "../DpaProductButtonField.vue";
 import ProductImageButtonField from "../ProductImageButtonField.vue";
 
 const { creationInfo } = defineProps({
@@ -68,6 +69,8 @@ const emit = defineEmits([
   "update:titlePackage",
   "update:landingPage",
   "update:awemeConfig",
+  "update:dpaProductConfig",
+  "update:productConfig",
 ]);
 
 function updateCampaign(campaign: BytedanceCampaignData) {
@@ -96,6 +99,14 @@ function updateLandingPage(landingPage: PageViewConfigData) {
 
 function updateAwemeConfig(awemeConfig: AwemeConfigData) {
   emit('update:awemeConfig', awemeConfig);
+}
+
+function updateDpaProductConfig(dpaProductConfig: any) {
+  emit('update:dpaProductConfig', dpaProductConfig);
+}
+
+function updateProductConfig(productConfig: any) {
+  emit('update:productConfig', productConfig);
 }
 
 // ==================== 项目表单字段 ====================
@@ -214,19 +225,6 @@ const campaignFormFields = [
       show: false,
       triggerFields: ["*"]
     }
-  },
-  // DPA商品选择按钮 - 嵌入表单内，通过父传子(dpaContext + openDpaModal)通信
-  {
-    component: markRaw(DpaProductButtonField),
-    fieldName: 'dpa_product_button',
-    label: '投放商品',
-    componentProps: {}, // 由 BytedanceCampaignDrawer.onOpenChange 动态注入 dpaContext / openDpaModal
-    dependencies: {
-      show: (currentValue: Record<string, any>) => {
-        return currentValue.related_product_setting === "SINGLE";
-      },
-      triggerFields: ["related_product_setting"],
-    },
   },
   // 营销产品与投放载体 投放载体类型
   {
@@ -733,6 +731,19 @@ const promotionShowLabel: Record<string, string> = {
           :field-label-map="fieldLabelMap"
           @update:campaign="updateCampaign"
           @update:audience-package="updateAudiencePackage"
+        />
+      </div>
+
+      <div class="pane">
+        <ProductConfigAllocationCard
+          :account-info="creationInfo.accountInfo"
+          :product-config="creationInfo.configData.productConfig"
+          @update:product-config="updateProductConfig"
+        />
+        <DpaProductAllocationCard
+          :account-info="creationInfo.accountInfo"
+          :dpa-product-config="creationInfo.configData.dpaProductConfig"
+          @update:dpa-product-config="updateDpaProductConfig"
         />
       </div>
 

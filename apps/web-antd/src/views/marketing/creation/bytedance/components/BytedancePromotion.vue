@@ -1,8 +1,10 @@
 <script setup lang="ts" name="BytedancePromotion">
-import { ref, watch } from 'vue';
 import type { BytedancePromotionData, BytedancePromotionProduct_info } from '#/views/marketing/creation/bytedance/bytedance';
+
+import { ref, watch } from 'vue';
+
 import { useVbenDrawer } from '@vben/common-ui';
-import BytedancePromotionDrawer from './BytedancePromotionDrawer.vue';
+
 import {
   Alert,
   Button,
@@ -10,6 +12,15 @@ import {
   Descriptions,
   DescriptionsItem,
 } from 'ant-design-vue';
+
+import BytedancePromotionDrawer from './BytedancePromotionDrawer.vue';
+
+const { formFields, promotionShowLabel, promotion, fieldLabelMap } = defineProps({
+  formFields: { type: Array, default: () => [] },
+  promotionShowLabel: { type: Object, default: () => ({}) },
+  promotion: { type: Object as () => BytedancePromotionData | null, default: () => ({}) },
+  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
+});
 
 const emit = defineEmits(['update:promotion']);
 
@@ -22,13 +33,6 @@ const [PromotionDrawerModule, drawerApi] = useVbenDrawer({
       emit('update:promotion', promotionInfo.value);
     }
   },
-});
-
-const { formFields, promotionShowLabel, promotion, fieldLabelMap } = defineProps({
-  formFields: { type: Array, default: () => [] },
-  promotionShowLabel: { type: Object, default: () => ({}) },
-  promotion: { type: Object as () => BytedancePromotionData | null, default: () => ({}) },
-  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
 
 const promotionInfo = ref<BytedancePromotionData>({

@@ -1,8 +1,12 @@
 <script setup lang="ts" name="AwemeConfigDrawer">
-import { computed, ref, watch } from 'vue';
-import { Empty, message, Radio, RadioGroup, Select, Space, Table } from 'ant-design-vue';
-import { useVbenDrawer } from '@vben/common-ui';
-import { bytedanceAdvertisementApi } from '#/api/core/bytedance';
+/**
+ * 抖音号配置抽屉
+ *
+ * 三种模式均支持多选：
+ * - 统一配置：所有账户共用一组，账户内计划循环
+ * - 分账户配置：每个账户独立多选，账户内计划循环
+ * - 平均分配：全局抖音号池按全部计划顺序铺开
+ */
 import type { BytedanceToolsAwemeAuthListList } from '#/api/models/bytedance';
 import type {
   AccountInfo,
@@ -11,120 +15,177 @@ import type {
   AwemeMapping,
 } from '#/views/marketing/creation/creation';
 
-const props = withDefaults(defineProps<{
+import { computed, ref } from 'vue';
+
+import { useVbenDrawer } from '@vben/common-ui';
+
+import {
+  Empty,
+  Input,
+  message,
+  Radio,
+  RadioGroup,
+  Spin,
+  Tag,
+} from 'ant-design-vue';
+
+import { bytedanceAdvertisementApi } from '#/api';
+
+import { normalizeAwemeConfig } from './types';
+
+const props = defineProps<{
   accountInfo: AccountInfo[];
-  /** 支持的分配方案（智擎版仅 ['PER_PROJECT', 'PER_ACCOUNT']） */
-  supportedRules?: AwemeDistributionRule[];
-}>(), {
-  supportedRules: () => ['ALL_SAME', 'PER_ACCOUNT', 'PER_PROJECT', 'PER_AD'],
-});
+}>();
 
-const emit = defineEmits(['update:awemeConfig']);
+const emit = defineEmits<{
+  'update:awemeConfig': [value: AwemeConfigData];
+}>();
 
-/** 分配规则选项（按 supportedRules 过滤） */
-const ruleOptions = computed<Array<{ label: string; value: AwemeDistributionRule }>>(() => {
-  const all: Array<{ label: string; value: AwemeDistributionRule }> = [
-    { label: '所有广告用一个抖音号', value: 'ALL_SAME' },
-    { label: '每个账户选择一个抖音号', value: 'PER_ACCOUNT' },
-    { label: '每个项目一个抖音号', value: 'PER_PROJECT' },
-    { label: '每个广告一个抖音号', value: 'PER_AD' },
-  ];
-  return all.filter((opt) => props.supportedRules.includes(opt.value));
-});
+const MODE_OPTIONS: Array<{
+  desc: string;
+  label: string;
+  value: AwemeDistributionRule;
+}> = [
+  {
+    desc: '所有账户共用一组抖音号，账户内计划循环',
+    label: '统一配置',
+    value: 'ALL_SAME',
+  },
+  {
+    desc: '每个账户独立选择，账户内计划循环',
+    label: '分账户配置',
+    value: 'PER_ACCOUNT',
+  },
+  {
+    desc: '全局抖音号按全部计划顺序平均铺开',
+    label: '平均分配',
+    value: 'AVERAGE',
+  },
+];
 
-/** 当前编辑的规则（若已有配置的规则不被支持，回退到第一个受支持项） */
-const localMethod = ref<AwemeDistributionRule>(
-  props.supportedRules[0] || 'ALL_SAME',
-);
-
-/** 单一选择模式（ALL_SAME / PER_PROJECT）的抖音号ID */
-const singleAwemeId = ref<string | undefined>(undefined);
-
-/** aweme_list 返回的抖音号列表 */
-const awemeList = ref<Array<BytedanceToolsAwemeAuthListList>>([]);
+const method = ref<AwemeDistributionRule>('ALL_SAME');
+const globalAwemes = ref<AwemeMapping[]>([]);
+const accountAwemes = ref<Map<string, AwemeMapping[]>>(new Map());
+const currentAccountId = ref('');
+const awemeList = ref<BytedanceToolsAwemeAuthListList[]>([]);
 const loadingAweme = ref(false);
+const searchText = ref('');
+const drawerOpen = ref(false);
 
-/** 抖音号 Select options */
-const awemeOptions = computed(() =>
-  awemeList.value.map((a) => ({
-    label: `${a.aweme_name} (${a.aweme_user_type === 'ENTERPRISE' ? '企业号' : '个人号'})`,
-    value: a.aweme_id,
-    awemeName: a.aweme_name,
-  })),
-);
-
-/** 账户列表（去重） */
 const accountList = computed(() => {
   const seen = new Set<string>();
-  return props.accountInfo.filter((a) => {
-    const key = a.localAdvertiserId;
-    if (seen.has(key)) return false;
+  return props.accountInfo.filter((account) => {
+    const key = account.localAdvertiserId;
+    if (seen.has(key)) {
+      return false;
+    }
     seen.add(key);
     return true;
   });
 });
 
-// ============ 表格映射行（PER_ACCOUNT / PER_AD） ============
-interface MappingRow {
-  targetId: string;
-  targetName: string;
-  selectedAwemeId: string | undefined;
-}
+const currentAccount = computed(() =>
+  accountList.value.find(
+    (account) => account.localAdvertiserId === currentAccountId.value,
+  ),
+);
 
-const mappingRows = ref<MappingRow[]>([]);
+const currentSelection = computed(() => {
+  if (method.value === 'PER_ACCOUNT') {
+    return accountAwemes.value.get(currentAccountId.value) ?? [];
+  }
+  return globalAwemes.value;
+});
 
-function generateMappingRows(): MappingRow[] {
-  const method = localMethod.value;
-  if (method === 'ALL_SAME' || method === 'PER_PROJECT') {
+const filteredAwemes = computed(() => {
+  const keyword = searchText.value.trim().toLowerCase();
+  if (!keyword) {
+    return awemeList.value;
+  }
+  return awemeList.value.filter(
+    (aweme) =>
+      aweme.aweme_name?.toLowerCase().includes(keyword) ||
+      String(aweme.aweme_id).includes(keyword),
+  );
+});
+
+const previewRows = computed(() => {
+  const items = currentSelection.value;
+  if (items.length === 0) {
     return [];
   }
-  if (method === 'PER_ACCOUNT') {
-    return accountList.value.map((acc) => ({
-      targetId: acc.localAdvertiserId,
-      targetName: acc.localAdvertiserId || acc.localAdvertiserId,
-      selectedAwemeId: undefined,
-    }));
+  const count = method.value === 'AVERAGE' ? 8 : 4;
+  return Array.from({ length: count }, (_, index) => ({
+    aweme: items[index % items.length]!,
+    name: `计划 ${String(index + 1).padStart(2, '0')}`,
+  }));
+});
+
+function isSelected(awemeId: string) {
+  return currentSelection.value.some((item) => item.awemeId === awemeId);
+}
+
+function setCurrentSelection(items: AwemeMapping[]) {
+  if (method.value === 'PER_ACCOUNT') {
+    if (!currentAccountId.value) {
+      return;
+    }
+    accountAwemes.value.set(currentAccountId.value, items);
+    accountAwemes.value = new Map(accountAwemes.value);
+  } else {
+    globalAwemes.value = items;
   }
-  // PER_AD
-  return accountList.value.flatMap((acc) =>
-    ((acc as any).adGroupList || []).map((_ag: any, agIdx: number) => ({
-      targetId: `${acc.localAdvertiserId}-${agIdx}`,
-      targetName: `${acc.advertiserName || acc.localAdvertiserId} - 广告${agIdx + 1}`,
-      selectedAwemeId: undefined,
-    })),
+}
+
+function toggleAweme(aweme: BytedanceToolsAwemeAuthListList) {
+  const selected = isSelected(aweme.aweme_id);
+  const current = [...currentSelection.value];
+  if (selected) {
+    setCurrentSelection(
+      current.filter((item) => item.awemeId !== aweme.aweme_id),
+    );
+    return;
+  }
+  current.push({
+    awemeId: aweme.aweme_id,
+    awemeName: aweme.aweme_name,
+  });
+  setCurrentSelection(current);
+}
+
+function removeAweme(awemeId: string) {
+  setCurrentSelection(
+    currentSelection.value.filter((item) => item.awemeId !== awemeId),
   );
 }
 
-const tableColumns = [
-  { title: '目标', dataIndex: 'targetName', key: 'targetName', width: '40%' },
-  { title: '选择抖音号', key: 'awemeSelect', width: '60%' },
-];
-
-/** 快捷操作：统一选择 */
-function applyToAll(awemeId: string | undefined) {
-  mappingRows.value.forEach((row) => {
-    row.selectedAwemeId = awemeId;
-  });
+function configuredCount(accountId: string) {
+  return accountAwemes.value.get(accountId)?.length ?? 0;
 }
 
-function getAwemeName(awemeId: string | undefined): string {
-  if (!awemeId) return '';
-  return awemeList.value.find((a) => a.aweme_id === awemeId)?.aweme_name || '';
+function switchMode(value: AwemeDistributionRule) {
+  method.value = value;
+  if (value === 'PER_ACCOUNT' && !currentAccountId.value) {
+    currentAccountId.value = accountList.value[0]?.localAdvertiserId ?? '';
+  }
 }
 
-// ============ 抖音号列表拉取 ============
 async function fetchAwemeList() {
-  if (props.accountInfo.length === 0) {
+  if (accountList.value.length === 0) {
     awemeList.value = [];
     return;
   }
   loadingAweme.value = true;
   try {
     const list = await bytedanceAdvertisementApi.fetchAewmeAuthList({
-      advertiserId: props.accountInfo.map((a) => a.localAdvertiserId),
+      advertiserId: accountList.value.map(
+        (account) => account.localAdvertiserId,
+      ),
     });
     awemeList.value = (list || []).filter(
-      (item) => item.auth_status === 'AUTHRIZED' && item.auth_type === 'AWEME_ACCOUNT',
+      (item) =>
+        item.auth_status === 'AUTHRIZED' &&
+        item.auth_type === 'AWEME_ACCOUNT',
     );
   } catch {
     message.warning('抖音号列表加载失败');
@@ -133,159 +194,717 @@ async function fetchAwemeList() {
   }
 }
 
-/** 恢复已有配置到编辑态 */
-function restoreConfig(config: AwemeConfigData) {
-  // 不支持原规则时回退到第一个受支持项
-  localMethod.value = props.supportedRules.includes(config.config.method)
-    ? config.config.method
-    : props.supportedRules[0] || 'ALL_SAME';
-
-  if (localMethod.value === 'ALL_SAME' || localMethod.value === 'PER_PROJECT') {
-    const items = config.data.get('0');
-    singleAwemeId.value = items?.[0]?.awemeId || undefined;
-  } else {
-    const rows = generateMappingRows();
-    rows.forEach((row) => {
-      const items = config.data.get(row.targetId);
-      if (items?.[0]) {
-        row.selectedAwemeId = items[0].awemeId;
-      }
-    });
-    mappingRows.value = rows;
-  }
-}
-
-/** 规则切换时重建映射行 */
-watch(localMethod, () => {
-  singleAwemeId.value = undefined;
-  mappingRows.value = generateMappingRows();
-});
-
-// ============ Drawer ============
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
+  class: 'w-[75%]',
   closeOnClickModal: false,
-  class: 'w-[40vw]',
-  closeOnPressEscape: true,
-  onOpenChange: async (isOpen: boolean) => {
-    if (isOpen) {
-      await fetchAwemeList();
-      const data: AwemeConfigData = drawerApi.getData() as AwemeConfigData;
-      restoreConfig(data);
-    }
-  },
-  onConfirm: () => {
-    const method = localMethod.value;
-    const resultData = new Map<string, AwemeMapping[]>();
-
-    if (method === 'ALL_SAME' || method === 'PER_PROJECT') {
-      if (!singleAwemeId.value) {
-        message.warning('请选择一个抖音号');
-        return;
-      }
-      resultData.set('0', [{ awemeId: singleAwemeId.value, awemeName: getAwemeName(singleAwemeId.value) }]);
-    } else {
-      const unselected = mappingRows.value.filter((r) => !r.selectedAwemeId);
-      if (unselected.length > 0) {
-        message.warning(`还有 ${unselected.length} 个未分配抖音号`);
-        return;
-      }
-      mappingRows.value.forEach((row) => {
-        resultData.set(row.targetId, [
-          { awemeId: row.selectedAwemeId!, awemeName: getAwemeName(row.selectedAwemeId) },
-        ]);
-      });
-    }
-
-    emit('update:awemeConfig', {
-      config: { method },
-      data: resultData,
-    });
-    drawerApi.close();
-  },
-  onClosed() {
-    drawerApi.close();
-  },
   onCancel() {
     drawerApi.close();
+  },
+  onConfirm() {
+    if (method.value !== 'PER_ACCOUNT' && globalAwemes.value.length === 0) {
+      message.warning('请至少选择 1 个抖音号');
+      return;
+    }
+    const data = new Map<string, AwemeMapping[]>();
+    if (method.value === 'PER_ACCOUNT') {
+      const unconfigured = accountList.value.filter(
+        (account) => configuredCount(account.localAdvertiserId) === 0,
+      );
+      if (unconfigured.length > 0) {
+        message.warning(
+          `请为账户 [${unconfigured.map((account) => account.advertiserName).join('、')}] 选择抖音号`,
+        );
+        return;
+      }
+      for (const account of accountList.value) {
+        data.set(account.localAdvertiserId, [
+          ...(accountAwemes.value.get(account.localAdvertiserId) ?? []),
+        ]);
+      }
+    } else {
+      data.set('0', [...globalAwemes.value]);
+    }
+    emit('update:awemeConfig', {
+      config: { method: method.value },
+      data,
+    });
+    drawerApi.close();
+  },
+  async onOpenChange(isOpen: boolean) {
+    drawerOpen.value = isOpen;
+    if (!isOpen) {
+      return;
+    }
+    const config = normalizeAwemeConfig(drawerApi.getData());
+    method.value = config.config.method;
+    globalAwemes.value = [...(config.data.get('0') ?? [])].map((item) => ({
+      ...item,
+    }));
+    accountAwemes.value = new Map();
+    config.data.forEach((items, key) => {
+      if (key !== '0' && items.length > 0) {
+        accountAwemes.value.set(
+          key,
+          items.map((item) => ({ ...item })),
+        );
+      }
+    });
+    currentAccountId.value = accountList.value[0]?.localAdvertiserId ?? '';
+    searchText.value = '';
+    await fetchAwemeList();
   },
 });
 </script>
 
 <template>
   <Drawer title="抖音号配置">
-    <!-- 分配规则 -->
-    <div class="mb-4">
-      <span class="mr-3 text-sm font-medium text-gray-500">分配方式：</span>
-      <RadioGroup v-model:value="localMethod">
-        <div class="flex flex-col gap-1">
-          <Radio v-for="opt in ruleOptions" :key="opt.value" :value="opt.value">
-            {{ opt.label }}
-          </Radio>
+    <div class="aweme-drawer">
+      <div class="mode-block">
+        <div class="block-title">
+          <span>配置方式</span>
+          <span class="muted">
+            三种模式均支持多选，按勾选顺序参与循环分配
+          </span>
         </div>
-      </RadioGroup>
-    </div>
-
-    <!-- ALL_SAME / PER_PROJECT：单一选择器 -->
-    <template v-if="localMethod === 'ALL_SAME' || localMethod === 'PER_PROJECT'">
-      <div class="mb-2 text-sm text-gray-500">
-        {{ localMethod === 'ALL_SAME' ? '所有广告' : '项目' }}将使用同一个抖音号：
+        <RadioGroup
+          :value="method"
+          class="mode-grid"
+          @change="switchMode($event.target.value)"
+        >
+          <Radio
+            v-for="option in MODE_OPTIONS"
+            :key="option.value"
+            :value="option.value"
+            class="mode-card"
+          >
+            <span class="mode-name">{{ option.label }}</span>
+            <span class="mode-desc">{{ option.desc }}</span>
+          </Radio>
+        </RadioGroup>
       </div>
-      <Select
-        v-model:value="singleAwemeId"
-        :options="awemeOptions"
-        :loading="loadingAweme"
-        placeholder="请选择抖音号"
-        show-search
-        option-filter-prop="label"
-        class="w-full"
-        allow-clear
-      />
-    </template>
 
-    <!-- PER_ACCOUNT / PER_AD：表格映射 -->
-    <template v-else>
-      <!-- 快捷操作 -->
-      <Space class="mb-3 w-full">
-        <span class="text-sm text-gray-500">快捷操作：</span>
-        <Select
-          :options="awemeOptions"
-          :loading="loadingAweme"
-          placeholder="统一选择抖音号"
-          show-search
-          option-filter-prop="label"
-          class="w-64"
-          allow-clear
-          @change="(value: any) => applyToAll(value as string | undefined)"
-        />
-      </Space>
+      <div v-if="method === 'PER_ACCOUNT'" class="account-strip">
+        <span class="strip-label">媒体账户</span>
+        <div
+          v-for="account in accountList"
+          :key="account.localAdvertiserId"
+          class="account-chip"
+          :class="{
+            active: currentAccountId === account.localAdvertiserId,
+          }"
+          @click="currentAccountId = account.localAdvertiserId"
+        >
+          <div>
+            <div class="account-name">{{ account.advertiserName }}</div>
+            <div class="account-id">ID {{ account.localAdvertiserId }}</div>
+          </div>
+          <Tag
+            :color="
+              configuredCount(account.localAdvertiserId) > 0
+                ? 'blue'
+                : 'default'
+            "
+          >
+            {{
+              configuredCount(account.localAdvertiserId) > 0
+                ? `${configuredCount(account.localAdvertiserId)} 个抖音号`
+                : '未配置'
+            }}
+          </Tag>
+        </div>
+      </div>
 
-      <Table
-        :columns="tableColumns"
-        :data-source="mappingRows"
-        :pagination="false"
-        size="small"
-        row-key="targetId"
-        bordered
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'awemeSelect'">
-            <Select
-              v-model:value="record.selectedAwemeId"
-              :options="awemeOptions"
-              :loading="loadingAweme"
-              placeholder="请选择抖音号"
-              show-search
-              option-filter-prop="label"
-              class="w-full"
+      <div class="work-grid">
+        <section class="pool-col">
+          <div class="pool-head">
+            <span class="pool-title">
+              {{
+                method === 'PER_ACCOUNT'
+                  ? `${currentAccount?.advertiserName || '账户'}可用抖音号`
+                  : '可用抖音号'
+              }}
+            </span>
+            <Input
+              v-model:value="searchText"
               allow-clear
+              placeholder="搜索抖音号名称 / ID"
+              style="width: 240px"
             />
-          </template>
-        </template>
-      </Table>
-    </template>
+          </div>
+          <div class="aweme-list">
+            <Spin :spinning="loadingAweme">
+              <div
+                v-for="aweme in filteredAwemes"
+                :key="aweme.aweme_id"
+                class="aweme-item"
+                :class="{ selected: isSelected(aweme.aweme_id) }"
+                @click="toggleAweme(aweme)"
+              >
+                <span class="checkbox"></span>
+                <span class="avatar">
+                  {{ (aweme.aweme_name || '抖')[0] }}
+                </span>
+                <div class="aweme-main">
+                  <div class="aweme-name">{{ aweme.aweme_name }}</div>
+                  <div class="aweme-meta">
+                    <span
+                      class="type-tag"
+                      :class="{
+                        personal: aweme.aweme_user_type !== 'ENTERPRISE',
+                      }"
+                    >
+                      {{
+                        aweme.aweme_user_type === 'ENTERPRISE'
+                          ? '企业号'
+                          : '个人号'
+                      }}
+                    </span>
+                    <span class="auth-tag">已授权</span>
+                    <span>ID {{ aweme.aweme_id }}</span>
+                  </div>
+                </div>
+              </div>
+              <Empty
+                v-if="!loadingAweme && filteredAwemes.length === 0"
+                description="暂无可用抖音号，请检查账户授权状态"
+              />
+            </Spin>
+          </div>
+        </section>
 
-    <template v-if="awemeList.length === 0 && !loadingAweme">
-      <Empty description="暂无可用抖音号，请检查账户授权状态" class="mt-8" />
-    </template>
+        <aside class="selected-col">
+          <div class="selected-head">
+            <span class="selected-title">
+              {{
+                method === 'PER_ACCOUNT'
+                  ? `${currentAccount?.advertiserName || '账户'}已选`
+                  : '已选抖音号'
+              }}
+            </span>
+            <small>{{ currentSelection.length }} 个</small>
+          </div>
+          <div v-if="currentSelection.length > 0" class="selected-list">
+            <div
+              v-for="(item, index) in currentSelection"
+              :key="item.awemeId"
+              class="selected-item"
+            >
+              <span class="selected-index">{{ index + 1 }}</span>
+              <div class="selected-main">
+                <div class="selected-name">{{ item.awemeName }}</div>
+                <div class="selected-sub">ID {{ item.awemeId }}</div>
+              </div>
+              <span class="remove" @click="removeAweme(item.awemeId)">×</span>
+            </div>
+          </div>
+          <div v-else class="selected-empty">
+            请在左侧勾选抖音号
+          </div>
+          <div class="selected-foot">
+            {{
+              method === 'PER_ACCOUNT'
+                ? '切换账户会保留各账户已选抖音号。'
+                : '按勾选顺序在计划中循环。'
+            }}
+          </div>
+        </aside>
+
+        <aside class="side-col">
+          <div class="side-card">
+            <div class="side-title">
+              <span>
+                {{
+                  method === 'PER_ACCOUNT'
+                    ? '账户内分配预览'
+                    : method === 'AVERAGE'
+                      ? '平均分配预览'
+                      : '计划分配预览'
+                }}
+              </span>
+              <small>{{ previewRows.length }} 个计划</small>
+            </div>
+            <div v-if="previewRows.length > 0" class="preview-list">
+              <div
+                v-for="row in previewRows"
+                :key="row.name"
+                class="preview-row"
+              >
+                <span>{{ row.name }}</span>
+                <span class="aweme-pill">{{ row.aweme.awemeName }}</span>
+              </div>
+            </div>
+            <div v-else class="selected-empty">选择抖音号后展示分配预览</div>
+            <div class="hint">
+              {{
+                method === 'PER_ACCOUNT'
+                  ? '该账户下的计划按已选抖音号顺序循环；每个账户必须至少选择 1 个。'
+                  : method === 'AVERAGE'
+                    ? '抖音号按全局计划顺序铺开，不足时从头循环。'
+                    : '所有账户共用这组抖音号，每个账户内的计划从第 1 个开始循环。'
+              }}
+            </div>
+          </div>
+          <div class="side-card rule-card">
+            <div class="side-title">配置规则</div>
+            <div class="rule-line">
+              <span>统一配置</span><span>共用一组，账户内循环</span>
+            </div>
+            <div class="rule-line">
+              <span>分账户配置</span><span>每账户独立选择</span>
+            </div>
+            <div class="rule-line">
+              <span>平均分配</span><span>全局按计划铺开</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
   </Drawer>
 </template>
+
+<style scoped lang="scss">
+.aweme-drawer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.mode-block {
+  flex: none;
+  padding-bottom: 12px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.block-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.muted {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mode-grid :deep(.ant-radio-wrapper) {
+  align-items: flex-start;
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  transition: all 0.18s ease;
+}
+
+.mode-grid :deep(.ant-radio-wrapper:hover) {
+  border-color: #91caff;
+}
+
+.mode-grid :deep(.ant-radio-wrapper-checked) {
+  background: #eef5ff;
+  border-color: #1677ff;
+}
+
+.mode-grid :deep(.ant-radio) {
+  margin-top: 2px;
+}
+
+.mode-name {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.mode-desc {
+  display: block;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.account-strip {
+  display: flex;
+  flex: none;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+  overflow-x: auto;
+}
+
+.strip-label {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.account-chip {
+  display: flex;
+  flex: none;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  cursor: pointer;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 7px;
+}
+
+.account-chip.active {
+  background: #eef5ff;
+  border-color: #1677ff;
+}
+
+.account-name {
+  font-weight: 600;
+}
+
+.account-id {
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+}
+
+.work-grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) 270px 282px;
+  gap: 12px;
+  min-height: 0;
+  padding-top: 12px;
+}
+
+.pool-col,
+.selected-col,
+.side-col {
+  min-height: 0;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 9px;
+}
+
+.pool-col {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pool-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.pool-title {
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.aweme-list {
+  flex: 1;
+  min-height: 0;
+  padding: 9px;
+  overflow-y: auto;
+}
+
+.aweme-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  transition: all 0.16s ease;
+}
+
+.aweme-item:hover {
+  border-color: #91caff;
+}
+
+.aweme-item.selected {
+  background: #eef5ff;
+  border-color: #1677ff;
+}
+
+.checkbox {
+  position: relative;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  background: #fff;
+  border: 1.5px solid #c6ceda;
+  border-radius: 3px;
+}
+
+.aweme-item.selected .checkbox {
+  background: #1677ff;
+  border-color: #1677ff;
+}
+
+.aweme-item.selected .checkbox::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  background: linear-gradient(145deg, #5b8def, #8fb7ff);
+  border-radius: 50%;
+}
+
+.aweme-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.aweme-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aweme-meta {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  margin-top: 3px;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+}
+
+.type-tag {
+  padding: 1px 6px;
+  color: #0958d9;
+  font-size: 10px;
+  background: #eef5ff;
+  border: 1px solid #cfe5ff;
+  border-radius: 4px;
+}
+
+.type-tag.personal {
+  color: #8c6d1f;
+  background: #fffbe6;
+  border-color: #ffe58f;
+}
+
+.auth-tag {
+  color: #15803d;
+}
+
+.selected-col {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.selected-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.selected-title {
+  font-weight: 650;
+}
+
+.selected-head small {
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+}
+
+.selected-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 0;
+  padding: 9px;
+  overflow-y: auto;
+}
+
+.selected-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  background: #fbfdff;
+  border: 1px solid #e2edff;
+  border-radius: 7px;
+}
+
+.selected-index {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  background: #1677ff;
+  border-radius: 50%;
+}
+
+.selected-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.selected-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-sub {
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+}
+
+.remove {
+  color: #7aa7e8;
+  cursor: pointer;
+}
+
+.selected-empty {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  text-align: center;
+}
+
+.selected-foot {
+  flex: none;
+  padding: 9px 11px;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  border-top: 1px solid #f0f2f5;
+}
+
+.side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  overflow-y: auto;
+  background: #fbfcfe;
+}
+
+.side-card {
+  padding: 11px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+}
+
+.side-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 650;
+}
+
+.side-title small {
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+  background: #f8fafc;
+  border: 1px solid #f0f2f5;
+  border-radius: 6px;
+}
+
+.aweme-pill {
+  max-width: 160px;
+  padding: 2px 7px;
+  overflow: hidden;
+  color: #0958d9;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: #eef5ff;
+  border: 1px solid #cfe5ff;
+  border-radius: 4px;
+}
+
+.hint {
+  margin-top: 9px;
+  padding: 8px 9px;
+  color: #0958d9;
+  font-size: 12px;
+  line-height: 1.55;
+  background: #eef7ff;
+  border: 1px solid #bae0ff;
+  border-radius: 6px;
+}
+
+.rule-card {
+  background: #fbfcfe;
+}
+
+.rule-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  border-bottom: 1px dashed hsl(var(--border));
+}
+
+.rule-line:last-child {
+  border-bottom: 0;
+}
+</style>

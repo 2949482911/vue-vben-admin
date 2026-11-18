@@ -43,17 +43,17 @@ import {
 } from '#/views/marketing/creation/bytedance_std/enums';
 import CreativeGroupSelector
   from '#/views/marketing/creation/components/creative/CreativeGroupSelector.vue';
+import DpaProductAllocationCard
+  from '#/views/marketing/creation/components/dpa_product/DpaProductAllocationCard.vue';
 import PageViewSelector
   from '#/views/marketing/creation/components/pageview/PageViewSelector.vue';
+import ProductConfigAllocationCard
+  from '#/views/marketing/creation/components/product_config/ProductConfigAllocationCard.vue';
 import TimeSelectionPeriod
   from '#/views/marketing/creation/components/timeSelectionPeriod/timeSelectionPeriod.vue';
 import TitleSelector
   from '#/views/marketing/creation/components/title/TitleSelector.vue';
 
-import DpaProductConfigCard
-  from '../product/DpaProductConfigCard.vue';
-import ProductConfigCard
-  from '../product/ProductConfigCard.vue';
 import StdProject from '../StdProject.vue';
 
 const { creationInfo, productConfig, dpaProductConfig } = defineProps({
@@ -322,12 +322,12 @@ const projectFormFields = [
       <!-- 第2列：产品配置 -->
       <div class="pane">
         <div class="combined-area">
-          <ProductConfigCard
+          <ProductConfigAllocationCard
             :product-config="productConfig"
             :account-info="creationInfo.accountInfo"
             @update:product-config="updateProductConfig"
           />
-          <DpaProductConfigCard
+          <DpaProductAllocationCard
             :dpa-product-config="dpaProductConfig"
             :account-info="creationInfo.accountInfo"
             @update:dpa-product-config="updateDpaProductConfig"

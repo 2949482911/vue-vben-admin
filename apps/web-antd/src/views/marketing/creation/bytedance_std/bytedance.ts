@@ -1,4 +1,13 @@
 import type {
+  DpaProductAllocationConfig,
+  DpaProductAllocationMethod,
+} from "#/views/marketing/creation/components/dpa_product/types";
+import type {
+  ProductConfigAllocationConfig,
+  ProductConfigAllocationMethod,
+  ProductConfigItem,
+} from "#/views/marketing/creation/components/product_config/types";
+import type {
   AudienceConfigData,
   AwemeConfigData,
   ConfigurationConfig,
@@ -8,7 +17,6 @@ import type {
   PlatformCreation,
   TitlePackageConfigData
 } from "#/views/marketing/creation/creation";
-import type { BytedanceDpaProductListItem } from "#/api/models/bytedance";
 
 export const BYTEDANCE_STD: string = "0.2";
 
@@ -41,39 +49,15 @@ export interface StdConfigData {
   dpaProductConfig: DpaProductConfigData;
 }
 
-// 支持统一账户配置和统一配置
-export type DpaProductConfigRule = "ALL_SAME" | "PER_ACCOUNT";
-
-export interface DpaProductConfigData{
-  config: {
-    method: DpaProductConfigRule
-  },
-  data: Map<string, BytedanceDpaProductListItem[]>;
-}
+// 支持统一配置、分账户配置、平均分配
+export type DpaProductConfigRule = DpaProductAllocationMethod;
+export type DpaProductConfigData = DpaProductAllocationConfig;
 
 
-export type ProductConfigRule = "ALL_SAME" | "PER_ACCOUNT" | "PER_PROJECT";
+export type ProductConfigRule = ProductConfigAllocationMethod;
+export type ProductConfigData = ProductConfigAllocationConfig;
+export type ProductDataMapping = ProductConfigItem;
 
-/**
- * 产品配置
- */
-export interface ProductConfigData {
-  config: {
-    method: ProductConfigRule
-  },
-  data: Map<string, ProductDataMapping[]>;
-}
-
-
-/**
- * 产品映射配置
- */
-export interface ProductDataMapping {
-  selling_points: Array<string>;
-  action_buttons: Array<string>;
-  titles: Array<string>;
-  image_button: Array<string>;
-}
 
 /**
  * 智擎版标准项目数据
@@ -151,8 +135,6 @@ export interface StdProjectData {
   multi_asset_type: string;
   asset_type: string;
   instance_id: number;
-  /** DPA 已选商品完整信息（仅前端编辑回显用，不传给 API） */
-  _dpaProductInfo?: BytedanceDpaProductListItem | null;
 }
 
 

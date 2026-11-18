@@ -1,3 +1,5 @@
+import type { DpaProductAllocationConfig } from "#/views/marketing/creation/components/dpa_product/types";
+import type { ProductConfigAllocationConfig } from "#/views/marketing/creation/components/product_config/types";
 import type {
   Adgroup,
   AudienceConfigData,
@@ -39,6 +41,10 @@ export interface BytedanceConfigData {
   landingPage: PageViewConfigData;
   // 抖音号配置
   awemeConfig: AwemeConfigData;
+  // 投放商品配置：统一配置/分账户配置/平均分配
+  dpaProductConfig: DpaProductAllocationConfig;
+  // 产品配置：多条产品配置项 + 分配规则
+  productConfig: ProductConfigAllocationConfig;
 }
 
 

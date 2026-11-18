@@ -38,7 +38,9 @@ import { message, Select } from "ant-design-vue";
 
 import { Platform, SubType } from "#/constants/enums";
 import { BYTEDANCE_STD_MARKETING_TYPE } from "#/views/marketing/creation/bytedance_std/enums";
+import { normalizeAwemeConfig } from "#/views/marketing/creation/components/aweme/types";
 import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
+import { normalizeProductConfig } from "#/views/marketing/creation/components/product_config/types";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
 
 import ConfigurationConfig from "../components/configurationArea.vue";
@@ -455,20 +457,8 @@ function updateReuse(creation: StdCreation) {
     if (config.monitoringLink && !(config.monitoringLink.data instanceof Map)) {
       config.monitoringLink.data = new Map(Object.entries(config.monitoringLink.data || {}));
     }
-    if (config.awemeConfig && config.awemeConfig.data && !(config.awemeConfig.data instanceof Map)) {
-      config.awemeConfig.data = new Map(Object.entries(config.awemeConfig.data || {}));
-    }
-    // 旧数据可能缺少 awemeConfig，补默认值避免下游 prop 校验告警
-    if (!config.awemeConfig) {
-      config.awemeConfig = { config: { method: "PER_ACCOUNT" }, data: new Map() };
-    }
-    if (config.productConfig && config.productConfig.data && !(config.productConfig.data instanceof Map)) {
-      config.productConfig.data = new Map(Object.entries(config.productConfig.data || {}));
-    }
-    // 旧数据可能缺少 productConfig，补默认值避免下游 prop 校验告警
-    if (!config.productConfig) {
-      config.productConfig = { config: { method: "ALL_SAME" }, data: new Map() };
-    }
+    config.awemeConfig = normalizeAwemeConfig(config.awemeConfig);
+    config.productConfig = normalizeProductConfig(config.productConfig);
     // 投放商品配置（dpaProductConfig）Map 反序列化 + 补默认值
     if (config.dpaProductConfig && config.dpaProductConfig.data && !(config.dpaProductConfig.data instanceof Map)) {
       config.dpaProductConfig.data = new Map(Object.entries(config.dpaProductConfig.data || {}));

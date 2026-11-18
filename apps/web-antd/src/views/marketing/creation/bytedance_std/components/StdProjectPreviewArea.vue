@@ -1,19 +1,21 @@
 <script setup lang="ts" name="StdProjectPreviewArea">
+import type { StdCreationData } from '#/views/marketing/creation/bytedance_std/bytedance';
+import type {
+  AccountTabData,
+  LevelNames,
+  PreviewColumn,
+} from '#/views/marketing/creation/components/preview_area/previewAreaData';
+import type { AccountInfo } from '#/views/marketing/creation/creation';
+
 /**
  * 智擎版预览区
  *
  * 单层结构：只展示项目信息表格
  */
 import { computed } from 'vue';
-import type { StdCreationData } from '#/views/marketing/creation/bytedance_std/bytedance';
-import type { AccountInfo } from '#/views/marketing/creation/creation';
-import type {
-  PreviewColumn,
-  AccountTabData,
-  LevelNames,
-} from '#/views/marketing/creation/components/preview_area/previewAreaData';
-import PreviewArea from '#/views/marketing/creation/components/preview_area/PreviewArea.vue';
+
 import { convertToPreviewData } from '#/views/marketing/creation/bytedance_std/convertToPreviewData';
+import PreviewArea from '#/views/marketing/creation/components/preview_area/PreviewArea.vue';
 
 const props = defineProps<{
   adList: Array<StdCreationData>;

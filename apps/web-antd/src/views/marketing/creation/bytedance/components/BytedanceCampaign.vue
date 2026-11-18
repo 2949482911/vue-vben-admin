@@ -1,11 +1,12 @@
 <script setup lang="ts" name="BytedanceCampaign">
-import type { AudienceConfigData } from '#/views/marketing/creation/creation';
-import { ref, watch } from 'vue';
 import type { BytedanceCampaignData } from '#/views/marketing/creation/bytedance/bytedance';
-import { useVbenDrawer } from '@vben/common-ui';
-import BytedanceCampaignDrawer from './BytedanceCampaignDrawer.vue';
-import { Platform } from '#/constants/enums';
+import type { AudienceConfigData } from '#/views/marketing/creation/creation';
 import type { AccountInfo } from '#/views/marketing/creation/creation';
+
+import { ref, watch } from 'vue';
+
+import { useVbenDrawer } from '@vben/common-ui';
+
 import {
   Alert,
   Button,
@@ -13,8 +14,21 @@ import {
   Descriptions,
   DescriptionsItem,
 } from 'ant-design-vue';
+
+import { Platform } from '#/constants/enums';
 import AudiencePackageSelector
   from '#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue';
+
+import BytedanceCampaignDrawer from './BytedanceCampaignDrawer.vue';
+
+const { formFields, campaignShowLabel, audience, campaign, accountInfo, fieldLabelMap } = defineProps({
+  formFields: { type: Array, default: () => [] },
+  campaignShowLabel: { type: Object, default: () => ({}) },
+  audience: { type: Object as () => AudienceConfigData | null, default: () => ({}) },
+  campaign: { type: Object as () => BytedanceCampaignData | null, default: () => ({}) },
+  accountInfo: { type: Array as () => AccountInfo[], default: () => [] },
+  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
+});
 
 const emit = defineEmits(['update:campaign', 'update:audiencePackage']);
 
@@ -30,15 +44,6 @@ const [CampaignDrawerModule, drawerApi] = useVbenDrawer({
       emit('update:campaign', campaignInfo.value);
     }
   },
-});
-
-const { formFields, campaignShowLabel, audience, campaign, accountInfo, fieldLabelMap } = defineProps({
-  formFields: { type: Array, default: () => [] },
-  campaignShowLabel: { type: Object, default: () => ({}) },
-  audience: { type: Object as () => AudienceConfigData | null, default: () => ({}) },
-  campaign: { type: Object as () => BytedanceCampaignData | null, default: () => ({}) },
-  accountInfo: { type: Array as () => AccountInfo[], default: () => [] },
-  fieldLabelMap: { type: Object as () => Record<string, (value: any) => string>, default: () => ({}) },
 });
 
 const campaignInfo = ref<BytedanceCampaignData>({

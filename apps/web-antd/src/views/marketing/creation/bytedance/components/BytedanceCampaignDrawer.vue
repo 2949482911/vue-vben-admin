@@ -1,27 +1,13 @@
 <script setup lang="ts" name="BytedanceCampaignDrawer">
-import { computed, nextTick, reactive } from 'vue';
-import { message } from 'ant-design-vue';
-import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import type { VbenFormSchema } from '#/adapter/form';
-import { useVbenForm } from '#/adapter/form';
-import DpaProductModal from './DpaProductModal.vue';
-import type {
-  BytedanceDpaProductListItem,
-} from '#/api/models/bytedance';
 import type { BytedanceCampaignData } from '#/views/marketing/creation/bytedance/bytedance';
 import type { AccountInfo } from '#/views/marketing/creation/creation';
 
-/** DPA 商品选择弹窗共享数据类型 */
-interface DpaModalData {
-  advertiserIds: string[];
-  initialProduct: BytedanceDpaProductListItem | null;
-  selectedProduct?: BytedanceDpaProductListItem | null;
-}
+import { nextTick } from 'vue';
 
-/** 抽屉共享数据类型（项目数据 + DPA 商品展示信息） */
-type CampaignDrawerData = BytedanceCampaignData & {
-  _dpaProductInfo?: BytedanceDpaProductListItem | null;
-};
+import { useVbenDrawer } from '@vben/common-ui';
+
+import { useVbenForm } from '#/adapter/form';
 
 const props = defineProps({
   formFields: {
@@ -34,53 +20,6 @@ const props = defineProps({
   },
 });
 
-/** 从 accountInfo 提取广告主ID列表（字符串数组） */
-const advertiserIds = computed(() =>
-  props.accountInfo.map((a) => a.localAdvertiserId),
-);
-
-/** 已选中的 DPA 商品信息（响应式对象，通过 schema.componentProps 注入到 DpaProductButtonField） */
-const dpaContext = reactive<{ selectedProduct: BytedanceDpaProductListItem | null }>({
-  selectedProduct: null,
-});
-
-/** DPA 商品选择弹窗 */
-const [DpaProductModalModule, dpaModalApi] = useVbenModal<DpaModalData>({
-  connectedComponent: DpaProductModal,
-  onOpenChange(isOpen) {
-    if (!isOpen) {
-      // 弹窗关闭后，获取选中的商品并回填隐藏字段到表单
-      const data = dpaModalApi.getData();
-      if (data?.selectedProduct !== undefined) {
-        dpaContext.selectedProduct = data.selectedProduct ?? null;
-        if (data.selectedProduct) {
-          formApi.setValues({
-            related_product_platform_id: String(data.selectedProduct.platform_id),
-            related_product_id: String(data.selectedProduct.product_id),
-            related_product_unique_id: String(data.selectedProduct.product_id),
-          });
-        } else {
-          formApi.setValues({
-            related_product_platform_id: '',
-            related_product_id: '',
-            related_product_unique_id: '',
-          });
-        }
-      }
-    }
-  },
-});
-
-/** 打开 DPA 商品选择弹窗 */
-function openDpaModal() {
-  dpaModalApi.setData({
-    advertiserIds: advertiserIds.value,
-    initialProduct: dpaContext.selectedProduct,
-    selectedProduct: undefined,
-  });
-  dpaModalApi.open();
-}
-
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -88,16 +27,9 @@ const [Form, formApi] = useVbenForm({
       class: 'w-full',
     },
   },
-  handleValuesChange: (values: Record<string, any>) => {
-    // 监听 related_product_setting 变化，非SINGLE时清空已选商品
-    const newSetting = values.related_product_setting;
-    if (newSetting !== 'SINGLE') {
-      dpaContext.selectedProduct = null;
-    }
-  },
 });
 
-const [Drawer, drawerApi] = useVbenDrawer<CampaignDrawerData>({
+const [Drawer, drawerApi] = useVbenDrawer<BytedanceCampaignData>({
   closeOnClickModal: false,
   class: "w-[70%]",
   closeOnPressEscape: true,
@@ -107,7 +39,6 @@ const [Drawer, drawerApi] = useVbenDrawer<CampaignDrawerData>({
       formApi.setState({ schema: props.formFields as VbenFormSchema[] });
       await nextTick();
 
-      // 初始化 DPA 商品选择器状态
       // 如果 schema 中将 product_setting 隐藏且有 defaultValue，以 schema 为准
       const productSettingField = (props.formFields as any[]).find(
         (f: any) => f.fieldName === 'related_product_setting',
@@ -116,16 +47,7 @@ const [Drawer, drawerApi] = useVbenDrawer<CampaignDrawerData>({
       const productSetting = fieldIsHidden && productSettingField?.defaultValue
         ? productSettingField.defaultValue
         : (campaign.related_product?.product_setting || 'NO_MAP');
-      dpaContext.selectedProduct = campaign._dpaProductInfo || null;
 
-      // 动态注入 DPA 回调
-      const schemaWithDpa = (props.formFields as any[]).map((f: any) => {
-        if (f.fieldName === 'dpa_product_button') {
-          return { ...f, componentProps: { dpaContext, openDpaModal } };
-        }
-        return f;
-      });
-      formApi.setState({ schema: schemaWithDpa });
       await nextTick();
 
       const flattenedData = {
@@ -191,7 +113,6 @@ const [Drawer, drawerApi] = useVbenDrawer<CampaignDrawerData>({
       const nestedKeys = [
         'related_product', 'native_setting', 'optimize_goal', 'delivery_range',
         'audience', 'delivery_setting', 'track_url_setting', 'keywords',
-        '_dpaProductInfo',
       ];
       nestedKeys.forEach((k) => delete filteredData[k]);
 
@@ -202,12 +123,6 @@ const [Drawer, drawerApi] = useVbenDrawer<CampaignDrawerData>({
     const isValidate = await formApi.validate();
     if (!isValidate.valid) return;
     const currentValues = await formApi.getValues();
-
-    // 商品投放模式下，必须选择商品
-    if (currentValues.related_product_setting === 'SINGLE' && !dpaContext.selectedProduct) {
-      message.warning('请先选择投放商品');
-      return;
-    }
 
     const campaign = {
       ...currentValues,
@@ -278,11 +193,8 @@ const [Drawer, drawerApi] = useVbenDrawer<CampaignDrawerData>({
       //   video_play_first_track_url: currentValues.video_play_first_track_url || [],
       //   send_type: currentValues.send_type || '',
       // },
-
-      // DPA 商品展示信息（用于摘要卡片，不传给API）
-      _dpaProductInfo: dpaContext.selectedProduct,
     };
-    drawerApi.setData(campaign as CampaignDrawerData);
+    drawerApi.setData(campaign as BytedanceCampaignData);
     await drawerApi.close();
   },
   onClosed() {
@@ -299,9 +211,7 @@ const [Drawer, drawerApi] = useVbenDrawer<CampaignDrawerData>({
 <template>
   <div>
     <Drawer title="项目配置">
-      <Form></Form>
+      <Form />
     </Drawer>
-
-    <DpaProductModalModule />
-  </div>
+</div>
 </template>

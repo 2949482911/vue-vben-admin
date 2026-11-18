@@ -1,23 +1,21 @@
 import type {
-  DpaProductConfigData,
-  ProductConfigData,
-  ProductDataMapping,
   StdCreation,
   StdCreationData,
   StdProject,
   StdProjectMaterials
 } from "./bytedance";
 
-import type { BytedanceDpaProductListItem } from "#/api/models/bytedance";
 import type {
   AccountTabData
 } from "#/views/marketing/creation/components/preview_area/previewAreaData";
 
 import { CampaignRuleKey, Platform } from "#/constants/enums";
 import { renderProjectTitle } from "#/utils/customName";
+import { resolveAweme } from "#/views/marketing/creation/components/aweme/types";
+import { resolveDpaProduct } from "#/views/marketing/creation/components/dpa_product/types";
+import { resolveProductConfigItem } from "#/views/marketing/creation/components/product_config/types";
 import {
   type AccountInfo,
-  type AwemeConfigData,
   getAudience,
   getFlatTitleList,
   getLandingPage,
@@ -39,51 +37,13 @@ import {
 } from "./enums";
 
 /**
- * 获取抖音号ID —— 智擎版仅支持按项目(PER_PROJECT)/按账户(PER_ACCOUNT)分配
- * Map key：PER_PROJECT → '0'；PER_ACCOUNT → advertiserId
- */
-function getAwemeId(
-  awemeConfig: AwemeConfigData | undefined,
-  advertiserId: string,
-): string {
-  if (!awemeConfig?.data) return '';
-  const key = awemeConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
-  return awemeConfig.data.get(key)?.[0]?.awemeId || '';
-}
-
-/**
- * 获取产品配置 —— 按分配规则取对应产品映射
- * Map key：PER_ACCOUNT → advertiserId；ALL_SAME / PER_PROJECT → '0'
- */
-function getProductConfig(
-  productConfig: ProductConfigData | undefined,
-  advertiserId: string,
-): null | ProductDataMapping {
-  if (!productConfig?.data) return null;
-  const key = productConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
-  return productConfig.data.get(key)?.[0] || null;
-}
-
-/**
- * 获取投放商品 —— 按分配规则取对应商品
- * Map key：PER_ACCOUNT → advertiserId；ALL_SAME → '0'
- */
-function getDpaProduct(
-  dpaProductConfig: DpaProductConfigData | undefined,
-  advertiserId: string,
-): BytedanceDpaProductListItem | null {
-  if (!dpaProductConfig?.data) return null;
-  const key = dpaProductConfig.config.method === 'PER_ACCOUNT' ? advertiserId : '0';
-  return dpaProductConfig.data.get(key)?.[0] || null;
-}
-
-/**
  * 获取智擎版预览表格数据（单层：项目）
  */
 export function getPreviewTableData(
   creationInfo: StdCreation
 ): StdCreationData[] {
   const adList: StdCreationData[] = [];
+  let globalProjectIndex = 0;
 
   creationInfo.accountInfo.forEach((account, accountIdx) => {
     const advertiserId = account.localAdvertiserId;
@@ -155,14 +115,22 @@ export function getPreviewTableData(
         pIdx
       );
       // 产品配置（按分配规则取值，未配置时回退到项目里手动填写的产品信息）
-      const product = getProductConfig(
+      const product = resolveProductConfigItem(
         creationInfo.configData.productConfig,
-        advertiserId,
+        {
+          advertiserId,
+          globalProjectIndex,
+          projectIndex: pIdx,
+        },
       );
       // 投放商品（按分配规则取值，未配置时回退到项目表单里手动选择的商品）
-      const dpaProduct = getDpaProduct(
+      const dpaProduct = resolveDpaProduct(
         creationInfo.configData.dpaProductConfig,
-        advertiserId,
+        {
+          advertiserId,
+          globalProjectIndex,
+          projectIndex: pIdx,
+        },
       );
       // 构建 project_materials
       const materials: StdProjectMaterials = {
@@ -227,7 +195,12 @@ export function getPreviewTableData(
         asset_type: projectData.asset_type,
         audience_type: projectData.audience_type,
         auto_extend_traffic: projectData.auto_extend_traffic,
-        aweme_id: getAwemeId(creationInfo.configData.awemeConfig, advertiserId),
+        aweme_id:
+          resolveAweme(creationInfo.configData.awemeConfig, {
+            advertiserId,
+            globalProjectIndex,
+            projectIndex: pIdx,
+          })?.awemeId || '', 
         blue_flow_keyword_name: projectData.blue_flow_keyword_name,
         brand_info: projectData.brand_info,
         cpa_bid: projectData.cpa_bid,
@@ -307,6 +280,7 @@ export function getPreviewTableData(
       };
 
       tableData.projectList.push(project);
+      globalProjectIndex += 1;
     }
 
     adList.push(tableData);

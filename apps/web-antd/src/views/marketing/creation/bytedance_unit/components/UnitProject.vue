@@ -1,8 +1,6 @@
 <script setup lang="ts" name="UnitProjectForm">
 import type { UnitProjectCreateRequest } from '../bytedance';
 
-import type { AccountInfo } from '#/views/marketing/creation/creation';
-
 import { ref } from 'vue';
 
 import { Alert, Button, Card, Descriptions, DescriptionsItem, Space } from 'ant-design-vue';
@@ -10,7 +8,6 @@ import { Alert, Button, Card, Descriptions, DescriptionsItem, Space } from 'ant-
 import UnitProjectDrawer from './UnitProjectDrawer.vue';
 
 const props = defineProps<{
-  accountInfo: AccountInfo[];
   project: UnitProjectCreateRequest;
 }>();
 const emit = defineEmits<{
@@ -39,7 +36,6 @@ function clearProject() {
     name: '',
     schedule_time: '',
     schedule_type: 'SCHEDULE_FROM_NOW',
-    selectedProduct: undefined,
     source: '',
     start_time: '',
     uni_roi_goal: 0,
@@ -56,23 +52,6 @@ function clearProject() {
         </DescriptionsItem>
         <DescriptionsItem label="营销产品">
           {{ props.project.delivery_product || 'ALBUM' }}
-        </DescriptionsItem>
-        <DescriptionsItem label="商品">
-          <template v-if="props.project.selectedProduct">
-            {{
-              props.project.selectedProduct.name ||
-              props.project.selectedProduct.title ||
-              '已选商品'
-            }}
-            <span class="product-ids">
-              （{{ props.project.related_product?.product_platform_id || '-'
-              }}/{{ props.project.related_product?.product_id || '-' }}）
-            </span>
-          </template>
-          <template v-else>
-            {{ props.project.related_product?.product_platform_id || '-'
-            }}/{{ props.project.related_product?.product_id || '-' }}
-          </template>
         </DescriptionsItem>
         <DescriptionsItem label="预算">
           {{ props.project.budget ?? '-' }} 元
@@ -114,7 +93,6 @@ function clearProject() {
 
     <UnitProjectDrawer
       ref="drawerRef"
-      :account-info="props.accountInfo"
       :project="props.project"
       @update:project="onProjectUpdated"
     />

@@ -56,7 +56,7 @@ export interface AccountInfo {
 
 // ==================== 抖音号配置（巨量通用） ====================
 
-export type AwemeDistributionRule = 'ALL_SAME' | 'PER_ACCOUNT' | 'PER_AD' | 'PER_PROJECT';
+export type AwemeDistributionRule = 'ALL_SAME' | 'AVERAGE' | 'PER_ACCOUNT';
 
 /**
  * 抖音号条目（存储在 Map 中）
@@ -70,9 +70,8 @@ export interface AwemeMapping {
  * 抖音号配置 —— 与标题包/落地页统一的 { config, data: Map } 模式
  *
  * Map key 语义：
- *   ALL_SAME / PER_PROJECT → key = '0'（全局一条）
- *   PER_ACCOUNT            → key = advertiserId
- *   PER_AD                 → key = `${advertiserId}-${adIdx}`
+ *   ALL_SAME / AVERAGE → key = '0'（全局抖音号池）
+ *   PER_ACCOUNT        → key = advertiserId（账户抖音号池）
  */
 export interface AwemeConfigData {
   config: { method: AwemeDistributionRule };

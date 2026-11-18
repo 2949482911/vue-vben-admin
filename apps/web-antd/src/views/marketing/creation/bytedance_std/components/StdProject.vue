@@ -1,4 +1,6 @@
 <script setup lang="ts" name="StdProjectForm">
+import type { DpaProductConfigData, StdProjectData } from "../bytedance";
+
 /**
  * 智擎版项目表单卡片
  *
@@ -9,16 +11,18 @@
  * - drawer 关闭后取 getData() 回填
  */
 import type { AccountInfo, AudienceConfigData } from "#/views/marketing/creation/creation";
-import type { DpaProductConfigData, StdProjectData } from "../bytedance";
+
 import { computed, ref, watch } from "vue";
+
 import { useVbenDrawer } from "@vben/common-ui";
-import StdProjectDrawer from "./StdProjectDrawer.vue";
-import { Platform } from "#/constants/enums";
+
 import { Alert, Button, Card, Descriptions, DescriptionsItem } from "ant-design-vue";
+
+import { Platform } from "#/constants/enums";
 import AudiencePackageSelector
   from "#/views/marketing/creation/components/audience_package/AudiencePackageSelector.vue";
 
-const emit = defineEmits(["update:project", "update:audiencePackage"]);
+import StdProjectDrawer from "./StdProjectDrawer.vue";
 
 const { formFields, audience, project, accountInfo, campaignShowLabel, fieldLabelMap, dpaProductConfig } = defineProps({
   formFields: { type: Array, default: () => [] },
@@ -27,7 +31,7 @@ const { formFields, audience, project, accountInfo, campaignShowLabel, fieldLabe
     default: () => ({})
   },
   project: {
-    type: Object as () => StdProjectData | null,
+    type: Object as () => null | StdProjectData,
     default: () => ({})
   },
   accountInfo: {
@@ -50,6 +54,8 @@ const { formFields, audience, project, accountInfo, campaignShowLabel, fieldLabe
     default: null
   }
 });
+
+const emit = defineEmits(["update:project", "update:audiencePackage"]);
 
 const [ProjectDrawerModule, drawerApi] = useVbenDrawer({
   connectedComponent: StdProjectDrawer,

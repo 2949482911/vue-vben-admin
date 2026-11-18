@@ -34,9 +34,14 @@ import MiniProgramDouyinTemplate
   from "#/views/marketing/creation/bytedance/components/mini_program_douyin/MiniProgramDouyinTemplate.vue";
 import { getPreviewTableData } from "#/views/marketing/creation/bytedance/convertToPreviewData";
 import { BYTEDANCE_MARKETING_TYPE } from "#/views/marketing/creation/bytedance/enums";
+import { normalizeAwemeConfig } from "#/views/marketing/creation/components/aweme/types";
 import BatchCreateLayout from "#/views/marketing/creation/components/batch_shell/BatchCreateLayout.vue";
 import CreateStrategyGroup from "#/views/marketing/creation/components/createStrategyGroup.vue";
+import {
+  normalizeDpaProductConfig,
+} from "#/views/marketing/creation/components/dpa_product/types";
 import Function from "#/views/marketing/creation/components/Function.vue";
+import { normalizeProductConfig } from "#/views/marketing/creation/components/product_config/types";
 import BatchTaskResultDrawer from "#/views/marketing/creation/components/result/BatchTaskResultDrawer.vue";
 import Submit from "#/views/marketing/creation/components/submit/SubmitModal.vue";
 import { RuleKey, RuleMethod } from "#/views/marketing/creation/creation_enums";
@@ -213,6 +218,14 @@ function updateLandingPage(landingPage: PageViewConfigData) {
 
 function updateAwemeConfig(awemeConfig: AwemeConfigData) {
   creationInfo.value.configData.awemeConfig = awemeConfig;
+}
+
+function updateDpaProductConfig(dpaProductConfig: any) {
+  creationInfo.value.configData.dpaProductConfig = dpaProductConfig;
+}
+
+function updateProductConfig(productConfig: any) {
+  creationInfo.value.configData.productConfig = productConfig;
 }
 
 function resetCreationInfo() {
@@ -443,6 +456,10 @@ async function initCreationInfo() {
       landingPage: { config: { method: RuleMethod.ALL }, data: new Map() },
       // 抖音号配置
       awemeConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
+      // 投放商品配置
+      dpaProductConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
+      // 产品配置
+      productConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
     },
     configurationConfig: {
       platform: Platform.BYTEDANCE,
@@ -524,9 +541,9 @@ function updateReuse(creation: BytedanceCreation) {
     if (config.landingPage && !(config.landingPage.data instanceof Map)) {
       config.landingPage.data = new Map(Object.entries(config.landingPage.data || {}));
     }
-    if (config.awemeConfig && config.awemeConfig.data && !(config.awemeConfig.data instanceof Map)) {
-      config.awemeConfig.data = new Map(Object.entries(config.awemeConfig.data || {}));
-    }
+    config.awemeConfig = normalizeAwemeConfig(config.awemeConfig);
+    config.dpaProductConfig = normalizeDpaProductConfig(config.dpaProductConfig);
+    config.productConfig = normalizeProductConfig(config.productConfig);
   }
   creationInfo.value = creation;
   template.value = creationInfo.value.configurationConfig.template ||  'base_template';
@@ -731,6 +748,10 @@ const creationInfo = ref<BytedanceCreation>({
     },
     // 抖音号配置
     awemeConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
+    // 投放商品配置
+    dpaProductConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
+    // 产品配置
+    productConfig: { config: { method: 'ALL_SAME' }, data: new Map() },
   },
   configurationConfig: {
     platform: Platform.BYTEDANCE,
@@ -823,6 +844,8 @@ watch(() => creationInfo, (_) => {
           @update:audience-package="updateAudiencePackage"
           @update:landing-page="updateLandingPage"
           @update:aweme-config="updateAwemeConfig"
+          @update:dpa-product-config="updateDpaProductConfig"
+          @update:product-config="updateProductConfig"
         />
         <MiniProgramDouyinTemplate
           v-if="template === 'mini_program_douyin_template'"
@@ -834,6 +857,8 @@ watch(() => creationInfo, (_) => {
           @update:audience-package="updateAudiencePackage"
           @update:landing-page="updateLandingPage"
           @update:aweme-config="updateAwemeConfig"
+          @update:dpa-product-config="updateDpaProductConfig"
+          @update:product-config="updateProductConfig"
         />
       </template>
 

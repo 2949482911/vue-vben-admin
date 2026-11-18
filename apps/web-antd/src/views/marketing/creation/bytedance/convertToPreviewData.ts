@@ -1,5 +1,4 @@
 import type {
-  AwemeConfigData,
   BytedanceCampaign,
   BytedanceCreation,
   BytedanceCreationData,
@@ -13,6 +12,9 @@ import type {
 
 import { AdGroupRuleKey, CampaignRuleKey, Platform } from "#/constants/enums";
 import { renderProjectTitle } from "#/utils/customName";
+import { resolveAweme } from "#/views/marketing/creation/components/aweme/types";
+import { resolveDpaProduct } from "#/views/marketing/creation/components/dpa_product/types";
+import { resolveProductConfigItem } from "#/views/marketing/creation/components/product_config/types";
 import {
   type AccountInfo,
   getAudience,
@@ -39,27 +41,6 @@ import {
 } from "./enums";
 
 /**
- * 获取抖音号ID —— 根据分配规则从 awemeConfig 中读取
- */
-function getAwemeId(
-  awemeConfig: AwemeConfigData,
-  advertiserId: string,
-  adIdx: number,
-): string {
-  const { method } = awemeConfig.config;
-  let key: string;
-  if (method === 'ALL_SAME' || method === 'PER_PROJECT') {
-    key = '0';
-  } else if (method === 'PER_ACCOUNT') {
-    key = advertiserId;
-  } else {
-    // PER_AD
-    key = `${advertiserId}-${adIdx}`;
-  }
-  return awemeConfig.data.get(key)?.[0]?.awemeId || '';
-}
-
-/**
  * 获取预览表格数据（巨量引擎）
  * 按照规则配置生成 BytedanceCreationData[]
  */
@@ -67,6 +48,7 @@ export function getPreviewTableData(
   creationInfo: BytedanceCreation
 ): BytedanceCreationData[] {
   const adList: BytedanceCreationData[] = [];
+  let globalProjectIndex = 0;
 
   creationInfo.accountInfo.forEach((account, accountIdx) => {
     const advertiserId = account.localAdvertiserId;
@@ -145,6 +127,20 @@ export function getPreviewTableData(
     // 遍历生成项目
     for (let campaignIdx = 0; campaignIdx < campaignCount; campaignIdx++) {
       const promotionList: BytedancePromotion[] = [];
+      const productConfigItem = resolveProductConfigItem(
+        creationInfo.configData.productConfig,
+        {
+          advertiserId,
+          globalProjectIndex,
+          projectIndex: campaignIdx,
+        },
+      );
+      const campaignAwemeId =
+        resolveAweme(creationInfo.configData.awemeConfig, {
+          advertiserId,
+          globalProjectIndex,
+          projectIndex: campaignIdx,
+        })?.awemeId || '';
 
       // 遍历生成广告（下标与外层关联：全局序号）
       for (let pIdx = 0; pIdx < promotionCount; pIdx++) {
@@ -213,11 +209,22 @@ export function getPreviewTableData(
             product_name_fields: promotionData.promotion_materials?.product_info?.product_name_fields || [],
             product_image_fields: promotionData.promotion_materials?.product_info?.product_image_fields || [],
             product_selling_point_fields: promotionData.promotion_materials?.product_info?.product_selling_point_fields || [],
-            titles: promotionData.promotion_materials?.product_info?.titles || [],
-            image_ids: promotionData.promotion_materials?.product_info.image_ids || [],
-            selling_points: promotionData.promotion_materials?.product_info?.selling_points || [],
+            titles:
+              productConfigItem?.titles ??
+              promotionData.promotion_materials?.product_info?.titles ??
+              [],
+            image_ids:
+              productConfigItem?.image_button ??
+              promotionData.promotion_materials?.product_info.image_ids ??
+              [],
+            selling_points:
+              productConfigItem?.selling_points ??
+              promotionData.promotion_materials?.product_info?.selling_points ??
+              [],
             // 产品主图ID
-            local_material_image_ids: promotionData.promotion_materials?.product_info.image_ids,
+            local_material_image_ids:
+              productConfigItem?.image_button ??
+              promotionData.promotion_materials?.product_info.image_ids,
           },
           original_video_title: "",
           playlet_series_url_list: [landingPageItem.config.pageUrlIap || landingPageItem.config.pageUrl],
@@ -244,16 +251,15 @@ export function getPreviewTableData(
           instant_play_material_list: [],
           dynamic_creative_switch: "",
           advanced_dc_settings: [],
-          call_to_action_buttons: promotionData.promotion_materials?.call_to_action_buttons || [],
+          call_to_action_buttons:
+            productConfigItem?.action_buttons ??
+            promotionData.promotion_materials?.call_to_action_buttons ??
+            [],
           intelligent_generation: promotionData.promotion_materials?.intelligent_generation || "",
           plant_grass_search_word_material: []
         };
 
-        const awemeId = getAwemeId(
-          creationInfo.configData.awemeConfig,
-          advertiserId,
-          globalPIdx,
-        );
+        const awemeId = campaignAwemeId;
 
         const promotion: BytedancePromotion = {
           getName(): string {
@@ -311,6 +317,14 @@ export function getPreviewTableData(
         campaignIdx,
       );
 
+      const dpaProduct = resolveDpaProduct(
+        creationInfo.configData.dpaProductConfig,
+        {
+          advertiserId,
+          globalProjectIndex,
+          projectIndex: campaignIdx,
+        },
+      );
       const campaign: BytedanceCampaign = {
         getName(): string {
           return this.name;
@@ -334,7 +348,15 @@ export function getPreviewTableData(
         star_auto_delivery_switch: campaignData.star_auto_delivery_switch,
         keywords: campaignData.keywords,
         auto_extend_traffic: campaignData.auto_extend_traffic,
-        related_product: campaignData.related_product,
+        related_product: dpaProduct
+          ? {
+              ...campaignData.related_product,
+              product_id: String(dpaProduct.product_id),
+              product_platform_id: String(dpaProduct.platform_id),
+              product_setting: 'SINGLE',
+              unique_product_id: String(dpaProduct.product_id),
+            }
+          : campaignData.related_product,
         download_url: campaignData.download_url,
         app_name: campaignData.app_name,
         download_type: campaignData.download_type,
@@ -379,6 +401,7 @@ export function getPreviewTableData(
         promotionList
       };
       tableData.campaignList.push(campaign);
+      globalProjectIndex += 1;
     }
 
     adList.push(tableData);
