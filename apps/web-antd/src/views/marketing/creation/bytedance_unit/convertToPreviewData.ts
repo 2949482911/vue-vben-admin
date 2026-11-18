@@ -135,7 +135,11 @@ export function getPreviewTableData(creationInfo: UnitCreation): UnitCreationDat
         creationInfo.configData.landingPage.data,
         advertiserId,
       );
-      const landingUrl = landingPageItem?.config?.pageUrl || '';
+      const iapUrl =
+        landingPageItem?.config?.pageUrlIap ||
+        landingPageItem?.config?.pageUrl ||
+        '';
+      const iaaUrl = landingPageItem?.config?.pageUrlIaa || '';
       const goingGlobalEnabled =
         projectData.monetization_mode === 'IAA_AND_IAP' &&
         projectData.going_global_switch === 'ON';
@@ -190,25 +194,32 @@ export function getPreviewTableData(creationInfo: UnitCreation): UnitCreationDat
           pIdx,
           creationInfo.project.projectName,
         ),
-        playlet_series_url_info: landingUrl
-          ? projectData.monetization_mode === 'IAA_AND_IAP'
+        related_product: projectData.related_product
+          ? {
+              product_id: String(projectData.related_product.product_id),
+              product_platform_id: String(
+                projectData.related_product.product_platform_id,
+              ),
+            }
+          : undefined,
+        playlet_series_url_info: [
+          ...(iapUrl
             ? [
                 {
-                  playlet_series_url: landingUrl,
+                  playlet_series_url: iapUrl,
+                  playlet_series_url_type: 'IAP',
+                },
+              ]
+            : []),
+          ...(projectData.monetization_mode === 'IAA_AND_IAP' && iaaUrl
+            ? [
+                {
+                  playlet_series_url: iaaUrl,
                   playlet_series_url_type: 'IAA',
                 },
-                {
-                  playlet_series_url: landingUrl,
-                  playlet_series_url_type: 'IAP',
-                },
               ]
-            : [
-                {
-                  playlet_series_url: landingUrl,
-                  playlet_series_url_type: 'IAP',
-                },
-              ]
-          : [],
+            : []),
+        ],
         product_info: {
           image_ids: [],
           local_images_ids: productImageIds,

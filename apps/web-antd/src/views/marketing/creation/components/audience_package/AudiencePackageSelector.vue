@@ -1,13 +1,18 @@
 <script setup lang="ts" name="AudiencePackageSelector">
 // 定向包选择组件 - 供全媒体批投公用
-// 参照 pageview/PageViewSelector.vue 模式：内部组装 展示(Show) + 弹窗(Modal) + 选择按钮
+// 内部组装展示(Show) + 抽屉(Drawer) + 选择按钮
 import type { AccountInfo, AudienceConfigData } from "#/views/marketing/creation/creation";
-import { RuleMethod } from "#/views/marketing/creation/creation_enums";
-import { Alert, Button, Card } from "ant-design-vue";
-import { useVbenModal } from "@vben/common-ui";
+
 import { computed, ref, watch } from "vue";
+
+import { useVbenDrawer } from "@vben/common-ui";
+
+import { Alert, Button, Card } from "ant-design-vue";
+
+import { RuleMethod } from "#/views/marketing/creation/creation_enums";
+
+import AudiencePackageDrawer from "./AudiencePackageDrawer.vue";
 import AudiencePackageShow from "./AudiencePackageShow.vue";
-import AudiencePackageModal from "./AudiencePackageModal.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -27,8 +32,8 @@ const props = withDefaults(
 
 const emit = defineEmits(["update:audience"]);
 
-const [AudiencePackageModalComp, audiencePackageModalApi] = useVbenModal({
-  connectedComponent: AudiencePackageModal,
+const [AudiencePackageDrawerComp, audiencePackageDrawerApi] = useVbenDrawer({
+  connectedComponent: AudiencePackageDrawer,
 });
 
 // 本地定向包数据
@@ -46,16 +51,16 @@ const totalCount = computed(() => {
   return total;
 });
 
-// 打开弹窗
+// 打开抽屉
 function openAudiencePackage() {
-  audiencePackageModalApi.setData({
+  audiencePackageDrawerApi.setData({
     config: { ...localAudience.value.config },
     data: new Map(toMap(localAudience.value.data)),
   });
-  audiencePackageModalApi.open();
+  audiencePackageDrawerApi.open();
 }
 
-// 接收弹窗确认回调，更新本地数据并 emit 到最外层
+// 接收抽屉确认回调，更新本地数据并 emit 到最外层
 function updateAudience(data: AudienceConfigData) {
   localAudience.value = {
     config: { ...data.config },
@@ -119,7 +124,7 @@ function toMap(data: any): Map<string, any[]> {
       </div>
     </Card>
 
-    <AudiencePackageModalComp
+    <AudiencePackageDrawerComp
       :account-info="accountInfo"
       :platform="platform"
       @update:orientation="updateAudience"

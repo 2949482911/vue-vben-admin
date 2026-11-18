@@ -427,7 +427,7 @@ const appFieldLabelMap: Record<string, (value: any) => string> = {
 
 <template>
   <div class="oppo-app-template">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <div class="pane">
         <OppoCampaign
           :form-fields="campaignFormFields"

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { StrategyGropType } from "#/api/models";
 
-import { useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { useVbenDrawer, useVbenModal, type VbenFormProps } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 
 import { Button, message, Tag } from "ant-design-vue";
@@ -18,8 +18,8 @@ import { HUAWEI_STORE } from "#/views/marketing/creation/huawei_store/huawei_sto
 import { OPPO_VERSION } from "#/views/marketing/creation/oppo/Oppo.types";
 import { TENCENT } from "#/views/marketing/creation/tencent/tencent";
 
-import { VIVO_VERSION } from "../vivo/vivo";
-import CreateObjectRequestComp from "./createStrategyGroup.vue"; // 新增|修改弹窗
+import { VIVO_VERSION } from "../../vivo/vivo";
+import CreateObjectRequestComp from "../createStrategyGroup.vue"; // 新增|修改弹窗
 
 
 const props = defineProps<Props>();
@@ -172,7 +172,10 @@ function pageReload() {
   gridApi.reload();
 }
 
-const [Modal, modalApi] = useVbenModal({});
+const [Drawer, drawerApi] = useVbenDrawer({
+  closeOnClickModal: false,
+  class: 'w-[73.2%]',
+});
 
 /**
  * 复用策略组
@@ -180,7 +183,7 @@ const [Modal, modalApi] = useVbenModal({});
  */
 function reuseStrategyGroup(row: StrategyGropType) {
   emit("update:reuse", row.configObj);
-  modalApi.close();
+  drawerApi.close();
 }
 
 async function deleteStrategyGroup(row: StrategyGropType) {
@@ -214,7 +217,7 @@ function openCreateModal(row: StrategyGropType) {
 </script>
 <template>
   <div>
-    <Modal title="选择策略组" class="w-[73.2%]">
+    <Drawer title="选择策略组">
       <Grid>
         <template #platform="{ row }">
           <Tag :bordered="false" :color="getPlatformColor(row.platform)">
@@ -256,7 +259,7 @@ function openCreateModal(row: StrategyGropType) {
           </Button>
         </template> -->
       </Grid>
-    </Modal>
+    </Drawer>
     <CreateObjectModal
       @page-reload="pageReload"
       :config="props.config"

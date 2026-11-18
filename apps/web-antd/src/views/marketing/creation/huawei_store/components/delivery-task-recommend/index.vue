@@ -367,7 +367,7 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 
 <template>
   <div class="delivery-task-recommend-container">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <div class="pane">
         <Task
 :form-fields="taskFormFields"

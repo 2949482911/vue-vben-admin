@@ -515,7 +515,7 @@ const promotionShowLabel: Record<string, string> = {
 
 <template>
   <div class="mini-program-douyin-template">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <!-- 第1列：项目 + 定向包 -->
       <div class="pane">
         <BytedanceCampaign

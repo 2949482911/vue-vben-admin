@@ -63,151 +63,45 @@ function updateProductConfig(productConfig: ProductConfigData) {
 </script>
 
 <template>
-  <div class="unit-base-template">
-    <div class="panes">
-      <div class="pane">
-        <div class="split-pane">
-          <UnitProject
-            :account-info="creationInfo.accountInfo"
-            :project="creationInfo.configData.project"
-            @update:project="updateProject"
-          />
-          <AudiencePackageSelector
-            :account-info="creationInfo.accountInfo"
-            :audience="creationInfo.configData.audience"
-            :platform="Platform.BYTEDANCE"
-            @update:audience="updateAudiencePackage"
-          />
-        </div>
-      </div>
-
-      <div class="pane">
-        <div class="combined-area">
-          <ProductConfigCard
-            :account-info="creationInfo.accountInfo"
-            :product-config="creationInfo.configData.productConfig"
-            @update:product-config="updateProductConfig"
-          />
-          <CreativeGroupSelector
-            :account-info="creationInfo.accountInfo"
-            :material="creationInfo.configData.material"
-            @update:material="updateMaterial"
-          />
-        </div>
-      </div>
-
-      <div class="pane">
-        <div class="combined-area">
-          <PageViewSelector
-            :account-info="creationInfo.accountInfo"
-            :page-view="creationInfo.configData.landingPage"
-            @update:page-view="updateLandingPage"
-          />
-          <TitleSelector
-            :account-info="creationInfo.accountInfo"
-            :title-package="creationInfo.configData.titlePackage"
-            @update:title-package="updateTitlePackage"
-          />
-          <AwemeConfigCard
-            :account-info="creationInfo.accountInfo"
-            :aweme-config="creationInfo.configData.awemeConfig"
-            :supported-rules="['PER_PROJECT', 'PER_ACCOUNT']"
-            @update:aweme-config="updateAwemeConfig"
-          />
-        </div>
-      </div>
-    </div>
+  <div class="panes batch-config-panes">
+    <UnitProject
+      :account-info="creationInfo.accountInfo"
+      :project="creationInfo.configData.project"
+      @update:project="updateProject"
+    />
+    <AudiencePackageSelector
+      :account-info="creationInfo.accountInfo"
+      :audience="creationInfo.configData.audience"
+      :platform="Platform.BYTEDANCE"
+      @update:audience="updateAudiencePackage"
+    />
+    <ProductConfigCard
+      :account-info="creationInfo.accountInfo"
+      :product-config="creationInfo.configData.productConfig"
+      @update:product-config="updateProductConfig"
+    />
+    <CreativeGroupSelector
+      :account-info="creationInfo.accountInfo"
+      :material="creationInfo.configData.material"
+      @update:material="updateMaterial"
+    />
+    <PageViewSelector
+      :account-info="creationInfo.accountInfo"
+      :page-view="creationInfo.configData.landingPage"
+      @update:page-view="updateLandingPage"
+    />
+    <TitleSelector
+      :account-info="creationInfo.accountInfo"
+      :title-package="creationInfo.configData.titlePackage"
+      @update:title-package="updateTitlePackage"
+    />
+    <AwemeConfigCard
+      :account-info="creationInfo.accountInfo"
+      :aweme-config="creationInfo.configData.awemeConfig"
+      :supported-rules="['PER_PROJECT', 'PER_ACCOUNT']"
+      @update:aweme-config="updateAwemeConfig"
+    />
   </div>
 </template>
 
-<style scoped lang="scss">
-.unit-base-template {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-}
-
-.panes {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  height: 100%;
-  min-height: 0;
-}
-
-.pane {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-
-  > * {
-    flex: 1;
-    min-height: 0;
-    max-height: 100%;
-    overflow: hidden;
-  }
-
-  :deep(.ant-card) {
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 0 !important;
-    max-height: 100% !important;
-    overflow: hidden !important;
-  }
-
-  :deep(.ant-card-head) {
-    flex-shrink: 0 !important;
-  }
-
-  :deep(.ant-card-body) {
-    display: flex !important;
-    flex: 1 1 0% !important;
-    flex-direction: column !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-  }
-
-  :deep(.card-content) {
-    flex: 1 1 0% !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-  }
-
-  :deep(.card-footer) {
-    flex-shrink: 0 !important;
-  }
-}
-
-/* 全域项目 + 定向包各占一半 */
-.split-pane {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 16px;
-  min-height: 0;
-  overflow: hidden;
-
-  > * {
-    flex: 1;
-    min-height: 0;
-  }
-}
-
-.combined-area {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 16px;
-  width: 100%;
-  min-height: 0;
-  overflow: hidden;
-
-  > * {
-    flex: 1;
-    min-height: 0;
-  }
-}
-</style>
+<style scoped lang="scss"></style>

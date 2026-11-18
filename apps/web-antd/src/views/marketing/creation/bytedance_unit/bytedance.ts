@@ -40,15 +40,15 @@ export interface UnitConfigData {
 /** 关联产品投放参数 */
 export interface UnitRelatedProduct {
   /** 商品库 ID，营销产品=剧目时必填 */
-  product_platform_id: number;
+  product_platform_id: string;
   /** 商品 ID，营销产品=剧目时必填，单次最多一个 */
-  product_id: number;
+  product_id: string;
 }
 
 /** 投放商品选择结果（仅前端回显，提交前剔除） */
 export interface UnitSelectedProduct {
-  product_platform_id: number;
-  product_id: number;
+  product_platform_id: string;
+  product_id: string;
   name?: string;
   title?: string;
   image_url?: string;

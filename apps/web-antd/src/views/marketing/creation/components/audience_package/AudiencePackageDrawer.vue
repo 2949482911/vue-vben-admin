@@ -1,16 +1,19 @@
-<script lang="ts" setup name="AudiencePackageModal">
+<script lang="ts" setup name="AudiencePackageDrawer">
+import type {RadioChangeEvent} from 'ant-design-vue';
+
+import type {TargetedPackageTypeItem} from '#/api/models';
+import type {AccountInfo, AudienceConfigData} from '#/views/marketing/creation/creation';
+
+import {ref} from 'vue';
+
+import {useVbenDrawer, type VbenFormProps} from '@vben/common-ui';
+
+import {message, RadioButton, RadioGroup, Tag} from 'ant-design-vue';
+
 import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
 import {targetedPackageApi} from '#/api';
 import {trimObject} from '#/utils/trim';
-import {useVbenModal, type VbenFormProps} from '@vben/common-ui';
-import type {RadioChangeEvent} from 'ant-design-vue';
-import {message, RadioButton, RadioGroup, Tag} from 'ant-design-vue';
-import {ref} from 'vue';
-import type {TargetedPackageTypeItem} from '#/api/models';
-import type {AccountInfo, AudienceConfigData} from '#/views/marketing/creation/creation';
 import {RuleMethod} from "#/views/marketing/creation/creation_enums";
-
-const emit = defineEmits(['update:orientation']);
 
 const {accountInfo, platform} = defineProps({
   // 账户列表
@@ -23,6 +26,9 @@ const {accountInfo, platform} = defineProps({
     default: 'vivo',
   },
 });
+
+const emit = defineEmits(['update:orientation']);
+
 // 当前选中的账户 ID
 const currentAccountId = ref<string>('');
 // 定向包
@@ -104,13 +110,13 @@ const gridOptions: VxeGridProps = {
         const accountParams =
           localAudience.value.config.method === RuleMethod.ACCOUNT
             ? // ? {}
-            {platformAdvertiserId: currentAccountId.value} //测试功能中，后面正式放出来
+            {platformAdvertiserId: currentAccountId.value} // 测试功能中，后面正式放出来
             : {};
 
         const res = await targetedPackageApi.fetchGetTitleTargetedPackage({
           page: page.currentPage,
           pageSize: page.pageSize,
-          platform: platform,
+          platform,
           ...params,
           ...accountParams,
         });
@@ -181,10 +187,12 @@ async function changeMethod(e: RadioChangeEvent) {
   await gridApi.query();
 }
 
-const [Modal, modalApi] = useVbenModal<AudienceConfigData>({
+const [Drawer, drawerApi] = useVbenDrawer<AudienceConfigData>({
+  closeOnClickModal: false,
+  class: 'w-[75%]',
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const data = modalApi.getData()!;
+      const data = drawerApi.getData()!;
       localAudience.value = {
         ...data,
         config: {...data.config},
@@ -208,7 +216,7 @@ const [Modal, modalApi] = useVbenModal<AudienceConfigData>({
   },
   async onCancel() {
     await gridApi.grid.clearCheckboxRow();
-    await modalApi.close();
+    await drawerApi.close();
   },
   async onConfirm() {
     const grid = gridApi.grid;
@@ -238,11 +246,11 @@ const [Modal, modalApi] = useVbenModal<AudienceConfigData>({
       localAudience.value.data.delete('0');
     }
     emit('update:orientation', {...localAudience.value});
-    await modalApi.close();
+    await drawerApi.close();
   },
 });
 
-/**账户点击/切换逻辑 */
+/** 账户点击/切换逻辑 */
 const handleAccountClick = async (account: AccountInfo) => {
   const grid = gridApi.grid;
   if (!grid) return;
@@ -266,54 +274,50 @@ const handleAccountClick = async (account: AccountInfo) => {
 };
 </script>
 <template>
-  <div>
-    <Modal title="添加定向包" class="w-[80%]">
-      <div class="mb-4">
-        分配方式：
-        <RadioGroup v-model:value="localAudience.config.method" @change="changeMethod">
-          <RadioButton value="all">全部相同</RadioButton>
-          <RadioButton value="account">按账户分配</RadioButton>
-        </RadioGroup>
-      </div>
+  <Drawer title="添加定向包">
+    <div class="mb-4">
+      分配方式：
+      <RadioGroup v-model:value="localAudience.config.method" @change="changeMethod">
+        <RadioButton value="all">全部相同</RadioButton>
+        <RadioButton value="account">按账户分配</RadioButton>
+      </RadioGroup>
+    </div>
 
-      <div :class="localAudience.config.method === 'account' ? 'flex' : ''">
+    <div :class="localAudience.config.method === 'account' ? 'flex' : ''">
+      <div
+        v-if="localAudience.config.method === 'account'"
+        class="w-[250px] flex-shrink-0 border-r pr-4 mr-4 overflow-y-auto max-h-[500px]"
+      >
         <div
-          v-if="localAudience.config.method === 'account'"
-          class="w-[250px] flex-shrink-0 border-r pr-4 mr-4 overflow-y-auto max-h-[500px]"
+          v-for="item in accountInfo"
+          :key="item.localAdvertiserId"
+          class="p-2 mb-2 cursor-pointer border rounded transition-all" :class="[
+            localAudience.data.get(item.localAdvertiserId) ? 'has-packages' : 'no-packages',
+            // 选中状态判断 (覆盖基础状态)
+            currentAccountId === item.localAdvertiserId ? 'is-active' : '',
+          ]"
+          @click="handleAccountClick(item)"
         >
-          <div
-            v-for="item in accountInfo"
-            :key="item.localAdvertiserId"
-            :class="[
-              'p-2 mb-2 cursor-pointer border rounded transition-all',
-              // 基础状态判断
-              localAudience.data.get(item.localAdvertiserId) ? 'has-packages' : 'no-packages',
-              // 选中状态判断 (覆盖基础状态)
-              currentAccountId === item.localAdvertiserId ? 'is-active' : '',
-            ]"
-            @click="handleAccountClick(item)"
-          >
-            <div class="flex justify-between items-center">
-              <div class="text-sm font-medium">{{ item.advertiserName }}</div>
-            </div>
-            <div class="text-xs text-gray-400">ID: {{ item.localAdvertiserId }}</div>
+          <div class="flex justify-between items-center">
+            <div class="text-sm font-medium">{{ item.advertiserName }}</div>
           </div>
-        </div>
-        <div class="flex-1 overflow-hidden min-w-0">
-          <Grid>
-            <template #type="{ row }">
-              <span v-if="row.type === 'normal'">常规定向</span>
-              <span v-else>媒体定向</span>
-            </template>
-            <template #status="{ row }">
-              <Tag color="green" v-if="row.status === 1"> 启用</Tag>
-              <Tag v-else color="red">不启用</Tag>
-            </template>
-          </Grid>
+          <div class="text-xs text-gray-400">ID: {{ item.localAdvertiserId }}</div>
         </div>
       </div>
-    </Modal>
-  </div>
+      <div class="flex-1 overflow-hidden min-w-0">
+        <Grid>
+          <template #type="{ row }">
+            <span v-if="row.type === 'normal'">常规定向</span>
+            <span v-else>媒体定向</span>
+          </template>
+          <template #status="{ row }">
+            <Tag color="green" v-if="row.status === 1"> 启用</Tag>
+            <Tag v-else color="red">不启用</Tag>
+          </template>
+        </Grid>
+      </div>
+    </div>
+  </Drawer>
 </template>
 
 <style scoped lang="scss">

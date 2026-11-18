@@ -17,6 +17,8 @@ import App from './app.vue';
 import { initDict } from './dict-init';
 import { router } from './router';
 
+import './styles/batch-config.scss';
+
 async function bootstrap(namespace: string) {
   // 字典 store 接到后端字典接口（登录后预加载）
   initDict();

@@ -1,30 +1,20 @@
 <script setup lang="ts" name = "configurationArea">
-import { ref, onMounted, computed, watch } from 'vue';
-import { Select, Tooltip, Input, Button } from 'ant-design-vue';
 import type { SelectValue } from 'ant-design-vue/es/select';
-import { advertiserApi, projectApi } from '#/api';
+
 import type { AdvertiserItem } from '#/api/models';
-import { useVbenModal, type VbenFormProps } from '@vben/common-ui';
+import type { AccountInfo, Project, RuleConfiguration, RuleOptions } from "#/views/marketing/creation/creation";
+
+import { computed, onMounted, ref, watch } from 'vue';
+
+import { useVbenDrawer, useVbenModal, type VbenFormProps } from '@vben/common-ui';
+
+import { Button, Input, Select, Tooltip } from 'ant-design-vue';
+
 import { useVbenVxeGrid, type VxeGridProps } from '#/adapter/vxe-table';
+import { advertiserApi, projectApi } from '#/api';
 import { trimObject } from '#/utils/trim';
 // 策略组
-import StrategyGroup from "#/views/marketing/creation/components/strategyGroup.vue";
-import type { AccountInfo, Project, RuleConfiguration, RuleOptions } from "#/views/marketing/creation/creation";
-const projectId = ref<SelectValue>('');
-const productList = ref();
-// 媒体账户显示文字 (String 格式方便绑定 Input)
-const mediaAccountLabel = ref<string>('');
-// 选中的ID数组方便回显
-const selectedAccountIds = ref<string[]>([]);
-// 已选账户数量（条形态下的触发器展示用）
-const accountCount = computed(() => selectedAccountIds.value.length);
-// 定义一个变量存储完整的行对象
-const selectedRowsData = ref<any[]>([]);
-// 内部维护一个临时变量，记录弹窗中所有的勾选对象
-const tempSelectedRows = ref<AdvertiserItem[]>([]);
-const emit = defineEmits(['update:accountInfo', 'update:productInfo','update:ruleInfo', 'update:reuse']);
-
-
+import StrategyGroupDrawer from "#/views/marketing/creation/components/strategy_group/StrategyGroupDrawer.vue";
 const { ruleInfo, configurationConfig, accountInfo, project, ruleConfiguration, ruleOptions, compact } = defineProps({
   ruleInfo: {
     type: Object,
@@ -124,7 +114,7 @@ const { ruleInfo, configurationConfig, accountInfo, project, ruleConfiguration, 
 
   // 项目信息（复用策略组时传入）
   project: {
-    type: Object as () => Project | null,
+    type: Object as () => null | Project,
     default: null
   },
 
@@ -135,7 +125,19 @@ const { ruleInfo, configurationConfig, accountInfo, project, ruleConfiguration, 
   }
 
 });
-
+const emit = defineEmits(['update:accountInfo', 'update:productInfo','update:ruleInfo', 'update:reuse']);
+const projectId = ref<SelectValue>('');
+const productList = ref();
+// 媒体账户显示文字 (String 格式方便绑定 Input)
+const mediaAccountLabel = ref<string>('');
+// 选中的ID数组方便回显
+const selectedAccountIds = ref<string[]>([]);
+// 已选账户数量（条形态下的触发器展示用）
+const accountCount = computed(() => selectedAccountIds.value.length);
+// 定义一个变量存储完整的行对象
+const selectedRowsData = ref<any[]>([]);
+// 内部维护一个临时变量，记录弹窗中所有的勾选对象
+const tempSelectedRows = ref<AdvertiserItem[]>([]);
 // 顶部展示文本：根据传入的规则配置动态生成
 const displayDisplayText = computed(() => {
   const config = ruleConfiguration;
@@ -267,7 +269,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     },
   },
 };
-//媒体账户选择弹框
+// 媒体账户选择弹框
 const [Modal, modalApi] = useVbenModal({
   closeOnPressEscape: true,
   contentClass: 'modalStyle',
@@ -311,15 +313,15 @@ const [RuleModal, ruleModalApi] = useVbenModal({
 
 
 // 策略组配置弹窗
-const [StrategyGroupModal, strategyGroupModalApi] = useVbenModal({
-  connectedComponent: StrategyGroup,
+const [StrategyGroupDrawerComp, strategyGroupDrawerApi] = useVbenDrawer({
+  connectedComponent: StrategyGroupDrawer,
 })
 
 
 // 弹出策略组的对象
 function updateStrategyReuse(configObj: any) {
   emit('update:reuse', configObj);
-  strategyGroupModalApi.close();
+  strategyGroupDrawerApi.close();
 }
 
 
@@ -397,7 +399,7 @@ function ruleConfigurationEvent() {
 
 // open 策略组
 function reuseStrategyGroup() {
-  strategyGroupModalApi.open();
+  strategyGroupDrawerApi.open();
 }
 </script>
 <template>
@@ -410,13 +412,15 @@ function reuseStrategyGroup() {
           <Select
             v-model:value="projectId"
             class="project-select"
-            @change="handleProjectChange">
+            @change="handleProjectChange"
+>
             <Select.Option
               v-for="item in productList"
               :key="item.id"
               :label="item.name"
               :value="item.id"
-            >{{ item.name }}
+            >
+{{ item.name }}
             </Select.Option>
           </Select>
         </div>
@@ -557,7 +561,7 @@ function reuseStrategyGroup() {
       </div>
     </RuleModal>
 
-    <StrategyGroupModal @update:reuse="updateStrategyReuse" :platform="configurationConfig.platform" :sub-type="configurationConfig.subType" :show-sub-type="configurationConfig.showSubType"/>
+    <StrategyGroupDrawerComp @update:reuse="updateStrategyReuse" :platform="configurationConfig.platform" :sub-type="configurationConfig.subType" :show-sub-type="configurationConfig.showSubType" />
   </div>
 </template>
 <style lang="scss">

@@ -5,7 +5,7 @@ import type { AccountInfo } from '#/views/marketing/creation/creation';
 
 import { ref } from 'vue';
 
-import { Alert, Button, Card, Descriptions, DescriptionsItem } from 'ant-design-vue';
+import { Alert, Button, Card, Descriptions, DescriptionsItem, Space } from 'ant-design-vue';
 
 import UnitProjectDrawer from './UnitProjectDrawer.vue';
 
@@ -25,6 +25,25 @@ function openDrawer() {
 
 function onProjectUpdated(project: UnitProjectCreateRequest) {
   emit('update:project', project);
+}
+
+function clearProject() {
+  emit('update:project', {
+    aigc_dynamic_creative_switch: 'ON',
+    audience: { age: [], district: 'NONE', gender: 'NONE', platform: [] },
+    budget: 0,
+    delivery_product: 'ALBUM',
+    end_time: '',
+    going_global_switch: 'OFF',
+    monetization_mode: 'IAP',
+    name: '',
+    schedule_time: '',
+    schedule_type: 'SCHEDULE_FROM_NOW',
+    selectedProduct: undefined,
+    source: '',
+    start_time: '',
+    uni_roi_goal: 0,
+  });
 }
 </script>
 
@@ -78,7 +97,19 @@ function onProjectUpdated(project: UnitProjectCreateRequest) {
       />
     </div>
     <div class="card-footer">
-      <Button danger type="primary" @click="openDrawer">填写项目配置</Button>
+      <Space :size="8">
+        <Button
+          v-if="props.project.name"
+          danger
+          type="link"
+          @click="clearProject"
+        >
+          清空
+        </Button>
+        <Button danger type="primary" @click="openDrawer">
+          {{ props.project.name ? '编辑' : '添加' }}
+        </Button>
+      </Space>
     </div>
 
     <UnitProjectDrawer

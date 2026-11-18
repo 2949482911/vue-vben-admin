@@ -579,7 +579,7 @@ const campaignShowLabel: Record<string, string> = {
 
 <template>
   <div class="std-app-template">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <!-- 第1列：项目配置 + 抖音号配置 -->
       <div class="pane">
         <StdProject

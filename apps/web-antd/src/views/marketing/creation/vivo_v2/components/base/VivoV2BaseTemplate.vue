@@ -91,7 +91,7 @@ function updatePageView(landingPage: PageViewConfigData) {
 <template>
   <div class="vivo-v2-base-template">
     <!-- 配置列：一行 4 列，列高由外层工作台决定；内容超出只在列内滚动 -->
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <div class="pane">
         <VivoV2Campaign :creation-info="creationInfo" @update:campaign="updateCampaign" />
       </div>

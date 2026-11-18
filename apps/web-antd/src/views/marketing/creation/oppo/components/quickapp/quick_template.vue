@@ -201,7 +201,7 @@ const promotionShowLabel: Record<string, string> = {
 
 <template>
   <div class="oppo-quickapp-template">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <div class="pane">
         <OppoCampaign
           :form-fields="campaignFormFields"

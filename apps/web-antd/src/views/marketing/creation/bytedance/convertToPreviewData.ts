@@ -220,7 +220,7 @@ export function getPreviewTableData(
             local_material_image_ids: promotionData.promotion_materials?.product_info.image_ids,
           },
           original_video_title: "",
-          playlet_series_url_list: [landingPageItem.config.pageUrl],
+          playlet_series_url_list: [landingPageItem.config.pageUrlIap || landingPageItem.config.pageUrl],
           decoration_material: { activity_id: "", image_mode: "" },
           anchor_material_list: [],
           component_material_list: [],

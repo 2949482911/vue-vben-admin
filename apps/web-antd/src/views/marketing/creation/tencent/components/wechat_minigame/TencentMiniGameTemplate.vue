@@ -474,7 +474,7 @@ defineExpose({
 
 <template>
   <div class="tencent-wechat-minigame-template">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <div class="pane">
         <TencentCampaign
           :form-fields="campaignFormFields"

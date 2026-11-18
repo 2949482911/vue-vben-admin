@@ -722,7 +722,7 @@ const promotionShowLabel: Record<string, string> = {
 
 <template>
   <div class="bytedance-base-template">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <div class="pane">
         <BytedanceCampaign
           :form-fields="campaignFormFields"

@@ -1,4 +1,15 @@
 <script setup lang="ts" name="DpaProductConfigCard">
+import type { BytedanceDpaProductListItem } from '#/api/models/bytedance';
+import type {
+  DpaProductConfigData,
+  DpaProductConfigRule,
+} from '#/views/marketing/creation/bytedance_std/bytedance';
+import type { AccountInfo } from '#/views/marketing/creation/creation';
+
+import { computed, ref, watch } from 'vue';
+
+import { useVbenDrawer } from '@vben/common-ui';
+
 /**
  * 智擎版-投放商品配置卡片
  *
@@ -6,16 +17,7 @@
  * 点击添加/编辑打开 DpaProductConfigDrawer 按规则选择各账户投放商品。
  */
 import { Alert, Button, Card, Space, Tag } from 'ant-design-vue';
-import { computed, ref, watch } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
-
-import type { BytedanceDpaProductListItem } from '#/api/models/bytedance';
-import type { AccountInfo } from '#/views/marketing/creation/creation';
-import type {
-  DpaProductConfigData,
-  DpaProductConfigRule,
-} from '#/views/marketing/creation/bytedance_std/bytedance';
 import DpaProductConfigDrawer from './DpaProductConfigDrawer.vue';
 
 const props = withDefaults(defineProps<{
@@ -26,6 +28,7 @@ const props = withDefaults(defineProps<{
   disabled?: boolean;
 }>(), {
   disabled: false,
+  dpaProductConfig: null,
 });
 
 const emit = defineEmits(['update:dpaProductConfig']);
@@ -144,7 +147,7 @@ watch(
           </template>
           <Alert v-else type="error" message="请配置投放商品" show-icon />
         </div>
-        <div class="mt-4 flex justify-center">
+        <div class="card-footer mt-4 flex justify-center">
           <Space :size="8">
             <Button v-if="totalCount > 0" type="link" danger :disabled="disabled" @click="handleClear">
               清空

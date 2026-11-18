@@ -3,7 +3,7 @@ import type { LandingPageData } from "#/api/models";
 
 import { onMounted } from "vue";
 
-import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
 
 import { Button, message, Space, Switch, Tag } from "ant-design-vue";
 
@@ -16,6 +16,7 @@ import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
 import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
 
 import CreateLoadingPage from "./createLoadingPage.vue";
+import LandingPageAddressList from "./LandingPageAddressList.vue";
 
 const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
   LABEL_TYPE_CODES.page
@@ -25,10 +26,8 @@ onMounted(() => {
   void loadLabelOptions();
 });
 
-const [CreateLoadingPageModule, createLoadingPageApi] = useVbenModal({
+const [CreateLoadingPageDrawer, createLoadingPageApi] = useVbenDrawer({
   connectedComponent: CreateLoadingPage,
-  centered: true,
-  modal: true
 });
 
 async function openModal(val?: LandingPageData) {
@@ -99,8 +98,8 @@ const gridOptions: VxeGridProps = {
     },
     {
       field: "pageUrl",
-      title: "详情页地址",
-      width: "auto",
+      title: "地址配置",
+      width: 320,
       slots: { default: "pageUrl" }
     },
     {
@@ -161,7 +160,10 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
         </Tag>
       </template>
       <template #pageUrl="{ row }">
-        {{ row.config.pageUrl }}
+        <LandingPageAddressList
+          :config="row.config"
+          :platform="row.platform"
+        />
       </template>
       <template #labelIds="{ row }">
         <Space v-if="row.labelIds?.length" wrap :size="[4, 4]">
@@ -187,7 +189,7 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
       </template>
     </Grid>
   </Page>
-  <CreateLoadingPageModule @page-reload="pageReload" />
+  <CreateLoadingPageDrawer @page-reload="pageReload" />
 </template>
 
 <style scoped lang="scss"></style>

@@ -303,7 +303,7 @@ const projectFormFields = [
 
 <template>
   <div class="std-base-template">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <!-- 第1列：项目配置 + 定向包 -->
       <div class="pane">
         <StdProject

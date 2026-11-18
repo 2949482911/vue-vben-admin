@@ -563,7 +563,7 @@ const adgroupShowLabel: Record<string, string> = {
 
 <template>
   <div class="tencent-product-sales-template">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <div class="pane">
         <TencentCampaign
           :form-fields="campaignFormFields"

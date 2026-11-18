@@ -3,7 +3,7 @@ import type { LandingPageData } from '#/api/models';
 
 import { ref } from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
+import { useVbenDrawer } from '@vben/common-ui';
 
 import { message } from 'ant-design-vue';
 
@@ -21,11 +21,12 @@ const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
   LABEL_TYPE_CODES.page
 );
 
-const [Modal, modalApi] = useVbenModal({
+const [Drawer, drawerApi] = useVbenDrawer({
+  class: 'w-[50%]',
   async onCancel() {
     landingPageItem.value = {} as LandingPageData;
     await formApi.resetForm();
-    await modalApi.close();
+    await drawerApi.close();
   },
   async onConfirm() {
     const result = await formApi.validate();
@@ -33,14 +34,22 @@ const [Modal, modalApi] = useVbenModal({
       return;
     }
     const formValue = await formApi.getValues();
+    const platform = String(formValue.platform || '');
+    const isBytedance = platform === 'bytedance';
 
     const formattedData = {
       id: '',
       name: formValue.name,
-      platform: formValue.platform,
-      config: {
-        pageUrl: formValue.pageUrl,
-      },
+      platform,
+      config: isBytedance
+        ? {
+            pageUrl: formValue.pageUrl ?? '',
+            pageUrlIaa: formValue.pageUrlIaa,
+            pageUrlIap: formValue.pageUrlIap,
+          }
+        : {
+            pageUrl: formValue.pageUrl,
+          },
       labelIds: formValue.labelIds ?? [],
     };
     try {
@@ -54,7 +63,7 @@ const [Modal, modalApi] = useVbenModal({
       }
       landingPageItem.value = {} as LandingPageData;
       await formApi.resetForm();
-      await modalApi.close();
+      await drawerApi.close();
       emit('pageReload');
     } catch (err) {
       console.log(err);
@@ -63,14 +72,17 @@ const [Modal, modalApi] = useVbenModal({
   async onOpenChange(isOpen) {
     if (isOpen) {
       await loadLabelOptions();
-      landingPageItem.value = modalApi.getData() as LandingPageData;
+      landingPageItem.value = drawerApi.getData() as LandingPageData;
       if (landingPageItem.value.id) {
         newOrEdit.value = false;
+        const config = landingPageItem.value.config;
         await formApi.setValues({
           id: landingPageItem.value.id,
           name: landingPageItem.value.name,
           platform: landingPageItem.value.platform,
-          pageUrl: landingPageItem.value.config.pageUrl,
+          pageUrl: config.pageUrl,
+          pageUrlIap: config.pageUrlIap ?? '',
+          pageUrlIaa: config.pageUrlIaa ?? '',
           labelIds: landingPageItem.value.labelIds ?? [],
         });
       } else {
@@ -131,9 +143,43 @@ const [Form, formApi] = useVbenForm({
         allowClear: true,
         placeholder: '请输入',
       },
+      dependencies: {
+        rules: (values: Record<string, any>) =>
+          values.platform === 'bytedance' ? '' : 'required',
+        triggerFields: ['platform'],
+      },
       fieldName: 'pageUrl',
       label: '详情页地址',
-      rules: 'required',
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: '请输入 IAP 落地页地址',
+      },
+      dependencies: {
+        rules: (values: Record<string, any>) =>
+          values.platform === 'bytedance' ? 'required' : '',
+        show: (values: Record<string, any>) => values.platform === 'bytedance',
+        triggerFields: ['platform'],
+      },
+      fieldName: 'pageUrlIap',
+      label: 'IAP 地址',
+    },
+    {
+      component: 'Input',
+      componentProps: {
+        allowClear: true,
+        placeholder: '请输入 IAA 落地页地址',
+      },
+      dependencies: {
+        rules: (values: Record<string, any>) =>
+          values.platform === 'bytedance' ? 'required' : '',
+        show: (values: Record<string, any>) => values.platform === 'bytedance',
+        triggerFields: ['platform'],
+      },
+      fieldName: 'pageUrlIaa',
+      label: 'IAA 地址',
     },
     {
       component: 'Select',
@@ -152,7 +198,7 @@ const [Form, formApi] = useVbenForm({
 });
 </script>
 <template>
-  <Modal :title="newOrEdit ? '添加落地页' : '编辑落地页'">
+  <Drawer :title="newOrEdit ? '添加落地页' : '编辑落地页'">
     <Form />
-  </Modal>
+  </Drawer>
 </template>

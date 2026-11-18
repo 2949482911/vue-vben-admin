@@ -1,4 +1,15 @@
 <script setup lang="ts" name="ProductConfigCard">
+import type {
+  ProductConfigData,
+  ProductConfigRule,
+  ProductDataMapping,
+} from '#/views/marketing/creation/bytedance_std/bytedance';
+import type { AccountInfo } from '#/views/marketing/creation/creation';
+
+import { computed, ref, watch } from 'vue';
+
+import { useVbenDrawer } from '@vben/common-ui';
+
 /**
  * 智擎版-产品配置卡片
  *
@@ -6,26 +17,18 @@
  * 点击添加/编辑打开 ProductConfigDrawer 配置产品名称、卖点、行动号召、产品主图。
  */
 import { Alert, Button, Card, Space, Tag } from 'ant-design-vue';
-import { computed, ref, watch } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
-
-import type { AccountInfo } from '#/views/marketing/creation/creation';
-import type {
-  ProductConfigData,
-  ProductConfigRule,
-  ProductDataMapping,
-} from '#/views/marketing/creation/bytedance_std/bytedance';
 import ProductConfigDrawer from './ProductConfigDrawer.vue';
 
 const props = withDefaults(defineProps<{
   /** 允许 undefined：复用旧策略组数据可能缺少该配置 */
-  productConfig?: ProductConfigData | null;
+  productConfig?: null | ProductConfigData;
   accountInfo: AccountInfo[];
   /** 是否置灰禁止配置 */
   disabled?: boolean;
 }>(), {
   disabled: false,
+  productConfig: null,
 });
 
 const emit = defineEmits(['update:productConfig']);
@@ -122,7 +125,7 @@ watch(
           </Space>
           <Alert v-else type="error" message="请配置产品信息" show-icon />
         </div>
-        <div class="mt-4 flex justify-center">
+        <div class="card-footer mt-4 flex justify-center">
           <Space :size="8">
             <Button v-if="totalCount > 0" type="link" danger :disabled="disabled" @click="handleClear">
               清空

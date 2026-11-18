@@ -967,6 +967,10 @@ export interface CreateLandingPage extends LandingPageQuery {
   id?: string;
   config: {
     pageUrl: string;
+    /** 巨量 IAP 落地页地址 */
+    pageUrlIap?: string;
+    /** 巨量 IAA 落地页地址 */
+    pageUrlIaa?: string;
   };
   /** 标签ID数组（platform_advertiser_tag.id） */
   labelIds?: Array<number | string>;
@@ -984,6 +988,10 @@ export interface LandingPageData extends BaseItem {
   name: string;
   config: {
     pageUrl: string;
+    /** 巨量 IAP 落地页地址 */
+    pageUrlIap?: string;
+    /** 巨量 IAA 落地页地址 */
+    pageUrlIaa?: string;
   };
   /** 标签ID数组（platform_advertiser_tag.id） */
   labelIds?: Array<number | string>;

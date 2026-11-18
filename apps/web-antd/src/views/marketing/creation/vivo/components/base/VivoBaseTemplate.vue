@@ -419,7 +419,7 @@ function updateTitlePackage(titlePackage: TitlePackageConfigData) {
 
 <template>
   <div class="vivo-base-template">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <div class="pane">
         <VivoCampaign
           :campaign="creationInfo?.configData.campaign"

@@ -85,8 +85,8 @@ function toSelection(product: BytedanceDpaProductListItem): UnitSelectedProduct 
   return {
     image_url: product.image_url,
     name: product.name,
-    product_id: Number(product.product_id),
-    product_platform_id: Number(product.platform_id),
+    product_id: String(product.product_id),
+    product_platform_id: String(product.platform_id),
     title: product.title,
   };
 }
@@ -116,13 +116,17 @@ const [Drawer, drawerApi] = useVbenDrawer({
     drawerApi.close();
   },
   async onConfirm() {
-    if (pickedProduct.value) {
-      emit('update:modelValue', toSelection(pickedProduct.value));
-    } else if (pickedIds.value) {
+    if (pickedIds.value) {
+      // ID 以选择器回传的字符串为准，避免回显时经 DPA 数字字段转换丢精度
       emit('update:modelValue', {
-        product_id: Number(pickedIds.value.product_id),
-        product_platform_id: Number(pickedIds.value.product_platform_id),
+        image_url: pickedProduct.value?.image_url,
+        name: pickedProduct.value?.name,
+        product_id: pickedIds.value.product_id,
+        product_platform_id: pickedIds.value.product_platform_id,
+        title: pickedProduct.value?.title,
       });
+    } else if (pickedProduct.value) {
+      emit('update:modelValue', toSelection(pickedProduct.value));
     } else {
       message.warning('请先选择投放商品');
       return;

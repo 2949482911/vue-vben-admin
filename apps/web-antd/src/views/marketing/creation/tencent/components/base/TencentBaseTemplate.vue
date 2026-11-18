@@ -1544,7 +1544,7 @@ function updateAudiencePackage(audienceConfigData: AudienceConfigData) {
 
 <template>
   <div class="tencent-base-template">
-    <div class="panes">
+    <div class="panes batch-config-panes">
       <div class="pane">
         <TencentCampaign
           :form-fields="campaignFormFields"

@@ -1,0 +1,98 @@
+/**
+ * 批创配置工作台统一布局
+ *
+ * 列数由实际卡片数量决定：每张配置卡独占一列，不再使用列内上下堆叠。
+ * 旧模板里的 pane / combined-area 仅作为结构容器，使用 display: contents 展开。
+ */
+.batch-config-panes {
+  display: grid !important;
+  grid-template-columns: none !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(0, 1fr) !important;
+  gap: 12px !important;
+  width: 100%;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.batch-config-panes .pane,
+.batch-config-panes .combined-area {
+  display: contents !important;
+}
+
+/* 组件内部包含多张卡片时，同样展开为独立列 */
+.batch-config-panes .std-project-form-container,
+.batch-config-panes .cards-wrapper,
+.batch-config-panes .bytedance-campaign-container,
+.batch-config-panes .campaign-cards-wrapper,
+.batch-config-panes .huawei-store-subtask-container,
+.batch-config-panes .subtask-cards-wrapper,
+.batch-config-panes .vivo-promotion-container,
+.batch-config-panes .promotion-cards-wrapper,
+.batch-config-panes .vivo-adgroup-container,
+.batch-config-panes .adgroup-cards-wrapper {
+  display: contents !important;
+}
+
+/* 展开多卡片组件时，抽屉/弹窗宿主不能占用网格列 */
+.batch-config-panes .std-project-form-container > div:not(.cards-wrapper),
+.batch-config-panes .bytedance-campaign-container > div:not(.campaign-cards-wrapper),
+.batch-config-panes .huawei-store-subtask-container > div:not(.subtask-cards-wrapper),
+.batch-config-panes .vivo-promotion-container > div:not(.promotion-cards-wrapper),
+.batch-config-panes .vivo-adgroup-container > div:not(.adgroup-cards-wrapper) {
+  display: contents !important;
+}
+
+.batch-config-panes .std-project-form-container > div:not(.cards-wrapper) > div,
+.batch-config-panes .bytedance-campaign-container > div:not(.campaign-cards-wrapper) > div,
+.batch-config-panes .huawei-store-subtask-container > div:not(.subtask-cards-wrapper) > div,
+.batch-config-panes .vivo-promotion-container > div:not(.promotion-cards-wrapper) > div,
+.batch-config-panes .vivo-adgroup-container > div:not(.adgroup-cards-wrapper) > div {
+  display: contents !important;
+}
+
+.batch-config-panes .ant-card {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.batch-config-panes .ant-card-head {
+  flex-shrink: 0 !important;
+  min-height: 57px !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+.batch-config-panes .ant-card-body {
+  display: flex !important;
+  flex: 1 1 0% !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  padding: 16px !important;
+  overflow-y: auto !important;
+}
+
+.batch-config-panes .card-content {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
+.batch-config-panes .card-footer {
+  display: flex !important;
+  flex-shrink: 0 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-top: 0 !important;
+  padding-top: 16px !important;
+  border-top: 1px solid hsl(var(--border)) !important;
+}
+
+.batch-config-panes .empty-alert {
+  margin-top: 0 !important;
+}

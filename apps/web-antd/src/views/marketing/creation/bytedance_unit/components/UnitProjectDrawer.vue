@@ -276,9 +276,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
       name: String(values.name || ''),
       related_product: selectedProduct
         ? {
-            product_id: Number(selectedProduct.product_id) || 0,
-            product_platform_id:
-              Number(selectedProduct.product_platform_id) || 0,
+            product_id: String(selectedProduct.product_id),
+            product_platform_id: String(selectedProduct.product_platform_id),
           }
         : undefined,
       schedule_time: String(values.schedule_time || ''),
@@ -287,9 +286,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
         ? {
             image_url: selectedProduct.image_url,
             name: selectedProduct.name,
-            product_id: Number(selectedProduct.product_id) || 0,
-            product_platform_id:
-              Number(selectedProduct.product_platform_id) || 0,
+            product_id: String(selectedProduct.product_id),
+            product_platform_id: String(selectedProduct.product_platform_id),
             title: selectedProduct.title,
           }
         : undefined,

@@ -186,7 +186,9 @@ export function getPreviewTableData(
         anchor_related_type: projectData.project_materials?.anchor_related_type,
         anchor_material_list: projectData.project_materials?.anchor_material_list || [],
         component_material_list: projectData.project_materials?.component_material_list || [],
-        external_url_material_list: landingPageItem.config?.pageUrl ? [landingPageItem.config?.pageUrl] : [],
+        external_url_material_list: (landingPageItem.config?.pageUrlIap || landingPageItem.config?.pageUrl)
+          ? [landingPageItem.config?.pageUrlIap || landingPageItem.config?.pageUrl]
+          : [],
         web_url_material_list: projectData.project_materials?.web_url_material_list || [],
         open_url: projectData.project_materials?.open_url || "",
         open_urls: projectData.project_materials?.open_urls || [],
