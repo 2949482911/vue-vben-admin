@@ -1,5 +1,8 @@
 import type {
+  CanvasAgentActionRequest,
+  CanvasAgentTool,
   CanvasBlueprint,
+  CanvasContext,
   CanvasCreateRequest,
   CanvasGraph,
   CanvasSaveRequest,
@@ -45,8 +48,17 @@ class AiAssetCanvasApi extends BaseApi {
     });
   }
 
-  fetchCanvasContext(canvasId: number | string): Promise<CanvasGraph> {
-    return requestClient.get<CanvasGraph>(
+  fetchCanvasAgentTools(
+    canvasId: number | string,
+  ): Promise<CanvasAgentTool[]> {
+    return requestClient.get<CanvasAgentTool[]>(
+      this.getServiceUrl(`${canvasId}/agent/tools`),
+      { skipErrorMessage: true },
+    );
+  }
+
+  fetchCanvasContext(canvasId: number | string): Promise<CanvasContext> {
+    return requestClient.get<CanvasContext>(
       this.getServiceUrl(`${canvasId}/context`),
       { skipErrorMessage: true },
     );
@@ -66,6 +78,17 @@ class AiAssetCanvasApi extends BaseApi {
     return requestClient.post<CanvasSummary>(
       this.getServiceUrl(`${canvasId}/rename`),
       { title },
+      { skipErrorMessage: true },
+    );
+  }
+
+  runCanvasAgentAction(
+    canvasId: number | string,
+    data: CanvasAgentActionRequest,
+  ): Promise<CanvasGraph> {
+    return requestClient.post<CanvasGraph>(
+      this.getServiceUrl(`${canvasId}/agent/action`),
+      data,
       { skipErrorMessage: true },
     );
   }

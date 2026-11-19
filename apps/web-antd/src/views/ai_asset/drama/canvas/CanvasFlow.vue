@@ -36,9 +36,12 @@ const wrapper = ref<HTMLElement>();
 const showMiniMap = ref(false);
 
 const {
+  addSelectedNodes,
+  findNode,
   fitBounds,
   fitView,
   getSelectedNodes,
+  removeSelectedNodes,
   screenToFlowCoordinate,
   setCenter,
   setViewport,
@@ -170,6 +173,18 @@ function focusGroup(groupClientId: string) {
   void fitBounds(bounds, { duration: 300, padding: 0.2 });
 }
 
+/** Agent/索引等外部入口选中节点：同步 Vue Flow 选中态并定位 */
+function selectNode(clientId: string) {
+  const target = findNode(clientId);
+  if (!target) {
+    return;
+  }
+  removeSelectedNodes(getSelectedNodes.value);
+  addSelectedNodes([target]);
+  store.setSelection([clientId]);
+  focusNode(clientId);
+}
+
 function toggleMiniMap() {
   showMiniMap.value = !showMiniMap.value;
 }
@@ -187,6 +202,7 @@ defineExpose({
   fitCanvas,
   focusGroup,
   focusNode,
+  selectNode,
   toggleMiniMap,
   zoomIn,
   zoomOut,

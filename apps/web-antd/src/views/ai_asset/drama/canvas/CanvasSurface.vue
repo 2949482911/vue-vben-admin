@@ -12,6 +12,7 @@ import {
   DeleteOutlined,
   PlusOutlined,
   ReloadOutlined,
+  RobotOutlined,
   UnorderedListOutlined,
 } from '@ant-design/icons-vue';
 import {
@@ -28,6 +29,7 @@ import {
 import { aiAssetCanvasApi } from '#/api/core/ai_asset_canvas';
 
 import { formatApiError, parseApiError } from '../error';
+import CanvasAgentPanel from './CanvasAgentPanel.vue';
 import CanvasFlow from './CanvasFlow.vue';
 import CanvasOutline from './CanvasOutline.vue';
 import CanvasToolbar from './CanvasToolbar.vue';
@@ -44,6 +46,7 @@ interface CanvasFlowExpose {
   fitCanvas: () => Promise<void>;
   focusGroup: (groupClientId: string) => void;
   focusNode: (clientId: string) => void;
+  selectNode: (clientId: string) => void;
   toggleMiniMap: () => void;
   zoomIn: () => void;
   zoomOut: () => void;
@@ -60,6 +63,7 @@ const renameValue = ref('');
 const renameTarget = ref<CanvasSummary>();
 const outlineOpen = ref(false);
 const workspaceOpen = ref(false);
+const agentOpen = ref(false);
 
 const canvasOptions = computed(() =>
   canvasList.value.map((item) => ({
@@ -221,6 +225,20 @@ function locateTarget(payload: { clientId: string; type: 'group' | 'node' }) {
   flowRef.value?.focusNode(payload.clientId);
 }
 
+function toggleWorkspace() {
+  workspaceOpen.value = !workspaceOpen.value;
+  if (workspaceOpen.value) {
+    agentOpen.value = false;
+  }
+}
+
+function toggleAgent() {
+  agentOpen.value = !agentOpen.value;
+  if (agentOpen.value) {
+    workspaceOpen.value = false;
+  }
+}
+
 watch(
   () => props.novelId,
   async () => {
@@ -229,6 +247,7 @@ watch(
     listError.value = '';
     outlineOpen.value = false;
     workspaceOpen.value = false;
+    agentOpen.value = false;
     store.resetGraph();
     await store.loadBlueprints().catch(() => undefined);
     await loadList();
@@ -283,10 +302,19 @@ watch(
         size="small"
         :disabled="!currentCanvasId"
         :type="workspaceOpen ? 'primary' : 'default'"
-        @click="workspaceOpen = !workspaceOpen"
+        @click="toggleWorkspace"
       >
         <ControlOutlined />
         工作区
+      </Button>
+      <Button
+        size="small"
+        :disabled="!currentCanvasId"
+        :type="agentOpen ? 'primary' : 'default'"
+        @click="toggleAgent"
+      >
+        <RobotOutlined />
+        Agent
       </Button>
       <span class="canvas-surface__spacer"></span>
       <Tag
@@ -352,6 +380,12 @@ watch(
         v-if="workspaceOpen"
         :novel-id="novelId"
         @close="workspaceOpen = false"
+      />
+      <CanvasAgentPanel
+        v-else-if="agentOpen"
+        :canvas-id="currentCanvasId"
+        @close="agentOpen = false"
+        @focus-node="flowRef?.selectNode($event)"
       />
     </div>
 
