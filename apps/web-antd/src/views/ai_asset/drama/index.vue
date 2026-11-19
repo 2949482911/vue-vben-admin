@@ -38,6 +38,7 @@ import PlotPanel from './components/PlotPanel.vue';
 import ProjectStyleDrawer from './components/ProjectStyleDrawer.vue';
 import StoryboardPanel from './components/StoryboardPanel.vue';
 import WorkflowAgentPanel from './components/WorkflowAgentPanel.vue';
+import CanvasSurface from './canvas/CanvasSurface.vue';
 import { formatApiError, parseApiError } from './error';
 import { useAspectRatioDict } from './useAspectRatioDict';
 
@@ -619,11 +620,8 @@ onMounted(async () => {
                 @navigate="onWorkflowNavigate"
               />
             </div>
-            <div v-else-if="surface === 'canvas'" class="surface-empty">
-              <Empty
-                :image="Empty.PRESENTED_IMAGE_SIMPLE"
-                description="节点画布 P8 实现"
-              />
+            <div v-else-if="surface === 'canvas'" class="drama__canvas-surface">
+              <CanvasSurface :novel-id="novelId" />
             </div>
             <div
               v-else-if="surface === 'storyboard'"
@@ -809,6 +807,11 @@ onMounted(async () => {
   }
 
   &__workflow-surface {
+    height: 100%;
+    min-height: 0;
+  }
+
+  &__canvas-surface {
     height: 100%;
     min-height: 0;
   }
