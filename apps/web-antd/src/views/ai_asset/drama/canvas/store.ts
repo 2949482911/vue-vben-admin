@@ -358,6 +358,21 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     }
   }
 
+  /** 绑定后等待保存真正落库；含保存中的并发请求与二次 dirty */
+  async function flushSave() {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      if (!dirty.value && !saving.value) {
+        return !conflict.value;
+      }
+      await saveNow();
+      if (!dirty.value && !saving.value) {
+        return !conflict.value;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+    return !dirty.value && !saving.value && !conflict.value;
+  }
+
   function addNode(
     kind: CanvasNodeKind,
     position: { x: number; y: number },
@@ -746,6 +761,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     edgeCount,
     edges,
     error,
+    flushSave,
     groupBounds,
     groupChainIds,
     groupCount,

@@ -38,6 +38,7 @@ const showMiniMap = ref(false);
 const {
   fitBounds,
   fitView,
+  getSelectedNodes,
   screenToFlowCoordinate,
   setCenter,
   setViewport,
@@ -78,8 +79,17 @@ function onConnect(connection: Connection) {
   store.connect(connection);
 }
 
-function onSelectionChange(payload: { nodes?: Array<{ id: string }> }) {
-  store.setSelection((payload.nodes ?? []).map((node) => node.id));
+function syncSelection() {
+  const ids = getSelectedNodes.value.map((node) => node.id);
+  store.setSelection(ids);
+}
+
+function onSelectionEnd() {
+  syncSelection();
+}
+
+function onEdgeClick() {
+  store.setSelection([]);
 }
 
 function onMoveEnd() {
@@ -96,6 +106,10 @@ function onPaneClick() {
 }
 
 function onNodeClick(payload: { node: { id: string } }) {
+  syncSelection();
+  if (!store.selectedNodeIds.includes(payload.node.id)) {
+    store.setSelection([payload.node.id]);
+  }
   const source = store.groupReferenceSource;
   if (!source) {
     return;
@@ -201,11 +215,12 @@ defineExpose({
       :snap-grid="[16, 16]"
       :snap-to-grid="store.snapToGrid"
       @connect="onConnect"
+      @edge-click="onEdgeClick"
       @move-end="onMoveEnd"
       @node-click="onNodeClick"
       @node-drag-stop="onNodeDragStop"
       @pane-click="onPaneClick"
-      @selection-change="onSelectionChange"
+      @selection-end="onSelectionEnd"
     >
       <Background :gap="20" :size="1.2" pattern-color="hsl(var(--border))" />
       <MiniMap

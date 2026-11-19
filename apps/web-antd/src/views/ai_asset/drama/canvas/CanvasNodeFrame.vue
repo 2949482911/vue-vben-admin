@@ -42,6 +42,21 @@ const isReserved = computed(() =>
   ['codeVideo', 'director3d', 'scene3d', 'timeline'].includes(props.data.kind),
 );
 
+function detailText(key: string) {
+  const value = props.data.details?.[key];
+  return typeof value === 'string' ? value : '';
+}
+
+const previewUrl = computed(() => {
+  if (props.data.kind === 'image') {
+    return detailText('thumbnailUrl') || detailText('materialUrl');
+  }
+  if (props.data.kind === 'entity' || props.data.kind === 'character') {
+    return detailText('refUrl');
+  }
+  return '';
+});
+
 function beginEdit() {
   labelDraft.value = props.data.label;
   editing.value = true;
@@ -71,14 +86,40 @@ function bodyText() {
   if (props.data.body) {
     return props.data.body;
   }
+  const materialName = detailText('materialName');
   if (props.data.kind === 'shot') {
     return '分镜节点：等待绑定分镜数据';
   }
   if (props.data.kind === 'entity' || props.data.kind === 'character') {
+    const entityName = detailText('entityName');
+    if (entityName) {
+      const entityType = detailText('entityType');
+      const labels: Record<string, string> = {
+        character: '角色',
+        element: '物品',
+        scene: '场景',
+      };
+      return [
+        entityName,
+        labels[entityType] ?? entityType,
+        props.data.details?.hasImage === true ? '有参考图' : '',
+      ]
+        .filter(Boolean)
+        .join(' · ');
+    }
     return '实体节点：等待绑定项目实体';
   }
-  if (props.data.kind === 'image' || props.data.kind === 'video' || props.data.kind === 'audio') {
-    return props.data.assetId ? `已绑定资产 #${props.data.assetId}` : '未绑定资产';
+  if (
+    props.data.kind === 'image' ||
+    props.data.kind === 'video' ||
+    props.data.kind === 'audio'
+  ) {
+    if (materialName) {
+      return `素材：${materialName}`;
+    }
+    return props.data.assetId
+      ? `已绑定素材 #${props.data.assetId}`
+      : '未绑定素材';
   }
   if (props.data.kind === 'scene3d') {
     return '3D 导演台 / 白模：P9/P10 接入';
@@ -165,8 +206,12 @@ function bodyText() {
         placeholder="输入文本 / 脚本 / 提示词"
         @blur="commitBody"
       ></textarea>
-      <div v-else class="canvas-node__placeholder">
+      <div v-else-if="!previewUrl" class="canvas-node__placeholder">
         {{ bodyText() }}
+      </div>
+      <div v-else class="canvas-node__media">
+        <img :src="previewUrl" alt="" class="canvas-node__preview" />
+        <div class="canvas-node__media-caption">{{ bodyText() }}</div>
       </div>
     </div>
 
@@ -289,6 +334,32 @@ function bodyText() {
     text-align: center;
     background: hsl(var(--accent));
     border-radius: 8px;
+  }
+
+  &__media {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+    min-height: 0;
+  }
+
+  &__preview {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  &__media-caption {
+    flex: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    line-height: 1.5;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
   }
 
   &__footer {

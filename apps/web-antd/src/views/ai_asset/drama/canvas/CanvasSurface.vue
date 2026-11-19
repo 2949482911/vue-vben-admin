@@ -8,6 +8,7 @@ import {
 } from 'vue';
 
 import {
+  ControlOutlined,
   DeleteOutlined,
   PlusOutlined,
   ReloadOutlined,
@@ -31,6 +32,7 @@ import CanvasFlow from './CanvasFlow.vue';
 import CanvasOutline from './CanvasOutline.vue';
 import CanvasToolbar from './CanvasToolbar.vue';
 import CanvasViewportControls from './CanvasViewportControls.vue';
+import CanvasWorkspace from './CanvasWorkspace.vue';
 import { useCanvasGraphStore } from './store';
 
 const props = defineProps<{
@@ -57,6 +59,7 @@ const renameOpen = ref(false);
 const renameValue = ref('');
 const renameTarget = ref<CanvasSummary>();
 const outlineOpen = ref(false);
+const workspaceOpen = ref(false);
 
 const canvasOptions = computed(() =>
   canvasList.value.map((item) => ({
@@ -225,6 +228,7 @@ watch(
     currentCanvasId.value = undefined;
     listError.value = '';
     outlineOpen.value = false;
+    workspaceOpen.value = false;
     store.resetGraph();
     await store.loadBlueprints().catch(() => undefined);
     await loadList();
@@ -275,6 +279,15 @@ watch(
         <UnorderedListOutlined />
         索引
       </Button>
+      <Button
+        size="small"
+        :disabled="!currentCanvasId"
+        :type="workspaceOpen ? 'primary' : 'default'"
+        @click="workspaceOpen = !workspaceOpen"
+      >
+        <ControlOutlined />
+        工作区
+      </Button>
       <span class="canvas-surface__spacer"></span>
       <Tag
         :color="
@@ -320,18 +333,25 @@ watch(
       </Empty>
     </div>
     <div v-else class="canvas-surface__main">
-      <CanvasFlow ref="flowRef" />
-      <CanvasToolbar @add="addNode" />
-      <CanvasOutline
-        v-if="outlineOpen"
-        @close="outlineOpen = false"
-        @locate="locateTarget"
-      />
-      <CanvasViewportControls
-        @fit="flowRef?.fitCanvas()"
-        @toggle-mini-map="flowRef?.toggleMiniMap()"
-        @zoom-in="flowRef?.zoomIn()"
-        @zoom-out="flowRef?.zoomOut()"
+      <div class="canvas-surface__stage">
+        <CanvasFlow ref="flowRef" />
+        <CanvasToolbar @add="addNode" />
+        <CanvasOutline
+          v-if="outlineOpen"
+          @close="outlineOpen = false"
+          @locate="locateTarget"
+        />
+        <CanvasViewportControls
+          @fit="flowRef?.fitCanvas()"
+          @toggle-mini-map="flowRef?.toggleMiniMap()"
+          @zoom-in="flowRef?.zoomIn()"
+          @zoom-out="flowRef?.zoomOut()"
+        />
+      </div>
+      <CanvasWorkspace
+        v-if="workspaceOpen"
+        :novel-id="novelId"
+        @close="workspaceOpen = false"
       />
     </div>
 
@@ -396,8 +416,15 @@ watch(
   }
 
   &__main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  &__stage {
     position: relative;
     flex: 1;
+    min-width: 0;
     min-height: 0;
   }
 }
