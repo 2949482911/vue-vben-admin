@@ -184,7 +184,6 @@ function bodyText() {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  overflow: hidden;
   color: hsl(var(--foreground));
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
@@ -303,18 +302,20 @@ function bodyText() {
   }
 
   &__handle {
-    width: 10px;
-    height: 10px;
+    z-index: 2;
+    width: 12px;
+    height: 12px;
     background: hsl(var(--background));
     border: 2px solid hsl(var(--primary));
+    border-radius: 50%;
   }
 
   &__handle--in {
-    left: -5px;
+    left: 0;
   }
 
   &__handle--out {
-    right: -5px;
+    right: 0;
   }
 }
 </style>
