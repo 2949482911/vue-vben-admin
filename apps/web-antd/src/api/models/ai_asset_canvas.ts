@@ -176,6 +176,25 @@ export interface CanvasAgentActionRequest {
   node?: CanvasSaveNode;
 }
 
+/** POST /canvas/{id}/agent/chat：真实回复与可确认建议 */
+export interface CanvasAgentChatRequest {
+  baseRevision?: string;
+  message: string;
+}
+
+export interface CanvasAgentChatSuggestion {
+  action: string;
+  description?: string;
+  id?: string;
+  params?: null | Record<string, unknown>;
+  requiresConfirm?: boolean;
+}
+
+export interface CanvasAgentChatResult {
+  reply: string;
+  suggestions?: CanvasAgentChatSuggestion[];
+}
+
 export interface CanvasCreateRequest {
   novelId: number | string;
   title?: string;

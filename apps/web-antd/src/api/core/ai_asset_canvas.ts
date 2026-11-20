@@ -1,5 +1,7 @@
 import type {
   CanvasAgentActionRequest,
+  CanvasAgentChatRequest,
+  CanvasAgentChatResult,
   CanvasAgentTool,
   CanvasBlueprint,
   CanvasContext,
@@ -99,6 +101,17 @@ class AiAssetCanvasApi extends BaseApi {
   ): Promise<CanvasGraph> {
     return requestClient.post<CanvasGraph>(
       this.getServiceUrl(`${canvasId}/save`),
+      data,
+      { skipErrorMessage: true },
+    );
+  }
+
+  sendCanvasAgentChat(
+    canvasId: number | string,
+    data: CanvasAgentChatRequest,
+  ): Promise<CanvasAgentChatResult> {
+    return requestClient.post<CanvasAgentChatResult>(
+      this.getServiceUrl(`${canvasId}/agent/chat`),
       data,
       { skipErrorMessage: true },
     );

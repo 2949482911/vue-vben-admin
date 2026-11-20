@@ -2,8 +2,12 @@
 import type { DramaApiError } from '../error';
 
 import type {
+  CanvasAgentChatSuggestion,
   CanvasAgentTool,
   CanvasContext,
+  CanvasSaveEdge,
+  CanvasSaveGroup,
+  CanvasSaveNode,
 } from '#/api/models/ai_asset_canvas';
 
 import { computed, ref, watch } from 'vue';
@@ -14,11 +18,13 @@ import {
   DeleteOutlined,
   ReloadOutlined,
   RobotOutlined,
+  SendOutlined,
 } from '@ant-design/icons-vue';
 import {
   Alert,
   Button,
   Empty,
+  Input,
   message,
   Modal,
   Select,
@@ -45,6 +51,13 @@ const DELETE_ACTIONS = new Set([
   'delete_node',
 ]);
 
+interface AgentChatMessage {
+  content: string;
+  id: number;
+  role: 'assistant' | 'user';
+  suggestions?: CanvasAgentChatSuggestion[];
+}
+
 const store = useCanvasGraphStore();
 const context = ref<CanvasContext>();
 const contextLoading = ref(false);
@@ -54,6 +67,15 @@ const toolsLoading = ref(false);
 const toolsError = ref<DramaApiError>();
 const actionLoading = ref(false);
 const actionError = ref('');
+const messages = ref<AgentChatMessage[]>([]);
+const chatInput = ref('');
+const chatLoading = ref(false);
+const chatError = ref('');
+const chatNotReady = ref(false);
+const executedSuggestions = ref<Record<string, boolean>>({});
+const canSend = computed(
+  () => Boolean(props.canvasId) && !chatLoading.value && Boolean(chatInput.value.trim()),
+);
 
 const toolsNotReady = computed(() => {
   const info = toolsError.value;
@@ -144,12 +166,19 @@ async function loadTools() {
   }
 }
 
-async function runAction(
-  tool: CanvasAgentTool,
-  extra: { clientId?: string },
-) {
+interface ActionExtra {
+  clientId?: string;
+  edge?: CanvasSaveEdge;
+  group?: CanvasSaveGroup;
+  node?: CanvasSaveNode;
+}
+
+async function performAction(
+  action: string,
+  extra: ActionExtra,
+): Promise<boolean> {
   if (!props.canvasId || actionLoading.value) {
-    return;
+    return false;
   }
   actionLoading.value = true;
   actionError.value = '';
@@ -159,10 +188,10 @@ async function runAction(
       actionError.value = store.conflict
         ? '画布版本冲突：请刷新画布后重试'
         : store.error || '画布保存失败，暂不执行 Agent 动作';
-      return;
+      return false;
     }
     const result = await aiAssetCanvasApi.runCanvasAgentAction(props.canvasId, {
-      action: tool.action,
+      action,
       baseRevision: store.canvas?.revision ?? '0',
       ...extra,
     });
@@ -172,19 +201,25 @@ async function runAction(
       await store.loadGraph(props.canvasId);
     }
     await loadContext();
-    message.success(`已执行：${tool.action}`);
+    message.success(`已执行：${action}`);
+    return true;
   } catch (error) {
     const info = parseApiError(error);
     actionError.value =
       info.status === 409
         ? '画布版本冲突：请刷新画布后重试'
         : formatApiError(info);
+    return false;
   } finally {
     actionLoading.value = false;
   }
 }
 
-function confirmDelete(tool: string, extra: { clientId: string }, target: string) {
+async function runAction(tool: CanvasAgentTool, extra: ActionExtra) {
+  await performAction(tool.action, extra);
+}
+
+function confirmDelete(tool: string, extra: ActionExtra, target: string) {
   const item = tools.value.find((candidate) => candidate.action === tool);
   if (!item) {
     return;
@@ -238,9 +273,145 @@ function selectContextNode(value: unknown) {
   }
 }
 
+let messageSeq = 0;
+
+function suggestionKey(
+  messageId: number,
+  index: number,
+  suggestion: CanvasAgentChatSuggestion,
+) {
+  return `${messageId}:${suggestion.id ?? index}`;
+}
+
+function suggestionExtra(
+  suggestion: CanvasAgentChatSuggestion,
+): ActionExtra {
+  const params = suggestion.params ?? {};
+  const extra: ActionExtra = {};
+  if (typeof params.clientId === 'string') {
+    extra.clientId = params.clientId;
+  }
+  if (params.node && typeof params.node === 'object') {
+    extra.node = params.node as CanvasSaveNode;
+  }
+  if (params.edge && typeof params.edge === 'object') {
+    extra.edge = params.edge as CanvasSaveEdge;
+  }
+  if (params.group && typeof params.group === 'object') {
+    extra.group = params.group as CanvasSaveGroup;
+  }
+  return extra;
+}
+
+function suggestionParamsText(suggestion: CanvasAgentChatSuggestion) {
+  if (!suggestion.params) {
+    return '';
+  }
+  try {
+    const text = JSON.stringify(suggestion.params);
+    return text.length > 180 ? `${text.slice(0, 180)}…` : text;
+  } catch {
+    return '';
+  }
+}
+
+function confirmSuggestion(
+  messageId: number,
+  index: number,
+  suggestion: CanvasAgentChatSuggestion,
+) {
+  const key = suggestionKey(messageId, index, suggestion);
+  if (executedSuggestions.value[key]) {
+    return;
+  }
+  const params = suggestionParamsText(suggestion);
+  Modal.confirm({
+    title: `执行建议：${suggestion.action}？`,
+    content: [
+      suggestion.description || '后端建议执行该画布写操作。',
+      params ? `参数：${params}` : '',
+      '确认后仅修改画布结构，不生成媒体。',
+    ]
+      .filter(Boolean)
+      .join('\n'),
+    okText: '确认执行',
+    cancelText: '取消',
+    onOk: async () => {
+      const ok = await performAction(
+        suggestion.action,
+        suggestionExtra(suggestion),
+      );
+      if (ok) {
+        executedSuggestions.value = {
+          ...executedSuggestions.value,
+          [key]: true,
+        };
+      }
+    },
+  });
+}
+
+async function sendChat() {
+  if (!props.canvasId || !canSend.value) {
+    return;
+  }
+  const text = chatInput.value.trim();
+  chatLoading.value = true;
+  chatError.value = '';
+  chatNotReady.value = false;
+  try {
+    const saved = await store.flushSave();
+    if (!saved) {
+      chatError.value = store.conflict
+        ? '画布版本冲突：请刷新画布后重试'
+        : store.error || '画布保存失败，暂不发送对话';
+      return;
+    }
+    messageSeq += 1;
+    messages.value = [
+      ...messages.value,
+      { content: text, id: messageSeq, role: 'user' },
+    ];
+    const result = await aiAssetCanvasApi.sendCanvasAgentChat(props.canvasId, {
+      baseRevision: store.canvas?.revision ?? '0',
+      message: text,
+    });
+    if (!result?.reply?.trim()) {
+      chatError.value = '后端未返回 reply';
+      return;
+    }
+    messageSeq += 1;
+    messages.value = [
+      ...messages.value,
+      {
+        content: result.reply,
+        id: messageSeq,
+        role: 'assistant',
+        suggestions: result.suggestions ?? [],
+      },
+    ];
+    chatInput.value = '';
+  } catch (error) {
+    const info = parseApiError(error);
+    if (info.notReady || /static resource|接口未就绪/i.test(info.message)) {
+      chatNotReady.value = true;
+      chatError.value = '对话接口未就绪';
+    } else {
+      chatError.value = formatApiError(info);
+    }
+  } finally {
+    chatLoading.value = false;
+  }
+}
+
 watch(
   () => props.canvasId,
   () => {
+    messages.value = [];
+    chatInput.value = '';
+    chatError.value = '';
+    chatNotReady.value = false;
+    executedSuggestions.value = {};
     void loadContext();
     void loadTools();
   },
@@ -306,6 +477,96 @@ watch(
               {{ entry.label }} {{ entry.count }}
             </Tag>
           </div>
+        </section>
+
+        <section class="canvas-agent__section">
+          <div class="canvas-agent__section-title">Canvas 对话</div>
+          <div class="canvas-agent__chat">
+            <div
+              v-if="!messages.length && !chatLoading"
+              class="canvas-agent__hint"
+            >
+              还没有对话。回复只来自后端 /agent/chat，不本地伪造。
+            </div>
+            <div
+              v-for="msg in messages"
+              :key="msg.id"
+              class="canvas-agent__msg"
+              :class="`is-${msg.role}`"
+            >
+              <div class="canvas-agent__msg-meta">
+                {{ msg.role === 'user' ? '你' : 'Agent' }}
+              </div>
+              <div class="canvas-agent__msg-content">{{ msg.content }}</div>
+              <div
+                v-if="msg.role === 'assistant' && msg.suggestions?.length"
+                class="canvas-agent__suggestions"
+              >
+                <div
+                  v-for="(suggestion, index) in msg.suggestions"
+                  :key="suggestionKey(msg.id, index, suggestion)"
+                  class="canvas-agent__suggestion"
+                >
+                  <div class="canvas-agent__row">
+                    <b class="canvas-agent__row-main">
+                      {{ suggestion.action }}
+                    </b>
+                    <Tag
+                      v-if="suggestion.requiresConfirm"
+                      :bordered="false"
+                      color="warning"
+                    >
+                      需确认
+                    </Tag>
+                    <Tag
+                      v-if="
+                        executedSuggestions[
+                          suggestionKey(msg.id, index, suggestion)
+                        ]
+                      "
+                      :bordered="false"
+                      color="success"
+                    >
+                      已执行
+                    </Tag>
+                  </div>
+                  <div
+                    v-if="suggestion.description"
+                    class="canvas-agent__meta"
+                  >
+                    {{ suggestion.description }}
+                  </div>
+                  <div
+                    v-if="suggestionParamsText(suggestion)"
+                    class="canvas-agent__meta"
+                  >
+                    {{ suggestionParamsText(suggestion) }}
+                  </div>
+                  <Button
+                    :disabled="
+                      actionLoading ||
+                      executedSuggestions[
+                        suggestionKey(msg.id, index, suggestion)
+                      ]
+                    "
+                    size="small"
+                    @click="confirmSuggestion(msg.id, index, suggestion)"
+                  >
+                    确认执行
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div v-if="chatLoading" class="canvas-agent__hint">
+              等待后端回复…
+            </div>
+          </div>
+          <Alert
+            v-if="chatError"
+            :message="chatError"
+            :type="chatNotReady ? 'info' : 'error'"
+            show-icon
+          />
         </section>
 
         <section class="canvas-agent__section">
@@ -496,7 +757,7 @@ watch(
             </div>
           </div>
           <div class="canvas-agent__hint">
-            本轮只接确定性工具；不提供对话生成，不会自动生成媒体。
+            对话回复仅来自 /agent/chat；建议需逐条手动确认，不自动生成媒体。
           </div>
         </section>
       </template>
@@ -505,6 +766,27 @@ watch(
         :image="Empty.PRESENTED_IMAGE_SIMPLE"
         description="暂无画布上下文"
       />
+    </div>
+
+    <div class="canvas-agent__chat-input">
+      <Input.TextArea
+        v-model:value="chatInput"
+        :auto-size="{ maxRows: 4, minRows: 2 }"
+        :disabled="!canvasId || chatLoading"
+        placeholder="向 Canvas Agent 提问（只返回后端真实回复）"
+        @keydown.enter.exact.prevent="sendChat"
+      />
+      <Button
+        :disabled="!canSend"
+        :loading="chatLoading"
+        block
+        size="small"
+        type="primary"
+        @click="sendChat"
+      >
+        <template #icon><SendOutlined /></template>
+        发送
+      </Button>
     </div>
 
     <Alert
@@ -704,6 +986,61 @@ watch(
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+  }
+
+  &__chat {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  &__msg {
+    padding: 6px 8px;
+    background: hsl(var(--accent));
+    border-radius: 8px;
+
+    &.is-user {
+      background: hsl(var(--primary) / 8%);
+    }
+  }
+
+  &__msg-meta {
+    margin-bottom: 2px;
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+  }
+
+  &__msg-content {
+    font-size: 12px;
+    line-height: 1.6;
+    color: hsl(var(--foreground));
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  &__suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  &__suggestion {
+    padding: 6px;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: 6px;
+  }
+
+  &__chat-input {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    border-top: 1px solid hsl(var(--border));
   }
 
   &__action-error {
