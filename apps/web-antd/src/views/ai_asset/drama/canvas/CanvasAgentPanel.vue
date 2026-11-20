@@ -275,12 +275,28 @@ function selectContextNode(value: unknown) {
 
 let messageSeq = 0;
 
+/** 建议卡标识：index 恒定参与，避免后端重复 id 导致 DOM/key 复用 */
 function suggestionKey(
   messageId: number,
   index: number,
   suggestion: CanvasAgentChatSuggestion,
 ) {
-  return `${messageId}:${suggestion.id ?? index}`;
+  const params = suggestion.params ?? {};
+  const node = params.node;
+  const nodeRecord =
+    node && typeof node === 'object'
+      ? (node as Record<string, unknown>)
+      : undefined;
+  const nodeClientId =
+    typeof nodeRecord?.clientId === 'string' ? nodeRecord.clientId : '';
+  const plainClientId =
+    nodeClientId || (typeof params.clientId === 'string' ? params.clientId : '');
+  return [
+    messageId,
+    index,
+    suggestion.action,
+    plainClientId || suggestion.id || '',
+  ].join(':');
 }
 
 function suggestionExtra(
@@ -324,9 +340,14 @@ function confirmSuggestion(
   if (executedSuggestions.value[key]) {
     return;
   }
+  // 点击时快照当前卡的 action/params，避免后续消息刷新或对象复用串卡
+  const action = suggestion.action;
+  const extra = JSON.parse(
+    JSON.stringify(suggestionExtra(suggestion)),
+  ) as ActionExtra;
   const params = suggestionParamsText(suggestion);
   Modal.confirm({
-    title: `执行建议：${suggestion.action}？`,
+    title: `执行建议：${action}？`,
     content: [
       suggestion.description || '后端建议执行该画布写操作。',
       params ? `参数：${params}` : '',
@@ -337,10 +358,7 @@ function confirmSuggestion(
     okText: '确认执行',
     cancelText: '取消',
     onOk: async () => {
-      const ok = await performAction(
-        suggestion.action,
-        suggestionExtra(suggestion),
-      );
+      const ok = await performAction(action, extra);
       if (ok) {
         executedSuggestions.value = {
           ...executedSuggestions.value,
