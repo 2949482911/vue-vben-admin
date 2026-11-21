@@ -16,6 +16,7 @@ import { aiAssetApi } from '#/api';
 
 import { formatApiError, parseApiError } from '../error';
 import { useCanvasGraphStore } from './store';
+import { useCanvasShotMedia } from './useCanvasShotMedia';
 
 type EntityType = 'character' | 'element' | 'scene';
 type EntityFilter = 'all' | EntityType;
@@ -107,6 +108,86 @@ const appliedEntityType = computed(() => {
 });
 const appliedEntityHasImage = computed(
   () => node.value?.data.details?.hasImage === true,
+);
+
+const shotMedia = useCanvasShotMedia();
+const shotId = computed(() =>
+  nodeKind.value === 'shot' && node.value?.data.details?.shotId
+    ? String(node.value.data.details.shotId)
+    : '',
+);
+const shotMediaState = computed(() =>
+  shotId.value
+    ? shotMedia.shotState(store.canvas?.id, shotId.value)
+    : undefined,
+);
+const shotStatus = computed(() => shotMediaState.value?.status);
+const shotGenerating = computed(
+  () =>
+    shotStatus.value?.generationStatus === 1 ||
+    shotStatus.value?.keyframeStatus === 1,
+);
+const shotElapsed = computed(() =>
+  shotId.value
+    ? shotMedia.elapsedSeconds(store.canvas?.id, shotId.value)
+    : 0,
+);
+const shotMediaError = computed(() =>
+  shotMediaState.value?.error
+    ? formatApiError(shotMediaState.value.error)
+    : '',
+);
+const keyframeReady = computed(() => {
+  const status = shotStatus.value;
+  return Boolean(
+    status &&
+      (status.keyframeUrl ||
+        status.keyframeThumbnailUrl ||
+        status.keyframeStatus === 2),
+  );
+});
+const canApproveKeyframe = computed(
+  () =>
+    keyframeReady.value &&
+    !shotMediaState.value?.approved &&
+    shotStatus.value?.keyframeStatus !== 1,
+);
+const videoBlockReason = computed(() => {
+  const status = shotStatus.value;
+  const blocker = status?.blockers?.find((item) =>
+    /keyframe.*approv|approv.*keyframe/i.test(
+      `${item.code ?? ''}${item.action ?? ''}`,
+    ),
+  );
+  if (blocker) {
+    return blocker.message;
+  }
+  if (status?.keyframeStatus === 1) {
+    return '关键帧生成中';
+  }
+  if (!keyframeReady.value) {
+    return '请先生成并审批关键帧';
+  }
+  return '';
+});
+const shotBlockers = computed(() => shotStatus.value?.blockers ?? []);
+
+function requestShotAction(
+  type: 'approve' | 'edit' | 'expand' | 'keyframe' | 'video',
+) {
+  if (shotId.value) {
+    store.requestShotAction(type, node.value?.id ?? '', shotId.value);
+  }
+}
+
+watch(
+  () => shotId.value,
+  () => {
+    if (shotId.value) {
+      shotMedia.ensureStatus(store.canvas?.id, shotId.value);
+    }
+  },
+  { immediate: true },
 );
 
 const entityOptions = computed<EntityOption[]>(() => {
@@ -522,7 +603,100 @@ onBeforeUnmount(() => {
             <div><span>body</span><b>{{ node.data.body || '—' }}</b></div>
             <div><span>status</span><b>{{ node.data.nodeStatus || 'ready' }}</b></div>
           </div>
+          <template v-if="shotId">
+            <div class="canvas-workspace__shot-status">
+              <Tag :bordered="false">
+                分镜状态 {{ shotStatus?.generationStatus ?? '—' }}
+              </Tag>
+              <Tag :bordered="false">
+                关键帧 {{ shotStatus?.keyframeStatus ?? '—' }}
+              </Tag>
+              <Tag
+                v-if="shotStatus?.storyboardStatus !== undefined"
+                :bordered="false"
+              >
+                分镜确认 {{ shotStatus.storyboardStatus }}
+              </Tag>
+              <Tag
+                v-if="shotGenerating"
+                :bordered="false"
+                color="processing"
+              >
+                生成中{{ shotElapsed ? ` · ${shotElapsed}s` : '' }}
+              </Tag>
+            </div>
+            <img
+              v-if="
+                shotStatus?.videoThumbnailUrl ||
+                shotStatus?.keyframeThumbnailUrl ||
+                shotStatus?.keyframeUrl
+              "
+              :src="
+                shotStatus.videoThumbnailUrl ||
+                shotStatus.keyframeThumbnailUrl ||
+                shotStatus.keyframeUrl ||
+                ''
+              "
+              alt=""
+              class="canvas-workspace__shot-thumb"
+            />
+            <video
+              v-if="shotStatus?.videoUrl"
+              :src="shotStatus.videoUrl"
+              class="canvas-workspace__shot-video"
+              controls
+              preload="metadata"
+            ></video>
+            <ul
+              v-if="shotBlockers.length"
+              class="canvas-workspace__shot-blockers"
+            >
+              <li v-for="(blocker, index) in shotBlockers" :key="index">
+                {{ blocker.message }}
+                <template v-if="blocker.action">
+                  （{{ blocker.action }}）
+                </template>
+              </li>
+            </ul>
+            <div class="canvas-workspace__shot-actions">
+              <Button
+                :disabled="shotGenerating"
+                size="small"
+                @click="requestShotAction('keyframe')"
+              >
+                重新出图
+              </Button>
+              <Button
+                :disabled="Boolean(videoBlockReason) || shotGenerating"
+                :title="videoBlockReason || '生成真实视频'"
+                size="small"
+                @click="requestShotAction('video')"
+              >
+                生成视频
+              </Button>
+              <Button
+                v-if="canApproveKeyframe"
+                size="small"
+                @click="requestShotAction('approve')"
+              >
+                审批关键帧
+              </Button>
+              <Button size="small" @click="requestShotAction('edit')">
+                编辑
+              </Button>
+              <Button size="small" @click="requestShotAction('expand')">
+                展开
+              </Button>
+            </div>
+            <div v-if="videoBlockReason" class="canvas-workspace__hint">
+              {{ videoBlockReason }}
+            </div>
+            <div v-if="shotMediaError" class="canvas-workspace__hint is-error">
+              {{ shotMediaError }}
+            </div>
+          </template>
           <Empty
+            v-else
             :image="Empty.PRESENTED_IMAGE_SIMPLE"
             description="画布节点未绑定真实分镜记录"
           />
@@ -774,6 +948,42 @@ onBeforeUnmount(() => {
       color: hsl(var(--foreground));
       word-break: break-all;
     }
+  }
+
+  &__shot-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  &__shot-thumb {
+    width: 100%;
+    max-height: 160px;
+    margin-bottom: 8px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  &__shot-video {
+    width: 100%;
+    max-height: 180px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+  }
+
+  &__shot-blockers {
+    padding-left: 16px;
+    margin: 0 0 8px;
+    font-size: 11px;
+    color: hsl(var(--destructive));
+  }
+
+  &__shot-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
   }
 }
 </style>

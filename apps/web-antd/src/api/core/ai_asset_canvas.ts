@@ -8,6 +8,11 @@ import type {
   CanvasCreateRequest,
   CanvasGraph,
   CanvasSaveRequest,
+  CanvasShotApproveResult,
+  CanvasShotGenerateRequest,
+  CanvasShotGenerateResult,
+  CanvasShotSaveRequest,
+  CanvasShotStatus,
   CanvasSplitStoryboardRequest,
   CanvasSplitStoryboardResult,
   CanvasSummary,
@@ -23,6 +28,17 @@ import { requestClient } from '#/api/request';
  * 后端前缀：/platform/ai_asset/v2/canvas（非微服务模式下 BaseApi 会去掉 /platform）。
  */
 class AiAssetCanvasApi extends BaseApi {
+  approveCanvasShotKeyframe(
+    canvasId: number | string,
+    shotId: number | string,
+  ): Promise<CanvasShotApproveResult> {
+    return requestClient.post<CanvasShotApproveResult>(
+      this.getServiceUrl(`${canvasId}/shots/${shotId}/keyframe/approve`),
+      {},
+      { skipErrorMessage: true },
+    );
+  }
+
   createCanvas(data: CanvasCreateRequest): Promise<CanvasSummary> {
     return requestClient.post<CanvasSummary>(
       this.getServiceUrl('create'),
@@ -75,6 +91,40 @@ class AiAssetCanvasApi extends BaseApi {
     });
   }
 
+  fetchCanvasShotStatus(
+    canvasId: number | string,
+    shotId: number | string,
+  ): Promise<CanvasShotStatus> {
+    return requestClient.get<CanvasShotStatus>(
+      this.getServiceUrl(`${canvasId}/shots/${shotId}/status`),
+      { skipErrorMessage: true },
+    );
+  }
+
+  generateCanvasShotKeyframe(
+    canvasId: number | string,
+    shotId: number | string,
+    data: CanvasShotGenerateRequest,
+  ): Promise<CanvasShotGenerateResult> {
+    return requestClient.post<CanvasShotGenerateResult>(
+      this.getServiceUrl(`${canvasId}/shots/${shotId}/keyframe`),
+      data,
+      { skipErrorMessage: true, timeout: 300_000 },
+    );
+  }
+
+  generateCanvasShotVideo(
+    canvasId: number | string,
+    shotId: number | string,
+    data: CanvasShotGenerateRequest,
+  ): Promise<CanvasShotGenerateResult> {
+    return requestClient.post<CanvasShotGenerateResult>(
+      this.getServiceUrl(`${canvasId}/shots/${shotId}/video`),
+      data,
+      { skipErrorMessage: true, timeout: 300_000 },
+    );
+  }
+
   renameCanvas(
     canvasId: number | string,
     title: string,
@@ -103,6 +153,18 @@ class AiAssetCanvasApi extends BaseApi {
   ): Promise<CanvasGraph> {
     return requestClient.post<CanvasGraph>(
       this.getServiceUrl(`${canvasId}/save`),
+      data,
+      { skipErrorMessage: true },
+    );
+  }
+
+  saveCanvasShot(
+    canvasId: number | string,
+    shotId: number | string,
+    data: CanvasShotSaveRequest,
+  ): Promise<CanvasShotStatus> {
+    return requestClient.post<CanvasShotStatus>(
+      this.getServiceUrl(`${canvasId}/shots/${shotId}/save`),
       data,
       { skipErrorMessage: true },
     );

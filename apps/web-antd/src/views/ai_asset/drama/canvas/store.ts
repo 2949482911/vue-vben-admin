@@ -57,6 +57,19 @@ export interface CanvasFlowEdge {
   type?: string;
 }
 
+export type CanvasShotActionType =
+  | 'approve'
+  | 'edit'
+  | 'expand'
+  | 'keyframe'
+  | 'video';
+
+export interface CanvasShotActionRequest {
+  nodeId: string;
+  shotId: string;
+  type: CanvasShotActionType;
+}
+
 const KIND_RANK: Record<string, number> = {
   text: 0,
   storyboard: 1,
@@ -109,6 +122,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
   const groupReferenceSource = ref<string>();
   const episodeId = ref<number | string>();
   const splitTargetNodeId = ref<string>();
+  const shotActionRequest = ref<CanvasShotActionRequest>();
 
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let changeSeq = 0;
@@ -166,6 +180,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     error.value = '';
     groupReferenceSource.value = undefined;
     splitTargetNodeId.value = undefined;
+    shotActionRequest.value = undefined;
     lastSavedAt.value = new Date().toISOString();
     initialized.value = true;
   }
@@ -185,6 +200,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     lastSavedAt.value = '';
     groupReferenceSource.value = undefined;
     splitTargetNodeId.value = undefined;
+    shotActionRequest.value = undefined;
     initialized.value = false;
   }
 
@@ -646,6 +662,18 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     splitTargetNodeId.value = undefined;
   }
 
+  function requestShotAction(
+    type: CanvasShotActionType,
+    nodeId: string,
+    shotId: number | string,
+  ) {
+    shotActionRequest.value = { nodeId, shotId: String(shotId), type };
+  }
+
+  function clearShotAction() {
+    shotActionRequest.value = undefined;
+  }
+
   /**
    * 分组引用：按成员输出端口与目标输入端口的兼容规则批量建边；
    * 每个成员最多建一条，返回新建与已存在的数量，由调用方提示。
@@ -808,6 +836,9 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     saving,
     selectedNodeIds,
     setEpisodeId,
+    shotActionRequest,
+    requestShotAction,
+    clearShotAction,
     setSelection,
     setViewport,
     splitTargetNodeId,

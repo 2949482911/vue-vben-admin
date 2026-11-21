@@ -285,3 +285,72 @@ export interface CanvasSaveRequest {
   edges: CanvasSaveEdge[];
   groups: CanvasSaveGroup[];
 }
+
+/** P8-6b 画布分镜真实媒体状态 */
+export interface CanvasShotBlocker {
+  action?: null | string;
+  code?: null | string;
+  message: string;
+  target?: null | string;
+  targetId?: null | number | string;
+}
+
+export interface CanvasShotTake {
+  errorMsg?: null | string;
+  id?: number | string;
+  index?: number;
+  status?: null | number | string;
+  takeId?: number | string;
+  thumbnailUrl?: null | string;
+  url?: null | string;
+}
+
+export interface CanvasShotStatus {
+  blockers?: CanvasShotBlocker[];
+  episodeId?: null | number | string;
+  generationStatus?: null | number;
+  keyframeStatus?: null | number;
+  keyframeTakes?: CanvasShotTake[];
+  keyframeThumbnailUrl?: null | string;
+  keyframeUrl?: null | string;
+  shotId: number | string;
+  storyboardConfirmed?: boolean | null;
+  storyboardStatus?: null | number | string;
+  videoTakes?: CanvasShotTake[];
+  videoThumbnailUrl?: null | string;
+  videoUrl?: null | string;
+}
+
+export interface CanvasShotGenerateRequest {
+  confirmStoryboard?: boolean;
+  modelId?: null | number | string;
+  params?: null | Record<string, unknown>;
+  takeCount?: number;
+}
+
+export interface CanvasShotGenerateResult {
+  shotId: number | string;
+  storyboardConfirmed?: boolean;
+  takeIds?: Array<number | string>;
+}
+
+export interface CanvasShotApproveResult {
+  keyframeStatus?: null | number;
+  shotId: number | string;
+}
+
+export interface CanvasShotSaveRequest {
+  camera?: null | string;
+  characters?: string[];
+  description?: null | string;
+  dialogue?: null | string;
+  direction?: null | Record<string, unknown>;
+  durationSeconds?: null | number;
+  imagePrompt?: null | string;
+  sceneId?: null | number | string;
+  sceneName?: null | string;
+  sceneSeq?: null | number;
+  shotType?: null | string;
+  videoPrompt?: null | string;
+}
+

@@ -1,11 +1,7 @@
 <script lang="ts" setup name="CanvasSurface">
 import type { CanvasNodeKind, CanvasSummary } from '#/api/models/ai_asset_canvas';
 
-import {
-  computed,
-  ref,
-  watch,
-} from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 import {
   ControlOutlined,
@@ -32,11 +28,14 @@ import { formatApiError, parseApiError } from '../error';
 import CanvasAgentPanel from './CanvasAgentPanel.vue';
 import CanvasFlow from './CanvasFlow.vue';
 import CanvasOutline from './CanvasOutline.vue';
+import CanvasShotDrawer from './CanvasShotDrawer.vue';
+import CanvasShotMediaModal from './CanvasShotMediaModal.vue';
 import CanvasSplitModal from './CanvasSplitModal.vue';
 import CanvasToolbar from './CanvasToolbar.vue';
 import CanvasViewportControls from './CanvasViewportControls.vue';
 import CanvasWorkspace from './CanvasWorkspace.vue';
 import { useCanvasGraphStore } from './store';
+import { useCanvasShotMedia } from './useCanvasShotMedia';
 
 const props = defineProps<{
   episodeId?: number | string;
@@ -69,6 +68,27 @@ const agentOpen = ref(false);
 const splitTargetNode = computed(() =>
   store.splitTargetNodeId
     ? store.nodes.find((node) => node.id === store.splitTargetNodeId)
+    : undefined,
+);
+const shotMedia = useCanvasShotMedia();
+const mediaAction = ref<{
+  nodeId: string;
+  shotId: string;
+  type: 'keyframe' | 'video';
+}>();
+const drawerAction = ref<{
+  mode: 'edit' | 'expand';
+  nodeId: string;
+  shotId: string;
+}>();
+const mediaActionNode = computed(() =>
+  mediaAction.value
+    ? store.nodes.find((node) => node.id === mediaAction.value?.nodeId)
+    : undefined,
+);
+const drawerActionNode = computed(() =>
+  drawerAction.value
+    ? store.nodes.find((node) => node.id === drawerAction.value?.nodeId)
     : undefined,
 );
 
@@ -277,6 +297,77 @@ watch(
   },
 );
 
+function approveShotKeyframe(shotId: string) {
+  if (!store.canvas?.id) {
+    return;
+  }
+  const targetCanvas = store.canvas.id;
+  Modal.confirm({
+    title: '审批关键帧？',
+    content: '将把当前关键帧标记为已审批，不重新生成、不生成视频。',
+    okText: '审批',
+    cancelText: '取消',
+    onOk: async () => {
+      try {
+        await shotMedia.approveKeyframe(targetCanvas, shotId);
+        message.success('关键帧已审批');
+      } catch (error) {
+        const info = parseApiError(error);
+        message.error(
+          info.notReady || /static resource|接口未就绪/i.test(info.message)
+            ? '接口未就绪'
+            : formatApiError(info),
+        );
+      }
+    },
+  });
+}
+
+watch(
+  () => store.shotActionRequest,
+  (request) => {
+    if (!request) {
+      return;
+    }
+    store.clearShotAction();
+    const node = store.nodes.find(
+      (candidate) => candidate.id === request.nodeId,
+    );
+    if (!node) {
+      return;
+    }
+    if (request.type === 'approve') {
+      approveShotKeyframe(request.shotId);
+      return;
+    }
+    if (request.type === 'keyframe' || request.type === 'video') {
+      mediaAction.value = {
+        nodeId: request.nodeId,
+        shotId: request.shotId,
+        type: request.type,
+      };
+      return;
+    }
+    drawerAction.value = {
+      mode: request.type === 'edit' ? 'edit' : 'expand',
+      nodeId: request.nodeId,
+      shotId: request.shotId,
+    };
+  },
+);
+
+watch(
+  () => store.canvas?.id,
+  () => {
+    mediaAction.value = undefined;
+    drawerAction.value = undefined;
+  },
+);
+
+onBeforeUnmount(() => {
+  shotMedia.stopAllShotPolling();
+});
+
 watch(
   () => props.novelId,
   async () => {
@@ -446,6 +537,24 @@ watch(
       :episode-id="episodeId"
       :node="splitTargetNode"
       @close="store.clearSplitRequest()"
+    />
+
+    <CanvasShotMediaModal
+      v-if="mediaAction && mediaActionNode"
+      :canvas-id="currentCanvasId"
+      :node-label="mediaActionNode.data.label"
+      :shot-id="mediaAction.shotId"
+      :type="mediaAction.type"
+      @close="mediaAction = undefined"
+    />
+
+    <CanvasShotDrawer
+      v-if="drawerAction && drawerActionNode"
+      :canvas-id="currentCanvasId"
+      :mode="drawerAction.mode"
+      :node="drawerActionNode"
+      :shot-id="drawerAction.shotId"
+      @close="drawerAction = undefined"
     />
   </div>
 </template>

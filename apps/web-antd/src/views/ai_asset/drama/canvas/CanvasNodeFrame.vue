@@ -9,7 +9,9 @@ import { DeleteOutlined, EditOutlined } from '@ant-design/icons-vue';
 import { Handle, Position } from '@vue-flow/core';
 import { Input } from 'ant-design-vue';
 
+import { formatApiError } from '../error';
 import { useCanvasGraphStore } from './store';
+import { useCanvasShotMedia } from './useCanvasShotMedia';
 
 const props = defineProps<{
   connectable: HandleConnectable;
@@ -88,6 +90,80 @@ const shotSummary = computed(
     detailText('description') ||
     detailText('dialogue') ||
     detailText('imagePrompt'),
+);
+
+const shotMedia = useCanvasShotMedia();
+const shotMediaState = computed(() =>
+  shotInfo.value
+    ? shotMedia.shotState(store.canvas?.id, shotInfo.value.shotId)
+    : undefined,
+);
+const shotStatus = computed(() => shotMediaState.value?.status);
+const shotGenerating = computed(
+  () =>
+    shotStatus.value?.generationStatus === 1 ||
+    shotStatus.value?.keyframeStatus === 1,
+);
+const shotElapsed = computed(() =>
+  shotInfo.value
+    ? shotMedia.elapsedSeconds(store.canvas?.id, shotInfo.value.shotId)
+    : 0,
+);
+const shotMediaError = computed(() =>
+  shotMediaState.value?.error
+    ? formatApiError(shotMediaState.value.error)
+    : '',
+);
+const keyframeReady = computed(() => {
+  const status = shotStatus.value;
+  return Boolean(
+    status &&
+      (status.keyframeUrl ||
+        status.keyframeThumbnailUrl ||
+        status.keyframeStatus === 2),
+  );
+});
+const canApproveKeyframe = computed(
+  () =>
+    keyframeReady.value &&
+    !shotMediaState.value?.approved &&
+    shotStatus.value?.keyframeStatus !== 1,
+);
+const videoBlockReason = computed(() => {
+  const status = shotStatus.value;
+  const blocker = status?.blockers?.find((item) =>
+    /keyframe.*approv|approv.*keyframe/i.test(
+      `${item.code ?? ''}${item.action ?? ''}`,
+    ),
+  );
+  if (blocker) {
+    return blocker.message;
+  }
+  if (status?.keyframeStatus === 1) {
+    return '关键帧生成中';
+  }
+  if (!keyframeReady.value) {
+    return '请先生成并审批关键帧';
+  }
+  return '';
+});
+
+function requestShotAction(
+  type: 'approve' | 'edit' | 'expand' | 'keyframe' | 'video',
+) {
+  if (shotInfo.value) {
+    store.requestShotAction(type, props.id, shotInfo.value.shotId);
+  }
+}
+
+watch(
+  () => shotInfo.value?.shotId,
+  () => {
+    if (shotInfo.value) {
+      shotMedia.ensureStatus(store.canvas?.id, shotInfo.value.shotId);
+    }
+  },
+  { immediate: true },
 );
 
 const canSplit = computed(
@@ -264,12 +340,70 @@ function bodyText() {
             {{ shotInfo.duration }}s
           </span>
           <span v-if="shotInfo.sceneName">{{ shotInfo.sceneName }}</span>
+          <span v-if="shotGenerating" class="canvas-node__shot-running">
+            生成中<span v-if="shotElapsed"> · {{ shotElapsed }}s</span>
+          </span>
+        </div>
+        <div v-if="shotStatus?.videoUrl" class="canvas-node__shot-media">
+          <video
+            :poster="shotStatus.videoThumbnailUrl || undefined"
+            :src="shotStatus.videoUrl"
+            class="canvas-node__shot-video"
+            controls
+            preload="metadata"
+          ></video>
+        </div>
+        <div
+          v-else-if="shotStatus?.keyframeThumbnailUrl || shotStatus?.keyframeUrl"
+          class="canvas-node__shot-media"
+        >
+          <img
+            :src="shotStatus.keyframeThumbnailUrl || shotStatus.keyframeUrl || ''"
+            alt=""
+            class="canvas-node__shot-image"
+          />
         </div>
         <div class="canvas-node__shot-body">
           {{ shotSummary || '已绑定分镜，暂无摘要' }}
         </div>
         <div v-if="shotInfo.characters.length" class="canvas-node__shot-tags">
           <span v-for="name in shotInfo.characters" :key="name">{{ name }}</span>
+        </div>
+        <div class="canvas-node__shot-actions">
+          <button
+            :disabled="shotGenerating"
+            type="button"
+            @click.stop="requestShotAction('keyframe')"
+          >
+            重新出图
+          </button>
+          <button
+            :disabled="Boolean(videoBlockReason) || shotGenerating"
+            :title="videoBlockReason || '生成真实视频'"
+            type="button"
+            @click.stop="requestShotAction('video')"
+          >
+            生成视频
+          </button>
+          <button
+            v-if="canApproveKeyframe"
+            type="button"
+            @click.stop="requestShotAction('approve')"
+          >
+            审批关键帧
+          </button>
+          <button type="button" @click.stop="requestShotAction('edit')">
+            编辑
+          </button>
+          <button type="button" @click.stop="requestShotAction('expand')">
+            展开
+          </button>
+        </div>
+        <div v-if="videoBlockReason" class="canvas-node__shot-hint">
+          {{ videoBlockReason }}
+        </div>
+        <div v-if="shotMediaError" class="canvas-node__shot-error">
+          {{ shotMediaError }}
         </div>
       </div>
       <div v-else-if="!previewUrl" class="canvas-node__placeholder">
@@ -474,6 +608,63 @@ function bodyText() {
     flex-direction: column;
     gap: 6px;
     height: 100%;
+    min-height: 0;
+  }
+
+  &__shot-media {
+    flex: none;
+    width: 100%;
+    max-height: 150px;
+    overflow: hidden;
+    border-radius: 8px;
+  }
+
+  &__shot-image,
+  &__shot-video {
+    display: block;
+    width: 100%;
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  &__shot-running {
+    color: hsl(var(--primary));
+  }
+
+  &__shot-actions {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    button {
+      padding: 0;
+      font-size: 11px;
+      color: hsl(var(--primary));
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+
+      &:disabled {
+        color: hsl(var(--muted-foreground));
+        cursor: not-allowed;
+      }
+
+      &:hover:not(:disabled) {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &__shot-hint {
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+  }
+
+  &__shot-error {
+    font-size: 11px;
+    color: hsl(var(--destructive));
   }
 
   &__shot-meta {
