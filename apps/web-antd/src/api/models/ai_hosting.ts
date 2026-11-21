@@ -300,6 +300,10 @@ export interface HostingDecision extends BaseItem {
   errorMsg?: string;
   /** 执行来源：AI/HUMAN */
   executedBy?: string;
+  /** 真实执行完成时间 */
+  executedAt?: string;
+  /** 是否模拟执行：1=mock（未调用媒体） 0=真实媒体 */
+  execMock?: number;
   /** 回滚状态：none/available/rolled_back/failed */
   rollbackStatus?: RollbackStatus;
   /** 可回滚截止时间 */
@@ -316,7 +320,7 @@ export interface HostingDecision extends BaseItem {
   beforeCost?: number;
   /** 操作后消耗（分） */
   afterCost?: number;
-  /** 是否已回评：0=否 1=是 */
+  /** 是否已回评：0=未回评 1=已回评 2=样本不足 */
   feedbackEvaluated?: number;
 }
 
@@ -368,8 +372,12 @@ export interface HostingDecisionQueryParams extends PageRequestParams {
  * AI 决策洞察（价值报告数据源）
  */
 export interface HostingInsight {
-  /** 已回评决策数 */
+  /** 已回评决策数（仅真实下发且含明确 verdict：improved/worse/flat） */
   evaluatedCount?: number;
+  /** 真实回评中无可比较数据/样本不足的数量 */
+  insufficientCount?: number;
+  /** 参与平均 ROI 计算的样本数 */
+  roiSampleCount?: number;
   /** 有效（improved） */
   improvedCount?: number;
   /** 无效（worse） */
@@ -378,8 +386,8 @@ export interface HostingInsight {
   flatCount?: number;
   /** 命中率 = improved / evaluated（0~1） */
   hitRate?: number;
-  /** 平均 ROI 变化（after - before） */
-  avgRoiDelta?: number;
+  /** 平均 ROI 变化（after - before），无有效样本时为 null */
+  avgRoiDelta?: null | number;
 }
 
 /**

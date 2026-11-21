@@ -10,7 +10,7 @@ import type { HostingDecision } from '#/api/models/ai_hosting';
 
 import { useVbenDrawer } from '@vben/common-ui';
 
-import { Space, Tag } from 'ant-design-vue';
+import { Space, Tag, Tooltip } from 'ant-design-vue';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { aiHostingApi } from '#/api/core';
@@ -64,8 +64,14 @@ const gridOptions: VxeGridProps<HostingDecision> = {
     {
       field: 'executedBy',
       title: '执行来源',
-      width: 96,
+      width: 120,
       slots: { default: 'executedBy' },
+    },
+    {
+      field: 'executedAt',
+      title: '执行时间',
+      minWidth: 165,
+      slots: { default: 'executedAt' },
     },
     {
       field: 'effectVerdict',
@@ -115,11 +121,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
     if (isOpen) {
       const data = drawerApi.getData() as { taskId: string; taskName: string };
       drawerApi.setState({ title: `决策记录 — ${data?.taskName || ''}` });
+      // connected drawer 的 onOpened 不一定会触发；延迟到 Grid 完成挂载后再取数
+      window.setTimeout(() => gridApi.reload(), 500);
     }
-  },
-  onOpened() {
-    // 打开动画结束后 Grid 才完成挂载，此时再发起请求，否则 grid.commitProxy 未就绪
-    gridApi.reload();
   },
 });
 </script>
@@ -166,14 +170,27 @@ const [Drawer, drawerApi] = useVbenDrawer({
 
       <!-- 执行来源 -->
       <template #executedBy="{ row }">
-        <Tag
-          v-if="row.executedBy"
-          :color="EXECUTED_BY_MAP[row.executedBy]?.color || 'default'"
-          :bordered="false"
-          size="small"
-        >
-          {{ EXECUTED_BY_MAP[row.executedBy]?.label || row.executedBy }}
-        </Tag>
+        <Space v-if="row.executedBy || row.execMock === 1" :size="4" wrap>
+          <Tag
+            v-if="row.executedBy"
+            :color="EXECUTED_BY_MAP[row.executedBy]?.color || 'default'"
+            :bordered="false"
+            size="small"
+          >
+            {{ EXECUTED_BY_MAP[row.executedBy]?.label || row.executedBy }}
+          </Tag>
+          <Tooltip v-if="row.execMock === 1" title="模拟执行（未调用媒体）">
+            <Tag :bordered="false" color="purple" size="small">
+              模拟执行
+            </Tag>
+          </Tooltip>
+        </Space>
+        <span v-else class="empty-text">—</span>
+      </template>
+
+      <!-- 执行时间 -->
+      <template #executedAt="{ row }">
+        <span v-if="row.executedAt">{{ row.executedAt }}</span>
         <span v-else class="empty-text">—</span>
       </template>
 
@@ -186,6 +203,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
           size="small"
         >
           {{ EFFECT_VERDICT_MAP[row.effectVerdict]?.label || row.effectVerdict }}
+        </Tag>
+        <Tag
+          v-else-if="row.feedbackEvaluated === 2"
+          :bordered="false"
+          color="orange"
+          size="small"
+        >
+          样本不足
         </Tag>
         <span v-else class="empty-text">—</span>
       </template>

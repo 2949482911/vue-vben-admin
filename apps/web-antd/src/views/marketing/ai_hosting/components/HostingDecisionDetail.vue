@@ -152,7 +152,14 @@ const hasEffect = computed(
   () =>
     !!props.decision?.effectVerdict ||
     (props.decision?.feedbackEvaluated ?? 0) === 1 ||
+    (props.decision?.feedbackEvaluated ?? 0) === 2 ||
     effectRows.value.length > 0
+);
+
+const isMockExec = computed(
+  () =>
+    props.decision?.execMock === 1 ||
+    props.decision?.execResult?.mock === true
 );
 
 const actionMeta = computed(() => {
@@ -352,6 +359,9 @@ function evidenceLong(evidence?: Record<string, any>) {
         >
           {{ EXECUTED_BY_MAP[decision.executedBy || '']?.label || decision.executedBy }}
         </Tag>
+        <Tag v-if="isMockExec" :bordered="false" color="purple">
+          模拟执行（未调用媒体）
+        </Tag>
         <Tag
           v-if="decision.rollbackStatus && decision.rollbackStatus !== 'none'"
           :bordered="false"
@@ -379,6 +389,9 @@ function evidenceLong(evidence?: Record<string, any>) {
         </Typography.Text>
         <Typography.Text v-if="decision.rollbackDeadline" type="secondary">
           可回滚至 {{ decision.rollbackDeadline }}
+        </Typography.Text>
+        <Typography.Text v-if="decision.executedAt" type="secondary">
+          执行完成 {{ decision.executedAt }}
         </Typography.Text>
       </Space>
     </Flex>
@@ -425,6 +438,13 @@ function evidenceLong(evidence?: Record<string, any>) {
         >
           {{ EFFECT_VERDICT_MAP[decision.effectVerdict || '']?.label || decision.effectVerdict }}
         </Tag>
+        <Tag
+          v-else-if="decision.feedbackEvaluated === 2"
+          :bordered="false"
+          color="orange"
+        >
+          样本不足
+        </Tag>
       </Space>
 
       <Row v-if="effectRows.length" :gutter="[12, 12]">
@@ -437,11 +457,20 @@ function evidenceLong(evidence?: Record<string, any>) {
         </Col>
       </Row>
 
-      <Typography.Text v-if="decision.effectEvaluatedAt" type="secondary">
+      <Typography.Text v-if="decision.feedbackEvaluated === 2" type="secondary">
+        样本不足/无可比较数据
+        <template v-if="decision.effectEvaluatedAt">
+          （尝试时间：{{ decision.effectEvaluatedAt }}）
+        </template>
+      </Typography.Text>
+      <Typography.Text
+        v-else-if="decision.effectEvaluatedAt"
+        type="secondary"
+      >
         回评时间：{{ decision.effectEvaluatedAt }}
       </Typography.Text>
       <Typography.Text v-else type="secondary">
-        尚未回评（真实执行后按观察窗口自动回评）
+        尚未回评（真实执行后按完整自然日窗口自动回评）
       </Typography.Text>
     </Flex>
 
@@ -554,6 +583,13 @@ function evidenceLong(evidence?: Record<string, any>) {
     <!-- ==================== 执行结果 ==================== -->
     <Flex v-if="decision.execResult || decision.errorMsg" vertical :gap="12">
       <Typography.Title :level="5" class="section-title">执行结果</Typography.Title>
+      <Alert
+        v-if="isMockExec"
+        show-icon
+        type="warning"
+        message="模拟执行（未调用媒体）"
+        description="本次未调用媒体接口，不提供回滚；仅走限额、留痕和回评链路。"
+      />
       <Alert
         v-if="decision.errorMsg"
         show-icon

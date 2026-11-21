@@ -7,6 +7,7 @@
  * 三个视图共用同一块「锁高」区域，各自内部滚动，与页面其余部分保持一致。
  */
 import type { HostingStats } from "#/api/models/ai_hosting";
+
 import { computed, h, nextTick, onMounted, ref } from "vue";
 
 import { Page } from "@vben/common-ui";
@@ -116,7 +117,7 @@ onMounted(() => {
 
       <!-- 视图区：占满剩余高度，各视图内部滚动 -->
       <div class="hosting-views">
-        <HostingTaskList v-if="activeTab === 'tasks'" class="hosting-view" />
+        <HostingTaskList v-if="activeTab === 'tasks'" />
         <HostingReviewConsole
           v-else-if="activeTab === 'review'"
           ref="reviewRef"

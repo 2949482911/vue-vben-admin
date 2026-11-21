@@ -47,6 +47,7 @@ import {
   Space,
   Statistic,
   Tag,
+  Tooltip,
   Typography
 } from "ant-design-vue";
 
@@ -231,6 +232,31 @@ async function fetchInsight() {
   }
 }
 
+const hasInsightData = computed(
+  () =>
+    (insight.value?.evaluatedCount ?? 0) > 0 ||
+    (insight.value?.insufficientCount ?? 0) > 0
+);
+const hasEffectiveSample = computed(
+  () => (insight.value?.evaluatedCount ?? 0) > 0
+);
+const hitRateText = computed(() =>
+  hasEffectiveSample.value
+    ? `${((insight.value?.hitRate ?? 0) * 100).toFixed(1)}%`
+    : "--"
+);
+const hasRoiSample = computed(
+  () =>
+    (insight.value?.roiSampleCount ?? 0) > 0 &&
+    insight.value?.avgRoiDelta !== null &&
+    insight.value?.avgRoiDelta !== undefined
+);
+const avgRoiText = computed(() => {
+  const value = insight.value?.avgRoiDelta;
+  if (value === null || value === undefined) return "";
+  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+});
+
 function syncSelected() {
   selected.value = gridApi.grid?.getCheckboxRecords?.() ?? [];
 }
@@ -287,7 +313,13 @@ const gridOptions: VxeGridProps<HostingDecision> = {
       field: "executedBy",
       slots: { default: "executedBy" },
       title: "执行来源",
-      width: 96
+      width: 120
+    },
+    {
+      field: "executedAt",
+      minWidth: 165,
+      slots: { default: "executedAt" },
+      title: "执行时间"
     },
     {
       field: "effectVerdict",
@@ -544,8 +576,15 @@ async function submitReview() {
       conclusion,
       reason: reason.trim() || undefined
     });
+    const executed = Number(result ?? 0);
+    // 清理旧消息，避免多次审批时失败/成功 toast 叠加
+    message.destroy();
     if (conclusion === "approve") {
-      message.success(`已通过并执行 ${result ?? 0} 条决策`);
+      if (executed > 0) {
+        message.success(`已通过并执行 ${executed} 条决策`);
+      } else {
+        message.warning("审批已提交，但执行未成功，请查看决策详情/审计");
+      }
     } else {
       message.success(`已拒绝 ${ids.length} 条决策`);
     }
@@ -579,21 +618,32 @@ onMounted(() => {
   <div class="review-console">
     <!-- ==================== AI 决策成效（价值） ==================== -->
     <Flex
-      v-if="insight && (insight.evaluatedCount ?? 0) > 0"
+      v-if="insight && hasInsightData"
       align="center"
       :gap="8"
       class="insight-strip"
     >
       <Typography.Text type="secondary">AI 决策成效：</Typography.Text>
       <Tag :bordered="false" color="green">
-        命中率 {{ Math.round((insight.hitRate ?? 0) * 100) }}%
+        命中率 {{ hitRateText }}
       </Tag>
       <Tag :bordered="false" color="blue">
-        平均 ROI {{ (insight.avgRoiDelta ?? 0) >= 0 ? "+" : "" }}{{ (insight.avgRoiDelta ?? 0).toFixed(2) }}
+        真实样本 {{ insight.evaluatedCount ?? 0 }}
       </Tag>
-      <Typography.Text type="secondary">
-        （已回评 {{ insight.evaluatedCount }} 条）
-      </Typography.Text>
+      <Tag
+        v-if="(insight.insufficientCount ?? 0) > 0"
+        :bordered="false"
+        color="orange"
+      >
+        样本不足 {{ insight.insufficientCount }}
+      </Tag>
+      <Tag v-if="hasRoiSample" :bordered="false" color="geekblue">
+        平均 ROI {{ avgRoiText }}
+        <span class="insight-sample">（样本 {{ insight.roiSampleCount }}）</span>
+      </Tag>
+      <Tag v-else :bordered="false">
+        ROI 样本不足
+      </Tag>
     </Flex>
 
     <!-- ==================== 风险概览卡 ==================== -->
@@ -725,13 +775,29 @@ onMounted(() => {
 
         <!-- 执行来源 -->
         <template #executedBy="{ row }">
-          <Tag
-            v-if="row.executedBy"
-            :bordered="false"
-            :color="EXECUTED_BY_MAP[row.executedBy]?.color || 'default'"
-          >
-            {{ EXECUTED_BY_MAP[row.executedBy]?.label || row.executedBy }}
-          </Tag>
+          <Space v-if="row.executedBy || row.execMock === 1" :size="4" wrap>
+            <Tag
+              v-if="row.executedBy"
+              :bordered="false"
+              :color="EXECUTED_BY_MAP[row.executedBy]?.color || 'default'"
+            >
+              {{ EXECUTED_BY_MAP[row.executedBy]?.label || row.executedBy }}
+            </Tag>
+            <Tooltip
+              v-if="row.execMock === 1"
+              title="模拟执行（未调用媒体）"
+            >
+              <Tag :bordered="false" color="purple">模拟执行</Tag>
+            </Tooltip>
+          </Space>
+          <Typography.Text v-else type="secondary">-</Typography.Text>
+        </template>
+
+        <!-- 执行时间 -->
+        <template #executedAt="{ row }">
+          <Typography.Text v-if="row.executedAt">
+            {{ row.executedAt }}
+          </Typography.Text>
           <Typography.Text v-else type="secondary">-</Typography.Text>
         </template>
 
@@ -743,6 +809,13 @@ onMounted(() => {
             :color="EFFECT_VERDICT_MAP[row.effectVerdict]?.color || 'default'"
           >
             {{ EFFECT_VERDICT_MAP[row.effectVerdict]?.label || row.effectVerdict }}
+          </Tag>
+          <Tag
+            v-else-if="row.feedbackEvaluated === 2"
+            :bordered="false"
+            color="orange"
+          >
+            样本不足
           </Tag>
           <Typography.Text v-else type="secondary">-</Typography.Text>
         </template>
@@ -803,7 +876,7 @@ onMounted(() => {
             {{ drawerActionable
               ? (selectedDecision?.riskLevel === "high"
                 ? "高风险决策，通过后将立即执行"
-                : "通过后将立即下发执行，请确认")
+                : "通过后将立即进入执行链路，请确认")
               : `该决策已处理（${DECISION_STATUS_MAP[selectedDecision?.decisionStatus || ""]?.label || "-"}），无需操作` }}
           </Typography.Text>
           <template v-if="drawerActionable">
@@ -835,7 +908,7 @@ onMounted(() => {
       <Flex vertical :gap="12">
         <Alert
           :description="review.conclusion === 'approve'
-            ? '通过后立即向媒体下发执行，动作不可自动回滚。'
+            ? '通过后立即进入执行链路；当前为演练模式时不会调用媒体接口。'
             : '拒绝后不执行任何媒体动作，原因会写入留痕。'"
           show-icon
           :type="review.conclusion === 'approve' ? 'warning' : 'error'"
@@ -888,6 +961,11 @@ onMounted(() => {
 .insight-strip {
   flex: none;
   margin-bottom: 12px;
+}
+
+.insight-sample {
+  font-size: 10px;
+  opacity: 0.75;
 }
 
 .grid-wrap {

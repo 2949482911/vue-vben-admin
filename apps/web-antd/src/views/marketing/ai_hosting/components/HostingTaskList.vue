@@ -167,7 +167,9 @@ const gridOptions: VxeGridProps<HostingTask> = {
       title: "管理计划数",
       width: 100
     },
-    ...(TABLE_COMMON_COLUMNS as any),
+    ...(TABLE_COMMON_COLUMNS as any).filter(
+      (column: any) => column.field !== "status",
+    ),
   ],
   height: "auto",
   keepSource: true,
