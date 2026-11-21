@@ -299,8 +299,11 @@ export interface CanvasShotTake {
   errorMsg?: null | string;
   id?: number | string;
   index?: number;
+  durationSeconds?: null | number;
   isSelected?: boolean;
+  materialId?: null | number | string;
   reviewStatus?: null | number;
+  subtitleText?: null | string;
   status?: null | number | string;
   takeId?: number | string;
   takeNo?: number;
@@ -365,3 +368,75 @@ export interface CanvasShotSaveRequest {
   videoPrompt?: null | string;
 }
 
+
+
+/** P8-6c 视频节点 / 时间轴 / 合成 */
+export interface CanvasVideoAssetItem {
+  durationSeconds?: null | number;
+  materialId?: null | number | string;
+  reviewStatus?: null | number;
+  segmentId?: null | number | string;
+  segmentSeq?: null | number;
+  selected?: boolean;
+  shotIds?: Array<number | string>;
+  subtitleText?: null | string;
+  takeId?: number | string;
+  thumbnailUrl?: null | string;
+  url?: null | string;
+}
+
+export interface CanvasVideoAssetResult {
+  blockers?: CanvasShotBlocker[];
+  items: CanvasVideoAssetItem[];
+}
+
+export interface CanvasBindTakeResult {
+  durationSeconds?: null | number;
+  materialId?: null | number | string;
+  nodeClientId?: string;
+  segmentId?: null | number | string;
+  segmentSeq?: null | number;
+  takeId?: number | string;
+  thumbnailUrl?: null | string;
+  url?: null | string;
+}
+
+export interface CanvasTimelineItem {
+  durationSeconds?: null | number;
+  materialId?: null | number | string;
+  order: number;
+  segmentId?: null | number | string;
+  segmentSeq?: null | number;
+  subtitleText?: null | string;
+  takeId?: number | string;
+  videoNodeClientId: string;
+}
+
+export interface CanvasTimelineComposeRequest {
+  burnSubtitles?: boolean;
+  confirm: true;
+  episodeId: number | string;
+  resolution?: string;
+  timelineNodeClientId: string;
+}
+
+export interface CanvasTimelineComposeResult {
+  composeStatus?: null | number;
+  durationSeconds?: null | number;
+  planVersion?: null | number;
+  segmentCount?: null | number;
+  taskId?: null | number | string;
+}
+
+export interface CanvasTimelineComposeStatus {
+  blockers?: CanvasShotBlocker[];
+  composeStatus?: null | number;
+  durationSeconds?: null | number;
+  errorMsg?: null | string;
+  finalMaterialId?: null | number | string;
+  finalUrl?: null | string;
+  planVersion?: null | number;
+  progress?: null | number;
+  segmentCount?: null | number;
+  taskId?: null | number | string;
+}

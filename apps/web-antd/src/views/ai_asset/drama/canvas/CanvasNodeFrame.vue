@@ -146,7 +146,14 @@ const segmentShotCount = computed(
 const selectingTakeId = ref('');
 
 function requestShotAction(
-  type: 'approve' | 'edit' | 'expand' | 'keyframe' | 'segment-video' | 'video',
+  type:
+    | 'approve'
+    | 'edit'
+    | 'expand'
+    | 'keyframe'
+    | 'output-video'
+    | 'segment-video'
+    | 'video',
 ) {
   if (shotInfo.value) {
     store.requestShotAction(type, props.id, shotInfo.value.shotId);
@@ -193,6 +200,116 @@ watch(
   },
   { immediate: true },
 );
+
+const selectedSegmentTake = computed(() =>
+  shotStatus.value?.segmentTakes?.find((take) => take.isSelected),
+);
+const canOutputVideo = computed(() =>
+  Boolean(shotStatus.value?.segmentVideoUrl && selectedSegmentTake.value),
+);
+
+const videoDetails = computed<Record<string, unknown>>(
+  () => props.data.details ?? {},
+);
+const videoUrl = computed(() => {
+  const url = videoDetails.value.url || videoDetails.value.materialUrl;
+  return typeof url === 'string' ? url : '';
+});
+const videoThumb = computed(() =>
+  typeof videoDetails.value.thumbnailUrl === 'string'
+    ? videoDetails.value.thumbnailUrl
+    : '',
+);
+const videoSourceLabel = computed(() => {
+  const sourceType = videoDetails.value.sourceType;
+  if (sourceType === 'segment_video') {
+    const segmentSeq = videoDetails.value.segmentSeq ?? '—';
+    const shotSeq =
+      videoDetails.value.shotSeq ?? videoDetails.value.shotId ?? '';
+    return shotSeq
+      ? `段${segmentSeq} · 分镜${shotSeq}`
+      : `段${segmentSeq}`;
+  }
+  if (sourceType === 'upload') {
+    return '上传素材';
+  }
+  return props.data.assetId ? '素材' : '未绑定段视频';
+});
+const canAddTimeline = computed(
+  () =>
+    videoDetails.value.sourceType === 'segment_video' &&
+    Boolean(videoDetails.value.takeId) &&
+    Boolean(videoDetails.value.materialId) &&
+    Boolean(videoUrl.value),
+);
+
+function requestVideoAction(type: 'preview' | 'replace' | 'upload') {
+  store.requestVideoAction(props.id, type);
+}
+
+function addToTimeline() {
+  const result = store.addVideoToTimeline(props.id);
+  if (!result) {
+    return;
+  }
+  if (result.duplicate) {
+    message.warning('该段已在剪辑条中，不重复加入');
+    return;
+  }
+  if (result.reason) {
+    message.warning(result.reason);
+    return;
+  }
+  void store.flushSave();
+  message.success('已加入剪辑条');
+}
+
+const timelineItems = computed(() => {
+  const value = props.data.details?.items;
+  return Array.isArray(value)
+    ? (value as Array<Record<string, unknown>>)
+    : [];
+});
+const timelineRows = computed(() =>
+  timelineItems.value.map((item) => {
+    const videoNode = store.nodes.find(
+      (node) => node.id === String(item.videoNodeClientId ?? ''),
+    );
+    return {
+      item,
+      thumbnailUrl:
+        typeof videoNode?.data.details?.thumbnailUrl === 'string'
+          ? videoNode.data.details.thumbnailUrl
+          : '',
+    };
+  }),
+);
+const timelineTotal = computed(() =>
+  timelineItems.value.reduce(
+    (total, item) => total + Number(item.durationSeconds ?? 0),
+    0,
+  ),
+);
+const timelineCompose = computed(() =>
+  props.data.details?.compose &&
+  typeof props.data.details.compose === 'object'
+    ? (props.data.details.compose as Record<string, unknown>)
+    : undefined,
+);
+
+function moveTimeline(index: number, delta: number) {
+  store.moveTimelineItem(props.id, index, delta);
+  void store.flushSave();
+}
+
+function removeTimeline(index: number) {
+  store.removeTimelineItem(props.id, index);
+  void store.flushSave();
+}
+
+function requestTimelineAction(action: 'compose' | 'open' | 'preview') {
+  store.requestTimelineAction(props.id, action);
+}
 
 const canSplit = computed(
   () => Boolean(store.episodeId) && Boolean(props.data.body?.trim()),
@@ -459,6 +576,13 @@ function bodyText() {
           >
             审批关键帧
           </button>
+          <button
+            v-if="canOutputVideo"
+            type="button"
+            @click.stop="requestShotAction('output-video')"
+          >
+            输出为视频节点
+          </button>
           <button type="button" @click.stop="requestShotAction('edit')">
             编辑
           </button>
@@ -477,6 +601,112 @@ function bodyText() {
         </div>
         <div v-if="shotMediaError" class="canvas-node__shot-error">
           {{ shotMediaError }}
+        </div>
+      </div>
+      <div v-else-if="data.kind === 'timeline'" class="canvas-node__timeline">
+        <div class="canvas-node__shot-meta">
+          <span>剪辑条 {{ timelineItems.length }} 段</span>
+          <span>总时长 {{ Math.round(timelineTotal) }}s</span>
+          <span v-if="timelineCompose?.status !== undefined">
+            合成 {{ timelineCompose.status }}
+          </span>
+        </div>
+        <div v-if="timelineRows.length" class="canvas-node__timeline-list">
+          <div
+            v-for="(row, index) in timelineRows"
+            :key="String(row.item.videoNodeClientId)"
+            class="canvas-node__timeline-item"
+          >
+            <img
+              v-if="row.thumbnailUrl"
+              :src="row.thumbnailUrl"
+              alt=""
+              class="canvas-node__timeline-thumb"
+            />
+            <div v-else class="canvas-node__timeline-placeholder">无图</div>
+            <span class="canvas-node__timeline-seq">
+              段{{ row.item.segmentSeq ?? '—' }} ·
+              {{ row.item.durationSeconds ?? '—' }}s
+            </span>
+            <button
+              :disabled="index === 0"
+              type="button"
+              title="上移"
+              @click.stop="moveTimeline(index, -1)"
+            >
+              ↑
+            </button>
+            <button
+              :disabled="index === timelineItems.length - 1"
+              type="button"
+              title="下移"
+              @click.stop="moveTimeline(index, 1)"
+            >
+              ↓
+            </button>
+            <button type="button" title="删除" @click.stop="removeTimeline(index)">
+              ×
+            </button>
+          </div>
+        </div>
+        <div v-else class="canvas-node__placeholder">
+          剪辑条为空：从视频节点加入段视频
+        </div>
+        <div class="canvas-node__shot-actions">
+          <button type="button" @click.stop="requestTimelineAction('preview')">
+            连续预览
+          </button>
+          <button type="button" @click.stop="requestTimelineAction('compose')">
+            合成成片
+          </button>
+          <button type="button" @click.stop="requestTimelineAction('open')">
+            展开
+          </button>
+        </div>
+        <a
+          v-if="typeof timelineCompose?.finalUrl === 'string' && timelineCompose.finalUrl"
+          :href="timelineCompose.finalUrl"
+          target="_blank"
+          rel="noopener"
+          class="canvas-node__shot-hint"
+        >
+          查看成片
+        </a>
+      </div>
+      <div v-else-if="data.kind === 'video'" class="canvas-node__video">
+        <video
+          v-if="videoUrl"
+          :poster="videoThumb || undefined"
+          :src="videoUrl"
+          class="canvas-node__video-player"
+          controls
+          preload="metadata"
+        ></video>
+        <div v-else class="canvas-node__placeholder">未绑定真实段视频</div>
+        <div class="canvas-node__shot-meta">
+          <span>{{ videoSourceLabel }}</span>
+          <span v-if="videoDetails.durationSeconds">
+            {{ videoDetails.durationSeconds }}s
+          </span>
+        </div>
+        <div class="canvas-node__shot-actions">
+          <button type="button" @click.stop="requestVideoAction('preview')">
+            预览
+          </button>
+          <button type="button" @click.stop="requestVideoAction('replace')">
+            替换素材
+          </button>
+          <button type="button" @click.stop="requestVideoAction('upload')">
+            上传
+          </button>
+          <button
+            :disabled="!canAddTimeline"
+            :title="canAddTimeline ? '加入剪辑条' : '仅已绑定的段视频可加入剪辑条'"
+            type="button"
+            @click.stop="addToTimeline"
+          >
+            加入剪辑条
+          </button>
         </div>
       </div>
       <div v-else-if="!previewUrl" class="canvas-node__placeholder">
@@ -742,6 +972,75 @@ function bodyText() {
   &__shot-error {
     font-size: 11px;
     color: hsl(var(--destructive));
+  }
+
+  &__timeline,
+  &__video {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+    min-height: 0;
+  }
+
+  &__timeline-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  &__timeline-item {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding: 2px 0;
+
+    button {
+      flex: none;
+      padding: 0 4px;
+      color: hsl(var(--muted-foreground));
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+      }
+    }
+  }
+
+  &__timeline-thumb,
+  &__timeline-placeholder {
+    flex: none;
+    width: 44px;
+    height: 28px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  &__timeline-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--accent));
+  }
+
+  &__timeline-seq {
+    flex: 1;
+    font-size: 11px;
+    color: hsl(var(--foreground));
+  }
+
+  &__video-player {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
   }
 
   &__shot-meta {

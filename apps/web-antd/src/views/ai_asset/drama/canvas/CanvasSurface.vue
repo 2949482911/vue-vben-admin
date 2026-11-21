@@ -31,7 +31,9 @@ import CanvasOutline from './CanvasOutline.vue';
 import CanvasShotDrawer from './CanvasShotDrawer.vue';
 import CanvasShotMediaModal from './CanvasShotMediaModal.vue';
 import CanvasSplitModal from './CanvasSplitModal.vue';
+import CanvasTimelineDrawer from './CanvasTimelineDrawer.vue';
 import CanvasToolbar from './CanvasToolbar.vue';
+import CanvasVideoActionModal from './CanvasVideoActionModal.vue';
 import CanvasViewportControls from './CanvasViewportControls.vue';
 import CanvasWorkspace from './CanvasWorkspace.vue';
 import { useCanvasGraphStore } from './store';
@@ -81,6 +83,14 @@ const drawerAction = ref<{
   nodeId: string;
   shotId: string;
 }>();
+const videoAction = ref<{
+  nodeId: string;
+  type: 'preview' | 'replace' | 'upload';
+}>();
+const timelineAction = ref<{
+  action: 'compose' | 'open' | 'preview';
+  nodeId: string;
+}>();
 const mediaActionNode = computed(() =>
   mediaAction.value
     ? store.nodes.find((node) => node.id === mediaAction.value?.nodeId)
@@ -89,6 +99,16 @@ const mediaActionNode = computed(() =>
 const drawerActionNode = computed(() =>
   drawerAction.value
     ? store.nodes.find((node) => node.id === drawerAction.value?.nodeId)
+    : undefined,
+);
+const videoActionNode = computed(() =>
+  videoAction.value
+    ? store.nodes.find((node) => node.id === videoAction.value?.nodeId)
+    : undefined,
+);
+const timelineActionNode = computed(() =>
+  timelineAction.value
+    ? store.nodes.find((node) => node.id === timelineAction.value?.nodeId)
     : undefined,
 );
 
@@ -323,6 +343,80 @@ function approveShotKeyframe(shotId: string) {
   });
 }
 
+async function outputVideoNode(nodeId: string, shotId: string) {
+  const canvasId = store.canvas?.id;
+  if (!canvasId || !props.episodeId) {
+    message.warning('先选择剧集');
+    return;
+  }
+  const shotNode = store.nodes.find((node) => node.id === nodeId);
+  if (!shotNode) {
+    return;
+  }
+  await shotMedia.refresh(canvasId, shotId);
+  const status = shotMedia.shotState(canvasId, shotId)?.status;
+  const selectedTake = status?.segmentTakes?.find((take) => take.isSelected);
+  if (!status?.segmentVideoUrl || !selectedTake) {
+    message.warning('需先通过并选用本段视频');
+    return;
+  }
+  let asset:
+    | undefined
+    | {
+        durationSeconds?: null | number;
+        materialId?: null | number | string;
+        subtitleText?: null | string;
+      };
+  try {
+    const assets = await aiAssetCanvasApi.fetchCanvasVideoAssets(
+      canvasId,
+      props.episodeId,
+    );
+    asset = assets.items.find(
+      (item) => String(item.takeId) === String(selectedTake.takeId),
+    );
+  } catch (error) {
+    message.error(errorText(error, '视频产物接口未就绪'));
+    return;
+  }
+  const materialId = selectedTake.materialId ?? asset?.materialId;
+  if (!materialId) {
+    message.warning('段视频素材信息未就绪，无法建立视频节点');
+    return;
+  }
+  const result = store.createVideoFromSegment({
+    durationSeconds: asset?.durationSeconds,
+    episodeId: props.episodeId,
+    materialId,
+    segmentId: status.segmentId,
+    segmentSeq: status.segmentSeq,
+    shotId,
+    shotNodeId: nodeId,
+    subtitleText:
+      asset?.subtitleText ||
+      (typeof shotNode.data.details?.dialogue === 'string'
+        ? shotNode.data.details.dialogue
+        : '') ||
+      (typeof shotNode.data.details?.description === 'string'
+        ? shotNode.data.details.description
+        : ''),
+    takeId: selectedTake.takeId,
+    thumbnailUrl: status.segmentVideoThumbnailUrl,
+    url: status.segmentVideoUrl,
+  });
+  if (!result.node) {
+    message.error('视频节点创建失败');
+    return;
+  }
+  await store.flushSave();
+  if (result.created) {
+    message.success('已输出为视频节点');
+  } else {
+    message.info('该段视频节点已存在，已聚焦');
+  }
+  flowRef.value?.selectNode(result.node.id);
+}
+
 watch(
   () => store.shotActionRequest,
   (request) => {
@@ -338,6 +432,10 @@ watch(
     }
     if (request.type === 'approve') {
       approveShotKeyframe(request.shotId);
+      return;
+    }
+    if (request.type === 'output-video') {
+      void outputVideoNode(request.nodeId, request.shotId);
       return;
     }
     if (
@@ -361,10 +459,37 @@ watch(
 );
 
 watch(
+  () => store.videoActionRequest,
+  (request) => {
+    if (!request) {
+      return;
+    }
+    store.clearVideoAction();
+    videoAction.value = { nodeId: request.nodeId, type: request.type };
+  },
+);
+
+watch(
+  () => store.timelineActionRequest,
+  (request) => {
+    if (!request) {
+      return;
+    }
+    store.clearTimelineAction();
+    timelineAction.value = {
+      action: request.action,
+      nodeId: request.nodeId,
+    };
+  },
+);
+
+watch(
   () => store.canvas?.id,
   () => {
     mediaAction.value = undefined;
     drawerAction.value = undefined;
+    videoAction.value = undefined;
+    timelineAction.value = undefined;
   },
 );
 
@@ -559,6 +684,30 @@ watch(
       :node="drawerActionNode"
       :shot-id="drawerAction.shotId"
       @close="drawerAction = undefined"
+    />
+
+    <CanvasVideoActionModal
+      v-if="videoAction && videoActionNode"
+      :canvas-id="currentCanvasId"
+      :episode-id="episodeId"
+      :node="videoActionNode"
+      :type="videoAction.type"
+      @close="videoAction = undefined"
+    />
+
+    <CanvasTimelineDrawer
+      v-if="timelineAction && timelineActionNode"
+      :canvas-id="currentCanvasId"
+      :episode-id="episodeId"
+      :initial-action="
+        timelineAction.action === 'compose'
+          ? 'compose'
+          : timelineAction.action === 'preview'
+            ? 'preview'
+            : undefined
+      "
+      :node="timelineActionNode"
+      @close="timelineAction = undefined"
     />
   </div>
 </template>

@@ -3,6 +3,7 @@ import type {
   CanvasAgentChatRequest,
   CanvasAgentChatResult,
   CanvasAgentTool,
+  CanvasBindTakeResult,
   CanvasBlueprint,
   CanvasContext,
   CanvasCreateRequest,
@@ -16,6 +17,10 @@ import type {
   CanvasSplitStoryboardRequest,
   CanvasSplitStoryboardResult,
   CanvasSummary,
+  CanvasTimelineComposeRequest,
+  CanvasTimelineComposeResult,
+  CanvasTimelineComposeStatus,
+  CanvasVideoAssetResult,
 } from '#/api/models/ai_asset_canvas';
 
 import { BaseApi } from '#/api/core/baseapi';
@@ -36,6 +41,29 @@ class AiAssetCanvasApi extends BaseApi {
       this.getServiceUrl(`${canvasId}/shots/${shotId}/keyframe/approve`),
       {},
       { skipErrorMessage: true },
+    );
+  }
+
+  bindCanvasVideoTake(
+    canvasId: number | string,
+    nodeClientId: string,
+    takeId: number | string,
+  ): Promise<CanvasBindTakeResult> {
+    return requestClient.post<CanvasBindTakeResult>(
+      this.getServiceUrl(`${canvasId}/video-nodes/${nodeClientId}/bind-take`),
+      { takeId },
+      { skipErrorMessage: true },
+    );
+  }
+
+  composeCanvasTimeline(
+    canvasId: number | string,
+    data: CanvasTimelineComposeRequest,
+  ): Promise<CanvasTimelineComposeResult> {
+    return requestClient.post<CanvasTimelineComposeResult>(
+      this.getServiceUrl(`${canvasId}/timeline/compose`),
+      data,
+      { skipErrorMessage: true, timeout: 300_000 },
     );
   }
 
@@ -98,6 +126,26 @@ class AiAssetCanvasApi extends BaseApi {
     return requestClient.get<CanvasShotStatus>(
       this.getServiceUrl(`${canvasId}/shots/${shotId}/status`),
       { skipErrorMessage: true },
+    );
+  }
+
+  fetchCanvasTimelineComposeStatus(
+    canvasId: number | string,
+    episodeId: number | string,
+  ): Promise<CanvasTimelineComposeStatus> {
+    return requestClient.get<CanvasTimelineComposeStatus>(
+      this.getServiceUrl(`${canvasId}/timeline/compose/status`),
+      { params: { episodeId }, skipErrorMessage: true },
+    );
+  }
+
+  fetchCanvasVideoAssets(
+    canvasId: number | string,
+    episodeId: number | string,
+  ): Promise<CanvasVideoAssetResult> {
+    return requestClient.get<CanvasVideoAssetResult>(
+      this.getServiceUrl(`${canvasId}/video-assets`),
+      { params: { episodeId }, skipErrorMessage: true },
     );
   }
 
@@ -221,3 +269,4 @@ class AiAssetCanvasApi extends BaseApi {
 export const aiAssetCanvasApi: AiAssetCanvasApi = new AiAssetCanvasApi(
   '/platform/ai_asset/v2/canvas',
 );
+
