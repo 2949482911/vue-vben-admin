@@ -143,10 +143,15 @@ const shotMediaError = computed(() =>
     ? formatApiError(shotMediaState.value.error)
     : '',
 );
+const keyframeTakeSelected = computed(() =>
+  Boolean(shotStatus.value?.keyframeTakes?.some((take) => take.isSelected)),
+);
+const keyframeApproved = computed(
+  () => Boolean(shotMediaState.value?.approved || keyframeTakeSelected.value),
+);
 const canApproveKeyframe = computed(
   () =>
-    canApproveShotKeyframe(shotStatus.value) &&
-    !shotMediaState.value?.approved,
+    canApproveShotKeyframe(shotStatus.value) && !keyframeApproved.value,
 );
 const segmentBlocker = computed(() => segmentModeBlocker(shotStatus.value));
 const segmentMode = computed(() => Boolean(segmentBlocker.value));
@@ -174,6 +179,7 @@ function requestShotAction(
 
 async function selectTake(
   take: { id?: number | string; takeId?: number | string },
+  kind: 'keyframe' | 'segment-video',
 ) {
   const id = shotTakeId(take);
   if (!shotId.value || !id || !store.canvas?.id) {
@@ -181,8 +187,10 @@ async function selectTake(
   }
   selectingTakeId.value = String(id);
   try {
-    await shotMedia.selectTake(store.canvas.id, shotId.value, id);
-    message.success('已选用 take');
+    await shotMedia.selectTake(store.canvas.id, shotId.value, id, kind);
+    message.success(
+      kind === 'keyframe' ? '已通过并选用关键帧' : '已通过并选用视频',
+    );
   } catch (error) {
     const info = parseApiError(error);
     message.error(
@@ -639,6 +647,9 @@ onBeforeUnmount(() => {
               >
                 生成中{{ shotElapsed ? ` · ${shotElapsed}s` : '' }}
               </Tag>
+              <Tag v-if="keyframeApproved" :bordered="false" color="success">
+                关键帧已通过
+              </Tag>
             </div>
             <video
               v-if="shotStatus?.segmentVideoUrl"
@@ -689,14 +700,14 @@ onBeforeUnmount(() => {
               :selected-url="shotStatus?.keyframeUrl || shotStatus?.keyframeThumbnailUrl"
               :takes="shotStatus?.keyframeTakes"
               kind="keyframe"
-              @select="selectTake"
+              @select="selectTake($event, 'keyframe')"
             />
             <CanvasShotTakes
               :selecting-take-id="selectingTakeId"
               :selected-url="shotStatus?.segmentVideoUrl || shotStatus?.segmentVideoThumbnailUrl"
               :takes="shotStatus?.segmentTakes"
               kind="segment-video"
-              @select="selectTake"
+              @select="selectTake($event, 'segment-video')"
             />
             <div class="canvas-workspace__shot-actions">
               <Button

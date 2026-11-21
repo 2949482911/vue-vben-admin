@@ -294,6 +294,7 @@ async function selectTake(
   canvasId: number | string,
   shotId: number | string,
   takeId: number | string,
+  kind?: 'keyframe' | 'segment-video',
 ) {
   const state = stateFor(canvasId, shotId);
   try {
@@ -304,6 +305,10 @@ async function selectTake(
     );
     state.status = status;
     state.error = undefined;
+    if (kind === 'keyframe') {
+      // 画布 takes/select 语义 = 审核通过 + 选中，一次完成
+      state.approved = true;
+    }
     await refresh(canvasId, shotId);
     return status;
   } catch (error) {

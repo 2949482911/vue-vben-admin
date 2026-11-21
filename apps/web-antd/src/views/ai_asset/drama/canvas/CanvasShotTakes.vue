@@ -43,7 +43,9 @@ function canSelect(take: CanvasShotTake) {
 
 <template>
   <div v-if="takes?.length" class="canvas-shot-takes">
-    <div class="canvas-shot-takes__title">{{ label }}</div>
+    <div class="canvas-shot-takes__title">
+      {{ label }} · 选用即审核通过（一次操作）
+    </div>
     <div class="canvas-shot-takes__list">
       <div
         v-for="(take, index) in takes"
@@ -71,9 +73,10 @@ function canSelect(take: CanvasShotTake) {
           :disabled="!canSelect(take) || Boolean(selectingTakeId) || isSelected(take)"
           :loading="selectingTakeId === String(takeId(take))"
           size="small"
+          title="将标记为通过并选用（一次操作）"
           @click.stop="emit('select', take)"
         >
-          选用{{ kind === 'keyframe' ? '此图' : '视频' }}
+          通过并选用
         </Button>
       </div>
     </div>
