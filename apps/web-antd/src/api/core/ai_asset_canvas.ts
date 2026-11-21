@@ -101,6 +101,18 @@ class AiAssetCanvasApi extends BaseApi {
     );
   }
 
+  generateCanvasSegmentVideo(
+    canvasId: number | string,
+    shotId: number | string,
+    data: CanvasShotGenerateRequest,
+  ): Promise<CanvasShotGenerateResult> {
+    return requestClient.post<CanvasShotGenerateResult>(
+      this.getServiceUrl(`${canvasId}/shots/${shotId}/segment-video`),
+      data,
+      { skipErrorMessage: true, timeout: 300_000 },
+    );
+  }
+
   generateCanvasShotKeyframe(
     canvasId: number | string,
     shotId: number | string,
@@ -166,6 +178,18 @@ class AiAssetCanvasApi extends BaseApi {
     return requestClient.post<CanvasShotStatus>(
       this.getServiceUrl(`${canvasId}/shots/${shotId}/save`),
       data,
+      { skipErrorMessage: true },
+    );
+  }
+
+  selectCanvasShotTake(
+    canvasId: number | string,
+    shotId: number | string,
+    takeId: number | string,
+  ): Promise<CanvasShotStatus> {
+    return requestClient.post<CanvasShotStatus>(
+      this.getServiceUrl(`${canvasId}/shots/${shotId}/takes/${takeId}/select`),
+      {},
       { skipErrorMessage: true },
     );
   }

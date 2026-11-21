@@ -10,13 +10,23 @@ import {
   LinkOutlined,
   PictureOutlined,
 } from '@ant-design/icons-vue';
-import { Button, Empty, Input, Segmented, Tag } from 'ant-design-vue';
+import { Button, Empty, Input, message, Segmented, Tag } from 'ant-design-vue';
 
 import { aiAssetApi } from '#/api';
 
 import { formatApiError, parseApiError } from '../error';
+import CanvasShotTakes from './CanvasShotTakes.vue';
 import { useCanvasGraphStore } from './store';
-import { useCanvasShotMedia } from './useCanvasShotMedia';
+import {
+  canApproveKeyframe as canApproveShotKeyframe,
+  isShotGenerating,
+  otherBlockerReason,
+  segmentModeBlocker,
+  segmentVideoBlockReason,
+  shotTakeId,
+  shotVideoBlockReason,
+  useCanvasShotMedia,
+} from './useCanvasShotMedia';
 
 type EntityType = 'character' | 'element' | 'scene';
 type EntityFilter = 'all' | EntityType;
@@ -122,11 +132,7 @@ const shotMediaState = computed(() =>
     : undefined,
 );
 const shotStatus = computed(() => shotMediaState.value?.status);
-const shotGenerating = computed(
-  () =>
-    shotStatus.value?.generationStatus === 1 ||
-    shotStatus.value?.keyframeStatus === 1,
-);
+const shotGenerating = computed(() => isShotGenerating(shotStatus.value));
 const shotElapsed = computed(() =>
   shotId.value
     ? shotMedia.elapsedSeconds(store.canvas?.id, shotId.value)
@@ -137,46 +143,55 @@ const shotMediaError = computed(() =>
     ? formatApiError(shotMediaState.value.error)
     : '',
 );
-const keyframeReady = computed(() => {
-  const status = shotStatus.value;
-  return Boolean(
-    status &&
-      (status.keyframeUrl ||
-        status.keyframeThumbnailUrl ||
-        status.keyframeStatus === 2),
-  );
-});
 const canApproveKeyframe = computed(
   () =>
-    keyframeReady.value &&
-    !shotMediaState.value?.approved &&
-    shotStatus.value?.keyframeStatus !== 1,
+    canApproveShotKeyframe(shotStatus.value) &&
+    !shotMediaState.value?.approved,
 );
-const videoBlockReason = computed(() => {
-  const status = shotStatus.value;
-  const blocker = status?.blockers?.find((item) =>
-    /keyframe.*approv|approv.*keyframe/i.test(
-      `${item.code ?? ''}${item.action ?? ''}`,
-    ),
-  );
-  if (blocker) {
-    return blocker.message;
-  }
-  if (status?.keyframeStatus === 1) {
-    return '关键帧生成中';
-  }
-  if (!keyframeReady.value) {
-    return '请先生成并审批关键帧';
-  }
-  return '';
-});
+const segmentBlocker = computed(() => segmentModeBlocker(shotStatus.value));
+const segmentMode = computed(() => Boolean(segmentBlocker.value));
+const otherBlockReason = computed(() =>
+  otherBlockerReason(shotStatus.value),
+);
+const videoBlockReason = computed(() =>
+  segmentMode.value
+    ? segmentVideoBlockReason(shotStatus.value)
+    : shotVideoBlockReason(shotStatus.value) || otherBlockReason.value,
+);
+const segmentShotCount = computed(
+  () => shotStatus.value?.segmentShotCount ?? 0,
+);
 const shotBlockers = computed(() => shotStatus.value?.blockers ?? []);
+const selectingTakeId = ref('');
 
 function requestShotAction(
-  type: 'approve' | 'edit' | 'expand' | 'keyframe' | 'video',
+  type: 'approve' | 'edit' | 'expand' | 'keyframe' | 'segment-video' | 'video',
 ) {
   if (shotId.value) {
     store.requestShotAction(type, node.value?.id ?? '', shotId.value);
+  }
+}
+
+async function selectTake(
+  take: { id?: number | string; takeId?: number | string },
+) {
+  const id = shotTakeId(take);
+  if (!shotId.value || !id || !store.canvas?.id) {
+    return;
+  }
+  selectingTakeId.value = String(id);
+  try {
+    await shotMedia.selectTake(store.canvas.id, shotId.value, id);
+    message.success('已选用 take');
+  } catch (error) {
+    const info = parseApiError(error);
+    message.error(
+      info.notReady || /static resource|接口未就绪/i.test(info.message)
+        ? '接口未就绪'
+        : formatApiError(info),
+    );
+  } finally {
+    selectingTakeId.value = '';
   }
 }
 
@@ -625,13 +640,31 @@ onBeforeUnmount(() => {
                 生成中{{ shotElapsed ? ` · ${shotElapsed}s` : '' }}
               </Tag>
             </div>
+            <video
+              v-if="shotStatus?.segmentVideoUrl"
+              :poster="shotStatus.segmentVideoThumbnailUrl || undefined"
+              :src="shotStatus.segmentVideoUrl"
+              class="canvas-workspace__shot-video"
+              controls
+              preload="metadata"
+            ></video>
+            <video
+              v-else-if="shotStatus?.videoUrl"
+              :poster="shotStatus.videoThumbnailUrl || undefined"
+              :src="shotStatus.videoUrl"
+              class="canvas-workspace__shot-video"
+              controls
+              preload="metadata"
+            ></video>
             <img
-              v-if="
+              v-else-if="
+                shotStatus?.segmentVideoThumbnailUrl ||
                 shotStatus?.videoThumbnailUrl ||
                 shotStatus?.keyframeThumbnailUrl ||
                 shotStatus?.keyframeUrl
               "
               :src="
+                shotStatus.segmentVideoThumbnailUrl ||
                 shotStatus.videoThumbnailUrl ||
                 shotStatus.keyframeThumbnailUrl ||
                 shotStatus.keyframeUrl ||
@@ -640,13 +673,6 @@ onBeforeUnmount(() => {
               alt=""
               class="canvas-workspace__shot-thumb"
             />
-            <video
-              v-if="shotStatus?.videoUrl"
-              :src="shotStatus.videoUrl"
-              class="canvas-workspace__shot-video"
-              controls
-              preload="metadata"
-            ></video>
             <ul
               v-if="shotBlockers.length"
               class="canvas-workspace__shot-blockers"
@@ -658,6 +684,20 @@ onBeforeUnmount(() => {
                 </template>
               </li>
             </ul>
+            <CanvasShotTakes
+              :selecting-take-id="selectingTakeId"
+              :selected-url="shotStatus?.keyframeUrl || shotStatus?.keyframeThumbnailUrl"
+              :takes="shotStatus?.keyframeTakes"
+              kind="keyframe"
+              @select="selectTake"
+            />
+            <CanvasShotTakes
+              :selecting-take-id="selectingTakeId"
+              :selected-url="shotStatus?.segmentVideoUrl || shotStatus?.segmentVideoThumbnailUrl"
+              :takes="shotStatus?.segmentTakes"
+              kind="segment-video"
+              @select="selectTake"
+            />
             <div class="canvas-workspace__shot-actions">
               <Button
                 :disabled="shotGenerating"
@@ -668,11 +708,11 @@ onBeforeUnmount(() => {
               </Button>
               <Button
                 :disabled="Boolean(videoBlockReason) || shotGenerating"
-                :title="videoBlockReason || '生成真实视频'"
+                :title="videoBlockReason || (segmentMode ? '生成本段视频' : '生成真实视频')"
                 size="small"
-                @click="requestShotAction('video')"
+                @click="requestShotAction(segmentMode ? 'segment-video' : 'video')"
               >
-                生成视频
+                {{ segmentMode ? '生成本段' : '生成视频' }}
               </Button>
               <Button
                 v-if="canApproveKeyframe"
@@ -687,6 +727,12 @@ onBeforeUnmount(() => {
               <Button size="small" @click="requestShotAction('expand')">
                 展开
               </Button>
+            </div>
+            <div v-if="segmentBlocker" class="canvas-workspace__hint">
+              {{ segmentBlocker.message }}
+              <template v-if="segmentShotCount">
+                （本段 {{ segmentShotCount }} 镜）
+              </template>
             </div>
             <div v-if="videoBlockReason" class="canvas-workspace__hint">
               {{ videoBlockReason }}

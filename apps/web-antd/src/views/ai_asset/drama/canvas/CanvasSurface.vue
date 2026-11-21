@@ -74,7 +74,7 @@ const shotMedia = useCanvasShotMedia();
 const mediaAction = ref<{
   nodeId: string;
   shotId: string;
-  type: 'keyframe' | 'video';
+  type: 'keyframe' | 'segment-video' | 'video';
 }>();
 const drawerAction = ref<{
   mode: 'edit' | 'expand';
@@ -340,7 +340,11 @@ watch(
       approveShotKeyframe(request.shotId);
       return;
     }
-    if (request.type === 'keyframe' || request.type === 'video') {
+    if (
+      request.type === 'keyframe' ||
+      request.type === 'video' ||
+      request.type === 'segment-video'
+    ) {
       mediaAction.value = {
         nodeId: request.nodeId,
         shotId: request.shotId,

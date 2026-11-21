@@ -62,6 +62,7 @@ export type CanvasShotActionType =
   | 'edit'
   | 'expand'
   | 'keyframe'
+  | 'segment-video'
   | 'video';
 
 export interface CanvasShotActionRequest {

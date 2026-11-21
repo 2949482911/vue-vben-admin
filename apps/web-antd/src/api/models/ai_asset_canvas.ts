@@ -299,8 +299,12 @@ export interface CanvasShotTake {
   errorMsg?: null | string;
   id?: number | string;
   index?: number;
+  isSelected?: boolean;
+  reviewStatus?: null | number;
   status?: null | number | string;
   takeId?: number | string;
+  takeNo?: number;
+  takeStatus?: null | number;
   thumbnailUrl?: null | string;
   url?: null | string;
 }
@@ -313,6 +317,13 @@ export interface CanvasShotStatus {
   keyframeTakes?: CanvasShotTake[];
   keyframeThumbnailUrl?: null | string;
   keyframeUrl?: null | string;
+  segmentId?: null | number | string;
+  segmentSeq?: null | number;
+  segmentShotCount?: null | number;
+  segmentTakes?: CanvasShotTake[];
+  segmentVideoStatus?: null | number | string;
+  segmentVideoThumbnailUrl?: null | string;
+  segmentVideoUrl?: null | string;
   shotId: number | string;
   storyboardConfirmed?: boolean | null;
   storyboardStatus?: null | number | string;

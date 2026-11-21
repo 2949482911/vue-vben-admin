@@ -22,7 +22,7 @@ export interface ShotMediaState {
   timer?: ReturnType<typeof setInterval>;
 }
 
-export type ShotGenerateType = 'keyframe' | 'video';
+export type ShotGenerateType = 'keyframe' | 'segment-video' | 'video';
 
 const POLL_INTERVAL = 5000;
 const FORCE_POLL_MS = 180_000;
@@ -44,8 +44,104 @@ function stateFor(canvasId: number | string, shotId: number | string) {
   return states[key];
 }
 
+export function normalizedShotCode(value?: null | string) {
+  return String(value ?? '')
+    .replaceAll(/[-_\s]/g, '')
+    .toLowerCase();
+}
+
+export function isShotGenerating(status?: CanvasShotStatus) {
+  const segmentStatus = normalizedShotCode(
+    status?.segmentVideoStatus === undefined ||
+      status?.segmentVideoStatus === null
+      ? ''
+      : String(status.segmentVideoStatus),
+  );
+  return (
+    status?.generationStatus === 1 ||
+    status?.keyframeStatus === 1 ||
+    segmentStatus === '1' ||
+    segmentStatus === 'running' ||
+    segmentStatus === 'generating' ||
+    segmentStatus === 'processing'
+  );
+}
+
+export function segmentModeBlocker(status?: CanvasShotStatus) {
+  return status?.blockers?.find(
+    (blocker) =>
+      normalizedShotCode(blocker.code) === 'segmentmode' ||
+      normalizedShotCode(blocker.action) === 'segmentmode',
+  );
+}
+
+export function otherBlockerReason(status?: CanvasShotStatus) {
+  const segmentBlocker = segmentModeBlocker(status);
+  return (status?.blockers ?? [])
+    .filter((blocker) => blocker !== segmentBlocker)
+    .map((blocker) =>
+      blocker.action ? `${blocker.message}（${blocker.action}）` : blocker.message,
+    )
+    .join('；');
+}
+
+export function shotTakeId(take: { id?: number | string; takeId?: number | string }) {
+  return take.takeId ?? take.id;
+}
+
+/** 段落模式优先走 segment-video；generic keyframe_not_approved 不阻断本段生成 */
+export function segmentVideoBlockReason(status?: CanvasShotStatus) {
+  const segmentBlocker = segmentModeBlocker(status);
+  return (status?.blockers ?? [])
+    .filter(
+      (blocker) =>
+        blocker !== segmentBlocker &&
+        normalizedShotCode(blocker.code) !== 'keyframenotapproved',
+    )
+    .map((blocker) =>
+      blocker.action ? `${blocker.message}（${blocker.action}）` : blocker.message,
+    )
+    .join('；');
+}
+
+export function isKeyframeSelected(status?: CanvasShotStatus) {
+  return Boolean(status?.keyframeUrl || status?.keyframeThumbnailUrl);
+}
+
+export function canApproveKeyframe(status?: CanvasShotStatus) {
+  if (!status || status.keyframeStatus === 1) {
+    return false;
+  }
+  if (isKeyframeSelected(status)) {
+    return true;
+  }
+  const pendingTakes = status.keyframeTakes?.length ?? 0;
+  return status.keyframeStatus === 2 && pendingTakes === 0;
+}
+
+export function shotVideoBlockReason(status?: CanvasShotStatus) {
+  if (!status) {
+    return '状态加载中';
+  }
+  const blocker = status.blockers?.find((item) =>
+    /keyframe.*approv|approv.*keyframe/i.test(
+      `${item.code ?? ''}${item.action ?? ''}`,
+    ),
+  );
+  if (blocker) {
+    return blocker.message;
+  }
+  if (status.keyframeStatus === 1) {
+    return '关键帧生成中';
+  }
+  if (!isKeyframeSelected(status) && status.keyframeStatus !== 2) {
+    return '请先生成并审批关键帧';
+  }
+  return '';
+}
+
 function isGenerating(status?: CanvasShotStatus) {
-  return status?.generationStatus === 1 || status?.keyframeStatus === 1;
+  return isShotGenerating(status);
 }
 
 function shouldPoll(state: ShotMediaState) {
@@ -158,11 +254,17 @@ async function triggerGenerate(
           shotId,
           payload,
         )
-      : await aiAssetCanvasApi.generateCanvasShotVideo(
-          canvasId,
-          shotId,
-          payload,
-        );
+      : type === 'segment-video'
+        ? await aiAssetCanvasApi.generateCanvasSegmentVideo(
+            canvasId,
+            shotId,
+            payload,
+          )
+        : await aiAssetCanvasApi.generateCanvasShotVideo(
+            canvasId,
+            shotId,
+            payload,
+          );
   await refresh(canvasId, shotId);
   startPolling(canvasId, shotId);
   return result;
@@ -186,6 +288,32 @@ async function approveKeyframe(
   }
   await refresh(canvasId, shotId);
   return result;
+}
+
+async function selectTake(
+  canvasId: number | string,
+  shotId: number | string,
+  takeId: number | string,
+) {
+  const state = stateFor(canvasId, shotId);
+  try {
+    const status = await aiAssetCanvasApi.selectCanvasShotTake(
+      canvasId,
+      shotId,
+      takeId,
+    );
+    state.status = status;
+    state.error = undefined;
+    await refresh(canvasId, shotId);
+    return status;
+  } catch (error) {
+    const info = parseApiError(error);
+    state.error =
+      info.notReady || /static resource|接口未就绪/i.test(info.message)
+        ? { ...info, message: '接口未就绪', notReady: true }
+        : info;
+    throw error;
+  }
 }
 
 async function saveShot(
@@ -275,6 +403,7 @@ export function useCanvasShotMedia() {
     ensureStatus,
     refresh,
     saveShot,
+    selectTake,
     setStatus,
     shotState,
     startPolling,

@@ -16,7 +16,7 @@ const props = defineProps<{
   canvasId?: string;
   nodeLabel: string;
   shotId: string;
-  type: 'keyframe' | 'video';
+  type: 'keyframe' | 'segment-video' | 'video';
 }>();
 
 const emit = defineEmits<{ close: [] }>();
@@ -40,7 +40,14 @@ const canSubmit = computed(
     (!needStoryboardConfirm.value || confirmStoryboard.value),
 );
 const actionLabel = computed(() =>
-  props.type === 'keyframe' ? '重新出图' : '生成视频',
+  props.type === 'keyframe'
+    ? '重新出图'
+    : props.type === 'segment-video'
+      ? '生成本段视频'
+      : '生成视频',
+);
+const segmentShotCount = computed(
+  () => status.value?.segmentShotCount ?? 0,
 );
 
 async function submit() {
@@ -89,7 +96,12 @@ async function submit() {
       type="warning"
     >
       <template #description>
-        本次只为分镜「{{ nodeLabel }}」生成 1 个 take，不批量、不生成其他镜头。
+        <template v-if="type === 'segment-video'">
+          将生成本段视频（本段 {{ segmentShotCount || '—' }} 镜），takeCount 1，真实计费；不生成其他段落。
+        </template>
+        <template v-else>
+          本次只为分镜「{{ nodeLabel }}」生成 1 个 take，不批量、不生成其他镜头。
+        </template>
       </template>
     </Alert>
 
