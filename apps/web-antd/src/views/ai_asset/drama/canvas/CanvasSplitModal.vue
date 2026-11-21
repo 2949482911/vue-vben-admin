@@ -3,7 +3,7 @@ import type { CanvasFlowNode } from './store';
 
 import type { CanvasSplitShot } from '#/api/models/ai_asset_canvas';
 
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 import {
   Alert,
@@ -37,6 +37,8 @@ const totalDurationSeconds = ref<number>();
 const replace = ref(false);
 const loading = ref(false);
 const error = ref('');
+const elapsedSeconds = ref(0);
+let elapsedTimer: ReturnType<typeof setInterval> | undefined;
 
 const textBody = computed(() => props.node.data.body?.trim() ?? '');
 const canSubmit = computed(
@@ -132,15 +134,44 @@ function createShotNodes(shots: CanvasSplitShot[]) {
       body: shotSummary(shot),
       details: shotDetails(shot),
     });
-    store.connect({
+    const linked = store.connect({
       source: props.node.id,
       target: createdNode.id,
       sourceHandle: 'text',
       targetHandle: 'reference',
     });
+    if (!linked) {
+      store.removeNode(createdNode.id);
+      error.value = `分镜 ${shotId} 创建 text→shot 连线失败，已回滚该节点`;
+      continue;
+    }
     created += 1;
   }
   return created;
+}
+
+function startElapsedTimer() {
+  stopElapsedTimer();
+  elapsedSeconds.value = 0;
+  elapsedTimer = setInterval(() => {
+    elapsedSeconds.value += 1;
+  }, 1000);
+}
+
+function stopElapsedTimer() {
+  if (elapsedTimer) {
+    clearInterval(elapsedTimer);
+    elapsedTimer = undefined;
+  }
+}
+
+function isTimeoutError(err: unknown) {
+  const record = err as { code?: string; message?: string };
+  return (
+    record?.code === 'ECONNABORTED' ||
+    record?.code === 'ETIMEDOUT' ||
+    /timeout/i.test(record?.message ?? '')
+  );
 }
 
 async function submit() {
@@ -149,6 +180,7 @@ async function submit() {
   }
   loading.value = true;
   error.value = '';
+  startElapsedTimer();
   try {
     const savedBeforeSplit = await store.flushSave();
     if (!savedBeforeSplit) {
@@ -191,14 +223,21 @@ async function submit() {
     emit('close');
   } catch (err) {
     const info = parseApiError(err);
-    error.value =
-      info.notReady || /static resource|接口未就绪/i.test(info.message)
-        ? '拆分接口未就绪'
-        : formatApiError(info);
+    if (isTimeoutError(err) || /timeout|超时/i.test(info.message)) {
+      error.value = `拆分请求超时：${info.message || '请求超时'}。后端可能仍在处理，请先刷新画布/本集分镜确认结果；重试会继续向本集追加分镜。`;
+    } else {
+      error.value =
+        info.notReady || /static resource|接口未就绪/i.test(info.message)
+          ? '拆分接口未就绪'
+          : formatApiError(info);
+    }
   } finally {
+    stopElapsedTimer();
     loading.value = false;
   }
 }
+
+onBeforeUnmount(stopElapsedTimer);
 </script>
 
 <template>
@@ -209,7 +248,7 @@ async function submit() {
     :ok-button-props="{ disabled: !canSubmit }"
     :open="true"
     cancel-text="取消"
-    ok-text="开始拆分"
+    :ok-text="error ? '重试拆分' : '开始拆分'"
     title="拆成分镜"
     width="560px"
     @cancel="emit('close')"
@@ -220,6 +259,12 @@ async function submit() {
       message="拆分模式字典未配置（ai_storyboard_split_mode）"
       show-icon
       type="warning"
+    />
+    <Alert
+      v-if="loading"
+      :message="`AI 拆镜中，可能需要 1-3 分钟（已等待 ${elapsedSeconds} 秒）…`"
+      show-icon
+      type="info"
     />
 
     <div class="canvas-split__meta">

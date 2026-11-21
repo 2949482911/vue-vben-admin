@@ -126,7 +126,8 @@ class AiAssetCanvasApi extends BaseApi {
     return requestClient.post<CanvasSplitStoryboardResult>(
       this.getServiceUrl(`${canvasId}/split-storyboard`),
       data,
-      { skipErrorMessage: true },
+      // LLM 拆镜实测 130s+，单独放宽到 10 分钟，不使用全局 120s
+      { skipErrorMessage: true, timeout: 600_000 },
     );
   }
 }
