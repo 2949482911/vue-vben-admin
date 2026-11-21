@@ -493,6 +493,29 @@ onBeforeUnmount(() => {
           </template>
         </template>
 
+        <template v-else-if="nodeKind === 'text'">
+          <div class="canvas-workspace__readonly">
+            <div><span>body</span><b>{{ node.data.body || '—' }}</b></div>
+          </div>
+          <Button
+            :disabled="!store.episodeId || !node.data.body?.trim()"
+            block
+            size="small"
+            @click="store.requestSplit(node.id)"
+          >
+            拆成分镜
+          </Button>
+          <div v-if="!store.episodeId" class="canvas-workspace__hint">
+            先在顶部选择剧集
+          </div>
+          <div
+            v-else-if="!node.data.body?.trim()"
+            class="canvas-workspace__hint"
+          >
+            文本内容为空，无法拆分
+          </div>
+        </template>
+
         <template v-else-if="nodeKind === 'shot'">
           <div class="canvas-workspace__readonly">
             <div><span>label</span><b>{{ node.data.label }}</b></div>

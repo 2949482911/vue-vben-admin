@@ -32,12 +32,14 @@ import { formatApiError, parseApiError } from '../error';
 import CanvasAgentPanel from './CanvasAgentPanel.vue';
 import CanvasFlow from './CanvasFlow.vue';
 import CanvasOutline from './CanvasOutline.vue';
+import CanvasSplitModal from './CanvasSplitModal.vue';
 import CanvasToolbar from './CanvasToolbar.vue';
 import CanvasViewportControls from './CanvasViewportControls.vue';
 import CanvasWorkspace from './CanvasWorkspace.vue';
 import { useCanvasGraphStore } from './store';
 
 const props = defineProps<{
+  episodeId?: number | string;
   novelId?: number | string;
 }>();
 
@@ -64,6 +66,11 @@ const renameTarget = ref<CanvasSummary>();
 const outlineOpen = ref(false);
 const workspaceOpen = ref(false);
 const agentOpen = ref(false);
+const splitTargetNode = computed(() =>
+  store.splitTargetNodeId
+    ? store.nodes.find((node) => node.id === store.splitTargetNodeId)
+    : undefined,
+);
 
 const canvasOptions = computed(() =>
   canvasList.value.map((item) => ({
@@ -240,6 +247,37 @@ function toggleAgent() {
 }
 
 watch(
+  () => props.episodeId,
+  (value) => {
+    store.setEpisodeId(value);
+  },
+  { immediate: true },
+);
+
+watch(
+  () => store.splitTargetNodeId,
+  (nodeId) => {
+    if (!nodeId) {
+      return;
+    }
+    if (!props.episodeId) {
+      message.warning('先在顶部选择剧集');
+      store.clearSplitRequest();
+      return;
+    }
+    const target = store.nodes.find((node) => node.id === nodeId);
+    if (
+      !target ||
+      target.data.kind !== 'text' ||
+      !target.data.body?.trim()
+    ) {
+      message.warning('请先填写文本节点内容');
+      store.clearSplitRequest();
+    }
+  },
+);
+
+watch(
   () => props.novelId,
   async () => {
     canvasList.value = [];
@@ -260,6 +298,9 @@ watch(
   <div class="canvas-surface">
     <div class="canvas-surface__topbar">
       <span class="canvas-surface__title">画布</span>
+      <span class="canvas-surface__episode">
+        {{ episodeId ? `剧集 ID ${episodeId}` : '未选择剧集' }}
+      </span>
       <Select
         v-if="canvasList.length"
         :options="canvasOptions"
@@ -398,6 +439,14 @@ watch(
     >
       <Input v-model:value="renameValue" placeholder="画布名称" />
     </Modal>
+
+    <CanvasSplitModal
+      v-if="splitTargetNode && episodeId"
+      :canvas-id="currentCanvasId"
+      :episode-id="episodeId"
+      :node="splitTargetNode"
+      @close="store.clearSplitRequest()"
+    />
   </div>
 </template>
 
@@ -426,6 +475,14 @@ watch(
     font-size: 13px;
     font-weight: 600;
     color: hsl(var(--foreground));
+  }
+
+  &__episode {
+    padding: 1px 6px;
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--accent));
+    border-radius: 999px;
   }
 
   &__select {

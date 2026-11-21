@@ -31,6 +31,7 @@ import {
 import { aiAssetApi } from '#/api';
 import { aiAssetProjectApi } from '#/api/core/ai_asset_project';
 
+import CanvasSurface from './canvas/CanvasSurface.vue';
 import AspectRatioModal from './components/AspectRatioModal.vue';
 import EntityPanel from './components/EntityPanel.vue';
 import EpisodePanel from './components/EpisodePanel.vue';
@@ -38,7 +39,6 @@ import PlotPanel from './components/PlotPanel.vue';
 import ProjectStyleDrawer from './components/ProjectStyleDrawer.vue';
 import StoryboardPanel from './components/StoryboardPanel.vue';
 import WorkflowAgentPanel from './components/WorkflowAgentPanel.vue';
-import CanvasSurface from './canvas/CanvasSurface.vue';
 import { formatApiError, parseApiError } from './error';
 import { useAspectRatioDict } from './useAspectRatioDict';
 
@@ -621,7 +621,7 @@ onMounted(async () => {
               />
             </div>
             <div v-else-if="surface === 'canvas'" class="drama__canvas-surface">
-              <CanvasSurface :novel-id="novelId" />
+              <CanvasSurface :episode-id="episodeId" :novel-id="novelId" />
             </div>
             <div
               v-else-if="surface === 'storyboard'"

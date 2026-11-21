@@ -57,6 +57,57 @@ const previewUrl = computed(() => {
   return '';
 });
 
+const shotInfo = computed(() => {
+  if (props.data.kind !== 'shot') {
+    return undefined;
+  }
+  const details = props.data.details ?? {};
+  const shotId = details.shotId;
+  if (shotId === undefined || shotId === null || shotId === '') {
+    return undefined;
+  }
+  return {
+    characters: Array.isArray(details.characters)
+      ? details.characters.filter(
+          (item): item is string => typeof item === 'string',
+        )
+      : [],
+    duration:
+      typeof details.durationSeconds === 'number'
+        ? details.durationSeconds
+        : undefined,
+    sceneName:
+      typeof details.sceneName === 'string' ? details.sceneName : '',
+    shotId: String(shotId),
+  };
+});
+
+const shotSummary = computed(
+  () =>
+    props.data.body ||
+    detailText('description') ||
+    detailText('dialogue') ||
+    detailText('imagePrompt'),
+);
+
+const canSplit = computed(
+  () => Boolean(store.episodeId) && Boolean(props.data.body?.trim()),
+);
+
+const splitHint = computed(() => {
+  if (!store.episodeId) {
+    return '先选择剧集';
+  }
+  if (!props.data.body?.trim()) {
+    return '先填写文本内容';
+  }
+  return '按文本拆成真实分镜';
+});
+
+function requestSplit() {
+  store.requestSplit(props.id);
+}
+
 function beginEdit() {
   labelDraft.value = props.data.label;
   editing.value = true;
@@ -206,6 +257,21 @@ function bodyText() {
         placeholder="输入文本 / 脚本 / 提示词"
         @blur="commitBody"
       ></textarea>
+      <div v-else-if="shotInfo" class="canvas-node__shot">
+        <div class="canvas-node__shot-meta">
+          <span>分镜 #{{ shotInfo.shotId }}</span>
+          <span v-if="shotInfo.duration !== undefined">
+            {{ shotInfo.duration }}s
+          </span>
+          <span v-if="shotInfo.sceneName">{{ shotInfo.sceneName }}</span>
+        </div>
+        <div class="canvas-node__shot-body">
+          {{ shotSummary || '已绑定分镜，暂无摘要' }}
+        </div>
+        <div v-if="shotInfo.characters.length" class="canvas-node__shot-tags">
+          <span v-for="name in shotInfo.characters" :key="name">{{ name }}</span>
+        </div>
+      </div>
       <div v-else-if="!previewUrl" class="canvas-node__placeholder">
         {{ bodyText() }}
       </div>
@@ -218,6 +284,17 @@ function bodyText() {
     <footer class="canvas-node__footer">
       <span>{{ data.nodeStatus || 'ready' }}</span>
       <span v-if="data.groupClientId">分组</span>
+      <span class="canvas-node__spacer"></span>
+      <button
+        v-if="data.kind === 'text'"
+        class="canvas-node__split"
+        :disabled="!canSplit"
+        :title="splitHint"
+        type="button"
+        @click.stop="requestSplit"
+      >
+        拆成分镜
+      </button>
     </footer>
   </article>
 </template>
@@ -366,10 +443,67 @@ function bodyText() {
     display: flex;
     flex: none;
     gap: 8px;
+    align-items: center;
     padding: 5px 10px;
     font-size: 11px;
     color: hsl(var(--muted-foreground));
     border-top: 1px solid hsl(var(--border));
+  }
+
+  &__split {
+    flex: none;
+    padding: 0;
+    font-size: 11px;
+    color: hsl(var(--primary));
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+
+    &:disabled {
+      color: hsl(var(--muted-foreground));
+      cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      text-decoration: underline;
+    }
+  }
+
+  &__shot {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+  }
+
+  &__shot-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+    color: hsl(var(--muted-foreground));
+  }
+
+  &__shot-body {
+    flex: 1;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.6;
+    color: hsl(var(--foreground));
+  }
+
+  &__shot-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    span {
+      padding: 1px 6px;
+      font-size: 11px;
+      color: hsl(var(--muted-foreground));
+      background: hsl(var(--accent));
+      border-radius: 999px;
+    }
   }
 
   &__handle {

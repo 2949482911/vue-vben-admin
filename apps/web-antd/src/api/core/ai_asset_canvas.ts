@@ -8,6 +8,8 @@ import type {
   CanvasCreateRequest,
   CanvasGraph,
   CanvasSaveRequest,
+  CanvasSplitStoryboardRequest,
+  CanvasSplitStoryboardResult,
   CanvasSummary,
 } from '#/api/models/ai_asset_canvas';
 
@@ -112,6 +114,17 @@ class AiAssetCanvasApi extends BaseApi {
   ): Promise<CanvasAgentChatResult> {
     return requestClient.post<CanvasAgentChatResult>(
       this.getServiceUrl(`${canvasId}/agent/chat`),
+      data,
+      { skipErrorMessage: true },
+    );
+  }
+
+  splitCanvasStoryboard(
+    canvasId: number | string,
+    data: CanvasSplitStoryboardRequest,
+  ): Promise<CanvasSplitStoryboardResult> {
+    return requestClient.post<CanvasSplitStoryboardResult>(
+      this.getServiceUrl(`${canvasId}/split-storyboard`),
       data,
       { skipErrorMessage: true },
     );

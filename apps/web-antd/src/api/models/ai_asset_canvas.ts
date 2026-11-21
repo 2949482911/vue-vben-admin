@@ -195,6 +195,43 @@ export interface CanvasAgentChatResult {
   suggestions?: CanvasAgentChatSuggestion[];
 }
 
+/** POST /canvas/{id}/split-storyboard：后端按 textNodeClientId 读取节点 body */
+export interface CanvasSplitStoryboardRequest {
+  textNodeClientId: string;
+  episodeId: number | string;
+  mode?: string;
+  shotCount?: number;
+  totalDurationSeconds?: number;
+  replace?: boolean;
+}
+
+export interface CanvasSplitShot {
+  shotId: number | string;
+  seq?: number;
+  sceneSeq?: number;
+  durationSeconds?: number;
+  shotType?: string;
+  camera?: string;
+  description?: string;
+  imagePrompt?: string;
+  videoPrompt?: string;
+  dialogue?: string;
+  characters?: string[];
+  characterIds?: Array<number | string>;
+  sceneId?: number | string;
+  sceneName?: string;
+  direction?: null | Record<string, unknown>;
+}
+
+export interface CanvasSplitStoryboardResult {
+  episodeId?: number | string;
+  textNodeClientId?: string;
+  shotCount?: number;
+  replaced?: boolean;
+  shots?: CanvasSplitShot[];
+  warnings?: string[];
+}
+
 export interface CanvasCreateRequest {
   novelId: number | string;
   title?: string;

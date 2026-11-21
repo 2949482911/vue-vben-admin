@@ -107,6 +107,8 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
   const hideEdges = ref(false);
   const initialized = ref(false);
   const groupReferenceSource = ref<string>();
+  const episodeId = ref<number | string>();
+  const splitTargetNodeId = ref<string>();
 
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let changeSeq = 0;
@@ -163,6 +165,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     conflict.value = false;
     error.value = '';
     groupReferenceSource.value = undefined;
+    splitTargetNodeId.value = undefined;
     lastSavedAt.value = new Date().toISOString();
     initialized.value = true;
   }
@@ -181,6 +184,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     error.value = '';
     lastSavedAt.value = '';
     groupReferenceSource.value = undefined;
+    splitTargetNodeId.value = undefined;
     initialized.value = false;
   }
 
@@ -630,6 +634,18 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     groupReferenceSource.value = undefined;
   }
 
+  function setEpisodeId(value?: number | string) {
+    episodeId.value = value;
+  }
+
+  function requestSplit(clientId: string) {
+    splitTargetNodeId.value = clientId;
+  }
+
+  function clearSplitRequest() {
+    splitTargetNodeId.value = undefined;
+  }
+
   /**
    * 分组引用：按成员输出端口与目标输入端口的兼容规则批量建边；
    * 每个成员最多建一条，返回新建与已存在的数量，由调用方提示。
@@ -755,11 +771,13 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     buildPayload,
     cancelGroupReference,
     canvas,
+    clearSplitRequest,
     conflict,
     connect,
     dirty,
     edgeCount,
     edges,
+    episodeId,
     error,
     flushSave,
     groupBounds,
@@ -784,12 +802,15 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     removeGroup,
     removeNode,
     renameGroup,
+    requestSplit,
     resetGraph,
     saveNow,
     saving,
     selectedNodeIds,
+    setEpisodeId,
     setSelection,
     setViewport,
+    splitTargetNodeId,
     snapToGrid,
     touch,
     updateNodeData,
