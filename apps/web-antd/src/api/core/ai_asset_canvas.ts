@@ -17,6 +17,8 @@ import type {
   CanvasSplitStoryboardRequest,
   CanvasSplitStoryboardResult,
   CanvasSummary,
+  CanvasSyncEpisodeRequest,
+  CanvasSyncEpisodeResult,
   CanvasTimelineComposeRequest,
   CanvasTimelineComposeResult,
   CanvasTimelineComposeStatus,
@@ -262,6 +264,17 @@ class AiAssetCanvasApi extends BaseApi {
       data,
       // LLM 拆镜实测 130s+，单独放宽到 10 分钟，不使用全局 120s
       { skipErrorMessage: true, timeout: 600_000 },
+    );
+  }
+
+  syncCanvasEpisode(
+    canvasId: number | string,
+    data: CanvasSyncEpisodeRequest,
+  ): Promise<CanvasSyncEpisodeResult> {
+    return requestClient.post<CanvasSyncEpisodeResult>(
+      this.getServiceUrl(`${canvasId}/sync-episode`),
+      data,
+      { skipErrorMessage: true, timeout: 300_000 },
     );
   }
 }

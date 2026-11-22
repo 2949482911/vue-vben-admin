@@ -1,7 +1,14 @@
 <script lang="ts" setup name="CanvasSurface">
 import type { CanvasNodeKind, CanvasSummary } from '#/api/models/ai_asset_canvas';
 
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from 'vue';
 
 import {
   ControlOutlined,
@@ -61,12 +68,15 @@ const canvasList = ref<CanvasSummary[]>([]);
 const currentCanvasId = ref<string>();
 const loadingList = ref(false);
 const listError = ref('');
+const syncError = ref('');
+const syncing = ref(false);
 const renameOpen = ref(false);
 const renameValue = ref('');
 const renameTarget = ref<CanvasSummary>();
 const outlineOpen = ref(false);
 const workspaceOpen = ref(false);
 const agentOpen = ref(false);
+const syncedEpisodeKeys = new Set<string>();
 const splitTargetNode = computed(() =>
   store.splitTargetNodeId
     ? store.nodes.find((node) => node.id === store.splitTargetNodeId)
@@ -285,6 +295,87 @@ function toggleAgent() {
     workspaceOpen.value = false;
   }
 }
+
+async function syncEpisode(force = false) {
+  const canvasId = store.canvas?.id ?? currentCanvasId.value;
+  const targetEpisode = props.episodeId;
+  if (!canvasId || !targetEpisode || syncing.value) {
+    return;
+  }
+  const key = `${String(canvasId)}:${String(targetEpisode)}`;
+  if (!force && syncedEpisodeKeys.has(key)) {
+    return;
+  }
+  syncedEpisodeKeys.add(key);
+  syncing.value = true;
+  syncError.value = '';
+  try {
+    const result = await aiAssetCanvasApi.syncCanvasEpisode(canvasId, {
+      episodeId: targetEpisode,
+      includeVideos: true,
+    });
+    const created =
+      (result.createdShots?.length ?? 0) +
+      (result.createdVideos?.length ?? 0) +
+      (result.createdEdges?.length ?? 0);
+    if (created > 0) {
+      await store.loadGraph(canvasId);
+      await nextTick();
+      await flowRef.value?.fitCanvas();
+      message.success(`已加载本集节点（新增 ${created} 项）`);
+    } else if (force) {
+      message.info('本集节点已是最新，无需重复加载');
+    }
+  } catch (error) {
+    const info = parseApiError(error);
+    syncError.value =
+      info.notReady || /static resource|接口未就绪/i.test(info.message)
+        ? '同步接口未就绪'
+        : formatApiError(info);
+  } finally {
+    syncing.value = false;
+  }
+}
+
+function onSurfaceKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && workspaceOpen.value) {
+    workspaceOpen.value = false;
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onSurfaceKeydown);
+});
+
+watch(
+  () => store.nodeInfoRequestId,
+  (nodeId) => {
+    if (!nodeId) {
+      return;
+    }
+    store.clearNodeInfoRequest();
+    workspaceOpen.value = true;
+    agentOpen.value = false;
+  },
+);
+
+watch(
+  () => store.nodeInfoCloseToken,
+  () => {
+    if (workspaceOpen.value) {
+      workspaceOpen.value = false;
+    }
+  },
+);
+
+watch(
+  [() => store.canvas?.id, () => props.episodeId, () => store.initialized],
+  ([canvasId, episodeId, initialized]) => {
+    if (canvasId && episodeId && initialized) {
+      void syncEpisode(false);
+    }
+  },
+);
 
 watch(
   () => props.episodeId,
@@ -507,6 +598,7 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onSurfaceKeydown);
   shotMedia.stopAllShotPolling();
 });
 
@@ -590,6 +682,17 @@ watch(
         <RobotOutlined />
         Agent
       </Button>
+      <Button
+        :disabled="!currentCanvasId || !episodeId || syncing"
+        :loading="syncing"
+        size="small"
+        @click="syncEpisode(true)"
+      >
+        加载本集节点
+      </Button>
+      <span v-if="syncing" class="canvas-surface__episode">
+        正在加载本集节点…
+      </span>
       <span class="canvas-surface__spacer"></span>
       <Tag
         :color="
@@ -621,6 +724,13 @@ watch(
       "
       type="error"
       show-icon
+    />
+    <Alert
+      v-if="syncError"
+      class="canvas-surface__alert"
+      :message="syncError"
+      show-icon
+      :type="syncError === '同步接口未就绪' ? 'info' : 'error'"
     />
 
     <div v-if="!novelId" class="canvas-surface__empty">

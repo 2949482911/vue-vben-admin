@@ -132,6 +132,8 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
   const episodeId = ref<number | string>();
   const splitTargetNodeId = ref<string>();
   const shotActionRequest = ref<CanvasShotActionRequest>();
+  const nodeInfoRequestId = ref<string>();
+  const nodeInfoCloseToken = ref(0);
   const videoActionRequest = ref<{
     nodeId: string;
     type: CanvasVideoActionType;
@@ -198,6 +200,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     groupReferenceSource.value = undefined;
     splitTargetNodeId.value = undefined;
     shotActionRequest.value = undefined;
+    nodeInfoRequestId.value = undefined;
     videoActionRequest.value = undefined;
     timelineActionRequest.value = undefined;
     lastSavedAt.value = new Date().toISOString();
@@ -220,6 +223,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     groupReferenceSource.value = undefined;
     splitTargetNodeId.value = undefined;
     shotActionRequest.value = undefined;
+    nodeInfoRequestId.value = undefined;
     videoActionRequest.value = undefined;
     timelineActionRequest.value = undefined;
     initialized.value = false;
@@ -1045,6 +1049,18 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     shotActionRequest.value = undefined;
   }
 
+  function requestNodeInfo(nodeId: string) {
+    nodeInfoRequestId.value = nodeId;
+  }
+
+  function clearNodeInfoRequest() {
+    nodeInfoRequestId.value = undefined;
+  }
+
+  function requestNodeInfoClose() {
+    nodeInfoCloseToken.value += 1;
+  }
+
   function requestVideoAction(nodeId: string, type: CanvasVideoActionType) {
     videoActionRequest.value = { nodeId, type };
   }
@@ -1236,6 +1252,11 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     shotActionRequest,
     requestShotAction,
     clearShotAction,
+    nodeInfoRequestId,
+    nodeInfoCloseToken,
+    requestNodeInfo,
+    clearNodeInfoRequest,
+    requestNodeInfoClose,
     videoActionRequest,
     requestVideoAction,
     clearVideoAction,

@@ -442,3 +442,19 @@ export interface CanvasTimelineComposeStatus {
   segmentCount?: null | number;
   taskId?: null | number | string;
 }
+
+
+/** POST /canvas/{id}/sync-episode：按当前集幂等补齐画布节点/边 */
+export interface CanvasSyncEpisodeRequest {
+  episodeId: number | string;
+  includeVideos: boolean;
+}
+
+export interface CanvasSyncEpisodeResult {
+  createdEdges?: Array<number | string>;
+  createdShots?: Array<number | string>;
+  createdVideos?: Array<number | string>;
+  revision?: null | number | string;
+  skippedShots?: null | number;
+  skippedVideos?: null | number;
+}

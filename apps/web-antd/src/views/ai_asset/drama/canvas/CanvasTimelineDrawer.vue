@@ -652,6 +652,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
   font-size: 12px;
 
   &__head {
@@ -706,6 +707,7 @@ onBeforeUnmount(() => {
     flex-direction: column;
     gap: 2px;
     min-width: 0;
+    overflow: hidden;
 
     span {
       overflow: hidden;
@@ -727,11 +729,13 @@ onBeforeUnmount(() => {
     flex-wrap: wrap;
     gap: 6px;
     align-items: center;
+    min-width: 0;
     margin-bottom: 6px;
   }
 
   &__player {
     width: 100%;
+    max-width: 100%;
     max-height: 320px;
     border-radius: 8px;
   }

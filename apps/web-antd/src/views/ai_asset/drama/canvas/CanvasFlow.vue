@@ -105,6 +105,8 @@ function onNodeDragStop() {
 
 function onPaneClick() {
   store.setSelection([]);
+  store.clearNodeInfoRequest();
+  store.requestNodeInfoClose();
   store.cancelGroupReference();
 }
 
@@ -115,6 +117,7 @@ function onNodeClick(payload: { node: { id: string } }) {
   }
   const source = store.groupReferenceSource;
   if (!source) {
+    store.requestNodeInfo(payload.node.id);
     return;
   }
   const created = store.referenceGroupToNode(source, payload.node.id);
@@ -227,7 +230,8 @@ defineExpose({
       :node-types="nodeTypes"
       :only-render-visible-elements="true"
       pan-activation-key-code="Space"
-      :pan-on-drag="[1, 2]"
+      :pan-on-drag="true"
+      selection-key-code="Shift"
       :snap-grid="[16, 16]"
       :snap-to-grid="store.snapToGrid"
       @connect="onConnect"

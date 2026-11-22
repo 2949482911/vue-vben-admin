@@ -378,6 +378,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
   font-size: 12px;
 
   &__head {
@@ -415,11 +416,13 @@ onMounted(() => {
     flex: 1;
     flex-direction: column;
     gap: 4px;
+    min-width: 0;
     color: hsl(var(--muted-foreground));
   }
 
   &__row {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
   }
 
@@ -446,8 +449,10 @@ onMounted(() => {
     }
 
     b {
+      min-width: 0;
       font-weight: 500;
       color: hsl(var(--foreground));
+      overflow-wrap: anywhere;
     }
   }
 

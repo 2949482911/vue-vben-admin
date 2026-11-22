@@ -782,6 +782,7 @@ onBeforeUnmount(() => {
   flex: none;
   flex-direction: column;
   width: 320px;
+  min-width: 0;
   height: 100%;
   overflow: hidden;
   background: hsl(var(--card));
@@ -829,7 +830,7 @@ onBeforeUnmount(() => {
     flex: 1;
     min-height: 0;
     padding: 10px;
-    overflow-y: auto;
+    overflow: hidden auto;
   }
 
   &__section {
@@ -907,6 +908,7 @@ onBeforeUnmount(() => {
     flex-wrap: wrap;
     gap: 4px;
     align-items: center;
+    min-width: 0;
     margin-bottom: 8px;
     font-size: 12px;
     color: hsl(var(--foreground));
@@ -1001,9 +1003,10 @@ onBeforeUnmount(() => {
     }
 
     b {
+      min-width: 0;
       font-weight: 500;
       color: hsl(var(--foreground));
-      word-break: break-all;
+      overflow-wrap: anywhere;
     }
   }
 
@@ -1034,6 +1037,7 @@ onBeforeUnmount(() => {
     margin: 0 0 8px;
     font-size: 11px;
     color: hsl(var(--destructive));
+    overflow-wrap: anywhere;
   }
 
   &__shot-actions {
