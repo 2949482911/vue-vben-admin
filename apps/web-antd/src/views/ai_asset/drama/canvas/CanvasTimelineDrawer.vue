@@ -199,6 +199,110 @@ function composeSnapshot(next: CanvasTimelineComposeStatus) {
   };
 }
 
+const backfilling = ref(false);
+
+/** 旧 timeline item 字幕为空时回填：linked video details 优先，其次 video-assets */
+async function backfillSubtitles() {
+  if (backfilling.value || !props.canvasId) {
+    return;
+  }
+  const pending = items.value
+    .map((item, index) => ({ index, item }))
+    .filter(
+      ({ item }) =>
+        !(typeof item.subtitleText === 'string' && item.subtitleText.trim()),
+    );
+  if (!pending.length) {
+    return;
+  }
+  backfilling.value = true;
+  let assets:
+    | Awaited<
+        ReturnType<typeof aiAssetCanvasApi.fetchCanvasVideoAssets>
+      >
+    | undefined;
+  let assetsLoaded = false;
+  const updates = new Map<number, string>();
+  try {
+    for (const { index, item } of pending) {
+      const linkedVideo = store.nodes.find(
+        (node) => node.id === item.videoNodeClientId,
+      );
+      const detailSubtitle =
+        typeof linkedVideo?.data.details?.subtitleText === 'string'
+          ? linkedVideo.data.details.subtitleText.trim()
+          : '';
+      if (detailSubtitle) {
+        updates.set(index, detailSubtitle);
+        continue;
+      }
+      if (!props.episodeId) {
+        continue;
+      }
+      if (!assetsLoaded) {
+        assetsLoaded = true;
+        try {
+          assets = await aiAssetCanvasApi.fetchCanvasVideoAssets(
+            props.canvasId,
+            props.episodeId,
+          );
+        } catch {
+          assets = undefined;
+        }
+      }
+      const matched = assets?.items.find(
+        (asset) =>
+          String(asset.segmentId ?? '') === String(item.segmentId ?? '') &&
+          String(asset.takeId ?? '') === String(item.takeId ?? ''),
+      );
+      const assetSubtitle =
+        typeof matched?.subtitleText === 'string'
+          ? matched.subtitleText.trim()
+          : '';
+      if (assetSubtitle) {
+        updates.set(index, assetSubtitle);
+        if (linkedVideo) {
+          store.updateNodeData(linkedVideo.id, {
+            details: {
+              ...linkedVideo.data.details,
+              shotIds: matched?.shotIds ?? linkedVideo.data.details?.shotIds,
+              subtitleText: assetSubtitle,
+            },
+          });
+        }
+      }
+    }
+    if (!updates.size) {
+      return;
+    }
+    const next = items.value.map((item, index) =>
+      updates.has(index)
+        ? { ...item, subtitleText: updates.get(index) }
+        : item,
+    );
+    store.updateNodeData(props.node.id, {
+      details: {
+        ...details.value,
+        items: next,
+        totalDurationSeconds: totalDuration.value,
+      },
+    });
+    const saved = await store.flushSave();
+    if (!saved) {
+      message.warning('字幕已补全，但画布保存失败，请重试');
+      return;
+    }
+    message.info('字幕已补全，如需更新成片请重新合成');
+  } finally {
+    backfilling.value = false;
+  }
+}
+
+async function refreshAll() {
+  await backfillSubtitles();
+  await refreshStatus();
+}
+
 async function refreshStatus() {
   if (!props.canvasId || !props.episodeId) {
     return;
@@ -357,7 +461,7 @@ function onVisibilityChange() {
 
 onMounted(() => {
   document.addEventListener('visibilitychange', onVisibilityChange);
-  void refreshStatus();
+  void refreshAll();
   if (props.initialAction === 'preview') {
     startPreview();
   } else if (props.initialAction === 'compose') {
@@ -383,7 +487,7 @@ onBeforeUnmount(() => {
         <span>片段 {{ items.length }}</span>
         <Tag :bordered="false">总时长 {{ Math.round(totalDuration) }}s</Tag>
         <span class="canvas-timeline__spacer"></span>
-        <Button size="small" @click="refreshStatus">
+        <Button size="small" @click="refreshAll">
           <template #icon><ReloadOutlined /></template>
           刷新状态
         </Button>
