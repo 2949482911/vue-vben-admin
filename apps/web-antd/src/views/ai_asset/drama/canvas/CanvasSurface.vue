@@ -408,8 +408,21 @@ async function outputVideoNode(nodeId: string, shotId: string) {
     message.error('视频节点创建失败');
     return;
   }
+  let edgeEnsured = result.edgeEnsured;
+  if (!edgeEnsured) {
+    edgeEnsured = store.ensureVideoEdge(nodeId, result.node.id);
+  }
   await store.flushSave();
-  if (result.created) {
+  const edgePersisted = store.edges.some(
+    (edge) =>
+      edge.source === nodeId &&
+      edge.target === result.node?.id &&
+      edge.sourceHandle === 'shot' &&
+      edge.targetHandle === 'reference',
+  );
+  if (!edgeEnsured || !edgePersisted) {
+    message.error('视频节点已存在，但 shot→video 连线未建立，请重试修复');
+  } else if (result.created) {
     message.success('已输出为视频节点');
   } else {
     message.info('该段视频节点已存在，已聚焦');

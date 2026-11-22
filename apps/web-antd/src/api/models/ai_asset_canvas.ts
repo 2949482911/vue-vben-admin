@@ -396,6 +396,8 @@ export interface CanvasBindTakeResult {
   nodeClientId?: string;
   segmentId?: null | number | string;
   segmentSeq?: null | number;
+  shotIds?: Array<number | string>;
+  subtitleText?: null | string;
   takeId?: number | string;
   thumbnailUrl?: null | string;
   url?: null | string;

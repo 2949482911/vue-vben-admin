@@ -423,7 +423,7 @@ onBeforeUnmount(() => {
           <div class="canvas-timeline__main">
             <b>段{{ row.item.segmentSeq ?? '—' }}</b>
             <span>
-              {{ row.item.durationSeconds ?? '—' }}s · {{ row.item.subtitleText || '无字幕' }}
+              {{ row.item.durationSeconds ?? '—' }}s · {{ row.item.subtitleText || '字幕待返回' }}
             </span>
           </div>
           <Button

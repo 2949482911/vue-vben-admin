@@ -247,8 +247,8 @@ function requestVideoAction(type: 'preview' | 'replace' | 'upload') {
   store.requestVideoAction(props.id, type);
 }
 
-function addToTimeline() {
-  const result = store.addVideoToTimeline(props.id);
+async function addToTimeline() {
+  const result = await store.addVideoToTimeline(props.id);
   if (!result) {
     return;
   }
@@ -260,7 +260,11 @@ function addToTimeline() {
     message.warning(result.reason);
     return;
   }
-  void store.flushSave();
+  await store.flushSave();
+  if (result.subtitleMissing) {
+    message.warning('已加入剪辑条；字幕信息暂未返回，合成以分镜台词为准');
+    return;
+  }
   message.success('已加入剪辑条');
 }
 

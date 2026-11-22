@@ -715,6 +715,26 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     });
   }
 
+  /** 幂等补齐 shot.shot → video.reference，快速连点/旧节点缺边时自愈 */
+  function ensureVideoEdge(shotNodeId: string, videoNodeId: string) {
+    const exists = edges.value.some(
+      (edge) =>
+        edge.source === shotNodeId &&
+        edge.target === videoNodeId &&
+        edge.sourceHandle === 'shot' &&
+        edge.targetHandle === 'reference',
+    );
+    if (exists) {
+      return true;
+    }
+    return connect({
+      source: shotNodeId,
+      sourceHandle: 'shot',
+      target: videoNodeId,
+      targetHandle: 'reference',
+    });
+  }
+
   /** 分镜段视频输出为视频节点；同 segment/take 幂等复用 */
   function createVideoFromSegment(input: {
     durationSeconds?: null | number;
@@ -728,22 +748,26 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     takeId?: null | number | string;
     thumbnailUrl?: null | string;
     url?: null | string;
-  }): { created: boolean; node?: CanvasFlowNode } {
+  }): { created: boolean; edgeEnsured: boolean; node?: CanvasFlowNode } {
     const existing = findVideoNodeByTake(input.segmentId, input.takeId);
     if (existing) {
-      return { created: false, node: existing };
+      return {
+        created: false,
+        edgeEnsured: ensureVideoEdge(input.shotNodeId, existing.id),
+        node: existing,
+      };
     }
     const shotNode = nodes.value.find((node) => node.id === input.shotNodeId);
     const blueprint = blueprintOf('video');
     if (!shotNode || !blueprint) {
-      return { created: false };
+      return { created: false, edgeEnsured: false };
     }
     const node = addNode('video', {
       x: shotNode.position.x + shotNode.data.width + 80,
       y: shotNode.position.y,
     });
     if (!node) {
-      return { created: false };
+      return { created: false, edgeEnsured: false };
     }
     const seq = input.segmentSeq ?? '';
     const details = {
@@ -774,14 +798,9 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
           ? []
           : [input.materialId],
     });
-    connect({
-      source: shotNode.id,
-      sourceHandle: 'shot',
-      target: node.id,
-      targetHandle: 'reference',
-    });
+    const edgeEnsured = ensureVideoEdge(shotNode.id, node.id);
     markDirty();
-    return { created: true, node };
+    return { created: true, edgeEnsured, node };
   }
 
   /** 绑定真实 segment_video take 到视频节点 */
@@ -801,12 +820,14 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
       episodeId: episodeId ?? node.data.details?.episodeId,
       segmentId: asset.segmentId,
       segmentSeq: asset.segmentSeq,
+      shotIds: (asset as CanvasBindTakeResult).shotIds ?? [],
       takeId: asset.takeId,
       materialId: asset.materialId,
       url: asset.url,
       thumbnailUrl: asset.thumbnailUrl,
       durationSeconds: asset.durationSeconds,
       subtitleText:
+        (asset as CanvasBindTakeResult).subtitleText ??
         (asset as CanvasVideoAssetItem).subtitleText ??
         node.data.details?.subtitleText ??
         '',
@@ -829,13 +850,15 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
   }
 
   /** 视频节点加入时间轴；重复 segment 返回 duplicate */
-  function addVideoToTimeline(videoNodeId: string):
+  async function addVideoToTimeline(videoNodeId: string): Promise<
     | undefined
     | {
         duplicate?: boolean;
         reason?: string;
+        subtitleMissing?: boolean;
         timelineNodeId?: string;
-      } {
+      }
+  > {
     const videoNode = nodes.value.find((node) => node.id === videoNodeId);
     if (!videoNode || videoNode.data.kind !== 'video') {
       return { reason: '目标不是视频节点' };
@@ -849,6 +872,47 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
       !details.url
     ) {
       return { reason: '仅已绑定的段视频可加入剪辑条' };
+    }
+    let subtitleText =
+      typeof details.subtitleText === 'string'
+        ? details.subtitleText.trim()
+        : '';
+    if (!subtitleText && canvas.value?.id) {
+      const rawEpisode = episodeId.value ?? details.episodeId;
+      const targetEpisode =
+        typeof rawEpisode === 'string' || typeof rawEpisode === 'number'
+          ? rawEpisode
+          : undefined;
+      if (targetEpisode !== undefined) {
+        try {
+          const assets = await aiAssetCanvasApi.fetchCanvasVideoAssets(
+            canvas.value.id,
+            targetEpisode,
+          );
+          const matched = assets.items.find(
+            (asset) =>
+              String(asset.segmentId ?? '') ===
+                String(details.segmentId ?? '') &&
+              String(asset.takeId ?? '') === String(details.takeId ?? ''),
+          );
+          const assetSubtitle =
+            typeof matched?.subtitleText === 'string'
+              ? matched.subtitleText.trim()
+              : '';
+          if (assetSubtitle || matched?.shotIds?.length) {
+            updateNodeData(videoNode.id, {
+              details: {
+                ...videoDetails(videoNode),
+                shotIds: matched?.shotIds ?? details.shotIds ?? [],
+                subtitleText: assetSubtitle || details.subtitleText,
+              },
+            });
+          }
+          subtitleText = assetSubtitle || subtitleText;
+        } catch {
+          // 字幕补齐失败不阻断加入；由后端 compose 使用 shots.dialogue
+        }
+      }
     }
     let timeline = findTimelineNode();
     if (!timeline) {
@@ -890,9 +954,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
       segmentId: details.segmentId as number | string,
       segmentSeq: details.segmentSeq as number | undefined,
       subtitleText:
-        (typeof details.subtitleText === 'string'
-          ? details.subtitleText
-          : '') ||
+        subtitleText ||
         (typeof details.dialogue === 'string' ? details.dialogue : '') ||
         (typeof details.description === 'string'
           ? details.description
@@ -909,7 +971,10 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
       },
     });
     markDirty();
-    return { timelineNodeId: timeline.id };
+    return {
+      subtitleMissing: !item.subtitleText,
+      timelineNodeId: timeline.id,
+    };
   }
 
   function moveTimelineItem(nodeId: string, index: number, delta: number) {
@@ -1131,6 +1196,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     connect,
     createVideoFromSegment,
     dirty,
+    ensureVideoEdge,
     edgeCount,
     edges,
     episodeId,
