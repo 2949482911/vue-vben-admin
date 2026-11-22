@@ -452,8 +452,15 @@ export interface CanvasSyncEpisodeRequest {
 
 export interface CanvasSyncEpisodeResult {
   createdEdges?: Array<number | string>;
+  createdGroups?: Array<{
+    clientId?: string;
+    nodeCount?: number;
+    title?: string;
+  }>;
   createdShots?: Array<number | string>;
   createdVideos?: Array<number | string>;
+  groupClientId?: null | string;
+  groupId?: null | string;
   revision?: null | number | string;
   skippedShots?: null | number;
   skippedVideos?: null | number;

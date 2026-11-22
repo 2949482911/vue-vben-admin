@@ -317,7 +317,8 @@ async function syncEpisode(force = false) {
     const created =
       (result.createdShots?.length ?? 0) +
       (result.createdVideos?.length ?? 0) +
-      (result.createdEdges?.length ?? 0);
+      (result.createdEdges?.length ?? 0) +
+      (result.createdGroups?.length ?? 0);
     if (created > 0) {
       await store.loadGraph(canvasId);
       await nextTick();
@@ -693,6 +694,14 @@ watch(
       <span v-if="syncing" class="canvas-surface__episode">
         正在加载本集节点…
       </span>
+      <Tag
+        v-else-if="syncError"
+        :bordered="false"
+        :color="syncError === '同步接口未就绪' ? 'default' : 'error'"
+        :title="syncError"
+      >
+        {{ syncError }}
+      </Tag>
       <span class="canvas-surface__spacer"></span>
       <Tag
         :color="
@@ -725,13 +734,7 @@ watch(
       type="error"
       show-icon
     />
-    <Alert
-      v-if="syncError"
-      class="canvas-surface__alert"
-      :message="syncError"
-      show-icon
-      :type="syncError === '同步接口未就绪' ? 'info' : 'error'"
-    />
+
 
     <div v-if="!novelId" class="canvas-surface__empty">
       <Empty description="先选择项目，再打开画布" />

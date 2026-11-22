@@ -67,16 +67,94 @@ const edgeOptions = {
 const isEmpty = computed(() => nodes.value.length === 0);
 const viewportTransform = computed(() => ({ ...flowViewport.value }));
 
-watch(
-  () => store.canvas?.id,
-  async () => {
-    await nextTick();
-    if (store.initialized) {
-      await setViewport({ ...store.viewport });
-    }
-  },
-  { immediate: true },
-);
+function viewportShowsNodes(
+  viewportValue: { x: number; y: number; zoom: number },
+) {
+  if (!store.nodes.length) {
+    return true;
+  }
+  if (
+    viewportValue.x === 0 &&
+    viewportValue.y === 0 &&
+    Number(viewportValue.zoom) === 1
+  ) {
+    return false;
+  }
+  const rect = wrapper.value?.getBoundingClientRect();
+  if (!rect || rect.width <= 0 || rect.height <= 0) {
+    return true;
+  }
+  const zoom = Number(viewportValue.zoom) || 1;
+  const visible = {
+    x: -viewportValue.x / zoom,
+    y: -viewportValue.y / zoom,
+    width: rect.width / zoom,
+    height: rect.height / zoom,
+  };
+  const minX = Math.min(...store.nodes.map((node) => node.position.x));
+  const minY = Math.min(...store.nodes.map((node) => node.position.y));
+  const maxX = Math.max(
+    ...store.nodes.map((node) => node.position.x + node.data.width),
+  );
+  const maxY = Math.max(
+    ...store.nodes.map((node) => node.position.y + node.data.height),
+  );
+  return !(
+    maxX < visible.x ||
+    minX > visible.x + visible.width ||
+    maxY < visible.y ||
+    minY > visible.y + visible.height
+  );
+}
+
+let pendingViewportCheck = false;
+let pendingSavedViewport = { x: 0, y: 0, zoom: 1 };
+
+async function autoFitAndSave() {
+  await fitView({ padding: 0.2 });
+  store.setViewport({ ...flowViewport.value });
+}
+
+async function applyViewportCheck(saved: { x: number; y: number; zoom: number }) {
+  await nextTick();
+  if (!store.nodes.length) {
+    return;
+  }
+  if (!viewportShowsNodes(saved)) {
+    await autoFitAndSave();
+  }
+}
+
+/** 先恢复保存视口；等节点完成测量后再判断是否需要 fitView */
+async function restoreViewport() {
+  await nextTick();
+  if (!store.initialized) {
+    return;
+  }
+  pendingSavedViewport = { ...store.viewport };
+  await setViewport(pendingSavedViewport);
+  pendingViewportCheck = true;
+  await nextTick();
+  const hasRenderedNode = Boolean(
+    wrapper.value?.querySelector('.vue-flow__node'),
+  );
+  if (hasRenderedNode) {
+    pendingViewportCheck = false;
+    await applyViewportCheck(pendingSavedViewport);
+  }
+}
+
+function onNodesInitialized() {
+  if (!pendingViewportCheck) {
+    return;
+  }
+  pendingViewportCheck = false;
+  void applyViewportCheck(pendingSavedViewport);
+}
+
+watch(() => store.canvas?.id, () => void restoreViewport(), {
+  immediate: true,
+});
 
 function onConnect(connection: Connection) {
   store.connect(connection);
@@ -239,6 +317,7 @@ defineExpose({
       @move-end="onMoveEnd"
       @node-click="onNodeClick"
       @node-drag-stop="onNodeDragStop"
+      @nodes-initialized="onNodesInitialized"
       @pane-click="onPaneClick"
       @selection-end="onSelectionEnd"
     >
