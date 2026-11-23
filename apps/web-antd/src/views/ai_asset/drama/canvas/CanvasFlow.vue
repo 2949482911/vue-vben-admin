@@ -123,6 +123,18 @@ let pendingSavedViewport = { x: 0, y: 0, zoom: 1 };
 let viewportRestored = false;
 let viewportCheckDone = false;
 
+function nodesMeasured() {
+  const list = getNodes.value;
+  return (
+    list.length > 0 &&
+    list.every(
+      (node) =>
+        Number(node.dimensions?.width ?? 0) > 0 &&
+        Number(node.dimensions?.height ?? 0) > 0,
+    )
+  );
+}
+
 async function autoFitAndSave() {
   await fitView({ padding: 0.2 });
   store.setViewport({ ...flowViewport.value });
@@ -146,8 +158,24 @@ async function runViewportCheck(
     viewportCheckDone = true;
     return;
   }
+  if (!nodesMeasured() && attempt < 20) {
+    setTimeout(() => {
+      void runViewportCheck(saved, attempt + 1);
+    }, 200);
+    return;
+  }
   await autoFitAndSave();
-  if (isDefaultViewport(flowViewport.value) && attempt < 4) {
+  const applied = flowViewport.value;
+  const appliedDefault = isDefaultViewport(applied);
+  const allContained = viewportContainsAllNodes(applied);
+  if ((appliedDefault || !nodesMeasured()) && attempt < 20) {
+    setTimeout(() => {
+      void runViewportCheck(saved, attempt + 1);
+    }, 200);
+    return;
+  }
+  // 只有 fit 生效（非默认）或节点已全部包含才结束
+  if (appliedDefault && !allContained && attempt < 20) {
     setTimeout(() => {
       void runViewportCheck(saved, attempt + 1);
     }, 200);
@@ -231,14 +259,21 @@ function nodesLookReady() {
 }
 
 function handleNodesReady() {
-  if (nodesReady) {
-    return;
+  const firstReady = !nodesReady;
+  if (firstReady) {
+    nodesReady = true;
+    stopReadyPolling();
+    syncFlowEdges();
   }
-  nodesReady = true;
-  stopReadyPolling();
-  syncFlowEdges();
   if (viewportRestored) {
-    scheduleViewportCheck();
+    // 默认视口且 fit 未生效时，允许 nodes-ready 再次触发 fit
+    if (
+      isDefaultViewport(store.viewport) &&
+      isDefaultViewport(flowViewport.value)
+    ) {
+      viewportCheckDone = false;
+    }
+    scheduleViewportCheck(firstReady ? 150 : 60);
   } else {
     setTimeout(() => {
       if (viewportRestored) {
