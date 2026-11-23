@@ -305,6 +305,18 @@ function nodesLookReady() {
   return graphCount === store.nodes.length && domCount > 0;
 }
 
+function maybeFitDefaultViewport() {
+  if (!store.nodes.length) {
+    return;
+  }
+  if (
+    isDefaultViewport(store.viewport) ||
+    isDefaultViewport(flowViewport.value)
+  ) {
+    void fitToNodes();
+  }
+}
+
 function handleNodesReady() {
   const firstReady = !nodesReady;
   if (firstReady) {
@@ -312,6 +324,8 @@ function handleNodesReady() {
     stopReadyPolling();
     syncFlowEdges();
   }
+  // 无条件兜底：默认视口/identity 直接 self-fit，不依赖恢复标记
+  maybeFitDefaultViewport();
   if (viewportRestored) {
     // 默认视口且 fit 未生效时，允许 nodes-ready 再次触发 fit
     if (

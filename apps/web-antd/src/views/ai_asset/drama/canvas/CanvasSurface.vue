@@ -148,6 +148,23 @@ function errorText(error: unknown, fallback: string) {
   return formatApiError(parseApiError(error)) || fallback;
 }
 
+function storeViewportIsDefault() {
+  const viewportValue = store.viewport;
+  return (
+    Math.abs(Number(viewportValue.x)) < 0.0001 &&
+    Math.abs(Number(viewportValue.y)) < 0.0001 &&
+    Math.abs(Number(viewportValue.zoom) - 1) < 0.0001
+  );
+}
+
+async function fitIfViewportDefault() {
+  if (!store.nodes.length || !storeViewportIsDefault()) {
+    return;
+  }
+  await nextTick();
+  await flowRef.value?.fitCanvas();
+}
+
 async function loadList() {
   if (!props.novelId) {
     canvasList.value = [];
@@ -173,6 +190,7 @@ async function loadList() {
       await store.loadGraph(currentCanvasId.value);
       flowKey.value += 1;
       await nextTick();
+      await fitIfViewportDefault();
     }
   } catch (err) {
     listError.value = errorText(err, '画布列表加载失败');
@@ -197,6 +215,7 @@ async function createCanvas() {
     await store.loadGraph(canvas.id);
     flowKey.value += 1;
     await nextTick();
+    await fitIfViewportDefault();
   } catch (err) {
     message.error(errorText(err, '新建画布失败'));
   }
@@ -217,6 +236,7 @@ async function selectCanvas(value: unknown) {
   await store.loadGraph(next);
   flowKey.value += 1;
   await nextTick();
+  await fitIfViewportDefault();
 }
 
 function openRename() {
