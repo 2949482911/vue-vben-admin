@@ -135,9 +135,56 @@ function nodesMeasured() {
   );
 }
 
+const MIN_FIT_ZOOM = 0.09;
+const MAX_FIT_ZOOM = 3.07;
+
+/** 基于 store 坐标确定性 fit，避免 onlyRenderVisibleElements 隐藏节点导致 fitView 失效 */
+async function fitToNodes() {
+  const rect = wrapper.value?.getBoundingClientRect();
+  if (!rect || rect.width <= 0 || rect.height <= 0) {
+    return false;
+  }
+  const candidates = store.nodes.filter(
+    (node) =>
+      String(node.data.kind) !== 'group' &&
+      Number(node.data.width) > 0 &&
+      Number(node.data.height) > 0,
+  );
+  if (!candidates.length) {
+    return false;
+  }
+  const minX = Math.min(...candidates.map((node) => node.position.x));
+  const minY = Math.min(...candidates.map((node) => node.position.y));
+  const maxX = Math.max(
+    ...candidates.map((node) => node.position.x + node.data.width),
+  );
+  const maxY = Math.max(
+    ...candidates.map((node) => node.position.y + node.data.height),
+  );
+  const boundsWidth = Math.max(1, maxX - minX);
+  const boundsHeight = Math.max(1, maxY - minY);
+  const padding = 0.2 * Math.min(rect.width, rect.height);
+  const rawZoom = Math.min(
+    (rect.width - padding * 2) / boundsWidth,
+    (rect.height - padding * 2) / boundsHeight,
+  );
+  const zoom = Math.min(
+    MAX_FIT_ZOOM,
+    Math.max(MIN_FIT_ZOOM, Number.isFinite(rawZoom) ? rawZoom : 1),
+  );
+  const x = (rect.width - boundsWidth * zoom) / 2 - minX * zoom;
+  const y = (rect.height - boundsHeight * zoom) / 2 - minY * zoom;
+  await setViewport({ x, y, zoom });
+  store.setViewport({ x, y, zoom });
+  return true;
+}
+
 async function autoFitAndSave() {
-  await fitView({ padding: 0.2 });
-  store.setViewport({ ...flowViewport.value });
+  const fitted = await fitToNodes();
+  if (!fitted) {
+    await fitView({ padding: 0.2 });
+    store.setViewport({ ...flowViewport.value });
+  }
 }
 
 /** 默认视口或非全包含就 fit；节点未测量造成 fit 空转时重试 */
@@ -416,7 +463,10 @@ async function addNodeAtCenter(kind: CanvasNodeKind) {
 }
 
 async function fitCanvas() {
-  await fitView({ padding: 0.2 });
+  const fitted = await fitToNodes();
+  if (!fitted) {
+    await fitView({ padding: 0.2 });
+  }
 }
 
 function focusNode(clientId: string) {
