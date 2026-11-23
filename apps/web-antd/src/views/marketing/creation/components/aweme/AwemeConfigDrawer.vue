@@ -506,12 +506,12 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
 }
 
 .mode-grid :deep(.ant-radio-wrapper:hover) {
-  border-color: #91caff;
+  border-color: hsl(var(--primary) / 45%);
 }
 
 .mode-grid :deep(.ant-radio-wrapper-checked) {
-  background: #eef5ff;
-  border-color: #1677ff;
+  background: hsl(var(--primary) / 12%);
+  border-color: hsl(var(--primary));
 }
 
 .mode-grid :deep(.ant-radio) {
@@ -559,8 +559,8 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
 }
 
 .account-chip.active {
-  background: #eef5ff;
-  border-color: #1677ff;
+  background: hsl(var(--primary) / 12%);
+  border-color: hsl(var(--primary));
 }
 
 .account-name {
@@ -603,7 +603,7 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   justify-content: space-between;
   gap: 10px;
   padding: 10px 12px;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .pool-title {
@@ -625,19 +625,19 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   padding: 10px;
   margin-bottom: 8px;
   cursor: pointer;
-  background: #fff;
+  background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
   transition: all 0.16s ease;
 }
 
 .aweme-item:hover {
-  border-color: #91caff;
+  border-color: hsl(var(--primary) / 45%);
 }
 
 .aweme-item.selected {
-  background: #eef5ff;
-  border-color: #1677ff;
+  background: hsl(var(--primary) / 12%);
+  border-color: hsl(var(--primary));
 }
 
 .checkbox {
@@ -645,14 +645,14 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   flex: none;
   width: 15px;
   height: 15px;
-  background: #fff;
-  border: 1.5px solid #c6ceda;
+  background: hsl(var(--card));
+  border: 1.5px solid hsl(var(--border));
   border-radius: 3px;
 }
 
 .aweme-item.selected .checkbox {
-  background: #1677ff;
-  border-color: #1677ff;
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
 }
 
 .aweme-item.selected .checkbox::after {
@@ -662,7 +662,7 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: hsl(var(--primary-foreground));
   font-size: 10px;
   font-weight: 700;
 }
@@ -674,10 +674,14 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   justify-content: center;
   width: 36px;
   height: 36px;
-  color: #fff;
+  color: hsl(var(--primary-foreground));
   font-size: 13px;
   font-weight: 700;
-  background: linear-gradient(145deg, #5b8def, #8fb7ff);
+  background: linear-gradient(
+    145deg,
+    hsl(var(--primary)),
+    hsl(var(--primary) / 55%)
+  );
   border-radius: 50%;
 }
 
@@ -704,21 +708,21 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
 
 .type-tag {
   padding: 1px 6px;
-  color: #0958d9;
+  color: hsl(var(--primary));
   font-size: 10px;
-  background: #eef5ff;
-  border: 1px solid #cfe5ff;
+  background: hsl(var(--primary) / 12%);
+  border: 1px solid hsl(var(--primary) / 30%);
   border-radius: 4px;
 }
 
 .type-tag.personal {
-  color: #8c6d1f;
-  background: #fffbe6;
-  border-color: #ffe58f;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted));
+  border-color: hsl(var(--border));
 }
 
 .auth-tag {
-  color: #15803d;
+  color: hsl(var(--success));
 }
 
 .selected-col {
@@ -733,7 +737,7 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .selected-title {
@@ -760,8 +764,8 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   gap: 8px;
   align-items: center;
   padding: 8px;
-  background: #fbfdff;
-  border: 1px solid #e2edff;
+  background: hsl(var(--muted) / 55%);
+  border: 1px solid hsl(var(--border));
   border-radius: 7px;
 }
 
@@ -772,10 +776,10 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   justify-content: center;
   width: 20px;
   height: 20px;
-  color: #fff;
+  color: hsl(var(--primary-foreground));
   font-size: 10px;
   font-weight: 700;
-  background: #1677ff;
+  background: hsl(var(--primary));
   border-radius: 50%;
 }
 
@@ -797,7 +801,7 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
 }
 
 .remove {
-  color: #7aa7e8;
+  color: hsl(var(--primary) / 65%);
   cursor: pointer;
 }
 
@@ -817,7 +821,7 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   padding: 9px 11px;
   color: hsl(var(--muted-foreground));
   font-size: 11px;
-  border-top: 1px solid #f0f2f5;
+  border-top: 1px solid hsl(var(--border));
 }
 
 .side-col {
@@ -826,7 +830,7 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   gap: 10px;
   padding: 10px;
   overflow-y: auto;
-  background: #fbfcfe;
+  background: hsl(var(--muted) / 45%);
 }
 
 .side-card {
@@ -862,8 +866,8 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   justify-content: space-between;
   gap: 8px;
   padding: 7px 8px;
-  background: #f8fafc;
-  border: 1px solid #f0f2f5;
+  background: hsl(var(--muted) / 55%);
+  border: 1px solid hsl(var(--border));
   border-radius: 6px;
 }
 
@@ -871,28 +875,28 @@ const [Drawer, drawerApi] = useVbenDrawer<AwemeConfigData>({
   max-width: 160px;
   padding: 2px 7px;
   overflow: hidden;
-  color: #0958d9;
+  color: hsl(var(--primary));
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: #eef5ff;
-  border: 1px solid #cfe5ff;
+  background: hsl(var(--primary) / 12%);
+  border: 1px solid hsl(var(--primary) / 30%);
   border-radius: 4px;
 }
 
 .hint {
   margin-top: 9px;
   padding: 8px 9px;
-  color: #0958d9;
+  color: hsl(var(--primary));
   font-size: 12px;
   line-height: 1.55;
-  background: #eef7ff;
-  border: 1px solid #bae0ff;
+  background: hsl(var(--primary) / 10%);
+  border: 1px solid hsl(var(--primary) / 28%);
   border-radius: 6px;
 }
 
 .rule-card {
-  background: #fbfcfe;
+  background: hsl(var(--card));
 }
 
 .rule-line {

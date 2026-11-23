@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DelLabelItemType, LabelItem } from "#/api/models/marketing";
 
-import { Page, useVbenModal, type VbenFormProps } from "@vben/common-ui";
+import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 import { useDictStore } from "@vben/stores";
 
@@ -12,7 +12,7 @@ import { accountLabelApi } from "#/api";
 import { BatchOptionsType, STATUS_SELECT, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { trimObject } from "#/utils/trim";
 
-import { LABEL_TYPE_DICT_CODE } from "./constants";
+import { LABEL_TYPE_COLORS, LABEL_TYPE_DICT_CODE } from "./constants";
 import CreatedLabel from "./createdLabel.vue";
 
 const dictStore = useDictStore();
@@ -23,7 +23,8 @@ function labelTypeMeta(value?: string) {
     ? dictStore.getDictItem(LABEL_TYPE_DICT_CODE, value)
     : undefined;
   return {
-    color: item?.color || "default",
+    color:
+      item?.color || (value ? LABEL_TYPE_COLORS[value] : undefined) || "default",
     label: item?.label ?? value ?? "-"
   };
 }
@@ -38,11 +39,9 @@ async function fetchLabelTypeOptions() {
   };
 }
 
-const [CreatedLabelModule, modalApi] = useVbenModal({
+const [CreatedLabelModule, drawerApi] = useVbenDrawer({
   // 连接抽离的组件
-  connectedComponent: CreatedLabel,
-  centered: true,
-  modal: true
+  connectedComponent: CreatedLabel
 });
 
 const gridOptions: VxeGridProps<LabelItem> = {
@@ -144,12 +143,8 @@ const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
 function openCreateModal(
   row?: LabelItem
 ) {
-  if (row?.id) {
-    modalApi.setData(row);
-  } else {
-    modalApi.setData({});
-  }
-  modalApi.open();
+  drawerApi.setData(row?.id ? row : {});
+  drawerApi.open();
 }
 
 /**

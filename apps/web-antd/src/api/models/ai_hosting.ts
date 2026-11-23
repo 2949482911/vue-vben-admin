@@ -419,3 +419,21 @@ export interface HostingStats {
   /** AI 平均响应（秒） */
   avgLatency?: number;
 }
+
+/**
+ * 今日批创统计（由 Airflow 按 MySQL 数据定时汇总）
+ */
+export interface HostingBatchStats {
+  /** 统计日期 YYYY-MM-DD */
+  date?: string;
+  /** 今日后台创建的批创任务数 */
+  taskCount?: number;
+  /** 今日成功下发的广告单元数 */
+  successAdCount?: number;
+  /** 失败任务数 */
+  failedTaskCount?: number;
+  /** 待处理/处理中任务数 */
+  pendingTaskCount?: number;
+  /** 汇总更新时间 */
+  updatedAt?: string;
+}

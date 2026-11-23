@@ -1,4 +1,5 @@
 <script setup lang="ts" name="MaterialDetail">
+import type { MetricItem, ReportFilter } from '#/api/models';
 /**
  * 素材详情面板
  *
@@ -13,7 +14,6 @@
  *     页面结构与空态先行落位。维度与筛选清单见 MATERIAL_REPORT_DIMENSION_SPEC.md。
  */
 import type { MaterialItem } from '#/api/models/assert';
-import type { MetricItem, ReportFilter } from '#/api/models';
 
 import { computed, ref, watch } from 'vue';
 
@@ -54,16 +54,18 @@ import {
   MAX_FROZEN_DIM_COUNT,
   rawDimFieldOf,
 } from '#/constants/dimension';
+import { Platform } from "#/constants/enums";
 import { ACTIVE_PLATFORM } from '#/constants/locales';
 import {
   getPlatformChartColor,
   getPlatformColor,
   getPlatformLabel,
 } from '#/constants/platform';
+import { LABEL_TYPE_CODES, LABEL_TYPE_COLORS } from '#/views/marketing/account/label/constants';
+import { useAccountLabelOptions } from '#/views/marketing/account/label/useAccountLabelOptions';
 import SelectMetricModal from '#/views/marketing/report/adreportdata/selectmetric.vue';
 
 import DetailChartCard from './detailChartCard.vue';
-import { Platform } from "#/constants/enums";
 
 const props = defineProps<{
   /** 素材列表行快照 */
@@ -80,6 +82,14 @@ const emit = defineEmits<{
   /** 推送该素材到媒体账户，复用素材库推送流程 */
   push: [material: MaterialItem];
 }>();
+
+const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
+  LABEL_TYPE_CODES.material,
+);
+const materialLabelColor =
+  LABEL_TYPE_COLORS[LABEL_TYPE_CODES.material] ?? 'default';
+
+void loadLabelOptions();
 
 /* ==================== 一、素材详情信息 ==================== */
 
@@ -1066,8 +1076,18 @@ watch(loading, (value) => {
 
           <div class="meta-title">素材标签</div>
           <div class="tag-list">
-            <span class="text-muted-foreground text-xs">
-              暂无标签，标签能力由素材分析模块补充
+            <template v-if="(material.labelIds ?? []).length > 0">
+              <Tag
+                v-for="name in labelNamesOf(material.labelIds)"
+                :key="name"
+                :bordered="false"
+                :color="materialLabelColor"
+              >
+                {{ name }}
+              </Tag>
+            </template>
+            <span v-else class="text-muted-foreground text-xs">
+              暂无标签
             </span>
           </div>
         </div>
@@ -1175,7 +1195,7 @@ watch(loading, (value) => {
           <DetailChartCard
             :empty="trendEmpty"
             height="300px"
-            hint="左轴：消耗（元）　右轴：曝光"
+            hint="左轴：消耗（元） 右轴：曝光"
             :loading="loading"
             :option="trendOption"
             title="消耗与曝光趋势"

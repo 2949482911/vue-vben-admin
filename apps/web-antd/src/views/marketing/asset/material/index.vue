@@ -4,6 +4,7 @@ import type { Key } from "ant-design-vue/es/vc-tree-select/interface";
 
 import type { ComponentPublicInstance } from "vue";
 
+import type { AssetBatchLabelData } from "../components/batchLabelTypes";
 import type { MaterialLibraryFolderType } from "./materialType";
 
 import type { VbenFormProps } from "#/adapter/form";
@@ -46,6 +47,7 @@ import {
 import { useVbenForm } from "#/adapter/form";
 import { materialLibraryApi } from "#/api/core";
 
+import BatchLabelModal from "../components/BatchLabelModal.vue";
 import AlbumFiles from "./albumFiles.vue";
 import MaterialDetailPanel from "./materialDetail.vue";
 import NewFolder from "./newFolder.vue";
@@ -297,6 +299,11 @@ const [NewFolderModal, newFolderApi] = useVbenModal({
   connectedComponent: NewFolder
 });
 
+const [BatchLabelModalComp, batchLabelModalApi] =
+  useVbenModal<AssetBatchLabelData>({
+    connectedComponent: BatchLabelModal
+  });
+
 const idEditStr = ref<MaterialLibraryFolderType | null>(null);
 
 async function newBuilt(row?: MaterialLibraryFolderType) {
@@ -461,6 +468,22 @@ async function deleteFolder(folder: MaterialLibraryFolderType) {
 }
 
 const selectedCount = computed(() => selectedMaterials.value.length);
+
+function openBatchLabel() {
+  if (selectedMaterialIds.value.length === 0) {
+    return message.warning("请选择需要修改标签的素材！");
+  }
+  batchLabelModalApi.setData({
+    asset: "material",
+    targetIds: [...selectedMaterialIds.value]
+  });
+  batchLabelModalApi.open();
+}
+
+async function handleBatchLabelSuccess() {
+  await requestTreeNode();
+  await albumFilesRef.value?.reload();
+}
 </script>
 
 <template>
@@ -565,6 +588,16 @@ const selectedCount = computed(() => selectedMaterials.value.length);
                 </template>
                 新建文件夹
               </Button>
+              <Dropdown trigger="click" placement="bottomCenter">
+                <Button type="primary" :disabled="selectedCount === 0">
+                  批量操作
+                </Button>
+                <template #overlay>
+                  <Menu>
+                    <MenuItem @click="openBatchLabel">修改标签</MenuItem>
+                  </Menu>
+                </template>
+              </Dropdown>
 
               <Divider type="vertical" />
 
@@ -619,6 +652,7 @@ const selectedCount = computed(() => selectedMaterials.value.length);
 
     <NewFolderModal @tree-node="requestTreeNode" :tree-data="treeData" :id-edit="idEditStr" />
     <UploadMaterialsModal @tree-node="requestTreeNode" :tree-data="treeData" />
+    <BatchLabelModalComp @success="handleBatchLabelSuccess" />
     <PushMaterialDrawerModal
       @closed="selectedMaterials = []"
       :materials="selectedMaterials"

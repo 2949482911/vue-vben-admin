@@ -218,11 +218,7 @@ export function getRuleInfoCampaignCount(
     );
   } else if (projectRuleKey === CampaignRuleKey.creative) {
     method = creation.configData.material?.config.method;
-    campaignCount = getCampaignCount(
-      creation.configData.material?.config.method,
-      creation.configData.material?.data,
-      localMaterialIds
-    );
+    campaignCount = getMaterialGroupCount(creation, localMaterialIds);
   } else if (projectRuleKey === CampaignRuleKey.title) {
     method = creation.configData.titlePackage?.titlePackageConfig ? creation.configData.titlePackage?.titlePackageConfig.method : creation.configData.titlePackage?.config.method;
     campaignCount = getCampaignCount(
@@ -263,11 +259,7 @@ export function getRuleInfoAdCountGroup(
       localMaterialIds
     );
   } else if (adGroupRuleKey === AdGroupRuleKey.creative) {
-    return getCampaignCount(
-      creation.configData.material?.config.method,
-      creation.configData.material?.data,
-      localMaterialIds
-    );
+    return getMaterialGroupCount(creation, localMaterialIds);
   } else if (adGroupRuleKey === AdGroupRuleKey.title) {
     return getCampaignCount(
       creation.configData.titlePackage?.config.method,
@@ -295,11 +287,7 @@ export function getRuleInfoAdCount(
   }
   const adRuleKey = creation.ruleInfo.adRuleKey;
   if (adRuleKey === AdRuleKey.creative) {
-    return getCampaignCount(
-      creation.configData.material?.config.method,
-      creation.configData.material?.data,
-      localMaterialIds
-    );
+    return getMaterialGroupCount(creation, localMaterialIds);
   } else if (adRuleKey === AdRuleKey.title) {
     return getCampaignCount(
       creation.configData.titlePackage?.titlePackageConfig ? creation.configData.titlePackage?.titlePackageConfig.method : creation.configData.titlePackage?.config.method,
@@ -404,49 +392,61 @@ export function isGlobalDistribution(method: string): boolean {
 }
 
 /**
- * 平均分配：按同级数量均分列表，取第 index 份
- * - 每份数量按 ceil(总数 / 份数) 向上取整
- * - 数量不足时下标取模轮询复用，保证同级每个节点都能分到数据
+ * 平均分配创意组：按账户数量连续切分
+ * - 创意组 >= 账户：每账户按 ceil(组数/账户数) 取连续切片
+ * - 创意组 < 账户：不足的账户轮询复用已有组，避免空账户
  */
-export function averageSlice<T>(list: Array<T>, position: LevelPosition): Array<T> {
-  const { index, count } = position;
-  if (list.length === 0 || count <= 0) return [];
-  if (count === 1) return [...list];
-  const size = Math.ceil(list.length / count);
-  const result: Array<T> = [];
-  for (let i = 0; i < size; i++) {
-    result.push(list[(index * size + i) % list.length] as T);
+export function getAverageGroupSlice<T>(
+  list: Array<T>,
+  accountIndex: number,
+  accountCount: number
+): Array<T> {
+  if (list.length === 0 || accountCount <= 0) return [];
+  if (accountCount === 1) return [...list];
+  const size = Math.max(1, Math.ceil(list.length / accountCount));
+  const start = accountIndex * size;
+  if (start < list.length) {
+    return list.slice(start, start + size);
   }
-  return result;
+  return [list[accountIndex % list.length] as T];
 }
 
 /**
- * 平均分配素材：按各层级位置逐层均分到单个素材
- * 先把创意组内的素材（视频在前、图片在后）拉平后逐层取份，再按原创意组结构还原，空创意组丢弃
+ * 获取创意组总数（按分配方式）
+ * 平均分配时按该账户实际分到的创意组数量计算。
  */
-export function averageMaterialGroups(
-  groups: Array<Material>,
-  levels: Array<LevelPosition>
-): Array<Material> {
-  const flat: Array<LocalMaterialData> = [];
-  groups.forEach((group) => {
-    flat.push(...(group.video || []), ...(group.image || []));
-  });
-  let picked = flat;
-  levels.forEach((level) => {
-    picked = averageSlice(picked, level);
-  });
-  if (picked === flat) return groups;
-  const pickedSet = new Set(picked);
-  const result: Array<Material> = [];
-  groups.forEach((group) => {
-    const video = (group.video || []).filter((item) => pickedSet.has(item));
-    const image = (group.image || []).filter((item) => pickedSet.has(item));
-    if (video.length > 0 || image.length > 0) {
-      result.push({ ...group, video, image });
-    }
-  });
-  return result;
+export function getMaterialGroupCount(
+  creation: PlatformCreation<any>,
+  advertiserIds: Array<string>
+): number {
+  const material = creation.configData.material;
+  if (!material?.data) return 0;
+  const method = material.config.method;
+  if (method === DistributionMode.account) {
+    return advertiserIds.reduce(
+      (count, id) => count + (material.data.get(id)?.length || 0),
+      0
+    );
+  }
+  const groups = material.data.get("0") || [];
+  if (method === DistributionMode.avg) {
+    const accounts = creation.accountInfo || [];
+    return advertiserIds.reduce((count, id) => {
+      const index = accounts.findIndex(
+        (account) => String(account.localAdvertiserId) === String(id)
+      );
+      const accountIndex = index >= 0 ? index : 0;
+      return (
+        count +
+        getAverageGroupSlice(
+          groups,
+          accountIndex,
+          Math.max(1, accounts.length)
+        ).length
+      );
+    }, 0);
+  }
+  return groups.length;
 }
 
 /**
@@ -466,9 +466,16 @@ export function getMaterial(
     return data.get(advertiserId) || [];
   }
   const dataList: Array<Material> = data.get("0") || [];
-  // 平均分配：数据同样存在 '0' 键下，取值时按当前节点逐层均分
+  // 平均分配：先按账户连续切分创意组，再在账户内循环
   if (method === DistributionMode.avg && levels.length > 0) {
-    return averageMaterialGroups(dataList, levels);
+    const accountLevel = levels[0];
+    if (accountLevel) {
+      return getAverageGroupSlice(
+        dataList,
+        accountLevel.index,
+        accountLevel.count
+      );
+    }
   }
   return dataList;
 }

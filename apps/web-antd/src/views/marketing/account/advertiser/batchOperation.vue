@@ -1,21 +1,25 @@
 <script setup lang="ts" name="CreateAdvertiserModal">
+import type { AdvertiserItem, OrgItem, UserItem } from "#/api/models";
+
+import { reactive, ref } from "vue";
+
 import { useVbenModal } from "@vben/common-ui";
 import { $t } from "@vben/locales";
-import { reactive, ref } from "vue";
+
 import { useVbenForm } from "#/adapter/form";
-import type { AdvertiserItem, OrgItem, UserItem } from "#/api/models";
 import { accountLabelApi, advertiserApi, orgApi, projectApi, userApi } from "#/api";
+import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
 
 const emit = defineEmits(["pageReload"]);
 
-//父组件传过来的advertiserId
+// 父组件传过来的advertiserId
 const selectedRows = ref<AdvertiserItem[]>([]);
 const modalType = ref<TitleKey>("edit");
 const title = ref<string>("");
 const menuData = ref<OrgItem[]>([]);
 
 const salesOption = ref([]);
-type TitleKey = "edit" | "org" | "sale" | "creator" | "bind" | "status" | "hourlyState";
+type TitleKey = "bind" | "creator" | "edit" | "hourlyState" | "org" | "sale" | "status";
 
 const titleMap: Record<TitleKey, string> = reactive({
   edit: "批量修改项目",
@@ -60,9 +64,9 @@ const [Form, formApi] = useVbenForm({
           projectId: formVal.projectId
         }));
     } else if (modalType.value === "bind") {
-      ((type = "update_advertiser_tag"),
+      ((type = "update_advertiser_tags"),
         (values = {
-          tag_id: formVal.tagId
+          tagIds: formVal.tagIds || []
         }));
     } else if (modalType.value === "org") {
       ((type = "update_advertiser_organization"),
@@ -90,9 +94,9 @@ const [Form, formApi] = useVbenForm({
       };
     }
     await advertiserApi.fetchBatchOptions({
-      targetIds: targetIds,
-      type: type,
-      values: values
+      targetIds,
+      type,
+      values
     });
   },
   schema: [
@@ -136,14 +140,18 @@ const [Form, formApi] = useVbenForm({
     {
       component: "ApiSelect",
       componentProps: {
+        mode: "multiple",
+        maxTagCount: "responsive",
+        optionFilterProp: "label",
         showSearch: true,
-        placeholder: `${$t("common.input")}`,
+        placeholder: "可多选，追加绑定已有标签",
         filterOption: (inputValue: string, option: { label: string }) => {
           return option.label.toLowerCase().includes(inputValue.toLowerCase());
         },
         params: {
           page: 1,
-          pageSize: 1000
+          pageSize: 1000,
+          labelType: LABEL_TYPE_CODES.advertiser
         },
         valueField: "id",
         labelField: "name",        // 两个接口返回的数据都有 name 字段，直接固定
@@ -159,8 +167,9 @@ const [Form, formApi] = useVbenForm({
         },
         triggerFields: ["modalType"]
       },
-      fieldName: "tagId",
-      label: "标签"
+      fieldName: "tagIds",
+      label: "账户标签",
+      rules: "required"
     },
     {
       component: "RadioGroup",

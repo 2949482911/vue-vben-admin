@@ -1,5 +1,6 @@
 import type {
   HostingAudit,
+  HostingBatchStats,
   HostingDecision,
   HostingDecisionQueryParams,
   HostingInsight,
@@ -27,6 +28,7 @@ import { requestClient } from '#/api/request';
  * - GET  /platform/ai_hosting/decision/list        决策单列表（分页）
  * - POST /platform/ai_hosting/decision/review      人工审核（批量）
  * - GET  /platform/ai_hosting/decision/audits      审核与执行留痕
+ * - GET  /platform/ai_hosting/dashboard/batch_stats 今日批创统计（Airflow 汇总）
  *
  * 说明：原 `log/list`（触发留痕）已随数据模型收敛移除；
  *       「触发留痕」并入审核台，统一读 `decision/list`。
@@ -35,6 +37,14 @@ class AiHostingApi extends BaseApi {
   /** 批量操作（暂停/恢复/删除） */
   fetchBatchOptions(params: BatchOptions) {
     return requestClient.post(this.getServiceUrl('batch_options'), params);
+  }
+
+  /** 今日批创统计（Airflow 定时汇总，接口上线前由页面兜底演示数据） */
+  fetchBatchStats() {
+    return requestClient.get<HostingBatchStats>(
+      this.getServiceUrl('dashboard/batch_stats'),
+      { skipErrorMessage: true },
+    );
   }
 
   /** 创建托管任务 */

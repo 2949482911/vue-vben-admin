@@ -594,16 +594,12 @@ function reuseStrategyGroup() {
         padding: 4px 12px;
         margin-right: 10px;
         font-size: 13px;
-        border: 1px solid #006be6;
+        border: 1px solid hsl(var(--primary));
         border-radius: 4px;
-
-        .label {
-          // color: #666;
-        }
 
         .value {
           font-weight: 500;
-          color: #006be6;
+          color: hsl(var(--primary));
         }
 
         .ml-4 {
@@ -777,20 +773,19 @@ function reuseStrategyGroup() {
     flex: 1;
     padding: 12px;
     cursor: pointer;
-    border: 1px solid #e5e7eb;
+    border: 1px solid hsl(var(--border));
     border-radius: 6px;
     transition: all 0.3s;
 
     &:hover {
-      border-color: #006be6;
+      border-color: hsl(var(--primary));
     }
 
     &.active {
-      // background-color: #f6ffed;
-      border-color: #006be6;
+      border-color: hsl(var(--primary));
 
       .option-title {
-        color: #006be6;
+        color: hsl(var(--primary));
       }
     }
 
@@ -798,13 +793,12 @@ function reuseStrategyGroup() {
       margin-bottom: 4px;
       font-size: 15px;
       font-weight: 600;
-      // color: #333;
     }
 
     .option-desc {
       font-size: 12px;
       line-height: 1.4;
-      color: #999;
+      color: hsl(var(--muted-foreground));
     }
   }
 

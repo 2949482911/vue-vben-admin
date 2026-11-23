@@ -1,7 +1,8 @@
 <script setup lang="ts" name="TextareaTags">
 import { computed, nextTick, ref, watch } from 'vue';
-import { Input, Tag } from 'ant-design-vue';
+
 import { CloseOutlined } from '@ant-design/icons-vue';
+import { Input, Tag } from 'ant-design-vue';
 
 const props = withDefaults(
   defineProps<{
@@ -35,7 +36,7 @@ const emit = defineEmits<{
 }>();
 
 /** 输入框 ref（模板中 ref="inputRef" 绑定，antd Input 运行时暴露 focus 方法） */
-const inputRef = ref<{ focus: () => void } | null>(null);
+const inputRef = ref<null | { focus: () => void }>(null);
 
 /** 聚焦输入框（供外层容器点击时调用） */
 function focusInput() {
@@ -157,27 +158,27 @@ function handleKeydown(e: KeyboardEvent) {
   width: 100%;
   min-height: 80px;
   padding: 8px 12px 28px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid hsl(var(--border));
   border-radius: 6px;
   cursor: text;
   transition: border-color 0.3s;
 
   &:hover {
-    border-color: #4096ff;
+    border-color: hsl(var(--primary) / 55%);
   }
 
   &:focus-within {
-    border-color: #4096ff;
-    box-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1);
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 12%);
   }
 
   &.is-disabled {
-    background-color: #f5f5f5;
+    background-color: hsl(var(--muted));
     cursor: not-allowed;
-    border-color: #d9d9d9;
+    border-color: hsl(var(--border));
 
     &:hover {
-      border-color: #d9d9d9;
+      border-color: hsl(var(--border));
     }
   }
 }
@@ -212,10 +213,10 @@ function handleKeydown(e: KeyboardEvent) {
 
     .tag-close-icon {
       font-size: 10px;
-      color: #999;
+      color: hsl(var(--muted-foreground));
 
       &:hover {
-        color: #ff4d4f;
+        color: hsl(var(--destructive));
       }
     }
   }
@@ -244,7 +245,7 @@ function handleKeydown(e: KeyboardEvent) {
   bottom: 2px;
   right: 8px;
   font-size: 12px;
-  color: #999;
+  color: hsl(var(--muted-foreground));
   line-height: 20px;
   pointer-events: none;
 }

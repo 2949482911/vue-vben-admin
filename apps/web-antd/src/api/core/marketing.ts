@@ -372,6 +372,11 @@ export const materialLibraryApi = new MaterialLibraryApi("/platform/album");
  * 素材库
  */
 class UploadEditApi extends BaseApi {
+  /** 批量操作（删除、修改标签等）*/
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
+  }
+
   /** 删除素材*/
   fetchDelMaterials(params: BatchOptions) {
     return requestClient.post(this.getServiceUrl("batch_options"), params);
@@ -415,6 +420,11 @@ export const uploadCredentialsApi = new UploadCredentialsApi("/platform/aliyun")
  * 营销-资产-标题包
  */
 class TitlePackApi extends BaseApi {
+  /** 批量操作（删除、修改标签等）*/
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
+  }
+
   /** 标题包删除*/
   fetchDelTitlePack(params: DelTitlePackType) {
     return requestClient.post(this.getServiceUrl("batch_options"), params);
@@ -442,6 +452,11 @@ export const titlePackApi = new TitlePackApi("/platform/titlePackage");
  * 营销-资产-定向包
  */
 class TargetedPackageApi extends BaseApi {
+  /** 批量操作（删除、修改标签等）*/
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
+  }
+
   /** 定向包删除*/
   fetchDelTargetedPackage(params: DelTitlePackType) {
     return requestClient.post(this.getServiceUrl("batch_options"), params);
@@ -584,6 +599,11 @@ export const subscribeApi = new SubscribeApi("/platform/report_subscribe");
  * 营销-资产-定向包
  */
 class LoadingPageApi extends BaseApi {
+  // 批量操作（删除、修改标签等）
+  fetchBatchOptions(params: BatchOptions) {
+    return requestClient.post(this.getServiceUrl("batch_options"), params);
+  }
+
   // 创建
   fetchCreateLoadingPage(params: CreateLandingPage) {
     return requestClient.post(this.getServiceUrl("create"), params);

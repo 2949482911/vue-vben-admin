@@ -707,12 +707,12 @@ const [Drawer, drawerApi] = useVbenDrawer<DpaProductAllocationConfig>({
 }
 
 .mode-grid :deep(.ant-radio-wrapper:hover) {
-  border-color: #91caff;
+  border-color: hsl(var(--primary) / 45%);
 }
 
 .mode-grid :deep(.ant-radio-wrapper-checked) {
-  border-color: #1677ff;
-  background: #eef5ff;
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 12%);
 }
 
 .mode-grid :deep(.ant-radio) {
@@ -767,12 +767,12 @@ const [Drawer, drawerApi] = useVbenDrawer<DpaProductAllocationConfig>({
 }
 
 .account-item:hover {
-  border-color: #91caff;
+  border-color: hsl(var(--primary) / 45%);
 }
 
 .account-item.active {
-  border-color: #1677ff;
-  background: #eef5ff;
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 12%);
 }
 
 .account-name {
@@ -832,10 +832,14 @@ const [Drawer, drawerApi] = useVbenDrawer<DpaProductAllocationConfig>({
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: hsl(var(--primary-foreground));
   font-size: 12px;
   font-weight: 700;
-  background: linear-gradient(145deg, #5b8def, #8fb7ff);
+  background: linear-gradient(
+    145deg,
+    hsl(var(--primary)),
+    hsl(var(--primary) / 55%)
+  );
 }
 
 .product-name {
@@ -884,9 +888,9 @@ const [Drawer, drawerApi] = useVbenDrawer<DpaProductAllocationConfig>({
   gap: 6px;
   max-width: 260px;
   padding: 4px 8px;
-  color: #0958d9;
-  background: #eef5ff;
-  border: 1px solid #cfe5ff;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 12%);
+  border: 1px solid hsl(var(--primary) / 30%);
   border-radius: 6px;
 }
 
@@ -896,10 +900,10 @@ const [Drawer, drawerApi] = useVbenDrawer<DpaProductAllocationConfig>({
   justify-content: center;
   width: 16px;
   height: 16px;
-  color: #fff;
+  color: hsl(var(--primary-foreground));
   font-size: 10px;
   font-weight: 700;
-  background: #1677ff;
+  background: hsl(var(--primary));
   border-radius: 50%;
 }
 
@@ -910,7 +914,7 @@ const [Drawer, drawerApi] = useVbenDrawer<DpaProductAllocationConfig>({
 }
 
 .chip-close {
-  color: #7aa7e8;
+  color: hsl(var(--primary) / 65%);
   cursor: pointer;
 }
 
@@ -949,8 +953,8 @@ const [Drawer, drawerApi] = useVbenDrawer<DpaProductAllocationConfig>({
   gap: 10px;
   align-items: center;
   padding: 10px;
-  background: #eef5ff;
-  border: 1px solid #91caff;
+  background: hsl(var(--primary) / 10%);
+  border: 1px solid hsl(var(--primary) / 30%);
   border-radius: 8px;
 }
 
@@ -960,11 +964,11 @@ const [Drawer, drawerApi] = useVbenDrawer<DpaProductAllocationConfig>({
 
 .hint {
   padding: 8px 9px;
-  color: #0958d9;
+  color: hsl(var(--primary));
   font-size: 12px;
   line-height: 1.55;
-  background: #eef7ff;
-  border: 1px solid #bae0ff;
+  background: hsl(var(--primary) / 10%);
+  border: 1px solid hsl(var(--primary) / 28%);
   border-radius: 6px;
 }
 
@@ -980,8 +984,8 @@ const [Drawer, drawerApi] = useVbenDrawer<DpaProductAllocationConfig>({
   justify-content: space-between;
   gap: 8px;
   padding: 7px 8px;
-  background: #f8fafc;
-  border: 1px solid #f0f2f5;
+  background: hsl(var(--muted) / 55%);
+  border: 1px solid hsl(var(--border));
   border-radius: 6px;
 }
 
@@ -989,17 +993,17 @@ const [Drawer, drawerApi] = useVbenDrawer<DpaProductAllocationConfig>({
   max-width: 160px;
   padding: 2px 7px;
   overflow: hidden;
-  color: #0958d9;
+  color: hsl(var(--primary));
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: #eef5ff;
-  border: 1px solid #cfe5ff;
+  background: hsl(var(--primary) / 12%);
+  border: 1px solid hsl(var(--primary) / 30%);
   border-radius: 4px;
 }
 
 .rule-card {
-  background: #fbfcfe;
+  background: hsl(var(--card));
 }
 
 .rule-line {

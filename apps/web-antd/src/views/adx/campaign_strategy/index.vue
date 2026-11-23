@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import {trimObject} from '#/utils/trim';
 import type {VbenFormProps} from '@vben/common-ui';
-import {Page, useVbenDrawer} from '@vben/common-ui';
-import type {CampaignItem} from '#/api/models/adx';
+
 import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid} from '#/adapter/vxe-table';
-import {Button, Switch} from 'ant-design-vue';
-import {TABLE_COMMON_COLUMNS,} from '#/constants/locales';
-import {campaignApi} from '#/api/core/adx';
+import type {CampaignItem} from '#/api/models/adx';
+
+import {Page, useVbenDrawer} from '@vben/common-ui';
 import {$t} from '@vben/locales';
+
+import {Button, Switch} from 'ant-design-vue';
+
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {campaignApi} from '#/api/core/adx';
+import {TABLE_COMMON_COLUMNS,} from '#/constants/locales';
+import {trimObject} from '#/utils/trim';
+
 import CreateDSpDrawer from './create.vue';
 
 const formOptions: VbenFormProps = {
@@ -156,7 +161,7 @@ function handlerState(_row: CampaignItem) {}
           </Button>
         </template>
         <template #status="{ row }">
-          <Switch :checked="row.status === 1" @click="handlerState(row)"/>
+          <Switch :checked="row.status === 1" @click="handlerState(row)" />
         </template>
         <template #action="{ row }">
           <Button type="link" @click="openCreateDrawer(row)">
@@ -165,7 +170,7 @@ function handlerState(_row: CampaignItem) {}
         </template>
       </Grid>
     </Page>
-    <CreateDrawer @page-reload="pageReload"/>
+    <CreateDrawer @page-reload="pageReload" />
   </div>
 </template>
 

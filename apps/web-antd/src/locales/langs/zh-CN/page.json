@@ -59,6 +59,7 @@
     "task_center": {
       "title": "任务中心"
     },
+
     "account": {
       "title": "账户",
       "advertiser": "广告主",
@@ -150,7 +151,8 @@
         "statusCompleted": "已完成",
         "statusFailed": "失败",
         "statusCancelled": "已取消"
-      }
+      },
+      "platform_asset": "媒体资产"
     },
     "ai_hosting": {
       "title": "Ai 智能托管",
@@ -158,7 +160,8 @@
       "ai_hosting_log": "执行日志"
     },
     "ai_copilot": "Ai投手",
-    "material_analysis": "素材分析"
+    "material_analysis": "素材分析",
+    "auto_ads": "自动广告"
   },
   "tools": {
     "title": "工具",

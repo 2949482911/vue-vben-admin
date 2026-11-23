@@ -67,11 +67,13 @@ class DashboardDataApi extends BaseApi {
 
   /** 告警列表 */
   fetchAlerts(
-    data: AlertQueryParams
+    data: AlertQueryParams,
+    config?: { skipErrorMessage?: boolean }
   ): Promise<AlertListResponse> {
     return requestClient.post<AlertListResponse>(
       this.getServiceUrl("dashboard/alerts"),
-      data
+      data,
+      config
     );
   }
 

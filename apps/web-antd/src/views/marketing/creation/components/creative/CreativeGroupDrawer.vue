@@ -1,44 +1,47 @@
 <script setup lang="ts" name="CreativeGroupDrawer">
 // 创意组编辑抽屉 - 供所有媒体公用
 
-import {computed, nextTick, ref} from 'vue';
+import type {MaterialItem} from "#/api/models/assert";
+import type {AccountInfo, LocalMaterialData, Material, MaterialData, RuleInfo} from '#/views/marketing/creation/creation';
+
+import {computed, ref} from 'vue';
+
+import {useVbenDrawer, useVbenModal} from '@vben/common-ui';
+
 import {
-  Anchor,
-  AnchorLink,
+  CopyOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+} from '@ant-design/icons-vue';
+import {
   Button,
   Card,
-  Collapse,
-  CollapsePanel,
-  Divider,
+  Empty,
   InputNumber,
+  List,
+  ListItem,
   message,
+  Radio,
   RadioButton,
   RadioGroup,
+  Segmented,
   Space,
   Switch,
   TabPane,
   Tabs,
+  Tag,
 } from 'ant-design-vue';
-import {useVbenDrawer, useVbenModal} from '@vben/common-ui';
-import type {AccountInfo, LocalMaterialData, Material, MaterialData, RuleInfo} from '#/views/marketing/creation/creation';
+
+import {getAverageGroupSlice} from '#/views/marketing/creation/creation';
 import {RuleKey, RuleMethod} from '#/views/marketing/creation/creation_enums';
+
 import MaterialSelector from '../material/MaterialSelector.vue';
-import type {MaterialItem} from "#/api/models/assert";
 
 /** 打开抽屉时传入的数据 */
 interface CreativeGroupDrawerData {
   method?: RuleMethod;
-  data?: Map<string, Material[]> | Record<string, Material[]> | null;
+  data?: Map<string, Material[]> | null | Record<string, Material[]>;
 }
-
-/**
- * 素材选择组件
- */
-const [MaterialSelectorModal, materialSelectorApi] = useVbenModal({
-  connectedComponent: MaterialSelector
-})
-
-const emit = defineEmits(['update:material']);
 
 /**
  *
@@ -54,6 +57,14 @@ const {accountInfo, ruleInfo} = defineProps({
   },
 });
 
+const emit = defineEmits(['update:material']);
+
+/**
+ * 素材选择组件
+ */
+const [MaterialSelectorModal, materialSelectorApi] = useVbenModal({
+  connectedComponent: MaterialSelector
+})
 
 // 按账户分配的创意组数据 key=accountId
 const accountCreativeGroups = ref<Map<string, Material[]>>(new Map());
@@ -91,18 +102,11 @@ function initAccountGroups() {
   }
 }
 
-// 切换账户Tab
-function onAccountTabChange(key: string | number) {
-  const accountId = String(key);
-  activeAccountId.value = accountId;
-  activeCollapseKeys.value = [0];
+// 切换账户
+function onAccountChange(value: number | string) {
+  activeAccountId.value = String(value);
   activeTabs.value.clear();
-  currentAnchor.value = ['group-0'];
-}
-
-// 获取账户名称
-function getAccountName(account: AccountInfo): string {
-  return `${account.advertiserName}(${account.localAdvertiserId})`;
+  selectedGroupIndex.value = 0;
 }
 
 // 当前编辑的创意组列表
@@ -117,80 +121,167 @@ const autoGenerateCover = ref<boolean>(true);
 // 视频同步主页
 const videoSyncHomepage = ref<boolean>(false);
 // 当前选中的素材类型（每个创意组独立）
-const activeTabs = ref<Map<number, 'video' | 'image'>>(new Map());
-// 展开的创意组索引
-const activeCollapseKeys = ref<number[]>([0]);
-// 当前锚点
-const currentAnchor = ref<string[]>(['group-0']);
+const activeTabs = ref<Map<number, 'image' | 'video'>>(new Map());
+// 当前选中的创意组索引
+const selectedGroupIndex = ref(0);
+// 分配方式选项
+const modeOptions = [
+  {
+    desc: '所有账户共用一组创意组，账户内计划/广告循环',
+    label: '统一分配',
+    value: RuleMethod.ALL,
+  },
+  {
+    desc: '每个账户独立创意组，账户内计划/广告循环',
+    label: '分账户分配',
+    value: RuleMethod.ACCOUNT,
+  },
+  {
+    desc: '创意组平均分给账户，账户使用自己分到的组',
+    label: '平均分配',
+    value: RuleMethod.AVG,
+  },
+];
 
 // 当前正在添加素材的创意组索引
 const currentMaterialGroupIndex = ref<number>(-1);
 // 当前正在添加的素材类型
-const currentMaterialType = ref<'video' | 'image'>('video');
+const currentMaterialType = ref<'image' | 'video'>('video');
 
 // 获取当前创意组的活跃tab
-function getActiveTab(index: number): 'video' | 'image' {
+function getActiveTab(index: number): 'image' | 'video' {
   return activeTabs.value.get(index) || 'video';
 }
 
 // 设置当前创意组的活跃tab
-function setActiveTab(index: number, key: 'video' | 'image') {
+function setActiveTab(index: number, key: 'image' | 'video') {
   activeTabs.value.set(index, key);
 }
 
-/**
- * 全部素材个数
- */
-const totalMaterials = computed(() => {
-  let total = 0;
-  const groups = distributionMethod.value === RuleMethod.ACCOUNT
-    ? (accountCreativeGroups.value.get(activeAccountId.value) || [])
-    : creativeGroups.value;
-  groups.forEach(g => {
-    total += (g.video?.length || 0) + (g.image?.length || 0);
+// 平均分配：全局创意组按账户连续切分的结果
+const averageAllocation = computed(() => {
+  if (distributionMethod.value !== RuleMethod.AVG) {
+    return [];
+  }
+  const accounts = accountInfo || [];
+  return accounts.map((account, index) => {
+    const groups = getAverageGroupSlice(
+      creativeGroups.value,
+      index,
+      Math.max(1, accounts.length),
+    );
+    return {
+      account,
+      count: groups.length,
+      label: groups
+        .map((group) => {
+          const groupIndex = creativeGroups.value.indexOf(group);
+          return `创意组 ${String(groupIndex + 1).padStart(2, '0')}`;
+        })
+        .join('、'),
+    };
   });
-  return total;
 });
+
+const accountOptions = computed(() =>
+  (accountInfo || []).map((account, index) => {
+    let count = 0;
+    if (distributionMethod.value === RuleMethod.ACCOUNT) {
+      count = accountCreativeGroups.value.get(String(account.localAdvertiserId))?.length || 0;
+    } else if (distributionMethod.value === RuleMethod.AVG) {
+      count = averageAllocation.value[index]?.count || 0;
+    }
+    return {
+      label: `${account.advertiserName} · ${count} 组`,
+      value: String(account.localAdvertiserId),
+    };
+  }),
+);
+
+const currentGroups = computed(() => getCurrentGroups());
+const selectedGroup = computed(
+  () => currentGroups.value[selectedGroupIndex.value] || null,
+);
+
+// 创意组分配预览（按账户内计划/广告连续循环）
+const allocationPreview = computed(() => {
+  const groups = getCurrentGroups();
+  if (groups.length === 0) {
+    return [];
+  }
+  return Array.from({length: 6}, (_, index) => {
+    const group = groups[index % groups.length]!;
+    const groupIndex = groups.indexOf(group);
+    return {
+      label: `计划 ${String(Math.floor(index / 2) + 1).padStart(2, '0')} · 广告 ${String((index % 2) + 1).padStart(2, '0')}`,
+      groupName: group.brandName || `创意组 ${String(groupIndex + 1).padStart(2, '0')}`,
+    };
+  });
+});
+
+function groupLabel(index: number) {
+  return `创意组 ${String(index + 1).padStart(2, '0')}`;
+}
+
+const selectedGroupTitle = computed(() => {
+  if (!selectedGroup.value) {
+    return '创意素材';
+  }
+  return selectedGroup.value.brandName
+    ? `${groupLabel(selectedGroupIndex.value)} · ${selectedGroup.value.brandName}`
+    : groupLabel(selectedGroupIndex.value);
+});
+
+function groupThumbnails(group: Material) {
+  const videos = (group.video || []).map((item) => ({ ...item, type: 'video' as const }));
+  const images = (group.image || []).map((item) => ({ ...item, type: 'image' as const }));
+  return [...videos, ...images].slice(0, 3);
+}
 
 // 获取当前操作的创意组列表
 function getCurrentGroups(): Material[] {
   if (distributionMethod.value === RuleMethod.ACCOUNT) {
     return accountCreativeGroups.value.get(activeAccountId.value) || [];
   }
+  if (distributionMethod.value === RuleMethod.AVG) {
+    const index = (accountInfo || []).findIndex(
+      (account) =>
+        String(account.localAdvertiserId) === String(activeAccountId.value),
+    );
+    return getAverageGroupSlice(
+      creativeGroups.value,
+      index >= 0 ? index : 0,
+      Math.max(1, (accountInfo || []).length),
+    );
+  }
   return creativeGroups.value;
 }
 
 
 /**
- * 切换分配方式时清空素材数据
- * - 切换到账户分配：清空全部复用数据，初始化账户数据
- * - 切换到全部复用/平均分配：清空账户数据，初始化创意组数据
+ * 切换分配方式：切换视图但保留已编辑的素材池
  */
 function allocationMethodChange() {
   activeTabs.value.clear();
-  activeCollapseKeys.value = [0];
-  currentAnchor.value = ['group-0'];
+  selectedGroupIndex.value = 0;
 
   if (distributionMethod.value === RuleMethod.ACCOUNT) {
-    // 切换到账户分配：清空全部复用数据，初始化账户数据
-    creativeGroups.value = [];
-    accountCreativeGroups.value.clear();
-    accountInfo.forEach(account => {
-      const accountId = String(account.localAdvertiserId);
-      accountCreativeGroups.value.set(accountId, [{
+    initAccountGroups();
+    if (accountInfo.length > 0) {
+      activeAccountId.value = String(accountInfo[0]?.localAdvertiserId);
+    }
+  } else if (distributionMethod.value === RuleMethod.AVG) {
+    activeAccountId.value = String((accountInfo || [])[0]?.localAdvertiserId || '');
+    if (creativeGroups.value.length === 0) {
+      creativeGroups.value.push({
         image: [],
         video: [],
         isExpanded: false,
         active: '',
         brandName: '',
-      }]);
-    });
-    if (accountInfo.length > 0) {
-      activeAccountId.value = String(accountInfo[0]?.localAdvertiserId);
+      });
     }
   } else {
-    // 切换到全部复用/平均分配：清空账户数据，初始化创意组数据
-    accountCreativeGroups.value.clear();
     activeAccountId.value = '';
     if (creativeGroups.value.length === 0) {
       creativeGroups.value.push({
@@ -217,7 +308,10 @@ const [Drawer, drawerApi] = useVbenDrawer<CreativeGroupDrawerData>({
       if (data) {
         distributionMethod.value = data.method || RuleMethod.ALL;
         activeTabs.value.clear();
-        currentAnchor.value = ['group-0'];
+        selectedGroupIndex.value = 0;
+        if (distributionMethod.value === RuleMethod.AVG) {
+          activeAccountId.value = String(accountInfo[0]?.localAdvertiserId || '');
+        }
 
         // 兼容 Map 序列化为普通对象的情况（useVbenDrawer 内部 JSON 序列化会导致 Map → PlainObject）
         const dataMap = data.data instanceof Map
@@ -258,7 +352,10 @@ const [Drawer, drawerApi] = useVbenDrawer<CreativeGroupDrawerData>({
     }
   },
   async onConfirm() {
-    const groupsToValidate = getCurrentGroups();
+    const groupsToValidate =
+      distributionMethod.value === RuleMethod.AVG
+        ? creativeGroups.value
+        : getCurrentGroups();
     for (let i = 0; i < groupsToValidate.length; i++) {
       const group = groupsToValidate[i];
       const videoLen = group?.video?.length || 0;
@@ -305,15 +402,8 @@ function addCreativeGroup() {
     active: '',
     brandName: '',
   });
-  activeCollapseKeys.value = [newIndex];
   activeTabs.value.clear();
-  nextTick(() => {
-    const el = document.getElementById(`group-${newIndex}`);
-    if (el) {
-      el.scrollIntoView({behavior: 'smooth', block: 'start'});
-    }
-    currentAnchor.value = [`group-${newIndex}`];
-  });
+  selectedGroupIndex.value = newIndex;
 }
 
 // 删除创意组
@@ -323,16 +413,11 @@ function removeCreativeGroup(index: number) {
     return message.warning('至少保留一个创意组');
   }
   groups.splice(index, 1);
-  activeCollapseKeys.value = activeCollapseKeys.value
-    .map(k => (k > index ? k - 1 : k))
-    .filter(k => k < groups.length);
-  if (activeCollapseKeys.value.length === 0 && groups.length > 0) {
-    activeCollapseKeys.value = [Math.min(index, groups.length - 1)];
-  }
+  selectedGroupIndex.value = Math.min(index, Math.max(0, groups.length - 1));
 }
 
 // 打开素材选择器
-function openMaterialSelector(index: number, type: 'video' | 'image') {
+function openMaterialSelector(index: number, type: 'image' | 'video') {
   const groups = getCurrentGroups();
   const group = groups[index];
   if (!group) return;
@@ -341,7 +426,10 @@ function openMaterialSelector(index: number, type: 'video' | 'image') {
   if (currentCount >= maxCount) {
     return message.warning(`${type === 'video' ? '视频' : '图片'}数量已达上限 ${maxCount} 个`);
   }
-  currentMaterialGroupIndex.value = index;
+  currentMaterialGroupIndex.value =
+    distributionMethod.value === RuleMethod.AVG
+      ? creativeGroups.value.indexOf(group)
+      : index;
   currentMaterialType.value = type;
 
   // 当前组已选素材，传给 MaterialSelector 用于回显勾选状态
@@ -359,7 +447,7 @@ function openMaterialSelector(index: number, type: 'video' | 'image') {
 }
 
 // 删除素材
-function removeMaterial(groupIndex: number, matIndex: number, type: 'video' | 'image') {
+function removeMaterial(groupIndex: number, matIndex: number, type: 'image' | 'video') {
   const groups = getCurrentGroups();
   const group = groups[groupIndex];
   if (!group) return;
@@ -368,10 +456,6 @@ function removeMaterial(groupIndex: number, matIndex: number, type: 'video' | 'i
   } else {
     group.image?.splice(matIndex, 1);
   }
-}
-
-function shuffleGroup() {
-  message.info('乱序功能待实现');
 }
 
 /**
@@ -390,39 +474,16 @@ function copyGroup(index: number) {
     brandName: '',
   };
   groups.push(newGroup);
-  activeCollapseKeys.value = [groups.length - 1];
-  nextTick(() => {
-    const el = document.getElementById(`group-${groups.length - 1}`);
-    if (el) {
-      el.scrollIntoView({behavior: 'smooth', block: 'start'});
-    }
-    currentAnchor.value = [`group-${groups.length - 1}`];
-  });
+  selectedGroupIndex.value = groups.length - 1;
 }
 
-/**
- * 锚点跳转
- * @param index
- * @param event
- */
-function scrollToGroup(index: number, event: Event) {
-  event.preventDefault();
-  event.stopPropagation();
-  const el = document.getElementById(`group-${index}`);
-  if (el) {
-    el.scrollIntoView({behavior: 'smooth', block: 'start'});
-  }
-  currentAnchor.value = [`group-${index}`];
-}
-
-// 获取素材卡片内容
-function getMaterialCards(groupIndex: number, type: 'video' | 'image') {
+function getMaterialCards(groupIndex: number, type: 'image' | 'video') {
   const groups = getCurrentGroups();
   const group = groups[groupIndex];
   if (!group) return [];
   const materials = type === 'video' ? (group.video || []) : (group.image || []);
   const maxCount = type === 'video' ? groupVideoCount.value : groupImageCount.value;
-  const cards: Array<{ type: 'material' | 'empty'; index: number; mat?: any }> = [];
+  const cards: Array<{ type: 'empty' | 'material'; index: number; mat?: any }> = [];
 
   materials.forEach((mat: any, index: number) => {
     cards.push({type: 'material', index, mat});
@@ -441,7 +502,7 @@ function getMaterialCards(groupIndex: number, type: 'video' | 'image') {
  */
 function applyCreativeRule(
   materials: Array<LocalMaterialData>,
-  type: 'video' | 'image',
+  type: 'image' | 'video',
   groups: Material[],
 ) {
   const count = materials.length;
@@ -544,517 +605,735 @@ function updateMaterial(selectedMaterials: Array<MaterialItem>, creativeGroupInd
       }
     }
   }
-
-  // 更新选中项和锚点
-  activeCollapseKeys.value = [0];
-  activeTabs.value.clear();
-  currentAnchor.value = ['group-0'];
 }
 
 </script>
 
 <template>
-  <Drawer title="创意素材设置" size="large">
-    <Space direction="vertical" class="w-full">
-      <!-- 创意素材设置 -->
-      <Card title="创意素材设置">
-        <Space direction="vertical" class="w-full">
-          <div class="form-item">
-            <span class="form-label">素材分配方式</span>
-            <RadioGroup v-model:value="distributionMethod" @change="allocationMethodChange">
-              <RadioButton :value="RuleMethod.ALL">全账户复用</RadioButton>
-              <RadioButton :value="RuleMethod.AVG">平均分配</RadioButton>
-              <RadioButton :value="RuleMethod.ACCOUNT">按账户分配</RadioButton>
-            </RadioGroup>
-          </div>
-          <Divider/>
-          <div class="form-item">
-            <span class="form-label">每个创意组配置</span>
-            <Space>
-              <InputNumber v-model:value="groupVideoCount" :min="1" :max="20"/>
-              <span>个视频</span>
-              <InputNumber v-model:value="groupImageCount" :min="0" :max="20"/>
-              <span>个图片</span>
-            </Space>
-          </div>
-          <Divider/>
-          <div class="form-item">
-            <span class="form-label">自动生成封面</span>
-            <Switch v-model:checked="autoGenerateCover"/>
-          </div>
-          <Divider/>
-          <div class="form-item">
-            <span class="form-label">视频同步主页</span>
-            <Space direction="vertical" size="small">
-              <RadioGroup v-model:value="videoSyncHomepage">
-                <RadioButton :value="false">关闭</RadioButton>
-                <RadioButton :value="true">开启</RadioButton>
-              </RadioGroup>
-              <span class="tip-text">仅当选择本地素材库时设置生效</span>
-            </Space>
-          </div>
-        </Space>
-      </Card>
-
-      <!-- 按账户分配时的账户Tab -->
-      <Card v-if="distributionMethod === RuleMethod.ACCOUNT" title="账户选择">
-        <Tabs
-          :active-key="activeAccountId"
-          type="card"
-          @change="onAccountTabChange"
-        >
-          <TabPane
-            v-for="account in accountInfo"
-            :key="String(account.localAdvertiserId)"
-            :tab="getAccountName(account)"
+  <Drawer title="创意组素材" class="creative-group-drawer w-[75vw]">
+    <div class="material-config">
+      <div class="mode-block">
+        <div class="mode-head">
+          <span>分配方式</span>
+          <span class="muted">创意组是分配单位；计划/广告数量按当前范围创意组数联动</span>
+        </div>
+        <RadioGroup v-model:value="distributionMethod" class="mode-grid" @change="allocationMethodChange">
+          <Radio
+            v-for="option in modeOptions"
+            :key="option.value"
+            :value="option.value"
+            class="mode-card"
           >
-            <div class="collapse-header">
-              <span class="collapse-title">创意组</span>
-              <Button size="small" @click="addCreativeGroup">+添加创意组</Button>
-            </div>
-            <div class="creative-content">
-              <div class="anchor-nav">
-                <Anchor v-model:selected-key="currentAnchor" :target-offset="200" :affix="false"
-                        class="creative-anchor">
-                  <AnchorLink
-                    v-for="(_, index) in accountCreativeGroups.get(activeAccountId) || []"
-                    :key="`group-${index}`"
-                    :href="`#group-${index}`"
-                    :title="`创意组${String(index + 1).padStart(2, '0')}`"
-                    @click="(e: Event) => scrollToGroup(index, e)"
-                  />
-                </Anchor>
-              </div>
-              <div class="collapse-content">
-                <Collapse v-model:activeKey="activeCollapseKeys" class="w-full creative-collapse">
-                  <CollapsePanel
-                    v-for="(group, groupIndex) in (accountCreativeGroups.get(activeAccountId) || [])"
-                    :key="groupIndex"
-                    :id="`group-${groupIndex}`"
-                    :header="`创意组${String(groupIndex + 1).padStart(2, '0')} (${(group.video?.length || 0) + (group.image?.length || 0)}个素材)`"
-                  >
-                    <template #extra>
-                      <Space size="small">
-                        <Button size="small" type="text" @click.stop="copyGroup(groupIndex)">复制
-                        </Button>
-                        <Button size="small" type="text" @click.stop="shuffleGroup">乱序
-                        </Button>
-                        <Button size="small" type="text" danger @click.stop="removeCreativeGroup(groupIndex)">删除
-                        </Button>
-                      </Space>
-                    </template>
+            <span class="mode-name">{{ option.label }}</span>
+            <span class="mode-desc">{{ option.desc }}</span>
+          </Radio>
+        </RadioGroup>
+      </div>
 
-                    <Tabs
-                      :activeKey="getActiveTab(groupIndex)"
-                      @update:activeKey="(key) => setActiveTab(groupIndex, key as 'video' | 'image')"
-                    >
-                      <TabPane
-                        :key="'video'"
-                        :tab="`视频(${(group.video?.length || 0)}/${groupVideoCount})`"
-                      >
-                        <div class="tabs-actions">
-                          <Button type="primary" size="small"
-                                  @click="openMaterialSelector(groupIndex, 'video')">
-                            + 添加素材
-                          </Button>
-                        </div>
-                        <div class="material-grid">
-                          <template v-for="card in getMaterialCards(groupIndex, 'video')"
-                                    :key="card.index">
-                            <div v-if="card.type === 'material'" class="material-card">
-                              <div class="material-preview">
-                                <video :src="card.mat.url" class="preview-thumb"/>
-                                <div class="play-overlay">▶</div>
-                              </div>
-                              <div class="material-info">
-                              <span class="material-name" :title="card.mat.name">{{
-                                  card.mat.name
-                                }}</span>
-                              </div>
-                              <div class="material-delete"
-                                   @click="removeMaterial(groupIndex, card.index, 'video')">
-                                ×
-                              </div>
-                            </div>
-                            <div v-else-if="card.type === 'empty'" class="material-card empty-card"
-                                 @click="openMaterialSelector(groupIndex, 'video')">
-                              <div class="empty-icon">
-                                <div class="icon-circle">
-                                  <span class="icon-text">选择视频</span>
-                                </div>
-                              </div>
-                            </div>
-                          </template>
-                        </div>
-                      </TabPane>
-                      <TabPane
-                        :key="'image'"
-                        :tab="`图片(${(group.image?.length || 0)}/${groupImageCount})`"
-                      >
-                        <div class="tabs-actions">
-                          <Button type="primary" size="small"
-                                  @click="openMaterialSelector(groupIndex, 'image')">
-                            + 添加素材
-                          </Button>
-                        </div>
-                        <div class="material-grid">
-                          <template v-for="card in getMaterialCards(groupIndex, 'image')"
-                                    :key="card.index">
-                            <div v-if="card.type === 'material'" class="material-card">
-                              <div class="material-preview">
-                                <img :src="card.mat.url" :alt="card.mat.name"
-                                     class="preview-thumb"/>
-                              </div>
-                              <div class="material-info">
-                              <span class="material-name" :title="card.mat.name">{{
-                                  card.mat.name
-                                }}</span>
-                              </div>
-                              <div class="material-delete"
-                                   @click="removeMaterial(groupIndex, card.index, 'image')">
-                                ×
-                              </div>
-                            </div>
-                            <div v-else-if="card.type === 'empty'" class="material-card empty-card"
-                                 @click="openMaterialSelector(groupIndex, 'image')">
-                              <div class="empty-icon">
-                                <div class="icon-circle">
-                                  <span class="icon-text">选择图片</span>
-                                </div>
-                              </div>
-                            </div>
-                          </template>
-                        </div>
-                      </TabPane>
-                    </Tabs>
-                  </CollapsePanel>
-                </Collapse>
-              </div>
-            </div>
-          </TabPane>
-        </Tabs>
-      </Card>
+      <div v-if="distributionMethod !== RuleMethod.ALL" class="account-strip">
+        <span class="muted">媒体账户</span>
+        <Segmented
+          :options="accountOptions"
+          :value="activeAccountId"
+          @change="onAccountChange"
+        />
+        <Tag v-if="distributionMethod === RuleMethod.AVG" color="blue">创意组按账户均分</Tag>
+      </div>
 
-      <!-- 全账户复用/平均分配时的创意组列表 -->
-      <Card v-else title="创意组">
-        <div class="collapse-header">
-          <span>{{ totalMaterials / 200 }}</span>
-          <Button type="dashed" size="small" @click="addCreativeGroup">+ 添加创意组</Button>
-        </div>
+      <div class="work-grid">
+        <Card class="group-panel">
+          <template #title>
+            <span>{{ distributionMethod === RuleMethod.AVG ? '账户分到的创意组' : '创意组' }}</span>
+          </template>
+          <template #extra>
+            <Tag>{{ currentGroups.length }} 组</Tag>
+          </template>
 
-        <div class="creative-content">
-          <!-- 左侧锚点导航 -->
-          <div class="anchor-nav">
-            <Anchor v-model:selected-key="currentAnchor" :target-offset="200" :affix="false"
-                    class="creative-anchor">
-              <AnchorLink
-                v-for="(_, index) in creativeGroups"
-                :key="`group-${index}`"
-                :href="`#group-${index}`"
-                :title="`创意组${String(index + 1).padStart(2, '0')}`"
-                @click="(e: Event) => scrollToGroup(index, e)"
-              />
-            </Anchor>
-          </div>
-
-          <!-- 右侧内容区 -->
-          <div class="collapse-content">
-            <Collapse v-model:activeKey="activeCollapseKeys" class="w-full creative-collapse">
-              <CollapsePanel
-                v-for="(group, groupIndex) in creativeGroups"
-                :key="groupIndex"
-                :id="`group-${groupIndex}`"
-                :header="`创意组${String(groupIndex + 1).padStart(2, '0')} (${(group.video?.length || 0) + (group.image?.length || 0)}个素材)`"
-              >
-                <template #extra>
-                  <Space size="small">
-                    <Button size="small" type="text" @click.stop="copyGroup(groupIndex)">复制
-                    </Button>
-                    <Button size="small" type="text"
-                            @click.stop="shuffleGroup">乱序
-                    </Button>
-                    <Button size="small" type="text" danger
-                            @click.stop="removeCreativeGroup(groupIndex)">删除
-                    </Button>
-                  </Space>
-                </template>
-
-                <Tabs
-                  :activeKey="getActiveTab(groupIndex)"
-                  @update:activeKey="(key) => setActiveTab(groupIndex, key as 'video' | 'image')"
+          <List
+            :data-source="currentGroups"
+            :split="false"
+            size="small"
+            class="group-list"
+          >
+            <template #renderItem="{ item, index }">
+              <ListItem class="group-list-item">
+                <Card
+                  :class="{ active: index === selectedGroupIndex }"
+                  class="group-card"
+                  hoverable
+                  size="small"
+                  @click="selectedGroupIndex = index"
                 >
-                  <TabPane
-                    :key="'video'"
-                    :tab="`视频(${(group.video?.length || 0)}/${groupVideoCount})`"
+                  <div class="group-card-head">
+                    <span class="group-index">{{ index + 1 }}</span>
+                    <span class="group-name">{{ groupLabel(index) }}</span>
+                    <Tag>{{ (item.video?.length || 0) + (item.image?.length || 0) }} 素材</Tag>
+                  </div>
+                  <div class="group-meta">
+                    视频 {{ item.video?.length || 0 }} · 图片 {{ item.image?.length || 0 }}
+                  </div>
+                  <div v-if="groupThumbnails(item).length > 0" class="thumb-stack">
+                    <template v-for="asset in groupThumbnails(item)" :key="`${asset.type}-${asset.localMaterialId}`">
+                      <img
+                        v-if="asset.type === 'image' && asset.url"
+                        :src="asset.url"
+                        :alt="asset.name"
+                        class="thumb"
+                      />
+                      <div v-else class="thumb video">
+                        {{ asset.type === 'image' ? '图' : '▶' }}
+                      </div>
+                    </template>
+                  </div>
+                </Card>
+              </ListItem>
+            </template>
+          </List>
+
+          <Empty v-if="currentGroups.length === 0" description="暂无创意组" />
+          <Button
+            v-if="distributionMethod !== RuleMethod.AVG"
+            block
+            class="add-group"
+            type="dashed"
+            @click="addCreativeGroup"
+          >
+            <PlusOutlined />
+            添加创意组
+          </Button>
+        </Card>
+
+        <Card class="editor-panel">
+          <template #title>
+            <span>{{ selectedGroupTitle }}</span>
+          </template>
+          <template #extra>
+            <Space v-if="selectedGroup && distributionMethod !== RuleMethod.AVG" :size="4">
+              <Button size="small" type="text" @click="copyGroup(selectedGroupIndex)">
+                <CopyOutlined />
+                复制
+              </Button>
+              <Button
+                danger
+                size="small"
+                type="text"
+                @click="removeCreativeGroup(selectedGroupIndex)"
+              >
+                <DeleteOutlined />
+                删除
+              </Button>
+            </Space>
+          </template>
+
+          <template v-if="selectedGroup">
+            <Tabs
+              :active-key="getActiveTab(selectedGroupIndex)"
+              @update:active-key="(key) => setActiveTab(selectedGroupIndex, key as 'image' | 'video')"
+            >
+              <TabPane
+                key="video"
+                :tab="`视频素材 (${selectedGroup.video?.length || 0})`"
+              >
+                <div class="material-actions">
+                  <Button size="small" type="primary" @click="openMaterialSelector(selectedGroupIndex, 'video')">
+                    <PlusOutlined />
+                    添加视频素材
+                  </Button>
+                </div>
+                <div class="material-grid">
+                  <template
+                    v-for="card in getMaterialCards(selectedGroupIndex, 'video')"
+                    :key="card.index"
                   >
-                    <div class="tabs-actions">
-                      <Button type="primary" size="small"
-                              @click="openMaterialSelector(groupIndex, 'video')">
-                        + 添加素材
-                      </Button>
+                    <div v-if="card.type === 'material'" class="material-card">
+                      <div class="material-preview">
+                        <video :src="card.mat.url" class="preview-thumb"></video>
+                        <div class="play-overlay">▶</div>
+                      </div>
+                      <div class="material-name" :title="card.mat.name">{{ card.mat.name }}</div>
+                      <div class="material-delete" @click="removeMaterial(selectedGroupIndex, card.index, 'video')">
+                        ×
+                      </div>
                     </div>
-                    <div class="material-grid">
-                      <template v-for="card in getMaterialCards(groupIndex, 'video')"
-                                :key="card.index">
-                        <div v-if="card.type === 'material'" class="material-card">
-                          <div class="material-preview">
-                            <video :src="card.mat.url" class="preview-thumb"/>
-                            <div class="play-overlay">▶</div>
-                          </div>
-                          <div class="material-info">
-                          <span class="material-name" :title="card.mat.name">{{
-                              card.mat.name
-                            }}</span>
-                          </div>
-                          <div class="material-delete"
-                               @click="removeMaterial(groupIndex, card.index, 'video')">
-                            ×
-                          </div>
-                        </div>
-                        <div v-else-if="card.type === 'empty'" class="material-card empty-card"
-                             @click="openMaterialSelector(groupIndex, 'video')">
-                          <div class="empty-icon">
-                            <div class="icon-circle">
-                              <span class="icon-text">选择视频</span>
-                            </div>
-                          </div>
-                        </div>
-                      </template>
+                    <div
+                      v-else-if="card.type === 'empty'"
+                      class="material-card empty-card"
+                      @click="openMaterialSelector(selectedGroupIndex, 'video')"
+                    >
+                      <span>选择视频</span>
                     </div>
-                  </TabPane>
-                  <TabPane
-                    :key="'image'"
-                    :tab="`图片(${(group.image?.length || 0)}/${groupImageCount})`"
+                  </template>
+                </div>
+              </TabPane>
+              <TabPane
+                key="image"
+                :tab="`图片素材 (${selectedGroup.image?.length || 0})`"
+              >
+                <div class="material-actions">
+                  <Button size="small" type="primary" @click="openMaterialSelector(selectedGroupIndex, 'image')">
+                    <PlusOutlined />
+                    添加图片素材
+                  </Button>
+                </div>
+                <div class="material-grid">
+                  <template
+                    v-for="card in getMaterialCards(selectedGroupIndex, 'image')"
+                    :key="card.index"
                   >
-                    <div class="tabs-actions">
-                      <Button type="primary" size="small"
-                              @click="openMaterialSelector(groupIndex, 'image')">
-                        + 添加素材
-                      </Button>
+                    <div v-if="card.type === 'material'" class="material-card">
+                      <div class="material-preview">
+                        <img :src="card.mat.url" :alt="card.mat.name" class="preview-thumb" />
+                      </div>
+                      <div class="material-name" :title="card.mat.name">{{ card.mat.name }}</div>
+                      <div class="material-delete" @click="removeMaterial(selectedGroupIndex, card.index, 'image')">
+                        ×
+                      </div>
                     </div>
-                    <div class="material-grid">
-                      <template v-for="card in getMaterialCards(groupIndex, 'image')"
-                                :key="card.index">
-                        <div v-if="card.type === 'material'" class="material-card">
-                          <div class="material-preview">
-                            <img :src="card.mat.url" :alt="card.mat.name" class="preview-thumb"/>
-                          </div>
-                          <div class="material-info">
-                          <span class="material-name" :title="card.mat.name">{{
-                              card.mat.name
-                            }}</span>
-                          </div>
-                          <div class="material-delete"
-                               @click="removeMaterial(groupIndex, card.index, 'image')">
-                            ×
-                          </div>
-                        </div>
-                        <div v-else-if="card.type === 'empty'" class="material-card empty-card"
-                             @click="openMaterialSelector(groupIndex, 'image')">
-                          <div class="empty-icon">
-                            <div class="icon-circle">
-                              <span class="icon-text">选择图片</span>
-                            </div>
-                          </div>
-                        </div>
-                      </template>
+                    <div
+                      v-else-if="card.type === 'empty'"
+                      class="material-card empty-card"
+                      @click="openMaterialSelector(selectedGroupIndex, 'image')"
+                    >
+                      <span>选择图片</span>
                     </div>
-                  </TabPane>
-                </Tabs>
-              </CollapsePanel>
-            </Collapse>
-          </div>
+                  </template>
+                </div>
+              </TabPane>
+            </Tabs>
+
+            <div class="settings">
+              <div class="setting-row">
+                <span>每个创意组素材上限</span>
+                <Space :size="6">
+                  <InputNumber v-model:value="groupVideoCount" :max="20" :min="1" size="small" />
+                  <span class="muted">视频</span>
+                  <InputNumber v-model:value="groupImageCount" :max="20" :min="0" size="small" />
+                  <span class="muted">图片</span>
+                </Space>
+              </div>
+              <div class="setting-row">
+                <span>自动生成封面</span>
+                <Switch v-model:checked="autoGenerateCover" />
+              </div>
+              <div class="setting-row">
+                <span>视频同步主页</span>
+                <RadioGroup v-model:value="videoSyncHomepage" size="small">
+                  <RadioButton :value="false">关闭</RadioButton>
+                  <RadioButton :value="true">开启</RadioButton>
+                </RadioGroup>
+              </div>
+            </div>
+          </template>
+          <Empty v-else description="请选择或添加创意组" />
+        </Card>
+
+        <div class="side-col">
+          <Card title="分配预览" size="small">
+            <List
+              v-if="allocationPreview.length > 0"
+              :data-source="allocationPreview"
+              :split="false"
+              size="small"
+              class="preview-list"
+            >
+              <template #renderItem="{ item }">
+                <ListItem class="preview-row">
+                  <span>{{ item.label }}</span>
+                  <Tag color="blue">{{ item.groupName }}</Tag>
+                </ListItem>
+              </template>
+            </List>
+            <Empty v-else description="选择创意组后展示分配预览" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+            <div class="tip-text">
+              一个广告使用一个创意组；计划/广告按顺序连续循环。
+            </div>
+          </Card>
+
+          <Card v-if="distributionMethod === RuleMethod.AVG" title="平均分配结果" size="small">
+            <List :data-source="averageAllocation" size="small" :split="false">
+              <template #renderItem="{ item }">
+                <ListItem class="avg-row">
+                  <div class="avg-main">
+                    <div>{{ item.account.advertiserName }}</div>
+                    <div class="muted">{{ item.label || '未分配' }}</div>
+                  </div>
+                  <Tag>{{ item.count }} 组</Tag>
+                </ListItem>
+              </template>
+            </List>
+          </Card>
+
+          <Card title="生成数量" size="small">
+            <div class="rule-line"><span>当前范围创意组</span><b>{{ currentGroups.length }} 组</b></div>
+            <div class="rule-line"><span>计划规则=创意组</span><b>P = {{ currentGroups.length }} / 账户</b></div>
+            <div class="rule-line"><span>广告规则=创意组</span><b>D = {{ currentGroups.length }} / 计划</b></div>
+          </Card>
         </div>
-      </Card>
-
-    </Space>
-
-    <!-- 素材选择器弹窗 -->
-    <MaterialSelectorModal
-      @update:material="updateMaterial"
-    />
+      </div>
+    </div>
+    <MaterialSelectorModal @update:material="updateMaterial" />
   </Drawer>
 </template>
 
 <style scoped lang="scss">
-.creative-group-drawer {
-  :deep(.ant-drawer-body) {
-    padding: 16px;
-  }
+.material-config {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
-.form-item {
+.muted {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+}
+
+.mode-block {
+  flex: none;
+  padding-bottom: 12px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.mode-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-
-  .form-label {
-    min-width: 100px;
-    text-align: right;
-  }
-
-  .switch-label {
-    font-size: 13px;
-  }
-
-  .tip-text {
-    font-size: 12px;
-  }
-}
-
-.collapse-header {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-
-  .collapse-title {
-    font-size: 14px;
-    font-weight: 500;
-  }
+  gap: 12px;
+  margin-bottom: 10px;
+  color: hsl(var(--foreground));
+  font-weight: 600;
 }
 
-.creative-content {
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mode-grid :deep(.ant-radio-wrapper) {
+  align-items: flex-start;
+  margin: 0;
+  padding: 10px 12px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  transition: all 0.16s ease;
+}
+
+.mode-grid :deep(.ant-radio-wrapper:hover) {
+  border-color: hsl(var(--primary) / 45%);
+}
+
+.mode-grid :deep(.ant-radio-wrapper-checked) {
+  background: hsl(var(--primary) / 12%);
+  border-color: hsl(var(--primary));
+}
+
+.mode-grid :deep(.ant-radio) {
+  margin-top: 2px;
+}
+
+.mode-name {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.mode-desc {
+  display: block;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.account-strip {
   display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.work-grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 240px minmax(0, 1fr) 280px;
   gap: 12px;
   min-height: 0;
-
-  .anchor-nav {
-    flex-shrink: 0;
-    width: 120px;
-
-    :deep(.ant-anchor) {
-      padding: 0;
-    }
-
-    :deep(.ant-anchor-link) {
-      padding: 4px 0;
-    }
-  }
-
-  .collapse-content {
-    flex: 1;
-    min-width: 0;
-    max-height: calc(100vh - 300px);
-    overflow-y: auto;
-  }
+  padding-top: 12px;
 }
 
-.creative-collapse {
-  :deep(.ant-collapse-header) {
-    padding: 8px 16px;
-  }
-
-  :deep(.ant-collapse-content-box) {
-    padding: 12px;
-  }
+.group-panel,
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
-.tabs-actions {
+.group-panel :deep(.ant-card-body) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding: 8px;
+}
+
+.group-panel :deep(.ant-card-head),
+.editor-panel :deep(.ant-card-head) {
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.editor-panel :deep(.ant-card-body) {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 12px 12px;
+  overflow-y: auto;
+}
+
+.group-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.group-list :deep(.ant-list-items) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group-list :deep(.ant-list-item) {
+  padding: 0;
+  border: 0;
+}
+
+.group-list-item {
+  display: block;
+}
+
+.group-card {
+  width: 100%;
+  cursor: pointer;
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.group-card.active {
+  background: hsl(var(--primary) / 12%);
+  border-color: hsl(var(--primary));
+}
+
+.group-card :deep(.ant-card-body) {
+  padding: 9px;
+}
+
+.group-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.group-card-head .group-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.group-card-head :deep(.ant-tag) {
+  margin: 0;
+}
+
+.group-index {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+  font-weight: 600;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 5px;
+}
+
+.group-card.active .group-index {
+  color: hsl(var(--primary));
+  background: hsl(var(--card));
+  border-color: hsl(var(--primary) / 30%);
+}
+
+.group-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-meta {
+  margin-top: 3px;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+}
+
+.thumb-stack {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.thumb {
+  width: 26px;
+  height: 26px;
+  object-fit: cover;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 5px;
+}
+
+.thumb.video {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--muted-foreground));
+  font-size: 10px;
+}
+
+.add-group {
+  flex: none;
+  margin-top: 8px;
+}
+
+.group-panel :deep(.ant-empty) {
+  margin: 12px 0;
+}
+
+.material-actions {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .material-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(94px, 1fr));
+  gap: 8px;
+}
 
-  .material-card {
-    position: relative;
-    border-radius: 6px;
-    overflow: hidden;
-    transition: all 0.2s;
+.material-card {
+  position: relative;
+  overflow: hidden;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 7px;
+}
 
-    &:hover {
-      .material-delete {
-        display: block;
-      }
-    }
+.material-preview {
+  position: relative;
+  height: 74px;
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
 
-    .material-preview {
-      position: relative;
-      width: 100%;
-      height: 180px;
+.preview-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-      .preview-thumb {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  background: rgb(15 23 42 / 32%);
+}
 
-      .play-overlay {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-      }
-    }
+.material-name {
+  padding: 4px 6px;
+  overflow: hidden;
+  color: hsl(var(--foreground));
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-    .material-info {
-      padding: 8px;
+.material-delete {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  background: rgb(15 23 42 / 55%);
+  border-radius: 50%;
+}
 
-      .material-name {
-        font-size: 12px;
-        display: block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-    }
+.empty-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 110px;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  cursor: pointer;
+  background: hsl(var(--muted));
+  border-style: dashed;
+}
 
-    .material-delete {
-      display: none;
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      text-align: center;
-      line-height: 20px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+.empty-card:hover {
+  border-color: hsl(var(--primary) / 45%);
+}
 
-    &.empty-card {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 180px;
-      cursor: pointer;
+.settings {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid hsl(var(--border));
+}
 
-      .empty-icon {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 12px;
+}
 
-        .icon-circle {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          border: 1px solid;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+.setting-row > span:first-child {
+  font-weight: 500;
+}
 
-          .icon-text {
-            font-size: 10px;
-          }
-        }
-      }
-    }
+.side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.side-col :deep(.ant-card-head) {
+  min-height: 40px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.side-col :deep(.ant-card-body) {
+  padding: 8px 10px;
+}
+
+.preview-list {
+  max-height: 210px;
+  overflow-y: auto;
+}
+
+.preview-list :deep(.ant-list-item) {
+  padding: 0;
+  border: 0;
+}
+
+.preview-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 6px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  background: hsl(var(--muted));
+  border-radius: 5px;
+}
+
+.preview-row :deep(.ant-tag) {
+  max-width: 140px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed hsl(var(--border));
+}
+
+.avg-row:last-child {
+  border-bottom: 0;
+}
+
+.avg-main {
+  min-width: 0;
+  font-size: 12px;
+}
+
+.avg-main .muted {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rule-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  border-bottom: 1px dashed hsl(var(--border));
+}
+
+.rule-line:last-child {
+  border-bottom: 0;
+}
+
+.rule-line b {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.tip-text {
+  display: block;
+  margin-top: 8px;
+  color: hsl(var(--muted-foreground));
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+@media (max-width: 1280px) {
+  .work-grid {
+    grid-template-columns: 220px minmax(0, 1fr) 260px;
+  }
+}
+
+@media (max-width: 1050px) {
+  .work-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .side-col {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .side-col > * {
+    flex: 1;
+    min-width: 240px;
   }
 }
 </style>

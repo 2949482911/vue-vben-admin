@@ -1,22 +1,28 @@
 <script setup lang="ts" name="CreateStrategyGroup">
+import type { StrategyGropType, UpdateStrategyGropType } from "#/api/models";
+import type { PlatformCreation } from "#/views/marketing/creation/creation";
+
+import { ref } from "vue";
+
 import { Page, useVbenModal } from "@vben/common-ui";
 import { $t } from "@vben/locales";
-import { ref } from "vue";
+import { useUserStore } from "@vben/stores";
+
+import { message } from "ant-design-vue";
+
 import { useVbenForm } from "#/adapter/form";
-import type { StrategyGropType, UpdateStrategyGropType } from "#/api/models";
 import { projectApi, strategyGropApi } from "#/api/core";
 import { PLATFORM } from "#/constants/locales";
 import { trimObject } from "#/utils/trim";
-import { useOssClient } from "#/views/marketing/asset/material/useOssClient";
 import { uploadToOss } from "#/utils/uploadToOss";
-import { useUserStore } from "@vben/stores";
-import { message } from "ant-design-vue";
-import type { PlatformCreation } from "#/views/marketing/creation/creation";
+import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
+import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
+import { useOssClient } from "#/views/marketing/asset/material/useOssClient";
 
 const emit = defineEmits(["pageReload"]);
 const configUrl = ref<string>("");
 
-const objectRequest = ref<StrategyGropType>(<StrategyGropType>{
+const objectRequest = ref<StrategyGropType>({
   config: "",
   projectId: "",
   name: "",
@@ -24,9 +30,12 @@ const objectRequest = ref<StrategyGropType>(<StrategyGropType>{
   id: "",
   version: "",
   subType: ""
-});
+} as StrategyGropType);
 
 const isUpdate = ref<Boolean>(false);
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
+  LABEL_TYPE_CODES.strategy,
+);
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -41,23 +50,25 @@ const [Form, formApi] = useVbenForm({
     const params = trimObject(formVal);
     try {
       await (isUpdate.value
-        ? strategyGropApi.fetchUpdateStrategyGrop(<UpdateStrategyGropType>{
+        ? strategyGropApi.fetchUpdateStrategyGrop({
           id: params.id,
           name: params.name,
           projectId: params.projectId,
           platform: params.platform,
           config: params.config,
           version: params.version,
-          subType: params.subType
-        })
-        : strategyGropApi.fetchNewStrategyGrop(<StrategyGropType>{
+          subType: params.subType,
+          labelIds: params.labelIds || [],
+        } as UpdateStrategyGropType)
+        : strategyGropApi.fetchNewStrategyGrop({
           name: params.name,
           projectId: params.projectId,
           platform: params.platform,
           config: params.config,
           version: params.version,
-          subType: params.subType
-        }));
+          subType: params.subType,
+          labelIds: params.labelIds || [],
+        } as StrategyGropType));
       message.success("保存策略组成功");
     } catch (err) {
       console.log(err);
@@ -91,6 +102,20 @@ const [Form, formApi] = useVbenForm({
       fieldName: "name",
       label: "名称",
       rules: "required"
+    },
+    {
+      component: "Select",
+      componentProps: () => ({
+        allowClear: true,
+        maxTagCount: "responsive",
+        mode: "multiple",
+        optionFilterProp: "label",
+        options: labelOptions.value,
+        placeholder: "请选择策略组标签",
+        showSearch: true
+      }),
+      fieldName: "labelIds",
+      label: "策略组标签"
     },
     {
       component: "Select",
@@ -181,7 +206,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   async onOpenChange(isOpen: boolean) {
     if (isOpen) {
-
+      await loadLabelOptions();
       objectRequest.value = modalApi.getData() as StrategyGropType;
       const creation = modalApi.getData() as PlatformCreation<any>;
       configUrl.value = await uploadJson(objectRequest.value, "strategyGroup");

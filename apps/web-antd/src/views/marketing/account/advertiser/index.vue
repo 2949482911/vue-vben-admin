@@ -12,7 +12,7 @@ import { Page, useVbenDrawer, useVbenModal } from "@vben/common-ui";
 import { $t } from "@vben/locales";
 
 import { UploadOutlined } from "@ant-design/icons-vue";
-import { Button, Dropdown, Menu, MenuItem, message, SubMenu, Switch, Tag } from "ant-design-vue";
+import { Button, Dropdown, Menu, MenuItem, message, Space, SubMenu, Switch, Tag } from "ant-design-vue";
 
 import { useVbenVxeGrid } from "#/adapter/vxe-table";
 import { accountLabelApi, developerApi, projectApi } from "#/api";
@@ -35,6 +35,13 @@ import HistoryList from "./historyList.vue";
 import ImportChildAdvertiser from "./importchildadvertiser.vue";
 
 const agentData = ref<{ label: string; value: string }[]>([]);
+
+function advertiserTagLabels(row: AdvertiserItem) {
+  const names = (row.tagNames ?? []).filter(Boolean);
+  if (names.length > 0) return names;
+  if (row.tagName) return [row.tagName];
+  return (row.tagIds ?? []).map((id) => `#${id}`);
+}
 /**
  * 授权弹窗
  */
@@ -636,7 +643,7 @@ const gridOptions: VxeGridProps<AdvertiserItem> = {
     {
       field: "tagName",
       title: `${$t("marketing.advertiser.columns.tagName")}`,
-      width: "auto",
+      width: 220,
       slots: { default: "tagName" }
     },
     {
@@ -777,8 +784,16 @@ async function loadAgentData(platform: string) {
         <Tag color="orange">{{ row.platformAuditState }}</Tag>
       </template>
       <template #tagName="{ row }">
-        <span v-if="!row.tagName">-</span>
-        <Tag v-else color="blue">{{ row.tagName }}</Tag>
+        <Space v-if="advertiserTagLabels(row).length" wrap :size="[4, 4]">
+          <Tag
+            v-for="name in advertiserTagLabels(row)"
+            :key="name"
+            color="blue"
+          >
+            {{ name }}
+          </Tag>
+        </Space>
+        <span v-else>-</span>
       </template>
 
       <template #action="{ row }">

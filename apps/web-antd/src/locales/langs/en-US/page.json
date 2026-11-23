@@ -150,7 +150,8 @@
         "statusCompleted": "Completed",
         "statusFailed": "Failed",
         "statusCancelled": "Cancelled"
-      }
+      },
+      "platform_asset": "Platform Asset"
     },
     "ai_hosting": {
       "title": "AI Hosting",
@@ -158,7 +159,8 @@
       "ai_hosting_log": "Ai Hosting Log"
     },
     "ai_copilot": "Ai Copilot",
-    "material_analysis": "Material Analysis"
+    "material_analysis": "Material Analysis",
+    "auto_ads": "Auto Ads"
   },
   "tools": {
     "title": "Tools",

@@ -597,12 +597,12 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
 }
 
 .mode-grid :deep(.ant-radio-wrapper:hover) {
-  border-color: #91caff;
+  border-color: hsl(var(--primary) / 45%);
 }
 
 .mode-grid :deep(.ant-radio-wrapper-checked) {
-  background: #eef5ff;
-  border-color: #1677ff;
+  background: hsl(var(--primary) / 12%);
+  border-color: hsl(var(--primary));
 }
 
 .mode-grid :deep(.ant-radio) {
@@ -650,8 +650,8 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
 }
 
 .account-chip.active {
-  background: #eef5ff;
-  border-color: #1677ff;
+  background: hsl(var(--primary) / 12%);
+  border-color: hsl(var(--primary));
 }
 
 .account-name {
@@ -694,7 +694,7 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
   justify-content: space-between;
   padding: 10px 12px;
   font-weight: 650;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .col-head small {
@@ -722,12 +722,12 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
 }
 
 .config-item:hover {
-  border-color: #91caff;
+  border-color: hsl(var(--primary) / 45%);
 }
 
 .config-item.active {
-  background: #eef5ff;
-  border-color: #1677ff;
+  background: hsl(var(--primary) / 12%);
+  border-color: hsl(var(--primary));
 }
 
 .config-index {
@@ -738,18 +738,18 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
   width: 22px;
   height: 22px;
   margin-top: 2px;
-  color: #0958d9;
+  color: hsl(var(--primary));
   font-size: 11px;
   font-weight: 700;
-  background: #eef5ff;
-  border: 1px solid #cfe5ff;
+  background: hsl(var(--primary) / 12%);
+  border: 1px solid hsl(var(--primary) / 30%);
   border-radius: 6px;
 }
 
 .config-item.active .config-index {
-  color: #fff;
-  background: #1677ff;
-  border-color: #1677ff;
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
 }
 
 .config-main {
@@ -781,12 +781,12 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
   flex: none;
   padding: 9px;
   margin: 0 9px 9px;
-  color: #1677ff;
+  color: hsl(var(--primary));
   font-weight: 600;
   text-align: center;
   cursor: pointer;
-  background: #f8fbff;
-  border: 1px dashed #91caff;
+  background: hsl(var(--primary) / 8%);
+  border: 1px dashed hsl(var(--primary) / 35%);
   border-radius: 8px;
 }
 
@@ -802,7 +802,7 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
   align-items: center;
   justify-content: space-between;
   padding: 8px 14px;
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .editor-title {
@@ -855,7 +855,7 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
 
 .required {
   margin-right: 3px;
-  color: #ff4d4f;
+  color: hsl(var(--destructive));
 }
 
 .editor-tip {
@@ -863,7 +863,7 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
   padding: 8px 14px;
   color: hsl(var(--muted-foreground));
   font-size: 11px;
-  border-top: 1px solid #f0f2f5;
+  border-top: 1px solid hsl(var(--border));
 }
 
 .side-col {
@@ -872,7 +872,7 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
   gap: 10px;
   padding: 10px;
   overflow-y: auto;
-  background: #fbfcfe;
+  background: hsl(var(--muted) / 45%);
 }
 
 .side-card {
@@ -908,8 +908,8 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
   justify-content: space-between;
   gap: 8px;
   padding: 7px 8px;
-  background: #f8fafc;
-  border: 1px solid #f0f2f5;
+  background: hsl(var(--muted) / 55%);
+  border: 1px solid hsl(var(--border));
   border-radius: 6px;
 }
 
@@ -917,28 +917,28 @@ const [Drawer, drawerApi] = useVbenDrawer<ProductConfigAllocationConfig>({
   max-width: 160px;
   padding: 2px 7px;
   overflow: hidden;
-  color: #0958d9;
+  color: hsl(var(--primary));
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: #eef5ff;
-  border: 1px solid #cfe5ff;
+  background: hsl(var(--primary) / 12%);
+  border: 1px solid hsl(var(--primary) / 30%);
   border-radius: 4px;
 }
 
 .hint {
   margin-top: 9px;
   padding: 8px 9px;
-  color: #0958d9;
+  color: hsl(var(--primary));
   font-size: 12px;
   line-height: 1.55;
-  background: #eef7ff;
-  border: 1px solid #bae0ff;
+  background: hsl(var(--primary) / 10%);
+  border: 1px solid hsl(var(--primary) / 28%);
   border-radius: 6px;
 }
 
 .rule-card {
-  background: #fbfcfe;
+  background: hsl(var(--card));
 }
 
 .rule-line {

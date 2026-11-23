@@ -39,6 +39,8 @@ export interface MaterialItem extends BaseItem {
   count: string;
   /** 父级文件夹ID（仅文件夹行） */
   parentId: string;
+  /** 标签ID数组（素材标签） */
+  labelIds?: Array<number | string>;
 }
 
 

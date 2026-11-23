@@ -5,7 +5,7 @@ import type { FolderItem } from '#/api/models';
 import type { MaterialItem } from '#/api/models/assert';
 import type { MaterialListParams } from '#/api/models/marketing';
 
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 
 import { Spinner } from '@vben/common-ui';
 
@@ -37,6 +37,8 @@ import {
 
 import { uploadEditApi } from '#/api/core';
 import { BatchOptionsType } from '#/constants/locales';
+import { LABEL_TYPE_CODES, LABEL_TYPE_COLORS } from '#/views/marketing/account/label/constants';
+import { useAccountLabelOptions } from '#/views/marketing/account/label/useAccountLabelOptions';
 
 const props = defineProps<{
   treeItem: FolderItem[];
@@ -50,6 +52,16 @@ const emit = defineEmits<{
   (e: 'toggleMaterialSelect', material: MaterialItem): void;
   (e: 'viewDetail', material: MaterialItem): void;
 }>();
+
+const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
+  LABEL_TYPE_CODES.material,
+);
+const materialLabelColor =
+  LABEL_TYPE_COLORS[LABEL_TYPE_CODES.material] ?? 'default';
+
+onMounted(() => {
+  void loadLabelOptions();
+});
 
 const isShowLoading = ref(true);
 
@@ -457,6 +469,17 @@ defineExpose({
               </template>
             </div>
 
+            <div v-if="item.labelIds?.length" class="m-labels">
+              <Tag
+                v-for="name in labelNamesOf(item.labelIds)"
+                :key="name"
+                :bordered="false"
+                :color="materialLabelColor"
+              >
+                {{ name }}
+              </Tag>
+            </div>
+
             <!-- 查看详情：贴卡片右下角，点击不触发素材勾选 -->
             <div class="m-foot">
               <Button
@@ -663,6 +686,19 @@ defineExpose({
   font-size: 11px;
   line-height: 1.5;
   color: hsl(var(--muted-foreground));
+}
+
+.m-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.m-labels :deep(.ant-tag) {
+  margin: 0;
+  font-size: 10px;
+  line-height: 18px;
 }
 
 /* 卡片底部操作：查看详情贴右下角 */

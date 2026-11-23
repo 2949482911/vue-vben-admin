@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import { useVbenForm } from '#/adapter/form';
-import { useVbenDrawer, Page } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { ref, watch } from 'vue'; // 添加 watch
-import { message } from 'ant-design-vue';
 import type {
-  CampaignUpdateItem,
-  CampaignItem
+  CampaignItem,
+  CampaignUpdateItem
 } from '#/api/models/adx';
+
+import { ref, watch } from 'vue'; // 添加 watch
+
+import { Page, useVbenDrawer } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+
+import { message } from 'ant-design-vue';
+
+import { useVbenForm } from '#/adapter/form';
 import { campaignApi } from '#/api/core/adx';
 
-const title = ref<string>('');
 const emit = defineEmits(['pageReload']);
+const title = ref<string>('');
 const objectRequest = ref<CampaignUpdateItem>({} as CampaignUpdateItem);
 const isUpdate = ref<Boolean>(false);
   watch(isUpdate,(newVal) => {
@@ -195,8 +199,7 @@ const [Drawer, drawerApi] = useVbenDrawer<CampaignUpdateItem>({
   <div>
     <Page auto-content-height>
       <Drawer class="w-[40%]" :title="title">
-        <Form>
-        </Form>
+        <Form />
       </Drawer>
     </Page>
   </div>

@@ -1,10 +1,13 @@
 <script lang="ts" setup>
-import type {EditLabelItemType, LabelItem, NewLabelItemType} from '#/api/models/marketing'
+import type {
+  EditLabelItemType,
+  LabelItem,
+  NewLabelItemType,
+} from '#/api/models/marketing';
 
 import { ref } from 'vue';
 
-import { useVbenForm, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
+import { useVbenDrawer, useVbenForm } from '@vben/common-ui';
 import { useDictStore } from '@vben/stores';
 
 import { message } from 'ant-design-vue';
@@ -17,8 +20,8 @@ import { LABEL_TYPE_DICT_CODE } from './constants';
 const emit = defineEmits(['pageReload']);
 const dictStore = useDictStore();
 const objectRequest = ref<LabelItem>({});
-const isUpdate = ref<Boolean>(false);
-const title = ref<string>('');
+const isUpdate = ref(false);
+const title = ref('');
 const labelTypeOptions = ref<Array<{ label: string; value: string }>>([]);
 
 /** 标签类型下拉：来自系统字典 label_type */
@@ -29,53 +32,69 @@ async function loadLabelTypeOptions() {
     value: String(item.value),
   }));
 }
-const [LabelModal, modalApi] = useVbenModal<LabelItem>({
-  fullscreenButton: false,
+
+const [LabelDrawer, drawerApi] = useVbenDrawer<LabelItem>({
+  class: 'w-[560px] max-w-[95vw]',
+  closeOnClickModal: false,
   async onCancel() {
-    await formApi.resetForm();
-    await modalApi.close();
+    await formApi.reset();
     objectRequest.value = {};
     isUpdate.value = false;
+    await drawerApi.close();
   },
   async onConfirm() {
     const result = await formApi.validate();
     if (!result.valid) {
-      return
+      return;
     }
-    const formValue = await formApi.getValues()
+    const formValue = await formApi.getValues();
     const formattedData = trimObject(formValue);
-    try{
-      await (isUpdate.value
-        ? accountLabelApi.fetchModifyAccountLabel(formattedData as EditLabelItemType)
-        : accountLabelApi.fetchNewAccountLabel(formattedData as NewLabelItemType)
-      );
-      isUpdate.value ? message.success("修改成功！") : message.success("添加成功！")
+    try {
+      if (isUpdate.value) {
+        await accountLabelApi.fetchModifyAccountLabel({
+          ...(formattedData as Omit<EditLabelItemType, 'id'>),
+          id: String(objectRequest.value.id),
+        });
+        message.success('修改成功！');
+      } else {
+        await accountLabelApi.fetchNewAccountLabel(
+          formattedData as NewLabelItemType,
+        );
+        message.success('添加成功！');
+      }
       isUpdate.value = false;
-      await formApi.resetForm();
-      await modalApi.close();
+      await formApi.reset();
+      await drawerApi.close();
       emit('pageReload');
-    }catch(err){
-      console.log(err)
+    } catch (err) {
+      console.error(err);
     }
   },
-  async onOpenChange(isOpen: boolean) {
-    if (isOpen) {
-      await loadLabelTypeOptions();
-      objectRequest.value = modalApi.getData()!;
-      if (objectRequest.value.id) {
-        title.value = "修改标签"
-        isUpdate.value = true;
-        handleSetFormValue(objectRequest.value);
-      } else {
-        isUpdate.value = false;
-        title.value = "新增标签"
-      }
+  async onOpened() {
+    await loadLabelTypeOptions();
+    objectRequest.value = drawerApi.getData() ?? {};
+    if (objectRequest.value.id) {
+      title.value = '修改标签';
+      isUpdate.value = true;
+      await formApi.reset();
+      await formApi.setValues({
+        id: objectRequest.value.id,
+        labelType: objectRequest.value.labelType,
+        name: objectRequest.value.name,
+        remark: objectRequest.value.remark,
+      });
+      return;
     }
+    isUpdate.value = false;
+    title.value = '新增标签';
+    await formApi.reset();
+    // 新建默认选中全部标签类型，一次为每个类型各生成一条同名标签
+    await formApi.setValues({
+      labelType: labelTypeOptions.value.map((item) => item.value),
+    });
   },
 });
-function handleSetFormValue(row: LabelItem) {
-  formApi.setValues(row);
-}
+
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
   commonConfig: {
@@ -83,7 +102,7 @@ const [Form, formApi] = useVbenForm({
       class: 'w-full',
     },
   },
-  layout: 'horizontal',
+  layout: 'vertical',
   schema: [
     {
       component: 'Input',
@@ -106,15 +125,19 @@ const [Form, formApi] = useVbenForm({
     {
       component: 'Select',
       componentProps: () => ({
-        allowClear: true,
+        allowClear: isUpdate.value,
+        maxTagCount: 'responsive',
+        mode: isUpdate.value ? undefined : 'multiple',
         optionFilterProp: 'label',
         options: labelTypeOptions.value,
-        placeholder: '请选择标签类型',
+        placeholder: isUpdate.value
+          ? '请选择标签类型'
+          : '默认选中全部标签类型',
         showSearch: true,
       }),
       fieldName: 'labelType',
       label: '标签类型',
-      rules: 'selectRequired',
+      rules: 'required',
     },
     {
       component: 'Input',
@@ -126,31 +149,39 @@ const [Form, formApi] = useVbenForm({
       label: '备注',
       rules: 'required',
     },
-    {
-      // 组件需要在 #/adapter.ts内注册，并加上类型
-      component: 'Input',
-      // 对应组件的参数
-      componentProps: {
-        placeholder: `${$t('common.input')}`,
-      },
-      // 字段名
-      fieldName: 'id',
-      // 界面显示的label
-      dependencies: {
-        show: false,
-        triggerFields: ['*'],
-      },
-    },
   ],
 });
-
 </script>
+
 <template>
-  <LabelModal :title="title">
-    <Form />
-  </LabelModal>
+  <LabelDrawer :title="title">
+    <div class="label-form">
+      <div class="label-form-tip">
+        {{
+          isUpdate
+            ? '修改仅作用于当前标签。'
+            : '可同时选择多个标签类型，系统会为每个类型各创建一条同名标签；新建默认选中全部类型。'
+        }}
+      </div>
+      <Form />
+    </div>
+  </LabelDrawer>
 </template>
 
 <style lang="scss" scoped>
+.label-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
+.label-form-tip {
+  padding: 10px 12px;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  line-height: 1.6;
+  background: hsl(var(--muted) / 50%);
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+}
 </style>

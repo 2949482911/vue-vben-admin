@@ -5,28 +5,48 @@ import type { AdvertiserPageRequest } from "#/api/models/marketing";
 
 import { onMounted, ref } from "vue";
 
-import { Page, useVbenDrawer, type VbenFormProps } from "@vben/common-ui";
+import { Page, useVbenDrawer, useVbenModal, type VbenFormProps } from "@vben/common-ui";
 
-import { Button, message, Space, Switch, Tag } from "ant-design-vue";
+import { Button, Dropdown, Menu, MenuItem, message, Space, Switch, Tag } from "ant-design-vue";
 
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { advertiserApi, targetedPackageApi } from "#/api";
 import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
-import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
+import { LABEL_TYPE_CODES, LABEL_TYPE_COLORS } from "#/views/marketing/account/label/constants";
 import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
 
+import BatchLabelModal from "../components/BatchLabelModal.vue";
 import { AUDIENCE_PLATFORM_OPTIONS } from "./audiencePackageType";
 import CreatedAudiencePackage from "./createdAudiencePackage.vue";
 
 const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
   LABEL_TYPE_CODES.target
 );
+const labelColor = LABEL_TYPE_COLORS[LABEL_TYPE_CODES.target] ?? "default";
 
 const [CreatedAudiencePackageModule, drawerApi] = useVbenDrawer({
   connectedComponent: CreatedAudiencePackage
 });
+
+const [BatchLabelModalComp, batchLabelModalApi] = useVbenModal({
+  connectedComponent: BatchLabelModal
+});
+
+const selectedRows = ref<AdConfig[]>([]);
+
+const gridEvents = {
+  checkboxAll: ({ records }: { records: AdConfig[] }) => {
+    selectedRows.value = records;
+  },
+  checkboxChange: ({ records }: { records: AdConfig[] }) => {
+    selectedRows.value = records;
+  },
+  proxyQuery: () => {
+    selectedRows.value = [];
+  }
+};
 
 function openDrawer() {
   displayValue.value = undefined;
@@ -190,7 +210,19 @@ async function handlerDelete(row: AdConfig) {
   }
 }
 
-const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions });
+const [Grid, gridApi] = useVbenVxeGrid({ formOptions, gridOptions, gridEvents });
+
+function openBatchLabel() {
+  const records = gridApi.grid.getCheckboxRecords();
+  if (records.length === 0) {
+    return message.warning("请选择需要修改标签的数据！");
+  }
+  batchLabelModalApi.setData({
+    asset: "audience",
+    targetIds: records.map((item: AdConfig) => String(item.id))
+  });
+  batchLabelModalApi.open();
+}
 
 function pageReload() {
   gridApi.reload();
@@ -214,6 +246,7 @@ function handlerState(_row: AdConfig) {
             v-for="name in labelNamesOf(row.labelIds)"
             :key="name"
             :bordered="false"
+            :color="labelColor"
           >
             {{ name }}
           </Tag>
@@ -235,9 +268,20 @@ function handlerState(_row: AdConfig) {
       </template>
       <template #toolbar-tools>
         <Button class="mr-2" type="primary" @click="openDrawer">新建定向包</Button>
+        <Dropdown trigger="click" placement="bottomCenter">
+          <Button class="mr-2" type="primary" :disabled="selectedRows.length === 0">
+            批量操作
+          </Button>
+          <template #overlay>
+            <Menu>
+              <MenuItem @click="openBatchLabel">修改标签</MenuItem>
+            </Menu>
+          </template>
+        </Dropdown>
       </template>
     </Grid>
     <CreatedAudiencePackageModule @page-reload="pageReload" :display-value="displayValue" />
+    <BatchLabelModalComp @success="pageReload" />
   </Page>
 </template>
 

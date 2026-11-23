@@ -40,6 +40,8 @@ export interface AdvertiserItem extends BaseItem {
   customer?: "";
   saleId?: "";
   tagId: string;
+  tagIds?: Array<number | string>;
+  tagNames?: string[];
   accessToken: string;
   hourlyState: number;
   tagName: string;
@@ -378,6 +380,8 @@ export interface MaterialListParams {
   aspectXy?: Array<string>; // 宽高比
   aspectRatio?: Array<string>; //
   timeRange?: Array<string>; //  时间范围查询
+  /** 标签ID筛选 */
+  tagIds?: Array<number | string>;
 }
 
 /** 上传素材 */
@@ -627,10 +631,10 @@ export interface TitlePackageItem extends BaseItem {
 }
 
 /** 创编任务-查询任务列表 */
-export interface GetCreationTaskType {
+export interface GetCreationTaskType extends PageRequestParams {
   platform?: string;
   name?: string;
-  taskStatus?: Number;
+  taskStatus?: number;
   projectId?: string;
 }
 
@@ -640,18 +644,18 @@ export interface CreationTaskItem extends BaseItem {
   name?: string;
   projectId?: string;
   ruleType?: RuleType;
-  commitAdvertiserCount?: Number;
-  commitCampaignCount?: Number;
-  successCampaignCount?: Number;
-  commitAdGroupCount?: Number;
-  successAdGroupCount?: Number;
-  commitPromotionCount?: Number;
-  successPromotionCount?: Number;
-  commitCreativeCount?: Number;
-  successCreativeCount?: Number;
+  commitAdvertiserCount?: number;
+  commitCampaignCount?: number;
+  successCampaignCount?: number;
+  commitAdGroupCount?: number;
+  successAdGroupCount?: number;
+  commitPromotionCount?: number;
+  successPromotionCount?: number;
+  commitCreativeCount?: number;
+  successCreativeCount?: number;
   startTime?: string;
   endTime?: string;
-  taskStatus?: Number;
+  taskStatus?: number;
 }
 
 /**
@@ -786,13 +790,17 @@ export interface GetLabelItemType extends PageRequestParams {
 export interface NewLabelItemType {
   name?: string;
   remark?: string;
-  /** 标签类型（字典 label_type） */
-  labelType?: string;
+  /** 标签类型（字典 label_type）；多选时按每个类型各创建一条同名标签 */
+  labelType?: string[];
 }
 
 /** 账户标签-编辑任务列表 */
-export interface EditLabelItemType extends NewLabelItemType {
+export interface EditLabelItemType {
   id: string;
+  name?: string;
+  remark?: string;
+  /** 标签类型（字典 label_type），编辑保持单个 */
+  labelType?: string;
 }
 
 /** 营销-资产-标题包删除 */
@@ -848,6 +856,10 @@ export interface StrategyGropType<T = any> extends BaseItem {
   version: string;
   /** 媒体子类型，区分同平台下不同版本（如 vivo/vivo2.0、bytedance/bytedance_std） */
   subType?: string;
+  /** 策略组标签 ID 数组 */
+  labelIds?: Array<number | string>;
+  /** 策略组标签名称（列表返回） */
+  labelNames?: string[];
 }
 
 export interface GetStrategyGropType extends PageRequestParams {
@@ -855,6 +867,8 @@ export interface GetStrategyGropType extends PageRequestParams {
   platform: string;
   projectId: string;
   subType?: string;
+  /** 策略组标签 ID（可选） */
+  labelId?: string;
 }
 
 export interface UpdateStrategyGropType extends StrategyGropType {
