@@ -131,6 +131,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
   const groupReferenceSource = ref<string>();
   const episodeId = ref<number | string>();
   const splitTargetNodeId = ref<string>();
+  const boxSelectMode = ref(false);
   const shotActionRequest = ref<CanvasShotActionRequest>();
   const nodeInfoRequestId = ref<string>();
   const nodeInfoCloseToken = ref(0);
@@ -679,6 +680,10 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     episodeId.value = value;
   }
 
+  function toggleBoxSelectMode() {
+    boxSelectMode.value = !boxSelectMode.value;
+  }
+
   function videoDetails(node: CanvasFlowNode) {
     return (node.data.details ?? {}) as Record<string, unknown>;
   }
@@ -1206,6 +1211,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     buildPayload,
     cancelGroupReference,
     bindVideoTake,
+    boxSelectMode,
     canvas,
     clearSplitRequest,
     conflict,
@@ -1263,6 +1269,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     timelineActionRequest,
     requestTimelineAction,
     clearTimelineAction,
+    toggleBoxSelectMode,
     setSelection,
     setViewport,
     splitTargetNodeId,

@@ -1,6 +1,8 @@
 <script lang="ts" setup name="CanvasFlow">
 import type { Connection } from '@vue-flow/core';
 
+import type { CanvasFlowEdge } from './store';
+
 import type { CanvasNodeKind } from '#/api/models/ai_asset_canvas';
 
 import {
@@ -32,6 +34,8 @@ const store = useCanvasGraphStore();
 const { edges, nodes } = storeToRefs(store);
 const nodeTypes: Record<string, any> = { canvas: markRaw(CanvasNodeFrame) };
 const edgeTypes: Record<string, any> = { canvas: markRaw(CanvasEdge) };
+const flowEdges = ref<CanvasFlowEdge[]>([]);
+let nodesReady = false;
 const wrapper = ref<HTMLElement>();
 const showMiniMap = ref(false);
 
@@ -134,22 +138,77 @@ async function restoreViewport() {
   pendingSavedViewport = { ...store.viewport };
   await setViewport(pendingSavedViewport);
   pendingViewportCheck = true;
-  await nextTick();
-  const hasRenderedNode = Boolean(
-    wrapper.value?.querySelector('.vue-flow__node'),
-  );
-  if (hasRenderedNode) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    if (!pendingViewportCheck) {
+      return;
+    }
+    if (wrapper.value?.querySelector('.vue-flow__node')) {
+      pendingViewportCheck = false;
+      // 等 ResizeObserver 写入节点尺寸后再判断/适配
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      await applyViewportCheck(pendingSavedViewport);
+      return;
+    }
+  }
+  if (pendingViewportCheck) {
     pendingViewportCheck = false;
     await applyViewportCheck(pendingSavedViewport);
   }
 }
 
-function onNodesInitialized() {
-  if (!pendingViewportCheck) {
-    return;
+let fitWhenNodesReady = false;
+
+function syncFlowEdges() {
+  flowEdges.value = edges.value.map((edge) => ({ ...edge }));
+}
+
+watch(edges, () => {
+  if (nodesReady) {
+    syncFlowEdges();
   }
-  pendingViewportCheck = false;
-  void applyViewportCheck(pendingSavedViewport);
+});
+
+watch(
+  () => nodes.value.length,
+  (length) => {
+    if (!length) {
+      nodesReady = false;
+      flowEdges.value = [];
+    }
+  },
+);
+
+function onNodesInitialized() {
+  nodesReady = true;
+  setTimeout(syncFlowEdges, 80);
+  if (pendingViewportCheck) {
+    pendingViewportCheck = false;
+    requestAnimationFrame(() => {
+      void applyViewportCheck(pendingSavedViewport);
+    });
+  }
+  if (fitWhenNodesReady) {
+    fitWhenNodesReady = false;
+    requestAnimationFrame(() => {
+      void autoFitAndSave();
+    });
+  }
+}
+
+/** sync 新增节点后：等节点测量完成再 fitView；300ms 兜底 */
+function fitOnNodesReady() {
+  fitWhenNodesReady = true;
+  setTimeout(() => {
+    if (!fitWhenNodesReady) {
+      return;
+    }
+    fitWhenNodesReady = false;
+    if (store.nodes.length) {
+      syncFlowEdges();
+      void autoFitAndSave();
+    }
+  }, 300);
 }
 
 watch(() => store.canvas?.id, () => void restoreViewport(), {
@@ -281,6 +340,7 @@ onBeforeUnmount(() => {
 defineExpose({
   addNodeAtCenter,
   fitCanvas,
+  fitOnNodesReady,
   focusGroup,
   focusNode,
   selectNode,
@@ -297,7 +357,7 @@ defineExpose({
     :class="{ 'is-hide-edges': store.hideEdges }"
   >
     <VueFlow
-      v-model:edges="edges"
+      :edges="flowEdges"
       v-model:nodes="nodes"
       :default-edge-options="edgeOptions"
       :delete-key-code="null"
@@ -308,8 +368,8 @@ defineExpose({
       :node-types="nodeTypes"
       :only-render-visible-elements="true"
       pan-activation-key-code="Space"
-      :pan-on-drag="true"
-      selection-key-code="Shift"
+      :pan-on-drag="!store.boxSelectMode"
+      :selection-on-drag="store.boxSelectMode"
       :snap-grid="[16, 16]"
       :snap-to-grid="store.snapToGrid"
       @connect="onConnect"

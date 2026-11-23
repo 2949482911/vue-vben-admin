@@ -54,6 +54,7 @@ const props = defineProps<{
 interface CanvasFlowExpose {
   addNodeAtCenter: (kind: CanvasNodeKind) => Promise<void>;
   fitCanvas: () => Promise<void>;
+  fitOnNodesReady: () => void;
   focusGroup: (groupClientId: string) => void;
   focusNode: (clientId: string) => void;
   selectNode: (clientId: string) => void;
@@ -77,6 +78,7 @@ const outlineOpen = ref(false);
 const workspaceOpen = ref(false);
 const agentOpen = ref(false);
 const syncedEpisodeKeys = new Set<string>();
+const flowKey = ref(0);
 const splitTargetNode = computed(() =>
   store.splitTargetNodeId
     ? store.nodes.find((node) => node.id === store.splitTargetNodeId)
@@ -169,6 +171,8 @@ async function loadList() {
     }
     if (currentCanvasId.value) {
       await store.loadGraph(currentCanvasId.value);
+      flowKey.value += 1;
+      await nextTick();
     }
   } catch (err) {
     listError.value = errorText(err, '画布列表加载失败');
@@ -188,8 +192,11 @@ async function createCanvas() {
       title: `画布 ${canvasList.value.length + 1}`,
     });
     canvasList.value = [...canvasList.value, canvas];
+    store.resetGraph();
     currentCanvasId.value = canvas.id;
     await store.loadGraph(canvas.id);
+    flowKey.value += 1;
+    await nextTick();
   } catch (err) {
     message.error(errorText(err, '新建画布失败'));
   }
@@ -205,8 +212,11 @@ async function selectCanvas(value: unknown) {
   if (!next || next === currentCanvasId.value) {
     return;
   }
+  store.resetGraph();
   currentCanvasId.value = next;
   await store.loadGraph(next);
+  flowKey.value += 1;
+  await nextTick();
 }
 
 function openRename() {
@@ -321,8 +331,9 @@ async function syncEpisode(force = false) {
       (result.createdGroups?.length ?? 0);
     if (created > 0) {
       await store.loadGraph(canvasId);
+      flowKey.value += 1;
       await nextTick();
-      await flowRef.value?.fitCanvas();
+      flowRef.value?.fitOnNodesReady();
       message.success(`已加载本集节点（新增 ${created} 项）`);
     } else if (force) {
       message.info('本集节点已是最新，无需重复加载');
@@ -749,7 +760,7 @@ watch(
     </div>
     <div v-else class="canvas-surface__main">
       <div class="canvas-surface__stage">
-        <CanvasFlow ref="flowRef" />
+        <CanvasFlow :key="flowKey" ref="flowRef" />
         <CanvasToolbar @add="addNode" />
         <CanvasOutline
           v-if="outlineOpen"

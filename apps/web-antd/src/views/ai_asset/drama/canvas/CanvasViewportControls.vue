@@ -64,6 +64,15 @@ const zoomLabel = computed(() => `${Math.round(store.viewport.zoom * 100)}%`);
         网格
       </Button>
     </Tooltip>
+    <Tooltip title="框选模式（关闭时左键拖动平移）">
+      <Button
+        size="small"
+        :type="store.boxSelectMode ? 'primary' : 'default'"
+        @click="store.toggleBoxSelectMode()"
+      >
+        框选
+      </Button>
+    </Tooltip>
     <Tooltip title="自动整理">
       <Button size="small" @click="store.autoArrange()">整理</Button>
     </Tooltip>
