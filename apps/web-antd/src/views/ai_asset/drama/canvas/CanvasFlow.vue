@@ -44,6 +44,7 @@ const {
   findNode,
   fitBounds,
   fitView,
+  getNodes,
   getSelectedNodes,
   removeSelectedNodes,
   screenToFlowCoordinate,
@@ -176,13 +177,44 @@ watch(
     if (!length) {
       nodesReady = false;
       flowEdges.value = [];
+    } else {
+      startReadyPolling();
     }
   },
 );
 
-function onNodesInitialized() {
+let readyTimer: ReturnType<typeof setInterval> | undefined;
+
+function stopReadyPolling() {
+  if (readyTimer) {
+    clearInterval(readyTimer);
+    readyTimer = undefined;
+  }
+}
+
+function domNodeCount() {
+  return wrapper.value?.querySelectorAll('.vue-flow__node').length ?? 0;
+}
+
+function nodesLookReady() {
+  if (!store.nodes.length) {
+    return false;
+  }
+  const domCount = domNodeCount();
+  if (domCount === store.nodes.length) {
+    return true;
+  }
+  const graphCount = getNodes.value.length;
+  return graphCount === store.nodes.length && domCount > 0;
+}
+
+function handleNodesReady() {
+  if (nodesReady) {
+    return;
+  }
   nodesReady = true;
-  setTimeout(syncFlowEdges, 80);
+  stopReadyPolling();
+  syncFlowEdges();
   if (pendingViewportCheck) {
     pendingViewportCheck = false;
     requestAnimationFrame(() => {
@@ -195,6 +227,29 @@ function onNodesInitialized() {
       void autoFitAndSave();
     });
   }
+}
+
+/** nodes-initialized 可能早于监听/不触发：50ms 轮询最多 2s 兜底 */
+function startReadyPolling() {
+  if (nodesReady) {
+    return;
+  }
+  stopReadyPolling();
+  let attempts = 0;
+  readyTimer = setInterval(() => {
+    attempts += 1;
+    if (nodesLookReady()) {
+      handleNodesReady();
+      return;
+    }
+    if (attempts >= 40) {
+      stopReadyPolling();
+    }
+  }, 50);
+}
+
+function onNodesInitialized() {
+  handleNodesReady();
 }
 
 /** sync 新增节点后：等节点测量完成再 fitView；300ms 兜底 */
@@ -212,8 +267,18 @@ function fitOnNodesReady() {
   }, 300);
 }
 
-watch(() => store.canvas?.id, () => void restoreViewport(), {
-  immediate: true,
+watch(
+  () => store.canvas?.id,
+  () => {
+    startReadyPolling();
+    void restoreViewport();
+  },
+  { immediate: true },
+);
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown);
+  startReadyPolling();
 });
 
 function onConnect(connection: Connection) {
@@ -330,11 +395,8 @@ function toggleMiniMap() {
   showMiniMap.value = !showMiniMap.value;
 }
 
-onMounted(() => {
-  window.addEventListener('keydown', onKeyDown);
-});
-
 onBeforeUnmount(() => {
+  stopReadyPolling();
   window.removeEventListener('keydown', onKeyDown);
 });
 
