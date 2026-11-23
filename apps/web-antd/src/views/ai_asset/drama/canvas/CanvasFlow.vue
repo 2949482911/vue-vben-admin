@@ -123,18 +123,6 @@ let pendingSavedViewport = { x: 0, y: 0, zoom: 1 };
 let viewportRestored = false;
 let viewportCheckDone = false;
 
-function nodesMeasured() {
-  const list = getNodes.value;
-  return (
-    list.length > 0 &&
-    list.every(
-      (node) =>
-        Number(node.dimensions?.width ?? 0) > 0 &&
-        Number(node.dimensions?.height ?? 0) > 0,
-    )
-  );
-}
-
 const MIN_FIT_ZOOM = 0.09;
 const MAX_FIT_ZOOM = 3.07;
 
@@ -205,24 +193,12 @@ async function runViewportCheck(
     viewportCheckDone = true;
     return;
   }
-  if (!nodesMeasured() && attempt < 20) {
-    setTimeout(() => {
-      void runViewportCheck(saved, attempt + 1);
-    }, 200);
-    return;
-  }
+  // fitToNodes 只用 store 中的 data.width/height，不依赖 VueFlow dimensions
   await autoFitAndSave();
   const applied = flowViewport.value;
   const appliedDefault = isDefaultViewport(applied);
   const allContained = viewportContainsAllNodes(applied);
-  if ((appliedDefault || !nodesMeasured()) && attempt < 20) {
-    setTimeout(() => {
-      void runViewportCheck(saved, attempt + 1);
-    }, 200);
-    return;
-  }
-  // 只有 fit 生效（非默认）或节点已全部包含才结束
-  if (appliedDefault && !allContained && attempt < 20) {
+  if ((appliedDefault || !allContained) && attempt < 20) {
     setTimeout(() => {
       void runViewportCheck(saved, attempt + 1);
     }, 200);
