@@ -103,11 +103,12 @@ function viewportShowsNodes(
   const maxY = Math.max(
     ...store.nodes.map((node) => node.position.y + node.data.height),
   );
-  return !(
-    maxX < visible.x ||
-    minX > visible.x + visible.width ||
-    maxY < visible.y ||
-    minY > visible.y + visible.height
+  // 只有全部节点都在视口内才保留；部分可见（含默认 0,0,1）都重 fit
+  return (
+    minX >= visible.x &&
+    minY >= visible.y &&
+    maxX <= visible.x + visible.width &&
+    maxY <= visible.y + visible.height
   );
 }
 
