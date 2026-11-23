@@ -8,8 +8,12 @@ import { computed, ref } from 'vue';
 
 import {
   AppstoreOutlined,
+  FieldTimeOutlined,
   GroupOutlined,
+  PictureOutlined,
   PlusOutlined,
+  ReadOutlined,
+  TeamOutlined,
 } from '@ant-design/icons-vue';
 import { Tooltip } from 'ant-design-vue';
 
@@ -17,6 +21,7 @@ import { useCanvasGraphStore } from './store';
 
 const emit = defineEmits<{
   add: [kind: CanvasNodeKind];
+  quick: [kind: 'entity' | 'material' | 'plot' | 'timeline'];
 }>();
 
 const store = useCanvasGraphStore();
@@ -59,9 +64,10 @@ function createGroup() {
 <template>
   <aside class="canvas-toolbar" aria-label="画布工具栏">
     <div class="canvas-toolbar__add-zone">
-      <Tooltip placement="right" title="添加节点">
+      <Tooltip placement="right" title="快速生成 / 添加节点">
         <button
           class="canvas-toolbar__button canvas-toolbar__button--primary"
+          title="快速生成 / 添加节点"
           type="button"
           @click="menuOpen = !menuOpen"
         >
@@ -84,6 +90,29 @@ function createGroup() {
           节点蓝图未加载
         </div>
       </div>
+    </div>
+
+    <div class="canvas-toolbar__group">
+      <Tooltip placement="right" title="素材库">
+        <button class="canvas-toolbar__button" title="素材库" type="button" @click="emit('quick', 'material')">
+          <PictureOutlined />
+        </button>
+      </Tooltip>
+      <Tooltip placement="right" title="主体">
+        <button class="canvas-toolbar__button" title="主体" type="button" @click="emit('quick', 'entity')">
+          <TeamOutlined />
+        </button>
+      </Tooltip>
+      <Tooltip placement="right" title="时间轴">
+        <button class="canvas-toolbar__button" title="时间轴" type="button" @click="emit('quick', 'timeline')">
+          <FieldTimeOutlined />
+        </button>
+      </Tooltip>
+      <Tooltip placement="right" title="剧情工具">
+        <button class="canvas-toolbar__button" title="剧情工具" type="button" @click="emit('quick', 'plot')">
+          <ReadOutlined />
+        </button>
+      </Tooltip>
     </div>
 
     <div class="canvas-toolbar__group">

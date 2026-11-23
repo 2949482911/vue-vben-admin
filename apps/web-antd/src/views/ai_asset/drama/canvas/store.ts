@@ -132,6 +132,8 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
   const episodeId = ref<number | string>();
   const splitTargetNodeId = ref<string>();
   const boxSelectMode = ref(false);
+  const workspaceFocusRequest = ref<'entity' | 'material'>();
+  const outlineFocusGroupId = ref<string>();
   const shotActionRequest = ref<CanvasShotActionRequest>();
   const nodeInfoRequestId = ref<string>();
   const nodeInfoCloseToken = ref(0);
@@ -194,6 +196,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     groups.value = graph.groups ?? [];
     nodes.value = (graph.nodes ?? []).map(toFlowNode);
     edges.value = (graph.edges ?? []).map(toFlowEdge);
+    applyGroupCollapseVisibility();
     selectedNodeIds.value = [];
     dirty.value = false;
     conflict.value = false;
@@ -682,6 +685,65 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
 
   function toggleBoxSelectMode() {
     boxSelectMode.value = !boxSelectMode.value;
+  }
+
+  function requestWorkspaceFocus(mode: 'entity' | 'material') {
+    workspaceFocusRequest.value = mode;
+  }
+
+  function clearWorkspaceFocusRequest() {
+    workspaceFocusRequest.value = undefined;
+  }
+
+  function requestOutlineFocus(groupClientId: string) {
+    outlineFocusGroupId.value = groupClientId;
+  }
+
+  function clearOutlineFocus() {
+    outlineFocusGroupId.value = undefined;
+  }
+
+  function groupChainCollapsed(groupClientId?: null | string): boolean {
+    let cursor = groupClientId;
+    const seen = new Set<string>();
+    while (cursor) {
+      if (seen.has(cursor)) {
+        return false;
+      }
+      seen.add(cursor);
+      const group = groups.value.find((item) => item.clientId === cursor);
+      if (!group) {
+        return false;
+      }
+      if (Number(group.collapsed) === 1) {
+        return true;
+      }
+      cursor = group.parentGroupClientId;
+    }
+    return false;
+  }
+
+  function applyGroupCollapseVisibility() {
+    nodes.value = nodes.value.map((node) => {
+      const hidden = groupChainCollapsed(node.data.groupClientId);
+      return {
+        ...node,
+        style: {
+          ...node.style,
+          display: hidden ? 'none' : undefined,
+        },
+      };
+    });
+  }
+
+  function toggleGroupCollapsed(clientId: string) {
+    groups.value = groups.value.map((group) =>
+      group.clientId === clientId
+        ? { ...group, collapsed: Number(group.collapsed) === 1 ? 0 : 1 }
+        : group,
+    );
+    applyGroupCollapseVisibility();
+    markDirty();
   }
 
   function videoDetails(node: CanvasFlowNode) {
@@ -1266,6 +1328,13 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     videoActionRequest,
     requestVideoAction,
     clearVideoAction,
+    workspaceFocusRequest,
+    outlineFocusGroupId,
+    requestWorkspaceFocus,
+    clearWorkspaceFocusRequest,
+    requestOutlineFocus,
+    clearOutlineFocus,
+    toggleGroupCollapsed,
     timelineActionRequest,
     requestTimelineAction,
     clearTimelineAction,

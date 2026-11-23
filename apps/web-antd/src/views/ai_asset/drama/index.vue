@@ -621,7 +621,11 @@ onMounted(async () => {
               />
             </div>
             <div v-else-if="surface === 'canvas'" class="drama__canvas-surface">
-              <CanvasSurface :episode-id="episodeId" :novel-id="novelId" />
+              <CanvasSurface
+                :episode-id="episodeId"
+                :novel-id="novelId"
+                @open-plot="surface = 'plot'"
+              />
             </div>
             <div
               v-else-if="surface === 'storyboard'"

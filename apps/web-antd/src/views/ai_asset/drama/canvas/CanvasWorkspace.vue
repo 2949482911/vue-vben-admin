@@ -1,7 +1,11 @@
 <script lang="ts" setup name="CanvasWorkspace">
 import type { CanvasFlowNode, CanvasFlowNodeData } from './store';
 
-import type { MaterialItem, NovelAssetGraph } from '#/api/models/ai_asset';
+import type {
+  MaterialItem,
+  MaterialType,
+  NovelAssetGraph,
+} from '#/api/models/ai_asset';
 
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
@@ -41,6 +45,7 @@ interface EntityOption {
 }
 
 const props = defineProps<{
+  focusMode?: 'entity' | 'material';
   novelId?: number | string;
 }>();
 
@@ -64,9 +69,16 @@ const MATERIAL_STATUS: Record<number, string> = {
   2: '已确认',
   3: '已入库',
 };
+const LIBRARY_MATERIAL_TYPES: Array<{ label: string; value: MaterialType }> = [
+  { label: '图片', value: 'image' },
+  { label: '视频', value: 'video' },
+  { label: '音频', value: 'audio' },
+  { label: '文本', value: 'text' },
+];
 
 const store = useCanvasGraphStore();
 const keyword = ref('');
+const libraryType = ref<MaterialType>('video');
 const materials = ref<MaterialItem[]>([]);
 const materialLoading = ref(false);
 const materialError = ref('');
@@ -94,6 +106,31 @@ const mediaKind = computed<'audio' | 'image' | 'video' | undefined>(() => {
 const needsEntities = computed(() =>
   Boolean(node.value && ENTITY_KINDS.has(node.value.data.kind)),
 );
+const needsEntityLibrary = computed(
+  () => needsEntities.value || (!node.value && props.focusMode === 'entity'),
+);
+const effectiveMaterialType = computed<MaterialType | undefined>(() =>
+  mediaKind.value
+    ? mediaKind.value
+    : !node.value && props.focusMode === 'material'
+      ? libraryType.value
+      : undefined,
+);
+const bindingTitle = computed(() => {
+  if (mediaKind.value) {
+    return '绑定素材';
+  }
+  if (!node.value && props.focusMode === 'material') {
+    return '素材库';
+  }
+  if (needsEntities.value) {
+    return '应用实体';
+  }
+  if (!node.value && props.focusMode === 'entity') {
+    return '主体库';
+  }
+  return '节点数据';
+});
 const typeLabel = computed(() =>
   nodeKind.value
     ? (store.blueprintOf(nodeKind.value)?.label ?? nodeKind.value)
@@ -274,7 +311,7 @@ function isAppliedEntity(entity: EntityOption) {
 }
 
 async function loadMaterials() {
-  const kind = mediaKind.value;
+  const kind = effectiveMaterialType.value;
   if (!kind) {
     materials.value = [];
     materialError.value = '';
@@ -309,7 +346,7 @@ function scheduleMaterials() {
 }
 
 async function loadEntities() {
-  if (!props.novelId || !needsEntities.value) {
+  if (!props.novelId || !needsEntityLibrary.value) {
     return;
   }
   if (entityLoadedFor.value === String(props.novelId)) {
@@ -349,7 +386,7 @@ async function persist(patch: Partial<CanvasFlowNodeData>) {
 }
 
 async function bindMaterial(material: MaterialItem) {
-  if (acting.value) {
+  if (acting.value || !mediaKind.value) {
     return;
   }
   await persist({
@@ -375,7 +412,7 @@ async function unbindMaterial() {
 }
 
 async function applyEntity(entity: EntityOption) {
-  if (acting.value) {
+  if (acting.value || !needsEntities.value) {
     return;
   }
   await persist({
@@ -390,23 +427,27 @@ async function applyEntity(entity: EntityOption) {
   });
 }
 
-watch(mediaKind, (kind) => {
-  if (!kind) {
-    materials.value = [];
-    materialError.value = '';
-    return;
-  }
-  void loadMaterials();
-});
+watch(
+  effectiveMaterialType,
+  (kind) => {
+    if (!kind) {
+      materials.value = [];
+      materialError.value = '';
+      return;
+    }
+    void loadMaterials();
+  },
+  { immediate: true },
+);
 
 watch(keyword, () => {
-  if (mediaKind.value) {
+  if (effectiveMaterialType.value) {
     scheduleMaterials();
   }
 });
 
 watch(
-  [() => props.novelId, needsEntities],
+  [() => props.novelId, needsEntityLibrary],
   ([id, need]) => {
     if (!id || !need) {
       return;
@@ -472,12 +513,18 @@ onBeforeUnmount(() => {
         </template>
       </section>
 
-      <section v-if="node" class="canvas-workspace__section">
+      <section v-if="node || focusMode" class="canvas-workspace__section">
         <div class="canvas-workspace__section-title">
-          {{ mediaKind ? '绑定素材' : needsEntities ? '应用实体' : '节点数据' }}
+          {{ bindingTitle }}
         </div>
 
-        <template v-if="mediaKind">
+        <template v-if="mediaKind || (!node && focusMode === 'material')">
+          <Select
+            v-if="!mediaKind"
+            v-model:value="libraryType"
+            :options="LIBRARY_MATERIAL_TYPES"
+            size="small"
+          />
           <Input
             v-model:value="keyword"
             allow-clear
@@ -501,6 +548,7 @@ onBeforeUnmount(() => {
               :key="material.id"
               class="canvas-workspace__item"
               :class="{ 'is-active': isBoundMaterial(material) }"
+              :disabled="!mediaKind"
               type="button"
               @click="bindMaterial(material)"
             >
@@ -535,9 +583,12 @@ onBeforeUnmount(() => {
           >
             解绑素材
           </Button>
+          <div v-if="!mediaKind" class="canvas-workspace__hint">
+            在画布选中 image/video/audio 节点后可绑定素材。
+          </div>
         </template>
 
-        <template v-else-if="needsEntities">
+        <template v-else-if="needsEntities || (!node && focusMode === 'entity')">
           <div v-if="entityLoading" class="canvas-workspace__hint">
             项目实体加载中…
           </div>
@@ -571,6 +622,7 @@ onBeforeUnmount(() => {
                 :key="`${entity.type}-${entity.id}`"
                 class="canvas-workspace__item"
                 :class="{ 'is-active': isAppliedEntity(entity) }"
+                :disabled="!needsEntities"
                 type="button"
                 @click="applyEntity(entity)"
               >
@@ -595,9 +647,12 @@ onBeforeUnmount(() => {
               </button>
             </div>
           </template>
+          <div v-if="!needsEntities" class="canvas-workspace__hint">
+            在画布选中 entity/character 节点后可应用实体。
+          </div>
         </template>
 
-        <template v-else-if="nodeKind === 'text'">
+        <template v-else-if="node && nodeKind === 'text'">
           <div class="canvas-workspace__readonly">
             <div><span>body</span><b>{{ node.data.body || '—' }}</b></div>
           </div>
@@ -620,7 +675,7 @@ onBeforeUnmount(() => {
           </div>
         </template>
 
-        <template v-else-if="nodeKind === 'shot'">
+        <template v-else-if="node && nodeKind === 'shot'">
           <div class="canvas-workspace__readonly">
             <div><span>label</span><b>{{ node.data.label }}</b></div>
             <div><span>body</span><b>{{ node.data.body || '—' }}</b></div>

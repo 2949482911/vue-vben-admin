@@ -449,7 +449,7 @@ async function addNodeAtCenter(kind: CanvasNodeKind) {
         y: rect.top + rect.height / 2,
       })
     : { x: 120, y: 120 };
-  store.addNode(kind, position);
+  return store.addNode(kind, position);
 }
 
 async function fitCanvas() {

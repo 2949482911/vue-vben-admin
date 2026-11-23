@@ -43,7 +43,7 @@ import CanvasToolbar from './CanvasToolbar.vue';
 import CanvasVideoActionModal from './CanvasVideoActionModal.vue';
 import CanvasViewportControls from './CanvasViewportControls.vue';
 import CanvasWorkspace from './CanvasWorkspace.vue';
-import { useCanvasGraphStore } from './store';
+import { type CanvasFlowNode, useCanvasGraphStore } from './store';
 import { useCanvasShotMedia } from './useCanvasShotMedia';
 
 const props = defineProps<{
@@ -51,8 +51,12 @@ const props = defineProps<{
   novelId?: number | string;
 }>();
 
+const emit = defineEmits<{ openPlot: [] }>();
+
 interface CanvasFlowExpose {
-  addNodeAtCenter: (kind: CanvasNodeKind) => Promise<void>;
+  addNodeAtCenter: (
+    kind: CanvasNodeKind,
+  ) => Promise<CanvasFlowNode | undefined>;
   fitCanvas: () => Promise<void>;
   fitOnNodesReady: () => void;
   focusGroup: (groupClientId: string) => void;
@@ -79,6 +83,7 @@ const workspaceOpen = ref(false);
 const agentOpen = ref(false);
 const syncedEpisodeKeys = new Set<string>();
 const flowKey = ref(0);
+const workspaceFocus = ref<'entity' | 'material'>();
 const splitTargetNode = computed(() =>
   store.splitTargetNodeId
     ? store.nodes.find((node) => node.id === store.splitTargetNodeId)
@@ -386,10 +391,66 @@ watch(
       return;
     }
     store.clearNodeInfoRequest();
+    workspaceFocus.value = undefined;
     workspaceOpen.value = true;
     agentOpen.value = false;
   },
 );
+
+watch(
+  () => store.workspaceFocusRequest,
+  (mode) => {
+    if (!mode) {
+      return;
+    }
+    store.clearWorkspaceFocusRequest();
+    workspaceFocus.value = mode;
+    workspaceOpen.value = true;
+    agentOpen.value = false;
+  },
+);
+
+watch(
+  () => store.outlineFocusGroupId,
+  (groupId) => {
+    if (!groupId) {
+      return;
+    }
+    outlineOpen.value = true;
+    nextTick(() => {
+      flowRef.value?.focusGroup(groupId);
+    });
+  },
+);
+
+async function handleQuickTool(
+  kind: 'entity' | 'material' | 'plot' | 'timeline',
+) {
+  if (kind === 'plot') {
+    emit('openPlot');
+    return;
+  }
+  if (kind === 'material' || kind === 'entity') {
+    workspaceFocus.value = kind;
+    workspaceOpen.value = true;
+    agentOpen.value = false;
+    return;
+  }
+  const existing = store.nodes.find((node) => node.data.kind === 'timeline');
+  if (existing) {
+    flowRef.value?.selectNode(existing.id);
+    store.requestTimelineAction(existing.id, 'open');
+    return;
+  }
+  const created = await flowRef.value?.addNodeAtCenter('timeline');
+  const timelineNode =
+    created ?? store.nodes.find((node) => node.data.kind === 'timeline');
+  if (timelineNode) {
+    await store.flushSave();
+    flowRef.value?.selectNode(timelineNode.id);
+    store.requestTimelineAction(timelineNode.id, 'open');
+  }
+}
 
 watch(
   () => store.nodeInfoCloseToken,
@@ -781,9 +842,10 @@ watch(
     <div v-else class="canvas-surface__main">
       <div class="canvas-surface__stage">
         <CanvasFlow :key="flowKey" ref="flowRef" />
-        <CanvasToolbar @add="addNode" />
+        <CanvasToolbar @add="addNode" @quick="handleQuickTool" />
         <CanvasOutline
           v-if="outlineOpen"
+          :focus-group-client-id="store.outlineFocusGroupId"
           @close="outlineOpen = false"
           @locate="locateTarget"
         />
@@ -796,6 +858,7 @@ watch(
       </div>
       <CanvasWorkspace
         v-if="workspaceOpen"
+        :focus-mode="workspaceFocus"
         :novel-id="novelId"
         @close="workspaceOpen = false"
       />

@@ -5,8 +5,11 @@ import { computed, ref } from 'vue';
 
 import {
   DeleteOutlined,
+  DownOutlined,
   EditOutlined,
   LinkOutlined,
+  RightOutlined,
+  UnorderedListOutlined,
 } from '@ant-design/icons-vue';
 import { Input, Modal } from 'ant-design-vue';
 
@@ -66,6 +69,14 @@ function remove(group: CanvasGroup) {
   });
 }
 
+function toggleCollapsed(group: CanvasGroup) {
+  store.toggleGroupCollapsed(group.clientId);
+}
+
+function openIndex(group: CanvasGroup) {
+  store.requestOutlineFocus(group.clientId);
+}
+
 function toggleReference(group: CanvasGroup) {
   if (store.groupReferenceSource === group.clientId) {
     store.cancelGroupReference();
@@ -83,6 +94,7 @@ function toggleReference(group: CanvasGroup) {
       class="canvas-group"
       :class="{
         'is-source': store.groupReferenceSource === box.group.clientId,
+        'is-collapsed': Number(box.group.collapsed) === 1,
       }"
       :style="{
         left: `${box.x}px`,
@@ -102,7 +114,16 @@ function toggleReference(group: CanvasGroup) {
             />
           </template>
           <template v-else>
-            <span @dblclick="startEdit(box.group)">{{ box.group.title }}</span>
+            <button
+              class="canvas-group__icon"
+              type="button"
+              :title="Number(box.group.collapsed) === 1 ? '展开分组' : '折叠分组'"
+              @click="toggleCollapsed(box.group)"
+            >
+              <RightOutlined v-if="Number(box.group.collapsed) === 1" />
+              <DownOutlined v-else />
+            </button>
+            <span @click="toggleCollapsed(box.group)">{{ box.group.title }}</span>
             <button
               class="canvas-group__icon"
               type="button"
@@ -114,6 +135,14 @@ function toggleReference(group: CanvasGroup) {
           </template>
         </span>
         <span class="canvas-group__count">{{ box.count }}</span>
+        <button
+          class="canvas-group__icon"
+          type="button"
+          title="打开索引并定位该组"
+          @click="openIndex(box.group)"
+        >
+          <UnorderedListOutlined />
+        </button>
         <button
           class="canvas-group__icon"
           type="button"
@@ -157,6 +186,11 @@ function toggleReference(group: CanvasGroup) {
   &.is-source {
     background: hsl(var(--primary) / 8%);
     border-color: hsl(var(--primary) / 70%);
+  }
+
+  &.is-collapsed {
+    background: hsl(var(--primary) / 6%);
+    border-style: solid;
   }
 
   &__title {

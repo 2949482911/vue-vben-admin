@@ -208,6 +208,41 @@ const canOutputVideo = computed(() =>
   Boolean(shotStatus.value?.segmentVideoUrl && selectedSegmentTake.value),
 );
 
+const shotSceneName = computed(
+  () => detailText('sceneName') || '待关联',
+);
+const shotCamera = computed(() => detailText('camera') || '待关联');
+const shotTypeLabel = computed(() => detailText('shotType') || '待关联');
+const shotStatusChip = computed(() => {
+  const status = shotStatus.value;
+  if (!status) {
+    return { key: 'unknown', label: '状态未知' };
+  }
+  if (status.generationStatus === 5 || status.keyframeStatus === 5) {
+    return { key: 'error', label: '失败' };
+  }
+  if (isShotGenerating(status)) {
+    return { key: 'running', label: '生成中' };
+  }
+  if (
+    status.keyframeUrl ||
+    status.keyframeThumbnailUrl ||
+    status.keyframeStatus === 2 ||
+    status.segmentVideoUrl
+  ) {
+    return { key: 'ready', label: '关键帧就绪' };
+  }
+  return { key: 'pending', label: '待出图' };
+});
+
+function openSceneLibrary() {
+  store.requestWorkspaceFocus('entity');
+}
+
+function openShotEditor() {
+  requestShotAction('edit');
+}
+
 const videoDetails = computed<Record<string, unknown>>(
   () => props.data.details ?? {},
 );
@@ -540,8 +575,26 @@ function bodyText() {
         <div class="canvas-node__shot-body">
           {{ shotSummary || '已绑定分镜，暂无摘要' }}
         </div>
-        <div v-if="shotInfo.characters.length" class="canvas-node__shot-tags">
-          <span v-for="name in shotInfo.characters" :key="name">{{ name }}</span>
+        <div class="canvas-node__shot-tags">
+          <span
+            v-for="name in shotInfo.characters"
+            :key="name"
+          >{{ name }}</span>
+          <button class="canvas-node__shot-chip" type="button" @click.stop="openSceneLibrary">
+            场景 · {{ shotSceneName }}
+          </button>
+          <button class="canvas-node__shot-chip" type="button" @click.stop="openShotEditor">
+            机位 · {{ shotCamera }}
+          </button>
+          <button class="canvas-node__shot-chip" type="button" @click.stop="openShotEditor">
+            景别 · {{ shotTypeLabel }}
+          </button>
+          <span
+            class="canvas-node__shot-chip"
+            :class="`is-${shotStatusChip.key}`"
+          >
+            {{ shotStatusChip.label }}
+          </span>
         </div>
         <CanvasShotTakes
           :selecting-take-id="selectingTakeId"
@@ -1068,12 +1121,35 @@ function bodyText() {
     flex-wrap: wrap;
     gap: 4px;
 
-    span {
+    > span,
+    .canvas-node__shot-chip {
       padding: 1px 6px;
       font-size: 11px;
       color: hsl(var(--muted-foreground));
       background: hsl(var(--accent));
+      border: 0;
       border-radius: 999px;
+    }
+  }
+
+  &__shot-chip {
+    cursor: pointer;
+
+    &.is-ready {
+      color: hsl(var(--success));
+    }
+
+    &.is-running {
+      color: hsl(var(--primary));
+    }
+
+    &.is-error {
+      color: hsl(var(--destructive));
+    }
+
+    &.is-unknown,
+    &.is-pending {
+      color: hsl(var(--muted-foreground));
     }
   }
 

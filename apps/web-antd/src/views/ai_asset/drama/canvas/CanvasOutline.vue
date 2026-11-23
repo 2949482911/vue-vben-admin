@@ -1,7 +1,7 @@
 <script lang="ts" setup name="CanvasOutline">
 import type { CanvasFlowNode } from './store';
 
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import {
   AimOutlined,
@@ -15,6 +15,8 @@ import { useCanvasGraphStore } from './store';
 
 type OutlineScope = 'all' | 'group' | 'node';
 
+const props = defineProps<{ focusGroupClientId?: string }>();
+
 const emit = defineEmits<{
   close: [];
   locate: [payload: { clientId: string; type: 'group' | 'node' }];
@@ -23,6 +25,21 @@ const emit = defineEmits<{
 const store = useCanvasGraphStore();
 const keyword = ref('');
 const scope = ref<OutlineScope>('all');
+
+watch(
+  () => props.focusGroupClientId,
+  (groupId) => {
+    if (!groupId) {
+      return;
+    }
+    const group = store.groups.find((item) => item.clientId === groupId);
+    if (group) {
+      keyword.value = group.title;
+      scope.value = 'group';
+    }
+  },
+  { immediate: true },
+);
 
 const SCOPE_OPTIONS = [
   { label: '全部', value: 'all' },
@@ -130,6 +147,9 @@ function removeEmptyGroup(clientId: string) {
           v-for="group in groupRows"
           :key="group.clientId"
           class="canvas-outline__row"
+          :class="{
+            'is-focused': group.clientId === props.focusGroupClientId,
+          }"
         >
           <button
             class="canvas-outline__main"
@@ -283,6 +303,11 @@ function removeEmptyGroup(clientId: string) {
 
     &:hover {
       background: hsl(var(--accent));
+    }
+
+    &.is-focused {
+      outline: 1px solid hsl(var(--primary) / 45%);
+      background: hsl(var(--primary) / 8%);
     }
   }
 
