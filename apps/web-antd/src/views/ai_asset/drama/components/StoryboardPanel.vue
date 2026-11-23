@@ -126,7 +126,33 @@ const loading = ref(false);
 const loadError = ref<DramaApiError>();
 const loadedEpisodeKey = ref('');
 const currentKey = computed(() => String(props.episodeId ?? ''));
+const scriptGateHint = ref('');
 let loadSeq = 0;
+
+/** 分镜门禁提示直接取分集详情，不自行判定通过，只展示后端 scenes/scriptStatus 现状 */
+async function loadScriptGate(id: number | string, seq: number) {
+  scriptGateHint.value = '';
+  try {
+    const item = await aiAssetApi.fetchEpisodeDetail(id, true);
+    if (seq !== loadSeq) {
+      return;
+    }
+    const scenes = item.scenes ?? [];
+    if (!scenes.length) {
+      scriptGateHint.value =
+        '剧本没有场次，请先到「剧情 → 剧本」生成剧本';
+      return;
+    }
+    if (Number(item.scriptStatus ?? 0) !== 2) {
+      scriptGateHint.value =
+        '剧本未定稿，请先到「剧情 → 剧本」校验并定稿';
+    }
+  } catch {
+    if (seq === loadSeq) {
+      scriptGateHint.value = '';
+    }
+  }
+}
 
 const imageRunning = ref(false);
 
@@ -315,10 +341,12 @@ async function loadList() {
   promptPreviews.value = {};
   if (!props.episodeId) {
     loadedEpisodeKey.value = '';
+    scriptGateHint.value = '';
     loading.value = false;
     return;
   }
   loading.value = true;
+  void loadScriptGate(props.episodeId, seq);
   try {
     const result = await aiAssetStoryboardApi.fetchStoryboardList(
       props.episodeId,
@@ -1480,6 +1508,12 @@ onBeforeUnmount(() => {
             </Button>
           </span>
         </Tooltip>
+        <Alert
+          v-if="scriptGateHint"
+          :message="scriptGateHint"
+          type="warning"
+          show-icon
+        />
         <Alert
           v-if="splitError"
           :message="formatApiError(splitError)"

@@ -37,12 +37,18 @@ import EntityPanel from './components/EntityPanel.vue';
 import EpisodePanel from './components/EpisodePanel.vue';
 import PlotPanel from './components/PlotPanel.vue';
 import ProjectStyleDrawer from './components/ProjectStyleDrawer.vue';
+import ScriptPanel from './components/ScriptPanel.vue';
 import StoryboardPanel from './components/StoryboardPanel.vue';
 import WorkflowAgentPanel from './components/WorkflowAgentPanel.vue';
 import { formatApiError, parseApiError } from './error';
 import { useAspectRatioDict } from './useAspectRatioDict';
 
-type PlotTab = 'entities' | 'episodes' | 'script' | 'storyboard';
+type PlotTab =
+  | 'entities'
+  | 'episodes'
+  | 'screenplay'
+  | 'script'
+  | 'storyboard';
 type SurfaceKey = 'canvas' | 'plot' | 'storyboard' | 'workflow';
 
 const SURFACES: Array<{ label: string; value: SurfaceKey }> = [
@@ -54,6 +60,7 @@ const SURFACES: Array<{ label: string; value: SurfaceKey }> = [
 
 const PLOT_TABS: Array<{ label: string; value: PlotTab }> = [
   { label: '原文/核心情节', value: 'script' },
+  { label: '剧本', value: 'screenplay' },
   { label: '实体', value: 'entities' },
   { label: '分集', value: 'episodes' },
   { label: '分镜', value: 'storyboard' },
@@ -124,6 +131,10 @@ const ratioOpen = ref(false);
 
 const currentEpisode = computed(() =>
   episodes.value.find((item) => String(item.id) === String(episodeId.value)),
+);
+
+const currentNovel = computed(() =>
+  novels.value.find((item) => String(item.id) === String(novelId.value)),
 );
 
 const currentSurfaceLabel = computed(
@@ -420,6 +431,11 @@ async function onEpisodeSplitApplied(summary: EpisodeSummaryItem[]) {
   await loadEpisodes();
 }
 
+/** 剧本生成/定稿/分场保存后，重挂分镜台以刷新门禁提示 */
+function onScriptChanged() {
+  storyboardReloadKey.value += 1;
+}
+
 /** 兼容旧链接：episodeId 已不再是路由状态，进页时清掉残留 query */
 function cleanLegacyEpisodeQuery() {
   if (route.query.episodeId !== undefined) {
@@ -578,6 +594,12 @@ onMounted(async () => {
                   :episodes="episodes"
                   @dirty-change="plotDirty = $event"
                   @select-episode="requestEpisodeChange"
+                />
+                <ScriptPanel
+                  v-show="plotTab === 'screenplay'"
+                  :default-duration="currentNovel?.episodeDuration"
+                  :episode-id="episodeId"
+                  @script-changed="onScriptChanged"
                 />
                 <EntityPanel
                   v-show="plotTab === 'entities'"
