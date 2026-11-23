@@ -1073,10 +1073,10 @@ function ensurePromptPreviewState(shot: StoryboardShot) {
   const key = String(shot.shotId);
   let state = promptPreviews.value[key];
   if (!state) {
-    state = { imageLoading: false, videoLoading: false };
-    promptPreviews.value[key] = state;
+    promptPreviews.value[key] = { imageLoading: false, videoLoading: false };
   }
-  return state;
+  // 必须返回 ref 解包后的代理对象，直接持有新建原始对象会绕过响应式
+  return promptPreviews.value[key]!;
 }
 
 function isPreviewLoading(

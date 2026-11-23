@@ -10,7 +10,7 @@ import type { EpisodeItem, NovelItem } from '#/api/models/ai_asset';
 import type { EpisodeSummaryItem } from '#/api/models/ai_asset_episode';
 import type { ProjectVisualStyleView } from '#/api/models/ai_asset_project';
 
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Page } from '@vben/common-ui';
@@ -30,6 +30,7 @@ import {
 
 import { aiAssetApi } from '#/api';
 import { aiAssetProjectApi } from '#/api/core/ai_asset_project';
+import { aiAssetStoryboardApi } from '#/api/core/ai_asset_storyboard';
 
 import CanvasSurface from './canvas/CanvasSurface.vue';
 import AspectRatioModal from './components/AspectRatioModal.vue';
@@ -95,6 +96,43 @@ const workspaceDirty = computed(
 const entityCount = ref<number>();
 const storyboardStats = ref({ segmentCount: 0, shotCount: 0 });
 const storyboardReloadKey = ref(0);
+let storyboardStatsSeq = 0;
+
+/** 概览镜头数直接按本集分镜列表拉取，避免只有分镜台挂载后才回填 */
+async function loadStoryboardStats(id?: number | string) {
+  const seq = ++storyboardStatsSeq;
+  if (!id) {
+    storyboardStats.value = { segmentCount: 0, shotCount: 0 };
+    return;
+  }
+  try {
+    const result = await aiAssetStoryboardApi.fetchStoryboardList(id);
+    if (seq !== storyboardStatsSeq || String(episodeId.value) !== String(id)) {
+      return;
+    }
+    const segments = result.segments ?? [];
+    storyboardStats.value = {
+      segmentCount: segments.length,
+      shotCount: segments.reduce(
+        (sum, segment) => sum + (segment.shots?.length ?? 0),
+        0,
+      ),
+    };
+  } catch {
+    if (seq === storyboardStatsSeq && String(episodeId.value) === String(id)) {
+      storyboardStats.value = { segmentCount: 0, shotCount: 0 };
+    }
+  }
+}
+
+function onStoryboardStats(stats: { segmentCount: number; shotCount: number }) {
+  storyboardStats.value = stats;
+}
+
+watch(episodeId, (id) => {
+  storyboardStats.value = { segmentCount: 0, shotCount: 0 };
+  void loadStoryboardStats(id);
+});
 
 const plotWordLabel = computed(() => {
   const total = episodes.value.reduce(
@@ -626,7 +664,7 @@ onMounted(async () => {
                   :project-ratio="aspectRatio"
                   :project-style="styleCurrentLabel"
                   @dirty-change="storyboardDirty = $event"
-                  @stats-change="storyboardStats = $event"
+                  @stats-change="onStoryboardStats"
                 />
               </div>
             </div>
