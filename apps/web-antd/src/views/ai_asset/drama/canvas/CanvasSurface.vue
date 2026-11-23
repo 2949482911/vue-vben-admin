@@ -320,8 +320,28 @@ function locateTarget(payload: { clientId: string; type: 'group' | 'node' }) {
 function toggleWorkspace() {
   workspaceOpen.value = !workspaceOpen.value;
   if (workspaceOpen.value) {
+    workspaceFocus.value = undefined;
     agentOpen.value = false;
   }
+}
+
+function closeWorkspace() {
+  workspaceOpen.value = false;
+  workspaceFocus.value = undefined;
+}
+
+function closeOutline() {
+  outlineOpen.value = false;
+  store.clearOutlineFocus();
+}
+
+function toggleOutline() {
+  if (outlineOpen.value) {
+    closeOutline();
+    return;
+  }
+  store.clearOutlineFocus();
+  outlineOpen.value = true;
 }
 
 function toggleAgent() {
@@ -752,7 +772,7 @@ watch(
       <Button
         size="small"
         :disabled="!currentCanvasId"
-        @click="outlineOpen = !outlineOpen"
+        @click="toggleOutline"
       >
         <UnorderedListOutlined />
         索引
@@ -846,7 +866,7 @@ watch(
         <CanvasOutline
           v-if="outlineOpen"
           :focus-group-client-id="store.outlineFocusGroupId"
-          @close="outlineOpen = false"
+          @close="closeOutline"
           @locate="locateTarget"
         />
         <CanvasViewportControls
@@ -860,7 +880,7 @@ watch(
         v-if="workspaceOpen"
         :focus-mode="workspaceFocus"
         :novel-id="novelId"
-        @close="workspaceOpen = false"
+        @close="closeWorkspace"
       />
       <CanvasAgentPanel
         v-else-if="agentOpen"

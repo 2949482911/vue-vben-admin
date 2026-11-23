@@ -92,10 +92,14 @@ const actionError = ref('');
 
 let materialTimer: ReturnType<typeof setTimeout> | undefined;
 
-const node = computed<CanvasFlowNode | undefined>(() => {
+const selectedNode = computed<CanvasFlowNode | undefined>(() => {
   const id = store.selectedNodeIds[0];
   return id ? store.nodes.find((item) => item.id === id) : undefined;
 });
+// 显式 focusMode（素材库/主体）优先于选中节点，保证快捷入口直达列表
+const node = computed<CanvasFlowNode | undefined>(() =>
+  props.focusMode ? undefined : selectedNode.value,
+);
 const nodeKind = computed(() => node.value?.data.kind);
 const mediaKind = computed<'audio' | 'image' | 'video' | undefined>(() => {
   const kind = node.value?.data.kind;

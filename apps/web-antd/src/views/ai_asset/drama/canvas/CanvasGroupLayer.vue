@@ -1,7 +1,7 @@
 <script lang="ts" setup name="CanvasGroupLayer">
 import type { CanvasGroup } from '#/api/models/ai_asset_canvas';
 
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 
 import {
   DeleteOutlined,
@@ -24,6 +24,7 @@ const emit = defineEmits<{ reference: [groupId: string] }>();
 const store = useCanvasGraphStore();
 const editingId = ref<string>();
 const draft = ref('');
+let titleClickTimer: ReturnType<typeof setTimeout> | undefined;
 
 const boxes = computed(() =>
   store.groups
@@ -73,9 +74,33 @@ function toggleCollapsed(group: CanvasGroup) {
   store.toggleGroupCollapsed(group.clientId);
 }
 
+function onTitleClick(group: CanvasGroup) {
+  if (titleClickTimer) {
+    clearTimeout(titleClickTimer);
+  }
+  titleClickTimer = setTimeout(() => {
+    titleClickTimer = undefined;
+    toggleCollapsed(group);
+  }, 220);
+}
+
+function onTitleDblClick(group: CanvasGroup) {
+  if (titleClickTimer) {
+    clearTimeout(titleClickTimer);
+    titleClickTimer = undefined;
+  }
+  startEdit(group);
+}
+
 function openIndex(group: CanvasGroup) {
   store.requestOutlineFocus(group.clientId);
 }
+
+onBeforeUnmount(() => {
+  if (titleClickTimer) {
+    clearTimeout(titleClickTimer);
+  }
+});
 
 function toggleReference(group: CanvasGroup) {
   if (store.groupReferenceSource === group.clientId) {
@@ -123,7 +148,10 @@ function toggleReference(group: CanvasGroup) {
               <RightOutlined v-if="Number(box.group.collapsed) === 1" />
               <DownOutlined v-else />
             </button>
-            <span @click="toggleCollapsed(box.group)">{{ box.group.title }}</span>
+            <span
+              @click="onTitleClick(box.group)"
+              @dblclick.stop="onTitleDblClick(box.group)"
+            >{{ box.group.title }}</span>
             <button
               class="canvas-group__icon"
               type="button"
