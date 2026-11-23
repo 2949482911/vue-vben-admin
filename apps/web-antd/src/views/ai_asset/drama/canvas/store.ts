@@ -147,6 +147,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
   }>();
 
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  let savingPromise: Promise<void> | undefined;
   let changeSeq = 0;
   let graphEpoch = 0;
 
@@ -371,55 +372,74 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     const payload = buildPayload();
     saving.value = true;
     error.value = '';
+    const task = (async () => {
+      try {
+        const saved = await aiAssetCanvasApi.saveCanvas(
+          targetCanvasId,
+          payload,
+        );
+        if (
+          epoch !== graphEpoch ||
+          String(canvas.value?.id) !== String(targetCanvasId)
+        ) {
+          return;
+        }
+        canvas.value = saved.canvas;
+        lastSavedAt.value = new Date().toISOString();
+        if (seq === changeSeq) {
+          dirty.value = false;
+        } else {
+          scheduleSave();
+        }
+      } catch (err) {
+        if (epoch !== graphEpoch) {
+          return;
+        }
+        const info = parseApiError(err);
+        conflict.value = info.status === 409;
+        error.value = formatApiError(info);
+        message.error(error.value);
+      } finally {
+        saving.value = false;
+        if (dirty.value && !saveTimer && !conflict.value && !error.value) {
+          scheduleSave();
+        }
+      }
+    })();
+    savingPromise = task;
     try {
-      const saved = await aiAssetCanvasApi.saveCanvas(targetCanvasId, payload);
-      if (
-        epoch !== graphEpoch ||
-        String(canvas.value?.id) !== String(targetCanvasId)
-      ) {
-        return;
-      }
-      canvas.value = saved.canvas;
-      lastSavedAt.value = new Date().toISOString();
-      if (seq === changeSeq) {
-        dirty.value = false;
-      } else {
-        scheduleSave();
-      }
-    } catch (err) {
-      if (epoch !== graphEpoch) {
-        return;
-      }
-      const info = parseApiError(err);
-      conflict.value = info.status === 409;
-      error.value = formatApiError(info);
-      message.error(error.value);
+      await task;
     } finally {
-      saving.value = false;
-      if (
-        dirty.value &&
-        !saveTimer &&
-        !conflict.value &&
-        !error.value
-      ) {
-        scheduleSave();
+      if (savingPromise === task) {
+        savingPromise = undefined;
       }
     }
   }
 
-  /** 绑定后等待保存真正落库；含保存中的并发请求与二次 dirty */
-  async function flushSave() {
-    for (let attempt = 0; attempt < 20; attempt += 1) {
-      if (!dirty.value && !saving.value) {
-        return !conflict.value;
+  /**
+   * 等待保存真正落库。全图保存是逐节点 upsert，35 个节点单次可达十余秒，
+   * 必须等待进行中的请求，不能按固定次数提前返回，否则刷新会中断保存。
+   */
+  async function flushSave(timeoutMs = 120_000) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (conflict.value || error.value) {
+        return false;
       }
-      await saveNow();
       if (!dirty.value && !saving.value) {
-        return !conflict.value;
+        return true;
       }
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      if (saving.value) {
+        await (savingPromise ?? Promise.resolve());
+      } else {
+        await saveNow();
+      }
+      if (!dirty.value && !saving.value) {
+        return !conflict.value && !error.value;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
-    return !dirty.value && !saving.value && !conflict.value;
+    return !dirty.value && !saving.value && !conflict.value && !error.value;
   }
 
   function addNode(
