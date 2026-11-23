@@ -72,22 +72,29 @@ const edgeOptions = {
 const isEmpty = computed(() => nodes.value.length === 0);
 const viewportTransform = computed(() => ({ ...flowViewport.value }));
 
-function viewportShowsNodes(
-  viewportValue: { x: number; y: number; zoom: number },
-) {
+function isDefaultViewport(viewportValue: {
+  x: number;
+  y: number;
+  zoom: number;
+}) {
+  return (
+    Math.abs(Number(viewportValue.x)) < 0.0001 &&
+    Math.abs(Number(viewportValue.y)) < 0.0001 &&
+    Math.abs(Number(viewportValue.zoom) - 1) < 0.0001
+  );
+}
+
+function viewportContainsAllNodes(viewportValue: {
+  x: number;
+  y: number;
+  zoom: number;
+}) {
   if (!store.nodes.length) {
     return true;
   }
-  if (
-    viewportValue.x === 0 &&
-    viewportValue.y === 0 &&
-    Number(viewportValue.zoom) === 1
-  ) {
-    return false;
-  }
   const rect = wrapper.value?.getBoundingClientRect();
   if (!rect || rect.width <= 0 || rect.height <= 0) {
-    return true;
+    return false;
   }
   const zoom = Number(viewportValue.zoom) || 1;
   const visible = {
@@ -104,7 +111,6 @@ function viewportShowsNodes(
   const maxY = Math.max(
     ...store.nodes.map((node) => node.position.y + node.data.height),
   );
-  // 只有全部节点都在视口内才保留；部分可见（含默认 0,0,1）都重 fit
   return (
     minX >= visible.x &&
     minY >= visible.y &&
@@ -113,25 +119,50 @@ function viewportShowsNodes(
   );
 }
 
-let pendingViewportCheck = false;
 let pendingSavedViewport = { x: 0, y: 0, zoom: 1 };
+let viewportRestored = false;
+let viewportCheckDone = false;
 
 async function autoFitAndSave() {
   await fitView({ padding: 0.2 });
   store.setViewport({ ...flowViewport.value });
 }
 
-async function applyViewportCheck(saved: { x: number; y: number; zoom: number }) {
-  await nextTick();
-  if (!store.nodes.length) {
+/** 默认视口或非全包含就 fit；节点未测量造成 fit 空转时重试 */
+async function runViewportCheck(
+  saved: { x: number; y: number; zoom: number },
+  attempt = 0,
+) {
+  if (viewportCheckDone || !viewportRestored || !nodesReady) {
     return;
   }
-  if (!viewportShowsNodes(saved)) {
-    await autoFitAndSave();
+  if (!store.nodes.length) {
+    viewportCheckDone = true;
+    return;
   }
+  const needsFit =
+    isDefaultViewport(saved) || !viewportContainsAllNodes(saved);
+  if (!needsFit) {
+    viewportCheckDone = true;
+    return;
+  }
+  await autoFitAndSave();
+  if (isDefaultViewport(flowViewport.value) && attempt < 4) {
+    setTimeout(() => {
+      void runViewportCheck(saved, attempt + 1);
+    }, 200);
+    return;
+  }
+  viewportCheckDone = true;
 }
 
-/** 先恢复保存视口；等节点完成测量后再判断是否需要 fitView */
+function scheduleViewportCheck(delay = 150) {
+  setTimeout(() => {
+    void runViewportCheck(pendingSavedViewport);
+  }, delay);
+}
+
+/** 先恢复保存视口；nodesReady 后统一执行 fit 判定 */
 async function restoreViewport() {
   await nextTick();
   if (!store.initialized) {
@@ -139,23 +170,14 @@ async function restoreViewport() {
   }
   pendingSavedViewport = { ...store.viewport };
   await setViewport(pendingSavedViewport);
-  pendingViewportCheck = true;
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    if (!pendingViewportCheck) {
-      return;
-    }
-    if (wrapper.value?.querySelector('.vue-flow__node')) {
-      pendingViewportCheck = false;
-      // 等 ResizeObserver 写入节点尺寸后再判断/适配
-      await new Promise((resolve) => setTimeout(resolve, 250));
-      await applyViewportCheck(pendingSavedViewport);
-      return;
-    }
-  }
-  if (pendingViewportCheck) {
-    pendingViewportCheck = false;
-    await applyViewportCheck(pendingSavedViewport);
+  viewportRestored = true;
+  viewportCheckDone = false;
+  if (nodesReady) {
+    scheduleViewportCheck();
+  } else {
+    // 兜底：就绪事件/轮询可能延迟，稍后仍会由 handleNodesReady 触发
+    scheduleViewportCheck(300);
+    scheduleViewportCheck(800);
   }
 }
 
@@ -215,11 +237,14 @@ function handleNodesReady() {
   nodesReady = true;
   stopReadyPolling();
   syncFlowEdges();
-  if (pendingViewportCheck) {
-    pendingViewportCheck = false;
-    requestAnimationFrame(() => {
-      void applyViewportCheck(pendingSavedViewport);
-    });
+  if (viewportRestored) {
+    scheduleViewportCheck();
+  } else {
+    setTimeout(() => {
+      if (viewportRestored) {
+        scheduleViewportCheck();
+      }
+    }, 200);
   }
   if (fitWhenNodesReady) {
     fitWhenNodesReady = false;
