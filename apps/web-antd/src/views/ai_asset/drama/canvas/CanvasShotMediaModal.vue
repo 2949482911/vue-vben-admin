@@ -1,13 +1,16 @@
 <script lang="ts" setup name="CanvasShotMediaModal">
-import { computed, ref } from 'vue';
-
 import {
-  Alert,
-  Checkbox,
-  message,
-  Modal,
-  Tag,
-} from 'ant-design-vue';
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from 'vue';
+
+import { Alert, message, Modal, Switch, Tag } from 'ant-design-vue';
+
+import { aiAssetApi } from '#/api';
+import { aiAssetCanvasApi } from '#/api/core/ai_asset_canvas';
 
 import { formatApiError, parseApiError } from '../error';
 import { useCanvasShotMedia } from './useCanvasShotMedia';
@@ -24,7 +27,11 @@ const emit = defineEmits<{ close: [] }>();
 const media = useCanvasShotMedia();
 const loading = ref(false);
 const error = ref('');
-const confirmStoryboard = ref(false);
+const chainNextFirstFrame = ref(true);
+type TailFrameSource = 'next-first-frame' | 'none' | 'unknown';
+const tailFrameLoading = ref(false);
+const tailFrameSource = ref<TailFrameSource>('unknown');
+let tailFrameSeq = 0;
 
 const state = computed(() =>
   media.shotState(props.canvasId, props.shotId),
@@ -34,11 +41,20 @@ const needStoryboardConfirm = computed(
   () => status.value?.storyboardConfirmed === false,
 );
 const canSubmit = computed(
-  () =>
-    Boolean(props.canvasId) &&
-    !loading.value &&
-    (!needStoryboardConfirm.value || confirmStoryboard.value),
+  () => Boolean(props.canvasId) && !loading.value,
 );
+const tailFrameLabel = computed(() => {
+  if (tailFrameLoading.value) {
+    return '读取中…';
+  }
+  if (tailFrameSource.value === 'next-first-frame') {
+    return '下一镜首帧';
+  }
+  if (tailFrameSource.value === 'none') {
+    return '无';
+  }
+  return '未知';
+});
 const actionLabel = computed(() =>
   props.type === 'keyframe'
     ? '重新出图'
@@ -50,6 +66,103 @@ const segmentShotCount = computed(
   () => status.value?.segmentShotCount ?? 0,
 );
 
+/** 预计尾帧来源：只按段列表与下一段首镜状态推算，无法确认时显示未知 */
+async function loadTailFrameSource() {
+  const seq = ++tailFrameSeq;
+  if (props.type !== 'segment-video' || !props.canvasId) {
+    tailFrameLoading.value = false;
+    tailFrameSource.value = 'unknown';
+    return;
+  }
+  const episodeId = status.value?.episodeId;
+  const segmentId = status.value?.segmentId;
+  if (!episodeId) {
+    tailFrameLoading.value = false;
+    tailFrameSource.value = 'unknown';
+    return;
+  }
+  tailFrameLoading.value = true;
+  tailFrameSource.value = 'unknown';
+  try {
+    const segments = await aiAssetApi.fetchEpisodeSegments(episodeId, true);
+    if (seq !== tailFrameSeq) {
+      return;
+    }
+    const current = segmentId
+      ? segments.find((item) => String(item.id) === String(segmentId))
+      : segments.find(
+          (item) => Number(item.seq) === Number(status.value?.segmentSeq),
+        );
+    if (!current) {
+      tailFrameSource.value = 'unknown';
+      return;
+    }
+    const next = segments.find(
+      (item) => Number(item.seq) === Number(current.seq) + 1,
+    );
+    if (!next) {
+      tailFrameSource.value = 'none';
+      return;
+    }
+    let undetermined = false;
+    for (const nextShotId of next.shotIds ?? []) {
+      try {
+        const nextStatus = await aiAssetCanvasApi.fetchCanvasShotStatus(
+          props.canvasId,
+          nextShotId,
+        );
+        if (seq !== tailFrameSeq) {
+          return;
+        }
+        if (nextStatus.keyframeUrl || nextStatus.keyframeThumbnailUrl) {
+          tailFrameSource.value = 'next-first-frame';
+          return;
+        }
+      } catch {
+        if (seq !== tailFrameSeq) {
+          return;
+        }
+        undetermined = true;
+      }
+    }
+    if (next.firstFrameUrl || next.firstFrameThumbnailUrl) {
+      tailFrameSource.value = 'next-first-frame';
+      return;
+    }
+    tailFrameSource.value =
+      undetermined || next.firstFrameMaterialId ? 'unknown' : 'none';
+  } catch {
+    if (seq === tailFrameSeq) {
+      tailFrameSource.value = 'unknown';
+    }
+  } finally {
+    if (seq === tailFrameSeq) {
+      tailFrameLoading.value = false;
+    }
+  }
+}
+
+watch(
+  [
+    () => props.type,
+    () => props.canvasId,
+    () => status.value?.episodeId,
+    () => status.value?.segmentId,
+  ],
+  () => {
+    void loadTailFrameSource();
+  },
+  { immediate: true },
+);
+
+onMounted(() => {
+  media.ensureStatus(props.canvasId, props.shotId);
+});
+
+onBeforeUnmount(() => {
+  tailFrameSeq += 1;
+});
+
 async function submit() {
   if (!canSubmit.value || !props.canvasId) {
     return;
@@ -59,6 +172,10 @@ async function submit() {
   try {
     await media.triggerGenerate(props.canvasId, props.shotId, props.type, {
       confirmStoryboard: needStoryboardConfirm.value ? true : undefined,
+      params:
+        props.type === 'segment-video'
+          ? { chainNextFirstFrame: chainNextFirstFrame.value }
+          : undefined,
       takeCount: 1,
     });
     message.success(
@@ -114,13 +231,21 @@ async function submit() {
       </Tag>
     </div>
 
-    <div v-if="needStoryboardConfirm" class="canvas-shot-media__confirm">
-      <Checkbox v-model:checked="confirmStoryboard">
-        同时确认本集分镜（storyboardConfirmed=false）
-      </Checkbox>
-      <div class="canvas-shot-media__hint">
-        未勾选不会发送 confirmStoryboard=true。
+    <div v-if="type === 'segment-video'" class="canvas-shot-media__chain">
+      <div class="canvas-shot-media__chain-row">
+        <span>首尾帧衔接</span>
+        <Switch v-model:checked="chainNextFirstFrame" size="small" />
       </div>
+      <div class="canvas-shot-media__hint">
+        尾帧：{{ tailFrameLabel }}
+      </div>
+      <div class="canvas-shot-media__hint">
+        关闭后不使用下一段首帧作为尾帧。
+      </div>
+    </div>
+
+    <div v-if="needStoryboardConfirm" class="canvas-shot-media__hint">
+      本集分镜未确认；本次提交会自动携带 confirmStoryboard=true。
     </div>
     <div v-else-if="status?.storyboardConfirmed" class="canvas-shot-media__hint">
       本集分镜已确认，不会重复确认。
@@ -164,8 +289,19 @@ async function submit() {
   }
 }
 
-.canvas-shot-media__confirm {
-  margin: 8px 0;
+.canvas-shot-media__chain {
+  padding: 8px 10px;
+  margin: 10px 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+}
+
+.canvas-shot-media__chain-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: hsl(var(--foreground));
 }
 
 .canvas-shot-media__hint {

@@ -53,6 +53,7 @@ import {
 } from 'ant-design-vue';
 
 import { aiAssetApi } from '#/api';
+import { aiAssetCanvasApi } from '#/api/core/ai_asset_canvas';
 import { aiAssetStoryboardApi } from '#/api/core/ai_asset_storyboard';
 
 import { formatApiError, parseApiError } from '../error';
@@ -155,6 +156,21 @@ async function loadScriptGate(id: number | string, seq: number) {
 }
 
 const imageRunning = ref(false);
+
+interface StoryboardConfirmState {
+  canvasId?: string;
+  error?: string;
+  loading: boolean;
+  nodeLabel?: string;
+  shotId?: string;
+  storyboardConfirmed?: boolean;
+  storyboardStatus?: number | string;
+}
+
+const confirmState = ref<StoryboardConfirmState>({ loading: false });
+const confirming = ref(false);
+const confirmError = ref<DramaApiError>();
+let confirmSeq = 0;
 
 type SegmentTab = 'assets' | 'overview' | 'script' | 'source';
 
@@ -342,6 +358,7 @@ async function loadList() {
   if (!props.episodeId) {
     loadedEpisodeKey.value = '';
     scriptGateHint.value = '';
+    confirmState.value = { loading: false };
     loading.value = false;
     return;
   }
@@ -358,6 +375,7 @@ async function loadList() {
     applyModels(result.models);
     buildDrafts(segments.value);
     loadedEpisodeKey.value = currentKey.value;
+    void loadConfirmStatus();
   } catch (error) {
     if (seq !== loadSeq) {
       return;
@@ -370,6 +388,179 @@ async function loadList() {
       loading.value = false;
     }
   }
+}
+
+async function findEpisodeCanvasShot() {
+  if (!props.novelId) {
+    return undefined;
+  }
+  const shotIds = new Set(
+    segments.value.flatMap((segment) =>
+      (segment.shots ?? []).map((shot) => String(shot.shotId)),
+    ),
+  );
+  if (!shotIds.size) {
+    return undefined;
+  }
+  const canvases = await aiAssetCanvasApi.fetchCanvasList(props.novelId);
+  for (const canvas of canvases) {
+    const graph = await aiAssetCanvasApi.fetchCanvas(canvas.id);
+    const node = graph.nodes.find((item) => {
+      if (item.kind !== 'shot') {
+        return false;
+      }
+      const shotId = item.details?.shotId;
+      return shotId !== undefined && shotIds.has(String(shotId));
+    });
+    if (node) {
+      return {
+        canvasId: String(canvas.id),
+        nodeLabel: node.label,
+        shotId: String(node.details?.shotId),
+      };
+    }
+  }
+  return undefined;
+}
+
+/** 分镜确认状态只存在于画布镜头接口；本集无画布节点时明确提示无法读写 */
+async function loadConfirmStatus() {
+  const seq = ++confirmSeq;
+  confirmError.value = undefined;
+  confirmState.value = { loading: true };
+  if (!props.novelId || !props.episodeId || !segments.value.length) {
+    confirmState.value = { loading: false };
+    return;
+  }
+  try {
+    const target = await findEpisodeCanvasShot();
+    if (seq !== confirmSeq) {
+      return;
+    }
+    if (!target) {
+      confirmState.value = {
+        error: '未找到本集画布镜头节点，无法读取或写入分镜确认状态',
+        loading: false,
+      };
+      return;
+    }
+    const status = await aiAssetCanvasApi.fetchCanvasShotStatus(
+      target.canvasId,
+      target.shotId,
+    );
+    if (seq !== confirmSeq) {
+      return;
+    }
+    confirmState.value = {
+      canvasId: target.canvasId,
+      loading: false,
+      nodeLabel: target.nodeLabel,
+      shotId: target.shotId,
+      storyboardConfirmed: status.storyboardConfirmed ?? undefined,
+      storyboardStatus: status.storyboardStatus ?? undefined,
+    };
+  } catch (error) {
+    if (seq !== confirmSeq) {
+      return;
+    }
+    const info = parseApiError(error);
+    confirmState.value = {
+      error:
+        info.notReady || /static resource|接口未就绪/i.test(info.message)
+          ? '接口未就绪'
+          : formatApiError(info),
+      loading: false,
+    };
+  }
+}
+
+const confirmMeta = computed(() => {
+  const state = confirmState.value;
+  if (state.loading) {
+    return { color: 'default', label: '读取中' };
+  }
+  if (state.storyboardConfirmed === true) {
+    return { color: 'success', label: '已确认' };
+  }
+  if (Number(state.storyboardStatus) === 3) {
+    return { color: 'error', label: '已失效' };
+  }
+  return { color: 'warning', label: '待确认' };
+});
+
+const confirmDisabledReason = computed(() => {
+  if (!props.episodeId) {
+    return '先选择剧集';
+  }
+  if (loading.value) {
+    return '分镜加载中';
+  }
+  if (!segments.value.length) {
+    return '还没有分镜';
+  }
+  if (storyboardDirty.value) {
+    return '有未保存的分镜修改，请先保存';
+  }
+  if (imageRunning.value) {
+    return '配图任务进行中';
+  }
+  if (splitting.value) {
+    return '正在拆分分镜';
+  }
+  if (confirmState.value.loading) {
+    return '确认状态读取中';
+  }
+  if (!confirmState.value.canvasId || !confirmState.value.shotId) {
+    return confirmState.value.error || '未找到本集画布镜头节点';
+  }
+  if (confirmState.value.storyboardConfirmed) {
+    return '本集分镜已确认';
+  }
+  if (confirming.value) {
+    return '确认中';
+  }
+  return '';
+});
+
+function confirmStoryboard() {
+  if (confirmDisabledReason.value) {
+    return;
+  }
+  const { canvasId, nodeLabel, shotId } = confirmState.value;
+  if (!canvasId || !shotId) {
+    return;
+  }
+  Modal.confirm({
+    title: '确认本集分镜？',
+    content: `将调用画布关键帧接口并携带 confirmStoryboard=true，同时为「${nodeLabel ?? '首镜'}」提交 1 个关键帧 take（takeCount 1，真实计费）。确认后 storyboardConfirmed=true。`,
+    okText: '确认并生成首镜',
+    cancelText: '取消',
+    onOk: async () => {
+      confirming.value = true;
+      confirmError.value = undefined;
+      try {
+        await aiAssetCanvasApi.generateCanvasShotKeyframe(canvasId, shotId, {
+          confirmStoryboard: true,
+          takeCount: 1,
+        });
+        message.success('本集分镜已确认；首镜关键帧已提交生成');
+        await loadConfirmStatus();
+      } catch (error) {
+        const info = parseApiError(error);
+        await loadConfirmStatus();
+        if (confirmState.value.storyboardConfirmed) {
+          message.warning(
+            `本集分镜已确认；首镜关键帧未提交：${formatApiError(info)}`,
+          );
+        } else {
+          confirmError.value = info;
+          message.error(formatApiError(info));
+        }
+      } finally {
+        confirming.value = false;
+      }
+    },
+  });
 }
 
 function propNames(draft: ShotDraft) {
@@ -1385,7 +1576,11 @@ watch(
   currentKey,
   () => {
     loadSeq += 1;
+    confirmSeq += 1;
     stopImagePolling();
+    confirmState.value = { loading: false };
+    confirmError.value = undefined;
+    confirming.value = false;
     imageProgress.value = undefined;
     imageTaskId.value = undefined;
     splitError.value = undefined;
@@ -1434,6 +1629,25 @@ onBeforeUnmount(() => {
         {{ segments.length }} 个分镜 · {{ shotCountTotal }} 个镜头
       </span>
       <span class="storyboard-next__spacer"></span>
+      <Tag
+        :bordered="false"
+        :color="confirmMeta.color"
+        :title="confirmState.error || ''"
+      >
+        分镜确认 · {{ confirmMeta.label }}
+      </Tag>
+      <Tooltip :title="confirmDisabledReason">
+        <span>
+          <Button
+            :disabled="Boolean(confirmDisabledReason)"
+            :loading="confirming"
+            size="small"
+            @click="confirmStoryboard"
+          >
+            确认本集分镜
+          </Button>
+        </span>
+      </Tooltip>
       <Tooltip :title="promptDisabledReason">
         <span>
           <Button
@@ -1448,6 +1662,12 @@ onBeforeUnmount(() => {
         </span>
       </Tooltip>
     </div>
+    <Alert
+      v-if="confirmError"
+      :message="formatApiError(confirmError)"
+      :type="confirmError.notReady ? 'info' : 'error'"
+      show-icon
+    />
 
     <div class="storyboard-actions">
       <Card
@@ -1809,6 +2029,23 @@ onBeforeUnmount(() => {
                             </Tag>
                           </template>
                           <span v-else class="overview-shot__muted">—</span>
+                        </span>
+                        <span class="overview-shot__scene">
+                          <Tag
+                            :bordered="false"
+                            :color="sceneAssetName(shot) ? 'green' : undefined"
+                          >
+                            场景 · {{ sceneAssetName(shot) || '待关联' }}
+                          </Tag>
+                          <span
+                            v-if="
+                              sceneScriptName(shot) &&
+                              sceneScriptName(shot) !== sceneAssetName(shot)
+                            "
+                            class="overview-shot__muted"
+                          >
+                            脚本 · {{ sceneScriptName(shot) }}
+                          </span>
                         </span>
                         <Tag
                           :bordered="false"
@@ -2723,6 +2960,19 @@ onBeforeUnmount(() => {
   }
 
   &__characters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    font-size: 12px;
+    color: hsl(var(--muted-foreground));
+
+    :deep(.ant-tag) {
+      margin: 0;
+    }
+  }
+
+  &__scene {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;

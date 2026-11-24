@@ -29,7 +29,9 @@ import {
   Tag,
 } from 'ant-design-vue';
 
+import { aiAssetApi } from '#/api';
 import { aiAssetCanvasApi } from '#/api/core/ai_asset_canvas';
+import { aiAssetStoryboardApi } from '#/api/core/ai_asset_storyboard';
 
 import { formatApiError, parseApiError } from '../error';
 import CanvasAgentPanel from './CanvasAgentPanel.vue';
@@ -43,7 +45,11 @@ import CanvasToolbar from './CanvasToolbar.vue';
 import CanvasVideoActionModal from './CanvasVideoActionModal.vue';
 import CanvasViewportControls from './CanvasViewportControls.vue';
 import CanvasWorkspace from './CanvasWorkspace.vue';
-import { type CanvasFlowNode, useCanvasGraphStore } from './store';
+import {
+  type CanvasFlowNode,
+  type CanvasShotSceneInfo,
+  useCanvasGraphStore,
+} from './store';
 import { useCanvasShotMedia } from './useCanvasShotMedia';
 
 const props = defineProps<{
@@ -83,6 +89,7 @@ const workspaceOpen = ref(false);
 const agentOpen = ref(false);
 const syncedEpisodeKeys = new Set<string>();
 const flowKey = ref(0);
+let sceneInfoSeq = 0;
 const workspaceFocus = ref<'entity' | 'material'>();
 const splitTargetNode = computed(() =>
   store.splitTargetNodeId
@@ -168,6 +175,47 @@ async function fitIfViewportDefault() {
   }
   await nextTick();
   await flowRef.value?.fitCanvas();
+}
+
+/** 画布节点只带脚本场景名；用分镜绑定 sceneId + 资产图谱回显绑定资产名 */
+async function loadShotSceneInfo() {
+  const seq = ++sceneInfoSeq;
+  if (!props.novelId || !props.episodeId) {
+    store.setShotSceneInfo({});
+    return;
+  }
+  try {
+    const [graph, list] = await Promise.all([
+      aiAssetApi.fetchNovelAssetGraph(props.novelId, true),
+      aiAssetStoryboardApi.fetchStoryboardList(props.episodeId),
+    ]);
+    if (seq !== sceneInfoSeq) {
+      return;
+    }
+    const sceneNames = new Map<string, string>();
+    for (const scene of graph?.scenes ?? []) {
+      sceneNames.set(String(scene.id), scene.name);
+    }
+    const next: Record<string, CanvasShotSceneInfo> = {};
+    for (const segment of list?.segments ?? []) {
+      for (const shot of segment.shots ?? []) {
+        const sceneId = shot.sceneId;
+        const assetName =
+          sceneId === undefined || sceneId === null || sceneId === ''
+            ? '待关联'
+            : (sceneNames.get(String(sceneId)) ?? `场景 #${sceneId}`);
+        next[String(shot.shotId)] = {
+          assetName,
+          scriptName: shot.sceneName ?? '',
+        };
+      }
+    }
+    store.setShotSceneInfo(next);
+  } catch {
+    if (seq === sceneInfoSeq) {
+      store.setShotSceneInfo({});
+    }
+  }
 }
 
 async function loadList() {
@@ -494,6 +542,14 @@ watch(
   () => props.episodeId,
   (value) => {
     store.setEpisodeId(value);
+  },
+  { immediate: true },
+);
+
+watch(
+  [() => props.novelId, () => props.episodeId],
+  () => {
+    void loadShotSceneInfo();
   },
   { immediate: true },
 );

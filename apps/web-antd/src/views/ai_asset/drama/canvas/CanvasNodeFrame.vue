@@ -208,9 +208,14 @@ const canOutputVideo = computed(() =>
   Boolean(shotStatus.value?.segmentVideoUrl && selectedSegmentTake.value),
 );
 
-const shotSceneName = computed(
-  () => detailText('sceneName') || '待关联',
+const shotSceneInfo = computed(() =>
+  shotInfo.value ? store.shotSceneInfo[shotInfo.value.shotId] : undefined,
 );
+const shotSceneName = computed(() => shotSceneInfo.value?.assetName || '待关联');
+const shotSceneScript = computed(() => {
+  const script = shotSceneInfo.value?.scriptName || shotInfo.value?.sceneName || '';
+  return script && script !== shotSceneName.value ? script : '';
+});
 const shotCamera = computed(() => detailText('camera') || '待关联');
 const shotTypeLabel = computed(() => detailText('shotType') || '待关联');
 const shotStatusChip = computed(() => {
@@ -523,7 +528,14 @@ function bodyText() {
           <span v-if="shotInfo.duration !== undefined">
             {{ shotInfo.duration }}s
           </span>
-          <span v-if="shotInfo.sceneName">{{ shotInfo.sceneName }}</span>
+          <span>{{ shotSceneName }}</span>
+          <span
+            v-if="shotSceneScript"
+            class="canvas-node__shot-script"
+            :title="`脚本场景：${shotSceneScript}`"
+          >
+            脚本 · {{ shotSceneScript }}
+          </span>
           <span v-if="shotGenerating" class="canvas-node__shot-running">
             生成中<span v-if="shotElapsed"> · {{ shotElapsed }}s</span>
           </span>
@@ -580,7 +592,12 @@ function bodyText() {
             v-for="name in shotInfo.characters"
             :key="name"
           >{{ name }}</span>
-          <button class="canvas-node__shot-chip" type="button" @click.stop="openSceneLibrary">
+          <button
+            class="canvas-node__shot-chip"
+            :title="shotSceneScript ? `脚本场景：${shotSceneScript}` : ''"
+            type="button"
+            @click.stop="openSceneLibrary"
+          >
             场景 · {{ shotSceneName }}
           </button>
           <button class="canvas-node__shot-chip" type="button" @click.stop="openShotEditor">
@@ -1106,6 +1123,14 @@ function bodyText() {
     gap: 6px;
     font-size: 11px;
     color: hsl(var(--muted-foreground));
+  }
+
+  &__shot-script {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.8;
   }
 
   &__shot-body {

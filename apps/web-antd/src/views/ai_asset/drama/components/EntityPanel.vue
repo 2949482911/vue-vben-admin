@@ -39,12 +39,14 @@ import {
   AppstoreOutlined,
   DatabaseOutlined,
   EnvironmentOutlined,
+  LockOutlined,
   PictureOutlined,
   PlusOutlined,
   SoundOutlined,
   SyncOutlined,
   TeamOutlined,
   ThunderboltOutlined,
+  UnlockOutlined,
   UploadOutlined,
   UserOutlined,
   WarningOutlined,
@@ -98,6 +100,8 @@ interface EntityRow {
   loadedDescription: string;
   loadedName: string;
   location?: string;
+  /** 资产锁定状态；后端资产图谱未返回时由本页写入记录回填 */
+  locked?: boolean;
   name: string;
   prompt?: string;
   saveError?: DramaApiError;
@@ -164,6 +168,83 @@ const rows = ref<EntityRow[]>([]);
 const loading = ref(false);
 const loadError = ref<DramaApiError>();
 const loadedKey = ref('');
+
+const LOCK_STORAGE_PREFIX = 'ai_asset_entity_locks:';
+const lockSavingIds = ref<Set<string>>(new Set());
+
+function lockStorageKey() {
+  return props.novelId
+    ? `${LOCK_STORAGE_PREFIX}${String(props.novelId)}`
+    : '';
+}
+
+function readLockCache(): Record<string, boolean> {
+  const key = lockStorageKey();
+  if (!key || typeof localStorage === 'undefined') {
+    return {};
+  }
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeLockCache(cache: Record<string, boolean>) {
+  const key = lockStorageKey();
+  if (!key || typeof localStorage === 'undefined') {
+    return;
+  }
+  try {
+    localStorage.setItem(key, JSON.stringify(cache));
+  } catch {
+    // 缓存失败不影响真实锁状态写入
+  }
+}
+
+function lockKey(row: EntityRow) {
+  return `${row.type}:${String(row.id)}`;
+}
+
+/** 资产图谱暂未返回 locked；优先用图谱真值，回退到本页写入记录 */
+function applyLockState() {
+  const cache = readLockCache();
+  let cacheDirty = false;
+  for (const row of rows.value) {
+    if (row.type === 'element') {
+      continue;
+    }
+    const key = lockKey(row);
+    if (row.locked === undefined) {
+      if (key in cache) {
+        row.locked = cache[key];
+      }
+      continue;
+    }
+    if (cache[key] !== row.locked) {
+      cache[key] = row.locked;
+      cacheDirty = true;
+    }
+  }
+  if (cacheDirty) {
+    writeLockCache(cache);
+  }
+}
+
+function isLockSaving(row: EntityRow) {
+  return lockSavingIds.value.has(lockKey(row));
+}
+
+function markLockSaving(row: EntityRow, saving: boolean) {
+  const next = new Set(lockSavingIds.value);
+  if (saving) {
+    next.add(lockKey(row));
+  } else {
+    next.delete(lockKey(row));
+  }
+  lockSavingIds.value = next;
+}
 
 const models = ref<Array<{ label: string; value: number | string }>>([]);
 const modelsLoading = ref(false);
@@ -522,6 +603,13 @@ function imageOf(item: {
   );
 }
 
+function lockedFlag(value: boolean | number | undefined) {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  return value === true || value === 1;
+}
+
 function characterRow(item: NovelCharacterAsset): EntityRow {
   const imageUrl = imageOf(item);
   const alias = readAlias(item.attributes);
@@ -542,6 +630,7 @@ function characterRow(item: NovelCharacterAsset): EntityRow {
     loadedAlias: alias,
     loadedDescription: item.description ?? '',
     loadedName: item.name ?? '',
+    locked: lockedFlag(item.locked),
     name: item.name ?? '',
     prompt: item.prompt,
     saving: false,
@@ -567,6 +656,7 @@ function sceneRow(item: NovelSceneAsset): EntityRow {
     loadedDescription: item.description ?? '',
     loadedName: item.name ?? '',
     location: item.location,
+    locked: lockedFlag(item.locked),
     name: item.name ?? '',
     saving: false,
     sceneTags: item.sceneTags,
@@ -624,6 +714,7 @@ async function load() {
       return;
     }
     rows.value = buildRows(graph);
+    applyLockState();
     loadedKey.value = currentKey.value;
   } catch (error) {
     if (seq !== loadSeq) {
@@ -718,6 +809,46 @@ function saveDisabledReason(row: EntityRow) {
   return '';
 }
 
+function characterPayload(
+  row: EntityRow,
+  values: { alias: string; description: string; name: string },
+  locked?: number,
+) {
+  return {
+    appearance: row.appearance,
+    appearanceTags: row.appearanceTags,
+    attributes: withAlias(row.attributes, values.alias),
+    avatarUrl: row.avatarUrl,
+    characterType: row.characterType,
+    consistencyAnchor: row.consistencyAnchor,
+    description: values.description || undefined,
+    id: row.id,
+    locked,
+    name: values.name,
+    novelId: props.novelId,
+    prompt: row.prompt,
+    visualPrompt: row.visualPrompt,
+  };
+}
+
+function scenePayload(
+  row: EntityRow,
+  values: { alias: string; description: string; name: string },
+  locked?: number,
+) {
+  return {
+    attributes: withAlias(row.attributes, values.alias),
+    description: values.description || undefined,
+    id: row.id,
+    location: row.location,
+    locked,
+    name: values.name,
+    novelId: props.novelId,
+    sceneTags: row.sceneTags,
+    visualPrompt: row.visualPrompt,
+  };
+}
+
 async function saveRow(row: EntityRow) {
   if (saveDisabledReason(row) || !props.novelId) {
     return;
@@ -728,65 +859,91 @@ async function saveRow(row: EntityRow) {
   row.name = row.name.trim();
   row.alias = row.alias.trim();
   row.description = row.description.trim();
-  const name = row.name;
-  const alias = row.alias;
-  const description = row.description;
+  const values = {
+    alias: row.alias,
+    description: row.description,
+    name: row.name,
+  };
   try {
-    const attributes = withAlias(row.attributes, alias);
+    const attributes = withAlias(row.attributes, values.alias);
     if (row.type === 'character') {
-      await aiAssetApi.saveCharacter(
-        {
-          appearance: row.appearance,
-          appearanceTags: row.appearanceTags,
-          attributes,
-          avatarUrl: row.avatarUrl,
-          characterType: row.characterType,
-          consistencyAnchor: row.consistencyAnchor,
-          description: description || undefined,
-          id: row.id,
-          name,
-          novelId: props.novelId,
-          prompt: row.prompt,
-          visualPrompt: row.visualPrompt,
-        },
-        true,
-      );
+      await aiAssetApi.saveCharacter(characterPayload(row, values), true);
     } else if (row.type === 'scene') {
-      await aiAssetApi.saveScene(
-        {
-          attributes,
-          description: description || undefined,
-          id: row.id,
-          location: row.location,
-          name,
-          novelId: props.novelId,
-          sceneTags: row.sceneTags,
-          visualPrompt: row.visualPrompt,
-        },
-        true,
-      );
+      await aiAssetApi.saveScene(scenePayload(row, values), true);
     } else {
       await aiAssetApi.saveElement(
         {
           attributes,
-          description: description || undefined,
+          description: values.description || undefined,
           elementType: row.elementType ?? 'other',
           id: row.id,
-          name,
+          name: values.name,
           novelId: props.novelId,
         },
         true,
       );
     }
     row.attributes = attributes;
-    row.loadedName = name;
-    row.loadedAlias = alias;
-    row.loadedDescription = description;
+    row.loadedName = values.name;
+    row.loadedAlias = values.alias;
+    row.loadedDescription = values.description;
     message.success('实体已保存');
   } catch (error) {
     row.saveError = parseApiError(error);
   } finally {
     row.saving = false;
+  }
+}
+
+function requestToggleLock(row: EntityRow) {
+  if (row.type === 'element' || !props.novelId || isLockSaving(row)) {
+    return;
+  }
+  const next = !row.locked;
+  Modal.confirm({
+    title: next
+      ? `锁定${TYPE_LABELS[row.type]}「${row.name}」？`
+      : `解锁${TYPE_LABELS[row.type]}「${row.name}」？`,
+    content: next
+      ? '锁定后该资产才允许参与关键帧生成；锁定不影响已生成内容。'
+      : '解锁后本集关键帧生成会被后端资产门禁阻断，需重新锁定。',
+    okText: next ? '锁定' : '解锁',
+    okType: next ? 'primary' : 'danger',
+    cancelText: '取消',
+    onOk: () => toggleLock(row, next),
+  });
+}
+
+async function toggleLock(row: EntityRow, locked: boolean) {
+  if (row.type === 'element' || !props.novelId || isLockSaving(row)) {
+    return;
+  }
+  markLockSaving(row, true);
+  try {
+    // 只改 locked：名称/描述用已保存值，避免把页面上未保存的编辑一起写回
+    const values = {
+      alias: row.loadedAlias,
+      description: row.loadedDescription,
+      name: row.loadedName,
+    };
+    if (row.type === 'character') {
+      await aiAssetApi.saveCharacter(
+        characterPayload(row, values, locked ? 1 : 0),
+        true,
+      );
+    } else {
+      await aiAssetApi.saveScene(
+        scenePayload(row, values, locked ? 1 : 0),
+        true,
+      );
+    }
+    row.locked = locked;
+    applyLockState();
+    message.success(locked ? '资产已锁定' : '资产已解锁');
+  } catch (error) {
+    message.error(formatApiError(parseApiError(error)));
+  } finally {
+    markLockSaving(row, false);
   }
 }
 
@@ -1706,6 +1863,7 @@ onBeforeUnmount(() => {
                   !row.description.trim() ||
                   rowIsGenerating(row) ||
                   rowIsFailed(row) ||
+                  row.locked ||
                   row.voiceLabel
                 "
                 class="entity-card__status"
@@ -1716,6 +1874,10 @@ onBeforeUnmount(() => {
                   生成中
                 </Tag>
                 <Tag v-if="rowIsFailed(row)" color="error">失败</Tag>
+                <Tag v-if="row.locked" color="success">
+                  <LockOutlined />
+                  已锁定
+                </Tag>
                 <Tag v-if="row.voiceLabel" color="blue">
                   <SoundOutlined />
                   {{ row.voiceLabel }}
@@ -1788,6 +1950,29 @@ onBeforeUnmount(() => {
                     >
                       <template #icon><SoundOutlined /></template>
                       {{ row.voiceLabel ? '更换音色' : '绑定音色' }}
+                    </Button>
+                  </span>
+                </Tooltip>
+                <Tooltip
+                  v-if="row.type !== 'element'"
+                  :title="
+                    row.locked
+                      ? '已锁定：点击解锁'
+                      : '未锁定：主要角色/场景锁定后才允许生成关键帧'
+                  "
+                >
+                  <span>
+                    <Button
+                      :disabled="row.saving || isLockSaving(row)"
+                      :loading="isLockSaving(row)"
+                      size="small"
+                      @click="requestToggleLock(row)"
+                    >
+                      <template #icon>
+                        <LockOutlined v-if="row.locked" />
+                        <UnlockOutlined v-else />
+                      </template>
+                      {{ row.locked ? '已锁定' : '锁定' }}
                     </Button>
                   </span>
                 </Tooltip>

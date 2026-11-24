@@ -1044,6 +1044,8 @@ export interface NovelAssetBase {
   description?: string;
   hasImage?: boolean;
   id: number | string;
+  /** 是否锁定（1 是 / 0 否）；主要角色/场景锁定后才允许生成关键帧 */
+  locked?: boolean | number;
   materialId?: number | string;
   materialThumbnailUrl?: string;
   materialUrl?: string;
@@ -1395,6 +1397,8 @@ export interface CharacterSaveRequest {
   consistencyAnchor?: Record<string, any>;
   description?: string;
   id?: number | string;
+  /** 是否锁定（1 是 / 0 否）；只改锁定时显式传值 */
+  locked?: number;
   name: string;
   /** 归属小说；从小说工作台创建时必传，保证进入 asset/graph */
   novelId?: number | string;
@@ -1408,6 +1412,8 @@ export interface SceneSaveRequest {
   description?: string;
   id?: number | string;
   location?: string;
+  /** 是否锁定（1 是 / 0 否）；只改锁定时显式传值 */
+  locked?: number;
   name: string;
   /** 归属小说（新建小说场景资产时必传，保证进入 asset/graph） */
   novelId?: number | string;

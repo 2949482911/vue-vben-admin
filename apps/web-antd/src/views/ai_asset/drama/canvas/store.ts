@@ -49,6 +49,12 @@ export interface CanvasFlowNode {
   zIndex?: number;
 }
 
+/** 镜头卡场景回显：已绑定资产名优先，脚本场景名只作副信息 */
+export interface CanvasShotSceneInfo {
+  assetName: string;
+  scriptName: string;
+}
+
 export interface CanvasFlowEdge {
   data?: Record<string, unknown>;
   id: string;
@@ -145,6 +151,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     action: CanvasTimelineActionType;
     nodeId: string;
   }>();
+  const shotSceneInfo = ref<Record<string, CanvasShotSceneInfo>>({});
 
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let savingPromise: Promise<void> | undefined;
@@ -164,6 +171,10 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
 
   function blueprintOf(kind: string): CanvasBlueprint | undefined {
     return blueprints.value[kind];
+  }
+
+  function setShotSceneInfo(next: Record<string, CanvasShotSceneInfo>) {
+    shotSceneInfo.value = next;
   }
 
   function setBlueprints(list: CanvasBlueprint[]) {
@@ -231,6 +242,7 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     nodeInfoRequestId.value = undefined;
     videoActionRequest.value = undefined;
     timelineActionRequest.value = undefined;
+    shotSceneInfo.value = {};
     initialized.value = false;
   }
 
@@ -1336,8 +1348,10 @@ export const useCanvasGraphStore = defineStore('aiAssetCanvasGraph', () => {
     saving,
     selectedNodeIds,
     setEpisodeId,
+    setShotSceneInfo,
     setTimelineCompose,
     shotActionRequest,
+    shotSceneInfo,
     requestShotAction,
     clearShotAction,
     nodeInfoRequestId,

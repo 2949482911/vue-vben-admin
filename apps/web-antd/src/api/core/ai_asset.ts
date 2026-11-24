@@ -482,11 +482,13 @@ class AiAssetApi extends BaseApi {
    */
   async fetchEpisodeSegments(
     episodeId: number | string,
+    silent = false,
   ): Promise<SegmentItem[]> {
     const payload = await requestClient.get<
       EpisodeSegmentsResult | SegmentItem[]
     >(this.getServiceUrl('episode/storyboard/segments'), {
       params: { episodeId },
+      ...(silent ? { skipErrorMessage: true } : {}),
     });
     if (Array.isArray(payload)) {
       return payload;
