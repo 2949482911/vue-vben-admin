@@ -1202,9 +1202,6 @@ function characterAssetName(id: number | string) {
 }
 
 function sceneAssetName(shot: StoryboardShot) {
-  if (shot.sceneName) {
-    return shot.sceneName;
-  }
   if (
     shot.sceneId === undefined ||
     shot.sceneId === null ||
@@ -1216,6 +1213,11 @@ function sceneAssetName(shot: StoryboardShot) {
     (item) => String(item.id) === String(shot.sceneId),
   );
   return scene?.name ?? `场景 #${shot.sceneId}`;
+}
+
+/** 脚本场景名：仅作副信息，不再作为绑定资产名展示 */
+function sceneScriptName(shot: StoryboardShot) {
+  return shot.sceneName ?? '';
 }
 
 function shotPropLabel(item: ShotScriptProp) {
@@ -2182,6 +2184,16 @@ onBeforeUnmount(() => {
                             {{ sceneAssetName(shot) }}
                           </Tag>
                           <Tag v-else :bordered="false">待关联</Tag>
+                          <span
+                            v-if="
+                              sceneScriptName(shot) &&
+                              sceneAssetName(shot) &&
+                              sceneScriptName(shot) !== sceneAssetName(shot)
+                            "
+                            class="asset-shot__aux"
+                          >
+                            脚本场景：{{ sceneScriptName(shot) }}
+                          </span>
                         </div>
                       </div>
 
