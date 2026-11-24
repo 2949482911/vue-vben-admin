@@ -1,4 +1,5 @@
 import type {
+  StoryboardConfirmResult,
   StoryboardImageGenerateRequest,
   StoryboardImageTaskResult,
   StoryboardListResult,
@@ -22,6 +23,17 @@ import { requestClient } from '#/api/request';
  * 错误一律 skipErrorMessage=true，由面板按 parseApiError 口径内联展示。
  */
 class AiAssetStoryboardApi extends BaseApi {
+  /** 整集确认分镜：只写确认状态，不生成媒体/take */
+  confirmStoryboard(
+    episodeId: number | string,
+  ): Promise<StoryboardConfirmResult> {
+    return requestClient.post<StoryboardConfirmResult>(
+      this.getServiceUrl('confirm'),
+      { episodeId },
+      { skipErrorMessage: true },
+    );
+  }
+
   /** 配图任务进度（按契约复用任务中心进度结构） */
   fetchStoryboardImagesProgress(
     taskId: number | string,

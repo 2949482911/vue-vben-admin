@@ -158,11 +158,8 @@ async function loadScriptGate(id: number | string, seq: number) {
 const imageRunning = ref(false);
 
 interface StoryboardConfirmState {
-  canvasId?: string;
   error?: string;
   loading: boolean;
-  nodeLabel?: string;
-  shotId?: string;
   storyboardConfirmed?: boolean;
   storyboardStatus?: number | string;
 }
@@ -415,7 +412,6 @@ async function findEpisodeCanvasShot() {
     if (node) {
       return {
         canvasId: String(canvas.id),
-        nodeLabel: node.label,
         shotId: String(node.details?.shotId),
       };
     }
@@ -423,11 +419,12 @@ async function findEpisodeCanvasShot() {
   return undefined;
 }
 
-/** 分镜确认状态只存在于画布镜头接口；本集无画布节点时明确提示无法读写 */
+/** 分镜确认状态只存在于画布镜头接口；本集无画布节点时明确提示无法读取 */
 async function loadConfirmStatus() {
   const seq = ++confirmSeq;
+  const previous = confirmState.value;
   confirmError.value = undefined;
-  confirmState.value = { loading: true };
+  confirmState.value = { ...previous, loading: true };
   if (!props.novelId || !props.episodeId || !segments.value.length) {
     confirmState.value = { loading: false };
     return;
@@ -439,7 +436,8 @@ async function loadConfirmStatus() {
     }
     if (!target) {
       confirmState.value = {
-        error: '未找到本集画布镜头节点，无法读取或写入分镜确认状态',
+        ...previous,
+        error: '未找到本集画布镜头节点，无法读取分镜确认状态',
         loading: false,
       };
       return;
@@ -452,10 +450,7 @@ async function loadConfirmStatus() {
       return;
     }
     confirmState.value = {
-      canvasId: target.canvasId,
       loading: false,
-      nodeLabel: target.nodeLabel,
-      shotId: target.shotId,
       storyboardConfirmed: status.storyboardConfirmed ?? undefined,
       storyboardStatus: status.storyboardStatus ?? undefined,
     };
@@ -465,10 +460,8 @@ async function loadConfirmStatus() {
     }
     const info = parseApiError(error);
     confirmState.value = {
-      error:
-        info.notReady || /static resource|接口未就绪/i.test(info.message)
-          ? '接口未就绪'
-          : formatApiError(info),
+      ...previous,
+      error: info.message,
       loading: false,
     };
   }
@@ -510,9 +503,6 @@ const confirmDisabledReason = computed(() => {
   if (confirmState.value.loading) {
     return '确认状态读取中';
   }
-  if (!confirmState.value.canvasId || !confirmState.value.shotId) {
-    return confirmState.value.error || '未找到本集画布镜头节点';
-  }
   if (confirmState.value.storyboardConfirmed) {
     return '本集分镜已确认';
   }
@@ -522,40 +512,73 @@ const confirmDisabledReason = computed(() => {
   return '';
 });
 
+function confirmNotDeployed(info?: DramaApiError) {
+  return Boolean(
+    info &&
+      (info.notReady ||
+        /static resource|接口未就绪/i.test(info.message)),
+  );
+}
+
+function confirmErrorText(info?: DramaApiError) {
+  if (!info) {
+    return '';
+  }
+  const parts = [info.message];
+  for (const blocker of info.blockers) {
+    parts.push(
+      blocker.action
+        ? `${blocker.message}（${blocker.action}）`
+        : blocker.message,
+    );
+  }
+  if (confirmNotDeployed(info)) {
+    parts.push('需重启后端');
+  } else if (info.retryable) {
+    parts.push('可重试');
+  }
+  return parts.filter(Boolean).join('；');
+}
+
 function confirmStoryboard() {
   if (confirmDisabledReason.value) {
     return;
   }
-  const { canvasId, nodeLabel, shotId } = confirmState.value;
-  if (!canvasId || !shotId) {
+  const episodeId = props.episodeId;
+  if (!episodeId) {
     return;
   }
   Modal.confirm({
     title: '确认本集分镜？',
-    content: `将调用画布关键帧接口并携带 confirmStoryboard=true，同时为「${nodeLabel ?? '首镜'}」提交 1 个关键帧 take（takeCount 1，真实计费）。确认后 storyboardConfirmed=true。`,
-    okText: '确认并生成首镜',
+    content:
+      '仅写入本集分镜确认状态（storyboardConfirmed=true、storyboardStatus=2），不生成媒体、不创建 take。',
+    okText: '确认分镜',
     cancelText: '取消',
     onOk: async () => {
       confirming.value = true;
       confirmError.value = undefined;
       try {
-        await aiAssetCanvasApi.generateCanvasShotKeyframe(canvasId, shotId, {
-          confirmStoryboard: true,
-          takeCount: 1,
-        });
-        message.success('本集分镜已确认；首镜关键帧已提交生成');
+        const result =
+          await aiAssetStoryboardApi.confirmStoryboard(episodeId);
+        if (String(props.episodeId) !== String(episodeId)) {
+          return;
+        }
+        confirmState.value = {
+          ...confirmState.value,
+          error: undefined,
+          loading: false,
+          storyboardConfirmed: result.storyboardConfirmed ?? true,
+          storyboardStatus: result.storyboardStatus ?? 2,
+        };
+        message.success('本集分镜已确认（仅写入状态，未生成媒体）');
         await loadConfirmStatus();
       } catch (error) {
         const info = parseApiError(error);
-        await loadConfirmStatus();
-        if (confirmState.value.storyboardConfirmed) {
-          message.warning(
-            `本集分镜已确认；首镜关键帧未提交：${formatApiError(info)}`,
-          );
-        } else {
-          confirmError.value = info;
-          message.error(formatApiError(info));
+        if (String(props.episodeId) !== String(episodeId)) {
+          return;
         }
+        confirmError.value = info;
+        message.error(confirmErrorText(info));
       } finally {
         confirming.value = false;
       }
@@ -1664,8 +1687,8 @@ onBeforeUnmount(() => {
     </div>
     <Alert
       v-if="confirmError"
-      :message="formatApiError(confirmError)"
-      :type="confirmError.notReady ? 'info' : 'error'"
+      :message="confirmErrorText(confirmError)"
+      :type="confirmNotDeployed(confirmError) ? 'warning' : 'error'"
       show-icon
     />
 

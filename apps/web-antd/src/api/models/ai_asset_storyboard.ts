@@ -67,6 +67,13 @@ export interface StoryboardListResult {
   segments: StoryboardSegment[];
 }
 
+/** 整集分镜确认：只写状态，不生成媒体/take */
+export interface StoryboardConfirmResult {
+  episodeId: number | string;
+  storyboardConfirmed: boolean;
+  storyboardStatus: number | string;
+}
+
 export interface StoryboardSplitRequest {
   episodeId: number | string;
   mode: string;
