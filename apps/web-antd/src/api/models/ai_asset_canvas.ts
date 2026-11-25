@@ -293,6 +293,7 @@ export interface CanvasShotBlocker {
   message: string;
   target?: null | string;
   targetId?: null | number | string;
+  targetType?: null | string;
 }
 
 export interface CanvasShotTake {

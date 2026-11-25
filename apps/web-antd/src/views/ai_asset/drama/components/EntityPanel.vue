@@ -70,6 +70,8 @@ import {
 } from 'ant-design-vue';
 
 import { aiAssetApi, aiModelApi } from '#/api';
+import { aiAssetCanvasApi } from '#/api/core/ai_asset_canvas';
+import { aiAssetStoryboardApi } from '#/api/core/ai_asset_storyboard';
 
 import { useAssetUpload } from '../../useAssetUpload';
 import { formatApiError, parseApiError } from '../error';
@@ -244,6 +246,118 @@ function markLockSaving(row: EntityRow, saving: boolean) {
     next.delete(lockKey(row));
   }
   lockSavingIds.value = next;
+}
+
+let lockInferenceKey = '';
+
+/**
+ * 资产图谱不返回 locked；对已绑定镜头的主要角色/场景，用画布门禁 blockers 反推：
+ * 非 stale 镜头没有 asset_unlocked 即已锁定。只读，不改后端锁。
+ */
+async function inferLockStateFromShots() {
+  const key = `${String(props.novelId ?? '')}:${String(props.episodeId ?? '')}`;
+  if (
+    !props.novelId ||
+    !props.episodeId ||
+    !rows.value.length ||
+    lockInferenceKey === key
+  ) {
+    return;
+  }
+  lockInferenceKey = key;
+  try {
+    const [list, canvases] = await Promise.all([
+      aiAssetStoryboardApi.fetchStoryboardList(props.episodeId),
+      aiAssetCanvasApi.fetchCanvasList(props.novelId),
+    ]);
+    const shotIds = new Set(
+      (list.segments ?? []).flatMap((segment) =>
+        (segment.shots ?? []).map((shot) => String(shot.shotId)),
+      ),
+    );
+    if (!shotIds.size) {
+      return;
+    }
+    let canvasId: string | undefined;
+    for (const canvas of canvases) {
+      const graph = await aiAssetCanvasApi.fetchCanvas(canvas.id);
+      const matched = graph.nodes.some(
+        (node) =>
+          node.kind === 'shot' &&
+          node.details?.shotId !== undefined &&
+          shotIds.has(String(node.details.shotId)),
+      );
+      if (matched) {
+        canvasId = String(canvas.id);
+        break;
+      }
+    }
+    if (!canvasId) {
+      return;
+    }
+    const unlocked = new Set<string>();
+    const lockedCandidates = new Set<string>();
+    for (const segment of list.segments ?? []) {
+      for (const shot of segment.shots ?? []) {
+        let status;
+        try {
+          status = await aiAssetCanvasApi.fetchCanvasShotStatus(
+            canvasId,
+            shot.shotId,
+          );
+        } catch {
+          continue;
+        }
+        const blockers = status.blockers ?? [];
+        for (const blocker of blockers) {
+          const targetType = blocker.targetType ?? blocker.target;
+          if (
+            blocker.code === 'asset_unlocked' &&
+            targetType &&
+            blocker.targetId !== undefined
+          ) {
+            unlocked.add(`${targetType}:${blocker.targetId}`);
+          }
+        }
+        if (blockers.some((blocker) => blocker.code === 'asset_stale')) {
+          continue;
+        }
+        for (const id of shot.characterIds ?? []) {
+          lockedCandidates.add(`character:${id}`);
+        }
+        if (
+          shot.sceneId !== undefined &&
+          shot.sceneId !== null &&
+          shot.sceneId !== ''
+        ) {
+          lockedCandidates.add(`scene:${shot.sceneId}`);
+        }
+      }
+    }
+    const cache = readLockCache();
+    for (const row of rows.value) {
+      if (row.type === 'element') {
+        continue;
+      }
+      if (
+        row.type === 'character' &&
+        (row.characterType === undefined || row.characterType >= 3)
+      ) {
+        continue;
+      }
+      const lockId = lockKey(row);
+      if (unlocked.has(lockId)) {
+        row.locked = false;
+        cache[lockId] = false;
+      } else if (lockedCandidates.has(lockId)) {
+        row.locked = true;
+        cache[lockId] = true;
+      }
+    }
+    writeLockCache(cache);
+  } catch {
+    lockInferenceKey = '';
+  }
 }
 
 const models = ref<Array<{ label: string; value: number | string }>>([]);
@@ -715,6 +829,7 @@ async function load() {
     }
     rows.value = buildRows(graph);
     applyLockState();
+    void inferLockStateFromShots();
     loadedKey.value = currentKey.value;
   } catch (error) {
     if (seq !== loadSeq) {
