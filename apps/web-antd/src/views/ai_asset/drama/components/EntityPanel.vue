@@ -255,10 +255,12 @@ let lockInferenceKey = '';
  * 非 stale 镜头没有 asset_unlocked 即已锁定。只读，不改后端锁。
  */
 async function inferLockStateFromShots() {
-  const key = `${String(props.novelId ?? '')}:${String(props.episodeId ?? '')}`;
+  const novelId = props.novelId;
+  const episodeId = props.episodeId;
+  const key = `${String(novelId ?? '')}:${String(episodeId ?? '')}`;
   if (
-    !props.novelId ||
-    !props.episodeId ||
+    !novelId ||
+    !episodeId ||
     !rows.value.length ||
     lockInferenceKey === key
   ) {
@@ -267,8 +269,8 @@ async function inferLockStateFromShots() {
   lockInferenceKey = key;
   try {
     const [list, canvases] = await Promise.all([
-      aiAssetStoryboardApi.fetchStoryboardList(props.episodeId),
-      aiAssetCanvasApi.fetchCanvasList(props.novelId),
+      aiAssetStoryboardApi.fetchStoryboardList(episodeId),
+      aiAssetCanvasApi.fetchCanvasList(novelId),
     ]);
     const shotIds = new Set(
       (list.segments ?? []).flatMap((segment) =>
@@ -334,6 +336,13 @@ async function inferLockStateFromShots() {
         }
       }
     }
+    if (
+      lockInferenceKey !== key ||
+      String(props.novelId) !== String(novelId) ||
+      String(props.episodeId) !== String(episodeId)
+    ) {
+      return;
+    }
     const cache = readLockCache();
     for (const row of rows.value) {
       if (row.type === 'element') {
@@ -356,7 +365,9 @@ async function inferLockStateFromShots() {
     }
     writeLockCache(cache);
   } catch {
-    lockInferenceKey = '';
+    if (lockInferenceKey === key) {
+      lockInferenceKey = '';
+    }
   }
 }
 
