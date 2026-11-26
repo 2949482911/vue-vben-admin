@@ -7,9 +7,9 @@ import {
   watch,
 } from 'vue';
 
-import { Alert, message, Modal, Switch, Tag } from 'ant-design-vue';
+import { Alert, message, Modal, Select, Switch, Tag } from 'ant-design-vue';
 
-import { aiAssetApi } from '#/api';
+import { aiAssetApi, aiModelApi } from '#/api';
 import { aiAssetCanvasApi } from '#/api/core/ai_asset_canvas';
 
 import { formatApiError, parseApiError } from '../error';
@@ -40,8 +40,12 @@ const status = computed(() => state.value?.status);
 const needStoryboardConfirm = computed(
   () => status.value?.storyboardConfirmed === false,
 );
+const isVideoGenerate = computed(() => props.type !== 'keyframe');
 const canSubmit = computed(
-  () => Boolean(props.canvasId) && !loading.value,
+  () =>
+    Boolean(props.canvasId) &&
+    !loading.value &&
+    (!isVideoGenerate.value || videoModelId.value !== undefined),
 );
 const tailFrameLabel = computed(() => {
   if (tailFrameLoading.value) {
@@ -65,6 +69,83 @@ const actionLabel = computed(() =>
 const segmentShotCount = computed(
   () => status.value?.segmentShotCount ?? 0,
 );
+
+// ==================== 视频模型 ====================
+// 生成视频必须显式传 capability=video 的模型；缺省时后端会回落到项目文本模型（deepseek 等）并报 400。
+const videoModelId = ref<number | string>();
+const videoModels = ref<Array<{ label: string; value: number | string }>>([]);
+const videoModelsLoading = ref(false);
+const videoModelsError = ref('');
+
+function toVideoModelOption(item: {
+  model?: string;
+  modelId: number | string;
+  provider?: string;
+}) {
+  return {
+    label: item.provider
+      ? `${item.model ?? `模型 #${item.modelId}`}（${item.provider}）`
+      : (item.model ?? `模型 #${item.modelId}`),
+    value: item.modelId,
+  };
+}
+
+/** 视频模型候选：Studio 能力注册表优先，空/失败时回落到 capability=video 的模型配置 */
+async function loadVideoModels() {
+  if (!isVideoGenerate.value) {
+    return;
+  }
+  videoModelsLoading.value = true;
+  videoModelsError.value = '';
+  let options: Array<{ label: string; value: number | string }> = [];
+  try {
+    const registry = await aiAssetApi.fetchStudioVideoModels();
+    options = (registry ?? [])
+      .filter(
+        (item) =>
+          item.modelId !== undefined &&
+          item.modelId !== null &&
+          item.configured !== false,
+      )
+      .map(toVideoModelOption);
+  } catch {
+    // 注册表未就绪时继续回落模型配置
+  }
+  if (!options.length) {
+    try {
+      const page = await aiModelApi.fetchModelConfigList(
+        { capability: 'video', page: 1, pageSize: 500 },
+        true,
+      );
+      options = (page?.items ?? [])
+        .filter(
+          (item) =>
+            item.capability === 'video' &&
+            item.status !== 9 &&
+            item.id !== undefined &&
+            item.id !== null,
+        )
+        .map((item) =>
+          toVideoModelOption({
+            model: item.model,
+            modelId: item.id,
+            provider: item.provider ?? item.source,
+          }),
+        );
+    } catch (error) {
+      videoModelsError.value = formatApiError(parseApiError(error));
+    }
+  }
+  videoModels.value = options;
+  if (
+    !options.some(
+      (item) => String(item.value) === String(videoModelId.value),
+    )
+  ) {
+    videoModelId.value = options[0]?.value;
+  }
+  videoModelsLoading.value = false;
+}
 
 /** 预计尾帧来源：只按段列表与下一段首镜状态推算，无法确认时显示未知 */
 async function loadTailFrameSource() {
@@ -157,6 +238,7 @@ watch(
 
 onMounted(() => {
   media.ensureStatus(props.canvasId, props.shotId);
+  void loadVideoModels();
 });
 
 onBeforeUnmount(() => {
@@ -167,11 +249,16 @@ async function submit() {
   if (!canSubmit.value || !props.canvasId) {
     return;
   }
+  if (isVideoGenerate.value && videoModelId.value === undefined) {
+    error.value = '没有可用视频模型，无法提交';
+    return;
+  }
   loading.value = true;
   error.value = '';
   try {
     await media.triggerGenerate(props.canvasId, props.shotId, props.type, {
       confirmStoryboard: needStoryboardConfirm.value ? true : undefined,
+      modelId: isVideoGenerate.value ? videoModelId.value : undefined,
       params:
         props.type === 'segment-video'
           ? { chainNextFirstFrame: chainNextFirstFrame.value }
@@ -229,6 +316,31 @@ async function submit() {
       <Tag :bordered="false">
         关键帧状态 {{ status?.keyframeStatus ?? '—' }}
       </Tag>
+    </div>
+
+    <div v-if="isVideoGenerate" class="canvas-shot-media__model">
+      <span>视频模型</span>
+      <Select
+        v-model:value="videoModelId"
+        :disabled="videoModelsLoading || !videoModels.length"
+        :loading="videoModelsLoading"
+        :options="videoModels"
+        class="canvas-shot-media__model-select"
+        placeholder="选择视频模型"
+        size="small"
+      />
+      <span v-if="videoModelsLoading" class="canvas-shot-media__hint">
+        视频模型加载中…
+      </span>
+      <span
+        v-else-if="videoModelsError"
+        class="canvas-shot-media__hint is-error"
+      >
+        {{ videoModelsError }}
+      </span>
+      <span v-else-if="!videoModels.length" class="canvas-shot-media__hint is-error">
+        暂无可用视频模型，无法提交；请先在模型配置中启用 capability=video 的模型
+      </span>
     </div>
 
     <div v-if="type === 'segment-video'" class="canvas-shot-media__chain">
@@ -308,6 +420,27 @@ async function submit() {
   margin-top: 4px;
   font-size: 12px;
   color: hsl(var(--muted-foreground));
+}
+
+.canvas-shot-media__hint.is-error {
+  color: hsl(var(--destructive));
+}
+
+.canvas-shot-media__model {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  margin: 10px 0;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+}
+
+.canvas-shot-media__model-select {
+  min-width: 220px;
 }
 
 .canvas-shot-media__blockers {
