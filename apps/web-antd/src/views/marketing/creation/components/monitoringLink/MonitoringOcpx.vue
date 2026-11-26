@@ -1,11 +1,14 @@
 <script setup lang="ts" name="MonitoringOcpx">
+import type { OcpxTaskItem, OpcxTaskPageRequest } from "#/api/models/ocpx";
+
+import { ref } from "vue";
+
+import { Tag } from "ant-design-vue";
+
 // OCPX 任务列表选择组件 - 供后续全媒体批投公用
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { ocpxTaskApi } from "#/api/core/ocpx";
-import { ref } from "vue";
-import type { OcpxTaskItem, OpcxTaskPageRequest } from "#/api/models/ocpx";
 import { trimObject } from "#/utils/trim";
-import { Tag } from "ant-design-vue";
 
 // const props = defineProps<{
 //   linkModeType: string;
@@ -17,7 +20,7 @@ const emit = defineEmits<{
 }>();
 
 // 临时选中行
-const tempSelectedRow = ref<OcpxTaskItem | null>(null);
+const tempSelectedRow = ref<null | OcpxTaskItem>(null);
 
 // Grid 表单配置
 const formOptions = {

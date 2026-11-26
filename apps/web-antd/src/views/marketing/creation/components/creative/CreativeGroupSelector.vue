@@ -1,22 +1,17 @@
 <script setup lang="ts" name="CreativeGroupSelector">
+import type { AccountInfo, Material, MaterialData, RuleInfo } from "#/views/marketing/creation/creation";
+
+import { computed, ref, watch } from "vue";
+
 // 创意组选择组件 - 供所有媒体公用
 import { useVbenDrawer } from "@vben/common-ui";
 
-import { computed, ref, watch } from "vue";
 import { Alert, Button, Card } from "ant-design-vue";
-import type { AccountInfo, Material, MaterialData, RuleInfo } from "#/views/marketing/creation/creation";
+
 import { RuleMethod } from "#/views/marketing/creation/creation_enums";
+
 import CreativeGroupDrawer from "./CreativeGroupDrawer.vue";
 import CreativeGroupPreview from "./CreativeGroupPreview.vue";
-
-// 素材组抽屉
-const [CreativeGroupDrawerComp, creativeGroupDrawerApi] = useVbenDrawer({
-  connectedComponent: CreativeGroupDrawer
-});
-
-
-// 弹出事件
-const emit = defineEmits(["update:material"]);
 
 // 传入的值
 const { accountInfo, material, formSchema, ruleInfo } = defineProps({
@@ -37,6 +32,17 @@ const { accountInfo, material, formSchema, ruleInfo } = defineProps({
     default: () => {}
   }
 });
+
+
+// 弹出事件
+const emit = defineEmits(["update:material"]);
+
+
+// 素材组抽屉
+const [CreativeGroupDrawerComp, creativeGroupDrawerApi] = useVbenDrawer({
+  connectedComponent: CreativeGroupDrawer
+});
+
 
 // 本地存储的创意素材数据
 const localMaterial = ref<MaterialData>({
@@ -126,7 +132,7 @@ watch(
           @clear="handleClear"
         />
         <!-- 未选素材提示 -->
-        <Alert v-else message="暂无创意组,请点击编辑添加" class="empty-alert"></Alert>
+        <Alert v-else message="暂无创意组,请点击编辑添加" class="empty-alert" />
       </div>
       <div class="card-footer">
         <Button type="primary" @click="openEditDrawer">编辑</Button>
@@ -137,7 +143,8 @@ watch(
         :account-info="accountInfo"
         :form-schema="formSchema"
         :rule-info="ruleInfo"
-        @update:material="updateMaterial" />
+        @update:material="updateMaterial"
+/>
     </Card>
   </div>
 </template>

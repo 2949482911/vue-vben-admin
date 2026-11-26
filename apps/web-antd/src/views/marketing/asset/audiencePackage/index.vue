@@ -14,17 +14,14 @@ import { advertiserApi, targetedPackageApi } from "#/api";
 import { TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
-import { LABEL_TYPE_CODES, LABEL_TYPE_COLORS } from "#/views/marketing/account/label/constants";
+import { getLabelColor } from "#/views/marketing/account/label/constants";
 import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
 
 import BatchLabelModal from "../components/BatchLabelModal.vue";
 import { AUDIENCE_PLATFORM_OPTIONS } from "./audiencePackageType";
 import CreatedAudiencePackage from "./createdAudiencePackage.vue";
 
-const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.target
-);
-const labelColor = LABEL_TYPE_COLORS[LABEL_TYPE_CODES.target] ?? "default";
+const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions();
 
 const [CreatedAudiencePackageModule, drawerApi] = useVbenDrawer({
   connectedComponent: CreatedAudiencePackage
@@ -246,7 +243,7 @@ function handlerState(_row: AdConfig) {
             v-for="name in labelNamesOf(row.labelIds)"
             :key="name"
             :bordered="false"
-            :color="labelColor"
+            :color="getLabelColor(name)"
           >
             {{ name }}
           </Tag>

@@ -1,9 +1,12 @@
 <script setup lang="ts" name="TitlePackageShow">
 // 标题包展示组件 - 展示已选标题包信息
 
-import {computed} from 'vue';
-import {Space, Tag} from 'ant-design-vue';
 import type {TitlePackageItem} from '#/api/models';
+
+import {computed} from 'vue';
+
+import {Space, Tag} from 'ant-design-vue';
+
 import {RuleMethod} from '#/views/marketing/creation/creation_enums';
 
 const {data, method} = defineProps<{

@@ -1,15 +1,19 @@
 <script setup lang="ts" name="PageViewSelector">
+import type { PageViewItem } from "#/api/models/assert";
 // 落地页选择组件 - 供后续全媒体批投公用
 import type { AccountInfo, PageViewConfigData } from "#/views/marketing/creation/creation";
-import type { PageViewItem } from "#/api/models/assert";
-import { Alert, Button, Card } from "ant-design-vue";
-import { useVbenDrawer } from "@vben/common-ui";
+
 import { computed, ref, watch } from "vue";
-import PageViewShow from "#/views/marketing/creation/components/pageview/PageViewShow.vue";
+
+import { useVbenDrawer } from "@vben/common-ui";
+
+import { Alert, Button, Card } from "ant-design-vue";
+
 import PageViewDrawer from "#/views/marketing/creation/components/pageview/PageViewDrawer.vue";
+import PageViewShow from "#/views/marketing/creation/components/pageview/PageViewShow.vue";
 
 const props = withDefaults(defineProps<{
-  pageView: PageViewConfigData | null;
+  pageView: null | PageViewConfigData;
   accountInfo: AccountInfo[];
   disabled?: boolean;
 }>(), {

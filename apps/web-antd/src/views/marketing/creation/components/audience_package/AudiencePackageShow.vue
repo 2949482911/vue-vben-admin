@@ -1,9 +1,12 @@
 <script setup lang="ts" name="AudiencePackageShow">
-// 展示定向包信息
-import {List, ListItem, Card, Alert} from 'ant-design-vue';
 import type {AudienceConfigData} from '#/views/marketing/creation/creation';
-import {RuleMethod} from "#/views/marketing/creation/creation_enums";
+
 import {computed} from 'vue';
+
+// 展示定向包信息
+import {Alert, Card, List, ListItem} from 'ant-design-vue';
+
+import {RuleMethod} from "#/views/marketing/creation/creation_enums";
 
 const {audience} = defineProps({
   audience: {
@@ -47,11 +50,10 @@ function getMethodLabel(method: string): string {
 
 
         <div class="card-footer">
-
-        </div>
+</div>
       </Card>
     </template>
-    <Alert v-else type="error" message="请选择定向包"></Alert>
+    <Alert v-else type="error" message="请选择定向包" />
   </div>
 </template>
 

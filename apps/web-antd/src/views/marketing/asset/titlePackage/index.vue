@@ -13,7 +13,7 @@ import { ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { $t } from "#/locales";
 import { trimObject } from "#/utils/trim";
-import { LABEL_TYPE_CODES, LABEL_TYPE_COLORS } from "#/views/marketing/account/label/constants";
+import { getLabelColor } from "#/views/marketing/account/label/constants";
 import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
 
 import BatchLabelModal from "../components/BatchLabelModal.vue";
@@ -43,10 +43,7 @@ const gridEvents = {
 };
 
 const displayValue = ref<TitlePackItem>();
-const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.title
-);
-const labelColor = LABEL_TYPE_COLORS[LABEL_TYPE_CODES.title] ?? "default";
+const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions();
 
 onMounted(() => {
   void loadLabelOptions();
@@ -236,7 +233,7 @@ function handlerState(_row: TitlePackItem) {
             v-for="name in labelNamesOf(row.labelIds)"
             :key="name"
             :bordered="false"
-            :color="labelColor"
+            :color="getLabelColor(name)"
           >
             {{ name }}
           </Tag>

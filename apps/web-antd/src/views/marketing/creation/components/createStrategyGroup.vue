@@ -15,7 +15,6 @@ import { projectApi, strategyGropApi } from "#/api/core";
 import { PLATFORM } from "#/constants/locales";
 import { trimObject } from "#/utils/trim";
 import { uploadToOss } from "#/utils/uploadToOss";
-import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
 import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
 import { useOssClient } from "#/views/marketing/asset/material/useOssClient";
 
@@ -33,9 +32,7 @@ const objectRequest = ref<StrategyGropType>({
 } as StrategyGropType);
 
 const isUpdate = ref<Boolean>(false);
-const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.strategy,
-);
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions();
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,

@@ -1,17 +1,26 @@
 <script lang="ts" setup>
-import { useVbenModal } from "@vben/common-ui";
-import { useVbenForm } from "#/adapter/form";
-import { message, TreeSelect } from "ant-design-vue";
-import { ref, watch } from "vue";
-import type { FolderItem } from "#/api/models";
-import { materialLibraryApi } from "#/api/core";
 import type { MaterialLibraryFolderType } from "./materialType";
+
+import type { FolderItem } from "#/api/models";
+
+import { ref, watch } from "vue";
+
+import { useVbenModal } from "@vben/common-ui";
+
+import { message, TreeSelect } from "ant-design-vue";
+
+import { useVbenForm } from "#/adapter/form";
+import { materialLibraryApi } from "#/api/core";
 
 const props = defineProps<{
   treeData: FolderItem[];
   idEdit: MaterialLibraryFolderType | null
 }
 >();
+
+const emit = defineEmits<{
+  (e: "treeNode"): void
+}>();
 
 const titleText = ref<string>("新建文件夹");
 
@@ -24,10 +33,6 @@ async function resetText() {
   selectedId.value = "";
   await formApi.resetForm();
 }
-
-const emit = defineEmits<{
-  (e: "treeNode"): void
-}>();
 
 const [Form, formApi] = useVbenForm({
   showDefaultActions: false,
@@ -135,15 +140,14 @@ const selectedId = ref<string>("");
       <!-- 级联选择器 -->
       <template #parentIdS>
         <TreeSelect
-          :treeData="props.treeData"
+          :tree-data="props.treeData"
           :field-names="{ label: 'name', value: 'id', children: 'children' }"
           v-model:value="selectedId"
           style="width: 100%"
           :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
           placeholder="请选择文件夹"
           allow-clear
-        >
-        </TreeSelect>
+        />
       </template>
     </Form>
   </Modal>

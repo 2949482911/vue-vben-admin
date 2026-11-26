@@ -10,7 +10,6 @@ import { message } from 'ant-design-vue';
 import { advertiserApi, targetedPackageApi } from '#/api';
 import {Platform} from "#/constants/enums";
 import { trimObject } from '#/utils/trim';
-import { LABEL_TYPE_CODES } from '#/views/marketing/account/label/constants';
 import { useAccountLabelOptions } from '#/views/marketing/account/label/useAccountLabelOptions';
 
 import { AUDIENCE_PLATFORM_OPTIONS } from './audiencePackageType';
@@ -34,9 +33,7 @@ const tencentAudienceRef = ref();
 const bytedanceAudienceRef = ref();
 const localAdId = ref<string>();
 const platformConfig = ref<string | undefined>();
-const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.target
-);
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions();
 // 传给oppo的广告主，因为oppo的地域需要广告主才能查询
 const platformAdId = ref<string | undefined>();
 

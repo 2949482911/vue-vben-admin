@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 const props = defineProps({
   modelValue: {
@@ -161,7 +161,7 @@ const formatPoint = (index: number) => {
           <th colspan="24" class="period-header">12:00 - 24:00</th>
         </tr>
         <tr>
-          <th v-for="h in 24" :key="h-1" colspan="2" class="hour-label">{{ h - 1 }}</th>
+          <th v-for="h in 24" :key="h - 1" colspan="2" class="hour-label">{{ h - 1 }}</th>
         </tr>
         </thead>
         <tbody>
@@ -170,7 +170,7 @@ const formatPoint = (index: number) => {
           <td
             v-for="cIndex in 48"
             :key="cIndex - 1"
-            :class="['time-cell', { active: schedule[rIndex]?.[cIndex - 1] }]"
+            class="time-cell" :class="[{ active: schedule[rIndex]?.[cIndex - 1] }]"
             @mousedown.stop="handleCellMouseDown(rIndex, cIndex - 1)"
             @mouseenter="handleMouseEnter(rIndex, cIndex - 1)"
           ></td>

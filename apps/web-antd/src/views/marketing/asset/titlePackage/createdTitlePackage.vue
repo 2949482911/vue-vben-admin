@@ -8,7 +8,6 @@ import { message } from "ant-design-vue";
 import { projectApi, titlePackApi } from "#/api";
 import { ACTIVE_PLATFORM } from "#/constants/locales";
 import { trimObject } from "#/utils/trim";
-import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
 import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
 
 const props = defineProps<{
@@ -16,9 +15,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(["pageReload"]);
-const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.title
-);
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions();
 
 const [titlePackageDrawer, drawerApi] = useVbenDrawer({
   closeOnPressEscape: true,

@@ -1,14 +1,17 @@
 <script setup lang="ts" name="SubmitModal">
+import { ref } from "vue";
+
 // 提交批投任务弹窗
 import { useVbenModal } from "@vben/common-ui";
-import { useVbenForm } from "#/adapter/form";
+import { useUserStore } from "@vben/stores";
+
 import { message } from "ant-design-vue";
+
+import { useVbenForm } from "#/adapter/form";
+import { creationTaskApi } from "#/api";
+import { renderProjectTitle } from "#/utils/customName";
 import { uploadToOss } from "#/utils/uploadToOss";
 import { useOssClient } from "#/views/marketing/asset/material/useOssClient";
-import { useUserStore } from "@vben/stores";
-import { creationTaskApi } from "#/api";
-import { ref } from "vue";
-import { renderProjectTitle } from "#/utils/customName";
 
 // 传入的子组件数据
 const props = defineProps<{
@@ -93,13 +96,13 @@ const [Modal, modalApi] = useVbenModal({
       }
 
       const submitVals = {
-        name:name,
+        name,
         platform,
         projectId: props.creationInfo?.project.projectId || "",
         version: props.creationInfo?.version,
         ruleType: values.ruleType,
-        configArea: creationUrl, //本地数据
-        fullParamsData: tableUrl, //上传表格
+        configArea: creationUrl, // 本地数据
+        fullParamsData: tableUrl, // 上传表格
         extraParams // 附加参数
       };
       // 获取请求结果
@@ -185,9 +188,7 @@ const [Form, formApi] = useVbenForm({
 <template>
   <div>
     <Modal>
-      <Form>
-
-      </Form>
+      <Form />
     </Modal>
   </div>
 </template>

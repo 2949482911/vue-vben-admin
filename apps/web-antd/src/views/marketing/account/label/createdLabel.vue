@@ -8,30 +8,16 @@ import type {
 import { ref } from 'vue';
 
 import { useVbenDrawer, useVbenForm } from '@vben/common-ui';
-import { useDictStore } from '@vben/stores';
 
 import { message } from 'ant-design-vue';
 
 import { accountLabelApi } from '#/api';
 import { trimObject } from '#/utils/trim';
 
-import { LABEL_TYPE_DICT_CODE } from './constants';
-
 const emit = defineEmits(['pageReload']);
-const dictStore = useDictStore();
 const objectRequest = ref<LabelItem>({});
 const isUpdate = ref(false);
 const title = ref('');
-const labelTypeOptions = ref<Array<{ label: string; value: string }>>([]);
-
-/** 标签类型下拉：来自系统字典 label_type */
-async function loadLabelTypeOptions() {
-  const items = await dictStore.getDict(LABEL_TYPE_DICT_CODE);
-  labelTypeOptions.value = items.map((item) => ({
-    label: item.label,
-    value: String(item.value),
-  }));
-}
 
 const [LabelDrawer, drawerApi] = useVbenDrawer<LabelItem>({
   class: 'w-[560px] max-w-[95vw]',
@@ -71,7 +57,6 @@ const [LabelDrawer, drawerApi] = useVbenDrawer<LabelItem>({
     }
   },
   async onOpened() {
-    await loadLabelTypeOptions();
     objectRequest.value = drawerApi.getData() ?? {};
     if (objectRequest.value.id) {
       title.value = '修改标签';
@@ -79,7 +64,6 @@ const [LabelDrawer, drawerApi] = useVbenDrawer<LabelItem>({
       await formApi.reset();
       await formApi.setValues({
         id: objectRequest.value.id,
-        labelType: objectRequest.value.labelType,
         name: objectRequest.value.name,
         remark: objectRequest.value.remark,
       });
@@ -88,10 +72,6 @@ const [LabelDrawer, drawerApi] = useVbenDrawer<LabelItem>({
     isUpdate.value = false;
     title.value = '新增标签';
     await formApi.reset();
-    // 新建默认选中全部标签类型，一次为每个类型各生成一条同名标签
-    await formApi.setValues({
-      labelType: labelTypeOptions.value.map((item) => item.value),
-    });
   },
 });
 
@@ -123,23 +103,6 @@ const [Form, formApi] = useVbenForm({
       rules: 'required',
     },
     {
-      component: 'Select',
-      componentProps: () => ({
-        allowClear: isUpdate.value,
-        maxTagCount: 'responsive',
-        mode: isUpdate.value ? undefined : 'multiple',
-        optionFilterProp: 'label',
-        options: labelTypeOptions.value,
-        placeholder: isUpdate.value
-          ? '请选择标签类型'
-          : '默认选中全部标签类型',
-        showSearch: true,
-      }),
-      fieldName: 'labelType',
-      label: '标签类型',
-      rules: 'required',
-    },
-    {
       component: 'Input',
       componentProps: {
         allowClear: true,
@@ -157,11 +120,7 @@ const [Form, formApi] = useVbenForm({
   <LabelDrawer :title="title">
     <div class="label-form">
       <div class="label-form-tip">
-        {{
-          isUpdate
-            ? '修改仅作用于当前标签。'
-            : '可同时选择多个标签类型，系统会为每个类型各创建一条同名标签；新建默认选中全部类型。'
-        }}
+        标签为全局标签，所有资产业务共用；同名标签后端会自动去重。
       </div>
       <Form />
     </div>

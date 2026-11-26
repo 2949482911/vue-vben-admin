@@ -14,7 +14,6 @@ import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import { uploadEditApi } from "#/api/core";
 import { getFileMeta } from "#/utils/fileMeta";
 import { uploadToOss } from "#/utils/uploadToOss";
-import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
 import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
 
 import { useOssClient } from "./useOssClient";
@@ -30,9 +29,7 @@ const emit = defineEmits<{
 const userStore = useUserStore();
 const nameId = ref<string>("");
 const fileList = ref<any[]>([]);
-const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.material
-);
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions();
 const selectedLabelIds = ref<Array<number | string>>([]);
 
 // 新增：串行上传队列控制

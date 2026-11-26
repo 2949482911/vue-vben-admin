@@ -61,7 +61,7 @@ import {
   getPlatformColor,
   getPlatformLabel,
 } from '#/constants/platform';
-import { LABEL_TYPE_CODES, LABEL_TYPE_COLORS } from '#/views/marketing/account/label/constants';
+import { getLabelColor } from '#/views/marketing/account/label/constants';
 import { useAccountLabelOptions } from '#/views/marketing/account/label/useAccountLabelOptions';
 import SelectMetricModal from '#/views/marketing/report/adreportdata/selectmetric.vue';
 
@@ -83,11 +83,7 @@ const emit = defineEmits<{
   push: [material: MaterialItem];
 }>();
 
-const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.material,
-);
-const materialLabelColor =
-  LABEL_TYPE_COLORS[LABEL_TYPE_CODES.material] ?? 'default';
+const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions();
 
 void loadLabelOptions();
 
@@ -1081,7 +1077,7 @@ watch(loading, (value) => {
                 v-for="name in labelNamesOf(material.labelIds)"
                 :key="name"
                 :bordered="false"
-                :color="materialLabelColor"
+                :color="getLabelColor(name)"
               >
                 {{ name }}
               </Tag>

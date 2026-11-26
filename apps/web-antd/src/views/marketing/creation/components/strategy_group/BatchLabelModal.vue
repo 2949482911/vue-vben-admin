@@ -6,7 +6,6 @@ import { useVbenForm, useVbenModal } from '@vben/common-ui';
 import { message } from 'ant-design-vue';
 
 import { strategyGropApi } from '#/api/core';
-import { LABEL_TYPE_CODES } from '#/views/marketing/account/label/constants';
 import { useAccountLabelOptions } from '#/views/marketing/account/label/useAccountLabelOptions';
 
 const emit = defineEmits<{ success: [] }>();
@@ -16,9 +15,7 @@ interface BatchLabelData {
 }
 
 const targetIds = ref<string[]>([]);
-const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.strategy,
-);
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions();
 
 const title = computed(() => `批量修改策略组标签（${targetIds.value.length} 条）`);
 

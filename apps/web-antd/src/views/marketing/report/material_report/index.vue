@@ -489,7 +489,7 @@ function sortDataByField(data: any[], field: string, order: 'asc' | 'desc'): any
     // 判断是否为数字（包括字符串形式的数字）
     const isNumber = !isNaN(Number(aVal)) && !isNaN(Number(bVal));
 
-    let result = 0;
+    let result: number;
     if (isNumber) {
       // 数字比较
       const aNum = Number(aVal);
@@ -536,6 +536,7 @@ function buildReportParams(values: any): AdReportRequest {
     material_type,
     media_material_id,
     media_material_name,
+    file_md5,
     created_by,
     editor_id,
     org_id,
@@ -556,6 +557,7 @@ function buildReportParams(values: any): AdReportRequest {
     ...(makeFilter('material_type', normalizeArray(material_type)) ?? []),
     ...(makeFilter('media_material_id', normalizeArray(media_material_id)) ?? []),
     ...(makeFilter('media_material_name', media_material_name ? [media_material_name] : undefined, OPERATOR_LIKE) ?? []),
+    ...(makeFilter('file_md5', normalizeArray(file_md5)) ?? []),
     ...(makeFilter('created_by', normalizeArray(created_by)) ?? []),
     ...(makeFilter('editor_id', normalizeArray(editor_id)) ?? []),
     ...(makeFilter('org_id', normalizeArray(org_id)) ?? []),

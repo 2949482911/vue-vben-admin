@@ -14,7 +14,7 @@ import { Platform, SubType } from "#/constants/enums";
 import { BatchOptionsType, getSubTypeLabel, PLATFORM, SUB_TYPE, TABLE_COMMON_COLUMNS } from "#/constants/locales";
 import { getPlatformColor, getPlatformLabel } from "#/constants/platform";
 import { trimObject } from "#/utils/trim";
-import { LABEL_TYPE_CODES, LABEL_TYPE_COLORS } from "#/views/marketing/account/label/constants";
+import { getLabelColor } from "#/views/marketing/account/label/constants";
 import { useAccountLabelOptions } from "#/views/marketing/account/label/useAccountLabelOptions";
 import { BYTEDANCE_STD } from "#/views/marketing/creation/bytedance_std/bytedance";
 import { BYTEDANCE_UNIT } from "#/views/marketing/creation/bytedance_unit/bytedance";
@@ -32,10 +32,7 @@ const props = defineProps<Props>();
 // 定义要传递给父组件的事件
 const emit = defineEmits(["update:reuse"]);
 
-const { labelNamesOf, labelOptions, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.strategy,
-);
-const labelColor = LABEL_TYPE_COLORS[LABEL_TYPE_CODES.strategy] ?? "default";
+const { labelNamesOf, labelOptions, loadLabelOptions } = useAccountLabelOptions();
 
 onMounted(() => {
   void loadLabelOptions();
@@ -309,7 +306,7 @@ function openCreateModal(row: StrategyGropType) {
               v-for="name in (row.labelNames?.length ? row.labelNames : labelNamesOf(row.labelIds))"
               :key="name"
               :bordered="false"
-              :color="labelColor"
+              :color="getLabelColor(name)"
             >
               {{ name }}
             </Tag>

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { TransferItem as AntdTransferItem } from "ant-design-vue/es/transfer";
+
 import type { MaterialItem } from "#/api/models/assert";
 import type { AdvertiserItem, AdvertiserPageRequest } from "#/api/models/marketing";
 
@@ -9,7 +11,6 @@ import { $t } from "@vben/locales";
 import { useUserStore } from "@vben/stores";
 
 import { Empty, message, Spin, Transfer } from "ant-design-vue";
-import type { TransferItem as AntdTransferItem } from "ant-design-vue/es/transfer";
 
 import { useVbenForm } from "#/adapter/form";
 import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";

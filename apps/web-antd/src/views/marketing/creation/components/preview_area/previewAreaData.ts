@@ -1,8 +1,8 @@
 export interface PreviewColumn {
   field?: string;
   title: string;
-  width?: string | number;
-  minWidth?: string | number;
+  width?: number | string;
+  minWidth?: number | string;
   fixed?: 'left' | 'right';
   // 子列配置（用于多级表头）
   children?: PreviewColumn[];

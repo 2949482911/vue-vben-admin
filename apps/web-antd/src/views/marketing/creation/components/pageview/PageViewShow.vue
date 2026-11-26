@@ -1,11 +1,14 @@
 <script setup lang="ts" name="PageViewShow">
 // 落地页展示组件 - 展示已选落地页信息
 
-import { computed } from "vue";
-import { Space, Tag } from "ant-design-vue";
 import type { PageViewItem } from "#/api/models/assert";
-import { RuleMethod } from "#/views/marketing/creation/creation_enums";
 import type { AccountInfo, PageViewConfigData } from "#/views/marketing/creation/creation";
+
+import { computed } from "vue";
+
+import { Space, Tag } from "ant-design-vue";
+
+import { RuleMethod } from "#/views/marketing/creation/creation_enums";
 
 const { landingPage } = defineProps<{
   landingPage: PageViewConfigData,

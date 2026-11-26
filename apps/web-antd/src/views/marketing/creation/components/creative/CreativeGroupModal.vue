@@ -1,10 +1,14 @@
 <script setup lang="ts" name="CreativeGroupModal">
 // 创意组选择弹窗组件 - 供所有媒体公用
 
-import { computed, ref } from "vue";
-import { Button, InputNumber, message, RadioButton, RadioGroup, Switch } from "ant-design-vue";
-import { useVbenModal } from "@vben/common-ui";
 import type { Material } from "#/views/marketing/creation/creation";
+
+import { computed, ref } from "vue";
+
+import { useVbenModal } from "@vben/common-ui";
+
+import { Button, InputNumber, message, RadioButton, RadioGroup, Switch } from "ant-design-vue";
+
 import { RuleMethod } from "#/views/marketing/creation/creation_enums";
 
 /** 打开弹窗时传入的创意组配置 */
@@ -43,7 +47,7 @@ const leftMenu = ref<string>('config');
 const editingGroupIndex = ref<number>(0);
 
 // 当前选中的素材类型
-const activeTab = ref<'video' | 'image'>('video');
+const activeTab = ref<'image' | 'video'>('video');
 
 // 当前编辑的创意组（引用）
 const currentGroup = computed(() => {
@@ -154,7 +158,7 @@ function removeCreativeGroup() {
   leftMenu.value = `group-${editingGroupIndex.value}`;
 }
 
-function addMaterialToGroup(type: 'video' | 'image') {
+function addMaterialToGroup(type: 'image' | 'video') {
   const group = creativeGroups.value[editingGroupIndex.value];
   if (!group) return;
   const maxCount = type === 'video' ? groupVideoCount.value : groupImageCount.value;
@@ -165,7 +169,7 @@ function addMaterialToGroup(type: 'video' | 'image') {
   message.info('素材选择功能待实现');
 }
 
-function removeMaterial(index: number, type: 'video' | 'image') {
+function removeMaterial(index: number, type: 'image' | 'video') {
   const group = creativeGroups.value[editingGroupIndex.value];
   if (!group) return;
   if (type === 'video') {
@@ -386,7 +390,7 @@ defineExpose({
                     class="material-card"
                   >
                     <div class="material-preview">
-                      <video :src="mat.url" class="preview-thumb" />
+                      <video :src="mat.url" class="preview-thumb"></video>
                       <div class="play-overlay">▶</div>
                     </div>
                     <div class="material-info">

@@ -1,10 +1,13 @@
-import OSS from 'ali-oss';
-import { ref } from 'vue';
-import type { OssClient } from '#/types/ali-oss-client';
 import type { voucherParams } from '#/api/models';
+import type { OssClient } from '#/types/ali-oss-client';
+
+import { ref } from 'vue';
+
+import OSS from 'ali-oss';
+
 import { uploadCredentialsApi } from '#/api/core';
 
-let ossClient: OssClient | null = null;
+let ossClient: null | OssClient = null;
 const voucher = ref<voucherParams>();
 
 export async function useOssClient(): Promise<OssClient> {

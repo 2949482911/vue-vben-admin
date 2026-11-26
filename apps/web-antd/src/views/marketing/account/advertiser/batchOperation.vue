@@ -8,7 +8,6 @@ import { $t } from "@vben/locales";
 
 import { useVbenForm } from "#/adapter/form";
 import { accountLabelApi, advertiserApi, orgApi, projectApi, userApi } from "#/api";
-import { LABEL_TYPE_CODES } from "#/views/marketing/account/label/constants";
 
 const emit = defineEmits(["pageReload"]);
 
@@ -150,8 +149,7 @@ const [Form, formApi] = useVbenForm({
         },
         params: {
           page: 1,
-          pageSize: 1000,
-          labelType: LABEL_TYPE_CODES.advertiser
+          pageSize: 1000
         },
         valueField: "id",
         labelField: "name",        // 两个接口返回的数据都有 name 字段，直接固定

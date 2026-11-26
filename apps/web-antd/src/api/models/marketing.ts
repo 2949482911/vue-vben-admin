@@ -776,22 +776,17 @@ export interface TaskBatchCenterProgressResponse {
 export interface LabelItem extends BaseItem {
   name?: string;
   remark?: string;
-  /** 标签类型（字典 label_type） */
-  labelType?: string;
 }
 
 /** 账户标签-查询任务列表 */
 export interface GetLabelItemType extends PageRequestParams {
   name?: string;
-  labelType?: string;
 }
 
 /** 账户标签-新增任务列表 */
 export interface NewLabelItemType {
   name?: string;
   remark?: string;
-  /** 标签类型（字典 label_type）；多选时按每个类型各创建一条同名标签 */
-  labelType?: string[];
 }
 
 /** 账户标签-编辑任务列表 */
@@ -799,8 +794,6 @@ export interface EditLabelItemType {
   id: string;
   name?: string;
   remark?: string;
-  /** 标签类型（字典 label_type），编辑保持单个 */
-  labelType?: string;
 }
 
 /** 营销-资产-标题包删除 */

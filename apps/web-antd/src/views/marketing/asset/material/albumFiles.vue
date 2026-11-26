@@ -37,7 +37,7 @@ import {
 
 import { uploadEditApi } from '#/api/core';
 import { BatchOptionsType } from '#/constants/locales';
-import { LABEL_TYPE_CODES, LABEL_TYPE_COLORS } from '#/views/marketing/account/label/constants';
+import { getLabelColor } from '#/views/marketing/account/label/constants';
 import { useAccountLabelOptions } from '#/views/marketing/account/label/useAccountLabelOptions';
 
 const props = defineProps<{
@@ -53,11 +53,7 @@ const emit = defineEmits<{
   (e: 'viewDetail', material: MaterialItem): void;
 }>();
 
-const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.material,
-);
-const materialLabelColor =
-  LABEL_TYPE_COLORS[LABEL_TYPE_CODES.material] ?? 'default';
+const { labelNamesOf, loadLabelOptions } = useAccountLabelOptions();
 
 onMounted(() => {
   void loadLabelOptions();
@@ -474,7 +470,7 @@ defineExpose({
                 v-for="name in labelNamesOf(item.labelIds)"
                 :key="name"
                 :bordered="false"
-                :color="materialLabelColor"
+                :color="getLabelColor(name)"
               >
                 {{ name }}
               </Tag>

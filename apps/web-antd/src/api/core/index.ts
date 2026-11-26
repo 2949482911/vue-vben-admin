@@ -1,4 +1,5 @@
 export * from './adx';
+export * from './auto_proxy_ads';
 export * from "./ai_asset";
 export * from "./ai_chat";
 export * from "./ai_hosting";
@@ -15,5 +16,6 @@ export * from './menu';
 export * from './notice';
 export * from "./ocpx";
 export * from './pay';
+export * from "./platform_asset";
 export * from './role';
 export * from './user';

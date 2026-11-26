@@ -9,7 +9,6 @@ import { message } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
 import { loadingPageApi } from '#/api';
-import { LABEL_TYPE_CODES } from '#/views/marketing/account/label/constants';
 import { useAccountLabelOptions } from '#/views/marketing/account/label/useAccountLabelOptions';
 
 import { $t } from "../../../../../../../packages/locales/src";
@@ -17,9 +16,7 @@ import { $t } from "../../../../../../../packages/locales/src";
 const emit = defineEmits(['pageReload']);
 const newOrEdit = ref<boolean>(true);
 const landingPageItem = ref<LandingPageData>({} as LandingPageData);
-const { labelOptions, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.page
-);
+const { labelOptions, loadLabelOptions } = useAccountLabelOptions();
 
 const [Drawer, drawerApi] = useVbenDrawer({
   class: 'w-[50%]',

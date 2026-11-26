@@ -1,16 +1,20 @@
 <script setup lang="ts" name="TitleSelector">
+import type {TitlePackageItem} from '#/api/models';
 // 标题包选择组件 - 供后续全媒体批投公用
 import type {AccountInfo, TitlePackageConfigData} from '#/views/marketing/creation/creation';
-import type {TitlePackageItem} from '#/api/models';
-import {RuleMethod} from '#/views/marketing/creation/creation_enums';
-import {Card, Alert, Button} from 'ant-design-vue';
+
+import {computed, ref, watch} from 'vue';
+
 import {useVbenDrawer} from '@vben/common-ui';
-import {ref, computed, watch} from 'vue';
-import TitlePackageShow from '#/views/marketing/creation/components/title/TitlePackageShow.vue';
+
+import {Alert, Button, Card} from 'ant-design-vue';
+
 import TitlePackageDrawer from '#/views/marketing/creation/components/title/TitlePackageDrawer.vue';
+import TitlePackageShow from '#/views/marketing/creation/components/title/TitlePackageShow.vue';
+import {RuleMethod} from '#/views/marketing/creation/creation_enums';
 
 const props = defineProps<{
-  titlePackage: TitlePackageConfigData | null;
+  titlePackage: null | TitlePackageConfigData;
   accountInfo: AccountInfo[];
 }>();
 

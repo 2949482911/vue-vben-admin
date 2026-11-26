@@ -1,12 +1,15 @@
 <script setup lang="ts" name="PreviewArea">
-import { computed, onMounted, ref, watch } from "vue";
-import { Card, Divider, TabPane, Tabs } from "ant-design-vue";
-import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 import type {
   AccountTabData,
-  PreviewColumn,
-  LevelNames
+  LevelNames,
+  PreviewColumn
 } from "#/views/marketing/creation/components/preview_area/previewAreaData";
+
+import { computed, onMounted, ref, watch } from "vue";
+
+import { Card, Divider, TabPane, Tabs } from "ant-design-vue";
+
+import { useVbenVxeGrid, type VxeGridProps } from "#/adapter/vxe-table";
 
 /**
  * 列配置接口
@@ -186,7 +189,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
 });
 
 // 切换账户 Tab
-async function handleTabChange(key: string | number) {
+async function handleTabChange(key: number | string) {
   const accountId = String(key);
   activeAccountId.value = accountId;
   gridApi.setLoading(true);
@@ -318,7 +321,7 @@ defineExpose({
     <!-- 有数据时展示 -->
     <template v-else-if="!isEmpty">
       <!-- 使用 ant-vue 原生 Tabs 组件 -->
-      <Tabs v-model:activeKey="activeAccountId" @change="handleTabChange">
+      <Tabs v-model:active-key="activeAccountId" @change="handleTabChange">
         <TabPane v-for="item in tableData" :key="item.advertiserId">
           <template #tab>
             <div class="tab-content">

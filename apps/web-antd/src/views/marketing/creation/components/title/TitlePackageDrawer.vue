@@ -1,15 +1,19 @@
 <script setup lang="ts">
 
-import {useVbenDrawer} from '@vben/common-ui';
-import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
-import {titlePackApi, projectApi} from '#/api';
-import {ref} from 'vue';
-import {RuleMethod} from '#/views/marketing/creation/creation_enums';
+import type {GetTitlePackType, TitlePackageItem} from '#/api/models';
 import type {AccountInfo, TitlePackageConfigData} from '#/views/marketing/creation/creation';
-import type {TitlePackageItem, GetTitlePackType} from '#/api/models';
-import {trimObject} from '#/utils/trim';
-import {RadioGroup, RadioButton, type RadioChangeEvent, Tag, message, Tabs, TabPane} from 'ant-design-vue';
+
+import {ref} from 'vue';
+
+import {useVbenDrawer} from '@vben/common-ui';
+
+import {message, RadioButton, type RadioChangeEvent, RadioGroup, TabPane, Tabs, Tag} from 'ant-design-vue';
+
+import {useVbenVxeGrid, type VxeGridProps} from '#/adapter/vxe-table';
+import {projectApi, titlePackApi} from '#/api';
 import {ACTIVE_PLATFORM, TABLE_COMMON_COLUMNS} from '#/constants/locales';
+import {trimObject} from '#/utils/trim';
+import {RuleMethod} from '#/views/marketing/creation/creation_enums';
 
 const props = defineProps<{
   accountInfo: AccountInfo[];
@@ -162,7 +166,7 @@ function allocationMethodChange(e: RadioChangeEvent) {
 }
 
 // 账户点击/切换
-async function handleAccountClick(account: AccountInfo | string | number) {
+async function handleAccountClick(account: AccountInfo | number | string) {
   const grid = gridApi.grid;
   if (!grid) return;
   // 保存上一个账户的数据
@@ -280,7 +284,7 @@ const [Drawer, drawerApi] = useVbenDrawer<TitlePackageConfigData>({
     </div>
 
     <!-- 按账户分配模式：Tabs 展示各账户 -->
-    <Tabs v-if="distributionMethod === RuleMethod.ACCOUNT" v-model:activeKey="currentAccountId" @change="handleAccountClick">
+    <Tabs v-if="distributionMethod === RuleMethod.ACCOUNT" v-model:active-key="currentAccountId" @change="handleAccountClick">
       <TabPane v-for="account in accountInfo" :key="String(account.localAdvertiserId)" :tab="getAccountName(account)">
         <Grid>
           <template #status="{ row }">

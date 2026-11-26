@@ -8,11 +8,11 @@ export interface AccountLabelOption {
 }
 
 /**
- * 标签多选数据源（platform_advertiser_tag 列表）
+ * 全局标签数据源（platform_advertiser_tag 列表）
  * 资产类数据统一存 labelIds（标签ID数组），展示时按 ID 映射名称。
- * @param labelType 标签类型（字典 label_type），不同资产只查自己的标签
+ * 历史数据存在同名重复，选择器按名称去重临时展示。
  */
-export function useAccountLabelOptions(labelType?: string) {
+export function useAccountLabelOptions() {
   const labelOptions = ref<AccountLabelOption[]>([]);
   let loaded = false;
 
@@ -23,14 +23,19 @@ export function useAccountLabelOptions(labelType?: string) {
     const res: any = await accountLabelApi.fetchGetAccountLabelList({
       page: 1,
       pageSize: 1000,
-      ...(labelType ? { labelType } : {}),
     });
+    const seen = new Set<string>();
     labelOptions.value = (res?.items ?? [])
       .filter((item: any) => item.status === undefined || item.status === 1)
       .map((item: any) => ({
         label: item.name || String(item.id),
         value: String(item.id),
-      }));
+      }))
+      .filter((item: AccountLabelOption) => {
+        if (seen.has(item.label)) return false;
+        seen.add(item.label);
+        return true;
+      });
     loaded = true;
     return labelOptions.value;
   }

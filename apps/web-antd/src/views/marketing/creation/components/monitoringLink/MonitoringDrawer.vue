@@ -1,23 +1,28 @@
 <script setup lang="ts" name="MonitoringDrawer">
-// 监测链接选择抽屉 - 供后续全媒体批投公用
-import { useVbenDrawer } from "@vben/common-ui";
-import { ref, computed, nextTick } from "vue";
 import type {
   AccountInfo,
   MonitoringLinkConfigData,
   MonitoringLinkType
 } from "#/views/marketing/creation/creation";
-import { RuleMethod } from "#/views/marketing/creation/creation_enums";
+
+import { computed, nextTick, ref } from "vue";
+
+// 监测链接选择抽屉 - 供后续全媒体批投公用
+import { useVbenDrawer } from "@vben/common-ui";
+
 import {
-  RadioGroup,
+  Divider,
+  message,
   RadioButton,
   type RadioChangeEvent,
-  message,
-  Tabs,
-  TabPane,
+  RadioGroup,
   Space,
-  Divider
+  TabPane,
+  Tabs
 } from "ant-design-vue";
+
+import { RuleMethod } from "#/views/marketing/creation/creation_enums";
+
 import MonitoringManualInput from "./MonitoringManualInput.vue";
 import MonitoringOcpx from "./MonitoringOcpx.vue";
 
@@ -165,7 +170,7 @@ function getAccountName(account: AccountInfo): string {
 }
 
 // 账户点击/切换
-async function handleAccountClick(accountId: string | number) {
+async function handleAccountClick(accountId: number | string) {
   currentAccountId.value = String(accountId);
   // 切换账户时，同步该账户的链接到编辑对象
   // 使用 nextTick 确保 currentAccountId 更新后再同步数据
@@ -383,10 +388,14 @@ const [Drawer, drawerApi] = useVbenDrawer<MonitoringLinkConfigData>({
       <Divider />
 
       <!-- 按账户分配模式：Tabs 展示各账户 -->
-      <Tabs v-if="distributionMethod === RuleMethod.ACCOUNT" v-model:activeKey="currentAccountId"
-            @change="handleAccountClick">
-        <TabPane v-for="account in accountInfo" :key="String(account.localAdvertiserId)"
-                 :tab="getAccountName(account)">
+      <Tabs
+v-if="distributionMethod === RuleMethod.ACCOUNT" v-model:active-key="currentAccountId"
+            @change="handleAccountClick"
+>
+        <TabPane
+v-for="account in accountInfo" :key="String(account.localAdvertiserId)"
+                 :tab="getAccountName(account)"
+>
           <!-- 手动输入 -->
           <MonitoringManualInput
             v-if="linkModeType === RuleMethod.MANUAL"

@@ -1,17 +1,20 @@
 <script setup lang="ts" name="CreativeGroupPreview">
 // 创意组预览组件 - 展示已选素材信息（通用组件）
 
-import {computed} from 'vue';
-import {Button, Space} from 'ant-design-vue';
 import type {Material, MaterialData} from '#/views/marketing/creation/creation';
-import {RuleMethod} from '#/views/marketing/creation/creation_enums';
 
-const emit = defineEmits(['edit', 'clear']);
+import {computed} from 'vue';
+
+import {Button, Space} from 'ant-design-vue';
+
+import {RuleMethod} from '#/views/marketing/creation/creation_enums';
 
 const {material, maxCount = 200} = defineProps<{
   material: MaterialData | null;
   maxCount?: number;
 }>();
+
+const emit = defineEmits(['edit', 'clear']);
 
 // 计算总素材数量
 const totalCount = computed(() => {
@@ -88,11 +91,12 @@ function getGroupMaterialCount(group: Material): number {
             class="material-item"
           >
             <div class="material-thumb">
-              <img :src="mat.url" :alt="mat.name" class="thumb-img"/>
+              <img :src="mat.url" :alt="mat.name" class="thumb-img" />
               <div class="play-icon">
                 <svg viewBox="0 0 1024 1024" width="24" height="24" fill="white">
                   <path
-                    d="M358.4 249.6a38.4 38.4 0 0 1 57.6-32l390.4 224a38.4 38.4 0 0 1 0 64l-390.4 224a38.4 38.4 0 0 1-57.6-32v-448z"/>
+                    d="M358.4 249.6a38.4 38.4 0 0 1 57.6-32l390.4 224a38.4 38.4 0 0 1 0 64l-390.4 224a38.4 38.4 0 0 1-57.6-32v-448z"
+/>
                 </svg>
               </div>
             </div>

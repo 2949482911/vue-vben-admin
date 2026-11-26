@@ -19,35 +19,30 @@ import {
   titlePackApi,
   uploadEditApi,
 } from '#/api';
-import { LABEL_TYPE_CODES, LABEL_TYPE_COLORS } from '#/views/marketing/account/label/constants';
+import { getLabelColor } from '#/views/marketing/account/label/constants';
 
 const emit = defineEmits<{ success: [] }>();
 
 const ASSET_CONFIG: Record<
   AssetBatchLabelAsset,
   {
-    labelType: string;
     request: (params: BatchOptions) => Promise<unknown>;
     type: string;
   }
 > = {
   audience: {
-    labelType: LABEL_TYPE_CODES.target,
     request: (params) => targetedPackageApi.fetchBatchOptions(params),
     type: 'update_material_audience_package_label',
   },
   loading_page: {
-    labelType: LABEL_TYPE_CODES.page,
     request: (params) => loadingPageApi.fetchBatchOptions(params),
     type: 'update_material_loading_page_label',
   },
   material: {
-    labelType: LABEL_TYPE_CODES.material,
     request: (params) => uploadEditApi.fetchBatchOptions(params),
     type: 'update_material_label',
   },
   title: {
-    labelType: LABEL_TYPE_CODES.title,
     request: (params) => titlePackApi.fetchBatchOptions(params),
     type: 'update_material_title_page_label',
   },
@@ -58,22 +53,24 @@ const targetIds = ref<string[]>([]);
 const labelOptions = ref<Array<{ label: string; value: string }>>([]);
 
 const title = computed(() => `批量修改标签（${targetIds.value.length} 条）`);
-const labelColor = computed(
-  () => LABEL_TYPE_COLORS[ASSET_CONFIG[asset.value].labelType] ?? 'default',
-);
 
 async function loadLabelOptions() {
   const res: any = await accountLabelApi.fetchGetAccountLabelList({
-    labelType: ASSET_CONFIG[asset.value].labelType,
     page: 1,
     pageSize: 1000,
   });
+  const seen = new Set<string>();
   labelOptions.value = (res?.items ?? [])
     .filter((item: any) => item.status === undefined || item.status === 1)
     .map((item: any) => ({
       label: item.name || String(item.id),
       value: String(item.id),
-    }));
+    }))
+    .filter((item: { label: string; value: string }) => {
+      if (seen.has(item.label)) return false;
+      seen.add(item.label);
+      return true;
+    });
 }
 
 const [Form, formApi] = useVbenForm({
@@ -100,7 +97,7 @@ const [Form, formApi] = useVbenForm({
             {
               bordered: false,
               closable: tagProps.closable,
-              color: labelColor.value,
+              color: getLabelColor(tagProps.label),
               onClose: tagProps.onClose,
               style: { marginInlineEnd: '4px' },
             },

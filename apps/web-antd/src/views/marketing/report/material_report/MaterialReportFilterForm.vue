@@ -21,6 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
   wrapperClass: 'grid-cols-1 md:grid-cols-2',
   content: '确认',
   resultTotal: 0,
+  resetKey: 0,
   onConfirm: undefined,
   onCancel: undefined
 });
@@ -119,6 +120,7 @@ async function resetFormToDefault() {
   await formApi.setFieldValue('adgroup_id', []);       // 广告组
   await formApi.setFieldValue('creative_id', []);      // 创意
   await formApi.setFieldValue('media_material_id', []); // 媒体文件ID
+  await formApi.setFieldValue('file_md5', []);          // 素材MD5
   await formApi.setFieldValue('created_by', []);        // 优化师
   await formApi.setFieldValue('editor_id', []);         // 剪辑师
   await formApi.setFieldValue('org_id', []);            // 部门
@@ -339,7 +341,7 @@ const formOptions: VbenFormProps = {
       fieldName: 'creative_id',
       label: '创意',
     },
-    // ===== 素材侧筛选：后端在关联维度补齐后在 DataFrame 内过滤 =====
+    // ===== 素材侧筛选：后端在关联维度补齐后在 DataFrame 内过滤（含素材MD5） =====
     {
       component: 'Input',
       componentProps: {
@@ -378,6 +380,16 @@ const formOptions: VbenFormProps = {
       },
       fieldName: 'media_material_id',
       label: '媒体文件ID',
+    },
+    {
+      component: 'Select',
+      componentProps: {
+        allowClear: true,
+        mode: 'tags',
+        placeholder: '输入素材MD5，回车添加',
+      },
+      fieldName: 'file_md5',
+      label: '素材MD5',
     },
     {
       component: 'Input',

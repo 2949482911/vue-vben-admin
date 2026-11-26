@@ -26,7 +26,7 @@ import {
 } from 'ant-design-vue';
 
 import { materialLibraryApi, uploadEditApi } from '#/api';
-import { LABEL_TYPE_CODES, LABEL_TYPE_COLORS } from '#/views/marketing/account/label/constants';
+import { getLabelColor } from '#/views/marketing/account/label/constants';
 import { useAccountLabelOptions } from '#/views/marketing/account/label/useAccountLabelOptions';
 
 type MaterialRow = MaterialItem & {
@@ -55,11 +55,7 @@ type FolderNode = {
 
 const emit = defineEmits(['update:material']);
 
-const { labelNamesOf, labelOptions, loadLabelOptions } = useAccountLabelOptions(
-  LABEL_TYPE_CODES.material,
-);
-const materialLabelColor =
-  LABEL_TYPE_COLORS[LABEL_TYPE_CODES.material] ?? 'default';
+const { labelNamesOf, labelOptions, loadLabelOptions } = useAccountLabelOptions();
 
 const loading = ref(false);
 const listData = ref<MaterialRow[]>([]);
@@ -468,14 +464,14 @@ onMounted(async () => {
                   v-for="tag in itemTags(item).slice(0, 2)"
                   :key="tag"
                   :bordered="false"
-                  :color="materialLabelColor"
+                  :color="getLabelColor(tag)"
                 >
                   {{ tag }}
                 </Tag>
                 <Tag
                   v-if="itemTags(item).length > 2"
                   :bordered="false"
-                  :color="materialLabelColor"
+                  color="default"
                 >
                   +{{ itemTags(item).length - 2 }}
                 </Tag>

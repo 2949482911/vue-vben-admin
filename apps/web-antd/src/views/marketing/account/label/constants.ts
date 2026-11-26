@@ -1,22 +1,24 @@
-/** 标签类型字典编码（系统字典管理里维护：value 存 labelType） */
-export const LABEL_TYPE_DICT_CODE = 'label_type';
+/** 标签展示色盘：按标签名稳定取色，保证同一标签各处颜色一致 */
+const LABEL_PALETTE = [
+  'blue',
+  'purple',
+  'cyan',
+  'green',
+  'orange',
+  'geekblue',
+  'magenta',
+  'volcano',
+  'gold',
+  'lime',
+];
 
-/** 各类资产对应的标签类型值 */
-export const LABEL_TYPE_CODES = {
-  advertiser: 'advertiser_label',
-  material: 'material_label',
-  page: 'page_label',
-  strategy: 'strategy_label',
-  target: 'target_label',
-  title: 'title_label',
-} as const;
-
-/** 标签类型默认配色（字典未配置颜色时使用） */
-export const LABEL_TYPE_COLORS: Record<string, string> = {
-  [LABEL_TYPE_CODES.advertiser]: 'blue',
-  [LABEL_TYPE_CODES.material]: 'purple',
-  [LABEL_TYPE_CODES.page]: 'cyan',
-  [LABEL_TYPE_CODES.strategy]: 'geekblue',
-  [LABEL_TYPE_CODES.target]: 'orange',
-  [LABEL_TYPE_CODES.title]: 'green',
-};
+export function getLabelColor(name?: string): string {
+  if (!name) {
+    return 'default';
+  }
+  let hash = 0;
+  for (let index = 0; index < name.length; index += 1) {
+    hash = (hash * 31 + name.charCodeAt(index)) >>> 0;
+  }
+  return LABEL_PALETTE[hash % LABEL_PALETTE.length]!;
+}
